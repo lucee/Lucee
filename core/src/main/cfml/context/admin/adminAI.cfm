@@ -56,7 +56,7 @@
 		var markerPos = find(arguments.marker, arguments.raw);
 		if (markerPos) {
 			return {
-				"before": left(arguments.raw, markerPos - 1),
+				"before": mid(arguments.raw, 1, markerPos - 1),
 				"after": mid(arguments.raw, markerPos + len(arguments.marker))
 			};
 		}
@@ -80,21 +80,9 @@
 	contentAfter = splitContent.after;
 
 	function adminAIStripTagBlocks(required string raw, required string tagName) {
-		var t = arguments.raw;
-		var openNeedle = "<" & lCase(arguments.tagName);
-		var closeTag = "</" & lCase(arguments.tagName) & ">";
-		var openPos = findNoCase(openNeedle, t);
-
-		while (openPos) {
-			var closePos = findNoCase(closeTag, t, openPos);
-			if (!closePos) {
-				break;
-			}
-			t = left(t, openPos - 1) & " " & mid(t, closePos + len(closeTag));
-			openPos = findNoCase(openNeedle, t, openPos);
-		}
-
-		return t;
+		var tag = lCase(arguments.tagName);
+		var pattern = "(?is)<" & tag & "[^>]*>.*?</" & tag & ">";
+		return reReplace(arguments.raw, pattern, " ", "all");
 	}
 
 	function adminAICleanPageContext(required string raw) {
@@ -142,16 +130,7 @@
 	}
 
 	function adminAIRemoveNavigationBlock(required string raw) {
-		var marker = "<!-- admin-ai-navigation";
-		var startPos = findNoCase(marker, arguments.raw);
-		if (!startPos) {
-			return arguments.raw;
-		}
-		var endPos = find("-->", arguments.raw, startPos);
-		if (!endPos) {
-			return arguments.raw;
-		}
-		return trim(left(arguments.raw, startPos - 1) & mid(arguments.raw, endPos + 3));
+		return trim(reReplace(arguments.raw, "(?is)<!--\s*admin-ai-navigation[^>]*>.*?-->", "", "all"));
 	}
 
 	function adminAIBuildSystemMessage(

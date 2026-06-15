@@ -312,7 +312,13 @@ public class ExtensionProvider {
 	public List<String> list() throws InterruptedException, IOException {
 		List<String> artifacts = new ArrayList<>();
 		for (String artifact: listAllProjects()) {
-			if (artifact.endsWith("-extension")) artifacts.add(artifact);
+			if (!artifact.endsWith("-extension")) continue;
+			try {
+				if (last(artifact) != null) artifacts.add(artifact);
+			}
+			catch (Exception e) {
+				// skip artifacts with no resolvable version on any configured repo
+			}
 		}
 		Collections.sort(artifacts);
 		return artifacts;

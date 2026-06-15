@@ -90,6 +90,8 @@ Point Ant at a JDK 21+ before building, e.g.:
       <delete dir="${outputDir}"/>
   </target>
 
+  <target name="test" depends="core" description="alias for core (build Lucee and run testcases; use -DtestFilter=Name to filter)"/>
+
   <target name="fast" depends="setEnv" description="build only Lucee itself">
       <property name="target" location="target"/>
 
