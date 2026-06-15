@@ -327,7 +327,9 @@
 								extensions[artifactId]["last"]=luceeExtension(groupId,artifactId,versions[v],true);
 								break;
 							}
-							catch(any e) {}
+							catch(any e) {
+								extensions[artifactId]["last"]={};
+							}
 						}
 					}
 				}

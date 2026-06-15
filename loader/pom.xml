@@ -19,22 +19,6 @@
     <maven.build.timestamp.zone>UTC</maven.build.timestamp.zone>
     <maven.build.timestamp.locale>en,GB</maven.build.timestamp.locale>
     <main.class>lucee.runtime.script.Main</main.class>
-    <!-- forwarded to Ant / CFML test runner via maven-antrun-plugin -->
-    <testFilter></testFilter>
-    <testLabels></testLabels>
-    <testAdditional></testAdditional>
-    <testSkip></testSkip>
-    <testDebug></testDebug>
-    <testDebugAbort></testDebugAbort>
-    <testRandomSort></testRandomSort>
-    <testSuiteExtends></testSuiteExtends>
-    <testServices></testServices>
-    <testDebugger></testDebugger>
-    <testJavaVersionExec></testJavaVersionExec>
-    <testExtensions></testExtensions>
-    <UseEpsilonGC></UseEpsilonGC>
-    <FlightRecording></FlightRecording>
-    <skipTests>false</skipTests>
   </properties>
 
   <licenses>
@@ -233,9 +217,7 @@
                     <property name="runtime_classpath" refid="maven.runtime.classpath" />
 
                     <property name="outputDir" value="${project.build.outputDirectory}" />
-                    <condition property="testcases" value="false" else="true">
-                      <equals arg1="${skipTests}" arg2="true"/>
-                    </condition>
+                    <property name="testcases" value="true" />
                     <property name="compileTestBox" value="true"/><!-- needed for cfml build archives-->
                     <property name="buildLoaderJar" value="true"/>                    
 
@@ -243,23 +225,7 @@
                     <property name="baseDir" value="${basedir}" />
                     <dirname file="${baseDir}" property="rootDir" />
 
-                    <!-- pass Maven -D test runner options through to build-core.xml / run-tests.cfm -->
-                    <property name="testFilter" value="${testFilter}" />
-                    <property name="testLabels" value="${testLabels}" />
-                    <property name="testAdditional" value="${testAdditional}" />
-                    <property name="testSkip" value="${testSkip}" />
-                    <property name="testDebug" value="${testDebug}" />
-                    <property name="testDebugAbort" value="${testDebugAbort}" />
-                    <property name="testRandomSort" value="${testRandomSort}" />
-                    <property name="testSuiteExtends" value="${testSuiteExtends}" />
-                    <property name="testServices" value="${testServices}" />
-                    <property name="testDebugger" value="${testDebugger}" />
-                    <property name="testJavaVersionExec" value="${testJavaVersionExec}" />
-                    <property name="testExtensions" value="${testExtensions}" />
-                    <property name="UseEpsilonGC" value="${UseEpsilonGC}" />
-                    <property name="FlightRecording" value="${FlightRecording}" />
-
-                    <ant antfile="../ant/build-core.xml" target="buildLoaderMaven" inheritAll="true" />
+                    <ant antfile="../ant/build-core.xml" target="buildLoaderMaven" />
 
                   </target>
                 </configuration>
