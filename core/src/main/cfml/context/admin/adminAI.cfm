@@ -23,6 +23,18 @@
 		rawContent = prefixContent & rawContent;
 	}
 
+	adminAIAvailable = false;
+	try {
+		adminAIAvailable = AIHas("default:administrator");
+	}
+	catch (any e) {
+		adminAIAvailable = false;
+	}
+
+	contentBefore = "";
+	contentAfter = rawContent;
+	showBar = false;
+
 	function adminAIFindPageIntroEnd(required string raw) {
 		var searchFrom = 1;
 		while (true) {
@@ -74,10 +86,6 @@
 			"after": arguments.raw
 		};
 	}
-
-	splitContent = adminAISplitContent(rawContent, aiLocationMarker);
-	contentBefore = splitContent.before;
-	contentAfter = splitContent.after;
 
 	function adminAIStripTagBlocks(required string raw, required string tagName) {
 		var t = arguments.raw;
@@ -262,6 +270,11 @@
 		return [];
 	}
 
+	if (adminAIAvailable) {
+	splitContent = adminAISplitContent(rawContent, aiLocationMarker);
+	contentBefore = splitContent.before;
+	contentAfter = splitContent.after;
+
 	navIndex = [];
 	if (trim(attributes.pageAction) == "overview" && structKeyExists(request, "adminAINavIndex") && isArray(request.adminAINavIndex)) {
 		navIndex = request.adminAINavIndex;
@@ -347,6 +360,12 @@
 		request.adminAI.rendered = true;
 		request.adminAI.chatHistoryJson = serializeJSON(request.adminAI.chatHistory ?: []);
 		request.adminAI.chatHistoryJson = replace(request.adminAI.chatHistoryJson, "</", "<\/", "all");
+	}
+	} else {
+		if (!structKeyExists(request, "adminAI")) {
+			request.adminAI = {};
+		}
+		request.adminAI.enabled = false;
 	}
 
 	if (thisTag.hasEndTag) {
