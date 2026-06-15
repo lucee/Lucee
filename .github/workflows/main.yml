@@ -275,7 +275,7 @@ jobs:
             echo "------- Maven Test SNAPSHOT (no deploy) on ${{ github.event_name }} ---------"
             mvn -B -e -f loader/pom.xml test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
           fi
-        elif [[ "$VERSION_CLEAN" == *-ALPHAX ]]; then
+        elif [[ "$VERSION_CLEAN" == *-ALPHA ]]; then
           echo "------- Maven Install ALPHA (no deployment) on ${{ github.event_name }} ---------"
           mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         else
