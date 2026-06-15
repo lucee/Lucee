@@ -108,6 +108,23 @@ component extends="AI" {
 				}
 			},
 			{
+				label: "Insert Lucee Admin MCP Server",
+				description: "Template for the Lucee Server Administrator configuration MCP endpoint. Replace ${LUCEE_ADMIN_MCP_URL} with your public HTTPS base URL (for example https://your-server.example.com) and ${LUCEE_ADMIN_PASSWORD} with the server admin password. Requires LUCEE_ADMIN_MCP_ACCESS=read or write.",
+				json: {
+					"tools": [
+						{
+							"type": "mcp",
+							"server_label": getLuceeAdminMcpServerName(),
+							"server_url": getLuceeAdminMcpServerUrl(),
+							"require_approval": "never",
+							"headers": {
+								"Authorization": "Bearer ${LUCEE_ADMIN_PASSWORD}"
+							}
+						}
+					]
+				}
+			},
+			{
 				label: "Insert JSON response mode",
 				description: "Enforces JSON object responses. Add a system message instruction to respond in JSON.",
 				json: {

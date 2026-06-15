@@ -81,6 +81,7 @@ component extends="AI" {
 
 	public array function getPassthroughShortcuts() {
 		var mcpName = getLuceeMcpServerName();
+		var adminMcpName = getLuceeAdminMcpServerName();
 		return [
 			{
 				label: "Insert Lucee MCP Server",
@@ -99,6 +100,29 @@ component extends="AI" {
 						{
 							"type": "mcp_toolset",
 							"mcp_server_name": mcpName
+						}
+					]
+				}
+			},
+			{
+				label: "Insert Lucee Admin MCP Server",
+				description: "Template for the Lucee Server Administrator configuration MCP endpoint. Replace ${LUCEE_ADMIN_MCP_URL} with your public HTTPS base URL (for example https://your-server.example.com) and ${LUCEE_ADMIN_PASSWORD} with the server admin password. Requires LUCEE_ADMIN_MCP_ACCESS=read or write. Remote MCP connectors (Claude API) cannot use localhost.",
+				json: {
+					"headers": {
+						"anthropic-beta": "mcp-client-2025-11-20"
+					},
+					"mcp_servers": [
+						{
+							"type": "url",
+							"url": getLuceeAdminMcpServerUrl(),
+							"name": adminMcpName,
+							"authorization_token": "${LUCEE_ADMIN_PASSWORD}"
+						}
+					],
+					"tools": [
+						{
+							"type": "mcp_toolset",
+							"mcp_server_name": adminMcpName
 						}
 					]
 				}

@@ -22,6 +22,14 @@ component {
 		return "lucee";
 	}
 
+	public string function getLuceeAdminMcpServerUrl() {
+		return "${LUCEE_ADMIN_MCP_URL}/lucee/admin/mcp.cfm";
+	}
+
+	public string function getLuceeAdminMcpServerName() {
+		return "lucee-config";
+	}
+
 	public array function getPassthroughShortcuts() {
 		return [];
 	}
