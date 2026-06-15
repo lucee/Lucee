@@ -69,11 +69,11 @@ public final class LuceeExtension extends BIF {
 
 				if (download) {
 					ConfigPro config = (ConfigPro) pc.getConfig();
+					Resource local = ep.getLEXResource(config, artifactId, version);
+					sct.set(KeyConstants._local, local.getAbsolutePath());
+
 					Struct meta = metadataFromPOM(ep, config, artifactId, version, sct);
 					if (meta == null) {
-						Resource local = ep.getLEXResource(config, artifactId, version);
-						sct.set(KeyConstants._local, local.getAbsolutePath());
-
 						RHExtension ext = RHExtension.getInstance(config, local, config.getLog("application"));
 						ExtensionMetadata em = ext.getMetadata();
 						meta = new StructImpl();
