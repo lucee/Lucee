@@ -1,7 +1,12 @@
 <cfscript>
 	include "ext.functions.cfm";
 	
-	external=getLuceeExtensions(getExtensionGroups());
+	try {
+		external=getLuceeExtensions(getExtensionGroups());
+	}
+	catch(any e) {
+		external=queryNew("id,name,groupId,artifactId,version,lastModified,description,otherVersions,image");
+	}
 
 	stText.ext.forgeboxTitle = "Forgebox Extensions";
 	stText.ext.forgeboxDescApps = "Extensions published on Forgebox are available once you add the Maven groupId ""io.forgebox"" on the Extension Providers page.";

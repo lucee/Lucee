@@ -318,19 +318,24 @@
 				var name=prefix&"_"&groupId&"_"&artifactId;
 				arrayAppend(names, name);
 				thread name=name extensions=extensions groupId=groupId artifactId=artifactId {
-					extensions[artifactId]["groupId"]=groupId;
-					var versions=luceeExtension(groupId,artifactId);
-					extensions[artifactId]["versions"]=versions;
-					if(len(versions)) {
-						for(local.v=len(versions);local.v > 0;local.v--) {
-							try{
-								extensions[artifactId]["last"]=luceeExtension(groupId,artifactId,versions[v],true);
-								break;
-							}
-							catch(any e) {
-								extensions[artifactId]["last"]={};
+					try {
+						extensions[artifactId]["groupId"]=groupId;
+						var versions=luceeExtension(groupId,artifactId);
+						extensions[artifactId]["versions"]=versions;
+						if(len(versions)) {
+							for(local.v=len(versions);local.v > 0;local.v--) {
+								try{
+									extensions[artifactId]["last"]=luceeExtension(groupId,artifactId,versions[v],true);
+									break;
+								}
+								catch(any e) {
+									extensions[artifactId]["last"]={};
+								}
 							}
 						}
+					}
+					catch(any e) {
+						extensions[artifactId]["last"]={};
 					}
 				}
 			}
@@ -340,14 +345,16 @@
 			
 		loop struct=extensions key="local.artifactId" item="local.data" {
 			if(isNull(data.last) || structCount(data.last)==0) continue;
+			var meta = structKeyExists(data.last, "metadata") ? data.last.metadata : {};
+			if(!len(meta.id ?: "") && !len(meta.name ?: "")) continue;
 			var row=queryAddRow(qry);
 			querySetCell(qry,"groupId",data.groupId ?: groupId);
 			querySetCell(qry,"artifactId",artifactId);
-			querySetCell(qry,"id",data.last.metadata.id?:"");
-			querySetCell(qry,"name",data.last.metadata.name?:"");
-			querySetCell(qry,"description",data.last.metadata.description?:"");
-			querySetCell(qry,"image",data.last.metadata.image?:"");
-			querySetCell(qry,"lastModified",data.last.metadata.buildDate?:data.last.lastModified);
+			querySetCell(qry,"id",meta.id ?: "");
+			querySetCell(qry,"name",meta.name ?: "");
+			querySetCell(qry,"description",meta.description ?: "");
+			querySetCell(qry,"image",meta.image ?: "");
+			querySetCell(qry,"lastModified",meta.buildDate ?: (data.last.lastModified ?: ""));
 			querySetCell(qry,"version",data.last.version?:"");
 			querySetCell(qry,"otherVersions",data.versions);
 			
