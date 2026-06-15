@@ -34,6 +34,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/8.0') }}"
+      # Push to 8.0 with "[release]" in the commit message deploys to Maven even when pom version ends with -ALPHA
+      FORCE_RELEASE: "${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[release]') }}"
       LUCEE_BUILD_JAVA_VERSION: 25
       LUCEE_TEST_JAVA_VERSION: ''
     services:
@@ -266,6 +268,7 @@ jobs:
       run: |
         VERSION_CLEAN="${VERSION//[$'\t\r\n ']}"
         echo "-------DO_DEPLOY: ${{ env.DO_DEPLOY }} -------"
+        echo "-------FORCE_RELEASE: ${{ env.FORCE_RELEASE }} -------"
         echo "-------VERSION_CLEAN: '$VERSION_CLEAN' -------"
         if [[ "$VERSION_CLEAN" == *-SNAPSHOT ]]; then
           if [[ "${{ env.DO_DEPLOY }}" == "true" ]]; then
@@ -276,8 +279,13 @@ jobs:
             mvn -B -e -f loader/pom.xml test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
           fi
         elif [[ "$VERSION_CLEAN" == *-ALPHA ]]; then
-          echo "------- Maven Install ALPHA (no deployment) on ${{ github.event_name }} ---------"
-          mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          if [[ "${{ env.FORCE_RELEASE }}" == "true" && "${{ env.DO_DEPLOY }}" == "true" ]]; then
+            echo "------- Maven Deploy RELEASE (forced via [release] commit message) on ${{ github.event_name }} -------"
+            mvn -B -e -f loader/pom.xml clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          else
+            echo "------- Maven Install ALPHA (no deployment) on ${{ github.event_name }} ---------"
+            mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          fi
         else
           if [[ "${{ env.DO_DEPLOY }}" == "true" ]]; then
             echo "------- Maven Deploy RELEASE on ${{ github.event_name }} -------"
