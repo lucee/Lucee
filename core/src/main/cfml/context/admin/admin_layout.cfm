@@ -307,6 +307,15 @@
 					if (/password|secret|key/i.test(name)) {
 						return;
 					}
+					if (name === "name") {
+						if ($form.find("input[name='_name']").length) {
+							return;
+						}
+						var nameVal = actions[name];
+						if (typeof nameVal === "string" && /^.+,[0-9A-F]{32}$/.test(nameVal)) {
+							return;
+						}
+					}
 					var val = actions[name];
 					var $els = $form.find("[name='" + name.replace(/'/g, "\\'") + "']");
 					if (!$els.length) {
@@ -343,6 +352,12 @@
 				return count;
 			}
 
+			function adminAIDismissWaitOverlay() {
+				if (typeof $.unblockUI === "function") {
+					$.unblockUI();
+				}
+			}
+
 			function adminAIFinishExchange($exchange, $box, html) {
 				var parsed = adminAIParseSusiActions(html);
 				var $answerEl = $exchange.find(".admin-ai-answer");
@@ -356,7 +371,7 @@
 				var $applyRow = $exchange.find(".admin-ai-apply-row");
 				if (!$applyRow.length) {
 					$applyRow = $("<div class=\"admin-ai-apply-row\"></div>");
-					$applyRow.append($("<button type=\"button\" class=\"admin-ai-apply button submit\">Apply to form</button>"));
+					$applyRow.append($("<button type=\"button\" class=\"admin-ai-apply button\">Apply to form</button>"));
 					$exchange.append($applyRow);
 				}
 
@@ -430,8 +445,12 @@
 					var name = $el.attr("name");
 					if (!name || name === "question") return;
 					if (name === "mainAction" || name === "cancel" || name === "subAction") return;
+					if (name === "class" || name === "_name" || name === "bundleName" || name === "bundleVersion") return;
+					if (name === "name" && $form.find("input[name='_name']").length) return;
+					if (/apikey|secretkey|secret|password/i.test(name)) return;
 					var type = ($el.attr("type") || "").toLowerCase();
 					if (type === "password" || (type === "hidden" && /password|secret|key/i.test(name))) return;
+					if ($el.closest(".admin-ai-box").length) return;
 					if (type === "checkbox" || type === "radio") {
 						if ($el.is(":checked")) state[name] = $el.val();
 					} else {
@@ -501,6 +520,8 @@
 					$box.removeClass("is-loading");
 					$answerEl.removeClass("is-loading");
 					$answerEl.text(err.message || "AI request failed");
+				}).finally(function() {
+					adminAIDismissWaitOverlay();
 				});
 			}
 
@@ -532,6 +553,7 @@
 					console.warn("adminAI flush failed", err);
 				}).finally(function() {
 					$box.removeClass("is-loading");
+					adminAIDismissWaitOverlay();
 				});
 			}
 

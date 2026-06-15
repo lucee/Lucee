@@ -199,7 +199,7 @@ public final class ClaudeSession extends AISessionSupport {
 
 		// Convert request body to JSON
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
-		String str = json.serialize(null, requestBody, SerializationSettings.SERIALIZE_AS_COLUMN, null);
+		String str = json.serialize(null, requestBody, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
 
 		LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "request message send by [" + engine.getLabel() + "]: " + str, "ai", "application");
 

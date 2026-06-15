@@ -364,7 +364,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 				sct.set("training_file", trainingFileId);
 				sct.set(KeyConstants._model, model);
 				JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
-				String str = json.serialize(null, sct, SerializationSettings.SERIALIZE_AS_COLUMN, null);
+				String str = json.serialize(null, sct, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
 				StringEntity entity = new StringEntity(str);
 				post.setEntity(entity);
 

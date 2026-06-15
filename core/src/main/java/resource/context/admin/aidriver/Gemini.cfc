@@ -87,4 +87,52 @@ component extends="AI" {
 	public string function getDescription() {
 		return "Connect to Google's Gemini AI models (https://ai.google.dev) through their official API.";
 	}
+
+	public array function getPassthroughShortcuts() {
+		return [
+			{
+				label: "Insert structured JSON response",
+				description: "Enforces a JSON response schema via generationConfig. Requires Enable Beta Access.",
+				json: {
+					"generationConfig": {
+						"responseMimeType": "application/json",
+						"responseSchema": {
+							"type": "OBJECT",
+							"properties": {
+								"answer": { "type": "STRING" }
+							},
+							"required": ["answer"]
+						}
+					}
+				}
+			},
+			{
+				label: "Insert Google Search",
+				description: "Ground responses with Google Search. Requires Enable Beta Access.",
+				json: {
+					"tools": [
+						{ "google_search": {} }
+					]
+				}
+			},
+			{
+				label: "Insert URL context",
+				description: "Ground responses in URLs provided in the conversation. Requires Enable Beta Access.",
+				json: {
+					"tools": [
+						{ "url_context": {} }
+					]
+				}
+			},
+			{
+				label: "Insert code execution",
+				description: "Lets the model run Python for calculations and analysis. Requires Enable Beta Access.",
+				json: {
+					"tools": [
+						{ "code_execution": {} }
+					]
+				}
+			}
+		];
+	}
 }

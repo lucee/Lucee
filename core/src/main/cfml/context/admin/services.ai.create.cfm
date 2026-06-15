@@ -10,6 +10,65 @@ function obfuscate(raw) {
 function addZero(str) {
 	return arguments.str;
 }
+
+function aiGetDriverFieldNames(required any driver) {
+	var names = [];
+	for (var field in arguments.driver.getCustomFields()) {
+		if (!isInstanceOf(field, "Group")) {
+			arrayAppend(names, field.getName());
+		}
+	}
+	return names;
+}
+
+function aiExtractPassthroughCustom(required struct custom, required array driverFieldNames) {
+	var passthrough = {};
+	for (var key in arguments.custom) {
+		if (!arrayFindNoCase(arguments.driverFieldNames, key)) {
+			passthrough[key] = arguments.custom[key];
+		}
+	}
+	return passthrough;
+}
+
+function aiMergePassthroughJson(required struct custom, required string passthroughJson, required array driverFieldNames) {
+	var json = trim(arguments.passthroughJson ?: "");
+	if (!len(json)) {
+		return arguments.custom;
+	}
+	var passthrough = deserializeJSON(json);
+	if (!isStruct(passthrough)) {
+		throw(message="Passthrough configuration must be a JSON object", type="admin.ai.passthrough");
+	}
+	for (var key in passthrough) {
+		if (!arrayFindNoCase(arguments.driverFieldNames, key)) {
+			arguments.custom[key] = passthrough[key];
+		}
+	}
+	return arguments.custom;
+}
+
+function aiFormatPassthroughJson(any value) {
+	if (isNull(arguments.value)) {
+		return "";
+	}
+	if (isSimpleValue(arguments.value) && !len(trim(arguments.value))) {
+		return "";
+	}
+	var data = arguments.value;
+	if (isSimpleValue(data)) {
+		try {
+			data = deserializeJSON(trim(data));
+		}
+		catch (any e) {
+			return trim(data);
+		}
+	}
+	if (isStruct(data) && !structCount(data)) {
+		return "";
+	}
+	return serializeJSON(var=data, compact=false);
+}
 </cfscript>
 
 
@@ -44,9 +103,20 @@ function addZero(str) {
 						defaults[mid(key,16,10000)]=form[key];
 					}
 				}
+				connectionName = trim(form.name);
+				if (structKeyExists(form, "_name") && len(trim(form._name))) {
+					connectionName = trim(form._name);
+				}
+				else if (reFind("^.+,[0-9A-F]{32}$", connectionName)) {
+					baseName = listFirst(connectionName);
+					if (hash(baseName) == uCase(listLast(connectionName))) {
+						connectionName = baseName;
+					}
+				}
+
 				if(len(defaults)) {
 					loop query=connections {
-						if(connections.name==trim(form.name)) {
+						if(connections.name==connectionName) {
 							defaultCustom=connections.custom;
 							break;
 						}
@@ -59,6 +129,17 @@ function addZero(str) {
 						}
 					}
 				}
+
+				driverFieldNames = aiGetDriverFieldNames(drivers[trim(form.class)]);
+				try {
+					custom = aiMergePassthroughJson(custom, structKeyExists(form, "passthroughJson") ? form.passthroughJson : "", driverFieldNames);
+				}
+				catch (any e) {
+					if (e.type == "admin.ai.passthrough") {
+						throw(message=e.message, detail="The passthrough configuration must be valid JSON defining an object, for example: {""max_tokens"":8192}");
+					}
+					throw(message="Failed to parse passthrough JSON", detail=e.message);
+				}
 			</cfscript>
 			<cfadmin 
 				action="updateAIConnection"
@@ -66,7 +147,7 @@ function addZero(str) {
 				password="#session["password"&request.adminType]#"
 				
 				
-				name="#trim(form.name)#" 
+				name="#connectionName#" 
 				class="#trim(form.class)#"
 				bundleName="#isNull(form.bundleName)?"":trim(form.bundleName)#"
 				bundleVersion="#isNull(form.bundleVersion)?"":trim(form.bundleVersion)#"
@@ -124,6 +205,14 @@ Redirtect to entry --->
 	<!--- <cfset connection.name=lcase(driver.getLabel())&"_"&FormatBaseN(randRange(1,999999),36)> --->
 	<cfset connection.name="">
 </cfif>
+
+<cfset driverFieldNames = aiGetDriverFieldNames(driver)>
+<cfset passthroughCustom = aiExtractPassthroughCustom(isStruct(connection.custom ?: {}) ? connection.custom : {}, driverFieldNames)>
+<cfset passthroughJson = aiFormatPassthroughJson(passthroughCustom)>
+<cfif structKeyExists(form, "passthroughJson") && cgi.request_method EQ "POST" && form.mainAction EQ stText.Buttons.submit && len(error.message)>
+	<cfset passthroughJson = aiFormatPassthroughJson(form.passthroughJson)>
+</cfif>
+<cfset passthroughShortcuts = driver.getPassthroughShortcuts()>
 
 
 
@@ -318,6 +407,26 @@ Redirtect to entry --->
 				</cfloop>
 				</tbody>
 			</table>
+			<h2>#stText.Settings.ai.passthroughTitle#</h2>
+			<div class="itemintro">#stText.Settings.ai.passthroughDesc#</div>
+			<table class="maintbl">
+				<tbody>
+					<tr>
+						<th scope="row">JSON</th>
+						<td>
+							<textarea class="large ai-passthrough-json" name="passthroughJson" rows="12" style="width:100%;font-family:monospace;">#passthroughJson#</textarea>
+							<cfif arrayLen(passthroughShortcuts)>
+								<div class="ai-passthrough-shortcuts">
+									<div class="comment">#stText.Settings.ai.passthroughShortcutsDesc#</div>
+									<cfloop array="#passthroughShortcuts#" item="shortcut">
+										<button type="button" class="button ai-passthrough-shortcut" data-json="#encodeForHTMLAttribute(isStruct(shortcut.json) ? serializeJSON(shortcut.json) : shortcut.json)#" title="#encodeForHTMLAttribute(shortcut.description ?: '')#">#encodeForHTML(shortcut.label)#</button>
+									</cfloop>
+								</div>
+							</cfif>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 			<h2>#stText.Settings.ai.default#</h2>
 			<div class="itemintro">#stText.Settings.ai.defaultDesc#</div>
 			<table class="maintbl">
@@ -349,6 +458,68 @@ Redirtect to entry --->
 		</table>
 	</cfformClassic>
 </cfoutput>
+<cfif arrayLen(passthroughShortcuts)>
+<script>
+(function() {
+	function aiPassthroughMerge(current, incoming) {
+		var out = {};
+		var key;
+		for (key in current) {
+			if (Object.prototype.hasOwnProperty.call(current, key)) {
+				out[key] = current[key];
+			}
+		}
+		for (key in incoming) {
+			if (!Object.prototype.hasOwnProperty.call(incoming, key)) continue;
+			if (key === "headers" && out.headers && typeof incoming.headers === "object" && !Array.isArray(incoming.headers)) {
+				out.headers = Object.assign({}, out.headers, incoming.headers);
+			} else if (Array.isArray(incoming[key])) {
+				out[key] = Array.isArray(out[key]) ? out[key].concat(incoming[key]) : incoming[key].slice();
+			} else if (incoming[key] && typeof incoming[key] === "object" && !Array.isArray(incoming[key])) {
+				out[key] = Object.assign({}, out[key] || {}, incoming[key]);
+			} else {
+				out[key] = incoming[key];
+			}
+		}
+		return out;
+	}
+
+	document.querySelectorAll(".ai-passthrough-shortcut").forEach(function(btn) {
+		btn.addEventListener("click", function() {
+			var textarea = document.querySelector(".ai-passthrough-json");
+			if (!textarea) return;
+			var incoming;
+			try {
+				incoming = JSON.parse(btn.getAttribute("data-json") || "{}");
+			} catch (e) {
+				window.alert("Invalid shortcut JSON.");
+				return;
+			}
+			if (!incoming || typeof incoming !== "object" || Array.isArray(incoming)) {
+				window.alert("Shortcut JSON must be an object.");
+				return;
+			}
+			var current = {};
+			var raw = textarea.value.trim();
+			if (raw) {
+				try {
+					current = JSON.parse(raw);
+				} catch (e) {
+					window.alert("Fix the passthrough JSON before inserting a shortcut.");
+					return;
+				}
+				if (!current || typeof current !== "object" || Array.isArray(current)) {
+					window.alert("Passthrough JSON must be an object.");
+					return;
+				}
+			}
+			textarea.value = JSON.stringify(aiPassthroughMerge(current, incoming), null, 2);
+			textarea.focus();
+		});
+	});
+})();
+</script>
+</cfif>
 <cfif !isNew>
 	
 <cftry>

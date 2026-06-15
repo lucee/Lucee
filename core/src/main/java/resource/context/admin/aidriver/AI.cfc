@@ -13,4 +13,16 @@ component {
 	public function getCustomFields() {
 		return variables.fields;
 	}
+
+	public string function getLuceeMcpServerUrl() {
+		return "https://lucee-mcp-server-712327080957.europe-west1.run.app/";
+	}
+
+	public string function getLuceeMcpServerName() {
+		return "lucee";
+	}
+
+	public array function getPassthroughShortcuts() {
+		return [];
+	}
 }

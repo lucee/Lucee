@@ -78,4 +78,78 @@ component extends="AI" {
 	public string function getDescription() {
 		return "Connect to Anthropic's Claude AI models (https://claude.ai/) through their official API.";
 	}
+
+	public array function getPassthroughShortcuts() {
+		var mcpName = getLuceeMcpServerName();
+		return [
+			{
+				label: "Insert Lucee MCP Server",
+				json: {
+					"headers": {
+						"anthropic-beta": "mcp-client-2025-11-20"
+					},
+					"mcp_servers": [
+						{
+							"type": "url",
+							"url": getLuceeMcpServerUrl(),
+							"name": mcpName
+						}
+					],
+					"tools": [
+						{
+							"type": "mcp_toolset",
+							"mcp_server_name": mcpName
+						}
+					]
+				}
+			},
+			{
+				label: "Insert custom MCP server",
+				description: "Template for a private MCP server. Replace the URL and authorization token before saving.",
+				json: {
+					"headers": {
+						"anthropic-beta": "mcp-client-2025-11-20"
+					},
+					"mcp_servers": [
+						{
+							"type": "url",
+							"url": "https://example.com/mcp",
+							"name": "my-tools",
+							"authorization_token": "${MCP_TOKEN}"
+						}
+					],
+					"tools": [
+						{
+							"type": "mcp_toolset",
+							"mcp_server_name": "my-tools"
+						}
+					]
+				}
+			},
+			{
+				label: "Insert Anthropic skill",
+				description: "Anthropic pre-built Agent Skill (example: pptx). Requires a model that supports code execution and skills.",
+				json: {
+					"headers": {
+						"anthropic-beta": "code-execution-2025-08-25,skills-2025-10-02,files-api-2025-04-14"
+					},
+					"container": {
+						"skills": [
+							{
+								"type": "anthropic",
+								"skill_id": "pptx",
+								"version": "latest"
+							}
+						]
+					},
+					"tools": [
+						{
+							"type": "code_execution_20250825",
+							"name": "code_execution"
+						}
+					]
+				}
+			}
+		];
+	}
 }

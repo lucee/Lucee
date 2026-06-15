@@ -263,6 +263,18 @@ Error Output --->
 	<div class="pageintro">
 		#stText.Overview.introdesc[request.adminType]#
 	</div>
+	<cfinclude template="adminAINavigation.cfm">
+	<cfset overviewHasRemoteClientUsage = structKeyExists(request, "hasRemoteClientUsage") ? request.hasRemoteClientUsage : false>
+	<cfset overviewNavIndex = adminAIBuildNavigationIndex(
+		navigation,
+		stText,
+		request,
+		isRestricted,
+		hasScheduler,
+		overviewHasRemoteClientUsage,
+		isLuceneInstalled()
+	)>
+	<cfset request.adminAINavIndex = overviewNavIndex>
 	
 
 

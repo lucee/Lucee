@@ -222,7 +222,7 @@ public final class OpenAISession extends AISessionSupport {
 		}
 
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
-		String str = json.serialize(null, request, SerializationSettings.SERIALIZE_AS_COLUMN, null);
+		String str = json.serialize(null, request, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
 		LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "request message send by [" + openaiEngine.getLabel() + "]: " + str, "ai", "application");
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {

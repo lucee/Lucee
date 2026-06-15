@@ -548,7 +548,7 @@
 	<cfset adminAIExcludeActions = "admin.ai,chartAjax">
 	<cfif listFindNoCase(adminAIExcludeActions, current.action) EQ 0>
 		<cfsavecontent variable="content">
-			<cfmodule template="adminAI.cfm" pageTitle="#current.label#" pageAction="#current.action#" allowModify="true">
+			<cfmodule template="adminAI.cfm" pageTitle="#current.label#" pageAction="#current.action#" allowModify="#current.action NEQ 'overview'#">
 				<cfoutput>#content#</cfoutput>
 			</cfmodule>
 		</cfsavecontent>
@@ -565,7 +565,7 @@
 						chartTimer = null; // stop the overview page graphs from updating after navigation
 						setTimeout(createWaitBlockUI(<cfoutput>"#JSStringFormat(stText.general.wait)#"</cfoutput>),1000);
 					}
-					$('.submit,.menu_inactive,.menu_active').click(__blockUI);
+					$('.submit,.menu_inactive,.menu_active').not('.admin-ai-submit, .admin-ai-apply').click(__blockUI);
 				});
 				$("input[type='submit']").on("click", function(){
 					if ($('span').hasClass( "commentError" )){

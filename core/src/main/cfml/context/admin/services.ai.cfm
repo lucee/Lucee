@@ -24,6 +24,10 @@
 	stText.Settings.ai.defaultTypeAdministratorDesc="Use this connection to for AI related actions in the Lucee Administrator.";
 
 	stText.Settings.ai.NameDesc="you can use this name to reference this connection in our code.";
+
+	stText.Settings.ai.passthroughTitle="Passthrough configuration";
+	stText.Settings.ai.passthroughDesc="Additional JSON properties merged into the AI provider API request. Use this for provider-specific parameters not shown above. Must be a JSON object; leave empty for none.";
+	stText.Settings.ai.passthroughShortcutsDesc="Insert a predefined passthrough snippet. Existing JSON is merged with the shortcut values.";
 	error.message="";
 	error.detail="";
 	param name="url.action2" default="list";

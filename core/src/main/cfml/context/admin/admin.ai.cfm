@@ -60,8 +60,9 @@
 	}
 
 	stored = structKeyExists(pageStore, "serialized") ? trim(pageStore.serialized ?: "") : "";
+	systemMessage = structKeyExists(pageStore, "systemMessage") ? trim(pageStore.systemMessage ?: "") : "";
 
-	if (!len(stored)) {
+	if (!len(stored) || !len(systemMessage)) {
 		cfheader(statuscode=400, statustext="Bad Request");
 		cfcontent(reset=true, type="text/plain");
 		writeOutput("Unknown AI page session");
@@ -69,7 +70,9 @@
 	}
 
 	try {
-		ais = LoadAISession("default:administrator", stored);
+		sessionLoad = adminAILoadSession(stored, systemMessage);
+		ais = sessionLoad.ais;
+		stored = sessionLoad.serialized;
 	}
 	catch (any e) {
 		cfheader(statuscode=400, statustext="Bad Request");
@@ -79,19 +82,22 @@
 	}
 
 	label = structKeyExists(pageStore, "label") ? (pageStore.label ?: "") : "";
-	systemMessage = structKeyExists(pageStore, "systemMessage") ? (pageStore.systemMessage ?: "") : "";
-	question = trim(form.question);
+	userQuestion = trim(form.question);
+	inquiryQuestion = userQuestion;
 	if (len(trim(form.formState))) {
-		question &= chr(10) & chr(10) & "Current form values (JSON):" & chr(10) & trim(form.formState);
+		inquiryQuestion &= adminAIFormStateMarker() & chr(10) & trim(form.formState);
 	}
 </cfscript>
 <cfcontent reset="true" type="text/html; charset=utf-8">
 <cfscript>
-	InquiryAISession(ais, question, function(msg) {
-		writeOutput(msg);
-		cfflush(throwOnError=false);
+	answerBuffer = "";
+	InquiryAISession(ais, inquiryQuestion, function(msg) {
+		answerBuffer &= msg;
 	});
+	answerBuffer = adminAIFormatResponse(answerBuffer);
+	writeOutput(answerBuffer);
 	stored = SerializeAISession(ais);
+	stored = adminAIHistorySetLastQuestion(stored, userQuestion);
 	adminAIStoreSet(pageHash, {
 		"serialized": stored,
 		"label": label,

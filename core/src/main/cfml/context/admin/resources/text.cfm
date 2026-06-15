@@ -84,6 +84,18 @@
 		stText = application.stText[session.lucee_admin_lang];
 	}
 
+	if (!structKeyExists(request, "hasRemoteClientUsage") && structKeyExists(session, "password" & request.adminType)) {
+		try {
+			admin
+				action="hasRemoteClientUsage"
+				type="#request.adminType#"
+				password="#session["password"&request.adminType]#"
+				returnVariable="request.hasRemoteClientUsage";
+		} catch (e) {
+			request.hasRemoteClientUsage = false;
+		}
+	}
+
 </cfscript>
 
 <!--- TODO  what is thios good for? it does not work, URL does not exist

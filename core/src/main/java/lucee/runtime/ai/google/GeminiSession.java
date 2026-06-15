@@ -148,7 +148,7 @@ public final class GeminiSession extends AISessionSupport {
 		}
 
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
-		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, null);
+		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
 		LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "send request message to [" + url.toExternalForm() + "] by [" + geminiEngine.getLabel() + "]: " + str, "ai", "application");
 
 		StringEntity entity = new StringEntity(str, geminiEngine.charset);

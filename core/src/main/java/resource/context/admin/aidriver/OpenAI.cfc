@@ -90,4 +90,39 @@ component extends="AI" {
 	public string function getDescription() {
 		return "Connect to OpenAI's models (https://platform.openai.com) and other AI providers that support the OpenAI-compatible REST API (like Copilot, Deepseek, Grok, Ollama, Perplexity). For Copilot use ""other"", because every user has a custom URL."
 	}
+
+	public array function getPassthroughShortcuts() {
+		return [
+			{
+				label: "Insert Lucee MCP Server",
+				description: "Uses the OpenAI Responses API MCP tool format. The Lucee OpenAI engine calls Chat Completions, so this only works when the endpoint supports MCP on that API.",
+				json: {
+					"tools": [
+						{
+							"type": "mcp",
+							"server_label": getLuceeMcpServerName(),
+							"server_url": getLuceeMcpServerUrl(),
+							"require_approval": "never"
+						}
+					]
+				}
+			},
+			{
+				label: "Insert JSON response mode",
+				description: "Enforces JSON object responses. Add a system message instruction to respond in JSON.",
+				json: {
+					"response_format": {
+						"type": "json_object"
+					}
+				}
+			},
+			{
+				label: "Insert max tokens",
+				description: "Limits the length of the model response.",
+				json: {
+					"max_tokens": 4096
+				}
+			}
+		];
+	}
 }

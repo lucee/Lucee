@@ -37,8 +37,7 @@ html.dark-mode body {
 }
 
 html.dark-mode .maintbl,
-html.dark-mode table.tbl,
-html.dark-mode div.pageintro {
+html.dark-mode table.tbl {
     box-shadow: var(--table-shadow);
 }
 
@@ -72,11 +71,6 @@ html.dark-mode .tt-menu.tt-open {
     background-color: var(--bright) !important;
     color: var(--text-color);
     border: 1px solid var(--lines);
-}
-
-html.dark-mode .logout {
-    background: rgba(255, 255, 255, 0.08);
-    filter: brightness(0) saturate(100%) invert(1) opacity(0.75);
 }
 
 html.dark-mode .dark-mode-toggle {
