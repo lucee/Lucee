@@ -196,6 +196,13 @@
 			<cfreturn "data:image/png;base64,#empty#">
 		</cfif>
 
+		<!--- extension metadata sometimes embeds huge base64 logos; skip before decode/imageRead --->
+		<cfset local.maxEmbeddedSrcLen = 350000>
+		<cfset local.maxLogoBytes = 524288>
+		<cfif !isValid("URL", arguments.src) && !fileExists(arguments.src) && len(arguments.src) GT local.maxEmbeddedSrcLen>
+			<cfreturn "data:image/png;base64,#empty#">
+		</cfif>
+
 		<cftry>
 			<cfset local.id=hash(arguments.src&":"&arguments.width&"-"&arguments.height)>
 			<cfset mimetypes={png:'png',gif:'gif',jpg:'jpeg'}>
@@ -236,13 +243,17 @@
 			<cfelse>
 				<cfset local.data=toBinary(arguments.src)>
 			</cfif>
+
+			<cfif len(local.data) GT local.maxLogoBytes>
+				<cfreturn "data:image/png;base64,#empty#">
+			</cfif>
 			
 			<!--- is the image extension installed? --->
 			<cfif serversideDN && extensionExists("B03E92E1-F2F3-4380-981922D0BDFEF2B8")> 
 				<cfif isImage(data)>
 					<cfset local.img=imageRead(data)>
 					<!--- shrink images if needed --->
-					<cfif  (img.width*img.height) GT 1000000 && (img.height GT arguments.height or img.width GT arguments.width)>
+					<cfif img.height GT arguments.height || img.width GT arguments.width>
 						<cfif img.height GT arguments.height >
 							<cfset imageResize(img,"",arguments.height)>
 						</cfif>
@@ -266,7 +277,7 @@
 			</cfif>				
 
 			<cfcatch>
-				<cflog text="Error parsing extension logo, #cfcatch.message#, [#arguments.src#]" type="error">
+				<cflog text="Error parsing extension logo, #cfcatch.message#, src length #len(arguments.src)#" type="error">
 				<cfset local.b64=local.empty>
 			</cfcatch>
 		</cftry>
