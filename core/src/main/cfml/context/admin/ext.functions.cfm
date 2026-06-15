@@ -316,7 +316,9 @@
 
 			loop array=artifacts index="local.i" item="local.artifactId" {
 				var name=prefix&"_"&groupId&"_"&artifactId;
+				arrayAppend(names, name);
 				thread name=name extensions=extensions groupId=groupId artifactId=artifactId {
+					extensions[artifactId]["groupId"]=groupId;
 					var versions=luceeExtension(groupId,artifactId);
 					extensions[artifactId]["versions"]=versions;
 					if(len(versions)) {
@@ -331,14 +333,14 @@
 				}
 			}
 		}
-		thread action="join" name=names.toList();
+		thread action="join" name=arrayToList(names);
 
 			
 		loop struct=extensions key="local.artifactId" item="local.data" {
+			if(isNull(data.last) || structCount(data.last)==0) continue;
 			var row=queryAddRow(qry);
-			querySetCell(qry,"groupId",groupId);
+			querySetCell(qry,"groupId",data.groupId ?: groupId);
 			querySetCell(qry,"artifactId",artifactId);
-			if(isNull(data.last) ||structCount(data.last)==0) continue;
 			querySetCell(qry,"id",data.last.metadata.id?:"");
 			querySetCell(qry,"name",data.last.metadata.name?:"");
 			querySetCell(qry,"description",data.last.metadata.description?:"");

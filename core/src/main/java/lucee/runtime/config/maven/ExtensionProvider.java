@@ -63,6 +63,7 @@ public class ExtensionProvider {
 
 	// mapping for extensions on org.lucee
 	private static final Map<String, GAVSO> uuidMapping = new HashMap<>();
+	private static final Set<String> canonicalArtifactIds = new HashSet<>();
 	private static final Set<String> uuidNoSet = new HashSet<>();
 	static {
 		uuidMapping.put("CED6227E-0F49-6367-A68D21AACA6B07E8", new GAVSO(MavenUpdateProvider.DEFAULT_GROUP, "administrator-extension", null));
@@ -124,6 +125,10 @@ public class ExtensionProvider {
 		uuidMapping.put("3F9DFF32-B555-449D-B0EB5DB723044045", new GAVSO(MavenUpdateProvider.DEFAULT_GROUP, "websocket-extension", null));
 		uuidMapping.put("FA79A831-7D30-4D8A-B7F300DECEB00001", new GAVSO(MavenUpdateProvider.DEFAULT_GROUP, "debugger-extension", null));
 		uuidMapping.put("A71D636B-D668-4D93-886F9A5D34A9343D", new GAVSO(MavenUpdateProvider.DEFAULT_GROUP, "yaml-extension", null));
+
+		for (GAVSO gav: uuidMapping.values()) {
+			if (gav.a != null) canonicalArtifactIds.add(gav.a);
+		}
 
 		// uuidMapping.clear(); // for testing
 	}
@@ -311,14 +316,11 @@ public class ExtensionProvider {
 
 	public List<String> list() throws InterruptedException, IOException {
 		List<String> artifacts = new ArrayList<>();
+		boolean filterCanonical = MavenUpdateProvider.DEFAULT_GROUP.equals(this.group);
 		for (String artifact: listAllProjects()) {
 			if (!artifact.endsWith("-extension")) continue;
-			try {
-				if (last(artifact) != null) artifacts.add(artifact);
-			}
-			catch (Exception e) {
-				// skip artifacts with no resolvable version on any configured repo
-			}
+			if (filterCanonical && !canonicalArtifactIds.contains(artifact)) continue;
+			artifacts.add(artifact);
 		}
 		Collections.sort(artifacts);
 		return artifacts;
@@ -587,6 +589,7 @@ public class ExtensionProvider {
 											String _uuid = extractUUIDFromPOM(res, log);
 											if (_uuid != null) {
 												uuidMapping.put(_uuid.toUpperCase(), new GAVSO(getGroup(), artifact, null));
+												canonicalArtifactIds.add(artifact);
 												if (LogUtil.doesDebug(log)) {
 													log.debug("extension-provider", "found UUID [" + _uuid + "] via POM for " + artifact);
 												}
@@ -601,6 +604,7 @@ public class ExtensionProvider {
 												String _uuid = extractUUIDFromJar(res, log);
 												if (_uuid != null) {
 													uuidMapping.put(_uuid.toUpperCase(), new GAVSO(getGroup(), artifact, null));
+													canonicalArtifactIds.add(artifact);
 													if (LogUtil.doesDebug(log)) {
 														log.debug("extension-provider", "found UUID [" + _uuid + "] via LEX for " + artifact);
 													}
