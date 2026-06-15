@@ -2859,6 +2859,365 @@ component {
 			password="#variables.password#";
 	}
 
+	/**
+	* @hint returns general information about the current context
+	*/
+	public struct function getInfo(){
+		admin
+			action="getInfo"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint returns regex engine settings
+	*/
+	public struct function getRegex(){
+		admin
+			action="getRegex"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates regex engine settings
+	* @regexType regex engine type name
+	*/
+	public void function updateRegex(string regexType){
+		admin
+			action="updateRegex"
+			type="#variables.type#"
+			password="#variables.password#"
+			regexType="#arguments.regexType ?: ''#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint returns proxy settings
+	*/
+	public struct function getProxy(){
+		admin
+			action="getProxy"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates proxy settings
+	*/
+	public void function updateProxy(boolean proxyEnabled, string proxyServer="", numeric proxyPort=80, string proxyUsername="", string proxyPassword=""){
+		var existing = getProxy();
+		admin
+			action="updateProxy"
+			type="#variables.type#"
+			password="#variables.password#"
+			proxyEnabled=isNull(arguments.proxyEnabled) ? (existing.enabled ?: false) : arguments.proxyEnabled
+			proxyServer=isNull(arguments.proxyServer) || isEmpty(arguments.proxyServer) ? (existing.server ?: "") : arguments.proxyServer
+			proxyPort=isNull(arguments.proxyPort) || arguments.proxyPort == 0 ? (existing.port ?: 80) : arguments.proxyPort
+			proxyUsername=isNull(arguments.proxyUsername) ? (existing.username ?: "") : arguments.proxyUsername
+			proxyPassword=isNull(arguments.proxyPassword) ? (existing.password ?: "") : arguments.proxyPassword;
+	}
+
+	/**
+	* @hint removes proxy settings
+	*/
+	public void function removeProxy(){
+		admin
+			action="removeProxy"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
+	/**
+	* @hint returns develop mode settings
+	*/
+	public struct function getDevelopMode(){
+		admin
+			action="getDevelopMode"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates develop mode
+	* @developMode enable or disable develop mode
+	*/
+	public void function updateDevelopMode(required boolean developMode){
+		admin
+			action="updateDevelopMode"
+			type="#variables.type#"
+			password="#variables.password#"
+			developMode="#arguments.developMode#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint returns monitoring display settings
+	*/
+	public struct function getMonitoring(){
+		admin
+			action="getMonitoring"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates monitoring display settings
+	* @monitoring struct with showDebug, showMetric, showDoc, showTest keys
+	*/
+	public void function updateMonitoring(struct monitoring={}){
+		admin
+			action="updateMonitoring"
+			type="#variables.type#"
+			password="#variables.password#"
+			monitoring="#arguments.monitoring#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint returns configured AI connections
+	*/
+	public query function getAIConnections(){
+		admin
+			action="getAIConnections"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates an AI connection
+	*/
+	public void function updateAIConnection(
+		required string name,
+		required string class,
+		string bundleName="",
+		string bundleVersion="",
+		string default="",
+		struct custom={}
+	){
+		admin
+			action="updateAIConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			class="#arguments.class#"
+			bundleName="#arguments.bundleName#"
+			bundleVersion="#arguments.bundleVersion#"
+			default="#arguments.default#"
+			custom="#arguments.custom#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint removes an AI connection
+	* @name connection name
+	*/
+	public void function removeAIConnection(required string name){
+		admin
+			action="removeAIConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint verifies an AI connection
+	* @name connection name
+	*/
+	public struct function verifyAIConnection(required string name){
+		admin
+			action="verifyAIConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint manages scheduled tasks via cfadmin schedule
+	*/
+	public void function schedule(required struct attributes){
+		var attrs = duplicate(arguments.attributes);
+		attrs.type = variables.type;
+		attrs.password = variables.password;
+		attrs.action = "schedule";
+		if (!structKeyExists(attrs, "remoteClients")) {
+			attrs.remoteClients = variables.remoteClients;
+		}
+		admin attributeCollection="#attrs#";
+	}
+
+	/**
+	* @hint returns remote client definitions
+	*/
+	public query function getRemoteClients(){
+		admin
+			action="getRemoteClients"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates a remote client definition
+	*/
+	public void function updateRemoteClient(
+		required string label,
+		required string url,
+		string remoteType="",
+		string securityKey="",
+		string usage="",
+		string adminPassword="",
+		string serverUsername="",
+		string serverPassword="",
+		string proxyServer="",
+		string proxyUsername="",
+		string proxyPassword="",
+		string proxyPort=""
+	){
+		admin
+			action="updateRemoteClient"
+			type="#variables.type#"
+			password="#variables.password#"
+			label="#arguments.label#"
+			url="#arguments.url#"
+			remoteType="#arguments.remoteType#"
+			securityKey="#arguments.securityKey#"
+			usage="#arguments.usage#"
+			adminPassword="#arguments.adminPassword#"
+			serverUsername="#arguments.serverUsername#"
+			serverPassword="#arguments.serverPassword#"
+			proxyServer="#arguments.proxyServer#"
+			proxyUsername="#arguments.proxyUsername#"
+			proxyPassword="#arguments.proxyPassword#"
+			proxyPort="#arguments.proxyPort#";
+	}
+
+	/**
+	* @hint removes a remote client
+	* @url remote client url
+	*/
+	public void function removeRemoteClient(required string url){
+		admin
+			action="removeRemoteClient"
+			type="#variables.type#"
+			password="#variables.password#"
+			url="#arguments.url#";
+	}
+
+	/**
+	* @hint updates remote client usage metadata
+	*/
+	public void function updateRemoteClientUsage(required string code, required string displayName){
+		admin
+			action="updateRemoteClientUsage"
+			type="#variables.type#"
+			password="#variables.password#"
+			code="#arguments.code#"
+			displayName="#arguments.displayName#";
+	}
+
+	/**
+	* @hint removes remote client usage metadata
+	* @code usage code
+	*/
+	public void function removeRemoteClientUsage(required string code){
+		admin
+			action="removeRemoteClientUsage"
+			type="#variables.type#"
+			password="#variables.password#"
+			code="#arguments.code#";
+	}
+
+	/**
+	* @hint returns loader version information
+	*/
+	public struct function getLoaderInfo(){
+		admin
+			action="getLoaderInfo"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint returns the main application logger name
+	*/
+	public string function getMainLog(){
+		admin
+			action="getMainLog"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates default cache connection names
+	*/
+	public void function updateCacheDefaultConnection(
+		string defaultObject="",
+		string defaultTemplate="",
+		string defaultQuery="",
+		string defaultResource="",
+		string defaultFunction="",
+		string defaultInclude="",
+		string defaultHttp="",
+		string defaultFile="",
+		string defaultWebservice=""
+	){
+		admin
+			action="updateCacheDefaultConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			defaultObject="#arguments.defaultObject#"
+			defaultTemplate="#arguments.defaultTemplate#"
+			defaultQuery="#arguments.defaultQuery#"
+			defaultResource="#arguments.defaultResource#"
+			defaultFunction="#arguments.defaultFunction#"
+			defaultInclude="#arguments.defaultInclude#"
+			defaultHttp="#arguments.defaultHttp#"
+			defaultFile="#arguments.defaultFile#"
+			defaultWebservice="#arguments.defaultWebservice#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint resets all default cache connection names
+	*/
+	public void function removeCacheDefaultConnection(){
+		admin
+			action="removeCacheDefaultConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint validates the administrator password
+	*/
+	public void function checkPassword(){
+		admin
+			action="checkPassword"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
 
 	/**
 	 * Takes a config JSON string that may contain environment varialbes or system properties

@@ -229,6 +229,13 @@ public final class ComponentLoader {
 		final String path = (rawPath.indexOf("./") == -1 && !rawPath.endsWith(ext)) ? rawPath.replace('.', '/') : rawPath;
 		boolean isRealPath = !StringUtil.startsWith(path, '/');
 
+		if (searchLocal == null) {
+			searchLocal = Caster.toBoolean(rawPath.indexOf('.') == -1 ? true : config.getComponentLocalSearch());
+		}
+		if (searchRoot == null) {
+			searchRoot = Caster.toBoolean(config.getComponentRootSearch());
+		}
+
 		PageSource ps = null;
 		CIPage page = null;
 
@@ -257,7 +264,6 @@ public final class ComponentLoader {
 		// check local in cache
 		String localCacheName = null;
 		if (isRealPath && currPS != null) {
-			if (searchLocal == null) searchLocal = Caster.toBoolean(rawPath.indexOf('.') == -1 ? true : config.getComponentLocalSearch());
 			if (searchLocal.booleanValue()) {
 				localCacheName = currPS.getDisplayPath().replace('\\', '/');
 				localCacheName = localCacheName.substring(0, localCacheName.lastIndexOf('/') + 1).concat(pathWithCFC);
@@ -429,7 +435,7 @@ public final class ComponentLoader {
 		}
 
 		// search relative to active component (this get not cached because the cache get ambigous if we do)
-		if (searchLocal && isRealPath) {
+		if (searchLocal.booleanValue() && isRealPath) {
 			if (loadingLocation == null) {
 				Component c = pc.getActiveComponent();
 				if (c != null) loadingLocation = c.getPageSource();
@@ -451,7 +457,6 @@ public final class ComponentLoader {
 		if (StringUtil.startsWithIgnoreCase(rawPath, "cfide.")) {
 			String rpm = Constants.DEFAULT_PACKAGE + "." + rawPath.substring(6);
 			try {
-				if (searchRoot == null) searchRoot = Caster.toBoolean(config.getComponentRootSearch());
 				return _search(pc, loadingLocation, rpm, searchLocal, searchRoot, executeConstr, returnType, currPS, false, validate);
 			}
 			catch (ExpressionException ee) {

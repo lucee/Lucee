@@ -24,6 +24,14 @@
 		"default": null
 	},
 	{
+		"sysprop": "lucee.admin.mcp.access",
+		"envvar": "LUCEE_ADMIN_MCP_ACCESS",
+		"desc": "MCP configuration API access level for /lucee/admin/mcp.cfm: none (default), read, or write",
+		"category": "security",
+		"type": "string",
+		"default": "none"
+	},
+	{
 		"sysprop": "lucee.allow.compression",
 		"envvar": "LUCEE_ALLOW_COMPRESSION",
 		"desc": "Allows compressing (GZIP) the HTTP response if the client explicitly supports it",
