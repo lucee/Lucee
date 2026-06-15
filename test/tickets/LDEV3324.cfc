@@ -18,6 +18,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				);
 				expect( j2eeSessionId.fileContent ).toInclude( "all good" );
 			});
+
+			it( title='cfml session with cache storage (LDEV-6412)', body=function( currentSpec ) {
+				var uri = createURI("LDEV3324");
+				var resp = _InternalRequest(
+					template : "#uri#/cfml_session_rotate_cache/test_sessionRotate_csrf.cfm"
+				);
+				expect( resp.fileContent ).toInclude( "all good" );
+			});
 		});
 	}
 
