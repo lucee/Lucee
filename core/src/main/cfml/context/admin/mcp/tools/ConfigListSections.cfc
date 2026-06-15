@@ -1,4 +1,4 @@
-component extends="Tool" {
+component extends="lucee.admin.mcp.tools.Tool" {
 
 	variables.name = "config_list_sections";
 	variables.description = "List Lucee configuration sections available for read and write via MCP.";

@@ -2,9 +2,10 @@
  * Lucee Configuration MCP Server
  *
  * Endpoint: POST /lucee/admin/mcp.cfm
+ * Auth: Authorization: Bearer <Lucee Server Administrator password>
  * Methods: initialize, tools/list, tools/call
  */
-component extends="MCPSupport" {
+component extends="lucee.admin.mcp.MCPSupport" {
 
 	static.PROTOCOL_VERSION = "2024-11-05";
 	static.SERVER_NAME = "lucee-config";
@@ -13,11 +14,9 @@ component extends="MCPSupport" {
 	variables.auth = nullValue();
 	variables.util = nullValue();
 
-	public function init(required string baseDir) {
-		variables.baseDir = arguments.baseDir;
-		variables.toolsDir = arguments.baseDir & "tools/";
-		variables.auth = createObject("component", arguments.baseDir & "MCPAuth.cfc");
-		variables.util = createObject("component", arguments.baseDir & "MCPUtil.cfc");
+	public function init() {
+		variables.auth = new lucee.admin.mcp.MCPAuth();
+		variables.util = new lucee.admin.mcp.MCPUtil();
 		variables.tools = {};
 		variables.toolsIndex = [];
 		variables.accessLevel = variables.auth.getAccessLevel();
@@ -26,13 +25,10 @@ component extends="MCPSupport" {
 			return this;
 		}
 
-		for (var filePath in directoryList(variables.toolsDir, false, "path", "*.cfc")) {
-			var name = listFirst(listLast(filePath, "/\"), ".");
-			if (name == "Tool") {
-				continue;
-			}
+		var toolNames = ["ConfigListSections", "ConfigGet", "ConfigUpdate"];
 
-			var tool = createObject("component", filePath);
+		for (var toolName in toolNames) {
+			var tool = createObject("component", "lucee.admin.mcp.tools.#toolName#");
 			if (!isObject(tool) || !structKeyExists(tool, "exec") || !structKeyExists(tool, "getName")) {
 				continue;
 			}
@@ -139,13 +135,14 @@ component extends="MCPSupport" {
 			return;
 		}
 
-		if (!structKeyExists(args, "password") || !len(trim(args.password ?: ""))) {
-			writeError(arguments.id, -32602, "Invalid params: missing password");
+		var password = variables.auth.resolvePassword(args);
+		if (!len(password)) {
+			writeError(arguments.id, -32001, "Unauthorized: missing Authorization header (Bearer <admin password>)");
 			return;
 		}
 
 		try {
-			var auth = variables.auth.authenticate(trim(args.password));
+			var auth = variables.auth.authenticate(password);
 			structDelete(args, "password");
 			writeResult(arguments.id, tool.exec(auth.administrator, args));
 		}

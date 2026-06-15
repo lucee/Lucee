@@ -41,31 +41,18 @@ abstract component {
 		};
 	}
 
-	protected struct function passwordSchema() {
-		return {
-			"password": {
-				"type": "string",
-				"description": "Lucee Server Administrator password"
-			}
-		};
-	}
-
-	protected struct function buildInputSchema(required struct extraProperties, array required=[]) {
+	public struct function buildInputSchema(required struct extraProperties, array required=[]) {
 		var schema = {
 			"type": "object",
-			"properties": duplicate(passwordSchema())
+			"properties": duplicate(arguments.extraProperties)
 		};
-		structAppend(schema.properties, arguments.extraProperties);
-		if (!arrayLen(arguments.required)) {
-			schema.required = ["password"];
-		}
-		else {
+		if (arrayLen(arguments.required)) {
 			schema.required = arguments.required;
 		}
 		return schema;
 	}
 
-	protected any function serializeResult(required any value) {
+	public any function serializeResult(required any value) {
 		if (!structKeyExists(variables, "util") || isNull(variables.util)) {
 			throw(message="MCP util not initialized", type="mcp.tool");
 		}

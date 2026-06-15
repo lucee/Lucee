@@ -1,4 +1,4 @@
-component extends="Tool" {
+component extends="lucee.admin.mcp.tools.Tool" {
 
 	variables.name = "config_get";
 	variables.description = "Read a Lucee configuration section via Administrator.cfc.";
@@ -15,7 +15,7 @@ component extends="Tool" {
 				"type": "string",
 				"description": "Optional item name for datasource, mapping, cache, gateway, or AI connection lookups"
 			}
-		}, ["password", "area"]);
+		}, ["area"]);
 		return this;
 	}
 

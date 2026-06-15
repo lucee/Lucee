@@ -42,13 +42,49 @@ component {
 		var hashedPassword = "";
 		admin action="hashPassword" type="server" pw="#arguments.password#" returnVariable="hashedPassword";
 
-		var adm = createObject("component", "org.lucee.cfml.Administrator").init("server", hashedPassword);
+		var adm = new org.lucee.cfml.Administrator("server", hashedPassword);
 		adm.connect();
 
 		return {
 			"administrator": adm,
 			"hashedPassword": hashedPassword
 		};
+	}
+
+	public string function getBearerToken() {
+		var auth = "";
+
+		if (structKeyExists(cgi, "http_authorization") && len(trim(cgi.http_authorization))) {
+			auth = trim(cgi.http_authorization);
+		}
+		else {
+			var data = getHTTPRequestData();
+			if (structKeyExists(data, "headers")) {
+				for (var key in data.headers) {
+					if (lCase(key) == "authorization") {
+						auth = trim(data.headers[key]);
+						break;
+					}
+				}
+			}
+		}
+
+		if (len(auth) && reFindNoCase("^Bearer\s+", auth)) {
+			return trim(reReplace(auth, "^Bearer\s+", "", "one"));
+		}
+
+		return "";
+	}
+
+	public string function resolvePassword(struct args={}) {
+		var token = getBearerToken();
+		if (len(token)) {
+			return token;
+		}
+		if (structKeyExists(arguments.args, "password") && len(trim(arguments.args.password ?: ""))) {
+			return trim(arguments.args.password);
+		}
+		return "";
 	}
 
 }

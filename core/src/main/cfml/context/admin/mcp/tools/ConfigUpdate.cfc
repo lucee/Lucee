@@ -1,4 +1,4 @@
-component extends="Tool" {
+component extends="lucee.admin.mcp.tools.Tool" {
 
 	variables.name = "config_update";
 	variables.description = "Update a Lucee configuration section via Administrator.cfc (requires write access).";
@@ -20,7 +20,7 @@ component extends="Tool" {
 				"type": "string",
 				"description": "Optional item name for remove/update operations"
 			}
-		}, ["password", "area", "settings"]);
+		}, ["area", "settings"]);
 		return this;
 	}
 
