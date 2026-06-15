@@ -1144,7 +1144,7 @@ public final class Http extends BodyTagImpl {
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
 					if (!throwonerror) {
-						if (t instanceof SocketTimeoutException) setRequestTimeout(cfhttp);
+						if (isSocketTimeout(t)) setRequestTimeout(cfhttp);
 						else setUnknownHost(cfhttp, t);
 						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false, t);
 						return;
@@ -1165,7 +1165,8 @@ public final class Http extends BodyTagImpl {
 				}
 				if (e.t != null) {
 					if (!throwonerror) {
-						setUnknownHost(cfhttp, e.t);
+						if (isSocketTimeout(e.t)) setRequestTimeout(cfhttp);
+						else setUnknownHost(cfhttp, e.t);
 						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false, e.t);
 						return;
 					}
@@ -1593,8 +1594,16 @@ public final class Http extends BodyTagImpl {
 		return statusCode >= 200 && statusCode <= 299;
 	}
 
+	private static boolean isSocketTimeout(Throwable t) {
+		while (t != null) {
+			if (t instanceof SocketTimeoutException) return true;
+			t = t.getCause();
+		}
+		return false;
+	}
+
 	private PageException toPageException(Throwable t, HTTPResponse4Impl rsp) {
-		if (t instanceof SocketTimeoutException) {
+		if (isSocketTimeout(t)) {
 			HTTPException he = new HTTPException("408 Request Time-out", "a timeout occurred in tag http", 408, "Time-out", rsp == null ? null : rsp.getURL());
 			List<StackTraceElement> merged = ArrayUtil.merge(t.getStackTrace(), he.getStackTrace());
 			StackTraceElement[] traces = new StackTraceElement[merged.size()];
