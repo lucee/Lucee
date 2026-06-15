@@ -28,6 +28,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -65,7 +66,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -1625,7 +1625,7 @@ public final class XMLUtil {
 			final String msg = saxe.getMessage();
 			if (msg != null || StringUtil.indexOfIgnoreCase(msg, "Premature end of file.") != -1) {
 
-				String content = IOUtil.toString(res, CharsetUtil.UTF8);
+				String content = IOUtil.toString(res, StandardCharsets.UTF_8);
 				String str;
 				if (content.isEmpty()) str = "XML File [" + res.getAbsolutePath() + "] is empty;" + saxe.getMessage();
 				else if (content.length() > content.trim().length())

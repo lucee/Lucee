@@ -1,5 +1,7 @@
 package lucee.runtime.config.maven;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -25,7 +27,6 @@ import org.xml.sax.SAXException;
 
 import lucee.aprint;
 import lucee.commons.digest.HashUtil;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -328,8 +329,8 @@ public class ExtensionProvider {
 				sb.append(subfolder).append(',');
 			}
 
-			IOUtil.write(resVersions, sb.length() == 0 ? "" : sb.toString().substring(0, sb.length() - 1), CharsetUtil.UTF8, false);
-			IOUtil.write(resLastmod, Caster.toString(System.currentTimeMillis()), CharsetUtil.UTF8, false);
+			IOUtil.write(resVersions, sb.length() == 0 ? "" : sb.toString().substring(0, sb.length() - 1), StandardCharsets.UTF_8, false);
+			IOUtil.write(resLastmod, Caster.toString(System.currentTimeMillis()), StandardCharsets.UTF_8, false);
 		}
 		catch (Exception e) {
 			LogUtil.log("MetadataReader", e);
@@ -342,10 +343,10 @@ public class ExtensionProvider {
 			Resource resLastmod = repository.cacheDirectory.getRealResource("artifacts_" + HashUtil.create64BitHashAsString(group + "_lastmod", Character.MAX_RADIX));
 			if (resLastmod.isFile()) {
 				long lastmod = repository.timeoutList == Repository.TIMEOUT_NEVER ? Repository.TIMEOUT_NEVER
-						: Caster.toLongValue(IOUtil.toString(resLastmod, CharsetUtil.UTF8), 0L);
+						: Caster.toLongValue(IOUtil.toString(resLastmod, StandardCharsets.UTF_8), 0L);
 				if (repository.timeoutList == Repository.TIMEOUT_NEVER || lastmod + repository.timeoutList > System.currentTimeMillis()) {
 					Resource resVersions = repository.cacheDirectory.getRealResource("artifacts_" + HashUtil.create64BitHashAsString(group + "_versions", Character.MAX_RADIX));
-					String content = IOUtil.toString(resVersions, CharsetUtil.UTF8);
+					String content = IOUtil.toString(resVersions, StandardCharsets.UTF_8);
 					Set<String> subfolders = new HashSet<>();
 					if (content.length() > 0) {
 						List<String> list = ListUtil.listToList(content, ',', true);

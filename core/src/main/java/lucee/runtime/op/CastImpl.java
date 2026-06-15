@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
@@ -1074,7 +1075,7 @@ public final class CastImpl implements Cast {
 
 	@Override
 	public String fromStructToJsonString(Struct sct, boolean compact) throws PageException {
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, compact);
+		JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, compact);
 		try {
 			return json.serialize(null, sct, SerializationSettings.SERIALIZE_AS_COLUMN, null);
 		}

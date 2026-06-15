@@ -18,11 +18,12 @@
  **/
 package lucee.commons.digest;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.ExceptionUtil;
 
 public final class MD5 {
@@ -270,7 +271,7 @@ public final class MD5 {
 		count = 0L;
 		buffer = null;
 		digest = null;
-		byte bytes[] = input.getBytes(CharsetUtil.UTF8);
+		byte bytes[] = input.getBytes(StandardCharsets.UTF_8);
 		// stringp = true;
 		in = new ByteArrayInputStream(bytes);
 		state = new int[4];

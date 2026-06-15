@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.listener;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
@@ -36,7 +38,6 @@ import org.osgi.framework.BundleException;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -675,8 +676,8 @@ public final class JavaSettingsImpl implements JavaSettings {
 			try {
 				if (StringUtil.endsWithIgnoreCase(json, ".json")) {
 					pc = ThreadLocalPageContext.get(pc);
-					if (pc != null) json = IOUtil.toString(ResourceUtil.toResourceExisting(pc, json), CharsetUtil.UTF8);
-					else json = IOUtil.toString(ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfigServer(), json), CharsetUtil.UTF8);
+					if (pc != null) json = IOUtil.toString(ResourceUtil.toResourceExisting(pc, json), StandardCharsets.UTF_8);
+					else json = IOUtil.toString(ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfigServer(), json), StandardCharsets.UTF_8);
 				}
 				Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, json));
 				JavaSettings val = JavaSettingsImpl.getInstance(ThreadLocalPageContext.getConfigServer(pc), sct, null);

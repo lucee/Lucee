@@ -1,5 +1,7 @@
 package lucee.runtime.ai.openai;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -23,7 +25,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
@@ -363,7 +364,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 				Struct sct = new StructImpl();
 				sct.set("training_file", trainingFileId);
 				sct.set(KeyConstants._model, model);
-				JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+				JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, false);
 				String str = json.serialize(null, sct, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
 				StringEntity entity = new StringEntity(str);
 				post.setEntity(entity);

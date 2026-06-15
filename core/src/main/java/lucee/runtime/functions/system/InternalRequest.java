@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -110,7 +111,7 @@ public class InternalRequest implements Function {
 					}
 				}
 			}
-			if (cs == null) cs = CharsetUtil.UTF8;
+			if (cs == null) cs = StandardCharsets.UTF_8;
 
 			String str = Caster.toString(body);
 			_barr = str.getBytes(cs);

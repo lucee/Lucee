@@ -2,6 +2,7 @@ package lucee.commons.io.log.log4j2;
 
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -218,7 +219,7 @@ public final class Log4j2Engine extends LogEngine {
 			// XML Layout
 			else if (XMLLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
 				// Charset
-				Charset charset = CharsetUtil.toCharset(layoutArgs.get("charset"), CharsetUtil.UTF8);
+				Charset charset = CharsetUtil.toCharset(layoutArgs.get("charset"), StandardCharsets.UTF_8);
 
 				// Location Info
 				boolean locInfo = Caster.toBooleanValue(layoutArgs.get("locationinfo"), false);
@@ -246,7 +247,7 @@ public final class Log4j2Engine extends LogEngine {
 					if (!list2.isEmpty()) envNames = list2.toArray(new String[list2.size()]);
 				}
 				// charset
-				Charset charset = CharsetUtil.toCharset(layoutArgs.get("charset"), CharsetUtil.UTF8);
+				Charset charset = CharsetUtil.toCharset(layoutArgs.get("charset"), StandardCharsets.UTF_8);
 				// complete
 				boolean complete = Caster.toBooleanValue(layoutArgs.get("complete"), false);
 				// includeStacktrace

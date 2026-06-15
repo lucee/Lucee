@@ -6,6 +6,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 import lucee.commons.io.CharsetUtil;
@@ -22,7 +23,7 @@ import lucee.runtime.security.SecurityManagerImpl;
 public final class SetPropertyString implements Function {
 
 	public static String call(PageContext pc, String fileName, String property, String value, String encoding) throws PageException {
-		Charset cs = StringUtil.isEmpty(encoding, true) ? CharsetUtil.UTF8 : CharsetUtil.toCharset(encoding);
+		Charset cs = StringUtil.isEmpty(encoding, true) ? StandardCharsets.UTF_8 : CharsetUtil.toCharset(encoding);
 		try {
 			Resource res = ResourceUtil.toResourceNotExisting(pc, fileName);
 			if (!res.isFile()) throw new ApplicationException("File [" + fileName + "] is not a file");

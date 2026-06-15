@@ -19,6 +19,7 @@
 package lucee.commons.io;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.SortedMap;
 
@@ -30,23 +31,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class CharsetUtil {
-	public static final Charset UTF8;
-	public static final Charset ISO88591;
-	public static final Charset UTF16BE;
-	public static final Charset UTF16LE;
-	public static final Charset UTF32BE;
-	public static final Charset UTF32LE;
-
-	static {
-		UTF8 = toCharset("utf-8", null);
-		ISO88591 = toCharset("iso-8859-1", null);
-
-		UTF16BE = toCharset("utf-16BE", null);
-		UTF16LE = toCharset("utf-16LE", null);
-
-		UTF32BE = toCharset("utf-32BE", null);
-		UTF32LE = toCharset("utf-32LE", null);
-	}
 
 	public static Charset toCharset(String charset) {
 		if (StringUtil.isEmpty(charset, true)) return null;
@@ -96,7 +80,7 @@ public final class CharsetUtil {
 		Config config = ThreadLocalPageContext.getConfigServer();
 		if (config != null) return config.getWebCharset();
 
-		return CharsetUtil.ISO88591;
+		return StandardCharsets.ISO_8859_1;
 	}
 
 	public static String[] getAvailableCharsets() {

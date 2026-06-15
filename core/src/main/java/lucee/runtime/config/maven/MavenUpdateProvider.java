@@ -1,5 +1,7 @@
 package lucee.runtime.config.maven;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +27,6 @@ import org.apache.http.StatusLine;
 import org.xml.sax.SAXException;
 
 import lucee.commons.digest.HashUtil;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -423,8 +424,8 @@ public final class MavenUpdateProvider {
 					.getRealResource("detail_" + HashUtil.create64BitHashAsString(group + "_" + artifact + "_" + version + "_versions", Character.MAX_RADIX));
 			String content = fromMapToJsonString(detail, true);
 
-			IOUtil.write(resVersions, StringUtil.isEmpty(content, true) ? "" : content.trim(), CharsetUtil.UTF8, false);
-			IOUtil.write(resLastmod, Caster.toString(System.currentTimeMillis()), CharsetUtil.UTF8, false);
+			IOUtil.write(resVersions, StringUtil.isEmpty(content, true) ? "" : content.trim(), StandardCharsets.UTF_8, false);
+			IOUtil.write(resLastmod, Caster.toString(System.currentTimeMillis()), StandardCharsets.UTF_8, false);
 		}
 		catch (Exception e) {
 			LogUtil.log("MetadataReader", e);
@@ -437,13 +438,13 @@ public final class MavenUpdateProvider {
 					.getRealResource("detail_" + HashUtil.create64BitHashAsString(group + "_" + artifact + "_" + version + "_lastmod", Character.MAX_RADIX));
 			if (resLastmod.isFile()) {
 				long lastmod = repository.timeoutDetail == Repository.TIMEOUT_NEVER ? Repository.TIMEOUT_NEVER
-						: Caster.toLongValue(IOUtil.toString(resLastmod, CharsetUtil.UTF8), 0L);
+						: Caster.toLongValue(IOUtil.toString(resLastmod, StandardCharsets.UTF_8), 0L);
 
 				if (repository.timeoutDetail == Repository.TIMEOUT_NEVER || lastmod + repository.timeoutDetail > System.currentTimeMillis()) {
 
 					Resource resVersions = repository.cacheDirectory
 							.getRealResource("detail_" + HashUtil.create64BitHashAsString(group + "_" + artifact + "_" + version + "_versions", Character.MAX_RADIX));
-					String content = IOUtil.toString(resVersions, CharsetUtil.UTF8);
+					String content = IOUtil.toString(resVersions, StandardCharsets.UTF_8);
 					if (content.length() > 0) {
 						return new CastImpl().fromJsonStringToMap(content);
 					}
@@ -490,7 +491,7 @@ public final class MavenUpdateProvider {
 	}
 
 	private static String fromMapToJsonString(Map<String, Object> detail, boolean compact) throws PageException {
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, compact);
+		JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, compact);
 		try {
 			return json.serialize(null, detail, SerializationSettings.SERIALIZE_AS_COLUMN, null);
 		}

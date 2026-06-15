@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.tag;
 
+import java.nio.charset.StandardCharsets;
+
 import jakarta.servlet.http.HttpServletResponse;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.CharsetX;
@@ -123,12 +125,12 @@ public final class Header extends TagImpl {
 				charset = CharsetUtil.toCharsetX(((PageContextImpl) pageContext).getWebCharset());
 			}
 			if (charset != null) {
-				name = new String(name.getBytes(CharsetUtil.toCharset(charset)), CharsetUtil.ISO88591);
-				value = new String(value.getBytes(CharsetUtil.toCharset(charset)), CharsetUtil.ISO88591);
+				name = new String(name.getBytes(CharsetUtil.toCharset(charset)), StandardCharsets.ISO_8859_1);
+				value = new String(value.getBytes(CharsetUtil.toCharset(charset)), StandardCharsets.ISO_8859_1);
 			}
 			else {
-				name = new String(name.getBytes(), CharsetUtil.ISO88591);
-				value = new String(value.getBytes(), CharsetUtil.ISO88591);
+				name = new String(name.getBytes(), StandardCharsets.ISO_8859_1);
+				value = new String(value.getBytes(), StandardCharsets.ISO_8859_1);
 			}
 
 			if (name.toLowerCase().equals("content-type") && value.length() > 0) {

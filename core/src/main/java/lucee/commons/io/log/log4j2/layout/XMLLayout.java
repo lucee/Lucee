@@ -19,6 +19,7 @@
 package lucee.commons.io.log.log4j2.layout;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,7 +48,7 @@ public final class XMLLayout extends AbstractStringLayout { // TODO <Serializabl
 		if (!complete) {
 			return null;
 		}
-		// .getBytes(CharsetUtil.UTF8)
+		// .getBytes(StandardCharsets.UTF_8)
 		final StringBuilder buf = new StringBuilder();
 		buf.append("<?xml version=\"1.0\" encoding=\"");
 		buf.append(cs.name());

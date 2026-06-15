@@ -1,5 +1,7 @@
 package lucee.commons.io.log.log4j2.layout;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -11,7 +13,6 @@ import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 import org.apache.logging.log4j.message.Message;
 
 import lucee.commons.i18n.FormatUtil;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.log4j2.ContextualMessage;
 import lucee.commons.io.log.log4j2.LogAdapter;
@@ -47,7 +48,7 @@ public final class DataDogLayout extends AbstractStringLayout {
 	private static boolean idsValid;
 
 	public DataDogLayout() {
-		super(CharsetUtil.UTF8, new byte[0], new byte[0]);
+		super(StandardCharsets.UTF_8, new byte[0], new byte[0]);
 		engine = CFMLEngineFactory.getInstance();
 		caster = engine.getCastUtil();
 		format = FormatUtil.getDateTimeFormatter(null, "yyyy-MM-dd HH:mm:ss").formatter;

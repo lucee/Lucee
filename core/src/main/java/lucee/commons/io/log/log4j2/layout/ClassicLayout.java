@@ -18,6 +18,8 @@
  **/
 package lucee.commons.io.log.log4j2.layout;
 
+import java.nio.charset.StandardCharsets;
+
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -25,7 +27,6 @@ import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 import org.apache.logging.log4j.message.Message;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.log4j2.ContextualMessage;
 import lucee.commons.io.log.log4j2.LogAdapter;
 import lucee.commons.lang.ExceptionUtil;
@@ -39,10 +40,10 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 
 	public ClassicLayout() {
 		// TODO custom charset?
-		super(CharsetUtil.UTF8, (LogAdapter.logWebContextInfo ?
+		super(StandardCharsets.UTF_8, (LogAdapter.logWebContextInfo ?
 
 				"\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Context\",\"Application\",\"Message\"" + LINE_SEPARATOR
-				: "\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Application\",\"Message\"" + LINE_SEPARATOR).getBytes(CharsetUtil.UTF8), new byte[0]);
+				: "\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Application\",\"Message\"" + LINE_SEPARATOR).getBytes(StandardCharsets.UTF_8), new byte[0]);
 	}
 
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");

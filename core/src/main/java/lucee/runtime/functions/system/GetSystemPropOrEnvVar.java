@@ -1,8 +1,9 @@
 package lucee.runtime.functions.system;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.InputStream;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -22,7 +23,7 @@ public final class GetSystemPropOrEnvVar implements Function {
 		String sysProps = null;
 		try {
 			is = PageSourceImpl.class.getClassLoader().getResourceAsStream("/resource/setting/sysprop-envvar.json");
-			sysProps = IOUtil.toString(is, CharsetUtil.UTF8);
+			sysProps = IOUtil.toString(is, StandardCharsets.UTF_8);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

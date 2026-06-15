@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -31,7 +32,6 @@ import java.util.Map.Entry;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -717,7 +717,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 		try {
 			is = req.getInputStream();
 
-			String input = IOUtil.toString(is, CharsetUtil.ISO88591);
+			String input = IOUtil.toString(is, StandardCharsets.ISO_8859_1);
 			return StringUtil.indexOfIgnoreCase(input, ":Envelope>") != -1;
 		}
 		catch (IOException e) {

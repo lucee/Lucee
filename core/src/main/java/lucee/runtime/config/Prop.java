@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -19,7 +20,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
@@ -871,7 +871,7 @@ public class Prop<T> {
 		try {
 			is = Prop.class.getClassLoader().getResourceAsStream("/resource/setting/sysprop-envvar.json");
 			if (is == null) throw new ApplicationException("Failed to read [/resource/setting/sysprop-envvar.json]");
-			String raw = IOUtil.toString(is, CharsetUtil.UTF8);
+			String raw = IOUtil.toString(is, StandardCharsets.UTF_8);
 			return Caster.toArray(new JSONExpressionInterpreter(false, JSONExpressionInterpreter.FORMAT_JSON5).interpret(null, raw));
 		}
 		catch (PageException pe) {

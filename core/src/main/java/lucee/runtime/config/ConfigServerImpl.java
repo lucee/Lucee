@@ -30,6 +30,7 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7897,23 +7898,23 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	public static class ConfigFile {
 
 		public static void write(Resource configFile, Struct root, Charset charset) throws IOException, ConverterException {
-			if (charset == null) charset = CharsetUtil.UTF8;
+			if (charset == null) charset = StandardCharsets.UTF_8;
 			LogUtil.logGlobal((Config) null, Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "writing the config file [" + configFile + "]");
 
-			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+			JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, false);
 			String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
 			synchronized (SystemUtil.createToken("ConfigFile", ResourceUtil.getNormalizedPathEL(configFile))) {
-				IOUtil.write(configFile, str, CharsetUtil.UTF8, false);
+				IOUtil.write(configFile, str, StandardCharsets.UTF_8, false);
 			}
 		}
 
 		public static Struct read(Resource configFile, Charset charset) throws PageException, IOException {
-			if (charset == null) charset = CharsetUtil.UTF8;
+			if (charset == null) charset = StandardCharsets.UTF_8;
 			LogUtil.logGlobal((Config) null, Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "read the config file [" + configFile + "]");
 
 			String raw;
 			synchronized (SystemUtil.createToken("ConfigFile", ResourceUtil.getNormalizedPathEL(configFile))) {
-				raw = IOUtil.toString(configFile, CharsetUtil.UTF8);
+				raw = IOUtil.toString(configFile, StandardCharsets.UTF_8);
 			}
 			return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, raw));
 		}

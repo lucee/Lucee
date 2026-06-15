@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.net.http;
 
+import java.nio.charset.StandardCharsets;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -25,7 +27,6 @@ import java.util.Map;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.thread.SerializableCookie;
@@ -101,7 +102,7 @@ public final class HttpUtil {
 	}
 
 	public static Cookie[] cloneCookies(PageContext pc, HttpServletRequest req) {
-		Map<String, Cookie> src = ReqRspUtil.getCookies(req, pc != null ? pc.getWebCharset() : CharsetUtil.ISO88591);
+		Map<String, Cookie> src = ReqRspUtil.getCookies(req, pc != null ? pc.getWebCharset() : StandardCharsets.ISO_8859_1);
 		if (src == null || src.isEmpty()) return SerializableCookie.COOKIES0;
 
 		Cookie[] dest = new Cookie[src.size()];

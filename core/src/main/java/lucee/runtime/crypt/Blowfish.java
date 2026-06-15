@@ -18,10 +18,11 @@
  */
 package lucee.runtime.crypt;
 
+import java.nio.charset.StandardCharsets;
+
 import java.security.MessageDigest;
 import java.util.Random;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.runtime.exp.ExceptionHandler;
 
 /**
@@ -537,7 +538,7 @@ public final class Blowfish {
 		MessageDigest digest = null;
 		try {
 			digest = MessageDigest.getInstance("SHA1");
-			digest.update(password.getBytes(CharsetUtil.UTF8));
+			digest.update(password.getBytes(StandardCharsets.UTF_8));
 		}
 		catch (Exception e) {
 			ExceptionHandler.printStackTrace(e);

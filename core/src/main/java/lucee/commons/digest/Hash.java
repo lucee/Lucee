@@ -21,12 +21,12 @@ package lucee.commons.digest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
@@ -76,7 +76,7 @@ public final class Hash {
 	}
 
 	public static String md5(String str) throws NoSuchAlgorithmException {
-		return hash(str, ALGORITHM_MD5, ENCODING_HEX, CharsetUtil.UTF8);
+		return hash(str, ALGORITHM_MD5, ENCODING_HEX, StandardCharsets.UTF_8);
 	}
 
 	public static String md5(String str, Charset charset) throws NoSuchAlgorithmException {
@@ -99,7 +99,7 @@ public final class Hash {
 	}
 
 	public static String sha(String str) throws NoSuchAlgorithmException {
-		return hash(str, ALGORITHM_SHA, ENCODING_HEX, CharsetUtil.UTF8);
+		return hash(str, ALGORITHM_SHA, ENCODING_HEX, StandardCharsets.UTF_8);
 	}
 
 	public static String sha(String str, Charset charset) throws NoSuchAlgorithmException {
@@ -122,7 +122,7 @@ public final class Hash {
 	}
 
 	public static String sha256(String str) throws NoSuchAlgorithmException {
-		return hash(str, ALGORITHM_SHA_256, ENCODING_HEX, CharsetUtil.UTF8);
+		return hash(str, ALGORITHM_SHA_256, ENCODING_HEX, StandardCharsets.UTF_8);
 	}
 
 	public static String sha256(String str, Charset charset) throws NoSuchAlgorithmException {
@@ -135,7 +135,7 @@ public final class Hash {
 	}
 
 	public static String sha384(String str) throws NoSuchAlgorithmException {
-		return hash(str, ALGORITHM_SHA_384, ENCODING_HEX, CharsetUtil.UTF8);
+		return hash(str, ALGORITHM_SHA_384, ENCODING_HEX, StandardCharsets.UTF_8);
 	}
 
 	public static String sha384(String str, Charset charset) throws NoSuchAlgorithmException {
@@ -158,7 +158,7 @@ public final class Hash {
 	}
 
 	public static String sha512(String str) throws NoSuchAlgorithmException {
-		return hash(str, ALGORITHM_SHA_512, ENCODING_HEX, CharsetUtil.UTF8);
+		return hash(str, ALGORITHM_SHA_512, ENCODING_HEX, StandardCharsets.UTF_8);
 	}
 
 	public static String sha512(String str, Charset charset) throws NoSuchAlgorithmException {
@@ -168,9 +168,9 @@ public final class Hash {
 	public static String hash(String str, String nonce, String algorithm, char[] encoding) throws NoSuchAlgorithmException {
 		MessageDigest md = MessageDigest.getInstance(algorithm);
 		md.reset();
-		md.update(toBytes(str, CharsetUtil.UTF8));
+		md.update(toBytes(str, StandardCharsets.UTF_8));
 		md.update(DEL);
-		md.update(toBytes(nonce, CharsetUtil.UTF8));
+		md.update(toBytes(nonce, StandardCharsets.UTF_8));
 		return new String(enc(md.digest(), encoding)); // no charset needed because all characters are below us-ascii (hex)
 	}
 
@@ -184,7 +184,7 @@ public final class Hash {
 			for (int i = 0; i < numIterations; i++) {
 				mdc = (MessageDigest) md.clone();
 				mdc.reset();
-				mdc.update(toBytes(str, CharsetUtil.UTF8));
+				mdc.update(toBytes(str, StandardCharsets.UTF_8));
 				str = new String(enc(mdc.digest(), encoding));
 			}
 			return str;
@@ -195,7 +195,7 @@ public final class Hash {
 
 		// if not possible to clone the MessageDigest create always a new instance
 		for (int i = 0; i < numIterations; i++) {
-			str = hash(str, algorithm, encoding, CharsetUtil.UTF8);
+			str = hash(str, algorithm, encoding, StandardCharsets.UTF_8);
 		}
 		return str;
 	}

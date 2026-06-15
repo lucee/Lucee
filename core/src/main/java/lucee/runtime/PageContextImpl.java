@@ -21,6 +21,7 @@ package lucee.runtime;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
@@ -57,7 +58,6 @@ import jakarta.servlet.jsp.tagext.Tag;
 import jakarta.servlet.jsp.tagext.TryCatchFinally;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.exp.CacheException;
@@ -3013,7 +3013,7 @@ public final class PageContextImpl extends PageContext {
 					// Convert to JSON string
 					String jsonMessage;
 					try {
-						JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true);
+						JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, true);
 						jsonMessage = json.serialize(null, logData, SerializationSettings.SERIALIZE_AS_COLUMN, null);
 					}
 					catch (Exception e) {
@@ -3186,7 +3186,7 @@ public final class PageContextImpl extends PageContext {
 
 		Charset charEnc = ReqRspUtil.getCharacterEncoding(this, rsp);
 		rsp.setLocale(locale);
-		if (charEnc.equals(CharsetUtil.UTF8)) {
+		if (charEnc.equals(StandardCharsets.UTF_8)) {
 			ReqRspUtil.setContentType(rsp, "text/html; charset=UTF-8");
 		}
 		else if (!charEnc.equals(ReqRspUtil.getCharacterEncoding(this, rsp))) {

@@ -1,5 +1,7 @@
 package lucee.commons.lang;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -13,7 +15,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 
 import lucee.commons.digest.HashUtil;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -227,10 +228,10 @@ public class PhysicalClassLoaderFactory {
 			Resource file = dir.getRealResource("classloader-resources.json");
 			Struct root = new StructImpl();
 			root.setEL(KeyConstants._resources, _resources);
-			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+			JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, false);
 			try {
 				String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, null);
-				IOUtil.write(file, str, CharsetUtil.UTF8, false);
+				IOUtil.write(file, str, StandardCharsets.UTF_8, false);
 			}
 			catch (ConverterException e) {
 				throw ExceptionUtil.toIOException(e);

@@ -16,10 +16,11 @@
  **/
 package lucee.commons.digest;
 
+import java.nio.charset.StandardCharsets;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.coder.CoderException;
 
@@ -41,7 +42,7 @@ public final class Base64Encoder {
 	}
 
 	public static String encodeFromString(String data) {
-		return encode(data.getBytes(CharsetUtil.UTF8));
+		return encode(data.getBytes(StandardCharsets.UTF_8));
 	}
 
 	/**
@@ -90,7 +91,7 @@ public final class Base64Encoder {
 	}
 
 	public static String decodeAsString(String data, boolean precise) throws CoderException {
-		return new String(decode(data, precise), CharsetUtil.UTF8);
+		return new String(decode(data, precise), StandardCharsets.UTF_8);
 	}
 
 	/**

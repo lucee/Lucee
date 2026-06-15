@@ -18,6 +18,8 @@
  */
 package lucee.runtime.engine;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -62,7 +64,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lucee.Info;
 import lucee.commons.collection.MapFactory;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
@@ -739,7 +740,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		try {
 
-			String index = IOUtil.toString(is, CharsetUtil.UTF8);
+			String index = IOUtil.toString(is, StandardCharsets.UTF_8);
 			// log.info("extract-extension", "the following extensions are bundled with the lucee.jar [" + index
 			// + "]");
 			String[] names = lucee.runtime.type.util.ListUtil.listToStringArray(index, ';');

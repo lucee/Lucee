@@ -17,11 +17,12 @@
  */
 package lucee.transformer.bytecode.literal;
 
+import java.nio.charset.StandardCharsets;
+
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.ConfigPro;
@@ -134,7 +135,7 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 
 	private static boolean toBig(String str) {
 		if (str == null || str.length() < (MAX_SIZE / 2)) return false; // a char is max 2 bytes
-		return str.getBytes(CharsetUtil.UTF8).length > MAX_SIZE;
+		return str.getBytes(StandardCharsets.UTF_8).length > MAX_SIZE;
 	}
 
 	private static ExprString _toExpr(Factory factory, String str) {

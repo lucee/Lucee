@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,7 +41,6 @@ import java.util.zip.ZipOutputStream;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -387,7 +387,7 @@ public final class BundleBuilderFactory {
 	}
 
 	public void build(OutputStream os) throws IOException {
-		ZipOutputStream zos = new MyZipOutputStream(os, CharsetUtil.UTF8);
+		ZipOutputStream zos = new MyZipOutputStream(os, StandardCharsets.UTF_8);
 		try {
 
 			// jar
@@ -398,7 +398,7 @@ public final class BundleBuilderFactory {
 			extendManifest(manifest);
 
 			String mf = ManifestUtil.toString(manifest, 128, MAIN_FILTER, INDIVIDUAL_FILTER);
-			InputStream is = new ByteArrayInputStream(mf.getBytes(CharsetUtil.UTF8));
+			InputStream is = new ByteArrayInputStream(mf.getBytes(StandardCharsets.UTF_8));
 			ZipEntry ze = new ZipEntry("META-INF/MANIFEST.MF");
 			zos.putNextEntry(ze);
 			try {

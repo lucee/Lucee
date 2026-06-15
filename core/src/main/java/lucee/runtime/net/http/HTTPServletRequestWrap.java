@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -380,7 +381,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	public BufferedReader getReader() throws IOException {
 		String strEnc = getCharacterEncoding();
 		Charset enc = null;
-		if (StringUtil.isEmpty(strEnc)) enc = CharsetUtil.ISO88591;
+		if (StringUtil.isEmpty(strEnc)) enc = StandardCharsets.ISO_8859_1;
 		else CharsetUtil.toCharset(strEnc);
 		return IOUtil.toBufferedReader(IOUtil.getReader(getInputStream(), enc));
 	}

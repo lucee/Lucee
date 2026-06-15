@@ -21,6 +21,7 @@ package lucee.commons.io.res.type.smb;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -28,7 +29,6 @@ import org.apache.commons.codec.binary.Base32;
 
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbFile;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.Resources;
@@ -40,7 +40,7 @@ public final class SMBResourceProvider implements ResourceProvider {
 	private String scheme = "smb";
 	private Map<String, String> args;
 	private final static String ENCRYPTED_PREFIX = "$smb-enc$";
-	private final static Charset UTF8 = CharsetUtil.UTF8;
+	private final static Charset UTF8 = StandardCharsets.UTF_8;
 	private final ResourceLockImpl lock = new ResourceLockImpl(10000, false);
 	private final static Base32 Base32DecEnc = new Base32();
 

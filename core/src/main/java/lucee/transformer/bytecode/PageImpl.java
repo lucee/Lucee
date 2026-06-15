@@ -18,6 +18,8 @@
  */
 package lucee.transformer.bytecode;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +44,6 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import lucee.commons.digest.HashUtil;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceNameFilter;
@@ -2374,7 +2375,7 @@ public final class PageImpl extends BodyBase implements Page {
 			off = 0;
 		}
 
-		IOUtil.write(staticTextLocation, str, CharsetUtil.UTF8, append);
+		IOUtil.write(staticTextLocation, str, StandardCharsets.UTF_8, append);
 		Range r = new Range(off, str.length());
 		off += str.length();
 		return r;

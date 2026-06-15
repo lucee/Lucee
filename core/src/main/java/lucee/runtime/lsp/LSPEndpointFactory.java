@@ -1,5 +1,7 @@
 package lucee.runtime.lsp;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,7 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import jakarta.servlet.ServletException;
 import lucee.aprint;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -164,7 +165,7 @@ public final class LSPEndpointFactory implements MessageProcessor {
 			OutputStream out = clientSocket.getOutputStream();
 			clientOutputStreams.put(clientId, out);
 
-			BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), CharsetUtil.UTF8));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
 
 			while (!clientSocket.isClosed()) {
 				readStream(this, reader, out);

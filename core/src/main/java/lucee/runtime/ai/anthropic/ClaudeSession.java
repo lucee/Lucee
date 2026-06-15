@@ -1,5 +1,7 @@
 package lucee.runtime.ai.anthropic;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Iterator;
@@ -16,7 +18,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
@@ -198,7 +199,7 @@ public final class ClaudeSession extends AISessionSupport {
 		}
 
 		// Convert request body to JSON
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+		JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, false);
 		String str = json.serialize(null, requestBody, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
 
 		LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "request message send by [" + engine.getLabel() + "]: " + str, "ai", "application");

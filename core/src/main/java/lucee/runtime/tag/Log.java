@@ -19,6 +19,7 @@
 package lucee.runtime.tag;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -327,7 +328,7 @@ public final class Log extends TagImpl {
 		}
 
 		public static String toKey(String file, Charset charset) {
-			if (charset == null) charset = CharsetUtil.UTF8;
+			if (charset == null) charset = StandardCharsets.UTF_8;
 			return StringUtil.toVariableName(file) + "." + StringUtil.toVariableName(charset.name());
 		}
 	}

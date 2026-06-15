@@ -18,6 +18,8 @@
  */
 package lucee.runtime.net.http;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Serializable;
@@ -48,7 +50,6 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpUpgradeHandler;
 import jakarta.servlet.http.Part;
 import lucee.commons.collection.MapFactory;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -600,7 +601,7 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 
 	@Override
 	public BufferedReader getReader() throws IOException {
-		return IOUtil.toBufferedReader(IOUtil.getReader(getInputStream(), CharsetUtil.ISO88591));
+		return IOUtil.toBufferedReader(IOUtil.getReader(getInputStream(), StandardCharsets.ISO_8859_1));
 	}
 
 	@Override

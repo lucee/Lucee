@@ -18,6 +18,8 @@
  */
 package lucee.commons.lang;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,7 +43,6 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 import lucee.commons.collection.MapFactory;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -882,7 +883,7 @@ public final class ClassUtil {
 		try {
 
 			String result = clazz.getProtectionDomain().getCodeSource().getLocation().getPath();
-			result = URLDecoder.decode(result, CharsetUtil.UTF8.name());
+			result = URLDecoder.decode(result, StandardCharsets.UTF_8.name());
 			result = SystemUtil.fixWindowsPath(result);
 			return result;
 		}

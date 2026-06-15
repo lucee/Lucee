@@ -5,6 +5,7 @@ import java.io.Reader;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,7 +20,6 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import lucee.aprint;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
@@ -109,7 +109,7 @@ public final class POMReader extends DefaultHandler {
 				String str = IOUtil.toString(file, (Charset) null);
 				// TODO PATCH make a better solution for that
 				str = StringUtil.replace(str, "&oslash;", "ø", false);// (str, "oslash");// &oslash;
-				IOUtil.write(file, str.getBytes(CharsetUtil.UTF8), false);
+				IOUtil.write(file, str.getBytes(StandardCharsets.UTF_8), false);
 				init(new InputSource(r = IOUtil.getReader(file.getInputStream(), (Charset) null)));
 
 			}

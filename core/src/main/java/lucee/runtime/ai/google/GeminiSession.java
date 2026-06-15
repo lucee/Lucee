@@ -1,5 +1,7 @@
 package lucee.runtime.ai.google;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -17,7 +19,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
@@ -147,7 +148,7 @@ public final class GeminiSession extends AISessionSupport {
 			}
 		}
 
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+		JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, false);
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
 		LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "send request message to [" + url.toExternalForm() + "] by [" + geminiEngine.getLabel() + "]: " + str, "ai", "application");
 

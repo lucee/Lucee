@@ -1,5 +1,7 @@
 package lucee.runtime.mvn;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -29,7 +31,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import lucee.commons.digest.Hash;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -775,7 +776,7 @@ public final class MavenUtil {
 		lastUpdated.getParentResource().mkdirs();
 		// print.e(lastUpdated);
 		// print.e(info);
-		IOUtil.write(lastUpdated, info.toString(), CharsetUtil.UTF8, false);
+		IOUtil.write(lastUpdated, info.toString(), StandardCharsets.UTF_8, false);
 	}
 
 	private static void deleteLastUpdated(Resource res) {

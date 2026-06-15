@@ -18,12 +18,13 @@
  **/
 package lucee.commons.io.log;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.File;
 import java.util.Date;
 
 import lucee.aprint;
 import lucee.commons.i18n.FormatUtil;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
@@ -304,7 +305,7 @@ public final class LogUtil {
 				log.getParentResource().mkdirs();
 				log.createNewFile();
 			}
-			IOUtil.write(log, FormatUtil.format(SystemOut.FORMAT, new Date(System.currentTimeMillis()), null) + " " + type + " " + msg + "\n", CharsetUtil.UTF8, true);
+			IOUtil.write(log, FormatUtil.format(SystemOut.FORMAT, new Date(System.currentTimeMillis()), null) + " " + type + " " + msg + "\n", StandardCharsets.UTF_8, true);
 		}
 		catch (Exception e) {
 			ERR = null;

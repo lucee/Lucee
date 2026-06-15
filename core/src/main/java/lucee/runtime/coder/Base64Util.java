@@ -24,7 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;
 
-import lucee.commons.io.CharsetUtil;
 
 public final class Base64Util {
 
@@ -62,7 +61,7 @@ public final class Base64Util {
 	 * @return true if base64
 	 */
 	public static boolean isBase64(String isValidString) {
-		return isBase64(isValidString.getBytes(CharsetUtil.UTF8));
+		return isBase64(isValidString.getBytes(StandardCharsets.UTF_8));
 	}
 
 	/** Initializations */

@@ -19,6 +19,7 @@
 package lucee.transformer.cfml.evaluator.impl;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.runtime.config.Config;
@@ -88,7 +89,7 @@ public final class ProcessingDirective extends EvaluatorSupport {
 		}
 
 		if (cs != null || exeLog != null || dotNotationUpperCase != null) {
-			Charset currCS = data.srcCode instanceof PageSourceCode ? ((PageSourceCode) data.srcCode).getCharset() : CharsetUtil.UTF8;
+			Charset currCS = data.srcCode instanceof PageSourceCode ? ((PageSourceCode) data.srcCode).getCharset() : StandardCharsets.UTF_8;
 
 			// throw an exception when already done
 			if (data.hasCharset && cs != null) throw new TemplateException(data.srcCode,

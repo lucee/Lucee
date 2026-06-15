@@ -1,5 +1,7 @@
 package lucee.runtime.ai.openai;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -21,7 +23,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -221,7 +222,7 @@ public final class OpenAISession extends AISessionSupport {
 			openaiEngine.chatCompletionsURI = new URI(openaiEngine.getBaseURL() + "chat/completions");
 		}
 
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+		JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, false);
 		String str = json.serialize(null, request, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
 		LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "request message send by [" + openaiEngine.getLabel() + "]: " + str, "ai", "application");
 

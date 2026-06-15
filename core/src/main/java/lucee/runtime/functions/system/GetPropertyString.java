@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 import lucee.commons.io.CharsetUtil;
@@ -19,7 +20,7 @@ import lucee.runtime.op.Caster;
 public final class GetPropertyString implements Function {
 
 	public static String call(PageContext pc, String fileName, String property, String encoding) throws PageException {
-		Charset cs = StringUtil.isEmpty(encoding, true) ? CharsetUtil.UTF8 : CharsetUtil.toCharset(encoding);
+		Charset cs = StringUtil.isEmpty(encoding, true) ? StandardCharsets.UTF_8 : CharsetUtil.toCharset(encoding);
 		try {
 			Resource res = ResourceUtil.toResourceNotExisting(pc, fileName);
 			if (!res.isFile()) throw new ApplicationException("File ["+ fileName + "] is not a file");

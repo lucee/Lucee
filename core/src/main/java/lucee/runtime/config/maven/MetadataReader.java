@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -15,7 +16,6 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import lucee.commons.digest.HashUtil;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -101,8 +101,8 @@ public final class MetadataReader extends DefaultHandler {
 				sb.append(v.toString()).append(',');
 			}
 
-			IOUtil.write(resVersions, sb.length() == 0 ? "" : sb.toString().substring(0, sb.length() - 1), CharsetUtil.UTF8, false);
-			IOUtil.write(resLastmod, Caster.toString(System.currentTimeMillis()), CharsetUtil.UTF8, false);
+			IOUtil.write(resVersions, sb.length() == 0 ? "" : sb.toString().substring(0, sb.length() - 1), StandardCharsets.UTF_8, false);
+			IOUtil.write(resLastmod, Caster.toString(System.currentTimeMillis()), StandardCharsets.UTF_8, false);
 		}
 		catch (Exception e) {
 			LogUtil.log("MetadataReader", e);
@@ -116,11 +116,11 @@ public final class MetadataReader extends DefaultHandler {
 					.getRealResource(HashUtil.create64BitHashAsString(repository.url + "_" + group + "_" + artifact + appendix + "_lastmod", Character.MAX_RADIX));
 			if (resLastmod.isFile()) {
 				long lastmod = repository.timeoutList == Repository.TIMEOUT_NEVER ? Repository.TIMEOUT_NEVER
-						: Caster.toLongValue(IOUtil.toString(resLastmod, CharsetUtil.UTF8), 0L);
+						: Caster.toLongValue(IOUtil.toString(resLastmod, StandardCharsets.UTF_8), 0L);
 				if (repository.timeoutList == Repository.TIMEOUT_NEVER || lastmod + repository.timeoutList > System.currentTimeMillis()) {
 					Resource resVersions = repository.cacheDirectory
 							.getRealResource(HashUtil.create64BitHashAsString(repository.url + "_" + group + "_" + artifact + appendix + "_versions", Character.MAX_RADIX));
-					String content = IOUtil.toString(resVersions, CharsetUtil.UTF8);
+					String content = IOUtil.toString(resVersions, StandardCharsets.UTF_8);
 					List<Version> versions = new ArrayList<>();
 					if (content.length() > 0) {
 						List<String> list = ListUtil.listToList(content, ',', true);

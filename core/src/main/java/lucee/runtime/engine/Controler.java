@@ -19,6 +19,8 @@
  **/
 package lucee.runtime.engine;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,7 +31,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.aprint;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -223,7 +224,7 @@ public final class Controler extends ParentThreasRefThread {
 			}
 
 			line += "],\"thread\":\"" + e.getKey().getName() + "\",\"id\":" + e.getKey().getId() + ",\"time\":" + System.currentTimeMillis() + "}\n";
-			IOUtil.write(target, line, CharsetUtil.UTF8, true);
+			IOUtil.write(target, line, StandardCharsets.UTF_8, true);
 		}
 
 	}
