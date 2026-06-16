@@ -139,7 +139,7 @@ for (el in ["bundleId", "debugBuffer", "endTime", "error", "failMessage", "failO
 	fixCase[ucase(el)] = el;
 }
 
-systemOutput("Running tests with Java: #server.java.version# (Compiler: #server.java.javaCompilerVersion?:'unknown'#)", true);
+systemOutput("Running tests with Lucee #server.lucee.version# and Java: #server.java.version# (Compiler: #server.java.javaCompilerVersion?:'unknown'#)", true);
 
 try {
 
