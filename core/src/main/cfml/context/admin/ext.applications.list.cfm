@@ -38,6 +38,7 @@
 	</cfoutput>
 	<cfset structDelete(session, "extremoved", false) />
 </cfif>
+<cfset spev=[]>
 <cfset extCount=extensions.recordcount>
 <cfif extensions.recordcount>
 	<cfoutput>
@@ -143,11 +144,9 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	<h2>#stText.ext.notInstalled#</h2>
 	<div class="itemintro">#stText.ext.notInstalleddesc#</div>
 <cfif external.recordcount eq extensions.recordcount>
-	<cfset app_error.message = #stText.services.update.installExtns#>
-	<cfset printerror(app_error)>
+	<div class="warning">#stText.services.update.installExtns#</div>
 <cfelseif external.recordcount lt extensions.recordcount OR external.recordcount eq LocalExtensions.recordcount>
-	<cfset app_error.message = #stText.services.update.chkInternet#>
-	<cfset printerror(app_error)>
+	<div class="warning">#stText.services.update.chkInternet#</div>
 <cfelse>
 
 <cfscript>
@@ -249,8 +248,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 					<cfif  (
 						session.extFilter.available eq ""
 						or doFilter(session.extFilter.available,versionStr[key].name,false)
-						or doFilter(session.extFilter.available,versionStr[key].category,false)
-						or doFilter(session.extFilter.available,info.title?:'',false)
+						or doFilter(session.extFilter.available,versionStr[key].description,false)
 					)
 					>
 							<cfset link="#request.self#?action=#url.action#&action2=detail&id=#versionStr[key].id#&groupId=#versionStr[key].groupId#&artifactId=#versionStr[key].artifactId#">
