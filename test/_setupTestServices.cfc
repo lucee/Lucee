@@ -848,10 +848,13 @@ component {
 				if ( cd.isBundle() ) {
 					driver.bundleName = cd.getName();
 					driver.bundleVersion = cd.getVersionAsString();
+					driver.maven = '';
 				}
 				try {
 					if ( cd.isMaven() ) {
 						driver.maven = cd.getMavenRaw();
+						driver.bundleName = '';
+						driver.bundleVersion = '';
 					}
 				} catch ( any e ) {}
 			}
@@ -878,11 +881,14 @@ component {
 
 					if ( len( maven ) ) {
 						driver.maven = maven;
-						if ( len( bundleName ) ) {
-							driver.bundleName = bundleName;
-						}
-						if ( len( bundleVersion ) ) {
-							driver.bundleVersion = bundleVersion;
+						// Manifest bundle fields are a fallback for older Lucee; omit when Maven is active.
+						if ( !server.doesJDBCSupportMaven() ) {
+							if ( len( bundleName ) ) {
+								driver.bundleName = bundleName;
+							}
+							if ( len( bundleVersion ) ) {
+								driver.bundleVersion = bundleVersion;
+							}
 						}
 					} else if ( !len( driver.maven ) ) {
 						if ( len( bundleName ) ) {
@@ -895,6 +901,11 @@ component {
 				}
 			}
 		} catch ( any e ) {}
+
+		if ( len( driver.maven ) && server.doesJDBCSupportMaven() ) {
+			driver.bundleName = '';
+			driver.bundleVersion = '';
+		}
 
 		return driver;
 	}
