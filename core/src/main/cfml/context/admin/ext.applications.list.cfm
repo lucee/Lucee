@@ -3,12 +3,33 @@
 
 	hasAccess=true;
 	existing={};
+
+	function toVersionArray(value) {
+		if (isNull(arguments.value)) return [];
+		if (isArray(arguments.value)) return duplicate(arguments.value);
+		if (isSimpleValue(arguments.value)) {
+			var v = trim(toString(arguments.value));
+			if (!len(v)) return [];
+			if (find(",", v)) return listToArray(v);
+			return [v];
+		}
+		try {
+			var d = duplicate(arguments.value);
+			if (isArray(d)) return d;
+		} catch (any e) {}
+		return [];
+	}
+
+	function toVersionNumber(value) {
+		var digits = REReplace(toString(arguments.value ?: ""), "[^\d]", "", "all");
+		return len(digits) ? toNumeric(digits) : 0;
+	}
 	
 	function getLatestVersion(id) {
 		loop query=external {
 			if(external.id==arguments.id) {
-				var ovs=external.otherVersions;
-				if(!isNull(ovs) && isArray(ovs) && arrayLen(ovs)) {
+				var ovs=toVersionArray(external.otherVersions);
+				if(arrayLen(ovs)) {
 					var latest={'vs':toVersionSortable(external.version),'v':external.version};
 					loop array=ovs item="local.v" {
 						var vs=toVersionSortable(v);
@@ -91,8 +112,7 @@
 					arrayAppend(spev, extensions.id&";version="&extensions.version);
 					latest=getLatestVersion(extensions.id);
 					latestVersion = ( isEmpty( latest.vs ) ) ? extensions.version : latest.vs;
-					hasUpdates = toNumeric( REReplace( latestVersion, "[^\d]", "", "all" ) ) GT
-								 toNumeric( REReplace( toVersionSortable( extensions.version ), "[^\d]", "", "all" ) );
+					hasUpdates = toVersionNumber(latestVersion) GT toVersionNumber(toVersionSortable(extensions.version));
 					link="#request.self#?action=#url.action#&action2=detail&id=#extensions.id#&groupId=#extensions.groupId#&artifactId=#extensions.artifactId#";
 					img=extensions.image;
 					if(len(img)==0) {
@@ -197,9 +217,10 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	};
 
 	loop query=unInstalledExt {
-		versions = duplicate(unInstalledExt.otherVersions);
-		if(isSimpleValue(versions ?: "") && isEmpty(versions))  versions=[];
-		ArrayPrepend(versions, unInstalledExt.version);
+		versions = toVersionArray(unInstalledExt.otherVersions);
+		if (len(trim(toString(unInstalledExt.version ?: "")))) {
+			ArrayPrepend(versions, unInstalledExt.version);
+		}
 		t = { snap: 0, pre: 0, rel: 0 };
 		loop array=versions item="variables.v" {
 			if(findNoCase("-ALPHA", v) || findNoCase("-BETA", v) || findNoCase("-RC", v)) {
