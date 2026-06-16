@@ -1688,7 +1688,9 @@ public final class ConfigAdmin {
 
 	private void _removeJDBCDriver(ClassDefinition cd) throws PageException {
 
-		if (!cd.isBundle()) throw new ApplicationException("missing bundle name");
+		if (!cd.isBundle() && !(cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven())) {
+			throw new ApplicationException("missing bundle name or maven coordinates");
+		}
 
 		Struct children = ConfigUtil.getAsStruct("jdbcDrivers", root);
 		Key[] keys = children.keys();
@@ -4319,12 +4321,12 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					ClassDefinitionImpl cd = (ClassDefinitionImpl) ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					String _label = map.get("label");
 					String _id = map.get("id");
 					String _dsn = map.get("connectionString");
 					if (StringUtil.isEmpty(_dsn, true)) _dsn = map.get("dsn");
-					if (cd != null && cd.isBundle()) {
+					if (cd != null && (cd.isBundle() || cd.isMaven())) {
 						_updateJDBCDriver(_label, _id, cd, _dsn);
 						filter.add("resetJDBCDrivers");
 						reloadNecessary = true;
@@ -4743,8 +4745,8 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
-					if (cd != null && cd.isBundle()) {
+					ClassDefinitionImpl cd = (ClassDefinitionImpl) ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					if (cd != null && (cd.isBundle() || cd.isMaven())) {
 						_removeJDBCDriver(cd);
 					}
 					logger.info("extension", "Remove JDBC Driver [" + cd + "] from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");

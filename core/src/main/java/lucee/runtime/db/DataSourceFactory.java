@@ -1,6 +1,9 @@
 package lucee.runtime.db;
 
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import org.osgi.framework.BundleException;
 
@@ -16,6 +19,7 @@ import lucee.runtime.config.Prop;
 import lucee.runtime.config.PropFactory;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.extension.RHExtension;
 import lucee.runtime.op.Caster;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.KeyImpl;
@@ -182,7 +186,41 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 			jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
 			if (jdbc != null && jdbc.cd != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 		}
+		ClassDefinition resolved = resolveJDBCDriverFromExtensions(config, id, dbdriver, cd.getClassName());
+		if (resolved != null && hasJDBCLoadInfo(resolved)) return resolved;
 		return patchJDBCClass(config, cd);
+	}
+
+	private static ClassDefinition resolveJDBCDriverFromExtensions(ConfigPro config, String id, String dbdriver, String className) {
+		try {
+			Collection<RHExtension> extensions = config.getAllRHExtensions();
+			if (extensions == null) return null;
+			for (RHExtension ext : extensions) {
+				List<Map<String, String>> jdbcs = ext.getMetadata().getJdbcs();
+				if (jdbcs == null || jdbcs.isEmpty()) continue;
+				for (Map<String, String> map : jdbcs) {
+					if (!matchesJDBCDriver(map, id, dbdriver, className)) continue;
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					if (hasJDBCLoadInfo(cd)) return cd;
+				}
+			}
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+		}
+		return null;
+	}
+
+	private static boolean matchesJDBCDriver(Map<String, String> map, String id, String dbdriver, String className) {
+		String jdbcId = map.get("id");
+		if (!StringUtil.isEmpty(id, true) && jdbcId != null && jdbcId.equalsIgnoreCase(id)) return true;
+		if (!StringUtil.isEmpty(dbdriver, true) && jdbcId != null && jdbcId.equalsIgnoreCase(dbdriver)) return true;
+		if (!StringUtil.isEmpty(className, true)) {
+			String clazz = map.get("class");
+			if (StringUtil.isEmpty(clazz, true)) clazz = map.get("classname");
+			if (className.equals(clazz)) return true;
+		}
+		return false;
 	}
 
 	private static boolean hasJDBCLoadInfo(ClassDefinition cd) {
@@ -218,7 +256,10 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 			jdbc = config.getJDBCDriverByClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver", null);
 			if (jdbc != null && jdbc.cd != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
-			ClassDefinitionImpl tmp = new ClassDefinitionImpl("com.microsoft.sqlserver.jdbc.SQLServerDriver", cd.getName(), cd.getVersionAsString(), config.getIdentification());
+			ClassDefinitionImpl tmp = new ClassDefinitionImpl("com.microsoft.sqlserver.jdbc.SQLServerDriver", "org.lucee.mssql", null, config.getIdentification());
+			if (tmp.getClazz(null) != null) return tmp;
+
+			tmp = new ClassDefinitionImpl("com.microsoft.sqlserver.jdbc.SQLServerDriver", cd.getName(), cd.getVersionAsString(), config.getIdentification());
 			if (tmp.getClazz(null) != null) return tmp;
 		}
 
