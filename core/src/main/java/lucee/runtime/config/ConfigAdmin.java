@@ -93,6 +93,7 @@ import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.DataSourceFactory;
 import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -1548,6 +1549,8 @@ public final class ConfigAdmin {
 
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name can't be an empty value");
+
+		cd = DataSourceFactory.resolveJDBCDriverClassDefinition(config, cd, id, dbdriver);
 
 		Struct children = ConfigUtil.getAsStruct("dataSources", root);
 		Key[] keys = children.keys();

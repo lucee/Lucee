@@ -91,11 +91,6 @@
 
 
 <cfset isInstalled=installed.count() GT 0><!--- if there are records it is installed --->
-<cfset isServerInstalled=false>
-<cfif !isNull(serverExtensions)>
-	<cfset serverInstalled=getDataByGav(url.groupId,url.artifactId,serverExtensions)>
-	<cfset isServerInstalled=serverInstalled.count()>
-</cfif>
 
 
 <cfset hasExternalInfo=available.count() GT 0>
@@ -117,13 +112,12 @@
 <cfoutput>
 	<!--- title and description --->
 	<div class="modheader">
-		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelseif isServerInstalled>#stText.ext.installedServer#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
+		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
 				
 		<cfif !lasProvider>
 		<div class="warning" style="color:##C93">#stText.ext.providerWarning#</div>
 		</cfif>
 
-		<cfif !isInstalled && isServerInstalled><div class="error">#stText.ext.installedServerDesc#</div></cfif>
 		<cfset ESAPIExtension = getDataByid('37C61C0A-5D7E-4256-8572639BE0CF5838',extensions)>
 		<cfif structCount(ESAPIExtension) && toVersionSortable(ESAPIExtension.version) GTE toVersionSortable('2.2.4.5')>
 			<cftry>

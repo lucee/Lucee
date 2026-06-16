@@ -76,13 +76,13 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 					}
 				}
 				// we only have a class
-				else if (!cd.isBundle() && !((ClassDefinitionImpl) cd).isMaven()) {
+				else if (!hasJDBCLoadInfo(cd)) {
 					jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
-					if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) cd = jdbc.cd;
+					if (jdbc != null && jdbc.cd != null && hasJDBCLoadInfo(jdbc.cd)) cd = jdbc.cd;
 				}
 
-				// still no bundle!
-				if (!cd.isBundle() && !((ClassDefinitionImpl) cd).isMaven()) cd = patchJDBCClass(config, cd);
+				// still no bundle or maven coordinates!
+				if (!hasJDBCLoadInfo(cd)) cd = patchJDBCClass(config, cd);
 				int idle = Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "idleTimeout"), -1);
 				if (idle == -1) idle = Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "connectionTimeout"), -1);
 				int defLive = 15;
@@ -165,21 +165,45 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 
 	}
 
+	public static ClassDefinition resolveJDBCDriverClassDefinition(ConfigPro config, ClassDefinition cd, String id, String dbdriver) {
+		if (cd == null) return null;
+		if (hasJDBCLoadInfo(cd)) return cd;
+
+		JDBCDriver jdbc;
+		if (!StringUtil.isEmpty(id, true)) {
+			jdbc = config.getJDBCDriverById(id, null);
+			if (jdbc != null && jdbc.cd != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
+		}
+		if (!StringUtil.isEmpty(dbdriver, true)) {
+			jdbc = config.getJDBCDriverById(dbdriver, null);
+			if (jdbc != null && jdbc.cd != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
+		}
+		if (cd.hasClass()) {
+			jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
+			if (jdbc != null && jdbc.cd != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
+		}
+		return patchJDBCClass(config, cd);
+	}
+
+	private static boolean hasJDBCLoadInfo(ClassDefinition cd) {
+		return cd != null && (cd.isBundle() || (cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven()));
+	}
+
 	private static ClassDefinition patchJDBCClass(ConfigPro config, ClassDefinition cd) {
 		// PATCH for MySQL driver that did change the className within the same extension, JDBC extension
 		// expect that the className does not change.
 		if ("org.gjt.mm.mysql.Driver".equals(cd.getClassName()) || "com.mysql.jdbc.Driver".equals(cd.getClassName()) || "com.mysql.cj.jdbc.Driver".equals(cd.getClassName())) {
 			JDBCDriver jdbc = config.getJDBCDriverById("mysql", null);
-			if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) return jdbc.cd;
+			if (jdbc != null && jdbc.cd != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
 			jdbc = config.getJDBCDriverByClassName("com.mysql.cj.jdbc.Driver", null);
-			if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) return jdbc.cd;
+			if (jdbc != null && jdbc.cd != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
 			jdbc = config.getJDBCDriverByClassName("com.mysql.jdbc.Driver", null);
-			if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) return jdbc.cd;
+			if (jdbc != null && jdbc.cd != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
 			jdbc = config.getJDBCDriverByClassName("org.gjt.mm.mysql.Driver", null);
-			if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) return jdbc.cd;
+			if (jdbc != null && jdbc.cd != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
 			ClassDefinitionImpl tmp = new ClassDefinitionImpl("com.mysql.cj.jdbc.Driver", "com.mysql.cj", null, config.getIdentification());
 			if (tmp.getClazz(null) != null) return tmp;
@@ -187,12 +211,12 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 			tmp = new ClassDefinitionImpl("com.mysql.jdbc.Driver", "com.mysql.jdbc", null, config.getIdentification());
 			if (tmp.getClazz(null) != null) return tmp;
 		}
-		if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cd.getClassName())) {
+		if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cd.getClassName()) || "com.microsoft.sqlserver.jdbc.SQLServerDriver".equals(cd.getClassName())) {
 			JDBCDriver jdbc = config.getJDBCDriverById("mssql", null);
-			if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) return jdbc.cd;
+			if (jdbc != null && jdbc.cd != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
 			jdbc = config.getJDBCDriverByClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver", null);
-			if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) return jdbc.cd;
+			if (jdbc != null && jdbc.cd != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
 			ClassDefinitionImpl tmp = new ClassDefinitionImpl("com.microsoft.sqlserver.jdbc.SQLServerDriver", cd.getName(), cd.getVersionAsString(), config.getIdentification());
 			if (tmp.getClazz(null) != null) return tmp;

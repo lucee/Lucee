@@ -38,8 +38,8 @@
 	</cfoutput>
 	<cfset structDelete(session, "extremoved", false) />
 </cfif>
-<cfset extCount=(serverExtensions.recordcount?:0)+extensions.recordcount>
-<cfif extensions.recordcount || (!isNull(serverExtensions) && serverExtensions.recordcount)>
+<cfset extCount=extensions.recordcount>
+<cfif extensions.recordcount>
 	<cfoutput>
 		<!--- Installed Applications --->
 		<h2>#stText.ext.installed#</h2>
@@ -66,19 +66,13 @@
 		</cfif>
 		<cfparam name="listinstalled" default="0">
 		<cfparam name="listnotinstalled" default="0">
-		<cfloop list="#request.adminType=="web"?"server,web":"web"#" item="_type">
-			<cfset _extensions=_type=="web"?extensions:serverExtensions>
-		<cfif _type=="server">
-		<div style="text-align:center;margin:10px 0px 0px 0px;border-radius: 10px;border:1px solid ##bf4f36;">
-				<h3 style="color:##bf4f36;margin-top:5px">#stText.ext.installedInServer#</h3>
-		</cfif>
 		<cfset spev=[]>
-		<div<cfif _type=="web"> style="margin-top:10px"<cfelse>  style="margin:0px 0px 4px 0px"</cfif> class="extensionlist">
-			<cfloop query=_extensions>
-				<cfif _type=="web"><cfset existing[_extensions.id]=true></cfif>
+		<div style="margin-top:10px" class="extensionlist">
+			<cfloop query=extensions>
+				<cfset existing[extensions.id]=true>
 				<cfif session.extFilter.installed neq "">
 					<cftry>
-						<cfset prov=getProviderData(_extensions.provider)>
+						<cfset prov=getProviderData(extensions.provider)>
 						<cfset provTitle=prov.info.title>
 						<cfcatch>
 							<cfset provTitle="">
@@ -86,22 +80,22 @@
 					</cftry>
 				</cfif>
 
-				<cfset cat=_extensions.categories>
+				<cfset cat=extensions.categories>
 				<cfif session.extFilter.installed eq ""
-					or doFilter(session.extFilter.installed,_extensions.name,false)
+					or doFilter(session.extFilter.installed,extensions.name,false)
 					or doFilter(session.extFilter.installed,arrayToList(cat),false)
 					or doFilter(session.extFilter.installed,provTitle,false)
 				><cfscript>
-					arrayAppend(spev, _extensions.id&";version="&_extensions.version);
-					latest=getLatestVersion(_extensions.id);
-					latestVersion = ( isEmpty( latest.vs ) ) ? _extensions.version : latest.vs;
+					arrayAppend(spev, extensions.id&";version="&extensions.version);
+					latest=getLatestVersion(extensions.id);
+					latestVersion = ( isEmpty( latest.vs ) ) ? extensions.version : latest.vs;
 					hasUpdates = toNumeric( REReplace( latestVersion, "[^\d]", "", "all" ) ) GT
-								 toNumeric( REReplace( toVersionSortable( _extensions.version ), "[^\d]", "", "all" ) );
-					link="#request.self#?action=#url.action#&action2=detail&id=#_extensions.id#&groupId=#_extensions.groupId#&artifactId=#_extensions.artifactId#";
-					img=_extensions.image;
+								 toNumeric( REReplace( toVersionSortable( extensions.version ), "[^\d]", "", "all" ) );
+					link="#request.self#?action=#url.action#&action2=detail&id=#extensions.id#&groupId=#extensions.groupId#&artifactId=#extensions.artifactId#";
+					img=extensions.image;
 					if(len(img)==0) {
 						loop query="#external#"{
-							if(external.id==_extensions.id) {
+							if(external.id==extensions.id) {
 								img=external.image;
 								break;
 							}
@@ -112,23 +106,23 @@
 
 
 
-						<a <cfif _type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
+						<a href="#link#" title="#extensions.name#
 Categories:<cfif isArray(cat)>#arrayToList(cat)#<cfelse>#cat#</cfif>
-Installed version: #_extensions.version#<cfif hasUpdates>
+Installed version: #extensions.version#<cfif hasUpdates>
 Latest version: #latest.v#</cfif>"><cfif hasUpdates>
-       <div class="ribbon-wrapper" <cfif _type=="server">style="border-color:##bf4f36"</cfif>><div class="ribbon" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>UPDATE ME!</div></div>
+       <div class="ribbon-wrapper"><div class="ribbon">UPDATE ME!</div></div>
 </cfif>
-<cfif _extensions.trial>
-       <div class="ribbon-left-wrapper"><div class="ribbon-left" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>TRIAL</div></div>
+<cfif extensions.trial>
+       <div class="ribbon-left-wrapper"><div class="ribbon-left">TRIAL</div></div>
 </cfif>
-							<div class="extimg" id="extimg_#_extensions.id#">
+							<div class="extimg" id="extimg_#extensions.id#">
 								<cfif len(dn)>
 									<img src="#dn#" style="max-width:130px;max-height:50px" alt="#stText.ext.extThumbnail#" />
 								</cfif>
 							</div>
 							<cfset listinstalled = listinstalled+1>
-							<span class="ext-name">#cut(_extensions.name,40)#<br>
-							#_extensions.version#<br />
+							<span class="ext-name">#cut(extensions.name,40)#<br>
+							#extensions.version#<br />
 							</span>
 
 						</a>
@@ -137,8 +131,6 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 			</cfloop>
 			<div class="clear"></div>
 		</div>
-	<cfif _type=="server"></div></cfif>
-</cfloop>
 	</cfoutput>
 </cfif>
 	<cfif listinstalled eq 0 and extCount gt 30>
