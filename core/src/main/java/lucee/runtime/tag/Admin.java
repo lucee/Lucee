@@ -4188,20 +4188,28 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		JDBCDriver[] drivers = config.getJDBCDrivers();
 		lucee.runtime.type.Query qry = new QueryImpl(
-				new Key[] { KeyConstants._id, KeyConstants._label, KeyConstants._class, KeyConstants._bundleName, KeyConstants._bundleVersion, KeyConstants._connectionString },
+				new Key[] { KeyConstants._id, KeyConstants._label, KeyConstants._class, KeyConstants._bundleName, KeyConstants._bundleVersion, KeyConstants._maven,
+						KeyConstants._connectionString },
 				drivers.length, "jdbc");
 
 		JDBCDriver driver;
+		ClassDefinition cd;
 		int row;
 		for (int i = 0; i < drivers.length; i++) {
 			row = i + 1;
 			driver = drivers[i];
+			cd = driver.cd;
 			if (!StringUtil.isEmpty(driver.id)) qry.setAt(KeyConstants._id, row, driver.id);
 			if (!StringUtil.isEmpty(driver.connStr)) qry.setAt(KeyConstants._connectionString, row, driver.connStr);
 			qry.setAt(KeyConstants._label, row, driver.label);
-			qry.setAt(KeyConstants._class, row, driver.cd.getClassName());
-			qry.setAt(KeyConstants._bundleName, row, driver.cd.getName());
-			qry.setAt(KeyConstants._bundleVersion, row, driver.cd.getVersion().toString());
+			qry.setAt(KeyConstants._class, row, cd.getClassName());
+			if (cd.isBundle()) {
+				qry.setAt(KeyConstants._bundleName, row, cd.getName());
+				qry.setAt(KeyConstants._bundleVersion, row, cd.getVersionAsString());
+			}
+			if (cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven()) {
+				qry.setAt(KeyConstants._maven, row, ((ClassDefinitionImpl) cd).getMavenRaw());
+			}
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
