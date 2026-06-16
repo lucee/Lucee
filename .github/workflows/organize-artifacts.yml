@@ -38,6 +38,11 @@ jobs:
       run: |
         cd .github/scripts
         npm install
+
+    - name: Run unit tests
+      run: |
+        cd .github/scripts
+        npm test
         
     - name: Organize S3 Artifacts
       run: |

@@ -699,6 +699,12 @@ component {
 						ds.bundleName = jdbc.bundleName;
 						ds.bundleVersion = jdbc.bundleVersion;
 					}
+					systemOutput( "MSSQL test datasource JDBC resolution: #serializeJSON( {
+						luceeVersion: server.lucee.version,
+						luceeSupportsMavenJdbc: server.doesJDBCSupportMaven(),
+						mode: structKeyExists( ds, "maven" ) ? "maven" : "bundle",
+						jdbc: jdbc
+					} )#", true );
 					return ds.append( arguments.options );
 				}
 				break;
@@ -976,14 +982,64 @@ component {
 				if ( cd.isBundle() ) {
 					driver.bundleName = cd.getName();
 					driver.bundleVersion = cd.getVersionAsString();
+					driver.maven = '';
 				}
 				try {
 					if ( cd.isMaven() ) {
 						driver.maven = cd.getMavenRaw();
+						driver.bundleName = '';
+						driver.bundleVersion = '';
 					}
 				} catch ( any e ) {}
 			}
 		} catch ( any e ) {}
+
+		// Inlined here because this function is assigned to server scope and cannot call other component methods.
+		try {
+			var extensions = getPageContext().getConfig().getAllRHExtensions();
+			loop collection=extensions.iterator() item="ext" {
+				var md = ext.getMetadata();
+				var jdbcs = md.getJdbcs();
+				if ( isNull( jdbcs ) ) {
+					continue;
+				}
+
+				loop collection=jdbcs.iterator() item="jdbc" {
+					if ( jdbc.get( "id" ) != "mssql" ) {
+						continue;
+					}
+
+					var maven = trim( toString( jdbc.get( "maven" ) ?: "" ) );
+					var bundleName = trim( toString( jdbc.get( "bundleName" ) ?: "" ) );
+					var bundleVersion = trim( toString( jdbc.get( "bundleVersion" ) ?: "" ) );
+
+					if ( len( maven ) ) {
+						driver.maven = maven;
+						// Manifest bundle fields are a fallback for older Lucee; omit when Maven is active.
+						if ( !server.doesJDBCSupportMaven() ) {
+							if ( len( bundleName ) ) {
+								driver.bundleName = bundleName;
+							}
+							if ( len( bundleVersion ) ) {
+								driver.bundleVersion = bundleVersion;
+							}
+						}
+					} else if ( !len( driver.maven ) ) {
+						if ( len( bundleName ) ) {
+							driver.bundleName = bundleName;
+						}
+						if ( len( bundleVersion ) ) {
+							driver.bundleVersion = bundleVersion;
+						}
+					}
+				}
+			}
+		} catch ( any e ) {}
+
+		if ( len( driver.maven ) && server.doesJDBCSupportMaven() ) {
+			driver.bundleName = '';
+			driver.bundleVersion = '';
+		}
 
 		return driver;
 	}
