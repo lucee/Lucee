@@ -59,7 +59,7 @@ public final class ThreadUtil {
 
 	// virtual threads are safe from Java 25+ (JEP 491: synchronized no longer pins virtual threads).
 	// Default off — virtual threads on Java 25+ are experimental. Opt-in via lucee.allow.virtual.threads.
-	private static final boolean ALLOW_VIRTUAL_THREADS =
+	public static final boolean ALLOW_VIRTUAL_THREADS =
 			SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_25
 			&& Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.allow.virtual.threads", "false"), false);
 	// private static final Class<?> THREAD_CLASS = Thread.class;
