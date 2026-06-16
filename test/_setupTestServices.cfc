@@ -828,51 +828,6 @@ component {
 		return server.checkVersionGTE( version, 7, 1, 0, 184 );
 	}
 
-	private struct function getMssqlJdbcFromExtensionMetadata() {
-		var jdbcMeta = {
-			maven: ""
-			, bundleName: ""
-			, bundleVersion: ""
-			, extensionVersion: ""
-		};
-
-		try {
-			var extensions = getPageContext().getConfig().getAllRHExtensions();
-			loop collection=extensions.iterator() item="ext" {
-				var md = ext.getMetadata();
-				var jdbcs = md.getJdbcs();
-				if ( isNull( jdbcs ) ) {
-					continue;
-				}
-
-				loop collection=jdbcs.iterator() item="jdbc" {
-					if ( jdbc.get( "id" ) != "mssql" ) {
-						continue;
-					}
-
-					// ClassDefinition registration drops maven when bundleName is set; read raw manifest values.
-					var maven = trim( toString( jdbc.get( "maven" ) ?: "" ) );
-					var bundleName = trim( toString( jdbc.get( "bundleName" ) ?: "" ) );
-					var bundleVersion = trim( toString( jdbc.get( "bundleVersion" ) ?: "" ) );
-					var extensionVersion = toString( md._getVersion() );
-
-					if ( len( maven ) ) {
-						jdbcMeta.maven = maven;
-						jdbcMeta.bundleName = bundleName;
-						jdbcMeta.bundleVersion = bundleVersion;
-						jdbcMeta.extensionVersion = extensionVersion;
-					} else if ( !len( jdbcMeta.maven ) ) {
-						jdbcMeta.bundleName = bundleName;
-						jdbcMeta.bundleVersion = bundleVersion;
-						jdbcMeta.extensionVersion = extensionVersion;
-					}
-				}
-			}
-		} catch ( any e ) {}
-
-		return jdbcMeta;
-	}
-
 	private struct function getMssqlJdbcDriverDefinition() {
 		var driver = {
 			class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
@@ -902,16 +857,44 @@ component {
 			}
 		} catch ( any e ) {}
 
-		var extJdbc = getMssqlJdbcFromExtensionMetadata();
-		if ( len( extJdbc.maven ) ) {
-			driver.maven = extJdbc.maven;
-		}
-		if ( len( extJdbc.bundleName ) ) {
-			driver.bundleName = extJdbc.bundleName;
-		}
-		if ( len( extJdbc.bundleVersion ) ) {
-			driver.bundleVersion = extJdbc.bundleVersion;
-		}
+		// Inlined here because this function is assigned to server scope and cannot call other component methods.
+		try {
+			var extensions = getPageContext().getConfig().getAllRHExtensions();
+			loop collection=extensions.iterator() item="ext" {
+				var md = ext.getMetadata();
+				var jdbcs = md.getJdbcs();
+				if ( isNull( jdbcs ) ) {
+					continue;
+				}
+
+				loop collection=jdbcs.iterator() item="jdbc" {
+					if ( jdbc.get( "id" ) != "mssql" ) {
+						continue;
+					}
+
+					var maven = trim( toString( jdbc.get( "maven" ) ?: "" ) );
+					var bundleName = trim( toString( jdbc.get( "bundleName" ) ?: "" ) );
+					var bundleVersion = trim( toString( jdbc.get( "bundleVersion" ) ?: "" ) );
+
+					if ( len( maven ) ) {
+						driver.maven = maven;
+						if ( len( bundleName ) ) {
+							driver.bundleName = bundleName;
+						}
+						if ( len( bundleVersion ) ) {
+							driver.bundleVersion = bundleVersion;
+						}
+					} else if ( !len( driver.maven ) ) {
+						if ( len( bundleName ) ) {
+							driver.bundleName = bundleName;
+						}
+						if ( len( bundleVersion ) ) {
+							driver.bundleVersion = bundleVersion;
+						}
+					}
+				}
+			}
+		} catch ( any e ) {}
 
 		return driver;
 	}
