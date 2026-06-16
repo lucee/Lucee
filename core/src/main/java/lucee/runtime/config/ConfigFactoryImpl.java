@@ -1926,9 +1926,9 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 						continue;
 					}
 
-					// check if it is a bundle
-					if (!cd.isBundle()) {
-						log(config, Log.LEVEL_INFO, "jdbc driver [" + label + "] does not describe a bundle");
+					// check if it is a bundle or maven coordinates
+					if ( !cd.isBundle() && !( cd instanceof ClassDefinitionImpl && ( (ClassDefinitionImpl) cd ).isMaven() ) ) {
+						log(config, Log.LEVEL_INFO, "jdbc driver [" + label + "] does not describe a bundle or maven coordinates");
 						continue;
 					}
 					map.put(cd.toString(), new JDBCDriver(label, id, connStr, cd));
