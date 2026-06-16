@@ -1,13 +1,12 @@
 package lucee.runtime.config.maven;
 
-import java.nio.charset.StandardCharsets;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,9 +72,6 @@ public final class MavenUpdateProvider {
 	public static final int CONNECTION_TIMEOUT = 10000; // 10 seconds - for establishing connection
 	public static final int READ_TIMEOUT = 60000; // 60 seconds - for reading response data
 
-	public static final Repository REPOSITORY_FORGEBOX = new Repository("Forgebox", "https://forgebox-712327080957.europe-west1.run.app/", TYPE_ALL, Repository.TIMEOUT_1HOUR,
-			Repository.TIMEOUT_NEVER, null, ExtensionListers.DEFAULT);
-
 	// MAVEN
 	public static final Repository REPOSITORY_MAVEN_CENTRAL_RELEASES = new Repository("Maven Release Repository", "https://repo1.maven.org/maven2/", TYPE_RELEASE,
 			Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.CENTRAL);
@@ -96,7 +92,7 @@ public final class MavenUpdateProvider {
 
 	public static final Repository[] DEFAULT_REPOSITORIES_SNAPSHOTS = new Repository[] { REPOSITORY_SONATYPE_SNAPSHOTS };
 	public static final Repository[] DEFAULT_REPOSITORIES_RELEASES = new Repository[] { REPOSITORY_MAVEN_CENTRAL_RELEASES, REPOSITORY_GOOGLE_CENTRAL_MIRROR, REPOSITORY_LUCEE };
-	public static final Repository[] DEFAULT_REPOSITORIES_ALL = new Repository[] { REPOSITORY_LUCEE, REPOSITORY_FORGEBOX };
+	public static final Repository[] DEFAULT_REPOSITORIES_ALL = new Repository[] { REPOSITORY_LUCEE };
 
 	// private static final Repository[] DEFAULT_REPOSITORY_MIXED = new Repository[] {
 	// DEFAULT_REPOSITORY_LUCEE };

@@ -15,7 +15,7 @@ component {
 	}
 
 	public string function getLuceeMcpServerUrl() {
-		return "https://lucee-mcp-server-712327080957.europe-west1.run.app/";
+		return "https://mcp.lucee-services.com/";
 	}
 
 	public string function getLuceeMcpServerName() {
