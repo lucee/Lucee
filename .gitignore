@@ -42,5 +42,5 @@ buildVersionNumber.txt
 /.claude
 
 # Eclipse-derived IDE files (.classpath/.project regenerate from pom.xml)
-.classpath
 .project
+node_modules/
