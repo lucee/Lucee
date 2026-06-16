@@ -7,9 +7,10 @@
 	function getLatestVersion(id) {
 		loop query=external {
 			if(external.id==arguments.id) {
-				if(len(external.OtherVersions)) {
+				var ovs=external.otherVersions;
+				if(!isNull(ovs) && isArray(ovs) && arrayLen(ovs)) {
 					var latest={'vs':toVersionSortable(external.version),'v':external.version};
-					loop array=external.OtherVersions item="local.v" {
+					loop array=ovs item="local.v" {
 						var vs=toVersionSortable(v);
 						if(isEmpty(latest.vs) || vs>latest.vs)
 							latest={'vs':vs,'v':v};
@@ -39,6 +40,8 @@
 	<cfset structDelete(session, "extremoved", false) />
 </cfif>
 <cfset spev=[]>
+<cfparam name="listinstalled" default="0">
+<cfparam name="listnotinstalled" default="0">
 <cfset extCount=extensions.recordcount>
 <cfif extensions.recordcount>
 	<cfoutput>
@@ -65,8 +68,6 @@
 			</cfformClassic>
 		</div>
 		</cfif>
-		<cfparam name="listinstalled" default="0">
-		<cfparam name="listnotinstalled" default="0">
 		<cfset spev=[]>
 		<div style="margin-top:10px" class="extensionlist">
 			<cfloop query=extensions>
@@ -232,7 +233,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	<cfset hiddenFormContents = "" >
 	<cfset count = 1>
 
-	<cfloop list="Release,Pre_Release,SnapShot" index="key">
+	<cfloop list="release,pre_release,snapshot" index="key">
 		<span><input
 			<cfif count EQ 1>class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>
 			style="width:180px"
