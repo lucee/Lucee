@@ -52,7 +52,7 @@ public final class S3UpdateProvider extends DefaultHandler {
 	static {
 		try {
 			DEFAULT_PROVIDER_LIST = new URL("https://lucee-downloads.s3.amazonaws.com/");
-			DEFAULT_PROVIDER_DETAIL = new URL("https://cdn.lucee.org/");
+			DEFAULT_PROVIDER_DETAIL = new URL("https://maven.lucee-services.com/");
 		}
 		catch (Exception e) {}
 	}

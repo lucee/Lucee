@@ -17,8 +17,10 @@ Shared logic lives in `maven-group-metadata.js` (group-level metadata, version s
 Lucee 8.0+ discovers extensions via `GroupMetadataExtensionLister`, which reads:
 
 ```
-https://cdn.lucee.org/org/lucee/maven-metadata.xml
+https://maven.lucee-services.com/org/lucee/maven-metadata.xml
 ```
+
+(Files are published to S3/`cdn.lucee.org`; the maven-bridge serves them at `maven.lucee-services.com`.)
 
 That file uses a Lucee-specific schema (see `maven-bridge` `BridgeSupport.buildGroupMetadata()`): a list of `<artifact>` entries with `<artifactId>`, `<latest>`, and optional `<release>` for each `*-extension` artifact.
 

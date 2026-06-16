@@ -637,7 +637,7 @@ public class ExtensionProvider {
 	public static void main(String[] args) throws Exception {
 		// TODO remove
 		ExtensionProvider ep = new ExtensionProvider(null, "org.lucee", new Repository[] {
-				new Repository("Maven Release Repository", "https://cdn.lucee.org/", MavenUpdateProvider.TYPE_ALL, Repository.TIMEOUT_5SECONDS, Repository.TIMEOUT_5SECONDS) });
+				new Repository("Maven Release Repository", "https://maven.lucee-services.com/", MavenUpdateProvider.TYPE_ALL, Repository.TIMEOUT_5SECONDS, Repository.TIMEOUT_5SECONDS) });
 
 		ep = new ExtensionProvider(null, "org.lucee", MavenUpdateProvider.REPOSITORY_MAVEN_CENTRAL_RELEASES);
 

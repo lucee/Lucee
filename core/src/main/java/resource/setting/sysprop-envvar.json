@@ -775,7 +775,7 @@
 	{
 		"sysprop": "lucee.mvn.repo.releases",
 		"envvar": "LUCEE_MVN_REPO_RELEASES",
-		"desc": "Comma-separated Maven repository URLs used to override release repositories. When unset, Lucee uses Maven Central and the Google Cloud Maven Central mirror for releases; https://cdn.lucee.org/ and ForgeBox are always included for extension discovery and Lucee artifacts.",
+		"desc": "Comma-separated Maven repository URLs used to override release repositories. When unset, Lucee uses Maven Central and the Google Cloud Maven Central mirror for releases; https://maven.lucee-services.com/ and ForgeBox are always included for extension discovery and Lucee artifacts.",
 		"category": "osgi",
 		"type": "string",
 		"default": "https://repo1.maven.org/maven2/,https://maven-central.storage-download.googleapis.com/maven2/"

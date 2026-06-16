@@ -89,7 +89,7 @@ public final class MavenUpdateProvider {
 			"https://central.sonatype.com/repository/maven-snapshots/", TYPE_SNAPSHOT, Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.EMPTY);
 
 	// LUCEE
-	public static final Repository REPOSITORY_LUCEE = new Repository("Lucee Maven repository", "https://cdn.lucee.org/", TYPE_ALL, Repository.TIMEOUT_1HOUR,
+	public static final Repository REPOSITORY_LUCEE = new Repository("Lucee Maven repository", "https://maven.lucee-services.com/", TYPE_ALL, Repository.TIMEOUT_1HOUR,
 			Repository.TIMEOUT_NEVER, null, ExtensionListers.LUCEE);
 
 	////////////////////////////

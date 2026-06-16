@@ -16,7 +16,7 @@
     value="https://downloads.ortussolutions.com/ortussolutions/testbox/${testboxVersion}/testbox-${testboxVersion}.zip"/>
   <property name="extURL" value="https://extension.lucee.org/rest/extension/provider/full/"/>
   <property name="extURLMaven" value="https://repo1.maven.org/maven2/"/>
-  <property name="extURLCDN" value="https://cdn.lucee.org/"/>
+  <property name="extURLCDN" value="https://maven.lucee-services.com/"/>
   <property name="extURLSnapshot" value="https://central.sonatype.com/repository/maven-snapshots/"/>
   
   <property name="extMongo"     value="org.lucee:mongodb-extension:3.12.13.10"/>
