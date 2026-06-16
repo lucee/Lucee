@@ -550,6 +550,7 @@ component {
 		server.getBundleVersions = getBundleVersions;
 		server.checkVersionGTE = checkVersionGTE;
 		server.doesJDBCSupportMaven = doesJDBCSupportMaven;
+		server.getMssqlJdbcDriverDefinition = getMssqlJdbcDriverDefinition;
 	}
 	public struct function getTestService( required string service, 
 			string dbFile="", 
@@ -581,14 +582,14 @@ component {
 				if ( structCount( msSql ) gt 0){
 					if ( arguments.onlyConfig )
 						return msSql;
-					var jdbc = getMssqlJdbcDriverDefinition();
+					var jdbc = server.getMssqlJdbcDriverDefinition();
 					var ds = {
 						class: jdbc.class
 						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct;trustServerCertificate=true'
 						, username: msSQL.username
 						, password: msSQL.password
 					};
-					if ( doesJDBCSupportMaven() && len( jdbc.maven ) ) {
+					if ( server.doesJDBCSupportMaven() && len( jdbc.maven ) ) {
 						ds.maven = jdbc.maven;
 					} else {
 						ds.bundleName = jdbc.bundleName;
