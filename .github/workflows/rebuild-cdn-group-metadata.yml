@@ -1,0 +1,44 @@
+name: Rebuild CDN Group Metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run - scan S3 but do not upload'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: |
+        cd .github/scripts
+        npm install
+
+    - name: Run unit tests
+      run: |
+        cd .github/scripts
+        npm test
+
+    - name: Rebuild org/lucee group metadata and index
+      run: |
+        cd .github/scripts
+        node rebuild-group-metadata.js
+      env:
+        INPUT_DRY_RUN: ${{ inputs.dry_run }}
+        INPUT_S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
+        INPUT_S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
+        INPUT_S3_BUCKET: 'lucee-downloads'
+        INPUT_S3_REGION: 'us-east-1'
