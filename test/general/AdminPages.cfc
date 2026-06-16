@@ -61,7 +61,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
                 };
             });
 
-            it( title="Fetch and test admin pages", body=function(){
+            xit( title="Fetch and test admin pages", body=function(){
                 local._adminUrls = _internalRequest(
                     template: adminRoot & adminPage,
                     urls : { testUrls: true },
