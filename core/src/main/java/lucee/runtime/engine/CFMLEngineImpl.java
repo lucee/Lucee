@@ -1169,8 +1169,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		boolean exeReqAsync = exeRequestAsync();
 		PageContextImpl pc = factory.getPageContextImpl(servlet, req, rsp, null, false, -1, false, !exeReqAsync, false, -1, true, false, false, null);
 		try {
-			Request r = new Request(pc, type);
 			if (exeReqAsync) {
+				Request r = new Request(pc, type);
 				r.start();
 				long ended = -1;
 				do {
