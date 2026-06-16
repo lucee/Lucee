@@ -56,12 +56,11 @@ import lucee.runtime.type.dt.DateTimeImpl;
 public final class PageSourcePool implements Dumpable {
 	// TODO must not be thread safe, is used in sync block only
 	private final Map<String, SoftReference<PageSource>> pageSources = new ConcurrentHashMap<String, SoftReference<PageSource>>();
-	// Strong-ref storage used for INSPECT_NEVER mappings when USE_STRONG_NEVER is on. NEVER mode
-	// promises no-recheck-after-load; SoftRef clearing breaks that promise under GC pressure by
-	// forcing fresh PageSourceImpl construction with empty pcn, which falls through loadPhysical's
-	// short-circuit and hits lastModified() syscalls. Historical classloader-leak vectors that
-	// motivated SoftRef are individually addressed by LDEV-2904, LDEV-5407, LDEV-6348, LDEV-6357,
-	// LDEV-6358.
+	// Strong-ref storage used when USE_STRONG_REFS is on. SoftRef clearing under GC pressure
+	// forced fresh PageSourceImpl construction with empty pcn, which fell through loadPhysical's
+	// short-circuit and hit lastModified() syscalls — silently degrading all inspect modes to a
+	// "weak AUTO". Historical classloader-leak vectors that motivated SoftRef are individually
+	// addressed by LDEV-2904, LDEV-5407, LDEV-6348, LDEV-6357, LDEV-6358.
 	private final Map<String, PageSource> strongPageSources = new ConcurrentHashMap<String, PageSource>();
 	private int maxSize_min = 767;
 	private MappingImpl mapping;
@@ -71,20 +70,20 @@ public final class PageSourcePool implements Dumpable {
 	private static final int MAXSIZE_MIN;
 	// timeout timeout for files
 	private static final int TIMEOUT;
-	// strong-ref storage for INSPECT_NEVER mappings (rollback via lucee.pagePool.never.strongRef=false)
-	private static final boolean USE_STRONG_NEVER;
+	// strong-ref storage for all inspect modes (rollback to legacy SoftRef via lucee.pagePool.strongRef=false)
+	private static final boolean USE_STRONG_REFS;
 
 	static {
 		MAXSIZE = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.pagePool.maxSize", null), 10000);
 		MAXSIZE_MIN = Math.max(MAXSIZE - 1000, 1000);
 		TIMEOUT = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.pagePool.timeout", null), 10000);
-		USE_STRONG_NEVER = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.pagePool.never.strongRef", null), true);
+		USE_STRONG_REFS = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.pagePool.strongRef", null), true);
 
 	}
 
-	/** true when this pool's mapping is INSPECT_NEVER and the strong-ref backend is enabled. */
+	/** true when the strong-ref backend is enabled (rollback via lucee.pagePool.strongRef=false). */
 	private boolean useStrong() {
-		return USE_STRONG_NEVER && mapping.getInspectTemplate() == ConfigPro.INSPECT_NEVER;
+		return USE_STRONG_REFS;
 	}
 
 	/**

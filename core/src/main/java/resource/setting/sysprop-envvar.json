@@ -914,13 +914,13 @@
 		"default": 10000
 	},
 	{
-		"sysprop": "lucee.pagePool.never.strongRef",
-		"envvar": "LUCEE_PAGEPOOL_NEVER_STRONGREF",
-		"desc": "When true (default), PageSource entries for INSPECT_NEVER mappings are held by strong reference instead of SoftReference, so they cannot be cleared by GC pressure. Honours the NEVER contract (no recheck after load) and avoids lastModified() syscalls under load. Set to false to restore legacy SoftReference behaviour.",
+		"sysprop": "lucee.pagePool.strongRef",
+		"envvar": "LUCEE_PAGEPOOL_STRONGREF",
+		"desc": "When true (default), PageSource entries for all inspect modes are held by strong reference instead of SoftReference, so they cannot be cleared by GC pressure. Avoids lastModified() syscalls under load and prevents NEVER/ONCE mappings silently degrading to AUTO when SoftRefs clear. Set to false to restore legacy SoftReference behaviour. (NEVER-only variant introduced in 7.1.0.156, extended to all modes here.)",
 		"category": "performance",
 		"type": "boolean",
 		"default": true,
-		"introduced": "7.1.0.156"
+		"introduced": "7.1.0.190"
 	},
 	{
 		"sysprop": "lucee.password.enc.key",
