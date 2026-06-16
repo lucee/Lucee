@@ -57,7 +57,8 @@ public final class MixedAppListener extends ModernAppListener {
 			dir = isRest ? res.getAbsolutePath() : res.getParent(); // REST requests don't have a file initially
 			ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, dir, "Application.[cfc|cfm]", mode, isCFC);
 			if (ps != null) {
-				if (ps.exists()) return ps.loadPage(pc, false);
+				Page p = ps.loadPageThrowTemplateException(pc, false, (Page) null);
+				if (p != null) return p;
 			}
 		}
 
