@@ -37,6 +37,13 @@ import lucee.transformer.library.ClassDefinitionImpl;
  * Pool to Handle Tags
  */
 public final class TagHandlerPool {
+	private static final ClassValue<String> CLASS_NAMES = new ClassValue<String>() {
+		@Override
+		protected String computeValue(Class<?> type) {
+			return type.getName();
+		}
+	};
+
 	private ConcurrentHashMap<String, Queue<Tag>> map = new ConcurrentHashMap<String, Queue<Tag>>();
 	private ConfigWeb config;
 
@@ -75,19 +82,19 @@ public final class TagHandlerPool {
 	 */
 	public void reuse(Tag tag) {
 		tag.release();
-		Queue<Tag> queue = getQueue(tag.getClass().getName());
+		Queue<Tag> queue = getQueue(CLASS_NAMES.get(tag.getClass()));
 		queue.add(tag);
 	}
 
 	public void reuse(Tag tag, String maven) {
 		tag.release();
-		Queue<Tag> queue = getQueue(toId(tag.getClass().getName(), maven));
+		Queue<Tag> queue = getQueue(toId(CLASS_NAMES.get(tag.getClass()), maven));
 		queue.add(tag);
 	}
 
 	public void reuse(Tag tag, String bundleName, String bundleVersion) {
 		tag.release();
-		Queue<Tag> queue = getQueue(toId(tag.getClass().getName(), bundleName, bundleVersion));
+		Queue<Tag> queue = getQueue(toId(CLASS_NAMES.get(tag.getClass()), bundleName, bundleVersion));
 		queue.add(tag);
 	}
 
