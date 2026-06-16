@@ -356,7 +356,7 @@ Require-Bundle: org.apache.commons.commons-codec;bundle-version=1.15.0,
  org.lucee.janino;bundle-version=3.1.9,
  org.lucee.janinocc;bundle-version=3.1.9
 Require-Extension: org.lucee:mysql-jdbc-extension:9.6.0,
- org.lucee:mssql-jdbc-extension:13.2.1,
+ org.lucee:mssql-jdbc-extension:13.4.0.jre11,
  org.lucee:postgresql-jdbc-extension:42.7.9,
  org.lucee:administrator-extension:1.0.0.7,
  org.lucee:documentation-extension:1.0.0.6,
