@@ -813,24 +813,20 @@ component {
 		used to filter out tests which have a specific fix version 
 		when running against older versions of lucee, i.e with extension ci
 	*/
-	private string function normalizeLuceeVersion( required string version ) {
-		var v = trim( arguments.version );
-		if ( find( "-", v ) ) {
-			v = listFirst( v, "-" );
-		}
-		return v;
-	}
-
 	public boolean function doesJDBCSupportMaven() {
 		// JDBC extension maven coordinates supported from 7.1.0.184-SNAPSHOT
-		return checkVersionGTE( normalizeLuceeVersion( server.lucee.version ), 7, 1, 0, 184 );
+		var version = trim( server.lucee.version );
+		if ( find( "-", version ) ) {
+			version = listFirst( version, "-" );
+		}
+		return server.checkVersionGTE( version, 7, 1, 0, 184 );
 	}
 
 	private struct function getMssqlJdbcDriverDefinition() {
 		var driver = {
 			class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
 			, bundleName: 'org.lucee.mssql'
-			, bundleVersion: getDefaultBundleVersion( 'org.lucee.mssql', '12.2.0.jre8' )
+			, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.mssql', '12.2.0.jre8' )
 			, maven: ''
 		};
 
