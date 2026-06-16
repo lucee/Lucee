@@ -817,11 +817,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		extend(config, "felix.service.urlhandlers", null, false);
 		extend(config, "felix.startlevel.bundle", null, false);
 
-		int processors = Runtime.getRuntime().availableProcessors();
-		String parallelism = Math.max(4, processors * 2) + ""; // Use more threads
-		extend(config, "felix.resolver.parallelism", parallelism, false);
-		extend(config, "felix.resolver.parallel", "true", false); // Enable parallel resolution
-		extend(config, "felix.systembundle.activators.start.parallelism", parallelism, false);
+		// Felix bundle resolution is disk-IO-bound graph walking, not CPU-bound.
+		// "1" makes Felix use a direct Executor (no pool, no keep-alive cycles).
+		// Override via -Dfelix.resolver.parallelism=N if a workload ever justifies it.
+		extend(config, "felix.resolver.parallelism", "1", false);
 
 		// Skip waiting for service events to be delivered
 		extend(config, "felix.service.timeout", null, false);
