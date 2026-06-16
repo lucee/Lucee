@@ -653,6 +653,8 @@ component {
 		server.getDefaultBundleVersion = getDefaultBundleVersion;  
 		server.getBundleVersions = getBundleVersions;
 		server.checkVersionGTE = checkVersionGTE;
+		server.doesJDBCSupportMaven = doesJDBCSupportMaven;
+		server.getMssqlJdbcDriverDefinition = getMssqlJdbcDriverDefinition;
 	}
 	public struct function getTestService( required string service, 
 			string dbFile="", 
@@ -684,14 +686,20 @@ component {
 				if ( structCount( msSql ) gt 0){
 					if ( arguments.onlyConfig )
 						return msSql;
-					return {
-						class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
-						, bundleName: 'org.lucee.mssql'
-						, bundleVersion: server.getDefaultBundleVersion('org.lucee.mssql', '12.2.0.jre8')
+					var jdbc = server.getMssqlJdbcDriverDefinition();
+					var ds = {
+						class: jdbc.class
 						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct;trustServerCertificate=true'
 						, username: msSQL.username
 						, password: msSQL.password
-					}.append( arguments.options );
+					};
+					if ( server.doesJDBCSupportMaven() && len( jdbc.maven ) ) {
+						ds.maven = jdbc.maven;
+					} else {
+						ds.bundleName = jdbc.bundleName;
+						ds.bundleVersion = jdbc.bundleVersion;
+					}
+					return ds.append( arguments.options );
 				}
 				break;
 			case "mysql":
@@ -939,6 +947,47 @@ component {
 		used to filter out tests which have a specific fix version 
 		when running against older versions of lucee, i.e with extension ci
 	*/
+	public boolean function doesJDBCSupportMaven() {
+		// JDBC extension maven coordinates supported from 7.1.0.184-SNAPSHOT
+		var version = trim( server.lucee.version );
+		if ( find( "-", version ) ) {
+			version = listFirst( version, "-" );
+		}
+		return server.checkVersionGTE( version, 7, 1, 0, 184 );
+	}
+
+	private struct function getMssqlJdbcDriverDefinition() {
+		var driver = {
+			class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
+			, bundleName: 'org.lucee.mssql'
+			, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.mssql', '12.2.0.jre8' )
+			, maven: ''
+		};
+
+		try {
+			var config = getPageContext().getConfig();
+			var jdbcDriver = config.getJDBCDriverById( 'mssql', nullValue() );
+			if ( isNull( jdbcDriver ) ) {
+				jdbcDriver = config.getJDBCDriverByClassName( driver.class, nullValue() );
+			}
+			if ( !isNull( jdbcDriver ) ) {
+				var cd = jdbcDriver.cd;
+				driver.class = cd.getClassName();
+				if ( cd.isBundle() ) {
+					driver.bundleName = cd.getName();
+					driver.bundleVersion = cd.getVersionAsString();
+				}
+				try {
+					if ( cd.isMaven() ) {
+						driver.maven = cd.getMavenRaw();
+					}
+				} catch ( any e ) {}
+			}
+		} catch ( any e ) {}
+
+		return driver;
+	}
+
 	public function checkVersionGTE(version, major, minor="", patch="", build="") {
 		var v = listToArray(arguments.version, ".");
 		while (v.len() < 4) v.append(0); // Normalize to 4 components
