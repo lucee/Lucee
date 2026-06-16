@@ -1,4 +1,8 @@
 import { S3Client, ListObjectsV2Command, CopyObjectCommand, DeleteObjectCommand, PutObjectCommand, GetObjectCommand, HeadObjectCommand, GetBucketLocationCommand } from '@aws-sdk/client-s3';
+import {
+  generateAndUploadDirectoryListing,
+  generateAndUploadGroupMetadata
+} from './maven-group-metadata.js';
 
 // Helper function to log with timestamp
 function log(message, level = 'INFO') {
@@ -133,6 +137,27 @@ async function run() {
         totalErrors++;
         logError(`❌ Version ${version} failed: ${error.message}`);
       }
+    }
+
+    // Regenerate org/lucee group index and maven-metadata.xml when files were processed
+    if (!dryRun && totalProcessed > 0) {
+      try {
+        const listing = await generateAndUploadDirectoryListing(s3Client, bucket);
+        log(`✓ Generated HTML directory listing for org/lucee (${listing.length} entries)`);
+      } catch (error) {
+        totalErrors++;
+        logError(`✗ Failed to generate directory listing: ${error.message}`);
+      }
+
+      try {
+        const group = await generateAndUploadGroupMetadata(s3Client, bucket);
+        log(`✓ Generated group maven-metadata.xml for org/lucee (${group.artifacts.length} extensions)`);
+      } catch (error) {
+        totalErrors++;
+        logError(`✗ Failed to generate group metadata: ${error.message}`);
+      }
+    } else if (dryRun) {
+      log('[DRY RUN] Would generate org/lucee/index.html and org/lucee/maven-metadata.xml');
     }
 
     // Overall summary
