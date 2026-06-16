@@ -15,10 +15,10 @@ import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Prop;
 import lucee.runtime.config.PropFactory;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.tag.listener.TagListener;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -52,85 +52,84 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 			String id;
 			Struct dataSource = Caster.toStruct(val);
 
-			{
+			if (!hasDataSourceDefinition(dataSource)) {
+				return null;
+			}
 
-				if (dataSource.containsKey(KeyConstants._database)) {
-					try {
-						// do we have an id?
-						jdbc = config.getJDBCDriverById(ConfigFactoryImpl.getAttr(config, dataSource, "id"), null);
-						if (jdbc != null && jdbc.cd != null) {
-							cd = jdbc.cd;
-						}
-						else {
-							cd = ConfigFactoryImpl.getClassDefinition(config, dataSource, "", config.getIdentification());
-						}
+			try {
+				// do we have an id?
+				jdbc = config.getJDBCDriverById(ConfigFactoryImpl.getAttr(config, dataSource, "id"), null);
+				if (jdbc != null && jdbc.cd != null) {
+					cd = jdbc.cd;
+				}
+				else {
+					cd = ConfigFactoryImpl.getClassDefinition(config, dataSource, "", config.getIdentification());
+				}
 
-						// we have no class
-						if (!cd.hasClass()) {
-							jdbc = config.getJDBCDriverById(ConfigFactoryImpl.getAttr(config, dataSource, "type"), null);
-							if (jdbc != null && jdbc.cd != null) {
-								cd = jdbc.cd;
-							}
-						}
-						// we only have a class
-						else if (!cd.isBundle() && !((ClassDefinitionImpl) cd).isMaven()) {
-							jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
-							if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) cd = jdbc.cd;
-						}
-
-						// still no bundle!
-						if (!cd.isBundle() && !((ClassDefinitionImpl) cd).isMaven()) cd = patchJDBCClass(config, cd);
-						int idle = Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "idleTimeout"), -1);
-						if (idle == -1) idle = Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "connectionTimeout"), -1);
-						int defLive = 15;
-						if (idle > 0) defLive = idle * 5;// for backward compatibility
-
-						String dsn = ConfigFactoryImpl.getAttr(config, dataSource, "connectionString");
-						if (StringUtil.isEmpty(dsn, true)) dsn = ConfigFactoryImpl.getAttr(config, dataSource, "dsn");
-						if (StringUtil.isEmpty(dsn, true)) dsn = ConfigFactoryImpl.getAttr(config, dataSource, "connStr");
-						if (StringUtil.isEmpty(dsn, true)) dsn = ConfigFactoryImpl.getAttr(config, dataSource, "url");
-						if (StringUtil.isEmpty(dsn, true)) {
-							if (jdbc == null && cd.hasClass()) {
-								jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
-							}
-							if (jdbc != null) {
-								dsn = jdbc.connStr;
-							}
-
-						}
-						String bundleName = ConfigFactoryImpl.getAttr(config, dataSource, "bundleName");
-						String bundleVersion = ConfigFactoryImpl.getAttr(config, dataSource, "bundleVersion");
-
-						return createDatasource(config, name, cd, ConfigFactoryImpl.getAttr(config, dataSource, "host"), ConfigFactoryImpl.getAttr(config, dataSource, "database"),
-								Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "port"), -1), dsn, bundleName, bundleVersion,
-								ConfigFactoryImpl.getAttr(config, dataSource, "username"), ConfigUtil.decrypt(ConfigFactoryImpl.getAttr(config, dataSource, "password")), null,
-								Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "connectionLimit"), ConfigFactoryImpl.DEFAULT_MAX_CONNECTION), idle,
-								Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "liveTimeout"), defLive),
-								Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "minIdle"), 0),
-								Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "maxIdle"), 0),
-								Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "maxTotal"), 0),
-								Caster.toLongValue(ConfigFactoryImpl.getAttr(config, dataSource, "metaCacheTimeout"), 60000),
-								ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "blob"), true),
-								ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "clob"), true),
-								Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "allow"), DataSource.ALLOW_ALL),
-								ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "validate"), false),
-								ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "storage"), false),
-								ConfigFactoryImpl.getAttr(config, dataSource, "timezone"), ConfigUtil.getAsStruct(config, dataSource, true, "custom"),
-								ConfigFactoryImpl.getAttr(config, dataSource, "dbdriver"), ParamSyntaxImpl.toParamSyntax(dataSource, ParamSyntaxImpl.DEFAULT),
-								ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "literalTimestampWithTSOffset"), false),
-								ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "alwaysSetTimeout"), false),
-								ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "requestExclusive"), false),
-								ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "alwaysResetConnections"), false)
-
-						);
-					}
-					catch (Throwable th) {
-						ExceptionUtil.rethrowIfNecessary(th);
-						throw Caster.toPageException(th);
+				// we have no class
+				if (!cd.hasClass()) {
+					String type = ConfigFactoryImpl.getAttr(config, dataSource, "type");
+					if (StringUtil.isEmpty(type, true)) type = ConfigFactoryImpl.getAttr(config, dataSource, "dbdriver");
+					jdbc = config.getJDBCDriverById(type, null);
+					if (jdbc != null && jdbc.cd != null) {
+						cd = jdbc.cd;
 					}
 				}
-				throw new ApplicationException("missing key [database]");
+				// we only have a class
+				else if (!cd.isBundle() && !((ClassDefinitionImpl) cd).isMaven()) {
+					jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
+					if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) cd = jdbc.cd;
+				}
 
+				// still no bundle!
+				if (!cd.isBundle() && !((ClassDefinitionImpl) cd).isMaven()) cd = patchJDBCClass(config, cd);
+				int idle = Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "idleTimeout"), -1);
+				if (idle == -1) idle = Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "connectionTimeout"), -1);
+				int defLive = 15;
+				if (idle > 0) defLive = idle * 5;// for backward compatibility
+
+				String dsn = ConfigFactoryImpl.getAttr(config, dataSource, "connectionString");
+				if (StringUtil.isEmpty(dsn, true)) dsn = ConfigFactoryImpl.getAttr(config, dataSource, "dsn");
+				if (StringUtil.isEmpty(dsn, true)) dsn = ConfigFactoryImpl.getAttr(config, dataSource, "connStr");
+				if (StringUtil.isEmpty(dsn, true)) dsn = ConfigFactoryImpl.getAttr(config, dataSource, "url");
+				if (StringUtil.isEmpty(dsn, true)) {
+					if (jdbc == null && cd.hasClass()) {
+						jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
+					}
+					if (jdbc != null) {
+						dsn = jdbc.connStr;
+					}
+
+				}
+				String bundleName = ConfigFactoryImpl.getAttr(config, dataSource, "bundleName");
+				String bundleVersion = ConfigFactoryImpl.getAttr(config, dataSource, "bundleVersion");
+
+				return createDatasource(config, name, cd, ConfigFactoryImpl.getAttr(config, dataSource, "host"), ConfigFactoryImpl.getAttr(config, dataSource, "database"),
+						Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "port"), -1), dsn, bundleName, bundleVersion,
+						ConfigFactoryImpl.getAttr(config, dataSource, "username"), ConfigUtil.decrypt(ConfigFactoryImpl.getAttr(config, dataSource, "password")), null,
+						Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "connectionLimit"), ConfigFactoryImpl.DEFAULT_MAX_CONNECTION), idle,
+						Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "liveTimeout"), defLive),
+						Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "minIdle"), 0),
+						Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "maxIdle"), 0),
+						Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "maxTotal"), 0),
+						Caster.toLongValue(ConfigFactoryImpl.getAttr(config, dataSource, "metaCacheTimeout"), 60000),
+						ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "blob"), true),
+						ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "clob"), true),
+						Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "allow"), DataSource.ALLOW_ALL),
+						ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "validate"), false),
+						ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "storage"), false),
+						ConfigFactoryImpl.getAttr(config, dataSource, "timezone"), ConfigUtil.getAsStruct(config, dataSource, true, "custom"),
+						ConfigFactoryImpl.getAttr(config, dataSource, "dbdriver"), ParamSyntaxImpl.toParamSyntax(dataSource, ParamSyntaxImpl.DEFAULT),
+						ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "literalTimestampWithTSOffset"), false),
+						ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "alwaysSetTimeout"), false),
+						ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "requestExclusive"), false),
+						ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "alwaysResetConnections"), false)
+
+				);
+			}
+			catch (Throwable th) {
+				ExceptionUtil.rethrowIfNecessary(th);
+				throw Caster.toPageException(th);
 			}
 
 		}
@@ -139,6 +138,18 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 			ConfigFactoryImpl.log(config, t);
 			throw Caster.toPageException(t);
 		}
+	}
+
+	private static boolean hasDataSourceDefinition(Struct dataSource) {
+		if (dataSource.containsKey(KeyConstants._database)) return true;
+		if (dataSource.containsKey(KeyConstants._connectionString)) return true;
+		if (dataSource.containsKey(KeyConstants._dsn)) return true;
+		if (dataSource.containsKey(KeyConstants._url)) return true;
+		if (dataSource.containsKey(KeyConstants._class)) return true;
+		if (dataSource.containsKey(KeyConstants._type)) return true;
+		if (dataSource.containsKey(KeyImpl.init("dbdriver"))) return true;
+		if (dataSource.containsKey(KeyConstants._id)) return true;
+		return false;
 	}
 
 	private static DataSourceImpl createDatasource(ConfigPro config, String datasourceName, ClassDefinition cd, String server, String databasename, int port, String dsn,
