@@ -33,6 +33,7 @@ import jakarta.servlet.ServletInputStream;
  */
 public final class ServletInputStreamDummy extends ServletInputStream {
 	private InputStream stream;
+	private boolean finished;
 
 	/**
 	 * @param data
@@ -55,12 +56,16 @@ public final class ServletInputStreamDummy extends ServletInputStream {
 
 	@Override
 	public int read() throws IOException {
-		return stream.read();
+		int b = stream.read();
+		if (b == -1) finished = true;
+		return b;
 	}
 
 	@Override
 	public int readLine(byte[] barr, int arg1, int arg2) throws IOException {
-		return stream.read(barr, arg1, arg2);
+		int n = stream.read(barr, arg1, arg2);
+		if (n == -1) finished = true;
+		return n;
 	}
 
 	@Override
@@ -85,17 +90,22 @@ public final class ServletInputStreamDummy extends ServletInputStream {
 
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException {
-		return stream.read(b, off, len);
+		int n = stream.read(b, off, len);
+		if (n == -1) finished = true;
+		return n;
 	}
 
 	@Override
 	public int read(byte[] b) throws IOException {
-		return stream.read(b);
+		int n = stream.read(b);
+		if (n == -1) finished = true;
+		return n;
 	}
 
 	@Override
 	public synchronized void reset() throws IOException {
 		stream.reset();
+		finished = false;
 	}
 
 	@Override
@@ -103,18 +113,20 @@ public final class ServletInputStreamDummy extends ServletInputStream {
 		return stream.skip(n);
 	}
 
+	// Servlet 3.1 contract: false until EOF is reached, true after a read returns -1.
+	// Matches Undertow/Tomcat/Jetty so _InternalRequest behaves like a real container.
 	@Override
 	public boolean isFinished() {
-		throw new RuntimeException("not supported!");
+		return finished;
 	}
 
 	@Override
 	public boolean isReady() {
-		throw new RuntimeException("not supported!");
+		return !finished;
 	}
 
 	@Override
 	public void setReadListener(ReadListener arg0) {
-		throw new RuntimeException("not supported!");
+		throw new IllegalStateException("async I/O not supported on internal request stream");
 	}
 }

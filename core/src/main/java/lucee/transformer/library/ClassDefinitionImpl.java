@@ -115,17 +115,17 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 
 		String cl = toClassName(sct, prefix);
 
+		// Maven?
+		String maven = toMaven(sct, prefix);
+		if (!StringUtil.isEmpty(maven, true)) {
+			return new ClassDefinitionImpl(cl, maven);
+		}
+
 		// OSGi?
 		String bn = toBundleName(sct, prefix, strict);
 		String bv = toBundleVersion(sct, prefix, strict);
 		if (!StringUtil.isEmpty(bn)) {
 			return new ClassDefinitionImpl(cl, bn, bv, id);
-		}
-
-		// Maven?
-		String maven = toMaven(sct, prefix);
-		if (!StringUtil.isEmpty(maven, true)) {
-			return new ClassDefinitionImpl(cl, maven);
 		}
 
 		// Component?
@@ -384,15 +384,6 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 
 		if (attributes != null) {
 
-			// OSGi?
-			String bn = attributes.get("name");
-			if (StringUtil.isEmpty(bn)) bn = attributes.get("bundle-name");
-			String bv = attributes.get("version");
-			if (StringUtil.isEmpty(bv)) bv = attributes.get("bundle-version");
-			if (!StringUtil.isEmpty(bn)) {
-				return new ClassDefinitionImpl(className, bn, bv, id);
-			}
-
 			// Maven?
 			String mvn = attributes.get("maven");
 			if (StringUtil.isEmpty(mvn, true)) {
@@ -400,6 +391,15 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 			}
 			if (!StringUtil.isEmpty(mvn, true)) {
 				return new ClassDefinitionImpl(className, mvn);
+			}
+
+			// OSGi?
+			String bn = attributes.get("name");
+			if (StringUtil.isEmpty(bn)) bn = attributes.get("bundle-name");
+			String bv = attributes.get("version");
+			if (StringUtil.isEmpty(bv)) bv = attributes.get("bundle-version");
+			if (!StringUtil.isEmpty(bn)) {
+				return new ClassDefinitionImpl(className, bn, bv, id);
 			}
 
 			// Component?

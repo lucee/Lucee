@@ -1316,6 +1316,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			HTTPEngine.releaseConnectionManager();
 			HTTPEngine.releaseSharedClient();
 
+			IOUtil.clearBufferPools();
+
 			releaseCache(getConfigServerImpl(null, false, true));
 
 			CFMLFactoryImpl cfmlFactory;
