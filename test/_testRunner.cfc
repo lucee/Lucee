@@ -25,7 +25,7 @@ component {
 				var clean  = ListChangeDelims( mid( arguments.el, testDirectoryLen + 1  ), ".", "/\" ); // strip off dir prefix
 				arrayAppend(bundles, mapping & "." & mid( clean, 1, len( clean ) - 4 ) ); // strip off .cfc
 			}
-		}, parallel=true );
+		}, parallel="none" );
 
 		if ( request.testDebugAbort ){
 			throw "testDebugAbort was true, exiting";

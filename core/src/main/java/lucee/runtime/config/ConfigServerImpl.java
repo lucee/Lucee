@@ -5752,6 +5752,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					if (isCFC != null) isCFC.setValue(ce.isCFC);
 					return ce.pageSource;
 				}
+				applicationPathCache.remove(id);
 			}
 		}
 		return null;

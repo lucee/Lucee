@@ -319,11 +319,36 @@ try {
 	systemOutput("--------------------------------------",true);
 
 	// set the testbox mapping
+	param name="testboxArchive" default="";
+	if ( len( testboxArchive ) eq 0 ) {
+		var tbArchiveProp = server._getSystemPropOrEnvVars( "testboxArchive", "", false );
+		if ( structCount( tbArchiveProp ) ) testboxArchive = tbArchiveProp.testboxArchive;
+	}
+	testboxPhysical = replace( testboxArchive, "/archive/testbox.lar", "/testbox/testbox" );
+	if ( directoryExists( testboxPhysical ) ) {
+		admin
+			action="updateMapping"
+			type="server"
+			password="#request.SERVERADMINPASSWORD#"
+			virtual="/testbox"
+			physical="#testboxPhysical#"
+			toplevel="true"
+			archive=""
+			primary="physical"
+			trusted="no";
+	}
+
 	application
 		action="update"
 		componentpaths = "#[{archive:testboxArchive}]#";
 
 	systemOutput( "update componentpaths #dateTimeFormat( now() )#" & NL, true );
+
+	// warm TestBox before parallel bundle filtering loads LuceeTestCase (BaseSpec needs MockBox in init)
+	silent {
+		createObject( "component", "testbox.system.MockBox" );
+		createObject( "component", "testbox.system.Assertion" );
+	}
 
 	// load testbox
 	SystemOut = createObject( "java", "lucee.commons.lang.SystemOut" );
