@@ -258,6 +258,7 @@ public final class PageContextImpl extends PageContext {
 	private HTTPServletRequestWrap req;
 	private HttpServletResponse rsp;
 	private HttpServlet servlet;
+	private String remoteAddr;
 
 	private JspWriter writer;
 	private JspWriter forceWriter;
@@ -493,6 +494,7 @@ public final class PageContextImpl extends PageContext {
 
 		if (req instanceof HTTPServletRequestWrap) this.req = (HTTPServletRequestWrap) req;
 		else this.req = new HTTPServletRequestWrap(req);
+		this.remoteAddr = (CFMLFactoryImpl.THROTTLE_ENABLED && !isChild) ? req.getRemoteAddr() : null;
 
 		this.rsp = rsp;
 		this.servlet = servlet;
@@ -667,6 +669,7 @@ public final class PageContextImpl extends PageContext {
 		else debugger.resetTraces(); // traces can alo be used when debugging is off
 
 		this.serverPassword = null;
+		this.remoteAddr = null;
 
 		parent = null;
 		root = null;
@@ -2243,6 +2246,22 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public HttpServletRequest getHttpServletRequest() {
 		return req;
+	}
+
+	/**
+	 * Returns the remote address captured at request initialization. Read by
+	 * the request-throttle iteration over runningPcs in CFMLFactoryImpl, which
+	 * counts same-IP concurrent requests. Stashing it on the PageContext
+	 * avoids the recycled-request race when iterating from another thread
+	 * (Tomcat may recycle a finished request's facade mid-iteration).
+	 * <p>
+	 * Only populated when the throttle is enabled (CFMLFactoryImpl.THROTTLE_ENABLED)
+	 * and the PageContext is not a child. Returns null otherwise — the iteration's
+	 * null-check then skips this PageContext naturally. Cleared in release() so
+	 * pooled PageContexts can't leak stale addresses.
+	 */
+	public String getRemoteAddr() {
+		return remoteAddr;
 	}
 
 	@Override

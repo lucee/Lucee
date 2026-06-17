@@ -59,6 +59,25 @@ public final class GetSystemInfo implements Function {
 		sct.put("activeThreads", factory.getActiveThreads());
 		sct.put("queueRequests", config.getThreadQueue().size());
 
+		// PageContext pool depth (running = activeRequests, childRunning = activeThreads)
+		{
+			Struct pcPool = new StructImpl();
+			pcPool.put("idle", factory.getIdlePCCount());
+			pcPool.put("max", CFMLFactoryImpl.PC_POOL_MAX_SIZE);
+			sct.put("pageContextPool", pcPool);
+		}
+
+		// Throttle state (only when active)
+		if (CFMLFactoryImpl.THROTTLE_ENABLED) {
+			Struct throttle = new StructImpl();
+			throttle.put("maxNoSleep", CFMLFactoryImpl.MAX_NO_SLEEP);
+			throttle.put("sleepTime", CFMLFactoryImpl.SLEEP_TIME);
+			throttle.put("maxNormalPriority", CFMLFactoryImpl.MAX_NORMAL_PRIORITY);
+			throttle.put("firedOnce", CFMLFactoryImpl.THROTTLE_FIRED_ONCE.get());
+			throttle.put("firedCount", CFMLFactoryImpl.THROTTLE_FIRED_COUNT.get());
+			sct.put("throttle", throttle);
+		}
+
 		// Datasource connections
 		{
 			// TODO provide more data

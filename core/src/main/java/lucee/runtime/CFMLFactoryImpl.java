@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletConfig;
@@ -62,6 +64,7 @@ import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.functions.string.Hash;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
+import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
@@ -81,17 +84,27 @@ import lucee.servlet.http.HTTPServletImpl;
  */
 public final class CFMLFactoryImpl extends CFMLFactory {
 
-	private static final int MAX_NORMAL_PRIORITY = 0;
-	private static final int MAX_NO_SLEEP = 10;
-	private static final int SLEEP_TIME = 100;
+	public static final int MAX_NORMAL_PRIORITY;
+	public static final int MAX_NO_SLEEP;
+	public static final int SLEEP_TIME;
+	public static final boolean THROTTLE_ENABLED;
+	public static final boolean THROTTLE_PRIORITY_ENABLED;
 
 	private static final long MAX_AGE = 5 * 60000; // 5 minutes
 	private static final int MAX_SIZE = 10000;
-	private static final int PC_POOL_MAX_SIZE;
+	public static final int PC_POOL_MAX_SIZE;
+	public static final AtomicBoolean THROTTLE_FIRED_ONCE = new AtomicBoolean(false);
+	public static final AtomicLong THROTTLE_FIRED_COUNT = new AtomicLong(0);
 	static {
 		// core-aware default: ~16 warm PCs per core, floor 100 so dev/small VMs are unchanged
 		int defaultSize = Math.max(100, Runtime.getRuntime().availableProcessors() * 16);
 		PC_POOL_MAX_SIZE = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.pageContext.pool.maxsize", String.valueOf(defaultSize)), defaultSize);
+		SLEEP_TIME = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.sleeptime", null), 100);
+		THROTTLE_ENABLED = SLEEP_TIME > 0;
+		MAX_NO_SLEEP = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.maxnosleep", null), 10);
+		MAX_NORMAL_PRIORITY = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.maxnormprio", null), 0);
+		// Priority-lowering is meaningless under virtual threads (VT.setPriority is a no-op).
+		THROTTLE_PRIORITY_ENABLED = MAX_NORMAL_PRIORITY > 0 && !ThreadUtil.ALLOW_VIRTUAL_THREADS;
 	}
 	private static final String LOG_TYPE_NAME = "factory";
 	private static JspEngineInfo info = new JspEngineInfoImpl("1.0");
@@ -182,27 +195,22 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			boolean autoflush, boolean register2Thread, boolean isChild, long timeout, boolean register2RunningThreads, boolean ignoreScopes, boolean createNew,
 			PageContextImpl tmplPC) {
 
-		if (!isChild) {
+		if (THROTTLE_ENABLED && !isChild) {
 			String ra = req.getRemoteAddr();
-			String tmp;
 			if (ra != null) {
 				boolean resetToNormPrio = true;
 				int count = 0;
 				for (PageContextImpl opc: runningPcs.values()) {
 					if (opc != null) {
-						HttpServletRequest tmpReq = opc.getHttpServletRequest();
-						if (tmpReq != null) {
-							tmp = ReqRspUtil.getRemoteAddr(tmpReq, null);
-							if (ra.equals(tmp)) count++;
-						}
+						String tmp = opc.getRemoteAddr();
+						if (tmp != null && ra.equals(tmp)) count++;
 					}
 				}
 				// has already running requests?
 				if (count > 0) {
 
-					// reached max amount of request for norm prio
-					int maxNormPrio = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.maxnormprio", null), MAX_NORMAL_PRIORITY);
-					if (maxNormPrio > 0 && count >= maxNormPrio) {
+					// reached max amount of request for norm prio (skipped under VT — setPriority is a no-op)
+					if (THROTTLE_PRIORITY_ENABLED && count >= MAX_NORMAL_PRIORITY) {
 						for (PageContextImpl opc: runningPcs.values()) {
 							if (opc != null) {
 								Thread t = opc.getThread();
@@ -216,15 +224,20 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					}
 
 					// reached max amount of request allowed in without a nap
-					int maxNoSleep = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.maxnosleep", null), MAX_NO_SLEEP);
-					if (maxNoSleep > 0 && count >= maxNoSleep) {
-						int ms = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.sleeptime", null), SLEEP_TIME);
-						if (ms > 0) {
-							SystemUtil.sleep(ms);
+					if (MAX_NO_SLEEP > 0 && count >= MAX_NO_SLEEP) {
+						if (THROTTLE_FIRED_ONCE.compareAndSet(false, true)) {
+							LogUtil.log(config, Log.LEVEL_ERROR, CFMLFactoryImpl.class.getName(),
+									"lucee.request.limit.concurrent throttle engaged for the first time — "
+											+ "remoteAddr=" + ra + " concurrent=" + count
+											+ " maxNoSleep=" + MAX_NO_SLEEP + " sleepTime=" + SLEEP_TIME + "ms. "
+											+ "Set -Dlucee.request.limit.concurrent.maxnosleep=<higher> to raise the threshold "
+											+ "or -Dlucee.request.limit.concurrent.sleeptime=0 to disable.");
 						}
+						THROTTLE_FIRED_COUNT.incrementAndGet();
+						SystemUtil.sleep(SLEEP_TIME);
 					}
 				}
-				if (resetToNormPrio && Thread.currentThread().getPriority() != Thread.NORM_PRIORITY) Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
+				if (THROTTLE_PRIORITY_ENABLED && resetToNormPrio && Thread.currentThread().getPriority() != Thread.NORM_PRIORITY) Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
 			}
 		}
 
@@ -384,8 +397,9 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 						}
 					}
 				}
-				// after 10 seconds downgrade priority of the thread (adjusted for debugger suspend time)
-				else if (pc.getStartTime() + 10000 + suspendedMillis < System.currentTimeMillis() && (th = pc.getThread()) != null && th.getPriority() != Thread.MIN_PRIORITY) {
+				// after 10 seconds downgrade priority of the thread (adjusted for debugger suspend time);
+				// skipped under virtual threads — VirtualThread.setPriority is a no-op
+				else if (!ThreadUtil.ALLOW_VIRTUAL_THREADS && pc.getStartTime() + 10000 + suspendedMillis < System.currentTimeMillis() && (th = pc.getThread()) != null && th.getPriority() != Thread.MIN_PRIORITY) {
 					Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 					if (log != null) {
 						PageContext root = pc.getRootPageContext();
@@ -539,6 +553,10 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 	public long getActiveThreads() {
 		return runningChildPcs.size();
+	}
+
+	public long getIdlePCCount() {
+		return pcs.size();
 	}
 
 	public Array getInfo() {

@@ -213,7 +213,6 @@ public class CharBuffer {
 	 */
 	public void clear() {
 		if (size() == 0) return;
-		buffer = new char[buffer.length];
 		root.next = null;
 		pos = 0;
 		length = 0;

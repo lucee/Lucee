@@ -1066,7 +1066,7 @@
 	{
 		"sysprop": "lucee.request.limit.concurrent.maxnormprio",
 		"envvar": "LUCEE_REQUEST_LIMIT_CONCURRENT_MAXNORMPRIO",
-		"desc": "Maximum number of normal priority concurrent requests. Set to 0 to disable",
+		"desc": "When the count of in-flight same-IP requests reaches this value, Lucee lowers the Java thread priority of all such requests to MIN_PRIORITY. Set to 0 (default) to disable. Has no effect when the servlet engine is using virtual threads — VirtualThread.setPriority() is a no-op so Lucee skips this code path entirely under VT. Resolved once at JVM startup; runtime changes require restart.",
 		"category": "request",
 		"type": "numeric",
 		"default": 0
@@ -1074,7 +1074,7 @@
 	{
 		"sysprop": "lucee.request.limit.concurrent.maxnosleep",
 		"envvar": "LUCEE_REQUEST_LIMIT_CONCURRENT_MAXNOSLEEP",
-		"desc": "The maximal number of threads that are allowed to be active on the server. If this is reached, requests get forced into a `nap` (defined by lucee.request.limit.concurrent.sleeptime)",
+		"desc": "When the count of in-flight same-IP requests reaches this value, incoming requests are forced into a nap (length set by lucee.request.limit.concurrent.sleeptime). The first time the throttle fires per JVM lifetime, an ERROR is logged to the `factory` logger naming the remote address, current count, and disable instructions. To disable the throttle, set sleeptime to 0 (preferred) or set maxnosleep to 0. Behind a load balancer / reverse proxy that exposes a single client IP to Lucee, this throttle treats all traffic as same-IP and will fire under normal load — raise maxnosleep substantially or disable in that case. Resolved once at JVM startup.",
 		"category": "request",
 		"type": "numeric",
 		"default": 10
@@ -1082,7 +1082,7 @@
 	{
 		"sysprop": "lucee.request.limit.concurrent.sleeptime",
 		"envvar": "LUCEE_REQUEST_LIMIT_CONCURRENT_SLEEPTIME",
-		"desc": "How long a request should `nap` in milliseconds if it reaches the lucee.request.limit.concurrent.maxnosleep",
+		"desc": "How long (milliseconds) a request naps when the maxnosleep threshold is reached. **Set to 0 to fully disable the throttle** — the entire iteration over running PageContexts in CFMLFactoryImpl.getPageContextImpl is skipped (JIT-folded to dead code). Resolved once at JVM startup.",
 		"category": "request",
 		"type": "timespan",
 		"default": 100

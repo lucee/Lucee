@@ -31,6 +31,7 @@ import jakarta.servlet.http.HttpSession;
 import lucee.aprint;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
+import lucee.runtime.op.Caster;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
@@ -49,8 +50,11 @@ import lucee.runtime.type.Struct;
 
 public final class ThreadUtil {
 
-	// virtual threads are safe from Java 25+ (JEP 491: synchronized no longer pins virtual threads)
-	private static final boolean ALLOW_VIRTUAL_THREADS = SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_25;
+	// virtual threads are safe from Java 25+ (JEP 491: synchronized no longer pins virtual threads).
+	// Enabled by default on Java 25+; set lucee.allow.virtual.threads=false to disable.
+	public static final boolean ALLOW_VIRTUAL_THREADS =
+			SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_25
+			&& Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.allow.virtual.threads", "true"), true);
 	// private static final Class<?> THREAD_CLASS = Thread.class;
 
 	// do not change, used in Redis extension
