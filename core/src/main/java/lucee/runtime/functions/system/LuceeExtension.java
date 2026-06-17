@@ -96,6 +96,7 @@ public final class LuceeExtension extends BIF {
 							meta.set("MinCoreVersion", minLoader);
 						}
 					}
+					applyArtifactImage(ep, meta, artifactId);
 					sct.set(KeyConstants._metadata, meta);
 				}
 
@@ -108,6 +109,18 @@ public final class LuceeExtension extends BIF {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	private static void applyArtifactImage(ExtensionProvider ep, Struct meta, String artifactId) {
+		try {
+			if (meta == null) return;
+			String image = Caster.toString(meta.get(KeyConstants._image, null), null);
+			if (!StringUtil.isEmpty(image, true)) return;
+			String groupId = Caster.toString(meta.get(KeyConstants._groupId, null), ep.getGroup());
+			image = ExtensionProvider.getArtifactImageUrlIfExists(groupId, artifactId);
+			if (image != null) meta.set(KeyConstants._image, image);
+		}
+		catch (Exception e) {}
 	}
 
 	private static Struct metadataFromPOM(ExtensionProvider ep, ConfigPro config, String artifactId, Version version, Struct detail) {

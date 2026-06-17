@@ -34,6 +34,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.runtime.config.Config;
@@ -61,6 +62,10 @@ public class ExtensionProvider {
 	private static final int DOWNLOAD_CONNECT_TIMEOUT = 5000; // 5 seconds
 	private static final int DOWNLOAD_READ_TIMEOUT = 60000; // 60 seconds
 	private static final String DOWNLOAD_USER_AGENT = "Lucee Extension Provider 1.0";
+
+	private static final String CDN_ARTIFACT_IMAGE_URL = "https://cdn.lucee.org/artifacts/";
+	private static final int ARTIFACT_IMAGE_HEAD_CONNECT_TIMEOUT = 5000;
+	private static final int ARTIFACT_IMAGE_HEAD_READ_TIMEOUT = 5000;
 
 	// mapping for extensions on org.lucee
 	private static final Map<String, GAVSO> uuidMapping = new HashMap<>();
@@ -229,6 +234,19 @@ public class ExtensionProvider {
 
 	public String getGroup() {
 		return group;
+	}
+
+	public static String toArtifactImageUrl(String groupId, String artifactId) {
+		if (StringUtil.isEmpty(groupId, true) || StringUtil.isEmpty(artifactId, true)) return null;
+		return CDN_ARTIFACT_IMAGE_URL + (groupId + "-" + artifactId).replace('.', '-') + ".png";
+	}
+
+	public static String getArtifactImageUrlIfExists(String groupId, String artifactId) {
+		URL url = HTTPUtil.toURL(toArtifactImageUrl(groupId, artifactId), Http.ENCODED_NO, null);
+		if (url != null && HTTPEngine.exists(url, ARTIFACT_IMAGE_HEAD_CONNECT_TIMEOUT, ARTIFACT_IMAGE_HEAD_READ_TIMEOUT, true)) {
+			return url.toExternalForm();
+		}
+		return null;
 	}
 
 	private static GAVSO toGAVSOSimple(String uuid, GAVSO defaultValue) {
