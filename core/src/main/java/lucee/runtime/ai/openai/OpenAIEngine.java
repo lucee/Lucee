@@ -202,6 +202,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			}
 			else baseURL = DEFAULT_URL_OPENAI;
 		}
+		props.remove(KeyConstants._URL, null);
 
 		// secret key
 		str = Caster.toStringTrim(props.remove(KeyConstants._secretKey, null), null);
