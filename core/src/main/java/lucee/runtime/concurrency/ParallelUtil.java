@@ -17,10 +17,10 @@
  **/
 package lucee.runtime.concurrency;
 
-import lucee.commons.io.SystemUtil;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.thread.ThreadUtil;
 
 /**
  * parses and represents the execution mode of the "parallel" argument used by the iteration functions
@@ -48,8 +48,8 @@ public final class ParallelUtil {
 	 * </ul>
 	 * 
 	 * the boolean values "true"/"false" are deprecated and only kept for backward compatibility; "false"
-	 * maps to {@link #PARALLEL_NONE} and "true" follows the same default as the cfthread tag's [virtual]
-	 * attribute ({@link #PARALLEL_THREAD}, or {@link #PARALLEL_VIRTUAL} when "lucee.thread.virtual" is enabled).
+	 * maps to {@link #PARALLEL_NONE} and "true" follows the same gating as the cfthread tag's [virtual]
+	 * attribute ({@link #PARALLEL_VIRTUAL} when {@link ThreadUtil#ALLOW_VIRTUAL_THREADS} is true, otherwise {@link #PARALLEL_THREAD}).
 	 * 
 	 * @param parallel the raw argument value
 	 * @return the matching parallel mode
@@ -64,8 +64,9 @@ public final class ParallelUtil {
 		Boolean b = Caster.toBoolean(str, null);
 		if (b != null) {
 			if (!b.booleanValue()) return PARALLEL_NONE;
-			// "true" follows the same default as the cfthread tag's [virtual] attribute
-			return Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.thread.virtual", "false"), false) ? PARALLEL_VIRTUAL : PARALLEL_THREAD;
+			// "true" follows the same gating as cfthread's [virtual] attribute — VTs only when ThreadUtil deems them safe
+			// (Java 25+ and lucee.allow.virtual.threads not disabled), matching 7.1 behaviour.
+			return ThreadUtil.ALLOW_VIRTUAL_THREADS ? PARALLEL_VIRTUAL : PARALLEL_THREAD;
 		}
 
 		switch (str.toLowerCase()) {
