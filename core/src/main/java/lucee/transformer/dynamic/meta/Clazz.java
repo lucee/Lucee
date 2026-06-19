@@ -287,18 +287,20 @@ public abstract class Clazz implements Serializable {
 					parameterTypes = fm.getArgumentClasses();
 					Object[] newArgs = new Object[args.length];
 					for (int y = 0; y < parameterTypes.length; y++) {
+						Object converted;
 						try {
-							newArgs[y] = Reflector.convert(args[y], Reflector.toReferenceClass(parameterTypes[y]), rating);
+							converted = Reflector.convertSafe(args[y], Reflector.toReferenceClass(parameterTypes[y]), rating);
 						}
 						catch (PageException e) {
 							continue outer;
 						}
+						if (converted == Reflector.UNCONVERTIBLE) continue outer;
+						newArgs[y] = converted;
 					}
 					if (result == null || rating.toInt() > _rating) {
 						if (rating != null) _rating = rating.toInt();
 						result = new Pair<Constructor, Object[]>(fm, newArgs);
 					}
-					// return new ConstructorInstance(constructors[i],newArgs);
 				}
 			}
 		}
@@ -389,12 +391,15 @@ public abstract class Clazz implements Serializable {
 					Object[] newArgs = new Object[args.length];
 
 					for (int y = 0; y < parameterTypes.length; y++) {
+						Object converted;
 						try {
-							newArgs[y] = Reflector.convert(args[y], Reflector.toReferenceClass(parameterTypes[y]), rating);
+							converted = Reflector.convertSafe(args[y], Reflector.toReferenceClass(parameterTypes[y]), rating);
 						}
 						catch (PageException e) {
 							continue outer;
 						}
+						if (converted == Reflector.UNCONVERTIBLE) continue outer;
+						newArgs[y] = converted;
 					}
 					if (result == null || rating.toInt() > _rating) {
 						if (rating != null) _rating = rating.toInt();
