@@ -311,14 +311,12 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 		UDF parent = pci.getActiveUDF();
 		pci.setActiveUDF(this);
 		try {
-			return _call(pageContext, args, doIncludePath);
+			return _call(pageContext, getComponent(pageContext), args);
 		}
 		finally {
 			pci.setActiveUDF(parent);
 		}
 	}
-
-	public abstract Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException;
 
 	@Override
 	public final Object callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
@@ -326,14 +324,16 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 		UDF parent = pci.getActiveUDF();
 		pci.setActiveUDF(this);
 		try {
-			return _callWithNamedValues(pageContext, values, doIncludePath);
+			return _callWithNamedValues(pageContext, getComponent(pageContext), values);
 		}
 		finally {
 			pci.setActiveUDF(parent);
 		}
 	}
 
-	public abstract Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException;
+	public abstract Object _call(PageContext pageContext, Component comp, Object[] args) throws PageException;
+
+	public abstract Object _callWithNamedValues(PageContext pageContext, Component comp, Struct values) throws PageException;
 
 	private static String createMessage(String format, Object value) {
 		if (Decision.isSimpleValue(value)) return "the value [" + Caster.toString(value, null) + "] is not in  [" + format + "] format";

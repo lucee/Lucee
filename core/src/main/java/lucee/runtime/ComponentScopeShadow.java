@@ -35,6 +35,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.BoundUDF;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
@@ -214,6 +215,9 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 	@Override
 	public Object set(Collection.Key key, Object value) throws ApplicationException {
 		if (key.equalsIgnoreCase(KeyConstants._this) || key.equalsIgnoreCase(KeyConstants._super) || key.equalsIgnoreCase(KeyConstants._static)) return value;
+
+		// LDEV-1962: mirror ComponentImpl._set — unwrap BoundUDF on assign so mixin rebind applies.
+		if (value instanceof BoundUDF) value = ((BoundUDF) value).getInner();
 
 		if (!component.afterConstructor && value instanceof UDF) {
 			component.addConstructorUDF(key, (UDF) value);

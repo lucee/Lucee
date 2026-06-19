@@ -21,7 +21,6 @@ package lucee.runtime.type;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
-import lucee.runtime.ComponentImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
@@ -90,42 +89,23 @@ public final class UDFSetterProperty extends UDFGSProperty {
 		return new UDFSetterProperty(srcComponent, prop, validate, validateParams);
 	}
 
-	/**
-	 * Direct accessor bypass — called from ComponentImpl._call() to skip UDF dispatch overhead.
-	 * The caller already knows the component, so we skip getComponent(pc) resolution.
-	 */
-	public Object callDirect( ComponentImpl comp, PageContext pc, Object[] args ) throws PageException {
+	@Override
+	public Object _call(PageContext pageContext, Component comp, Object[] args) throws PageException {
 		if (args == null || args.length < 1)
-			throw new ExpressionException( "The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in." );
-		validate( validate, validateParams, args[0] );
-		comp.getComponentScope().set( propName, cast( pc, this.arguments[0], args[0], 1 ) );
+			throw new ExpressionException("The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in.");
+		validate(validate, validateParams, args[0]);
+		comp.getComponentScope().set(propName, cast(pageContext, this.arguments[0], args[0], 1));
 
-		ApplicationContext appContext = pc.getApplicationContext();
-		if (appContext.isORMEnabled() && comp.isPersistent()) ORMUtil.getSession( pc );
+		ApplicationContext appContext = pageContext.getApplicationContext();
+		if (appContext.isORMEnabled() && comp.isPersistent()) ORMUtil.getSession(pageContext);
 
 		return comp;
 	}
 
 	@Override
-	public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
-		if (args.length < 1) throw new ExpressionException("The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in.");
-		validate(validate, validateParams, args[0]);
-		Component c = getComponent(pageContext);
-		c.getComponentScope().set(propName, cast(pageContext, this.arguments[0], args[0], 1));
-
-		// make sure it is reconized that set is called by hibernate
-		// if(component.isPersistent())ORMUtil.getSession(pageContext);
-		ApplicationContext appContext = pageContext.getApplicationContext();
-		if (appContext.isORMEnabled() && c.isPersistent()) ORMUtil.getSession(pageContext);
-
-		return c;
-	}
-
-	@Override
-	public Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
+	public Object _callWithNamedValues(PageContext pageContext, Component comp, Struct values) throws PageException {
 		UDFUtil.argumentCollection(values, getFunctionArguments());
 		Object value = values.get(propName, null);
-		Component c = getComponent(pageContext);
 
 		if (value == null) {
 			Key[] keys = CollectionUtil.keys(values);
@@ -134,14 +114,12 @@ public final class UDFSetterProperty extends UDFGSProperty {
 			}
 			else throw new ExpressionException("The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in.");
 		}
-		c.getComponentScope().set(propName, cast(pageContext, arguments[0], value, 1));
+		comp.getComponentScope().set(propName, cast(pageContext, arguments[0], value, 1));
 
-		// make sure it is reconized that set is called by hibernate
-		// if(component.isPersistent())ORMUtil.getSession(pageContext);
 		ApplicationContext appContext = pageContext.getApplicationContext();
-		if (appContext.isORMEnabled() && c.isPersistent()) ORMUtil.getSession(pageContext);
+		if (appContext.isORMEnabled() && comp.isPersistent()) ORMUtil.getSession(pageContext);
 
-		return c;
+		return comp;
 	}
 
 	@Override
