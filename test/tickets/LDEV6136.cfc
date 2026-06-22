@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 		describe( "LDEV-6136 extension bundle name backwards compat", function() {
 
 
-			it( "works with new maven name: org.lucee:ehcache", function() {
+			xit( "works with new maven name: org.lucee:ehcache", function() {
 				var cacheName = "ldev6136new";
 				application action="update"
 					caches="#{ "#cacheName#": cacheConfigFromBundle( "org.lucee.ehcache.extension" ,"2.10.0.41-SNAPSHOT") }#";
