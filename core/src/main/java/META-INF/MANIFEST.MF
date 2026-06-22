@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bundle-Version: 7.0.0.0
+Bundle-Version: 7.0.0.1
 Built-Date: 2025/07/30 00:00:00 UTC
 Minor-Name: Balto
 Minor-Name-Explanation: https://en.wikipedia.org/wiki/Balto
@@ -35,7 +35,6 @@ Export-Package: coldfusion,
  lucee,
  org.opencfml.cfx,
  lucee.commons,
- lucee.commons.activation,
  lucee.commons.cli,
  lucee.commons.collection,
  lucee.commons.collection.concurrent,
