@@ -457,6 +457,10 @@ public final class BundleProvider extends DefaultHandler {
 						try {
 							init(new InputSource(r = IOUtil.getReader(HTTPEngine.get(url), (Charset) null)));
 						}
+						catch (Exception e) {
+							LogUtil.log(Log.LEVEL_ERROR, "OSGi", e);
+							isTruncated = false;
+						}
 						finally {
 							url = null;
 							IOUtil.close(r);
