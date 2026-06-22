@@ -51,7 +51,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="memcached"{
 			application action="update"
 				caches="#{memcached:{
 						  class: 'org.lucee.extension.cache.mc.MemcachedCache'
-						, bundleName: 'memcached.extension'
+						, bundleName: 'org.lucee.memcached.extension'
 						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.memcached.extension', '4.0.0.14' )
 						, storage: false
 						, custom: {
