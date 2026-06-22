@@ -273,7 +273,7 @@ jobs:
         if [[ "$VERSION_CLEAN" == *-SNAPSHOT ]]; then
           if [[ "${{ env.DO_DEPLOY }}" == "true" ]]; then
             echo "------- Maven Deploy SNAPSHOT on ${{ github.event_name }} ---------"
-            mvn -B -e -f loader/pom.xml clean deploy -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+            mvn -B -e -f loader/pom.xml clean deploy --settings maven-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
           else
             echo "------- Maven Test SNAPSHOT (no deploy) on ${{ github.event_name }} ---------"
             mvn -B -e -f loader/pom.xml test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
