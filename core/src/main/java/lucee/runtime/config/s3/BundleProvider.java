@@ -467,7 +467,7 @@ public final class BundleProvider extends DefaultHandler {
 						}
 
 					}
-					while (isTruncated || --count == 0);
+					while (isTruncated && --count > 0);
 
 					List<Element> list = new ArrayList<>();
 					for (Element e: elements.values()) {
