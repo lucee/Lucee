@@ -5,7 +5,7 @@
 
 	variables.conn={
 		class: 'org.lucee.extension.cache.eh.EHCache'
-		, maven: 'org.lucee:ehcache'
+		, maven: 'org.lucee:ehcache:2.10.9.3-SNAPSHOT'
 		, storage: true
 		, custom:
 			{ "bootstrapAsynchronously":"true", 

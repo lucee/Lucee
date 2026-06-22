@@ -73,7 +73,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 		application action="update" 
 			caches="#{ehcache: {
 	  class: 'org.lucee.extension.cache.eh.EHCache'
-	, maven: 'org.lucee:ehcache'
+	, maven: 'org.lucee:ehcache:2.10.9.3-SNAPSHOT'
 	, storage: false
 	, custom: {"bootstrapAsynchronously":"true","replicatePuts":"true","automatic_hostName":"",
 		"bootstrapType":"on","maxelementsinmemory":"10000","manual_rmiUrls":"","distributed":"off",

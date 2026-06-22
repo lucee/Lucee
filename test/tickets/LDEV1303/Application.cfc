@@ -2,7 +2,7 @@ component {
 	this.name = 'test';
 	this.cache.connections["testEHcache"] = {
 	  class: 'org.lucee.extension.cache.eh.EHCache'
-	, maven: 'org.lucee:ehcache'
+	, maven: 'org.lucee:ehcache:2.10.9.3-SNAPSHOT'
 	, storage: false
 	, custom: {
 		"bootstrapAsynchronously":"true",

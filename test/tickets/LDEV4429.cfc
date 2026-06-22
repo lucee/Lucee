@@ -26,7 +26,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" ski
 	private function createEHCache() {
 		var cacheConn = {
 			class: 'org.lucee.extension.cache.eh.EHCache'
-		  , maven: 'org.lucee:ehcache'
+		  , maven: 'org.lucee:ehcache:2.10.9.3-SNAPSHOT'
 		  , storage: false
 		  , custom: {
 			  "bootstrapAsynchronously":"true",

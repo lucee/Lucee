@@ -16,7 +16,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 			it( "works with new maven name: org.lucee:ehcache", function() {
 				var cacheName = "ldev6136new";
 				application action="update"
-					caches="#{ "#cacheName#": cacheConfigFromMaven( "org.lucee:ehcache" ) }#";
+					caches="#{ "#cacheName#": cacheConfigFromMaven( "org.lucee:ehcache:2.10.9.3-SNAPSHOT" ) }#";
 				cachePut( id: "testNew", value: "new", cacheName: cacheName );
 				expect( cacheGet( id: "testNew", cacheName: cacheName ) ).toBe( "new" );
 			});
