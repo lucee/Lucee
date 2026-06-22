@@ -286,7 +286,8 @@
 
 			var repos = [];
 			if (isSnapshot(version)) {
-				repos.push(project.getProperty("extURLCDN"));
+				// CDN is excluded for SNAPSHOTs: it caches the literal URL and serves stale builds
+				// when a snapshot is republished. Always resolve via maven-metadata.xml instead.
 				repos.push(project.getProperty("extURLSnapshot"));
 				repos.push(project.getProperty("extURLMaven"));
 			} else {
@@ -302,14 +303,15 @@
 					continue;
 				}
 
-				if (tryDownload(literalLexUrl(repoUrl, group, artifact, version), dest, tried)) {
-					downloaded = true;
-				}
-
-				if (!downloaded && isSnapshot(version)) {
+				if (isSnapshot(version)) {
+					// for SNAPSHOTs always use metadata resolution to get the latest timestamped build
 					var resolved = resolveSnapshotLexValue(repoUrl, group, artifact, version);
 					if (resolved) {
 						downloaded = tryDownload(resolvedLexUrl(repoUrl, group, artifact, version, resolved), dest, tried);
+					}
+				} else {
+					if (tryDownload(literalLexUrl(repoUrl, group, artifact, version), dest, tried)) {
+						downloaded = true;
 					}
 				}
 			}
