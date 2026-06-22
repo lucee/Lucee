@@ -271,8 +271,8 @@ jobs:
         echo "-------FORCE_RELEASE: ${{ env.FORCE_RELEASE }} -------"
         echo "-------VERSION_CLEAN: '$VERSION_CLEAN' -------"
         if [[ "$VERSION_CLEAN" == *-SNAPSHOT ]]; then
-          echo "------- Maven Test SNAPSHOT (no deploy) on ${{ github.event_name }} ---------"
-          mvn -B -e -f loader/pom.xml test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          echo "------- Maven Deploy SNAPSHOT on ${{ github.event_name }} ---------"
+          mvn -B -e -f loader/pom.xml clean deploy --settings maven-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         elif [[ "$VERSION_CLEAN" == *-ALPHA ]]; then
           if [[ "${{ env.FORCE_RELEASE }}" == "true" && "${{ env.DO_DEPLOY }}" == "true" ]]; then
             echo "------- Maven Deploy RELEASE (forced via [release] commit message) on ${{ github.event_name }} -------"
