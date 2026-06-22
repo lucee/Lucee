@@ -18,15 +18,6 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache,orm" {
 
-	//public function setUp(){}
-
-	function testLoadingEHCache() localmode=true {
-		if(noOrm()) return;
-		ConfigurationFactory=createObject('java','net.sf.ehcache.config.ConfigurationFactory');
-		FAILSAFE_CLASSPATH_CONFIGURATION_FILE = "/ehcache-failsafe.xml";
-		_url = ConfigurationFactory.getClass().getResource(FAILSAFE_CLASSPATH_CONFIGURATION_FILE);
-		assertTrue(!isNull(_url));
-	}
 
 	public void function testUsingSecondaryCache(){
 		if(noOrm()) return;
