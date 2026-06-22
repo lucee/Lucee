@@ -58,7 +58,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 				
 				name="#cacheName#" 
 				class="org.lucee.extension.cache.eh.EHCache"
-				maven="org.lucee:ehcache"
+				maven="org.lucee:ehcache:2.10.9.3-SNAPSHOT"
 				storage="false"
 				default="object" 
 				custom="#{timeToLiveSeconds:86400
