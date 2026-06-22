@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 			it( "works with new maven name: org.lucee:ehcache", function() {
 				var cacheName = "ldev6136new";
 				application action="update"
-					caches="#{ "#cacheName#": cacheConfigFromBundle( "org.lucee.ehcache.extension" ,"2.10.0.39") }#";
+					caches="#{ "#cacheName#": cacheConfigFromBundle( "org.lucee.ehcache.extension" ,"2.10.0.41-SNAPSHOT") }#";
 				cachePut( id: "testNew", value: "new", cacheName: cacheName );
 				expect( cacheGet( id: "testNew", cacheName: cacheName ) ).toBe( "new" );
 			});
