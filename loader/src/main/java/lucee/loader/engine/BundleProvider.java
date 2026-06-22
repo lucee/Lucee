@@ -436,8 +436,7 @@ public final class BundleProvider {
 		put(mappingsFallback, "zip4j", new Info("net.lingala.zip4j", "zip4j"));
 
 		put(mappingsFallback, "org.apache.felix.main", new Info("org.apache.felix", "org.apache.felix.framework"));
-		put(mappingsFallback, "org.lucee.janinocc", new Info("org.lucee", "janino-commons-compiler"));
-		put(mappingsFallback, "org.apache.commons.commons-fileupload", new Info("commons-fileupload", "commons-fileupload"));
+put(mappingsFallback, "org.apache.commons.commons-fileupload", new Info("commons-fileupload", "commons-fileupload"));
 		put(mappingsFallback, "jakarta.activation-api", new Info("jakarta.activation-api", "jakarta.activation"));
 		put(mappingsFallback, "jakarta.mail-api", new Info("jakarta.mail-api", "jakarta.mail"));
 		put(mappingsFallback, "com.sun.activation.jakarta.activation", new Info("com.sun.activation", "jakarta.activation"));

@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>8.0.0.130-SNAPSHOT</version>
+  <version>8.0.0.131-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -644,16 +644,6 @@
       <version>0.22.0</version>
       <scope>provided</scope>
     </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>janino</artifactId>
-    <version>3.1.9</version>
-  </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>janino-commons-compiler</artifactId>
-    <version>3.1.9</version>
-  </dependency>
 
 
       <!-- https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-core -->

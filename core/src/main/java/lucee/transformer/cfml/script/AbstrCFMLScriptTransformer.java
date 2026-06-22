@@ -1268,7 +1268,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			String id = data.page.registerJavaFunctionName(functionName);
 			lucee.commons.lang.compiler.SourceCode _sc = fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
 					description, returnFormat, secureJson, verifyClient, localMode);
-			JavaFunction jf = new JavaFunction(ps, _sc, CompilerFactory.getInstance().compile((ConfigPro) data.config, _sc));
+			JavaFunction jf = new JavaFunction(ps, _sc, CompilerFactory.getInstance((ConfigPro) data.config).compile((ConfigPro) data.config, _sc));
 
 			return jf;
 		}
