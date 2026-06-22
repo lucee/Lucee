@@ -40,6 +40,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 			password=request.webadminpassword
 			name="#arguments.name#"
 			class="org.lucee.extension.cache.eh.EHCache"
+			maven="org.lucee:ehcache:2.10.9.3-SNAPSHOT"
 			storage="false"
 			default="object"
 			custom='#{ "bootstrapAsynchronously":"true", "replicatePuts":"true", "automatic_hostName":"", "bootstrapType":"on", "maxelementsinmemory":"10000", "manual_rmiUrls":"", "distributed":"automatic", "automatic_multicastGroupAddress":"224.0.0.0", "memoryevictionpolicy":"LRU", "replicatePutsViaCopy":"true", "timeToIdleSeconds":"86400", "maximumChunkSizeBytes":"5000000", "automatic_multicastGroupPort":"4446", "listener_socketTimeoutMillis":"120000", "timeToLiveSeconds":"86400", "diskpersistent":"true", "manual_addional":"", "replicateRemovals":"true", "replicateUpdatesViaCopy":"true", "automatic_addional":"", "overflowtodisk":"true", "replicateAsynchronously":"true", "maxelementsondisk":"10000000", "listener_remoteObjectPort":"", "asynchronousReplicationIntervalMillis":"1000", "listener_hostName":"", "replicateUpdates":"true", "manual_hostName":"", "automatic_timeToLive":"the same subnet", "listener_port":"" }#';

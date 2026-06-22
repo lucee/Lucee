@@ -20,6 +20,7 @@ component {
 		this.name=getCurrentTemplatePath();
 		this.cache.object={
 			class="org.lucee.extension.cache.eh.EHCache"
+			,maven="org.lucee:ehcache:2.10.9.3-SNAPSHOT"
 			,storage=false
 			,custom={timeToLiveSeconds:86400
 					,maxelementsondisk:10000000
