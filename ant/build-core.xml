@@ -21,7 +21,7 @@
   
   <property name="extMongo"     value="org.lucee:mongodb-extension:3.12.13.10"/>
   <property name="extH2"        value="465E1E35-2425-4F4E-8B3FAB638BD7280A;version=2.1.214.0001L"/>
-  <property name="extOracle"    value="org.lucee:oracle-jdbc-extension:23.26.0.0-ojdbc11"/>
+  <property name="extOracle"    value="org.lucee:oracle-jdbc-extension:23.8.0.25.04-ojdbc11"/>
   <property name="extLucene"    value="org.lucee:lucene-search-extension:3.0.0.171-SNAPSHOT"/>
   <property name="extAxis"      value="org.lucee:axis-extension:1.5.0.6"/>
   <property name="extChart"     value="org.lucee:chart-extension:3.0.0.0-BETA"/>

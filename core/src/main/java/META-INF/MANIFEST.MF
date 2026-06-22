@@ -6,7 +6,7 @@ Minor-Name-Explanation: https://en.wikipedia.org/wiki/Balto
 State: beta
 Bundle-Name: Lucee Core
 Multi-Release: true
-Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.36
+XRequire-Bundle-Fragment: slf4j.nop;bundle-version=1.7.36
 Bundle-ManifestVersion: 2
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Bundle-SymbolicName: lucee.core
@@ -348,8 +348,8 @@ Require-Bundle: org.apache.commons.commons-codec;bundle-version=1.15.0,
  org.lucee.commonmark;bundle-version=0.22.0,
  com.github.f4b6a3.ulid;bundle-version=5.2.3,
  org.lucee.janino;bundle-version=3.1.9,
- org.lucee.janinocc;bundle-version=3.1.9,
- slf4j.api;bundle-version=1.7.36
+ org.lucee.janinocc;bundle-version=3.1.9
+XRequire-Bundle: slf4j.api;bundle-version=1.7.36
 Require-Extension: org.lucee:mysql-jdbc-extension:9.7.0,
  org.lucee:mssql-jdbc-extension:13.4.0.jre11,
  org.lucee:postgresql-jdbc-extension:42.7.9,

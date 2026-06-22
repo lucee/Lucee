@@ -247,18 +247,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-    	<groupId>org.slf4j</groupId>
-    	<artifactId>slf4j-api</artifactId>
-    	<version>1.7.36</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.slf4j</groupId>
-    	<artifactId>slf4j-nop</artifactId>
-    	<version>1.7.36</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>tagsoup</groupId>
       <artifactId>tagsoup</artifactId>
       <version>1.2.1.0002L</version>

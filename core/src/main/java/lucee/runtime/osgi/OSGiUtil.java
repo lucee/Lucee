@@ -2111,7 +2111,6 @@ public final class OSGiUtil {
 
 		private static Map<String, Data> mappings = new HashMap<>();
 		static {
-			mappings.put("ehcache.extension", new Data("org.lucee.ehcache.extension", "2.10.0.38-SNAPSHOT"));
 			mappings.put("mongodb.extension", new Data("org.lucee.mongodb.extension", "3.12.13.9-SNAPSHOT"));
 			mappings.put("chart.extension", new Data("org.lucee.chart.extension", "2.0.0.1-SNAPSHOT"));
 			mappings.put("compress.extension", new Data("org.lucee.compress.extension", "2.0.0.1-SNAPSHOT"));

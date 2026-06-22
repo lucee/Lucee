@@ -442,7 +442,7 @@ public final class BundleProvider extends DefaultHandler {
 	// 1146:size:305198;bundle:name:xmlgraphics.batik.awt.util;version:version EQ 1.8.0;;last-mod:{ts
 	// '2024-01-14 22:32:05'};
 
-	public List<Element> read(boolean flush) throws IOException, SAXException {
+	public List<Element> read(boolean flush) throws IOException {
 		if (elementsSorted == null) {
 			synchronized (elements) {
 				if (elementsSorted == null) {
@@ -739,7 +739,7 @@ public final class BundleProvider extends DefaultHandler {
 		return mappings;
 	}
 
-	public void createOSGiMavenMapping() throws IOException, SAXException {
+	public void createOSGiMavenMapping() throws IOException {
 		Struct sct = new StructImpl();
 		Set<String> has = new HashSet<>();
 		List<Info> infos;
@@ -779,7 +779,7 @@ public final class BundleProvider extends DefaultHandler {
 		}
 	}
 
-	public void whatcanBeRemovedFromS3() throws IOException, SAXException {
+	public void whatcanBeRemovedFromS3() throws IOException {
 		URL url;
 		for (Element e: read(true)) {
 			url = getBundleAsURL(e.bd, false, null);
