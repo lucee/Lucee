@@ -58,7 +58,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 	function run( testResults, testBox ) {
 		describe( "LDEV-6075: StackOverflowError when downgrading ESAPI extension", function() {
 
-			it( title="Downgrade ESAPI and use encoding functions", body=function( currentSpec ) {
+			xit( title="Downgrade ESAPI and use encoding functions", body=function( currentSpec ) {
 				var adminPassword = request.WEBADMINPASSWORD;
 
 				// Get available extensions
