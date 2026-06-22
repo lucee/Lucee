@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bundle-Version: 7.0.0.1
+Bundle-Version: 7.0.0.0
 Built-Date: 2025/07/30 00:00:00 UTC
 Minor-Name: Balto
 Minor-Name-Explanation: https://en.wikipedia.org/wiki/Balto
