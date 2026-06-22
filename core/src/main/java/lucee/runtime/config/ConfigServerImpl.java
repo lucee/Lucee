@@ -380,8 +380,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("default http cache used");
 	private final ConfigValue<String> cacheDefaultHTTP = new ConfigValue<>(metaCacheDefaultConnectionNamesHTTP);
 
-	public final static Prop<String> metaCacheDefaultConnectionNamesWebservice = Prop.str().keys("defaultWebservice", "cacheDefaultWebservice", "webservice").parent("cache").deprecated()
-			.description("default webservice cache used");
+	public final static Prop<String> metaCacheDefaultConnectionNamesWebservice = Prop.str().keys("defaultWebservice", "cacheDefaultWebservice", "webservice").parent("cache")
+			.deprecated().description("default webservice cache used");
 	private final ConfigValue<String> cacheDefaultWebservice = new ConfigValue<>(metaCacheDefaultConnectionNamesWebservice);
 
 	private Map<Integer, String> cacheDefaultConnectionNames = null;
@@ -843,7 +843,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("Search for CFCs in the subdirectories.");
 	private final ConfigValue<Boolean> componentDeepSearch = new ConfigValue<>(metaDoComponentTagDeepSearch);
 
-	private static Prop<Double> metaVersion = Prop.dbl().keys("version").defaultValue(DEFAULT_VERSION).hidden();
+	private static Prop<Double> metaVersion = Prop.dbl().keys("version").defaultValue(DEFAULT_VERSION).hidden().noEnvVar();
 	private final ConfigValue<Double> version = new ConfigValue<>(metaVersion);
 
 	private static Prop<Boolean> metaCloseConnection = Prop.bool().keys("closeConnection").defaultValue(false).description(
@@ -1092,8 +1092,10 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ "before gradually transitioning back to the standard interval over time.");
 	private int inspectTemplateAutoIntervalFast = ConfigPro.INSPECT_INTERVAL_UNDEFINED;
 
-	// LDEV: background ticker that periodically re-inspects "auto" inspectTemplate mappings, replacing the
-	// old PageSourcePoolWatcher polling thread. Started lazily on first page load, sped up after a change.
+	// LDEV: background ticker that periodically re-inspects "auto" inspectTemplate mappings, replacing
+	// the
+	// old PageSourcePoolWatcher polling thread. Started lazily on first page load, sped up after a
+	// change.
 	private final ScheduledExecutorService inspectScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
 		Thread t = new Thread(r, "InspectAutoRefresh");
 		t.setDaemon(true);

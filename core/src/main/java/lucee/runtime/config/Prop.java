@@ -69,6 +69,7 @@ public class Prop<T> {
 	private boolean logGlobal;
 	private boolean deprecated;
 	private boolean hidden;
+	private boolean noEnvVar;
 	private final short type;
 	private boolean lowerCaseKeys;
 	private boolean handleEmptyAsNull = true;
@@ -247,6 +248,11 @@ public class Prop<T> {
 		return this;
 	}
 
+	public Prop<T> noEnvVar() {
+		this.noEnvVar = true;
+		return this;
+	}
+
 	public Prop<T> parent(String parent) {
 		this.parent = parent;
 		return this;
@@ -319,7 +325,7 @@ public class Prop<T> {
 
 		try {
 			// check system properties and env var
-			if (checkEnv) {
+			if (checkEnv && !noEnvVar) {
 				for (String key: envVarSystemProps()) {
 					final Object val = SystemUtil.getSystemPropOrEnvVarObject(key, null);
 					if (StringUtil.isEmpty(val)) continue;
