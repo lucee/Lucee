@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bundle-Version: 7.0.0.0
+Bundle-Version: 7.0.0.2
 Built-Date: 2025/07/30 00:00:00 UTC
 Minor-Name: Balto
 Minor-Name-Explanation: https://en.wikipedia.org/wiki/Balto
@@ -354,7 +354,7 @@ Require-Extension: org.lucee:mysql-jdbc-extension:9.7.0,
  org.lucee:s3-extension:2.1.0.4-BETA,
  org.lucee:pdf-extension:2.0.1.0,
  org.lucee:image-extension:3.1.0.10-SNAPSHOT,
- org.lucee:esapi-extension:3.1.0.0-SNAPSHOT,
+ org.lucee:esapi-extension:3.1.0.1-SNAPSHOT,
  org.lucee:scheduler-classic-extension:1.0.0.1,
  org.lucee:compress-extension:2.1.0.2-SNAPSHOT,
  org.lucee:mail-extension:1.1.0.6,
