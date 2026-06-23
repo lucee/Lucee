@@ -1251,15 +1251,19 @@ public final class OSGiUtil {
 		String version = bf.getVersionAsString();
 		String symbolicName = bf.getSymbolicName();
 
-		log(Log.LEVEL_INFO, "improveFileName: file=" + f.getName() + ", name=" + symbolicName + ", version=" + version);
+		log(Log.LEVEL_INFO, "improveFileName: file=" + f.getName() + ", size=" + f.length() + ", name=" + symbolicName + ", version=" + version);
 
 		// if version is null or "null", try to read from manifest again
-		if (StringUtil.isEmpty(version) || "null".equals(version)) {
+		// also try if symbolic name is null - indicates manifest wasn't read
+		if (StringUtil.isEmpty(version) || "null".equals(version) || StringUtil.isEmpty(symbolicName)) {
 			try {
+				// wait a moment for file to be fully written
+				Thread.sleep(100);
 				BundleFile bf2 = BundleFile.getInstance(f);
 				String v2 = bf2.getVersionAsString();
-				log(Log.LEVEL_INFO, "improveFileName retry: v2=" + v2);
-				if (!StringUtil.isEmpty(v2) && !"null".equals(v2)) {
+				String n2 = bf2.getSymbolicName();
+				log(Log.LEVEL_INFO, "improveFileName retry: name=" + n2 + ", v2=" + v2);
+				if (!StringUtil.isEmpty(n2) && (!StringUtil.isEmpty(v2) && !"null".equals(v2))) {
 					bf = bf2;
 					version = v2;
 				}
