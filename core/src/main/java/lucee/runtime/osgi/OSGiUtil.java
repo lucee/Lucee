@@ -1248,7 +1248,23 @@ public final class OSGiUtil {
 			return bf;
 		}
 
-		String preferedName = bf.getSymbolicName() + "-" + bf.getVersionAsString() + ".jar";
+		String version = bf.getVersionAsString();
+		// if version is null or "null", try to read from manifest again
+		if (StringUtil.isEmpty(version) || "null".equals(version)) {
+			try {
+				BundleFile bf2 = BundleFile.getInstance(f);
+				String v2 = bf2.getVersionAsString();
+				if (!StringUtil.isEmpty(v2) && !"null".equals(v2)) {
+					bf = bf2;
+					version = v2;
+				}
+			}
+			catch (Exception e) {
+				// use original bf
+			}
+		}
+
+		String preferedName = bf.getSymbolicName() + "-" + version + ".jar";
 		if (!preferedName.equals(f.getName())) {
 			try {
 				File nf = new File(f.getParentFile(), preferedName);
