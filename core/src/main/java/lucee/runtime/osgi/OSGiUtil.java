@@ -1251,14 +1251,14 @@ public final class OSGiUtil {
 		String version = bf.getVersionAsString();
 		String symbolicName = bf.getSymbolicName();
 
-		log(Log.LEVEL_INFO, "improveFileName: file=" + f.getName() + ", name=" + symbolicName + ", version=" + version + ", valid=" + bf.isValid());
+		log(Log.LEVEL_INFO, "improveFileName: file=" + f.getName() + ", name=" + symbolicName + ", version=" + version);
 
 		// if version is null or "null", try to read from manifest again
 		if (StringUtil.isEmpty(version) || "null".equals(version)) {
 			try {
 				BundleFile bf2 = BundleFile.getInstance(f);
 				String v2 = bf2.getVersionAsString();
-				log(Log.LEVEL_INFO, "improveFileName retry: v2=" + v2 + ", valid=" + bf2.isValid());
+				log(Log.LEVEL_INFO, "improveFileName retry: v2=" + v2);
 				if (!StringUtil.isEmpty(v2) && !"null".equals(v2)) {
 					bf = bf2;
 					version = v2;
