@@ -1,8 +1,7 @@
 package lucee.runtime.functions.other;
 
-import com.github.f4b6a3.ulid.UlidCreator;
-
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.ulid.UlidCreator;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;

@@ -49,7 +49,6 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.ccil.cowan.tagsoup.Parser;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.CharacterData;
@@ -84,6 +83,7 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.EnvClassLoader;
+import lucee.runtime.text.xml.html.Parser;
 import lucee.runtime.text.xml.struct.XMLMultiElementStruct;
 import lucee.runtime.text.xml.struct.XMLStruct;
 import lucee.runtime.text.xml.struct.XMLStructFactory;
@@ -875,7 +875,8 @@ public final class XMLUtil {
 		return o;
 	}
 
-	// Non-throwing core: returns NOT_FOUND for "name not found" so defaultValue callers avoid the throw.
+	// Non-throwing core: returns NOT_FOUND for "name not found" so defaultValue callers avoid the
+	// throw.
 	private static Object getPropertyOrSentinel(Node node, Collection.Key k, boolean caseSensitive) throws SAXException {
 		// String lcKey=StringUtil.toLowerCase(key);
 		if (k.getLowerString().startsWith("xml")) {
