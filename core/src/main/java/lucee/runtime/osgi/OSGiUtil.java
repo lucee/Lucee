@@ -508,9 +508,10 @@ public final class OSGiUtil {
 				}
 				boolean second = false;
 				while (true) {
+					print.e("->" + pq.getName());
 					// look for match in mapping
 					SoftReference<Map<String, BundleFile>> sr = packageBundleMappingDyn.get(pq.getName());
-					print.e(sr);
+					print.e("->" + sr);
 
 					Map<String, BundleFile> map;
 					if (sr != null && (map = sr.get()) != null) {
@@ -558,6 +559,7 @@ public final class OSGiUtil {
 
 				}
 			}
+			print.e("isPackageInBootelegation->" + OSGiUtil.isPackageInBootelegation(pq.getName()));
 
 			// if part of bootdelegation we ignore
 			if (OSGiUtil.isPackageInBootelegation(pq.getName())) {
@@ -565,11 +567,13 @@ public final class OSGiUtil {
 			}
 
 			String bn = packageBundleMapping.get(pq.getName());
+			print.e(bn);
 			if (!StringUtil.isEmpty(bn)) {
 				try {
 					return loadBundle(bc, bn, null, null, null, startIfNecessary, false, pq.isRequired(), pq.isRequired() ? null : Boolean.FALSE);
 				}
 				catch (BundleException be) {
+					print.e(be);
 					if (pq.isRequired()) throw be;
 					return null;
 				}
@@ -2627,7 +2631,7 @@ public final class OSGiUtil {
 	}
 
 	private static void loadBundlesAndPackagesFromMessage(BundleContext bc, Config config, final String msg, Set<String> parents) throws BundleException, IOException {
-		if (bc == null) bc = CFMLEngineFactory.getInstance().getBundleContext();
+
 		if (parents == null) parents = new HashSet<String>();
 
 		int start = 0, end;
@@ -2645,6 +2649,7 @@ public final class OSGiUtil {
 
 			br = toBundleRange(msg.substring(start - 1, end + 1));
 			if (br != null) {
+				if (bc == null) bc = CFMLEngineFactory.getInstance().getBundleContext();
 				loadBundle(bc, br, config.getIdentification(), null, true, false, true, null, parents);
 			}
 		}
@@ -2665,10 +2670,17 @@ public final class OSGiUtil {
 			pq = toPackageQuery(msg.substring(start - 1, end + 1));
 			print.e(pq);
 			if (pq != null) {
+				if (bc == null) bc = CFMLEngineFactory.getInstance().getBundleContext();
 				loadBundleByPackage(bc, pq, new HashSet<Bundle>(), true, parents);
 			}
 		}
 
+	}
+
+	public static void main(String[] args) throws BundleException, IOException {
+		loadBundlesAndPackagesFromMessage(null, null,
+				"Unable to resolve jtds [73](R 73.0): missing requirement [jtds [73](R 73.0)] osgi.wiring.package; (osgi.wiring.package=jcifs.smb) Unresolved requirements: [[jtds [73](R 73.0)] osgi.wiring.package; (osgi.wiring.package=jcifs.smb)]",
+				null);
 	}
 
 	private static int findEnd(String msg, int start) {
