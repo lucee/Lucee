@@ -564,6 +564,7 @@ public final class OSGiUtil {
 			String bn = packageBundleMapping.get(pq.getName());
 			if (!StringUtil.isEmpty(bn)) {
 				try {
+					log(Log.LEVEL_DEBUG, "Resolved package [" + pq.getName() + "] to bundle [" + bn + "] via package mapping");
 					return loadBundle(bc, bn, null, null, null, startIfNecessary, false, pq.isRequired(), pq.isRequired() ? null : Boolean.FALSE);
 				}
 				catch (BundleException be) {
@@ -576,6 +577,7 @@ public final class OSGiUtil {
 			for (Entry<String, String> e: packageBundleMapping.entrySet()) {
 				if (pq.getName().startsWith(e.getKey() + ".")) {
 					try {
+						log(Log.LEVEL_DEBUG, "Resolved package [" + pq.getName() + "] to bundle [" + e.getValue() + "] via package mapping prefix");
 						return loadBundle(bc, e.getValue(), null, null, null, startIfNecessary, false, pq.isRequired(), pq.isRequired() ? null : Boolean.FALSE);
 					}
 					catch (BundleException be) {
@@ -1237,11 +1239,14 @@ public final class OSGiUtil {
 			throw new BundleException("The jar [" + f.getName() + "] is not a valid OSGi bundle: missing Bundle-SymbolicName header in manifest");
 		}
 
+		log(Log.LEVEL_INFO, "Loaded OSGi bundle [" + bf.getSymbolicName() + ":" + bf.getVersionAsString() + "] from [" + f.getName() + "]");
+
 		String preferedName = bf.getSymbolicName() + "-" + bf.getVersionAsString() + ".jar";
 		if (!preferedName.equals(f.getName())) {
 			try {
 				File nf = new File(f.getParentFile(), preferedName);
 				if (f.renameTo(nf)) {
+					log(Log.LEVEL_DEBUG, "Renamed bundle file from [" + f.getName() + "] to [" + preferedName + "]");
 					return BundleFile.getInstance(nf);
 				}
 				else {
@@ -1250,6 +1255,7 @@ public final class OSGiUtil {
 						f.deleteOnExit();
 					}
 					else {
+						log(Log.LEVEL_DEBUG, "Copied and renamed bundle file from [" + f.getName() + "] to [" + preferedName + "]");
 						return BundleFile.getInstance(nf);
 					}
 				}
