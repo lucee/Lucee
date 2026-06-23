@@ -826,6 +826,7 @@ public final class OSGiUtil {
 		}
 
 		// if (bundlesThreadLocal.get().contains(bn)) {
+		print.e("downloadIfNecessary: " + downloadIfNecessary);
 
 		// if not found try to download
 		if (downloadIfNecessary) {
@@ -835,19 +836,25 @@ public final class OSGiUtil {
 					// TODO not only check for from version, request a range, but that needs an adjustment with the
 					// provider
 					File f = BundleProvider.getInstance().downloadBundle(new BundleDefinition(bundleRange.getName(), bundleRange.getVersionRange().getFrom().getVersion()));
+					print.e("f: " + f);
 					BundleFile _bf = improveFileName(factory.getBundleDirectory(), BundleFile.getInstance(f));
 					resetJarsFromBundleDirectory(factory);
 					b = _loadBundle(bc, _bf);
+					print.e(b);
 				}
 				else {
 					Resource r = downloadBundle(factory, bundleRange.getName(), null, id);
+					print.e("r: " + r);
 					SystemExitScanner.validate(r);
+					print.e("r: " + r);
 					BundleFile src = BundleFile.getInstance(r);
 					BundleFile trg = improveFileName(factory.getBundleDirectory(), src);
 					if (src != trg) r = ResourceUtil.toResource(trg.getFile());
 
 					resetJarsFromBundleDirectory(factory);
 					b = _loadBundle(bc, r);
+					print.e(b);
+
 				}
 
 				if (startIfNecessary) {
@@ -861,6 +868,7 @@ public final class OSGiUtil {
 				return b;
 			}
 			catch (Exception e) {
+				print.e(e);
 				log(e);
 			}
 		}
