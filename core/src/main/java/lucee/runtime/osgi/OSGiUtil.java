@@ -177,7 +177,7 @@ public final class OSGiUtil {
 		// Map packages from bundles removed from Lucee 7 core for backward compatibility with older
 		// extensions
 		packageBundleMapping.put("com.sun.jna", "com.sun.jna");
-		// packageBundleMapping.put("org.apache.commons.lang", "org.apache.commons.lang");
+		packageBundleMapping.put("org.apache.commons.lang", "org.apache.commons.lang");
 		packageBundleMapping.put("jcifs.smb", "org.lucee.jcifs");
 	}
 
