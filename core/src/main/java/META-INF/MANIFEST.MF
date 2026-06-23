@@ -341,7 +341,6 @@ Require-Bundle: org.apache.commons.commons-codec;bundle-version=1.15.0,
  org.objectweb.asm;bundle-version=9.9.1,
  org.lucee.commons-email-all;bundle-version=1.6.0,
  tagsoup;bundle-version=1.2.1.0002L,
- org.lucee.commonmark;bundle-version=0.22.0,
  com.github.f4b6a3.ulid;bundle-version=5.2.3
 Require-Extension: org.lucee:mysql-jdbc-extension:9.7.0,
  org.lucee:mssql-jdbc-extension:13.4.0.jre11,

@@ -236,12 +236,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.lucee</groupId>
-      <artifactId>commonmark</artifactId>
-      <version>0.22.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>com.github.f4b6a3</groupId>
       <artifactId>ulid-creator</artifactId>
       <version>5.2.3</version>
