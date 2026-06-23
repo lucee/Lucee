@@ -1,7 +1,6 @@
 package lucee.commons.lang.compiler;
 
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -54,8 +53,10 @@ public final class JaninoCompiler implements Compiler {
 
 		URL[] urls = new URL[jarsJanino.length + jarsCC.length];
 		int i = 0;
-		for (Resource r: jarsJanino) urls[i++] = ResourceUtil.toURL(r);
-		for (Resource r: jarsCC) urls[i++] = ResourceUtil.toURL(r);
+		for (Resource r: jarsJanino)
+			urls[i++] = ResourceUtil.toURL(r);
+		for (Resource r: jarsCC)
+			urls[i++] = ResourceUtil.toURL(r);
 
 		ClassLoader cl = new URLClassLoader(urls, JaninoCompiler.class.getClassLoader());
 		janinoLoader.compareAndSet(null, cl);
@@ -87,8 +88,7 @@ public final class JaninoCompiler implements Compiler {
 
 			// new org.codehaus.janino.Compiler(rf, clcl)
 			Class<?> compilerClass = cl.loadClass("org.codehaus.janino.Compiler");
-			Object compiler = compilerClass.getConstructor(rfClass, cl.loadClass("org.codehaus.janino.IClassLoader"))
-					.newInstance(emptyRF, iclassLoader);
+			Object compiler = compilerClass.getConstructor(rfClass, cl.loadClass("org.codehaus.janino.IClassLoader")).newInstance(emptyRF, iclassLoader);
 
 			compilerClass.getMethod("setVerbose", boolean.class).invoke(compiler, true);
 			compilerClass.getMethod("setDebugSource", boolean.class).invoke(compiler, true);
@@ -111,8 +111,7 @@ public final class JaninoCompiler implements Compiler {
 
 			// new StringResource(className, source)
 			Class<?> stringResourceClass = cl.loadClass("org.codehaus.commons.compiler.util.resource.StringResource");
-			Object stringResource = stringResourceClass.getConstructor(String.class, String.class)
-					.newInstance(sc.getClassName(), sc.getCharContent(true).toString());
+			Object stringResource = stringResourceClass.getConstructor(String.class, String.class).newInstance(sc.getClassName(), sc.getCharContent(true).toString());
 
 			Class<?> resourceClass = cl.loadClass("org.codehaus.commons.compiler.util.resource.Resource");
 			Object resourceArray = java.lang.reflect.Array.newInstance(resourceClass, 1);
