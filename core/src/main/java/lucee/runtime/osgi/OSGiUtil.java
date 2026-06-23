@@ -57,6 +57,7 @@ import org.osgi.resource.Requirement;
 
 import jakarta.servlet.Servlet;
 import jakarta.servlet.jsp.JspException;
+import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
@@ -509,6 +510,8 @@ public final class OSGiUtil {
 				while (true) {
 					// look for match in mapping
 					SoftReference<Map<String, BundleFile>> sr = packageBundleMappingDyn.get(pq.getName());
+					print.e(sr);
+
 					Map<String, BundleFile> map;
 					if (sr != null && (map = sr.get()) != null) {
 
@@ -2650,14 +2653,17 @@ public final class OSGiUtil {
 		start = 0;
 		PackageQuery pq = null;
 		while ((index = msg.indexOf("osgi.wiring.package;", start)) != -1) {
-
+			print.e("----- MATCH -----");
+			print.e(msg);
 			start = index + 19;
 			index = msg.indexOf('(', index + 19);
 			if (index == -1) throw new IOException("no start point found");
 			start = index + 1;
 			end = findEnd(msg, start);
 			if (end == -1) throw new IOException("no end point found");
+			print.e(msg.substring(start - 1, end + 1));
 			pq = toPackageQuery(msg.substring(start - 1, end + 1));
+			print.e(pq);
 			if (pq != null) {
 				loadBundleByPackage(bc, pq, new HashSet<Bundle>(), true, parents);
 			}
