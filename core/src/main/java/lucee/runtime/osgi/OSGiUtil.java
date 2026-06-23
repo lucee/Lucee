@@ -178,6 +178,7 @@ public final class OSGiUtil {
 		// extensions
 		packageBundleMapping.put("com.sun.jna", "com.sun.jna");
 		// packageBundleMapping.put("org.apache.commons.lang", "org.apache.commons.lang");
+		packageBundleMapping.put("jcifs.smb", "jcifs");
 	}
 
 	/**
