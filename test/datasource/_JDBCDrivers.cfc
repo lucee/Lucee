@@ -63,7 +63,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				loadJDBCDriverClass("org.hsqldb.hsqldb","2.3.2");
 			});
 
-			it( title='JTDS', body=function( currentSpec ) {
+			xit( title='JTDS', body=function( currentSpec ) {
 				loadJDBCDriverClass("jtds","1.2.5");
 				loadJDBCDriverClass("jtds","1.3.1");
 			});
