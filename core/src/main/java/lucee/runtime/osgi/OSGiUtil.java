@@ -1249,22 +1249,28 @@ public final class OSGiUtil {
 		}
 
 		String version = bf.getVersionAsString();
+		String symbolicName = bf.getSymbolicName();
+
+		log(Log.LEVEL_INFO, "improveFileName: file=" + f.getName() + ", name=" + symbolicName + ", version=" + version + ", valid=" + bf.isValid());
+
 		// if version is null or "null", try to read from manifest again
 		if (StringUtil.isEmpty(version) || "null".equals(version)) {
 			try {
 				BundleFile bf2 = BundleFile.getInstance(f);
 				String v2 = bf2.getVersionAsString();
+				log(Log.LEVEL_INFO, "improveFileName retry: v2=" + v2 + ", valid=" + bf2.isValid());
 				if (!StringUtil.isEmpty(v2) && !"null".equals(v2)) {
 					bf = bf2;
 					version = v2;
 				}
 			}
 			catch (Exception e) {
-				// use original bf
+				log(Log.LEVEL_WARN, "improveFileName retry failed: " + e.getMessage());
 			}
 		}
 
 		String preferedName = bf.getSymbolicName() + "-" + version + ".jar";
+		log(Log.LEVEL_INFO, "improveFileName: preferedName=" + preferedName + ", currentName=" + f.getName());
 		if (!preferedName.equals(f.getName())) {
 			try {
 				File nf = new File(f.getParentFile(), preferedName);
