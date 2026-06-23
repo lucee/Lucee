@@ -179,7 +179,6 @@ public final class OSGiUtil {
 		// extensions
 		packageBundleMapping.put("com.sun.jna", "com.sun.jna");
 		// packageBundleMapping.put("org.apache.commons.lang", "org.apache.commons.lang");
-		packageBundleMapping.put("jcifs.smb", "jcifs");
 	}
 
 	/**
@@ -1248,33 +1247,7 @@ public final class OSGiUtil {
 			return bf;
 		}
 
-		String version = bf.getVersionAsString();
-		String symbolicName = bf.getSymbolicName();
-
-		log(Log.LEVEL_INFO, "improveFileName: file=" + f.getName() + ", size=" + f.length() + ", name=" + symbolicName + ", version=" + version);
-
-		// if version is null or "null", try to read from manifest again
-		// also try if symbolic name is null - indicates manifest wasn't read
-		if (StringUtil.isEmpty(version) || "null".equals(version) || StringUtil.isEmpty(symbolicName)) {
-			try {
-				// wait a moment for file to be fully written
-				Thread.sleep(100);
-				BundleFile bf2 = BundleFile.getInstance(f);
-				String v2 = bf2.getVersionAsString();
-				String n2 = bf2.getSymbolicName();
-				log(Log.LEVEL_INFO, "improveFileName retry: name=" + n2 + ", v2=" + v2);
-				if (!StringUtil.isEmpty(n2) && (!StringUtil.isEmpty(v2) && !"null".equals(v2))) {
-					bf = bf2;
-					version = v2;
-				}
-			}
-			catch (Exception e) {
-				log(Log.LEVEL_WARN, "improveFileName retry failed: " + e.getMessage());
-			}
-		}
-
-		String preferedName = bf.getSymbolicName() + "-" + version + ".jar";
-		log(Log.LEVEL_INFO, "improveFileName: preferedName=" + preferedName + ", currentName=" + f.getName());
+		String preferedName = bf.getSymbolicName() + "-" + bf.getVersionAsString() + ".jar";
 		if (!preferedName.equals(f.getName())) {
 			try {
 				File nf = new File(f.getParentFile(), preferedName);
