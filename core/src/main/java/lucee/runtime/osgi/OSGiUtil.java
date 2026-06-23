@@ -1239,12 +1239,17 @@ public final class OSGiUtil {
 	 * 
 	 * @param bf
 	 */
-	private static BundleFile improveFileName(File bundlDirectory, BundleFile bf) {
+	private static BundleFile improveFileName(File bundlDirectory, BundleFile bf) throws BundleException {
 		File f = ResourceUtil.getCanonicalFileEL(bf.getFile());
 
 		// we only improve the file names for bundles in the bundles directory
 		if (!bundlDirectory.equals(f.getParentFile())) {
 			return bf;
+		}
+
+		// validate that the jar is a proper OSGi bundle with required headers
+		if (StringUtil.isEmpty(bf.getSymbolicName())) {
+			throw new BundleException("The jar [" + f.getName() + "] is not a valid OSGi bundle: missing Bundle-SymbolicName header in manifest");
 		}
 
 		String preferedName = bf.getSymbolicName() + "-" + bf.getVersionAsString() + ".jar";
