@@ -64,8 +64,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it( title='JTDS', body=function( currentSpec ) {
-				loadJDBCDriverClass("jtds","1.2.5");
-				loadJDBCDriverClass("jtds","1.3.1");
+				loadJDBCDriverClass("org.lucee.jtds","1.3.1");
 			});
 		});
 	}
