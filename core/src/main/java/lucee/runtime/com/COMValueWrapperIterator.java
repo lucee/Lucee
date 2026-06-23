@@ -20,8 +20,7 @@ package lucee.runtime.com;
 
 import java.util.Iterator;
 
-import com.jacob.com.EnumVariant;
-
+import lucee.commons.jacob.com.EnumVariant;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class COMValueWrapperIterator implements Iterator {

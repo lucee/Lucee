@@ -23,12 +23,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.jacob.com.Dispatch;
-import com.jacob.com.LibraryLoader;
-import com.jacob.com.Variant;
-
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.jacob.com.Dispatch;
+import lucee.commons.jacob.com.LibraryLoader;
+import lucee.commons.jacob.com.Variant;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigFactoryImpl;
 import lucee.runtime.config.ConfigServer;

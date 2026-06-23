@@ -18,8 +18,7 @@
  **/
 package lucee.runtime.com;
 
-import com.jacob.com.Variant;
-
+import lucee.commons.jacob.com.Variant;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.exp.ExpressionException;
