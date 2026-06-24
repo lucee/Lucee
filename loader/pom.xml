@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>8.0.0.136-SNAPSHOT</version>
+  <version>8.0.0.137-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -451,7 +451,7 @@
   <dependency>
     <groupId>org.apache.commons</groupId>
     <artifactId>commons-collections4</artifactId>
-    <version>4.4</version>
+    <version>4.5.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -524,18 +524,6 @@
     <groupId>org.lucee</groupId>
     <artifactId>httpcomponents-httpmime</artifactId>
     <version>4.5.13</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-logging-adapters</artifactId>
-    <version>1.1.0.0000L</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-logging-api</artifactId>
-    <version>1.1.0.0000L</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
