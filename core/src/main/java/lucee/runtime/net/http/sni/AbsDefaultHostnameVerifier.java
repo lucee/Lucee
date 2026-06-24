@@ -22,22 +22,17 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.security.auth.x500.X500Principal;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.util.DomainType;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.apache.http.conn.util.PublicSuffixMatcher;
+
+import lucee.commons.io.log.LogUtil;
 
 public class AbsDefaultHostnameVerifier implements HostnameVerifier {
 
 	final static int DNS_NAME_TYPE = 2;
 	final static int IP_ADDRESS_TYPE = 7;
 	// private static final Object token = new Object();
-
-	private static final Log log;
-	static {
-		log = LogFactory.getLog("lucee.runtime.net.http.sni.AbsDefaultHostnameVerifier");
-	}
 
 	private final PublicSuffixMatcher publicSuffixMatcher;
 
@@ -58,9 +53,7 @@ public class AbsDefaultHostnameVerifier implements HostnameVerifier {
 			return true;
 		}
 		catch (final SSLException ex) {
-			if (log.isDebugEnabled()) {
-				log.debug(ex.getMessage(), ex);
-			}
+			LogUtil.log("AbsDefaultHostnameVerifier", ex);
 			return false;
 		}
 	}
@@ -208,10 +201,8 @@ public class AbsDefaultHostnameVerifier implements HostnameVerifier {
 							return value.toString();
 						}
 					}
-					catch (NoSuchElementException ignore) {
-					}
-					catch (NamingException ignore) {
-					}
+					catch (NoSuchElementException ignore) {}
+					catch (NamingException ignore) {}
 				}
 			}
 			return null;
@@ -226,8 +217,7 @@ public class AbsDefaultHostnameVerifier implements HostnameVerifier {
 		try {
 			c = cert.getSubjectAlternativeNames();
 		}
-		catch (final CertificateParsingException ignore) {
-		}
+		catch (final CertificateParsingException ignore) {}
 		List<String> subjectAltList = null;
 		if (c != null) {
 			for (final List<?> aC: c) {
