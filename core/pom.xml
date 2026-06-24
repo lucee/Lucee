@@ -159,6 +159,12 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.2.0.0000L</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
 	    <groupId>org.ow2.asm</groupId>
 	    <artifactId>asm</artifactId>
 	    <version>9.9.1</version>

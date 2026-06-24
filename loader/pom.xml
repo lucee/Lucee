@@ -527,6 +527,12 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
+    <groupId>org.lucee</groupId>
+    <artifactId>commons-logging</artifactId>
+    <version>1.2.0.0000L</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
     <groupId>jacob</groupId>
     <artifactId>jacob</artifactId>
     <version>1.16.1</version>
