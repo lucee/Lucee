@@ -63,9 +63,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.BundleReference;
 
-import com.jezhumble.javasysmon.CpuTimes;
-import com.jezhumble.javasysmon.JavaSysMon;
-import com.jezhumble.javasysmon.MemoryStats;
+import java.lang.management.OperatingSystemMXBean;
 
 import jakarta.servlet.ServletContext;
 import lucee.commons.collection.AccessOrderLimitedSizeMap;
@@ -352,7 +350,6 @@ public final class SystemUtil {
 	}
 
 	private static Boolean isFSCaseSensitive;
-	private static JavaSysMon jsm;
 	private static Boolean isCLI;
 	private static double loaderVersion = 0D;
 	private static boolean hasMacAddress;
@@ -1149,36 +1146,63 @@ public final class SystemUtil {
 
 	public static double getCpuUsage(long time) throws ApplicationException {
 		if (time < 1) throw new ApplicationException("time has to be bigger than 0");
-		if (jsm == null) jsm = new JavaSysMon();
-		CpuTimes cput = jsm.cpuTimes();
-		if (cput == null) throw new ApplicationException("CPU information are not available for this OS");
-		CpuTimes previous = new CpuTimes(cput.getUserMillis(), cput.getSystemMillis(), cput.getIdleMillis());
+		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+		double cpuBefore = osBean.getProcessCpuTime();
+		long timeBeforeNano = System.nanoTime();
 		sleep(time);
-
-		return jsm.cpuTimes().getCpuUsage(previous) * 100D;
+		long timeAfterNano = System.nanoTime();
+		double cpuAfter = osBean.getProcessCpuTime();
+		double cpuUsed = cpuAfter - cpuBefore;
+		double wallTimeNano = timeAfterNano - timeBeforeNano;
+		return (cpuUsed / wallTimeNano) * 100.0;
 	}
 
 	public static float getCpuPercentage() {
-		if (jsm == null) jsm = new JavaSysMon();
-		CpuTimes cput = jsm.cpuTimes();
-		if (cput == null) return -1;
-		CpuTimes previous = new CpuTimes(cput.getUserMillis(), cput.getSystemMillis(), cput.getIdleMillis());
+		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
 		int max = 50;
 		float res = 0;
 		while (true) {
 			if (--max == 0) break;
+			double cpuBefore = osBean.getProcessCpuTime();
+			long timeBeforeNano = System.nanoTime();
 			sleep(100);
-			res = jsm.cpuTimes().getCpuUsage(previous);
+			long timeAfterNano = System.nanoTime();
+			double cpuAfter = osBean.getProcessCpuTime();
+			double cpuUsed = cpuAfter - cpuBefore;
+			double wallTimeNano = timeAfterNano - timeBeforeNano;
+			res = (float) ((cpuUsed / wallTimeNano) * 100.0);
 			if (res != 1) break;
 		}
 		return res;
 	}
 
-	private synchronized static MemoryStats physical() throws ApplicationException {
-		if (jsm == null) jsm = new JavaSysMon();
-		MemoryStats p = jsm.physical();
-		if (p == null) throw new ApplicationException("Memory information are not available for this OS");
-		return p;
+	private synchronized static PhysicalMemory physical() throws ApplicationException {
+		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+		try {
+			long totalPhysicalMemory = osBean.getTotalPhysicalMemorySize();
+			long freePhysicalMemory = osBean.getFreePhysicalMemorySize();
+			return new PhysicalMemory(totalPhysicalMemory, freePhysicalMemory);
+		} catch (Exception e) {
+			throw new ApplicationException("Memory information are not available for this OS");
+		}
+	}
+
+	private static class PhysicalMemory {
+		long total;
+		long free;
+
+		PhysicalMemory(long total, long free) {
+			this.total = total;
+			this.free = free;
+		}
+
+		long getTotalBytes() {
+			return total;
+		}
+
+		long getFreeBytes() {
+			return free;
+		}
 	}
 
 	public static void setPrintWriter(int type, PrintWriter pw) {

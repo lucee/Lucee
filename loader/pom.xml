@@ -482,24 +482,6 @@
     <version>1.10.0</version>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-logging-adapters</artifactId>
-    <version>1.1.0.0000L</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-logging-api</artifactId>
-    <version>1.1.0.0000L</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-logging</artifactId>
-    <version>1.2.0.0000L</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
     <groupId>org.apache.commons</groupId>
     <artifactId>commons-pool2</artifactId>
     <version>2.12.1</version>
@@ -548,12 +530,6 @@
     <groupId>jacob</groupId>
     <artifactId>jacob</artifactId>
     <version>1.16.1</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
-    <groupId>javasysmon</groupId>
-    <artifactId>javasysmon</artifactId>
-    <version>0.3.3</version>
     <scope>provided</scope>
   </dependency>
   <!-- is this even needed? -->
