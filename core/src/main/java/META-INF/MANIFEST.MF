@@ -317,7 +317,7 @@ Export-Package: coldfusion,
  lucee.transformer.cfml.script.java.function
 Require-Bundle: org.apache.commons.commons-codec;bundle-version=1.15.0,
  org.apache.commons.commons-collections4;bundle-version=4.5.0,
- org.apache.commons.commons-fileupload2-core;bundle-version=2.0.0.M4,
+ org.apache.commons.commons-fileupload2-core;bundle-version=2.0.0.M5,
  org.apache.commons.commons-io;bundle-version=2.19.0,
  org.apache.commons.commons-pool2;bundle-version=2.12.1,
  org.apache.oro;bundle-version=2.0.8,
