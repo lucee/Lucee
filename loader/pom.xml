@@ -528,6 +528,18 @@
   </dependency>
   <dependency>
     <groupId>org.lucee</groupId>
+    <artifactId>commons-logging-adapters</artifactId>
+    <version>1.1.0.0000L</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.lucee</groupId>
+    <artifactId>commons-logging-api</artifactId>
+    <version>1.1.0.0000L</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.lucee</groupId>
     <artifactId>commons-logging</artifactId>
     <version>1.2.0.0000L</version>
     <scope>provided</scope>
