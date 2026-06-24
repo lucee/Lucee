@@ -63,7 +63,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.BundleReference;
 
-import java.lang.management.OperatingSystemMXBean;
+import com.sun.management.OperatingSystemMXBean;
 
 import jakarta.servlet.ServletContext;
 import lucee.commons.collection.AccessOrderLimitedSizeMap;
@@ -1146,7 +1146,7 @@ public final class SystemUtil {
 
 	public static double getCpuUsage(long time) throws ApplicationException {
 		if (time < 1) throw new ApplicationException("time has to be bigger than 0");
-		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+		OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 		double cpuBefore = osBean.getProcessCpuTime();
 		long timeBeforeNano = System.nanoTime();
 		sleep(time);
@@ -1158,7 +1158,7 @@ public final class SystemUtil {
 	}
 
 	public static float getCpuPercentage() {
-		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+		OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 		int max = 50;
 		float res = 0;
 		while (true) {
@@ -1177,7 +1177,7 @@ public final class SystemUtil {
 	}
 
 	private synchronized static PhysicalMemory physical() throws ApplicationException {
-		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+		OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 		try {
 			long totalPhysicalMemory = osBean.getTotalPhysicalMemorySize();
 			long freePhysicalMemory = osBean.getFreePhysicalMemorySize();
