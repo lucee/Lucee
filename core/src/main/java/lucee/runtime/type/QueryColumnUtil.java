@@ -37,6 +37,7 @@ public final class QueryColumnUtil implements Serializable {
 	 */
 	protected static void resetType(QueryColumnImpl column) {
 		column.type = Types.OTHER;
+		column.typeChecked = false;
 	}
 
 	/**
@@ -46,7 +47,6 @@ public final class QueryColumnUtil implements Serializable {
 	 * @return redefined type of the value
 	 */
 	protected static Object reDefineType(QueryColumnImpl column, Object value) {
-		column.typeChecked = false;
 		if (value == null || column.type == Types.OTHER) return value;
 		if (value instanceof String && ((String) value).isEmpty()) return value;
 
@@ -224,7 +224,6 @@ public final class QueryColumnUtil implements Serializable {
 	 */
 	protected static void reOrganizeType(QueryColumnImpl column) {
 		if ((column.type == Types.OTHER) && !column.typeChecked) {
-			column.typeChecked = true;
 			if (column.size() > 0) {
 				checkOther(column, column.data[0]);
 
@@ -251,6 +250,9 @@ public final class QueryColumnUtil implements Serializable {
 						break;
 					}
 				}
+				// Only mark "checked" when detection actually resolved the type.
+				// Empty columns leave the flag false so the next call retries with data.
+				column.typeChecked = (column.type != Types.OTHER);
 			}
 		}
 	}
