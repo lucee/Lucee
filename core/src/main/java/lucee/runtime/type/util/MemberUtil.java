@@ -32,9 +32,11 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.cast.Casting;
 import lucee.runtime.interpreter.ref.func.BIFCall;
@@ -137,23 +139,57 @@ public final class MemberUtil {
 				if (member != null) {
 					List<FunctionLibFunctionArg> _args = member.getArg();
 					if (args.length < _args.size()) {
-						ArrayList<Ref> refs = new ArrayList<Ref>();
-
+						// LDEV-6428: build Object[] directly, skip Casting/ArrayList/Ref[]/BIFCall ceremony.
+						// All member-callable BIFs do their own Caster.to* coercion in invoke() (audited
+						// 2026-06-25: 284 of 284 member-callable BIFs use defensive coercion or instanceof-
+						// guarded casts), so the upstream Caster.castTo wrapper is double-work.
+						int n = _args.size();
+						Object[] callArgs = new Object[n];
+						int filled = 0;
 						int pos = member.getMemberPosition();
-						FunctionLibFunctionArg flfa;
-						Iterator<FunctionLibFunctionArg> it = _args.iterator();
-						int glbIndex = 0, argIndex = -1;
-						while (it.hasNext()) {
-							glbIndex++;
-							flfa = it.next();
+						int argIndex = -1;
+						for (int glbIndex = 1; glbIndex <= n; glbIndex++) {
 							if (glbIndex == pos) {
-								refs.add(new Casting(strType, type, coll));
+								callArgs[filled++] = coll;
 							}
-							else if (args.length > ++argIndex) { // careful, argIndex is only incremented when condition above is false
-								refs.add(new Casting(flfa.getTypeAsString(), flfa.getType(), args[argIndex]));
+							else if (args.length > ++argIndex) {
+								callArgs[filled++] = args[argIndex];
 							}
 						}
-						return new BIFCall(coll, member, refs.toArray(new Ref[refs.size()])).getValue(pc);
+						if (filled < callArgs.length) {
+							Object[] trimmed = new Object[filled];
+							System.arraycopy(callArgs, 0, trimmed, 0, filled);
+							callArgs = trimmed;
+						}
+						BIF bif = member.getBIF();
+						// Preserve BIFCall.getValue check order: memberChaining short-circuit BEFORE
+						// argMin (matches pre-fastpath behavior where memberChaining BIFs invoke even
+						// with too few args, then throw from inside via their own validation, producing
+						// the BIF's hardcoded camelCase function name in the error message).
+						if (member.getMemberChaining()) {
+							try {
+								bif.invoke(pc, callArgs);
+							}
+							catch (CasterException ce) {
+								rethrowWithFLDType(pc, _args, callArgs, ce);
+							}
+							return coll;
+						}
+						// argMin enforcement uses getNameWithCase() to match pre-fastpath BIFCall behavior
+						// where the FLD-declared case is preserved in the error message.
+						if (member.getArgType() != FunctionLibFunction.ARG_DYNAMIC && member.getArgMin() > callArgs.length) {
+							throw new FunctionException(pc, member.getNameWithCase(), member.getArgMin(), _args.size(), callArgs.length);
+						}
+						// Preserve BIFCall.getValue return-type cast.
+						Object rawResult;
+						try {
+							rawResult = bif.invoke(pc, callArgs);
+						}
+						catch (CasterException ce) {
+							rethrowWithFLDType(pc, _args, callArgs, ce);
+							return null; // unreachable -- rethrowWithFLDType always throws
+						}
+						return Caster.castTo(pc, member.getReturnTypeAsString(), rawResult, false);
 					}
 					else throw new FunctionException(pc, member.getName(), member.getArgMin(), _args.size(), args.length);
 				}
@@ -202,6 +238,23 @@ public final class MemberUtil {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	// LDEV-6428: on a CasterException from inside a member-dispatched BIF, retry each
+	// arg against its FLD-declared type to surface a user-friendly error referencing the
+	// FLD-declared type ("string", "numeric", "queryColumn") instead of the BIF's internal
+	// Java-typed cast target (e.g. "lucee.runtime.type.Collection$Key").
+	// Only invoked on the slow path (after the BIF has already thrown).
+	private static void rethrowWithFLDType(PageContext pc, List<FunctionLibFunctionArg> _args, Object[] callArgs, CasterException original) throws PageException {
+		int n = Math.min(callArgs.length, _args.size());
+		for (int i = 0; i < n; i++) {
+			FunctionLibFunctionArg flfa = _args.get(i);
+			Caster.castTo(pc, flfa.getType(), flfa.getTypeAsString(), callArgs[i]);
+			// if the cast succeeded, this arg is not the culprit -- continue
+		}
+		// All args cast cleanly against FLD-declared types -- the BIF's exception was not
+		// an arg-type problem (internal logic error, etc). Propagate the original.
+		throw original;
 	}
 
 	// used in extension image

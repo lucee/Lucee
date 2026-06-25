@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.interpreter.ref.cast;
 
+import lucee.commons.lang.CFTypes;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.ref.Ref;
@@ -33,12 +34,12 @@ public final class Casting extends RefSupport implements Ref {
 
 	private final short type;
 	private final String strType;
-	private Ref ref;
-	private Object val;
+	private final Ref ref;
+	private final Object val;
 
 	/**
 	 * constructor of the class
-	 * 
+	 *
 	 * @param strType
 	 * @param type
 	 * @param ref
@@ -47,17 +48,20 @@ public final class Casting extends RefSupport implements Ref {
 		this.type = type;
 		this.strType = strType;
 		this.ref = ref;
+		this.val = null;
 	}
 
 	public Casting(String strType, short type, Object val) {
 		this.type = type;
 		this.strType = strType;
+		this.ref = null;
 		this.val = val;
 	}
 
 	public Casting(FunctionLibFunctionArg flfa, Object val) {
 		this.type = flfa.getType();
 		this.strType = flfa.getTypeAsString();
+		this.ref = null;
 		this.val = val;
 	}
 
@@ -65,7 +69,7 @@ public final class Casting extends RefSupport implements Ref {
 	public Object getValue(PageContext pc) throws PageException {
 		// if ref == null, it is val based Casting
 		if (ref == null) return Caster.castTo(pc, type, strType, val);
-		if (ref instanceof Variable && "queryColumn".equalsIgnoreCase(strType)) {
+		if (type == CFTypes.TYPE_QUERY_COLUMN && ref instanceof Variable) {
 			Variable var = (Variable) ref;
 			return Caster.castTo(pc, type, strType, var.getCollection(pc));
 		}
