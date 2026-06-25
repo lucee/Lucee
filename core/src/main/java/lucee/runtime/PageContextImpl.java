@@ -264,6 +264,8 @@ public final class PageContextImpl extends PageContext {
 	private JspWriter forceWriter;
 	private BodyContentStack bodyContentStack;
 	private DevNullBodyContent devNull;
+	// intentionally not nulled in release() — survives borrow/release cycles for reuse
+	private StringBuilder responseBuffer;
 
 	private ConfigWebPro config;
 	// private DataSourceManager manager;
@@ -501,16 +503,15 @@ public final class PageContextImpl extends PageContext {
 
 		// Writers
 		{
-			PageContext tmp = clone ? tmplPC : this;
 			if (config.debugLogOutput()) {
-				CFMLWriter w = config.getCFMLWriter(tmp, req, rsp);
+				CFMLWriter w = config.getCFMLWriter(this, req, rsp);
 				w.setAllowCompression(false);
 				DebugCFMLWriter dcw = new DebugCFMLWriter(w);
 				bodyContentStack.init(dcw);
 				debugger.setOutputLog(dcw);
 			}
 			else {
-				bodyContentStack.init(config.getCFMLWriter(tmp, req, rsp));
+				bodyContentStack.init(config.getCFMLWriter(this, req, rsp));
 			}
 		}
 
@@ -2226,6 +2227,18 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public JspWriter getOut() {
 		return forceWriter;
+	}
+
+	public StringBuilder getResponseBuffer() {
+		return responseBuffer;
+	}
+
+	public void setResponseBuffer(StringBuilder sb) {
+		this.responseBuffer = sb;
+	}
+
+	public boolean isChild() {
+		return isChild;
 	}
 
 	@Override
