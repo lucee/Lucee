@@ -322,16 +322,25 @@ public final class LogUtil {
 		return (log != null && log.getLogLevel() <= logLevel);
 	}
 
+	// Loader's Log.java level constants are not in standard severity order —
+	// LEVEL_INFO=1 sits below LEVEL_DEBUG=2, opposite of every other Java
+	// logger. doesDebug/doesInfo cannot be a single inequality against the
+	// raw constants and must enumerate. The other four work as <= because
+	// only DEBUG/INFO are swapped relative to standard ordering.
 	public static boolean doesTrace(Log log) {
 		return (log != null && log.getLogLevel() <= Log.LEVEL_TRACE);
 	}
 
 	public static boolean doesInfo(Log log) {
-		return (log != null && log.getLogLevel() <= Log.LEVEL_INFO);
+		if (log == null) return false;
+		int cur = log.getLogLevel();
+		return cur == Log.LEVEL_INFO || cur == Log.LEVEL_DEBUG || cur == Log.LEVEL_TRACE;
 	}
 
 	public static boolean doesDebug(Log log) {
-		return (log != null && log.getLogLevel() <= Log.LEVEL_DEBUG);
+		if (log == null) return false;
+		int cur = log.getLogLevel();
+		return cur == Log.LEVEL_DEBUG || cur == Log.LEVEL_TRACE;
 	}
 
 	public static boolean doesWarn(Log log) {
