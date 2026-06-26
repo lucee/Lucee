@@ -116,6 +116,14 @@ on:
         description: 'Optional: URL to pom.xml file (e.g., https://raw.githubusercontent.com/lucee/extension-jdbc-mysql/master/pom.xml)'
         required: false
         type: string
+      extension_id:
+        description: 'Extension ID (UUID) for pom <properties><id>. Used only when the source pom has no valid id.'
+        required: false
+        type: string
+      logo_url:
+        description: 'Logo image URL for pom <properties><image>. Used only when the source pom has no valid image.'
+        required: false
+        type: string
       operation:
         description: 'Copy or move files'
         required: true
@@ -163,3 +171,5 @@ jobs:
         INPUT_S3_BUCKET: 'lucee-downloads'
         INPUT_SOURCE_BUCKET: 'extension-downloads'
         INPUT_POM_URL: ${{ inputs.pom_url }}
+        INPUT_EXTENSION_ID: ${{ inputs.extension_id }}
+        INPUT_LOGO_URL: ${{ inputs.logo_url }}
