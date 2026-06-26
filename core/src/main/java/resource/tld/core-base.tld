@@ -8785,8 +8785,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>regex</name>
 			<type>any</type>
 			<required>false</required>
-			<description>allow to define a struct containing the configuration for regular expressions,
-			ATM only the key "engine" is supported, with the possible values [java,perl] to choose the regex dialect.</description>
+			<description>Struct containing the configuration for regular expressions. Supported key: "type" (aliases: "engine", "dialect") with values [perl, java, compat]. "perl" (default) uses the Apache ORO engine; "java" uses the raw JVM regex engine; "compat" uses the JVM engine with a Perl-compatible replacement translator (backref and case modifier support).</description>
 			<introduced>5.3.8.23</introduced>
 		</attribute>
 		<attribute>
