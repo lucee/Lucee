@@ -68,8 +68,9 @@ public final class VersionRange implements Serializable {
 
 		VR vr = vrs.get(0);
 		if (vr.from != null && vr.to != null) return toString();
-		if (vr.from == null) return vr.to.toString();
-		return vr.from.toString();
+		if (vr.from != null) return vr.from.toString();
+		if (vr.to != null) return vr.to.toString();
+		return toString();
 	}
 
 	private static class VR implements Serializable {
