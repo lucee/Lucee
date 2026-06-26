@@ -240,8 +240,10 @@ public final class GetApplicationSettings extends BIF {
 		sct.setEL("charset", cs);
 
 		Struct re = new StructImpl(Struct.TYPE_LINKED);
-		if (ac instanceof ModernApplicationContext) re.setEL("type", ((ModernApplicationContext) ac).getRegex().getTypeName());
+		re.setEL("type", ac.getRegex().getTypeName());
 		sct.setEL("regex", re);
+
+		sct.setEL("applicationContext", ac.getClass().getSimpleName());
 
 		Object ds = ac.getDefDataSource();
 		if (ds instanceof DataSource) ds = _call((DataSource) ds);
