@@ -107,8 +107,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	// (or a concatenated string of mapping paths) by collapsing any /test*/
 	// mapping variant to /test/ — spans /test, /test-once, /test-never, /test8 etc.
 	private function normTestPath( required string path ){
-		var s = arguments.path;
-		if ( left( s, 1 ) != "/" ) s = contractPath( s );
+		var s = contractPath( arguments.path );
 		return reReplaceNoCase( s, "/test[^/]*/", "/test/", "all" );
 	}
 }
