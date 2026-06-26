@@ -1792,6 +1792,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			System.exit(0);
 		}
 		else {
+			onStartCall(config, reload, false);
 			boolean eagerLoad = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.config.validate", ""), false);
 			if (Boolean.TRUE.equals(eagerLoad)) {
 				ConfigUtil.getConfigServerImpl(config).touchAll(null);
