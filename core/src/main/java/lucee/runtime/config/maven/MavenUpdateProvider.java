@@ -467,8 +467,12 @@ public final class MavenUpdateProvider {
 		Resource resLastmod = repository.cacheDirectory.getRealResource("detail_" + HashUtil.create64BitHashAsString(key + "_lastmod", Character.MAX_RADIX));
 		Resource resVersions = repository.cacheDirectory.getRealResource("detail_" + HashUtil.create64BitHashAsString(key + "_versions", Character.MAX_RADIX));
 
-		IOUtil.write(resVersions, StringUtil.isEmpty(content, true) ? "" : content.trim(), StandardCharsets.UTF_8, false);
-		IOUtil.write(resLastmod, Caster.toString(System.currentTimeMillis()), StandardCharsets.UTF_8, false);
+		// serialize writers targeting the same cache files; at startup many threads resolve the same artifact
+		// concurrently and would otherwise race on file creation (handled but noisy FileAlreadyExistsException)
+		synchronized (SystemUtil.createToken("MavenUpdateProvider.detailCache", repository.url + "_" + key)) {
+			IOUtil.write(resVersions, StringUtil.isEmpty(content, true) ? "" : content.trim(), StandardCharsets.UTF_8, false);
+			IOUtil.write(resLastmod, Caster.toString(System.currentTimeMillis()), StandardCharsets.UTF_8, false);
+		}
 	}
 
 	private Map<String, Object> readFromCache(Repository repository, String artifact, String version, String requiredArtifactExtension, boolean isSnap) {
