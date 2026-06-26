@@ -377,17 +377,17 @@ public final class LogUtil {
 	}
 
 	public static String caller(PageContext pc, String defaultValue) {
-		Exception t = new Exception("Stack trace");
-		StackTraceElement[] traces = t.getStackTrace();
-
-		String template;
-		for (StackTraceElement trace: traces) {
-			template = trace.getFileName();
-			if (trace.getLineNumber() <= 0 || template == null || ResourceUtil.getExtension(template, "").equals("java")) continue;
-
-			return abs(pc, template) + ":" + trace.getLineNumber();
-		}
-		return defaultValue;
+		// walk the live stack via StackWalker — findFirst short-circuits at the
+		// first CFML frame, so the JVM never materialises deeper frames.
+		return StackWalker.getInstance().walk(frames -> frames
+				.filter(f -> {
+					String tpl = f.getFileName();
+					int line = f.getLineNumber();
+					return tpl != null && line > 0 && !"java".equals(ResourceUtil.getExtension(tpl, ""));
+				})
+				.findFirst()
+				.map(f -> abs(pc, f.getFileName()) + ":" + f.getLineNumber())
+				.orElse(defaultValue));
 	}
 
 	private static String abs(PageContext pc, String template) {

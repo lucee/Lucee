@@ -55,7 +55,7 @@ public final class CallStackGet implements Function {
 
 	public static Object call(PageContext pc) {
 		Array arr = new ArrayImpl();
-		_getTagContext(pc, arr, new Exception("Stack trace"), LINE_NUMBER);
+		_getLiveTagContext(pc, arr, LINE_NUMBER);
 		return arr;
 	}
 
@@ -129,6 +129,37 @@ public final class CallStackGet implements Function {
 		}
 
 		throw new FunctionException(pc, CallStackGet.class.getSimpleName(), 1, "type", "Argument type [" + type + "] is not valid.  Valid types are: [array], text, html, json.");
+	}
+
+	// walks the live thread stack via StackWalker — no Throwable allocation, no
+	// full-stack materialisation into StackTraceElement[]. Same filter and
+	// UDF-name alignment as _getTagContext, but without the cause-chain branch
+	// (live stack has no cause to recurse into).
+	public static void _getLiveTagContext(PageContext pc, Array tagContext, Collection.Key lineNumberName) {
+		UDF[] udfs = ((PageContextImpl) pc).getUDFs();
+		// boxed in an int[] so the lambda can decrement it (effectively-final captured ref)
+		int[] indexRef = { udfs.length - 1 };
+
+		StackWalker.getInstance().forEach(f -> {
+			String template = f.getFileName();
+			int line = f.getLineNumber();
+			if (line <= 0 || template == null || "java".equals(ResourceUtil.getExtension(template, ""))) return;
+
+			String methodName = f.getMethodName();
+			String functionName;
+			if (methodName != null && methodName.startsWith("udfCall") && indexRef[0] > -1) {
+				functionName = udfs[indexRef[0]--].getFunctionName();
+			}
+			else {
+				functionName = "";
+			}
+
+			Struct item = new StructImpl();
+			item.setEL(KeyConstants._function, functionName);
+			item.setEL(KeyConstants._template, abs((PageContextImpl) pc, template));
+			item.setEL(lineNumberName, Double.valueOf(line));
+			tagContext.appendEL(item);
+		});
 	}
 
 	public static void _getTagContext(PageContext pc, Array tagContext, Throwable t, Collection.Key lineNumberName) {
