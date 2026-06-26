@@ -1806,8 +1806,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private void onStartCall(ConfigPro config, boolean reload, boolean warmup) {
 		boolean isWeb = config instanceof ConfigWeb;
 		String context = isWeb ? "Web" : "Server";
+		String methodName = warmup ? "onBuild" : ("on" + context + "Start");
 
-		if (!ThreadLocalPageContext.callOnStart.get()) return;
+		if (!ThreadLocalPageContext.callOnStart.get()) {
+			LogUtil.log(config, Log.LEVEL_INFO, "application",
+					"on-start: skipping [" + methodName + "] listener for [" + context + "] context because callOnStart is disabled for the current thread");
+			return;
+		}
 
 		Resource listenerTemplateCFML = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
 
@@ -1817,18 +1822,35 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				Resource rootdir = config.getRootDirectory();
 				listenerTemplateCFMLWebRoot = rootdir.getRealResource(context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+				LogUtil.log(config, "application", "on-start: failed to resolve web root listener template for [" + context + "] context", e, Log.LEVEL_INFO);
+			}
 		}
+
+		LogUtil.log(config, Log.LEVEL_INFO, "application",
+				"on-start: looking for [" + methodName + "] listener for [" + context + "] context (reload=" + reload + ", warmup=" + warmup + "); checking web root ["
+						+ (listenerTemplateCFMLWebRoot == null ? "n/a" : listenerTemplateCFMLWebRoot.getAbsolutePath()) + "] and config dir ["
+						+ listenerTemplateCFML.getAbsolutePath() + "]");
 
 		// dialect
 		boolean inWebRoot;
 		if (listenerTemplateCFMLWebRoot != null && listenerTemplateCFMLWebRoot.isFile()) {
 			inWebRoot = true;
+			LogUtil.log(config, Log.LEVEL_INFO, "application",
+					"on-start: found [" + methodName + "] listener in web root [" + listenerTemplateCFMLWebRoot.getAbsolutePath() + "]");
 		}
 		else if (listenerTemplateCFML.isFile()) {
 			inWebRoot = false;
+			LogUtil.log(config, Log.LEVEL_INFO, "application",
+					"on-start: found [" + methodName + "] listener in config dir [" + listenerTemplateCFML.getAbsolutePath() + "]");
 		}
-		else return;
+		else {
+			LogUtil.log(config, Log.LEVEL_INFO, "application",
+					"on-start: no [" + methodName + "] listener found for [" + context + "] context; neither web root ["
+							+ (listenerTemplateCFMLWebRoot == null ? "n/a" : listenerTemplateCFMLWebRoot.getAbsolutePath()) + "] nor config dir ["
+							+ listenerTemplateCFML.getAbsolutePath() + "] exists");
+			return;
+		}
 
 		if (!StringUtil.emptyIfNull(Thread.currentThread().getName()).startsWith("on-start-")) {
 			long timeout = config.getRequestTimeout().getMillis();
@@ -1875,10 +1897,19 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			boolean isWeb = config instanceof ConfigWeb;
 
 			String id = CreateUniqueId.invoke();
+			String methodName = warmup ? "onBuild" : ("on" + context + "Start");
 			final String requestURI = (inWebRoot ? "" : ("/" + (isWeb ? "lucee" : "lucee-server"))) + "/" + context + "."
 					+ (lucee.runtime.config.Constants.getCFMLComponentExtension());
+			LogUtil.log(config, Log.LEVEL_INFO, "application",
+					"on-start: resolving page source for [" + methodName + "] listener via request uri [" + requestURI + "] (inWebRoot=" + inWebRoot + ")");
 			PageSource ps = config.getPageSourceExisting(null, null, requestURI, true, true, true, false);
-			if (ps == null) return;
+			if (ps == null) {
+				LogUtil.log(config, Log.LEVEL_INFO, "application",
+						"on-start: page source for [" + methodName + "] listener not found for request uri [" + requestURI + "], skipping invocation");
+				return;
+			}
+			LogUtil.log(config, Log.LEVEL_INFO, "application",
+					"on-start: invoking [" + methodName + "] on [" + ps.getDisplayPath() + "] via request uri [" + requestURI + "]");
 
 			// PageContext oldPC = ThreadLocalPageContext.get();
 			PageContext pc = null;
@@ -1890,7 +1921,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				catch (IOException e) {
 					throw Caster.toPageException(e);
 				}
-				String methodName = warmup ? "onBuild" : ("on" + context + "Start");
 				String queryString = "method=" + methodName + "&reload=" + reload + "&" + ComponentPageImpl.REMOTE_PERSISTENT_ID + "=" + remotePersisId;
 				if (config instanceof ConfigWeb) {
 					Pair[] headers = new Pair[] { new Pair<String, Object>("AMF-Forward", "true") };
@@ -1917,10 +1947,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				pc.executeCFML(requestURI, true, false);
 				((PageContextImpl) pc).setListenerContext(false);
 
+				LogUtil.log(config, Log.LEVEL_INFO, "application",
+						"on-start: completed [" + methodName + "] listener via request uri [" + requestURI + "]");
 			}
 			catch (Exception e) {
 				// we simply ignore exceptions, if the template itself throws an error it will be handled by the
 				// error listener
+				LogUtil.log(config, "application", "on-start: [" + methodName + "] listener via request uri [" + requestURI + "] threw an exception", e, Log.LEVEL_INFO);
 			}
 			finally {
 				CFMLFactory f = pc.getConfig().getFactory();
