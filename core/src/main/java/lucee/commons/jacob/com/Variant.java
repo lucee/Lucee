@@ -170,7 +170,7 @@ public class Variant extends JacobObject {
 	 * @param in
 	 */
 	public Variant(boolean in) {
-		this(new Boolean(in));
+		this(Boolean.valueOf(in));
 	}
 
 	/**
@@ -179,7 +179,7 @@ public class Variant extends JacobObject {
 	 * @param in
 	 */
 	public Variant(byte in) {
-		this(new Byte(in));
+		this(Byte.valueOf(in));
 	}
 
 	/**
@@ -188,7 +188,7 @@ public class Variant extends JacobObject {
 	 * @param in
 	 */
 	public Variant(double in) {
-		this(new Double(in));
+		this(Double.valueOf(in));
 	}
 
 	/**
@@ -197,7 +197,7 @@ public class Variant extends JacobObject {
 	 * @param in
 	 */
 	public Variant(float in) {
-		this(new Float(in));
+		this(Float.valueOf(in));
 	}
 
 	/**
@@ -206,7 +206,7 @@ public class Variant extends JacobObject {
 	 * @param in
 	 */
 	public Variant(int in) {
-		this(new Integer(in));
+		this(Integer.valueOf(in));
 	};
 
 	/**
@@ -215,7 +215,7 @@ public class Variant extends JacobObject {
 	 * @param in
 	 */
 	public Variant(long in) {
-		this(new Long(in));
+		this(Long.valueOf(in));
 	}
 
 	/**
@@ -246,7 +246,7 @@ public class Variant extends JacobObject {
 	 * @param in
 	 */
 	public Variant(short in) {
-		this(new Short(in));
+		this(Short.valueOf(in));
 	}
 
 	/**
@@ -305,9 +305,7 @@ public class Variant extends JacobObject {
 		if (this.getvt() == VariantBoolean) {
 			return getVariantBoolean();
 		}
-		else {
-			throw new IllegalStateException("getBoolean() only legal on Variants of type VariantBoolean, not " + this.getvt());
-		}
+		throw new IllegalStateException("getBoolean() only legal on Variants of type VariantBoolean, not " + this.getvt());
 	}
 
 	/**
@@ -320,9 +318,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantBoolean && (this.getvt() & VariantByref) == VariantByref) {
 			return getVariantBooleanRef();
 		}
-		else {
-			throw new IllegalStateException("getBooleanRef() only legal on byRef Variants of type VariantBoolean, not " + this.getvt());
-		}
+		throw new IllegalStateException("getBooleanRef() only legal on byRef Variants of type VariantBoolean, not " + this.getvt());
 	}
 
 	/**
@@ -334,9 +330,7 @@ public class Variant extends JacobObject {
 		if (this.getvt() == VariantByte) {
 			return getVariantByte();
 		}
-		else {
-			throw new IllegalStateException("getByte() only legal on Variants of type VariantByte, not " + this.getvt());
-		}
+		throw new IllegalStateException("getByte() only legal on Variants of type VariantByte, not " + this.getvt());
 	}
 
 	/**
@@ -349,9 +343,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantByte && (this.getvt() & VariantByref) == VariantByref) {
 			return getVariantByteRef();
 		}
-		else {
-			throw new IllegalStateException("getByteRef() only legal on byRef Variants of type VariantByte, not " + this.getvt());
-		}
+		throw new IllegalStateException("getByteRef() only legal on byRef Variants of type VariantByte, not " + this.getvt());
 	}
 
 	/**
@@ -365,9 +357,7 @@ public class Variant extends JacobObject {
 		if (this.getvt() == VariantCurrency) {
 			return new Currency(getVariantCurrency());
 		}
-		else {
-			throw new IllegalStateException("getCurrency() only legal on Variants of type VariantCurrency, not " + this.getvt());
-		}
+		throw new IllegalStateException("getCurrency() only legal on Variants of type VariantCurrency, not " + this.getvt());
 	}
 
 	/**
@@ -381,9 +371,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantCurrency && (this.getvt() & VariantByref) == VariantByref) {
 			return new Currency(getVariantCurrencyRef());
 		}
-		else {
-			throw new IllegalStateException("getCurrencyRef() only legal on byRef Variants of type VariantCurrency, not " + this.getvt());
-		}
+		throw new IllegalStateException("getCurrencyRef() only legal on byRef Variants of type VariantCurrency, not " + this.getvt());
 	}
 
 	/**
@@ -394,9 +382,7 @@ public class Variant extends JacobObject {
 		if (this.getvt() == VariantDate) {
 			return getVariantDate();
 		}
-		else {
-			throw new IllegalStateException("getDate() only legal on Variants of type VariantDate, not " + this.getvt());
-		}
+		throw new IllegalStateException("getDate() only legal on Variants of type VariantDate, not " + this.getvt());
 	}
 
 	/**
@@ -408,9 +394,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantDate && (this.getvt() & VariantByref) == VariantByref) {
 			return getVariantDateRef();
 		}
-		else {
-			throw new IllegalStateException("getDateRef() only legal on byRef Variants of type VariantDate, not " + this.getvt());
-		}
+		throw new IllegalStateException("getDateRef() only legal on byRef Variants of type VariantDate, not " + this.getvt());
 	}
 
 	/**
@@ -423,9 +407,7 @@ public class Variant extends JacobObject {
 		if (this.getvt() == VariantDecimal) {
 			return (BigDecimal) (getVariantDec());
 		}
-		else {
-			throw new IllegalStateException("getDecimal() only legal on Variants of type VariantDecimal, not " + this.getvt());
-		}
+		throw new IllegalStateException("getDecimal() only legal on Variants of type VariantDecimal, not " + this.getvt());
 	}
 
 	/**
@@ -438,9 +420,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantDecimal && (this.getvt() & VariantByref) == VariantByref) {
 			return (BigDecimal) (getVariantDecRef());
 		}
-		else {
-			throw new IllegalStateException("getDecimalRef() only legal on byRef Variants of type VariantDecimal, not " + this.getvt());
-		}
+		throw new IllegalStateException("getDecimalRef() only legal on byRef Variants of type VariantDecimal, not " + this.getvt());
 	}
 
 	/**
@@ -454,9 +434,7 @@ public class Variant extends JacobObject {
 		if (this.getvt() == VariantDispatch) {
 			return toDispatch();
 		}
-		else {
-			throw new IllegalStateException("getDispatch() only legal on Variants of type VariantDispatch, not " + this.getvt());
-		}
+		throw new IllegalStateException("getDispatch() only legal on Variants of type VariantDispatch, not " + this.getvt());
 	}
 
 	/**
@@ -470,9 +448,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantDispatch && (this.getvt() & VariantByref) == VariantByref) {
 			return toDispatch();
 		}
-		else {
-			throw new IllegalStateException("getDispatchRef() only legal on byRef Variants of type VariantDispatch, not " + this.getvt());
-		}
+		throw new IllegalStateException("getDispatchRef() only legal on byRef Variants of type VariantDispatch, not " + this.getvt());
 	}
 
 	/**
@@ -483,9 +459,7 @@ public class Variant extends JacobObject {
 		if (this.getvt() == VariantDouble) {
 			return getVariantDouble();
 		}
-		else {
-			throw new IllegalStateException("getDouble() only legal on Variants of type VariantDouble, not " + this.getvt());
-		}
+		throw new IllegalStateException("getDouble() only legal on Variants of type VariantDouble, not " + this.getvt());
 	}
 
 	/**
@@ -497,9 +471,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantDouble && (this.getvt() & VariantByref) == VariantByref) {
 			return getVariantDoubleRef();
 		}
-		else {
-			throw new IllegalStateException("getDoubleRef() only legal on byRef Variants of type VariantDouble, not " + this.getvt());
-		}
+		throw new IllegalStateException("getDoubleRef() only legal on byRef Variants of type VariantDouble, not " + this.getvt());
 	}
 
 	/**
@@ -519,9 +491,7 @@ public class Variant extends JacobObject {
 		if (this.getvt() == VariantError) {
 			return getVariantError();
 		}
-		else {
-			throw new IllegalStateException("getError() only legal on Variants of type VariantError, not " + this.getvt());
-		}
+		throw new IllegalStateException("getError() only legal on Variants of type VariantError, not " + this.getvt());
 	}
 
 	/**
@@ -533,9 +503,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantError && (this.getvt() & VariantByref) == VariantByref) {
 			return getVariantErrorRef();
 		}
-		else {
-			throw new IllegalStateException("getErrorRef() only legal on byRef Variants of type VariantError, not " + this.getvt());
-		}
+		throw new IllegalStateException("getErrorRef() only legal on byRef Variants of type VariantError, not " + this.getvt());
 	}
 
 	/**
@@ -546,9 +514,7 @@ public class Variant extends JacobObject {
 		if (this.getvt() == VariantFloat) {
 			return getVariantFloat();
 		}
-		else {
-			throw new IllegalStateException("getFloat() only legal on Variants of type VariantFloat, not " + this.getvt());
-		}
+		throw new IllegalStateException("getFloat() only legal on Variants of type VariantFloat, not " + this.getvt());
 	}
 
 	/**
@@ -560,9 +526,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantFloat && (this.getvt() & VariantByref) == VariantByref) {
 			return getVariantFloatRef();
 		}
-		else {
-			throw new IllegalStateException("getFloatRef() only legal on byRef Variants of type VariantFloat, not " + this.getvt());
-		}
+		throw new IllegalStateException("getFloatRef() only legal on byRef Variants of type VariantFloat, not " + this.getvt());
 	}
 
 	/**
@@ -593,9 +557,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantInt && (this.getvt() & VariantByref) == VariantByref) {
 			return getVariantIntRef();
 		}
-		else {
-			throw new IllegalStateException("getIntRef() only legal on byRef Variants of type VariantInt, not " + this.getvt());
-		}
+		throw new IllegalStateException("getIntRef() only legal on byRef Variants of type VariantInt, not " + this.getvt());
 	}
 
 	/**
@@ -631,9 +593,7 @@ public class Variant extends JacobObject {
 		if (windowsDate == 0) {
 			return null;
 		}
-		else {
-			return DateUtilities.convertWindowsTimeToDate(windowsDate);
-		}
+		return DateUtilities.convertWindowsTimeToDate(windowsDate);
 	}
 
 	/**
@@ -646,9 +606,7 @@ public class Variant extends JacobObject {
 		if (this.getvt() == VariantLongInt) {
 			return getVariantLong();
 		}
-		else {
-			throw new IllegalStateException("getLong() only legal on Variants of type VariantLongInt, not " + this.getvt());
-		}
+		throw new IllegalStateException("getLong() only legal on Variants of type VariantLongInt, not " + this.getvt());
 	}
 
 	/**
@@ -661,9 +619,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantLongInt && (this.getvt() & VariantByref) == VariantByref) {
 			return getVariantLongRef();
 		}
-		else {
-			throw new IllegalStateException("getLongRef() only legal on byRef Variants of type VariantLongInt, not " + this.getvt());
-		}
+		throw new IllegalStateException("getLongRef() only legal on byRef Variants of type VariantLongInt, not " + this.getvt());
 	}
 
 	/**
@@ -685,9 +641,7 @@ public class Variant extends JacobObject {
 		if (this.getvt() == VariantShort) {
 			return getVariantShort();
 		}
-		else {
-			throw new IllegalStateException("getShort() only legal on Variants of type VariantShort, not " + this.getvt());
-		}
+		throw new IllegalStateException("getShort() only legal on Variants of type VariantShort, not " + this.getvt());
 	}
 
 	/**
@@ -700,9 +654,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantShort && (this.getvt() & VariantByref) == VariantByref) {
 			return getVariantShortRef();
 		}
-		else {
-			throw new IllegalStateException("getShortRef() only legal on byRef Variants of type VariantShort, not " + this.getvt());
-		}
+		throw new IllegalStateException("getShortRef() only legal on byRef Variants of type VariantShort, not " + this.getvt());
 	}
 
 	/**
@@ -735,9 +687,7 @@ public class Variant extends JacobObject {
 		if ((this.getvt() & VariantTypeMask) == VariantString && (this.getvt() & VariantByref) == VariantByref) {
 			return getVariantStringRef();
 		}
-		else {
-			throw new IllegalStateException("getStringRef() only legal on byRef Variants of type VariantString, not " + this.getvt());
-		}
+		throw new IllegalStateException("getStringRef() only legal on byRef Variants of type VariantString, not " + this.getvt());
 	}
 
 	/**
@@ -766,9 +716,7 @@ public class Variant extends JacobObject {
 			enclosedVariant.m_pVariant = 0;
 			return enclosedVariantAsJava;
 		}
-		else {
-			throw new IllegalStateException("getVariant() only legal on Variants of type VariantVariant, not " + this.getvt());
-		}
+		throw new IllegalStateException("getVariant() only legal on Variants of type VariantVariant, not " + this.getvt());
 	}
 
 	/**
@@ -935,9 +883,7 @@ public class Variant extends JacobObject {
 		if (m_pVariant != 0) {
 			return getVariantType();
 		}
-		else {
-			throw new IllegalStateException("uninitialized Variant");
-		}
+		throw new IllegalStateException("uninitialized Variant");
 	}
 
 	/**
@@ -983,10 +929,7 @@ public class Variant extends JacobObject {
 		if (pVariant == VT_FALSE || pVariant == VT_TRUE || pVariant == VT_MISSING || pVariant == DEFAULT) {
 			return true;
 		}
-		else {
-			return false;
-		}
-
+		return false;
 	}
 
 	/**
@@ -1088,9 +1031,7 @@ public class Variant extends JacobObject {
 			throw new IllegalArgumentException("Cannot put null in as windows date");
 			// do nothing
 		}
-		else {
-			putDate(DateUtilities.convertDateToWindowsTime(inDate));
-		}
+		putDate(DateUtilities.convertDateToWindowsTime(inDate));
 	}
 
 	/**
@@ -1115,9 +1056,7 @@ public class Variant extends JacobObject {
 			throw new IllegalArgumentException("Cannot put null in as windows date");
 			// do nothing
 		}
-		else {
-			putDateRef(DateUtilities.convertDateToWindowsTime(inDate));
-		}
+		putDateRef(DateUtilities.convertDateToWindowsTime(inDate));
 	}
 
 	/**
@@ -2014,9 +1953,7 @@ public class Variant extends JacobObject {
 			if (foo == null) {
 				return "null";
 			}
-			else {
-				return foo.toString();
-			}
+			return foo.toString();
 		}
 		catch (NotImplementedException nie) {
 			// some types do not generate a good description yet

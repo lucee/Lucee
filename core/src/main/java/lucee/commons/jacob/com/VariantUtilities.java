@@ -243,13 +243,11 @@ public final class VariantUtilities {
 			// just return the passed in array if it is a Variant array
 			return (Variant[]) arrayOfObjectsToBeConverted;
 		}
-		else {
-			Variant vArg[] = new Variant[arrayOfObjectsToBeConverted.length];
-			for (int i = 0; i < arrayOfObjectsToBeConverted.length; i++) {
-				vArg[i] = objectToVariant(arrayOfObjectsToBeConverted[i]);
-			}
-			return vArg;
+		Variant vArg[] = new Variant[arrayOfObjectsToBeConverted.length];
+		for (int i = 0; i < arrayOfObjectsToBeConverted.length; i++) {
+			vArg[i] = objectToVariant(arrayOfObjectsToBeConverted[i]);
 		}
+		return vArg;
 	}
 
 	/**
@@ -290,28 +288,28 @@ public final class VariantUtilities {
 			case Variant.VariantNull: // 1
 				break;
 			case Variant.VariantShort: // 2
-				result = new Short(sourceData.getShort());
+				result = Short.valueOf(sourceData.getShort());
 				break;
 			case Variant.VariantShort | Variant.VariantByref: // 2
-				result = new Short(sourceData.getShortRef());
+				result = Short.valueOf(sourceData.getShortRef());
 				break;
 			case Variant.VariantInt: // 3
-				result = new Integer(sourceData.getInt());
+				result = Integer.valueOf(sourceData.getInt());
 				break;
 			case Variant.VariantInt | Variant.VariantByref: // 3
-				result = new Integer(sourceData.getIntRef());
+				result = Integer.valueOf(sourceData.getIntRef());
 				break;
 			case Variant.VariantFloat: // 4
-				result = new Float(sourceData.getFloat());
+				result = Float.valueOf(sourceData.getFloat());
 				break;
 			case Variant.VariantFloat | Variant.VariantByref: // 4
-				result = new Float(sourceData.getFloatRef());
+				result = Float.valueOf(sourceData.getFloatRef());
 				break;
 			case Variant.VariantDouble: // 5
-				result = new Double(sourceData.getDouble());
+				result = Double.valueOf(sourceData.getDouble());
 				break;
 			case Variant.VariantDouble | Variant.VariantByref: // 5
-				result = new Double(sourceData.getDoubleRef());
+				result = Double.valueOf(sourceData.getDoubleRef());
 				break;
 			case Variant.VariantCurrency: // 6
 				result = sourceData.getCurrency();
@@ -342,10 +340,10 @@ public final class VariantUtilities {
 				result = new NotImplementedException("toJavaObject() Not implemented for VariantError");
 				break;
 			case Variant.VariantBoolean: // 11
-				result = new Boolean(sourceData.getBoolean());
+				result = Boolean.valueOf(sourceData.getBoolean());
 				break;
 			case Variant.VariantBoolean | Variant.VariantByref: // 11
-				result = new Boolean(sourceData.getBooleanRef());
+				result = Boolean.valueOf(sourceData.getBooleanRef());
 				break;
 			case Variant.VariantVariant: // 12 they are always by ref
 				result = new NotImplementedException("toJavaObject() Not implemented for VariantVariant without ByRef");
@@ -363,16 +361,16 @@ public final class VariantUtilities {
 				result = sourceData.getDecimalRef();
 				break;
 			case Variant.VariantByte: // 17
-				result = new Byte(sourceData.getByte());
+				result = Byte.valueOf(sourceData.getByte());
 				break;
 			case Variant.VariantByte | Variant.VariantByref: // 17
-				result = new Byte(sourceData.getByteRef());
+				result = Byte.valueOf(sourceData.getByteRef());
 				break;
 			case Variant.VariantLongInt: // 20
-				result = new Long(sourceData.getLong());
+				result = Long.valueOf(sourceData.getLong());
 				break;
 			case Variant.VariantLongInt | Variant.VariantByref: // 20
-				result = new Long(sourceData.getLongRef());
+				result = Long.valueOf(sourceData.getLongRef());
 				break;
 			case Variant.VariantTypeMask: // 4095
 				result = new NotImplementedException("toJavaObject() Not implemented for VariantBstrBlob/VariantTypeMask");
