@@ -205,7 +205,16 @@ public class CharBuffer {
 
 	@Override
 	public String toString() {
-		return new String(toCharArray());
+		int total = size();
+		if (total == 0) return "";
+		StringBuilder sb = new StringBuilder(total);
+		Entity e = root;
+		while (e.next != null) {
+			e = e.next;
+			sb.append(e.data);
+		}
+		sb.append(buffer, 0, pos);
+		return sb.toString();
 	}
 
 	/**

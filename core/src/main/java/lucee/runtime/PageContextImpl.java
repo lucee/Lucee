@@ -228,6 +228,7 @@ import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.runtime.writer.CFMLWriter;
 import lucee.runtime.writer.DevNullBodyContent;
+import lucee.runtime.writer.WriterPool;
 import lucee.transformer.util.SourceCode;
 
 /**
@@ -265,7 +266,7 @@ public final class PageContextImpl extends PageContext {
 	private BodyContentStack bodyContentStack;
 	private DevNullBodyContent devNull;
 	// intentionally not nulled in release() — survives borrow/release cycles for reuse
-	private StringBuilder responseBuffer;
+	private final WriterPool writerPool = new WriterPool();
 
 	private ConfigWebPro config;
 	// private DataSourceManager manager;
@@ -2229,12 +2230,8 @@ public final class PageContextImpl extends PageContext {
 		return forceWriter;
 	}
 
-	public StringBuilder getResponseBuffer() {
-		return responseBuffer;
-	}
-
-	public void setResponseBuffer(StringBuilder sb) {
-		this.responseBuffer = sb;
+	public WriterPool getWriterPool() {
+		return writerPool;
 	}
 
 	public boolean isChild() {

@@ -18,8 +18,14 @@
  */
 package lucee.runtime.writer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CoderResult;
 import java.util.zip.GZIPOutputStream;
 
 import jakarta.servlet.ServletOutputStream;
@@ -41,6 +47,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 	private static final int INITIAL_BUFFER_SIZE = 32768;
 	private static final int CHILD_INITIAL_BUFFER_SIZE = 10000;
 	private static final int MAX_REUSABLE_BUFFER_SIZE = 131072;
+	private static final int OUTPUT_ENCODE_BUFFER_SIZE = 8192;
 	private OutputStream out;
 	private HttpServletResponse response;
 	private boolean flushed;
@@ -84,14 +91,14 @@ public class CFMLWriterImpl extends CFMLWriter {
 		PageContextImpl pcImpl = (PageContextImpl) pc;
 		// child PCs are recycled outside the release/initialize lifecycle — can't reuse safely
 		if (pcImpl.isChild()) return new StringBuilder(CHILD_INITIAL_BUFFER_SIZE);
-		StringBuilder existing = pcImpl.getResponseBuffer();
+		WriterPool pool = pcImpl.getWriterPool();
+		StringBuilder existing = pool.responseBuffer;
 		if (existing != null && existing.capacity() <= MAX_REUSABLE_BUFFER_SIZE) {
 			existing.setLength(0);
 			return existing;
 		}
-		StringBuilder fresh = new StringBuilder(INITIAL_BUFFER_SIZE);
-		pcImpl.setResponseBuffer(fresh);
-		return fresh;
+		pool.responseBuffer = new StringBuilder(INITIAL_BUFFER_SIZE);
+		return pool.responseBuffer;
 	}
 
 	protected void initOut() throws IOException {
@@ -247,16 +254,120 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 		}
 		initOut();
-		byte[] barr = _toString(true).getBytes(ReqRspUtil.getCharacterEncoding(null, response));
-
-		if (cacheItem != null && cacheItem.isValid()) {
-			cacheItem.store(barr, flushed);
-			// writeCache(barr,flushed);
+		Charset charset = ReqRspUtil.getCharacterEncoding(null, response);
+		byte[] barrForCache = null;
+		if (htmlHead == null && htmlBody == null) {
+			if (buffer != null && buffer.length() > 0) {
+				if (cacheItem != null && cacheItem.isValid()) {
+					ByteArrayOutputStream collector = new ByteArrayOutputStream(
+							Math.max(64, buffer.length()));
+					writeBufferTo(collector, charset);
+					barrForCache = collector.toByteArray();
+					cacheItem.store(barrForCache, flushed);
+					out.write(barrForCache);
+				}
+				else {
+					writeBufferTo(out, charset);
+				}
+			}
+		}
+		else {
+			byte[] barr = _toString(true).getBytes(charset);
+			if (cacheItem != null && cacheItem.isValid()) {
+				cacheItem.store(barr, flushed);
+			}
+			out.write(barr);
 		}
 		flushed = true;
-		out.write(barr);
 
 		buffer = null; // to not change to clearBuffer, produce problem with CFMLWriterWhiteSpace.clearBuffer
+	}
+
+	private void writeBufferTo(OutputStream os, Charset charset) throws IOException {
+		int len = buffer.length();
+		if (len == 0) return;
+		PageContextImpl pcImpl = (PageContextImpl) pc;
+		boolean child = pcImpl.isChild();
+		WriterPool pool = child ? null : pcImpl.getWriterPool();
+		char[] tmp = adoptEncodeBuffer(pool, child);
+		CharBuffer cb = adoptEncodeCharBuffer(pool, child, tmp);
+		ByteBuffer bb = adoptEncodeByteBuffer(pool, child);
+		CharsetEncoder enc = adoptEncoder(pool, child, charset);
+
+		bb.clear();
+		int off = 0;
+		while (off < len) {
+			int n = Math.min(OUTPUT_ENCODE_BUFFER_SIZE, len - off);
+			buffer.getChars(off, off + n, tmp, 0);
+			// Don't end a non-final chunk on a lone high surrogate. CharsetEncoder
+			// would leave it in cb (per contract), but we overwrite cb's backing
+			// array on the next iteration — the high surrogate would be lost.
+			// Push the boundary back one char so the pair stays whole in chunk N+1.
+			if (n > 1 && off + n < len && Character.isHighSurrogate(tmp[n - 1])) {
+				n--;
+			}
+			cb.position(0).limit(n);
+			boolean endOfInput = (off + n == len);
+			encodeAndDrain(enc, cb, bb, os, endOfInput);
+			off += n;
+		}
+		flushEncoder(enc, bb, os);
+	}
+
+	private static void encodeAndDrain(CharsetEncoder enc, CharBuffer cb, ByteBuffer bb, OutputStream os, boolean endOfInput) throws IOException {
+		while (true) {
+			CoderResult r = enc.encode(cb, bb, endOfInput);
+			if (r.isUnderflow()) return;
+			if (r.isOverflow()) {
+				drainByteBuffer(bb, os);
+				continue;
+			}
+			r.throwException();
+		}
+	}
+
+	private static void flushEncoder(CharsetEncoder enc, ByteBuffer bb, OutputStream os) throws IOException {
+		while (true) {
+			CoderResult r = enc.flush(bb);
+			if (r.isUnderflow()) break;
+			if (r.isOverflow()) drainByteBuffer(bb, os);
+		}
+		if (bb.position() > 0) drainByteBuffer(bb, os);
+	}
+
+	private static void drainByteBuffer(ByteBuffer bb, OutputStream os) throws IOException {
+		bb.flip();
+		os.write(bb.array(), bb.arrayOffset() + bb.position(), bb.remaining());
+		bb.clear();
+	}
+
+	private static char[] adoptEncodeBuffer(WriterPool pool, boolean child) {
+		if (child) return new char[OUTPUT_ENCODE_BUFFER_SIZE];
+		if (pool.encodeBuffer == null) pool.encodeBuffer = new char[OUTPUT_ENCODE_BUFFER_SIZE];
+		return pool.encodeBuffer;
+	}
+
+	private static CharBuffer adoptEncodeCharBuffer(WriterPool pool, boolean child, char[] tmp) {
+		if (child) return CharBuffer.wrap(tmp);
+		if (pool.encodeCharBuffer == null) pool.encodeCharBuffer = CharBuffer.wrap(tmp);
+		return pool.encodeCharBuffer;
+	}
+
+	private static ByteBuffer adoptEncodeByteBuffer(WriterPool pool, boolean child) {
+		if (child) return ByteBuffer.allocate(OUTPUT_ENCODE_BUFFER_SIZE);
+		if (pool.encodeByteBuffer == null) pool.encodeByteBuffer = ByteBuffer.allocate(OUTPUT_ENCODE_BUFFER_SIZE);
+		return pool.encodeByteBuffer;
+	}
+
+	private static CharsetEncoder adoptEncoder(WriterPool pool, boolean child, Charset charset) {
+		if (child) return charset.newEncoder();
+		if (pool.encoder != null && charset.equals(pool.encoderCharset)) {
+			pool.encoder.reset();
+			return pool.encoder;
+		}
+		pool.encoder = charset.newEncoder();
+		pool.encoderCharset = charset;
+		return pool.encoder;
 	}
 
 	private String _toString(boolean releaseHeadData) {
@@ -322,25 +433,39 @@ public class CFMLWriterImpl extends CFMLWriter {
 				closed = true;
 				return;
 			}
-			// print.out(_toString());
-			byte[] barr = _toString(true).getBytes(ReqRspUtil.getCharacterEncoding(null, response));
+			Charset charset = ReqRspUtil.getCharacterEncoding(null, response);
+			ByteArrayOutputStream collector = null;
+			byte[] barrDirect = null;
+			if (htmlHead == null && htmlBody == null) {
+				int approxLen = buffer == null ? 64 : Math.max(64, buffer.length());
+				collector = new ByteArrayOutputStream(approxLen);
+				if (buffer != null && buffer.length() > 0) {
+					writeBufferTo(collector, charset);
+				}
+			}
+			else {
+				barrDirect = _toString(true).getBytes(charset);
+			}
+
+			int barrLen = collector != null ? collector.size() : barrDirect.length;
 
 			if (cacheItem != null) {
-				cacheItem.store(barr, false);
+				cacheItem.store(collector != null ? collector.toByteArray() : barrDirect, false);
 				// writeCache(barr,false);
 			}
 
 			if (closeConn) response.setHeader("connection", "close");
 			// if(showVersion)response.setHeader(Constants.NAME+"-Version", version);
 			boolean allowCompression;
-			if (barr.length <= 512) allowCompression = false;
+			if (barrLen <= 512) allowCompression = false;
 			else if (_allowCompression != null) allowCompression = _allowCompression.booleanValue();
 			else allowCompression = ((PageContextImpl) pc).getAllowCompression();
 			out = getOutputStream(allowCompression);
 
-			if (contentLength && !(out instanceof GZIPOutputStream)) ReqRspUtil.setContentLength(response, barr.length);
+			if (contentLength && !(out instanceof GZIPOutputStream)) ReqRspUtil.setContentLength(response, barrLen);
 
-			out.write(barr);
+			if (collector != null) collector.writeTo(out);
+			else out.write(barrDirect);
 			out.flush();
 			out.close();
 

@@ -194,7 +194,7 @@ public final class BodyContentImpl extends BodyContent {
 
 	@Override
 	public void flush() throws IOException {
-		enclosingWriter.write(charBuffer.toCharArray());
+		charBuffer.writeOut(enclosingWriter);
 		charBuffer.clear();
 	}
 
