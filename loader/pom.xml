@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>8.0.0.141-SNAPSHOT</version>
+  <version>8.0.0.142-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -455,12 +455,6 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-email-all</artifactId>
-    <version>1.6.0</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
     <groupId>org.apache.commons</groupId>
     <artifactId>commons-fileupload2-core</artifactId>
     <version>2.0.0-M5</version>
@@ -495,12 +489,12 @@
   <dependency>
     <groupId>org.lucee</groupId>
     <artifactId>log4j-core</artifactId>
-    <version>2.26.0</version>
+    <version>2.26.0.0</version>
   </dependency>
   <dependency>
     <groupId>org.lucee</groupId>
     <artifactId>log4j-api</artifactId>
-    <version>2.26.0</version>
+    <version>2.26.0.0</version>
   </dependency>
   <dependency>
     <groupId>fusiondebug.api</groupId>

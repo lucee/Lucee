@@ -15,7 +15,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"  labels="pdf"{
 
 	function run( testResults , testBox ) {
 		describe( "Test case for LDEV-2506", function() {
-			it(title = "Checked cfdocument with type = 'modern' and 'classic'", body = function( currentSpec ) {
+			// classic no longer supported
+			xit(title = "Checked cfdocument with type = 'modern' and 'classic'", body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/test.cfm"
 				);

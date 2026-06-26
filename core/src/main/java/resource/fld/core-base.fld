@@ -11112,7 +11112,8 @@ Use `LoadAISession()` to restore a serialized session.
 	- **No arguments** → returns an array of all extension artifact IDs for the default group (`org.lucee`)
 	- **`group` only** → returns an array of artifact IDs for that Maven group
 	- **`group` + `artifact`** → returns an array of version strings for that extension
-	- **`group` + `artifact` + `version`** → returns a struct with artifact details: `lex`, `pom`, `local`, `lastModified`
+	- **`group` + `artifact` + `version`** → returns a struct with artifact details (lex, pom, lastModified, etc.)
+- **`group` + `artifact` + `version` + `detailed=true`** → fetches detailed metadata; downloads the extension file only if POM metadata is unavailable. Returns additional metadata including `MinCoreVersion` and `MinLoaderVersion` when extension is downloaded.
 	    </description>
 	    <argument>
 	        <name>group</name>
@@ -11136,11 +11137,11 @@ Use `LoadAISession()` to restore a serialized session.
 	        <description>The version to retrieve details for. If omitted, all available versions for the artifact are returned.</description>
 	    </argument>
 	    <argument>
-	        <name>download</name>
+	        <name>detailed</name>
 	        <type>boolean</type>
 	        <required>No</required>
 	        <default>false</default>
-	        <description>create a local copy of the extension and at path to resulting struct with the key "local".</description>
+	        <description>When true, fetches detailed metadata for the extension. Attempts to read from POM first; only downloads the extension file if POM metadata is unavailable. When metadata is obtained from POM, the "local" key is not set. When the extension file is downloaded (no POM), additional version requirement metadata is extracted: `MinCoreVersion` and `MinLoaderVersion`.</description>
 	    </argument>
 	    <return>
 	        <type>any</type>
