@@ -38,7 +38,9 @@ import lucee.runtime.op.Caster;
  */
 public class CFMLWriterImpl extends CFMLWriter {
 
-	private static final int BUFFER_SIZE = 10000;
+	private static final int INITIAL_BUFFER_SIZE = 32768;
+	private static final int CHILD_INITIAL_BUFFER_SIZE = 10000;
+	private static final int MAX_REUSABLE_BUFFER_SIZE = 131072;
 	private OutputStream out;
 	private HttpServletResponse response;
 	private boolean flushed;
@@ -78,6 +80,20 @@ public class CFMLWriterImpl extends CFMLWriter {
 		}
 	}
 
+	private StringBuilder adoptOrAlloc() {
+		PageContextImpl pcImpl = (PageContextImpl) pc;
+		// child PCs are recycled outside the release/initialize lifecycle — can't reuse safely
+		if (pcImpl.isChild()) return new StringBuilder(CHILD_INITIAL_BUFFER_SIZE);
+		StringBuilder existing = pcImpl.getResponseBuffer();
+		if (existing != null && existing.capacity() <= MAX_REUSABLE_BUFFER_SIZE) {
+			existing.setLength(0);
+			return existing;
+		}
+		StringBuilder fresh = new StringBuilder(INITIAL_BUFFER_SIZE);
+		pcImpl.setResponseBuffer(fresh);
+		return fresh;
+	}
+
 	protected void initOut() throws IOException {
 		if (out == null) {
 			out = getOutputStream(false);
@@ -87,7 +103,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void print(char[] arg) throws IOException {
-		if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
+		if (buffer == null) buffer = adoptOrAlloc();
 		buffer.append(arg);
 		_check();
 	}
@@ -126,7 +142,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 	@Override
 	public void flushHTMLBody() throws IOException {
 		if (htmlBody != null) {
-			if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
+			if (buffer == null) buffer = adoptOrAlloc();
 			buffer.append(htmlBody);
 			resetHTMLBody();
 		}
@@ -167,7 +183,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 	@Override
 	public void flushHTMLHead() throws IOException {
 		if (htmlHead != null) {
-			if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
+			if (buffer == null) buffer = adoptOrAlloc();
 			buffer.append(htmlHead);
 			resetHTMLHead();
 		}
@@ -190,7 +206,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void write(char[] cbuf, int off, int len) throws IOException {
-		if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
+		if (buffer == null) buffer = adoptOrAlloc();
 		buffer.append(cbuf, off, len);
 		_check();
 	}
@@ -372,7 +388,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void print(char arg) throws IOException {
-		if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
+		if (buffer == null) buffer = adoptOrAlloc();
 		buffer.append(arg);
 		_check();
 	}
@@ -400,7 +416,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void print(String arg) throws IOException {
-		if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
+		if (buffer == null) buffer = adoptOrAlloc();
 		buffer.append(arg);
 		_check();
 	}
@@ -485,7 +501,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void write(String str) throws IOException {
-		if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
+		if (buffer == null) buffer = adoptOrAlloc();
 		buffer.append(str);
 		_check();
 	}
@@ -508,7 +524,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 	}
 
 	private void _print(String arg) throws IOException {
-		if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
+		if (buffer == null) buffer = adoptOrAlloc();
 		buffer.append(arg);
 		_check();
 	}

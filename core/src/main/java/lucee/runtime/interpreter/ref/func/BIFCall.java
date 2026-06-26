@@ -110,7 +110,7 @@ public final class BIFCall extends RefSupport implements Ref {
 					flfa = it.next();
 					vt = getMatchingValueAndType(flfa, fvalues, names);
 					if (vt.index != -1) names[vt.index] = null;
-					arguments[index++] = new Casting(vt.type, CFTypes.toShort(vt.type, false, CFTypes.TYPE_UNKNOW), vt.value).getValue(pc);
+					arguments[index++] = Caster.castTo(pc, CFTypes.toShort(vt.type, false, CFTypes.TYPE_UNKNOW), vt.type, vt.value);
 				}
 
 				for (int y = 0; y < names.length; y++) {
