@@ -72,6 +72,11 @@ public final class MavenUpdateProvider {
 	public static final int CONNECTION_TIMEOUT = 10000; // 10 seconds - for establishing connection
 	public static final int READ_TIMEOUT = 60000; // 60 seconds - for reading response data
 
+	// sentinel returned by the detail cache for a previously resolved "not found" (negative cache hit)
+	private static final Map<String, Object> DETAIL_NOT_FOUND = Collections.unmodifiableMap(new LinkedHashMap<String, Object>());
+	// marker persisted in the detail cache to represent a negative (not found) result
+	private static final String DETAIL_CACHE_NOT_FOUND = "__LUCEE_DETAIL_NOT_FOUND__";
+
 	// MAVEN
 	public static final Repository REPOSITORY_MAVEN_CENTRAL_RELEASES = new Repository("Maven Release Repository", "https://repo1.maven.org/maven2/", TYPE_RELEASE,
 			Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.CENTRAL);
@@ -341,16 +346,30 @@ public final class MavenUpdateProvider {
 
 				// check caches
 				{
-					Map<String, Object> result;
+					boolean sawNegative = false;
 					for (Repository repo: repos) {
 						if (!repo.handle(version)) continue;
-						result = readFromCache(repo, artifact, v);
+						Map<String, Object> result = readFromCache(repo, artifact, v, requiredArtifactExtension, isSnap);
+						if (result == DETAIL_NOT_FOUND) {
+							// a positive hit from another repo still wins, so remember the miss but keep looking
+							sawNegative = true;
+							continue;
+						}
 						if (result != null) {
 							return result;
 						}
 					}
+					// every repo that could serve this artifact has a fresh "not found" cached -> do not re-probe
+					if (sawNegative) {
+						if (throwException) throw new IOException("Could not find the artifact [" + group + ":" + artifact + ":" + version + "] (type: "
+								+ requiredArtifactExtension + ") in any of the configured repositories (cached negative result): [" + toList(repos, version) + "].");
+						return null;
+					}
 				}
 
+				// tracks whether at least one repo gave a definitive answer (a real non-2xx response) rather than a
+				// transient network error; only a definitive miss is worth caching as negative
+				boolean definitiveMiss = false;
 				for (Repository repo: repos) {
 					if (!repo.handle(version)) continue;
 
@@ -359,7 +378,7 @@ public final class MavenUpdateProvider {
 						RepoReader repoReader = new RepoReader(repo.url, group, artifact, version);
 						Map<String, Object> result = repoReader.read(requiredArtifactExtension);
 						if (result != null) {
-							storeToCache(repo, artifact, v, result);
+							storeToCache(repo, artifact, v, requiredArtifactExtension, result);
 							return result;
 						}
 					}
@@ -396,9 +415,22 @@ public final class MavenUpdateProvider {
 									result.put("lco", url.toExternalForm());
 								}
 							}
-							storeToCache(repo, artifact, v, result);
+							storeToCache(repo, artifact, v, requiredArtifactExtension, result);
 							return result;
 						}
+						// a non-null response that is not a success (e.g. 404) is a definitive "not here"
+						else if (rsp != null) {
+							definitiveMiss = true;
+						}
+					}
+				}
+
+				// nothing resolved; if at least one repo definitively answered "not found", remember it for a short
+				// while so we stop probing the network on every single request (transient errors are not cached)
+				if (definitiveMiss) {
+					for (Repository repo: repos) {
+						if (!repo.handle(version)) continue;
+						storeNegativeToCache(repo, artifact, v, requiredArtifactExtension);
 					}
 				}
 			}
@@ -412,46 +444,65 @@ public final class MavenUpdateProvider {
 		return null;
 	}
 
-	private void storeToCache(Repository repository, String artifact, String version, Map<String, Object> detail) {
+	private void storeToCache(Repository repository, String artifact, String version, String requiredArtifactExtension, Map<String, Object> detail) {
 		try {
-			Resource resLastmod = repository.cacheDirectory
-					.getRealResource("detail_" + HashUtil.create64BitHashAsString(group + "_" + artifact + "_" + version + "_lastmod", Character.MAX_RADIX));
-			Resource resVersions = repository.cacheDirectory
-					.getRealResource("detail_" + HashUtil.create64BitHashAsString(group + "_" + artifact + "_" + version + "_versions", Character.MAX_RADIX));
-			String content = fromMapToJsonString(detail, true);
-
-			IOUtil.write(resVersions, StringUtil.isEmpty(content, true) ? "" : content.trim(), StandardCharsets.UTF_8, false);
-			IOUtil.write(resLastmod, Caster.toString(System.currentTimeMillis()), StandardCharsets.UTF_8, false);
+			writeToCache(repository, artifact, version, requiredArtifactExtension, fromMapToJsonString(detail, true));
 		}
 		catch (Exception e) {
 			LogUtil.log("MetadataReader", e);
 		}
 	}
 
-	private Map<String, Object> readFromCache(Repository repository, String artifact, String version) {
+	private void storeNegativeToCache(Repository repository, String artifact, String version, String requiredArtifactExtension) {
 		try {
-			Resource resLastmod = repository.cacheDirectory
-					.getRealResource("detail_" + HashUtil.create64BitHashAsString(group + "_" + artifact + "_" + version + "_lastmod", Character.MAX_RADIX));
-			if (resLastmod.isFile()) {
-				long lastmod = repository.timeoutDetail == Repository.TIMEOUT_NEVER ? Repository.TIMEOUT_NEVER
-						: Caster.toLongValue(IOUtil.toString(resLastmod, StandardCharsets.UTF_8), 0L);
+			writeToCache(repository, artifact, version, requiredArtifactExtension, DETAIL_CACHE_NOT_FOUND);
+		}
+		catch (Exception e) {
+			LogUtil.log("MetadataReader", e);
+		}
+	}
 
-				if (repository.timeoutDetail == Repository.TIMEOUT_NEVER || lastmod + repository.timeoutDetail > System.currentTimeMillis()) {
+	private void writeToCache(Repository repository, String artifact, String version, String requiredArtifactExtension, String content) throws IOException {
+		String key = group + "_" + artifact + "_" + version + "_" + requiredArtifactExtension;
+		Resource resLastmod = repository.cacheDirectory.getRealResource("detail_" + HashUtil.create64BitHashAsString(key + "_lastmod", Character.MAX_RADIX));
+		Resource resVersions = repository.cacheDirectory.getRealResource("detail_" + HashUtil.create64BitHashAsString(key + "_versions", Character.MAX_RADIX));
 
-					Resource resVersions = repository.cacheDirectory
-							.getRealResource("detail_" + HashUtil.create64BitHashAsString(group + "_" + artifact + "_" + version + "_versions", Character.MAX_RADIX));
-					String content = IOUtil.toString(resVersions, StandardCharsets.UTF_8);
-					if (content.length() > 0) {
-						return new CastImpl().fromJsonStringToMap(content);
-					}
-					return null;
-				}
+		IOUtil.write(resVersions, StringUtil.isEmpty(content, true) ? "" : content.trim(), StandardCharsets.UTF_8, false);
+		IOUtil.write(resLastmod, Caster.toString(System.currentTimeMillis()), StandardCharsets.UTF_8, false);
+	}
+
+	private Map<String, Object> readFromCache(Repository repository, String artifact, String version, String requiredArtifactExtension, boolean isSnap) {
+		try {
+			String key = group + "_" + artifact + "_" + version + "_" + requiredArtifactExtension;
+			Resource resLastmod = repository.cacheDirectory.getRealResource("detail_" + HashUtil.create64BitHashAsString(key + "_lastmod", Character.MAX_RADIX));
+			if (!resLastmod.isFile()) return null;
+
+			Resource resVersions = repository.cacheDirectory.getRealResource("detail_" + HashUtil.create64BitHashAsString(key + "_versions", Character.MAX_RADIX));
+			String content = resVersions.isFile() ? IOUtil.toString(resVersions, StandardCharsets.UTF_8) : null;
+			boolean negative = content != null && DETAIL_CACHE_NOT_FOUND.equals(content.trim());
+
+			// snapshots change over time and misses should be retried soon, so both get a short ttl even when the
+			// repository is configured to cache details forever
+			long ttl = effectiveTimeoutDetail(repository.timeoutDetail, isSnap, negative);
+			if (ttl != Repository.TIMEOUT_NEVER) {
+				long lastmod = Caster.toLongValue(IOUtil.toString(resLastmod, StandardCharsets.UTF_8), 0L);
+				if (lastmod + ttl <= System.currentTimeMillis()) return null; // expired -> re-resolve
 			}
+
+			if (negative) return DETAIL_NOT_FOUND;
+			if (content != null && content.length() > 0) return new CastImpl().fromJsonStringToMap(content);
+			return null;
 		}
 		catch (Exception e) {
 			LogUtil.log(Log.LEVEL_WARN, "MetadataReader", e);
 		}
 		return null;
+	}
+
+	private static long effectiveTimeoutDetail(long configured, boolean isSnap, boolean negative) {
+		// negatives and snapshots are never cached longer than a few minutes, regardless of the configured timeout
+		if (negative || isSnap) return Math.min(configured, Repository.TIMEOUT_5MINUTES);
+		return configured;
 	}
 
 	private String toList(Collection<Repository> repos, Version filter) {
