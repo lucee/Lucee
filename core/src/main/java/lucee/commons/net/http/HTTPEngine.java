@@ -76,6 +76,10 @@ public final class HTTPEngine extends HTTPEngineBasic {
 		return head(url, null, null, connectTimeout, readTimeout, DEFAULT_USER_AGENT, null, pooling);
 	}
 
+	public static HTTPDownloaderHeadResponse head(URL url, long connectTimeout, long readTimeout, boolean pooling, HTTPDownloaderHeadResponse defaultValue) {
+		return head(url, null, null, connectTimeout, readTimeout, DEFAULT_USER_AGENT, null, pooling, defaultValue);
+	}
+
 	public static HTTPDownloaderHeadResponse head(URL url) throws IOException {
 		return head(url, null, null, DEFAULT_CONNECT_TIMEOUT, -1, null, null, true);
 	}
@@ -103,6 +107,21 @@ public final class HTTPEngine extends HTTPEngineBasic {
 		try {
 			response = head(url, username, password, DEFAULT_CONNECT_REQUEST_TIMEOUT, connectTimeout, readTimeout, true, null, userAgent, proxy, null, pooling);
 			return new HTTPDownloaderHeadResponse(response);
+		}
+		finally {
+			IOUtil.closeEL(response);
+		}
+	}
+
+	public static HTTPDownloaderHeadResponse head(URL url, String username, String password, long connectTimeout, long readTimeout, String userAgent, ProxyData proxy,
+			boolean pooling, HTTPDownloaderHeadResponse defaultValue) {
+		HTTPResponse response = null;
+		try {
+			response = head(url, username, password, DEFAULT_CONNECT_REQUEST_TIMEOUT, connectTimeout, readTimeout, true, null, userAgent, proxy, null, pooling);
+			return new HTTPDownloaderHeadResponse(response);
+		}
+		catch (Exception ex) {
+			return defaultValue;
 		}
 		finally {
 			IOUtil.closeEL(response);

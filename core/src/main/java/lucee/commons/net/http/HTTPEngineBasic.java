@@ -49,6 +49,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpMessage;
+import org.apache.http.HttpRequest;
 import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
@@ -766,7 +767,33 @@ public abstract class HTTPEngineBasic {
 		@Override
 		public boolean retryRequest(java.io.IOException exception, int executionCount, HttpContext context) {
 			if (executionCount <= 2 && exception instanceof org.apache.http.NoHttpResponseException) {
-				LogUtil.log(Log.LEVEL_INFO, "http-conn", ExceptionUtil.getStacktrace(exception, true));
+				Log log = ThreadLocalPageContext.getLog("application");
+				// this is a transient, self-healing condition (stale pooled connection) that recovers on retry,
+				// so it is logged at debug only; the final failure (if all retries are exhausted) is logged by the caller
+				if (LogUtil.doesDebug(log)) {
+					// enrich the exception with the request target (url) pulled from the context, so the log entry
+					// tells us which call failed instead of just "the target server failed to respond"
+					String target = null;
+					try {
+						HttpClientContext cc = HttpClientContext.adapt(context);
+						HttpHost host = cc.getTargetHost();
+						HttpRequest request = cc.getRequest();
+						String uri = request == null ? null : request.getRequestLine().getUri();
+						if (uri != null && (uri.startsWith("http://") || uri.startsWith("https://"))) target = uri;
+						else if (host != null) target = host.toURI() + (uri == null ? "" : uri);
+						else target = uri;
+					}
+					catch (Exception e) {
+						// best effort, log without the target if the context does not expose it
+					}
+
+					IOException ex = new IOException("the target server failed to respond" + (target == null ? "" : " for request [" + target + "]")
+							+ "; retrying (attempt " + executionCount + ")");
+					ExceptionUtil.initCauseEL(ex, exception);
+
+					log.log(Log.LEVEL_DEBUG, "http-conn", ex);
+
+				}
 				return true;
 			}
 			return false;

@@ -367,8 +367,8 @@ public final class MavenUpdateProvider {
 					{
 						String strURL = repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + "." + requiredArtifactExtension;
 						URL urlMain = new URL(strURL);
-						HTTPDownloaderHeadResponse rsp = HTTPEngine.head(urlMain, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true);
-						if (rsp != null & validSatusCode(rsp.getStatusCode())) {
+						HTTPDownloaderHeadResponse rsp = HTTPEngine.head(urlMain, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
+						if (rsp != null && validSatusCode(rsp.getStatusCode())) {
 							Map<String, Object> result = new LinkedHashMap<>();
 
 							Header[] headers = rsp.getAllHeaders();
@@ -383,16 +383,16 @@ public final class MavenUpdateProvider {
 							// pom
 							{
 								URL url = new URL(repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + ".pom");
-								rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true);
-								if (rsp != null & validSatusCode(rsp.getStatusCode())) {
+								rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
+								if (rsp != null && validSatusCode(rsp.getStatusCode())) {
 									result.put("pom", url.toExternalForm());
 								}
 							}
 							// lco
 							{
 								URL url = new URL(repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + ".lco");
-								rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true);
-								if (rsp != null & validSatusCode(rsp.getStatusCode())) {
+								rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
+								if (rsp != null && validSatusCode(rsp.getStatusCode())) {
 									result.put("lco", url.toExternalForm());
 								}
 							}
