@@ -786,11 +786,12 @@ public final class ListUtil {
 	 */
 	public static int listFindNoCaseIgnoreEmpty(String list, String value, String delimiter) {
 		if (delimiter.length() == 1) return listFindNoCaseIgnoreEmpty(list, value, delimiter.charAt(0));
-		if (list == null) return -1;
+		if (list == null || value == null) return -1;
 		int len = list.length();
 		if (len == 0) return -1;
 		int last = 0;
 		int count = 0;
+		int vlen = value.length();
 		char[] del = delimiter.toCharArray();
 		char c;
 
@@ -799,7 +800,7 @@ public final class ListUtil {
 			for (int y = 0; y < del.length; y++) {
 				if (c == del[y]) {
 					if (last < i) {
-						if (list.substring(last, i).equalsIgnoreCase(value)) return count;
+						if ((i - last) == vlen && list.regionMatches(true, last, value, 0, vlen)) return count;
 						count++;
 					}
 					last = i + 1;
@@ -808,7 +809,7 @@ public final class ListUtil {
 			}
 		}
 		if (last < len) {
-			if (list.substring(last).equalsIgnoreCase(value)) return count;
+			if ((len - last) == vlen && list.regionMatches(true, last, value, 0, vlen)) return count;
 		}
 		return -1;
 	}
@@ -822,23 +823,24 @@ public final class ListUtil {
 	 * @return position in list or 0
 	 */
 	public static int listFindNoCaseIgnoreEmpty(String list, String value, char delimiter) {
-		if (list == null) return -1;
+		if (list == null || value == null) return -1;
 		int len = list.length();
 		if (len == 0) return -1;
 		int last = 0;
 		int count = 0;
+		int vlen = value.length();
 
 		for (int i = 0; i < len; i++) {
 			if (list.charAt(i) == delimiter) {
 				if (last < i) {
-					if (list.substring(last, i).equalsIgnoreCase(value)) return count;
+					if ((i - last) == vlen && list.regionMatches(true, last, value, 0, vlen)) return count;
 					count++;
 				}
 				last = i + 1;
 			}
 		}
 		if (last < len) {
-			if (list.substring(last).equalsIgnoreCase(value)) return count;
+			if ((len - last) == vlen && list.regionMatches(true, last, value, 0, vlen)) return count;
 		}
 		return -1;
 	}
@@ -882,11 +884,12 @@ public final class ListUtil {
 	 */
 	public static int listFindIgnoreEmpty(String list, String value, String delimiter) {
 		if (delimiter.length() == 1) return listFindIgnoreEmpty(list, value, delimiter.charAt(0));
-		if (list == null) return -1;
+		if (list == null || value == null) return -1;
 		int len = list.length();
 		if (len == 0) return -1;
 		int last = 0;
 		int count = 0;
+		int vlen = value.length();
 		char[] del = delimiter.toCharArray();
 		char c;
 
@@ -895,7 +898,7 @@ public final class ListUtil {
 			for (int y = 0; y < del.length; y++) {
 				if (c == del[y]) {
 					if (last < i) {
-						if (list.substring(last, i).equals(value)) return count;
+						if ((i - last) == vlen && list.regionMatches(false, last, value, 0, vlen)) return count;
 						count++;
 					}
 					last = i + 1;
@@ -904,7 +907,7 @@ public final class ListUtil {
 			}
 		}
 		if (last < len) {
-			if (list.substring(last).equals(value)) return count;
+			if ((len - last) == vlen && list.regionMatches(false, last, value, 0, vlen)) return count;
 		}
 		return -1;
 	}
@@ -918,23 +921,24 @@ public final class ListUtil {
 	 * @return position in list or 0
 	 */
 	public static int listFindIgnoreEmpty(String list, String value, char delimiter) {
-		if (list == null) return -1;
+		if (list == null || value == null) return -1;
 		int len = list.length();
 		if (len == 0) return -1;
 		int last = 0;
 		int count = 0;
+		int vlen = value.length();
 
 		for (int i = 0; i < len; i++) {
 			if (list.charAt(i) == delimiter) {
 				if (last < i) {
-					if (list.substring(last, i).equals(value)) return count;
+					if ((i - last) == vlen && list.regionMatches(false, last, value, 0, vlen)) return count;
 					count++;
 				}
 				last = i + 1;
 			}
 		}
 		if (last < len) {
-			if (list.substring(last).equals(value)) return count;
+			if ((len - last) == vlen && list.regionMatches(false, last, value, 0, vlen)) return count;
 		}
 		return -1;
 	}
