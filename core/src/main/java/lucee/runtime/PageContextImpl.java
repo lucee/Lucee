@@ -246,9 +246,9 @@ public final class PageContextImpl extends PageContext {
 	/**
 	 * Field <code>pathList</code>
 	 */
-	private final LinkedList<UDF> udfs = new LinkedList<UDF>();
-	private final LinkedList<PageSource> pathList = new LinkedList<PageSource>();
-	private final LinkedList<PageSource> includePathList = new LinkedList<PageSource>();
+	private final ArrayList<UDF> udfs = new ArrayList<UDF>();
+	private final ArrayList<PageSource> pathList = new ArrayList<PageSource>();
+	private final ArrayList<PageSource> includePathList = new ArrayList<PageSource>();
 	private final Set<PageSource> includeOnce = new HashSet<PageSource>();
 
 	/**
@@ -926,13 +926,13 @@ public final class PageContextImpl extends PageContext {
 		LogUtil.log(this, Log.LEVEL_INFO, PageContextImpl.class.getName(), "method getRelativePageSource is deprecated");
 		if (StringUtil.startsWith(realPath, '/')) return PageSourceImpl.best(getPageSources(realPath));
 		if (pathList.size() == 0) return null;
-		return ((PageSourceImpl) pathList.getLast()).getRealPageSource(this, realPath);
+		return ((PageSourceImpl) pathList.get(pathList.size() - 1)).getRealPageSource(this, realPath);
 	}
 
 	public PageSource getRelativePageSourceExisting(String realPath) {
 		if (StringUtil.startsWith(realPath, '/')) return getPageSourceExisting(realPath);
 		if (pathList.size() == 0) return null;
-		PageSource ps = ((PageSourceImpl) pathList.getLast()).getRealPageSource(this, realPath);
+		PageSource ps = ((PageSourceImpl) pathList.get(pathList.size() - 1)).getRealPageSource(this, realPath);
 		if (PageSourceImpl.pageExist(ps)) return ps;
 		return null;
 	}
@@ -950,7 +950,7 @@ public final class PageContextImpl extends PageContext {
 		PageSource ps = null, tmp = null;
 		if (previous) {
 			boolean valid = false;
-			ps = pathList.getLast();
+			ps = pathList.get(pathList.size() - 1);
 			for (int i = pathList.size() - 2; i >= 0; i--) {
 				tmp = pathList.get(i);
 				if (tmp != ps) {
@@ -961,7 +961,7 @@ public final class PageContextImpl extends PageContext {
 			}
 			if (!valid) return null;
 		}
-		else ps = pathList.getLast();
+		else ps = pathList.get(pathList.size() - 1);
 
 		ps = ((PageSourceImpl) ps).getRealPageSource(this, realPath);
 		if (PageSourceImpl.pageExist(ps)) return ps;
@@ -970,7 +970,7 @@ public final class PageContextImpl extends PageContext {
 
 	public PageSource[] getRelativePageSources(String realPath) {
 		if (StringUtil.startsWith(realPath, '/')) return getPageSources(realPath);
-		PageSource ps = pathList.peekLast();
+		PageSource ps = pathList.isEmpty() ? null : pathList.get(pathList.size() - 1);
 		if (ps == null) return null;
 		return new PageSource[] { ((PageSourceImpl) ps).getRealPageSource(this, realPath) };
 	}
@@ -1207,12 +1207,12 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public PageSource getCurrentPageSource() {
-		return pathList.peekLast();
+		return pathList.isEmpty() ? null : pathList.get(pathList.size() - 1);
 	}
 
 	@Override
 	public PageSource getCurrentPageSource(PageSource defaultvalue) {
-		PageSource ps = pathList.peekLast();
+		PageSource ps = pathList.isEmpty() ? null : pathList.get(pathList.size() - 1);
 		return ps != null ? ps : defaultvalue;
 	}
 
@@ -1221,7 +1221,7 @@ public final class PageContextImpl extends PageContext {
 	 */
 	@Override
 	public PageSource getCurrentTemplatePageSource() {
-		return includePathList.peekLast();
+		return includePathList.isEmpty() ? null : includePathList.get(includePathList.size() - 1);
 	}
 
 	/**
@@ -3482,8 +3482,8 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void removeLastPageSource(boolean alsoInclude) {
-		if (!pathList.isEmpty()) pathList.removeLast();
-		if (alsoInclude && !includePathList.isEmpty()) includePathList.removeLast();
+		if (!pathList.isEmpty()) pathList.remove(pathList.size() - 1);
+		if (alsoInclude && !includePathList.isEmpty()) includePathList.remove(includePathList.size() - 1);
 	}
 
 	public UDF[] getUDFs() {
@@ -3495,7 +3495,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public void removeUDF() {
-		if (!udfs.isEmpty()) udfs.removeLast();
+		if (!udfs.isEmpty()) udfs.remove(udfs.size() - 1);
 	}
 
 	// ==================== Debugger Stack Frame Support ====================
