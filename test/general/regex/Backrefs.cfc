@@ -53,6 +53,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 		});
 	}
 
+	// literal $ in replacement with no backslash — fast-path must not eat it
+	public void function testLiteralDollarInReplacement() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( "price $5", reReplace( "foo", "foo", "price $5" ) );
+		});
+	}
+
 	// compat: dangling \ at end of replacement string is emitted as a literal backslash
 	public void function testTrailingBackslashEmittedLiteralCompat() unsupportedRegexEngine="java,perl" {
 		variables._regex.eachEngine( function( engine ) {
