@@ -180,15 +180,15 @@ public final class MavenUpdateProvider {
 	}
 
 	static Collection<Repository> merge(Repository[] left, Repository[] middle, Repository[] right) {
-		Set<Repository> list = new HashSet<>();
+		List<Repository> list = new ArrayList<>();
 		for (Repository repo: left) {
-			list.add(repo);
+			if (list.contains(repo)) list.add(repo);
 		}
 		for (Repository repo: middle) {
-			list.add(repo);
+			if (list.contains(repo)) list.add(repo);
 		}
 		for (Repository repo: right) {
-			list.add(repo);
+			if (list.contains(repo)) list.add(repo);
 		}
 
 		return list;
@@ -361,8 +361,8 @@ public final class MavenUpdateProvider {
 					}
 					// every repo that could serve this artifact has a fresh "not found" cached -> do not re-probe
 					if (sawNegative) {
-						if (throwException) throw new IOException("Could not find the artifact [" + group + ":" + artifact + ":" + version + "] (type: "
-								+ requiredArtifactExtension + ") in any of the configured repositories (cached negative result): [" + toList(repos, version) + "].");
+						if (throwException) throw new IOException("Could not find the artifact [" + group + ":" + artifact + ":" + version + "] (type: " + requiredArtifactExtension
+								+ ") in any of the configured repositories (cached negative result): [" + toList(repos, version) + "].");
 						return null;
 					}
 				}
@@ -467,8 +467,10 @@ public final class MavenUpdateProvider {
 		Resource resLastmod = repository.cacheDirectory.getRealResource("detail_" + HashUtil.create64BitHashAsString(key + "_lastmod", Character.MAX_RADIX));
 		Resource resVersions = repository.cacheDirectory.getRealResource("detail_" + HashUtil.create64BitHashAsString(key + "_versions", Character.MAX_RADIX));
 
-		// serialize writers targeting the same cache files; at startup many threads resolve the same artifact
-		// concurrently and would otherwise race on file creation (handled but noisy FileAlreadyExistsException)
+		// serialize writers targeting the same cache files; at startup many threads resolve the same
+		// artifact
+		// concurrently and would otherwise race on file creation (handled but noisy
+		// FileAlreadyExistsException)
 		synchronized (SystemUtil.createToken("MavenUpdateProvider.detailCache", repository.url + "_" + key)) {
 			IOUtil.write(resVersions, StringUtil.isEmpty(content, true) ? "" : content.trim(), StandardCharsets.UTF_8, false);
 			IOUtil.write(resLastmod, Caster.toString(System.currentTimeMillis()), StandardCharsets.UTF_8, false);
@@ -485,7 +487,8 @@ public final class MavenUpdateProvider {
 			String content = resVersions.isFile() ? IOUtil.toString(resVersions, StandardCharsets.UTF_8) : null;
 			boolean negative = content != null && DETAIL_CACHE_NOT_FOUND.equals(content.trim());
 
-			// snapshots change over time and misses should be retried soon, so both get a short ttl even when the
+			// snapshots change over time and misses should be retried soon, so both get a short ttl even when
+			// the
 			// repository is configured to cache details forever
 			long ttl = effectiveTimeoutDetail(repository.timeoutDetail, isSnap, negative);
 			if (ttl != Repository.TIMEOUT_NEVER) {
@@ -504,7 +507,8 @@ public final class MavenUpdateProvider {
 	}
 
 	private static long effectiveTimeoutDetail(long configured, boolean isSnap, boolean negative) {
-		// negatives and snapshots are never cached longer than a few minutes, regardless of the configured timeout
+		// negatives and snapshots are never cached longer than a few minutes, regardless of the configured
+		// timeout
 		if (negative || isSnap) return Math.min(configured, Repository.TIMEOUT_5MINUTES);
 		return configured;
 	}
