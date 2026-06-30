@@ -9,19 +9,20 @@ Lucee simplifies technologies like webservices (REST, SOAP, HTTP), ORM (Hibernat
 
 Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using less resources and delivering better performance. 
 
-[What is new with Lucee 6](README-Lucee6.md)
+## What's New
+
+- [Lucee 7](https://docs.lucee.org/recipes/lucee-7.html)
+- [Lucee 8](https://docs.lucee.org/recipes/lucee-8.html)
 
 ## Changelogs
 
-- [Changelogs per Release](https://download.lucee.org/changelog/?version=6.2)
+- [Changelogs per Release](https://download.lucee.org/changelog/)
 - [New Tags & Functions, Arguments and Attributes](https://docs.lucee.org/reference/changelog.html)
 
-### Breaking changes
+### Breaking Changes
 
-- [Breaking Changes Between Lucee 5.4 and 6.0](https://docs.lucee.org/recipes/breaking-changes-6-0.html)
-- [Breaking Changes Between Lucee 6.0 and 6.1](https://docs.lucee.org/recipes/breaking-changes-6-1.html)
-- [Breaking Changes Between Lucee 6.1 and 6.2](https://docs.lucee.org/recipes/breaking-changes-6-2.html)
 - [Breaking Changes Between Lucee 6.2 and 7.0](https://docs.lucee.org/recipes/breaking-changes-7.html)
+- [Breaking Changes Between Lucee 7.0 and 8.0](https://docs.lucee.org/recipes/breaking-changes-8.html)
 
 ## Installation
 
@@ -77,7 +78,7 @@ Requires Java 17+.
 A machine-readable skill so your AI assistant knows modern Lucee. Drop-in context for Cursor, Copilot, Warp, Claude, ChatGPT, and more. Always aligned with the latest docs.
 
 - [skill.lucee-services.com/main.skill](https://skill.lucee-services.com/main.skill)
-- [lucee.org/lucee.skill](https://lucee.org/lucee.skill)
+- [docs.lucee.org/lucee.skill](https://docs.lucee.org/lucee.skill)
 
 ### Lucee MCP Server
 
