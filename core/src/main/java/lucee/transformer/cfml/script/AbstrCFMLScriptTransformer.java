@@ -302,7 +302,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	 */
 	private final boolean elseifStatement(Data data, Condition cont) throws TemplateException {
 		int pos = data.srcCode.getPos();
-		if (!data.srcCode.forwardIfCurrent("else")) return false;
+		if (!data.srcCode.forwardIfCurrentKeyword("else")) return false;
 
 		comments(data);
 		if (!data.srcCode.forwardIfCurrent("if", '(')) {
@@ -723,7 +723,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			return new For(data.factory, left, cont, update, body, line, data.srcCode.getPosition(), id);
 		}
 		// middle foreach
-		else if (data.srcCode.forwardIfCurrent("in")) {
+		else if (data.srcCode.forwardIfCurrentKeyword("in")) {
 			// condition
 			comments(data);
 			Expression value = expression(data);
