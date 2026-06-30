@@ -28,7 +28,7 @@ Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using les
 See all breaking changes documentation at [docs.lucee.org/recipes](https://docs.lucee.org/recipes.html):
 
 - [Breaking Changes Between Lucee 6.2 and 7.0](https://docs.lucee.org/recipes/breaking-changes-7.html)
-- [Breaking Changes Between Lucee 7.0 and 7.1](https://docs.lucee.org/recipes/breaking-changes-7-1.html) (coming soon)
+- [Breaking Changes Between Lucee 7.0 and 7.1](https://docs.lucee.org/recipes/breaking-changes-7-1.html)
 - [Breaking Changes Between Lucee 7.1 and 8.0](https://docs.lucee.org/recipes/breaking-changes-8-0.html) (coming soon)
 
 ## Installation
