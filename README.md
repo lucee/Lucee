@@ -11,8 +11,12 @@ Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using les
 
 ## What's New
 
-- [Lucee 7](https://docs.lucee.org/recipes/lucee-7.html)
-- [Lucee 8](https://docs.lucee.org/recipes/lucee-8.html)
+- [Lucee 7.1](https://docs.lucee.org/guides/lucee-7-1.html)
+- [Lucee 7](https://docs.lucee.org/guides/lucee-7.html)
+- [Lucee 6.2](https://docs.lucee.org/guides/lucee-6.2.html)
+- [Lucee 5.3 "Kabang"](https://docs.lucee.org/guides/lucee-5.3-kabang.html)
+- [Lucee 5](https://docs.lucee.org/guides/lucee-5.html)
+- Lucee 8.0 (coming soon)
 
 ## Changelogs
 
@@ -21,8 +25,11 @@ Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using les
 
 ### Breaking Changes
 
+See all breaking changes documentation at [docs.lucee.org/recipes](https://docs.lucee.org/recipes.html):
+
 - [Breaking Changes Between Lucee 6.2 and 7.0](https://docs.lucee.org/recipes/breaking-changes-7.html)
-- [Breaking Changes Between Lucee 7.0 and 8.0](https://docs.lucee.org/recipes/breaking-changes-8.html)
+- [Breaking Changes Between Lucee 7.0 and 7.1](https://docs.lucee.org/recipes/breaking-changes-7-1.html) (coming soon)
+- [Breaking Changes Between Lucee 7.1 and 8.0](https://docs.lucee.org/recipes/breaking-changes-8-0.html) (coming soon)
 
 ## Installation
 
