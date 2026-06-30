@@ -70,7 +70,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			{},
 			opts
 		);
-		systemOutput( serializeJson( var=result, compact=false ), true );
+		//systemOutput( serializeJson( var=result, compact=false ), true );
 		expect( result.recordcount ).toBe( 4 );
 		expect( result.result[ 1 ] ).toBe( ",," );
 		expect( result.result[ 2 ] ).toBe( ",123," );
@@ -85,7 +85,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			{},
 			opts
 		);
-		systemOutput( serializeJson( var=result, compact=false ), true );
+		//systemOutput( serializeJson( var=result, compact=false ), true );
 		expect( result.recordcount ).toBe( 3 );
 		expect( result.id[ 1 ] ).toBe( 1 );
 		expect( result.id[ 2 ] ).toBe( 3 );
@@ -99,7 +99,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			{},
 			opts
 		);
-		systemOutput( serializeJson( var=result, compact=false ), true );
+		//systemOutput( serializeJson( var=result, compact=false ), true );
 		expect( result.recordcount ).toBe( 4 );
 		expect( result.result[ 1 ] ).toBe( ",," );
 		expect( result.result[ 2 ] ).toBe( ",123," );
@@ -114,7 +114,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			{},
 			opts
 		);
-		systemOutput( serializeJson( var=result, compact=false ), true );
+		//systemOutput( serializeJson( var=result, compact=false ), true );
 		expect( result.recordcount ).toBe( 3 );
 		expect( result.id[ 1 ] ).toBe( 1 );
 		expect( result.id[ 2 ] ).toBe( 3 );

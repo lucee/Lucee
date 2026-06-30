@@ -1,5 +1,6 @@
 package lucee.runtime.writer;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -14,6 +15,7 @@ import java.nio.charset.CharsetEncoder;
  */
 public final class WriterPool {
 
+	public ByteArrayOutputStream baos;
 	public StringBuilder responseBuffer;
 	public char[]         encodeBuffer;
 	public CharBuffer     encodeCharBuffer;

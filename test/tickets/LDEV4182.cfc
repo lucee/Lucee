@@ -80,7 +80,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			{},
 			opts
 		);
-		systemOutput( serializeJson( var=result, compact=false ), true );
+		//systemOutput( serializeJson( var=result, compact=false ), true );
 		expect( result.val ).toBe( "foobar" );
 	}
 
@@ -91,7 +91,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			{},
 			opts
 		);
-		systemOutput( serializeJson( var=result, compact=false ), true );
+		//systemOutput( serializeJson( var=result, compact=false ), true );
 		expect( result.val ).toBe( "abc" );
 	}
 
@@ -102,7 +102,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			{},
 			opts
 		);
-		systemOutput( serializeJson( var=result, compact=false ), true );
+		//systemOutput( serializeJson( var=result, compact=false ), true );
 		expect( result.val ).toBe( "abcd" );
 	}
 
@@ -113,7 +113,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			{},
 			opts
 		);
-		systemOutput( serializeJson( var=result, compact=false ), true );
+		//systemOutput( serializeJson( var=result, compact=false ), true );
 		expect( result.val ).toBe( "abcde" );
 	}
 
@@ -127,7 +127,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			{},
 			opts
 		);
-		systemOutput( serializeJson( var=result, compact=false ), true );
+		//systemOutput( serializeJson( var=result, compact=false ), true );
 		expect( result.wrapped ).toBe( "pre__post" );
 	}
 
@@ -138,7 +138,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			{},
 			opts
 		);
-		systemOutput( serializeJson( var=result, compact=false ), true );
+		//systemOutput( serializeJson( var=result, compact=false ), true );
 		expect( result.label[ 1 ] ).toBe( "Jane Smith (Jane)" );
 		expect( result.label[ 2 ] ).toBe( "John Doe (John)" );
 	}
@@ -150,7 +150,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			{},
 			opts
 		);
-		systemOutput( serializeJson( var=result, compact=false ), true );
+		//systemOutput( serializeJson( var=result, compact=false ), true );
 		expect( result.recordcount ).toBe( 1 );
 		expect( result.id ).toBe( 2 );
 	}

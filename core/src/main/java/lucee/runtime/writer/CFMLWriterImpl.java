@@ -48,6 +48,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 	private static final int CHILD_INITIAL_BUFFER_SIZE = 10000;
 	private static final int MAX_REUSABLE_BUFFER_SIZE = 131072;
 	private static final int OUTPUT_ENCODE_BUFFER_SIZE = 8192;
+	private static final int MIN_COMPRESS_BYTES = 2048; // matches Tomcat's default compressionMinSize
 	private OutputStream out;
 	private HttpServletResponse response;
 	private boolean flushed;
@@ -434,38 +435,48 @@ public class CFMLWriterImpl extends CFMLWriter {
 				return;
 			}
 			Charset charset = ReqRspUtil.getCharacterEncoding(null, response);
+			PageContextImpl pcImpl = (PageContextImpl) pc;
+			boolean child = pcImpl.isChild();
+			WriterPool pool = child ? null : pcImpl.getWriterPool();
 			ByteArrayOutputStream collector = null;
 			byte[] barrDirect = null;
+			int barrLen = 0;
 			if (htmlHead == null && htmlBody == null) {
-				int approxLen = buffer == null ? 64 : Math.max(64, buffer.length());
-				collector = new ByteArrayOutputStream(approxLen);
 				if (buffer != null && buffer.length() > 0) {
+					if (pool != null && pool.baos != null) {
+						pool.baos.reset();
+						collector = pool.baos;
+					}
+					else {
+						collector = new ByteArrayOutputStream(buffer.length());
+						if (pool != null) pool.baos = collector;
+					}
 					writeBufferTo(collector, charset);
+					barrLen = collector.size();
 				}
 			}
 			else {
 				barrDirect = _toString(true).getBytes(charset);
+				barrLen = barrDirect.length;
 			}
 
-			int barrLen = collector != null ? collector.size() : barrDirect.length;
-
 			if (cacheItem != null) {
-				cacheItem.store(collector != null ? collector.toByteArray() : barrDirect, false);
+				cacheItem.store(collector != null ? collector.toByteArray() : (barrDirect != null ? barrDirect : new byte[0]), false);
 				// writeCache(barr,false);
 			}
 
 			if (closeConn) response.setHeader("connection", "close");
 			// if(showVersion)response.setHeader(Constants.NAME+"-Version", version);
 			boolean allowCompression;
-			if (barrLen <= 512) allowCompression = false;
+			if (barrLen <= MIN_COMPRESS_BYTES) allowCompression = false;
 			else if (_allowCompression != null) allowCompression = _allowCompression.booleanValue();
-			else allowCompression = ((PageContextImpl) pc).getAllowCompression();
+			else allowCompression = pcImpl.getAllowCompression();
 			out = getOutputStream(allowCompression);
 
 			if (contentLength && !(out instanceof GZIPOutputStream)) ReqRspUtil.setContentLength(response, barrLen);
 
 			if (collector != null) collector.writeTo(out);
-			else out.write(barrDirect);
+			else if (barrDirect != null) out.write(barrDirect);
 			out.flush();
 			out.close();
 

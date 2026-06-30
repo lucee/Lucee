@@ -79,6 +79,7 @@ public class BytecodeContext implements Context {
 	}
 
 	private String id = id();
+	private String lineKey;
 	private Config config;
 	private PageImpl page;
 	protected PageSource ps;
@@ -144,6 +145,11 @@ public class BytecodeContext implements Context {
 		return id;
 	}
 
+	public String getLineKey() {
+		if (lineKey == null) lineKey = className + ":" + id;
+		return lineKey;
+	}
+
 	/**
 	 * @return the count
 	 */
@@ -204,8 +210,7 @@ public class BytecodeContext implements Context {
 		this.className = className;
 	}
 
-	public synchronized int registerKey(LitString lit) {
-		// synchronized (keys) {
+	public int registerKey(LitString lit) {
 		Integer index = keys.get(lit);
 		if (index != null) return index;// calls the toString method of litString
 
@@ -213,7 +218,6 @@ public class BytecodeContext implements Context {
 		keys.put(lit, newIndex);
 
 		return newIndex;
-		// }
 	}
 
 	public void registerJavaFunction(JavaFunction jbc) {

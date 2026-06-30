@@ -1,17 +1,39 @@
 package lucee.runtime.regex;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
 class JavaCompatRegex extends JavaRegex {
 
+	private static final Map<String, Pattern> compatCache = new ConcurrentHashMap<>();
+
+	@Override
+	protected Pattern toPattern(String strPattern, boolean caseSensitive, boolean multiLine) {
+		int f = 0;
+		if (!caseSensitive) f += Pattern.CASE_INSENSITIVE;
+		if (multiLine) f += Pattern.MULTILINE;
+		final int flags = f;
+		String translated = translatePattern(strPattern);
+		String key = flags + "\0" + translated;
+		return compatCache.computeIfAbsent(key, k -> Pattern.compile(translated, flags));
+	}
+
+	// Translates a CFML/Perl pattern string to java.util.regex syntax.
+	// Currently a passthrough — POSIX class mapping etc. added here later.
+	private static String translatePattern(String pattern) {
+		return pattern;
+	}
+
 	@Override
 	public String replace(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
 			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			if (m.find()) {
 				m.appendReplacement(sb, Matcher.quoteReplacement(expandReplacement(m, replacement)));
 			}
@@ -27,7 +49,7 @@ class JavaCompatRegex extends JavaRegex {
 	public String replaceAll(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
 			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			while (m.find()) {
 				m.appendReplacement(sb, Matcher.quoteReplacement(expandReplacement(m, replacement)));
 			}
@@ -44,7 +66,7 @@ class JavaCompatRegex extends JavaRegex {
 	// Literal $ is preserved as-is; non-special backslash sequences pass through.
 	static String expandReplacement(Matcher m, String repl) {
 		if (repl == null) return "";
-		if (repl.indexOf('\\') < 0 && repl.indexOf('$') < 0) return repl;
+		if (repl.indexOf('\\') < 0) return repl;
 
 		StringBuilder out = new StringBuilder(repl.length() + 16);
 		// 0=none  1=next_upper  2=next_lower  3=all_upper  4=all_lower
@@ -111,8 +133,16 @@ class JavaCompatRegex extends JavaRegex {
 	private static String applyGroupCase(String group, int mode) {
 		if (group.isEmpty()) return group;
 		switch (mode) {
-			case 3: return group.toUpperCase();
-			case 4: return group.toLowerCase();
+			case 3: {
+				StringBuilder sb = new StringBuilder(group.length());
+				for (int i = 0; i < group.length(); i++) sb.append(Character.toUpperCase(group.charAt(i)));
+				return sb.toString();
+			}
+			case 4: {
+				StringBuilder sb = new StringBuilder(group.length());
+				for (int i = 0; i < group.length(); i++) sb.append(Character.toLowerCase(group.charAt(i)));
+				return sb.toString();
+			}
 			case 1: return Character.toUpperCase(group.charAt(0)) + group.substring(1);
 			case 2: return Character.toLowerCase(group.charAt(0)) + group.substring(1);
 			default: return group;
