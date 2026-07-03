@@ -9,7 +9,6 @@
   <name>Lucee Loader Build</name>
   <description>Building the Lucee Loader JAR</description>
   <url>http://maven.lucee.org/loader/</url>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
