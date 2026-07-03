@@ -191,7 +191,7 @@ public class ScheduledTaskThread extends ParentThreasRefThread {
 				break;
 			}
 			if (!task.isPaused()) {
-				if (endDate < todayDate && endTime < todayTime) {
+				if (hasEndDatePassed(endDate, endTime, todayDate, todayTime)) {
 					log(Log.LEVEL_ERROR, String.format("End date %s has passed; now: %s", DateTimeUtil.format(endDate + endTime, null, timeZone),
 							DateTimeUtil.format(todayDate + todayTime, null, timeZone)));
 					break;
@@ -472,6 +472,13 @@ public class ScheduledTaskThread extends ParentThreasRefThread {
 				break;
 			}
 		}
+	}
+
+	public static boolean hasEndDatePassed(long endDate, long endTime, long todayDate, long todayTime) {
+		// endDate is Long.MAX_VALUE when no end date was defined (see constructor) -> task never expires,
+		// regardless of endTime; without this guard "endDate + endTime" overflows and wrongly looks like the past
+		if (endDate == Long.MAX_VALUE) return false;
+		return endDate + endTime < todayDate + todayTime;
 	}
 
 	public static long getMilliSecondsInDay(Calendar c) {
