@@ -26,9 +26,6 @@ import java.security.SecureRandom;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -41,8 +38,9 @@ import javax.naming.directory.ModificationItem;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 
-import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -134,7 +132,8 @@ public final class LDAPClient {
 	 * Sets the secure level for the LDAP connection.
 	 *
 	 * @param secureLevel [SECURE_CFSSL_BASIC, SECURE_CFSSL_CLIENT_AUTH, SECURE_NONE]
-	 * @param clientCert path to PKCS12 keystore containing the client certificate (SECURE_CFSSL_CLIENT_AUTH only)
+	 * @param clientCert path to PKCS12 keystore containing the client certificate
+	 *            (SECURE_CFSSL_CLIENT_AUTH only)
 	 * @param clientCertPassword password for the client certificate keystore
 	 * @throws Exception
 	 */
@@ -366,8 +365,7 @@ public final class LDAPClient {
 						try {
 							value = attributesRow.get(name).get();
 						}
-						catch (Exception e) {
-						}
+						catch (Exception e) {}
 
 						qry.setAtEL("name", len, name);
 						qry.setAtEL("value", len, value);

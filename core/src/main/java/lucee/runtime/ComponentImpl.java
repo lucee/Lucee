@@ -36,7 +36,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Set;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lucee.commons.collection.MapFactory;
@@ -101,10 +100,10 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFGSProperty;
 import lucee.runtime.type.UDFGetterProperty;
-import lucee.runtime.type.UDFSetterProperty;
 import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.UDFProperties;
+import lucee.runtime.type.UDFSetterProperty;
 import lucee.runtime.type.cfc.ComponentEntryIterator;
 import lucee.runtime.type.cfc.ComponentValueIterator;
 import lucee.runtime.type.dt.DateTime;
@@ -186,8 +185,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	/**
 	 * Constructor of the Component, USED ONLY FOR DESERIALIZE
 	 */
-	public ComponentImpl() {
-	}
+	public ComponentImpl() {}
 
 	/**
 	 * constructor of the class
@@ -762,7 +760,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			return Reflector.componentToClass(pc, this).getClass();
 		}
 
-		// When calling via super, use public access for error message since super calls should access inherited methods
+		// When calling via super, use public access for error message since super calls should access
+		// inherited methods
 		int errorAccess = superAccess ? ACCESS_PUBLIC : access;
 		if (member == null) throw ComponentUtil.notFunction(this, KeyImpl.init(name), null, errorAccess);
 		throw ComponentUtil.notFunction(this, KeyImpl.init(name), member.getValue(), errorAccess);
@@ -773,10 +772,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		// LDEV-6236 accessor bypass — skip full UDF dispatch for generated getters/setters
 		if (!((PageContextImpl) pc).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			if (udf instanceof UDFGetterProperty) {
-				return ((UDFGetterProperty) udf).callDirect( this, pc );
+				return ((UDFGetterProperty) udf).callDirect(this, pc);
 			}
 			if (udf instanceof UDFSetterProperty && args != null) {
-				return ((UDFSetterProperty) udf).callDirect( this, pc, args );
+				return ((UDFSetterProperty) udf).callDirect(this, pc, args);
 			}
 		}
 
@@ -1003,21 +1002,21 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		if (_udfs.isEmpty() && _data.isEmpty()) {
 			return new Collection.Key[0];
 		}
-		
+
 		List<Key> orderedKeys = new ArrayList<Key>(_udfs.size() + _data.size());
-		
-		for (Entry<Key, UDF> entry : _udfs.entrySet()) {
+
+		for (Entry<Key, UDF> entry: _udfs.entrySet()) {
 			if (entry.getValue().getAccess() <= access) {
 				orderedKeys.add(entry.getKey());
 			}
 		}
-		for (Entry<Key, Member> entry : _data.entrySet()) {
+		for (Entry<Key, Member> entry: _data.entrySet()) {
 			Member member = entry.getValue();
 			if (member.getAccess() <= access && !(member instanceof UDF)) {
 				orderedKeys.add(entry.getKey());
 			}
 		}
-		
+
 		return orderedKeys.toArray(new Collection.Key[orderedKeys.size()]);
 	}
 
@@ -1207,8 +1206,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 					try {
 						return DumpUtil.toDumpData(_call(pageContext, KeyConstants.__toDumpData, udf, null, new Object[0]), pageContext, maxlevel, dp);
 					}
-					catch (PageException e) {
-					}
+					catch (PageException e) {}
 				}
 			}
 		}

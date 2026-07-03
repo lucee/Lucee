@@ -32,7 +32,6 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -195,8 +194,7 @@ public final class JSONConverter extends ConverterSupport {
 					sct.setEL(getter.getName().substring(3), testRecusrion(getter.invoke(obj, ArrayUtil.OBJECT_EMPTY), tmp));
 
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 		}
 

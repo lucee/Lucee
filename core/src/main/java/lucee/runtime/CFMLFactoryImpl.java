@@ -62,7 +62,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.functions.string.Hash;
-import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
@@ -226,9 +225,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					if (MAX_NO_SLEEP > 0 && count >= MAX_NO_SLEEP) {
 						if (THROTTLE_FIRED_ONCE.compareAndSet(false, true)) {
 							LogUtil.log(config, Log.LEVEL_ERROR, CFMLFactoryImpl.class.getName(),
-									"lucee.request.limit.concurrent throttle engaged for the first time — "
-											+ "remoteAddr=" + ra + " concurrent=" + count
-											+ " maxNoSleep=" + MAX_NO_SLEEP + " sleepTime=" + SLEEP_TIME + "ms. "
+									"lucee.request.limit.concurrent throttle engaged for the first time — " + "remoteAddr=" + ra + " concurrent=" + count + " maxNoSleep="
+											+ MAX_NO_SLEEP + " sleepTime=" + SLEEP_TIME + "ms. "
 											+ "Set -Dlucee.request.limit.concurrent.maxnosleep=<higher> to raise the threshold "
 											+ "or -Dlucee.request.limit.concurrent.sleeptime=0 to disable.");
 						}
@@ -236,7 +234,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 						SystemUtil.sleep(SLEEP_TIME);
 					}
 				}
-				if (THROTTLE_PRIORITY_ENABLED && resetToNormPrio && Thread.currentThread().getPriority() != Thread.NORM_PRIORITY) Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
+				if (THROTTLE_PRIORITY_ENABLED && resetToNormPrio && Thread.currentThread().getPriority() != Thread.NORM_PRIORITY)
+					Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
 			}
 		}
 
@@ -316,8 +315,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				((PageContextImpl) parent).removeChildPageContext(pc);
 			}
 		}
-		if (pcs.size() < PC_POOL_MAX_SIZE && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse)
-			pcs.push((PageContextImpl) pc);
+		if (pcs.size() < PC_POOL_MAX_SIZE && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse) pcs.push((PageContextImpl) pc);
 
 		if (runningPcs.size() > MAX_SIZE) clean(runningPcs);
 		if (runningChildPcs.size() > MAX_SIZE) clean(runningChildPcs);
@@ -396,23 +394,24 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				}
 				// after 10 seconds downgrade priority of the thread (adjusted for debugger suspend time);
 				// skipped under virtual threads — VirtualThread.setPriority is a no-op
-				else if (!ThreadUtil.ALLOW_VIRTUAL_THREADS && pc.getStartTime() + 10000 + suspendedMillis < System.currentTimeMillis() && (th = pc.getThread()) != null && th.getPriority() != Thread.MIN_PRIORITY) {
-					Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
-					if (log != null) {
-						PageContext root = pc.getRootPageContext();
-						String msg = "downgrade priority of the a " + (root != null && root != pc ? "thread" : "request") + " at " + getPath(pc) + ". "
-								+ MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc);
-						Thread thread = pc.getThread();
-						if (thread != null) log.log(Log.LEVEL_INFO, LOG_TYPE_NAME, msg, ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
-						else log.log(Log.LEVEL_WARN, LOG_TYPE_NAME, msg);
-					}
-					try {
-						pc.getThread().setPriority(Thread.MIN_PRIORITY);
-					}
-					catch (Throwable t) {
-						ExceptionUtil.rethrowIfNecessary(t);
-					}
-				}
+				else if (!ThreadUtil.ALLOW_VIRTUAL_THREADS && pc.getStartTime() + 10000 + suspendedMillis < System.currentTimeMillis() && (th = pc.getThread()) != null
+						&& th.getPriority() != Thread.MIN_PRIORITY) {
+							Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
+							if (log != null) {
+								PageContext root = pc.getRootPageContext();
+								String msg = "downgrade priority of the a " + (root != null && root != pc ? "thread" : "request") + " at " + getPath(pc) + ". "
+										+ MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc);
+								Thread thread = pc.getThread();
+								if (thread != null) log.log(Log.LEVEL_INFO, LOG_TYPE_NAME, msg, ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
+								else log.log(Log.LEVEL_WARN, LOG_TYPE_NAME, msg);
+							}
+							try {
+								pc.getThread().setPriority(Thread.MIN_PRIORITY);
+							}
+							catch (Throwable t) {
+								ExceptionUtil.rethrowIfNecessary(t);
+							}
+						}
 			}
 		}
 	}
@@ -605,14 +604,12 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			try {
 				if (PageContextUtil.debug(pc)) data.setEL("debugger", pc.getDebugger().getDebuggingData(pc));
 			}
-			catch (PageException e2) {
-			}
+			catch (PageException e2) {}
 
 			try {
 				data.setEL(KeyConstants._id, Hash.call(pc, pc.getId() + ":" + pc.getStartTime()));
 			}
-			catch (PageException e1) {
-			}
+			catch (PageException e1) {}
 
 			data.setEL(KeyConstants._hash, cw.getHash());
 			data.setEL("contextId", cw.getIdentification().getId());
@@ -625,20 +622,17 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			try {
 				scopes.setEL(KeyConstants._application, pc.applicationScope());
 			}
-			catch (PageException pe) {
-			}
+			catch (PageException pe) {}
 
 			try {
 				scopes.setEL(KeyConstants._session, pc.sessionScope());
 			}
-			catch (PageException pe) {
-			}
+			catch (PageException pe) {}
 
 			try {
 				scopes.setEL(KeyConstants._client, pc.clientScope());
 			}
-			catch (PageException pe) {
-			}
+			catch (PageException pe) {}
 			scopes.setEL(KeyConstants._cookie, pc.cookieScope());
 			scopes.setEL(KeyConstants._variables, pc.variablesScope());
 			if (!(pc.localScope() instanceof LocalNotSupportedScope)) {
@@ -676,8 +670,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					break;
 				}
 			}
-			catch (PageException e1) {
-			}
+			catch (PageException e1) {}
 
 		}
 		// }

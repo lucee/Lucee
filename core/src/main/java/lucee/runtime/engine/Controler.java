@@ -59,7 +59,6 @@ import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.timer.Stopwatch;
 import lucee.runtime.type.scope.storage.StorageScopeFile;
-import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.dynamic.DynamicInvoker;
 
 /**
@@ -620,7 +619,7 @@ public final class Controler extends ParentThreasRefThread {
 		// calculate size (recursive, matching original getRealSize behaviour)
 		int count = files.length;
 		long size = 0;
-		for (Resource f : files) {
+		for (Resource f: files) {
 			size += ResourceUtil.getRealSize(f);
 		}
 
@@ -638,7 +637,7 @@ public final class Controler extends ParentThreasRefThread {
 		// keep deleting the oldest files first, until under both thresholds
 		int deleted = 0;
 		int failed = 0;
-		for (Resource f : files) {
+		for (Resource f: files) {
 			if (count <= 100000 && size <= maxSize) break;
 			long fSize = ResourceUtil.getRealSize(f);
 			try {
@@ -659,8 +658,8 @@ public final class Controler extends ParentThreasRefThread {
 		}
 
 		if (deleted > 0 || failed > 0) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(),
-					"Cleanup of directory [" + dir + "]: removed [" + deleted + "] files, failed [" + failed + "]. Remaining size [" + size + "], remaining files [" + count + "].");
+			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "Cleanup of directory [" + dir + "]: removed [" + deleted
+					+ "] files, failed [" + failed + "]. Remaining size [" + size + "], remaining files [" + count + "].");
 		}
 	}
 
