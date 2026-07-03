@@ -19,7 +19,8 @@ target/*
 *.cfc.hbm.xml
 /cache
 WEB-INF
-
+core/bin/
+loader/bin/
 .classpath
 *.eml
 *.iml
