@@ -44,7 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				} catch (any e) {
 					// Should throw ApplicationException with proper message
 					expect(e.type).toBe("application", e.message);
-					expect(e.message).toContain("nonexistentProperty");
+					expect(e.message).toInclude("nonexistentProperty");
 				}
 			});
 
