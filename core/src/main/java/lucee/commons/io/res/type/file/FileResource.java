@@ -131,12 +131,12 @@ public final class FileResource extends File implements Resource {
 	}
 
 	/**
-	 * LDEV-6095: after copy, ensure the owner can read/write the new file without altering group/other bits
-	 * (ModeUtil-based setReadable/setWritable would set all roles and break mode preservation).
+	 * LDEV-6095: after copy, ensure the owner can read/write the new file without altering group/other
+	 * bits (ModeUtil-based setReadable/setWritable would set all roles and break mode preservation).
 	 * When {@code attributeCopyUsed} is true, {@link StandardCopyOption#COPY_ATTRIBUTES} already copied
 	 * readonly/hidden/etc.; only add missing owner write when the POSIX mode lacks it (e.g. chmod 444).
-	 * Readonly set via {@link #setWritable(boolean)} is tracked with a user xattr so it can be distinguished
-	 * from a plain {@code fileSetAccessMode} change during copy.
+	 * Readonly set via {@link #setWritable(boolean)} is tracked with a user xattr so it can be
+	 * distinguished from a plain {@code fileSetAccessMode} change during copy.
 	 */
 	private static void applyPermissionsAfterCopy(Resource dest, Resource source, boolean attributeCopyUsed) {
 		if (dest instanceof FileResource) {
@@ -278,7 +278,7 @@ public final class FileResource extends File implements Resource {
 		try {
 			UserDefinedFileAttributeView view = Files.getFileAttributeView(path, UserDefinedFileAttributeView.class);
 			if (view == null || !view.list().contains(READONLY_ATTRIBUTE)) return false;
-			int size = (int) view.size(READONLY_ATTRIBUTE);
+			int size = view.size(READONLY_ATTRIBUTE);
 			ByteBuffer buf = ByteBuffer.allocate(size);
 			view.read(READONLY_ATTRIBUTE, buf);
 			buf.flip();
@@ -663,8 +663,7 @@ public final class FileResource extends File implements Resource {
 			moveTo(dest);
 			return true;
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 		return false;
 	}
 
@@ -880,8 +879,7 @@ public final class FileResource extends File implements Resource {
 		try {
 			provider.read(this);
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 
 		return super.exists();
 	}
