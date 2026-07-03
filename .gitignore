@@ -21,7 +21,10 @@ target/*
 /cache
 WEB-INF
 core/bin
+core/bin/
+loader/bin/
 .classpath
+/.classpath
 *.eml
 *.iml
 *.ipr

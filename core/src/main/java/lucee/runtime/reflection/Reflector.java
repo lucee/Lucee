@@ -970,15 +970,33 @@ public final class Reflector {
 
 	/**
 	 * to get a Getter Method of an Object
-	 * 
+	 *
 	 * @param clazz Class to invoke method from
 	 * @param prop Name of the Method without get
 	 * @return return Value of the getter Method
 	 */
 	public static MethodInstance getGetterEL(Class clazz, String prop, boolean nameCaseSensitive) {
-		prop = "get" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstance(clazz, KeyImpl.init(prop), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
-		if (!mi.hasMethod()) return null;
+		String getterName = "get" + StringUtil.ucFirst(prop);
+		MethodInstance mi = getMethodInstance(clazz, KeyImpl.init(getterName), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
+
+		if (!mi.hasMethod()) {
+			String isName = "is" + StringUtil.ucFirst(prop);
+			mi = getMethodInstance(clazz, KeyImpl.init(isName), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
+			if (mi.hasMethod()) {
+				try {
+					lucee.transformer.dynamic.meta.Method m = mi.getMethod();
+					Class rtn = m.getReturnClass();
+					if (rtn != Boolean.class && rtn != boolean.class) return null;
+				}
+				catch (PageException e) {
+					return null;
+				}
+			}
+			else {
+				return null;
+			}
+		}
+
 		try {
 			if (mi.getMethod().getReturnClass() == void.class) return null;
 		}

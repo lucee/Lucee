@@ -249,7 +249,7 @@ public final class SQLCaster {
 		case Types.DOUBLE:
 		case Types.FLOAT:
 			try {
-				if (type == Types.FLOAT) stat.setFloat(parameterIndex, Caster.toFloatValue(value));
+				if (type == Types.FLOAT) stat.setDouble(parameterIndex, Caster.toDoubleValue(value));
 				else if (type == Types.DOUBLE) stat.setDouble(parameterIndex, Caster.toDoubleValue(value));
 				else stat.setObject(parameterIndex, Caster.toDouble(value), type);
 			}
