@@ -22,8 +22,8 @@ import java.util.Date;
 import java.util.TimeZone;
 
 /**
- * DateTimeImpl for a value read from a JDBC DATE/TIME/TIMESTAMP column, preserving the driver's
- * own toString() representation instead of Lucee's {ts '...'} ODBC escape format - see LDEV-1344
+ * DateTimeImpl for a value read from a JDBC DATE/TIME/TIMESTAMP column, preserving the driver's own
+ * toString() representation instead of Lucee's {ts '...'} ODBC escape format - see LDEV-1344
  */
 public final class TimestampImpl extends DateTimeImpl {
 
@@ -38,6 +38,16 @@ public final class TimestampImpl extends DateTimeImpl {
 
 	@Override
 	public String castToString(TimeZone tz) {
+		return jdbcToString;
+	}
+
+	@Override
+	public String castToString() {
+		return jdbcToString;
+	}
+
+	@Override
+	public String castToString(String defaultValue) {
 		return jdbcToString;
 	}
 }
