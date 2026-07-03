@@ -9,29 +9,94 @@ Lucee simplifies technologies like webservices (REST, SOAP, HTTP), ORM (Hibernat
 
 Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using less resources and delivering better performance. 
 
-[What is new with Lucee 6](README-Lucee6.md)
+## What's New
+
+- [Lucee 7.1](https://docs.lucee.org/guides/lucee-7-1.html)
+- [Lucee 7](https://docs.lucee.org/guides/lucee-7.html)
+- [Lucee 6.2](https://docs.lucee.org/guides/lucee-6.2.html)
+- [Lucee 5.3 "Kabang"](https://docs.lucee.org/guides/lucee-5.3-kabang.html)
+- [Lucee 5](https://docs.lucee.org/guides/lucee-5.html)
+- Lucee 8.0 (coming soon)
 
 ## Changelogs
 
-- [Changelogs per Release](https://download.lucee.org/changelog/?version=6.2)
+- [Changelogs per Release](https://download.lucee.org/changelog/)
 - [New Tags & Functions, Arguments and Attributes](https://docs.lucee.org/reference/changelog.html)
 
-### Breaking changes
+### Breaking Changes
 
-- [Breaking Changes Between Lucee 5.4 and 6.0](https://docs.lucee.org/recipes/breaking-changes-6-0.html)
-- [Breaking Changes Between Lucee 6.0 and 6.1](https://docs.lucee.org/recipes/breaking-changes-6-1.html)
-- [Breaking Changes Between Lucee 6.1 and 6.2](https://docs.lucee.org/recipes/breaking-changes-6-2.html)
+See all breaking changes documentation at [docs.lucee.org/recipes](https://docs.lucee.org/recipes.html):
+
 - [Breaking Changes Between Lucee 6.2 and 7.0](https://docs.lucee.org/recipes/breaking-changes-7.html)
+- [Breaking Changes Between Lucee 7.0 and 7.1](https://docs.lucee.org/recipes/breaking-changes-7-1.html)
+- [Breaking Changes Between Lucee 7.1 and 8.0](https://docs.lucee.org/recipes/breaking-changes-8-0.html) (coming soon)
 
 ## Installation
 
-You can [build Lucee from source](https://docs.lucee.org/guides/working-with-source.html) or grab one of our distributions:
+You can [build Lucee from source](https://docs.lucee.org/guides/working-with-source.html) or download a distribution from [download.lucee.org](https://download.lucee.org/). We also provide [official Docker images and Dockerfiles](https://github.com/lucee/lucee-dockerfiles).
 
-- [Lucee Express](https://lucee.org/downloads.html) (just unzip and run; delete to clean up)
-- [Installers for Windows, Linux and OSX](https://lucee.org/downloads.html)
-- [Official Dockerfiles and Docker images](https://github.com/lucee/lucee-dockerfiles)
+## LuCLI
 
-Alternatively try the super-useful [CommandBox](https://www.ortussolutions.com/products/commandbox) standalone developer tools for CFML powered by Lucee.
+[LuCLI](https://lucli.dev/) is a command-line interface for Lucee development and deployment. It provides server lifecycle management, CFML script execution, module system, dependency management, and AI integration — all from the terminal.
+
+**Quick Start:**
+
+```bash
+curl -LsSf https://lucli.dev/install.sh | sh
+# Windows:
+powershell -ExecutionPolicy Bypass -NoProfile -Command "irm https://lucli.dev/install.ps1 | iex"
+```
+
+Requires Java 17+.
+
+**Core Features:**
+
+- **Server Management** — Start, stop, restart, and monitor Lucee servers with `lucli server` commands
+- **CFML Execution** — Run `.cfs` scripts, `.cfm` templates, or `.cfc` components directly from the CLI
+- **Project Configuration** — `lucee.json` for per-project server settings (port, Lucee version, JVM memory, environment variables)
+- **Module System** — Create and install reusable CLI modules in `~/.lucli/modules/`
+- **Dependency Management** — Manage CFML libraries and Lucee extensions with automatic git/Maven resolution
+- **Secrets Management** — Store and inject encrypted secrets into your Lucee servers
+- **AI Integration** — Configure LLM endpoints and run AI prompts with skill support
+- **Daemon Mode** — Run LuCLI as a background service for programmatic access
+- **Batch Scripts** — Execute sequences of commands with `.lucli` batch files
+
+**Example `lucee.json`:**
+
+```json
+{
+  "name": "my-project",
+  "lucee": { "version": "6.2.2" },
+  "port": 8080,
+  "webroot": "./",
+  "jvm": { "maxMemory": "512m" },
+  "dependencies": {
+    "cfwheels": { "type": "cfml", "source": "git", "url": "https://github.com/cfwheels/cfwheels" }
+  }
+}
+```
+
+**Documentation:** [lucli.dev/docs](https://lucli.dev/docs/) | **GitHub:** [cybersonic/LuCLI](https://github.com/cybersonic/LuCLI)
+
+## AI Assistants & Developer Tools
+
+### Lucee Skill for AI Assistants
+
+A machine-readable skill so your AI assistant knows modern Lucee. Drop-in context for Cursor, Copilot, Warp, Claude, ChatGPT, and more. Always aligned with the latest docs.
+
+- [skill.lucee-services.com/main.skill](https://skill.lucee-services.com/main.skill)
+- [docs.lucee.org/lucee.skill](https://docs.lucee.org/lucee.skill)
+
+### Lucee MCP Server
+
+Hosted by Lucee, gives your AI callable tools for Lucee documentation and CFML code analysis.
+
+**Tools:**
+- `search_lucee_docs` — search functions, tags, and recipes in the Lucee docs
+- `get_lucee_function` — full descriptor for a built-in function (arguments, types, examples)
+- `get_lucee_tag` — full descriptor for a tag (attributes, types, examples)
+- `parse_cfml_ast` — parse CFML source into an AST (tags, calls, control flow)
+- `query_cfml_ast` — query an AST by node type, name, or line number
 
 ## Building Lucee from Source
 
