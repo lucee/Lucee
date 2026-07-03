@@ -349,6 +349,10 @@ public final class ConfigAdmin {
 		ConfigFile.write(config.getConfigFile(), root);
 
 	}
+	
+	private static Object getScheduleTaskSyncToken(ConfigPro config) {
+		return SystemUtil.createToken("ConfigAdmin:schedule", ResourceUtil.getNormalizedPathEL(config.getConfigFile()));
+	}
 
 	private void _reload(boolean refreshScheduler) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
 
@@ -591,10 +595,12 @@ public final class ConfigAdmin {
 	}
 
 	public static Array updateScheduledTask(ConfigPro config, ScheduleTask task, boolean reload) throws IOException, PageException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
-		admin._updateScheduledTask(task);
-		admin.storeAndReload(false, true, reload, false);
-		return admin._getScheduledTasks();
+		synchronized (getScheduleTaskSyncToken(config)) {
+			ConfigAdmin admin = new ConfigAdmin(config, null);
+			admin._updateScheduledTask(task);
+			admin.storeAndReload(false, true, reload, false);
+			return admin._getScheduledTasks();
+		}
 	}
 
 	private void _updateScheduledTask(ScheduleTask task) throws ExpressionException {
@@ -653,24 +659,28 @@ public final class ConfigAdmin {
 
 	public static void pauseScheduledTask(ConfigPro config, String name, boolean pause, boolean throwWhenNotExist, boolean reload)
 			throws PageException, IOException, ConverterException, BundleException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
-		Struct data = null;
-		try {
-			data = admin._getScheduledTask(name, true);
-		}
-		catch (ExpressionException ee) {
-			if (throwWhenNotExist) throw ee;
-			return;
-		}
-		data.setEL("paused", pause);
+		synchronized (getScheduleTaskSyncToken(config)) {
+			ConfigAdmin admin = new ConfigAdmin(config, null);
+			Struct data = null;
+			try {
+				data = admin._getScheduledTask(name, true);
+			}
+			catch (ExpressionException ee) {
+				if (throwWhenNotExist) throw ee;
+				return;
+			}
+			data.setEL("paused", pause);
 
-		admin.storeAndReload(false, true, reload, false);
+			admin.storeAndReload(false, true, reload, false);
+		}
 	}
 
 	public static void removeScheduledTask(ConfigPro config, String name, boolean reload) throws PageException, IOException, ConverterException, BundleException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
-		admin._removeScheduledTask(name);
-		admin.storeAndReload(false, true, reload, false);
+		synchronized (getScheduleTaskSyncToken(config)) {
+			ConfigAdmin admin = new ConfigAdmin(config, null);
+			admin._removeScheduledTask(name);
+			admin.storeAndReload(false, true, reload, false);
+		}
 	}
 
 	/**

@@ -336,6 +336,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "load config file");
 			Struct root = loadDocumentCreateIfFails(config, configFileNew, "server");
 			config.setRoot(root);
+			config.resetScheduledTasks();
 			// admin mode
 			load(config, root, false, doNew, essentialOnly);
 
@@ -383,6 +384,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		boolean doNew = iDoNew != NEW_NONE;
 		Struct root = loadDocumentCreateIfFails(null, configFile, "server");
 		configServer.setRoot(root);
+		configServer.resetScheduledTasks();
 		load(configServer, root, true, doNew, quick);
 		((CFMLEngineImpl) ConfigUtil.getEngine(configServer)).onStart(configServer, true);
 	}
