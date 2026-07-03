@@ -32,6 +32,8 @@ WEB-INF
 /dev/
 /out/
 loader/env.json
+core/bin/
+loader/bin/
 buildVersionNumber.txt
 /test/reports
 
