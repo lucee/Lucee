@@ -301,7 +301,9 @@ public class TagUtil {
 		if (pc == null) return;
 		try {
 			ConfigWebPro config = (ConfigWebPro) pc.getConfig();
-			PageSource ps = isWeb ? config.getTagMapping(mappingName).getPageSource(filename) : config.getServerTagMapping(mappingName).getPageSource(filename);
+			Mapping mapping = isWeb ? config.getTagMapping(mappingName) : config.getServerTagMapping(mappingName);
+			if (mapping == null) return;
+			PageSource ps = mapping.getPageSource(filename);
 
 			// Page p = ps.loadPage(pc);
 			ComponentImpl c = ComponentLoader.loadComponent(pc, ps, filename, true, true);
