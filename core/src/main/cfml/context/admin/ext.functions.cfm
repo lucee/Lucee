@@ -249,25 +249,8 @@
 			</cfif>
 			
 			<!--- is the image extension installed? --->
-			<cfif serversideDN && extensionExists("B03E92E1-F2F3-4380-981922D0BDFEF2B8")> 
-				<cfif isImage(data)>
-					<cfset local.img=imageRead(data)>
-					<!--- shrink images if needed --->
-					<cfif img.height GT arguments.height || img.width GT arguments.width>
-						<cfif img.height GT arguments.height >
-							<cfset imageResize(img,"",arguments.height)>
-						</cfif>
-						<cfif img.width GT arguments.width>
-							<cfset imageResize(img,arguments.width,"")>
-						</cfif>
-					</cfif>
-					<!--- we go this way to influence the quality of the image 
-						and cache the local file
-
-					--->
-					<cfset imagewrite(image:img,destination:tmpfile)>
-					<cfset local.b64=toBase64(fileReadBinary(tmpfile))>
-				</cfif>
+			<cfif serversideDN && extensionExists("B03E92E1-F2F3-4380-981922D0BDFEF2B8")>
+				<cfinclude template="ext.functions.image.cfm">
 			</cfif>	
 
 			<cfif isNull(local.b64) && isBinary(data)>
