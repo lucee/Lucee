@@ -1878,6 +1878,12 @@ public class ConfigWebImpl implements ConfigWebPro {
 			this.instance.reset();
 		}
 		this.instance = instance;
+		if (instance instanceof MultiContextConfigWeb) {
+			MultiContextConfigWeb mcw = (MultiContextConfigWeb) instance;
+			mcw.setDebugEntries(new DebugEntry[0]);
+			mcw.setMailServers(new Server[0]);
+			mcw.setRestMappings(new lucee.runtime.rest.Mapping[0]);
+		}
 		return this;
 	}
 
