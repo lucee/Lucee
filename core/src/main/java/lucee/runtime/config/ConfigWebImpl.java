@@ -24,6 +24,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.writer.CFMLWriter;
+import lucee.runtime.net.mail.Server;
 
 public class ConfigWebImpl implements ConfigWebPro {
 	private ConfigWebInner instance;
