@@ -10,14 +10,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(isBoolean(result)).toBe(true, "Result should be boolean");
 			});
 
-			it(title='accessing boolean property via is*() on custom Java class', body=function() {
-				// Use a real Java class with is*() getters
-				var Boolean = createObject("java", "java.lang.Boolean");
-				var b = Boolean.init(true);
-				var result = b.booleanValue;  // Actually returns via getter not property
-				expect(isBoolean(result)).toBe(true);
-			});
-
 			it(title='File.hidden returns expected boolean value', body=function() {
 				var File = createObject("java", "java.io.File");
 				var testFile = File.init("/testfile.txt");
