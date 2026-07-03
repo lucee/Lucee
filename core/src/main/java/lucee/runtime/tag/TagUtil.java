@@ -37,6 +37,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentImpl;
 import lucee.runtime.ComponentSpecificAccess;
+import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
