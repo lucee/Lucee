@@ -20,7 +20,7 @@ target/*
 /cache
 WEB-INF
 
-.classpath
+/.classpath
 *.eml
 *.iml
 *.ipr
@@ -43,5 +43,5 @@ buildVersionNumber.txt
 /.claude
 
 # Eclipse-derived IDE files (.classpath/.project regenerate from pom.xml)
-.classpath
-.project
+/.classpath
+/.project
