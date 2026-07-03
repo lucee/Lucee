@@ -23,7 +23,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.TimeZone;
 
+import lucee.commons.io.SystemUtil;
+import lucee.runtime.op.Caster;
+
 public interface Cast {
+
+	// when enabled, DATE/TIME/TIMESTAMP query columns keep the JDBC driver's native toString() format
+	// (matching ACF) instead of Lucee's {ts '...'} ODBC escape format when cast to a string - see LDEV-1344
+	public static final boolean JDBC_DATETIME_FORMAT = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.query.datetime.jdbcformat", null), false);
 
 	public static final Cast ARRAY = new ArrayCast();
 	public static final Cast BIT = new BitCast();

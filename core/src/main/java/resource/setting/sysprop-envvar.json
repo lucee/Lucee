@@ -909,6 +909,17 @@
 		"default": false
 	},
 	{
+		"sysprop": "lucee.query.datetime.jdbcformat",
+		"envvar": "LUCEE_QUERY_DATETIME_JDBCFORMAT",
+		"desc": "By default, Lucee converts DATE/TIME/TIMESTAMP query column values to a string using the ODBC escape format (e.g. `{ts '2017-05-18 19:14:38'}`), while Adobe ColdFusion (ACF) uses the JDBC driver's native `toString()` format (e.g. `2017-05-18 19:14:38.0`). This difference can break legacy code that builds SQL by concatenating a query result date directly into a new SQL string instead of using cfqueryparam. Set this environment variable or SysProp to `true` to make Lucee use the JDBC driver's native string format instead, matching ACF (see LDEV-1344)",
+		"category": "query",
+		"tags": [ "cfquery" ],
+		"functions": [ "queryExecute" ],
+		"type": "boolean",
+		"introduced": "7.0.1",
+		"default": false
+	},
+	{
 		"sysprop": "lucee.query.result.threshold",
 		"envvar": "LUCEE_QUERY_RESULT_THRESHOLD",
 		"desc": "Enables automatic logging of database queries that return large result sets to help proactively identify potential OutOfMemory (OOM) issues. When set to a positive integer, Lucee will log a warning message to the datasource log category whenever a query returns a number of rows greater than or equal to the specified threshold. Set to 0 or leave unset to disable this feature (default behavior). Logs include execution time, row count, column count, threshold value, SQL query, and tag context. Helps identify problematic queries before they cause memory issues in production environments",
