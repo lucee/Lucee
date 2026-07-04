@@ -182,13 +182,13 @@ public final class MavenUpdateProvider {
 	static Collection<Repository> merge(Repository[] left, Repository[] middle, Repository[] right) {
 		List<Repository> list = new ArrayList<>();
 		for (Repository repo: left) {
-			if (list.contains(repo)) list.add(repo);
+			if (!list.contains(repo)) list.add(repo);
 		}
 		for (Repository repo: middle) {
-			if (list.contains(repo)) list.add(repo);
+			if (!list.contains(repo)) list.add(repo);
 		}
 		for (Repository repo: right) {
-			if (list.contains(repo)) list.add(repo);
+			if (!list.contains(repo)) list.add(repo);
 		}
 
 		return list;
