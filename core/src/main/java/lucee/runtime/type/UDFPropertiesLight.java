@@ -29,6 +29,11 @@ public final class UDFPropertiesLight extends UDFPropertiesBase {
 		this.arguments = arguments;
 		this.functionName = functionName;
 		this.returnType = returnType;
+		if (arguments != null && arguments.length > 0) {
+			this.argumentsSet = new HashSet<Collection.Key>();
+			for (int i = 0; i < arguments.length; i++)
+				argumentsSet.add(arguments[i].getName());
+		}
 	}
 
 	@Override
@@ -145,12 +150,6 @@ public final class UDFPropertiesLight extends UDFPropertiesBase {
 
 	@Override
 	public Set<Key> getArgumentsSet() {
-		if (arguments != null && arguments.length > 0) {
-			this.argumentsSet = new HashSet<Collection.Key>();
-			for (int i = 0; i < arguments.length; i++) {
-				argumentsSet.add(arguments[i].getName());
-			}
-		}
 		return argumentsSet;
 	}
 
