@@ -54,7 +54,7 @@ public final class ThreadLocalPageContext {
 	private static ThreadLocal<Boolean> insideInheritableRegistration = new ThreadLocal<Boolean>();
 	// general purpose, thread scoped switch (default enabled); while disabled the ambient (thread bound)
 	// PageContext is not consulted as a fallback, see fallback(boolean)
-	private static ThreadLocal<Boolean> fallbackTL = new ThreadLocal<Boolean>();
+	private static ThreadLocal<Boolean> fallbackTL = ThreadLocal.withInitial(() -> Boolean.TRUE);
 	// CCL_UNSET sentinel distinguishes "never saved" from "saved a null CCL"; some boot/gateway threads legitimately have a null context classloader.
 	private static final ClassLoader CCL_UNSET = new ClassLoader(null) {};
 	private static ThreadLocal<ClassLoader> prevCCL = ThreadLocal.withInitial(() -> CCL_UNSET);
@@ -205,14 +205,13 @@ public final class ThreadLocalPageContext {
 	 * @return the previous value, so it can be restored
 	 */
 	public static boolean fallback(boolean enable) {
-		Boolean prev = fallbackTL.get();
-		fallbackTL.set(enable ? Boolean.TRUE : Boolean.FALSE);
-		return prev == null || prev.booleanValue();
+		boolean prev = fallbackTL.get();
+		fallbackTL.set(enable);
+		return prev;
 	}
 
 	private static boolean fallbackEnabled() {
-		Boolean b = fallbackTL.get();
-		return b == null || b.booleanValue();
+		return fallbackTL.get();
 	}
 
 	// gated access to the thread bound PageContext, honoring fallback(boolean)
