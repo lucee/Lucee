@@ -21,7 +21,7 @@ public class Currency
 	 * @param newValue New value.
 	 */
 	public Currency(long newValue) {
-		embeddedValue = new Long(newValue);
+		embeddedValue = Long.valueOf(newValue);
 	}
 
 	/**
@@ -30,7 +30,7 @@ public class Currency
 	 * @param newValue New value.
 	 */
 	public Currency(String newValue) {
-		embeddedValue = new Long(newValue);
+		embeddedValue = Long.valueOf(newValue);
 	}
 
 	/**
