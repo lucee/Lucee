@@ -525,6 +525,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 		this.unavaiClasses.clear();
 	}
 
+	@SuppressWarnings("removal")
 	@Override
 	public void finalize() throws Throwable {
 		try {

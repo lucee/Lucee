@@ -128,6 +128,7 @@ public class SafeArray extends JacobObject {
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("removal")
 	@Override
 	protected void finalize() {
 		safeRelease();

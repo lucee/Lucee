@@ -166,6 +166,7 @@ public class EnumVariant extends JacobObject implements Enumeration<Variant>, It
 	 *
 	 * @see java.lang.Object#finalize()
 	 */
+	@SuppressWarnings("removal")
 	@Override
 	protected void finalize() {
 		safeRelease();

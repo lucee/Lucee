@@ -160,6 +160,7 @@ public class DispatchEvents extends JacobObject {
 	 * 
 	 * @see java.lang.Object#finalize()
 	 */
+	@SuppressWarnings("removal")
 	@Override
 	protected void finalize() {
 		safeRelease();
