@@ -1,14 +1,13 @@
 package lucee.runtime.util;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
+import java.lang.ref.Reference;
 import java.util.Map;
 import java.util.UUID;
-
-import org.apache.commons.collections4.map.ReferenceMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lucee.commons.collection.RefMap;
+import lucee.commons.collection.RefMap.ReferenceType;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
@@ -21,7 +20,7 @@ public final class CFIDUtil {
 	public static Boolean IDENTIFY_CLIENT_DEFAULT = Boolean.FALSE;
 	private static Boolean identifyClient;
 
-	private static Map<String, String> clients = new ReferenceMap<String, String>(HARD, SOFT, 100, 0.75f);
+	private static Map<String, String> clients = new RefMap<>(ReferenceType.SOFT, new ConcurrentHashMap<String, Reference<String>>(100));
 
 	public static boolean isCFID(PageContext pc, Object obj) {
 		return Decision.isGUIdSimple(obj);

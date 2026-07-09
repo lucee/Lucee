@@ -2,7 +2,7 @@ package lucee.transformer.dynamic.meta;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.ref.SoftReference;
+import java.lang.ref.Reference;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.objectweb.asm.Type;
 
+import lucee.commons.collection.RefMap;
+import lucee.commons.collection.RefMap.ReferenceType;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -143,7 +145,7 @@ public abstract class Clazz implements Serializable {
 	 * private static double lclasses2 = 0; private static int count = 0;
 	 */
 
-	private static Map<String, SoftReference<Pair<Method, Boolean>>> cachedMethods = new ConcurrentHashMap<>();
+	private static Map<String, Pair<Method, Boolean>> cachedMethods = new RefMap<>(ReferenceType.SOFT, new ConcurrentHashMap<String, Reference<Pair<Method, Boolean>>>());
 
 	public static String id(FunctionMember fm) {
 		// public java.lang.String java.lang.String.toString()
@@ -315,8 +317,8 @@ public abstract class Clazz implements Serializable {
 		return defaultValue;
 	}
 
-	public static Method getMethod(Class clazz, Method[] methods, Map<String, SoftReference<Pair<Method, Boolean>>> cachedMethods, String methodName, Object[] args,
-			boolean nameCaseSensitive, boolean convertArgument, boolean convertComparsion, Method defaultValue) {
+	public static Method getMethod(Class clazz, Method[] methods, Map<String, Pair<Method, Boolean>> cachedMethods, String methodName, Object[] args, boolean nameCaseSensitive,
+			boolean convertArgument, boolean convertComparsion, Method defaultValue) {
 
 		// like
 		Class[] parameterTypes;
@@ -358,23 +360,20 @@ public abstract class Clazz implements Serializable {
 
 		// get match from cache
 		if (cachedMethods != null) {
-			SoftReference<Pair<Method, Boolean>> sr = cachedMethods.get(key);
-			if (sr != null) {
-				Pair<Method, Boolean> p = sr.get();
-				if (p != null) {
-					try {
-						if (p.getValue()) {
-							Class[] trgArgs = p.getName().getArgumentClasses();
-							for (int x = 0; x < trgArgs.length; x++) {
-								if (args[x] != null) {
-									args[x] = Reflector.convert(args[x], Reflector.toReferenceClass(trgArgs[x]), nirvana);
-								}
+			Pair<Method, Boolean> p = cachedMethods.get(key);
+			if (p != null) {
+				try {
+					if (p.getValue()) {
+						Class[] trgArgs = p.getName().getArgumentClasses();
+						for (int x = 0; x < trgArgs.length; x++) {
+							if (args[x] != null) {
+								args[x] = Reflector.convert(args[x], Reflector.toReferenceClass(trgArgs[x]), nirvana);
 							}
 						}
-						return p.getName();
 					}
-					catch (PageException pe) {}
+					return p.getName();
 				}
+				catch (PageException pe) {}
 			}
 		}
 
@@ -414,8 +413,8 @@ public abstract class Clazz implements Serializable {
 			// we only cache classes using fix classloaders
 			ClassLoader cl = clazz.getClassLoader();
 			if (cl == null || cl == SystemUtil.getCoreClassLoader() || cl == SystemUtil.getLoaderClassLoader()) {
-				if (cachedMethods == null) cachedMethods = new ConcurrentHashMap<>();
-				cachedMethods.put(key, new SoftReference<Pair<Method, Boolean>>(new Pair<Method, Boolean>(result.getName(), Boolean.TRUE)));
+				if (cachedMethods == null) cachedMethods = new RefMap<>(ReferenceType.SOFT, new ConcurrentHashMap<String, Reference<Pair<Method, Boolean>>>());
+				cachedMethods.put(key, new Pair<Method, Boolean>(result.getName(), Boolean.TRUE));
 			}
 			return result.getName();
 		}

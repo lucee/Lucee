@@ -18,9 +18,6 @@
  */
 package lucee.runtime.type;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,10 +27,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-
 import lucee.commons.collection.AccessOrderLimitedSizeMap;
 import lucee.commons.collection.MapFactory;
+import lucee.commons.collection.RefMap;
+import lucee.commons.collection.RefMap.ReferenceType;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.math.MathUtil;
@@ -110,7 +107,7 @@ public class StructImpl extends StructSupport {
 
 		if (type == TYPE_REGULAR) map = new HashMap<Collection.Key, Object>(initialCapacity);
 		else if (type == TYPE_SYNC) map = MapFactory.getConcurrentMap(initialCapacity);
-		else if (type == TYPE_SOFT) map = Collections.synchronizedMap(new ReferenceMap<Collection.Key, Object>(HARD, SOFT, initialCapacity, 0.75f));
+		else if (type == TYPE_SOFT) map = Collections.synchronizedMap(new RefMap<Collection.Key, Object>(ReferenceType.SOFT, initialCapacity, 0.75f));
 		else if (type == TYPE_LINKED) map = Collections.synchronizedMap(new LinkedHashMap<Collection.Key, Object>(initialCapacity));
 		else if (type == TYPE_LINKED_NOT_SYNC) map = new LinkedHashMap<Collection.Key, Object>(initialCapacity);
 		else if (type == TYPE_MAX) map = new AccessOrderLimitedSizeMap<Collection.Key, Object>(max, initialCapacity);

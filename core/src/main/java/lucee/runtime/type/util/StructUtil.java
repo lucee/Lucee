@@ -30,8 +30,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-
+import lucee.commons.collection.RefMap;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -265,7 +264,7 @@ public final class StructUtil {
 		if (m instanceof LinkedHashMap) return Struct.TYPE_LINKED;
 		if (m instanceof WeakHashMap) return Struct.TYPE_WEAKED;
 		if (m instanceof ConcurrentHashMap) return Struct.TYPE_SYNC;
-		if (m instanceof ReferenceMap) return Struct.TYPE_SOFT;
+		if (m instanceof RefMap) return Struct.TYPE_SOFT;
 
 		return Struct.TYPE_REGULAR;
 	}

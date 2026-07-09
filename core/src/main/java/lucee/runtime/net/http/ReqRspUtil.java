@@ -18,9 +18,6 @@
  */
 package lucee.runtime.net.http;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -33,10 +30,14 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.lang.ref.Reference;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.xml.sax.InputSource;
+
+import lucee.commons.collection.RefMap;
+import lucee.commons.collection.RefMap.ReferenceType;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletInputStream;
@@ -81,7 +82,7 @@ public final class ReqRspUtil {
 		urlEncodeAllowPlus = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.url.encodeAllowPlus", "true"), true);
 	}
 
-	private static Map<String, String> rootPathes = new ReferenceMap<String, String>(HARD, SOFT);
+	private static Map<String, String> rootPathes = new RefMap<>(ReferenceType.SOFT, new ConcurrentHashMap<String, Reference<String>>());
 
 	public static String get(Pair<String, Object>[] items, String name) {
 		for (int i = 0; i < items.length; i++) {

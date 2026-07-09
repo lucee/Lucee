@@ -18,7 +18,6 @@
  **/
 package lucee.commons.i18n;
 
-import java.lang.ref.SoftReference;
 import java.text.DateFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
@@ -40,9 +39,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import lucee.commons.collection.RefMap;
+import lucee.commons.collection.RefMap.ReferenceType;
 import lucee.commons.date.DateTimeException;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.io.SystemUtil;
@@ -77,7 +77,7 @@ public final class FormatUtil {
 		DEFAULT_MILLISECOND = DEFAULT_TIME.isSupported(ChronoField.MILLI_OF_SECOND) ? DEFAULT_TIME.get(ChronoField.MILLI_OF_SECOND) : 0;
 	}
 
-	private final static Map<String, SoftReference<List<FormatterWrapper>>> cfmlFormats = new ConcurrentHashMap<>();
+	private final static Map<String, List<FormatterWrapper>> cfmlFormats = new RefMap<>(ReferenceType.SOFT);
 	// "EEEE, MMMM d, yyyy, h:mm:ss a 'Coordinated Universal Time'"
 	private final static Pattern[] strCfmlFormats = new Pattern[] {
 
@@ -149,18 +149,17 @@ public final class FormatUtil {
 
 	};
 
-	private static final Map<String, SoftReference<FormatterWrapper>> dateTimeFormatter = new ConcurrentHashMap<>();
+	private static final Map<String, FormatterWrapper> dateTimeFormatter = new RefMap<>(ReferenceType.SOFT);
 	public static final boolean debug = false;
 	private static final char NON_BREAKING_SPACE = '\u202F';
 
 	public static List<FormatterWrapper> getAllFormats(Locale locale, TimeZone timeZone, boolean lenient) {
 		String key = "all:" + locale.toString() + "-" + timeZone.getID() + ":" + lenient;
-		SoftReference<List<FormatterWrapper>> sr = cfmlFormats.get(key);
-		List<FormatterWrapper> formatter = null;
-		if (sr == null || (formatter = sr.get()) == null) {
+		List<FormatterWrapper> formatter = cfmlFormats.get(key);
+		if (formatter == null) {
 			synchronized (SystemUtil.createToken("all", key)) {
-				sr = cfmlFormats.get(key);
-				if (sr == null || (formatter = sr.get()) == null) {
+				formatter = cfmlFormats.get(key);
+				if (formatter == null) {
 
 					formatter = new CopyOnWriteArrayList<>();
 					for (FormatterWrapper dtf: getCFMLFormats(locale, timeZone, lenient)) {
@@ -176,7 +175,7 @@ public final class FormatUtil {
 						formatter.add(dtf);
 					}
 
-					cfmlFormats.put(key, new SoftReference(formatter));
+					cfmlFormats.put(key, formatter);
 				}
 			}
 		}
@@ -186,19 +185,18 @@ public final class FormatUtil {
 	public static List<FormatterWrapper> getCFMLFormats(Locale locale, TimeZone timeZone, boolean lenient) {
 		String key = "cfml:" + locale.toString() + "-" + timeZone.getID() + ":" + lenient;
 
-		SoftReference<List<FormatterWrapper>> sr = cfmlFormats.get(key);
-		List<FormatterWrapper> formatter = null;
-		if (sr == null || (formatter = sr.get()) == null) {
+		List<FormatterWrapper> formatter = cfmlFormats.get(key);
+		if (formatter == null) {
 			synchronized (SystemUtil.createToken("cfml", key)) {
-				sr = cfmlFormats.get(key);
-				if (sr == null || (formatter = sr.get()) == null) {
+				formatter = cfmlFormats.get(key);
+				if (formatter == null) {
 					ZoneId zone = timeZone.toZoneId();
 					formatter = new ArrayList<>();
 					DateTimeFormatterBuilder builder;
 					for (Pattern p: strCfmlFormats) {
 						formatter.add(getFormatterWrapper(p.pattern, zone, locale, p.type, lenient));
 					}
-					cfmlFormats.put(key, new SoftReference<>(formatter));
+					cfmlFormats.put(key, formatter);
 				}
 			}
 		}
@@ -208,11 +206,10 @@ public final class FormatUtil {
 	public static List<FormatterWrapper> getDateTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
 
 		String key = "dt-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
-		SoftReference<List<FormatterWrapper>> tmp = cfmlFormats.get(key);
-		List<FormatterWrapper> df = tmp == null ? null : tmp.get();
+		List<FormatterWrapper> df = cfmlFormats.get(key);
 		if (df == null) {
 			synchronized (SystemUtil.createToken("dt", key)) {
-				df = tmp == null ? null : tmp.get();
+				df = cfmlFormats.get(key);
 				if (df == null) {
 					ZoneId zone = tz.toZoneId();
 					df = new ArrayList<>();
@@ -263,7 +260,7 @@ public final class FormatUtil {
 
 					extractLegacyDateTimePatterns(df, locale, tz, lenient);
 
-					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
+					cfmlFormats.put(key, df);
 				}
 			}
 		}
@@ -307,11 +304,10 @@ public final class FormatUtil {
 
 	public static List<FormatterWrapper> getDateFormats(Locale locale, TimeZone tz, boolean lenient) {
 		String key = "d-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
-		SoftReference<List<FormatterWrapper>> tmp = cfmlFormats.get(key);
-		List<FormatterWrapper> df = tmp == null ? null : tmp.get();
+		List<FormatterWrapper> df = cfmlFormats.get(key);
 		if (df == null) {
 			synchronized (SystemUtil.createToken("dt", key)) {
-				df = tmp == null ? null : tmp.get();
+				df = cfmlFormats.get(key);
 				if (df == null) {
 					ZoneId zone = tz.toZoneId();
 					df = new ArrayList<>();
@@ -323,7 +319,7 @@ public final class FormatUtil {
 
 					extractLegacyDatePatterns(df, locale, tz, lenient);
 
-					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
+					cfmlFormats.put(key, df);
 				}
 			}
 		}
@@ -455,11 +451,10 @@ public final class FormatUtil {
 	public static List<FormatterWrapper> getTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
 
 		String key = "t-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
-		SoftReference<List<FormatterWrapper>> tmp = cfmlFormats.get(key);
-		List<FormatterWrapper> df = tmp == null ? null : tmp.get();
+		List<FormatterWrapper> df = cfmlFormats.get(key);
 		if (df == null) {
 			synchronized (SystemUtil.createToken("dt", key)) {
-				df = tmp == null ? null : tmp.get();
+				df = cfmlFormats.get(key);
 				if (df == null) {
 					ZoneId zone = tz.toZoneId();
 					df = new ArrayList<>();
@@ -470,7 +465,7 @@ public final class FormatUtil {
 
 					extractLegacyTimePatterns(df, locale, tz, lenient);
 
-					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
+					cfmlFormats.put(key, df);
 				}
 			}
 		}
@@ -502,12 +497,10 @@ public final class FormatUtil {
 
 	public static FormatterWrapper getDateTimeFormatter(Locale locale, String mask, ZoneId zone) {
 		String key = locale + ":" + mask;
-		SoftReference<FormatterWrapper> ref = dateTimeFormatter.get(key);
-		FormatterWrapper fw = ref == null ? null : ref.get();
+		FormatterWrapper fw = dateTimeFormatter.get(key);
 		if (fw == null) {
 			synchronized (SystemUtil.createToken("getDateTimeFormatter", key)) {
-				ref = dateTimeFormatter.get(key);
-				fw = ref == null ? null : ref.get();
+				fw = dateTimeFormatter.get(key);
 				if (fw == null) {
 					// TODO cache
 					DateTimeFormatter formatter;
@@ -525,7 +518,7 @@ public final class FormatUtil {
 					if (locale != null) formatter = formatter.withLocale(locale);
 
 					fw = new FormatterWrapper(formatter, mask, FORMAT_TYPE_DATE_TIME, zone);
-					dateTimeFormatter.put(key, new SoftReference<FormatterWrapper>(fw));
+					dateTimeFormatter.put(key, fw);
 				}
 			}
 		}

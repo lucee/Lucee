@@ -19,12 +19,14 @@
 package lucee.commons.io.res.type.zip;
 
 import java.io.IOException;
-import java.lang.ref.SoftReference;
+import java.lang.ref.Reference;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipOutputStream;
 
+import lucee.commons.collection.RefMap;
+import lucee.commons.collection.RefMap.ReferenceType;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -40,7 +42,7 @@ final class ZipUtil {
 
 	public static final int FORMAT_ZIP = CompressUtil.FORMAT_ZIP;
 
-	private static final Map<String, SoftReference<ZipUtil>> compressResources = new ConcurrentHashMap<String, SoftReference<ZipUtil>>();
+	private static final Map<String, ZipUtil> compressResources = new RefMap<>(ReferenceType.SOFT, new ConcurrentHashMap<String, Reference<ZipUtil>>());
 	private static final long CHECK_TIMEOUT = 5000;
 	private static final long ONE_HOUR = 60L * 60L * 1000L;
 
@@ -84,15 +86,13 @@ final class ZipUtil {
 	 */
 	public static ZipUtil getInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
 		String key = zipFile.getAbsolutePath() + ":" + caseSensitive;
-		SoftReference<ZipUtil> tmp = compressResources.get(key);
-		ZipUtil compress = tmp == null ? null : tmp.get();
+		ZipUtil compress = compressResources.get(key);
 		if (compress == null) {
 			synchronized (SystemUtil.createToken("compress", key)) {
-				tmp = compressResources.get(key);
-				compress = tmp == null ? null : tmp.get();
+				compress = compressResources.get(key);
 				if (compress == null) {
 					compress = new ZipUtil(zipFile, format, caseSensitive);
-					compressResources.put(key, new SoftReference<ZipUtil>(compress));
+					compressResources.put(key, compress);
 				}
 			}
 		}

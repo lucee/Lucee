@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.lang.ref.SoftReference;
+import java.lang.ref.Reference;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Iterator;
@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.collection.RefMap;
+import lucee.commons.collection.RefMap.ReferenceType;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
@@ -73,8 +75,8 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	private DatasourceManagerImpl _manager;
 	private String defaultPrefix = "rdr";
 	private Map cores = new WeakHashMap();
-	private Map<String, SoftReference<Attr>> attrCache = new ConcurrentHashMap<String, SoftReference<Attr>>();
-	private Map<String, SoftReference<Attr>> attrsCache = new ConcurrentHashMap<String, SoftReference<Attr>>();
+	private Map<String, Attr> attrCache = new RefMap<>(ReferenceType.SOFT, new ConcurrentHashMap<String, Reference<Attr>>());
+	private Map<String, Attr> attrsCache = new RefMap<>(ReferenceType.SOFT, new ConcurrentHashMap<String, Reference<Attr>>());
 	private Map arguments;
 
 	/**
@@ -454,14 +456,12 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 
 	private Attr removeFromCache(ConnectionData data, String path, String name) {
 		attrsCache.remove(data.key() + path);
-		SoftReference<Attr> rtn = attrCache.remove(data.key() + path + name);
-		return rtn == null ? null : rtn.get();
+		return attrCache.remove(data.key() + path + name);
 	}
 
 	private Attr getFromCache(ConnectionData data, String path, String name) {
 		String key = data.key() + path + name;
-		SoftReference<Attr> tmp = attrCache.get(key);
-		Attr attr = tmp == null ? null : tmp.get();
+		Attr attr = attrCache.get(key);
 		if (attr != null && attr.timestamp() + MAXAGE < System.currentTimeMillis()) {
 			attrCache.remove(key);
 			return null;
@@ -470,7 +470,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	}
 
 	private Attr putToCache(ConnectionData data, String path, String name, Attr attr) {
-		attrCache.put(data.key() + path + name, new SoftReference<Attr>(attr));
+		attrCache.put(data.key() + path + name, attr);
 		return attr;
 	}
 

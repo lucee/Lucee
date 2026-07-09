@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>8.0.0.166-SNAPSHOT</version>
+  <version>8.0.0.167-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -446,12 +446,6 @@
     <groupId>commons-codec</groupId>
     <artifactId>commons-codec</artifactId>
     <version>1.15</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.apache.commons</groupId>
-    <artifactId>commons-collections4</artifactId>
-    <version>4.5.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>

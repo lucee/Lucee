@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.map.ReferenceMap;
+import lucee.commons.collection.RefMap;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.CacheEntry;
@@ -301,7 +301,7 @@ public final class RamCache extends CacheSupport {
 	@Override
 	public Struct getCustomInfo() {
 		Struct info = super.getCustomInfo();
-		info.setEL("outOfMemoryHandling", entries instanceof ReferenceMap);
+		info.setEL("outOfMemoryHandling", entries instanceof RefMap);
 		return info;
 	}
 
