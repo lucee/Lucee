@@ -649,7 +649,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				}
 
 				CFMLEngine engine = null;
-				String v = getVersion(rc);
+				String v = coreVersion.toString();
 
 				// in case the core version differes we download it
 				if (specificVersion != null && !specificVersion.equals(toVersion(v, specificVersion))) {
@@ -718,18 +718,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 
 		log(LoggerImpl.LOG_DEBUG, "loaded Lucee in " + (System.currentTimeMillis() - totalStart) + "ms");
-	}
-
-	private static String getVersion(File file) throws IOException, BundleException {
-		JarFile jar = new JarFile(file);
-		try {
-			Manifest manifest = jar.getManifest();
-			Attributes attrs = manifest.getMainAttributes();
-			return attrs.getValue("Bundle-Version");
-		}
-		finally {
-			jar.close();
-		}
 	}
 
 	private static CFMLEngineWrapper setEngine(final CFMLEngine engine) {
