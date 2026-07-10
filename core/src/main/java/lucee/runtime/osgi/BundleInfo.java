@@ -37,6 +37,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
@@ -77,34 +78,43 @@ public class BundleInfo implements Serializable {
 	private static Map<String, BundleInfo> bundles = new HashMap<String, BundleInfo>();
 
 	public static BundleInfo getInstance(Config config, String id, InputStream is, boolean closeStream) throws IOException, BundleException {
+		long start = System.currentTimeMillis();
+		System.out.println("[BundleInfo] Reading extension: " + id);
 
-		// cached ?
-		BundleInfo bi = bundles.get(id);
-		if (bi != null) {
-			return bi;
-		}
-
-		// load file from bundles dir
-		try {
-			File bundleFile = new File(ConfigUtil.getCFMLEngine(config).getCFMLEngineFactory().getBundleDirectory(), id);
-			if (bundleFile.isFile()) {
-				bundles.put(id, bi = new BundleInfo(bundleFile));
+		synchronized (SystemUtil.createToken("BundleInfoPool", id)) {
+			// check cache again inside lock
+			BundleInfo bi = bundles.get(id);
+			if (bi != null) {
+				System.out.println("[BundleInfo] Extension cached: " + id + " (" + (System.currentTimeMillis() - start) + "ms)");
 				return bi;
 			}
-		}
-		catch (Exception e) {
-		}
 
-		// create a temp file to read data from it (using the stream directly did not work properly)
-		File tmp = File.createTempFile("temp-extension-" + id + "-", ".lex");
-		try {
-			FileOutputStream os = new FileOutputStream(tmp);
-			IOUtil.copy(is, os, closeStream, true);
-			bundles.put(id, bi = new BundleInfo(tmp));
-			return bi;
-		}
-		finally {
-			tmp.delete();
+			// load file from bundles dir
+			try {
+				File bundleFile = new File(ConfigUtil.getCFMLEngine(config).getCFMLEngineFactory().getBundleDirectory(), id);
+				if (bundleFile.isFile()) {
+					System.out.println("[BundleInfo] Loading from bundle dir: " + id);
+					bundles.put(id, bi = new BundleInfo(bundleFile));
+					System.out.println("[BundleInfo] Loaded from bundle dir: " + id + " (" + (System.currentTimeMillis() - start) + "ms)");
+					return bi;
+				}
+			}
+			catch (Exception e) {}
+
+			// create a temp file to read data from it (using the stream directly did not work properly)
+			System.out.println("[BundleInfo] Reading from stream: " + id);
+			File tmp = File.createTempFile("temp-extension-" + id + "-", ".lex");
+			try {
+				FileOutputStream os = new FileOutputStream(tmp);
+				IOUtil.copy(is, os, closeStream, true);
+				System.out.println("[BundleInfo] Stream copied to temp file: " + id);
+				bundles.put(id, bi = new BundleInfo(tmp));
+				System.out.println("[BundleInfo] Extension loaded: " + id + " (" + (System.currentTimeMillis() - start) + "ms)");
+				return bi;
+			}
+			finally {
+				tmp.delete();
+			}
 		}
 	}
 
@@ -113,8 +123,11 @@ public class BundleInfo implements Serializable {
 	}
 
 	public BundleInfo(File file) throws IOException, BundleException {
+		long start = System.currentTimeMillis();
+		System.out.println("[BundleInfo.constructor] Opening jar file: " + file.getName());
 		JarFile jar = new JarFile(file);
 		try {
+			System.out.println("[BundleInfo.constructor] Reading manifest from: " + file.getName());
 			Manifest manifest = jar.getManifest();
 			if (manifest == null) return;
 
@@ -129,6 +142,7 @@ public class BundleInfo implements Serializable {
 				strVersion = tmp.trim();
 				_version = OSGiUtil.toVersion(strVersion);
 			}
+			System.out.println("[BundleInfo.constructor] Parsed: " + symbolicName + " v" + strVersion + " (" + (System.currentTimeMillis() - start) + "ms)");
 			exportPackage = attrs.getValue("Export-Package");
 			importPackage = attrs.getValue("Import-Package");
 			dynamicImportPackage = attrs.getValue("DynamicImport-Package");

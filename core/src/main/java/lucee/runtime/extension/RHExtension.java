@@ -560,18 +560,15 @@ public final class RHExtension implements Serializable {
 		if (metadata == null) {
 			synchronized (this) {
 				if (metadata == null) {
-
-					if (_id != null && _version != null) {
-						try {
-							metadata = read(config, hash);
-							if (metadata != null) {// && data.containsKey("startBundles")) {
-								return metadata;
-							}
+					// Always attempt cache read using hash (which is always set)
+					try {
+						metadata = read(config, hash);
+						if (metadata != null) {// && data.containsKey("startBundles")) {
+							return metadata;
 						}
-						catch (Exception e) {
-							LogUtil.log(config, "extension-metadata-read", e, Log.LEVEL_ERROR, "application");
-						}
-
+					}
+					catch (Exception e) {
+						LogUtil.log(config, "extension-metadata-read", e, Log.LEVEL_ERROR, "application");
 					}
 
 					// init from file

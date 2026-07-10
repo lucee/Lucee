@@ -4808,16 +4808,20 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					Log log = getLog("deploy");
 					extensionsLoadCount++;
 					List<ExtensionDefintion> definitions = getExtensionDefinitions();
+					if (LogUtil.doesInfo(log)) log.info("extensions", "Loading " + definitions.size() + " extension definitions from config");
 					// print.e(extensions);
 					Map<String, RHExtension> exts = new HashMap<>();
 					{
 						RHExtension ext;
 						for (ExtensionDefintion ed: definitions) {
 							try {
+								if (LogUtil.doesDebug(log)) log.debug("extensions", "Converting extension definition: " + ed);
 								ext = ed.toRHExtension(this);
 								if (!ext.installed()) {
+									if (LogUtil.doesInfo(log)) log.info("extensions", "Deploying extension: " + ext.getId() + " v" + ext.getVersion());
 									DeployHandler.deployExtension(this, ext, false, false, log);
 								}
+								if (LogUtil.doesDebug(log)) log.debug("extensions", "Added extension: " + ext.getStorageName());
 								exts.put(ext.getStorageName(), ext);
 							}
 							catch (Exception ex) {
@@ -4930,24 +4934,31 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	private static void startBundles(ConfigServerImpl config, RHExtension rhe, boolean firstLoad) throws IOException, BundleException {
+		Log log = config.getLog("deploy");
+		if (LogUtil.doesInfo(log)) log.info("extensions", "Starting bundles for extension: " + rhe.getId() + " v" + rhe.getVersion());
 		if (rhe.getMetadata().isStartBundles()) {
 			if (!firstLoad) {
+				if (LogUtil.doesDebug(log)) log.debug("extensions", "Deploying bundles (not first load): " + rhe.getId());
 				rhe.deployBundles(config, true);
 			}
 			else {
 				try {
 					BundleInfo[] bundles = rhe.getMetadata().getBundles();
 					if (bundles != null) {
+						if (LogUtil.doesInfo(log)) log.info("extensions", "Loading " + bundles.length + " bundles for: " + rhe.getId());
 						for (BundleInfo bi: bundles) {
+							if (LogUtil.doesDebug(log)) log.debug("extensions", "  Loading bundle: " + bi.getSymbolicName() + " v" + bi.getVersion());
 							OSGiUtil.loadBundleFromLocal(bi.getSymbolicName(), bi.getVersion(), null, false, null);
 						}
 					}
 				}
 				catch (Exception ex) {
+					if (LogUtil.doesWarn(log)) log.error("extensions", "Exception loading bundles for " + rhe.getId() + ", deploying instead", ex);
 					rhe.deployBundles(config, true);
 				}
 			}
 		}
+		if (LogUtil.doesInfo(log)) log.info("extensions", "Finished bundles for extension: " + rhe.getId());
 
 	}
 

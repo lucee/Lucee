@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(git show:*)",
-      "Bash(git stash show:*)"
+      "Bash(git stash show:*)",
+      "Bash(cat /Users/mic/Test/lucee-7/startup.jsonl | jq -r '.stack[]' | sort | uniq -c | sort -rn | head -50)"
     ]
   }
 }
