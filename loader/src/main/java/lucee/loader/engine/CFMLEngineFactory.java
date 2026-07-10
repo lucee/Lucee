@@ -690,13 +690,12 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				start = ltmp;
 			}
 			else {
-				bundleCollection = BundleLoader.loadBundles(this, getResourceRoot(), getBundleDirectory(), lucee, bundleCollection);
+				setEngine(loadAndGetEngine(lucee));
 
 				ltmp = System.currentTimeMillis();
 				log(LoggerImpl.LOG_DEBUG, "loaded bundles in " + (ltmp - start) + "ms");
 				start = ltmp;
 				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Loaded bundle: [" + bundleCollection.core.getSymbolicName() + "]");
-				setEngine(getEngine(bundleCollection));
 				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Loaded engine: [" + singelton + "]");
 				ltmp = System.currentTimeMillis();
 				log(LoggerImpl.LOG_DEBUG, "set engine in " + (ltmp - start) + "ms");
@@ -914,9 +913,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	private CFMLEngine _getCore(File rc) throws IOException, BundleException, ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException,
 			IllegalAccessException, InvocationTargetException {
-		bundleCollection = BundleLoader.loadBundles(this, getResourceRoot(), getBundleDirectory(), rc, bundleCollection);
-		return getEngine(bundleCollection);
-
+		return loadAndGetEngine(rc);
 	}
 
 	// should no longer be used, points to update provider that will no longer be available in the
@@ -975,8 +972,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		final Version v = null;
 		try {
 
-			bundleCollection = BundleLoader.loadBundles(this, getResourceRoot(), getBundleDirectory(), newLucee, bundleCollection);
-			final CFMLEngine e = getEngine(bundleCollection);
+			final CFMLEngine e = loadAndGetEngine(newLucee);
 			if (e == null) throw new IOException("Failed to load engine");
 			version = e.getInfo().getVersion();
 			// engine = e;
@@ -1746,6 +1742,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (file.isFile()) file = file.getParentFile();
 
 		return file;
+	}
+
+	private CFMLEngine loadAndGetEngine(final File coreFile) throws IOException, BundleException, ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+		bundleCollection = BundleLoader.loadBundles(this, getResourceRoot(), getBundleDirectory(), coreFile, bundleCollection);
+		return getEngine(bundleCollection);
 	}
 
 	/**
