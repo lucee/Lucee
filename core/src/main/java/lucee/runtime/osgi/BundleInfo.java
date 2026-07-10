@@ -123,11 +123,8 @@ public class BundleInfo implements Serializable {
 	}
 
 	public BundleInfo(File file) throws IOException, BundleException {
-		long start = System.currentTimeMillis();
-		System.out.println("[BundleInfo.constructor] Opening jar file: " + file.getName());
 		JarFile jar = new JarFile(file);
 		try {
-			System.out.println("[BundleInfo.constructor] Reading manifest from: " + file.getName());
 			Manifest manifest = jar.getManifest();
 			if (manifest == null) return;
 
@@ -142,7 +139,6 @@ public class BundleInfo implements Serializable {
 				strVersion = tmp.trim();
 				_version = OSGiUtil.toVersion(strVersion);
 			}
-			System.out.println("[BundleInfo.constructor] Parsed: " + symbolicName + " v" + strVersion + " (" + (System.currentTimeMillis() - start) + "ms)");
 			exportPackage = attrs.getValue("Export-Package");
 			importPackage = attrs.getValue("Import-Package");
 			dynamicImportPackage = attrs.getValue("DynamicImport-Package");
