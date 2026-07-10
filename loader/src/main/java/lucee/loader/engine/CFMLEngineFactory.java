@@ -802,10 +802,12 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		extend(config, "felix.service.urlhandlers", null, false);
 		extend(config, "felix.startlevel.bundle", null, false);
 
-		// Felix bundle resolution is disk-IO-bound graph walking, not CPU-bound.
-		// "1" makes Felix use a direct Executor (no pool, no keep-alive cycles).
-		// Override via -Dfelix.resolver.parallelism=N if a workload ever justifies it.
-		extend(config, "felix.resolver.parallelism", "1", false);
+		// Felix bundle resolution parallelism: enable parallel resolution with virtual threads.
+		// With virtual threads (Java 21+), parallelism is now beneficial for dependency graph traversal.
+		// Default: Math.min(CPU cores, 8) to balance parallelism without excessive lock contention.
+		// Override via -Dfelix.resolver.parallelism=N
+		int parallelism = Math.min(Math.max(1, Runtime.getRuntime().availableProcessors()), 8);
+		extend(config, "felix.resolver.parallelism", "" + parallelism, false);
 
 		// Skip waiting for service events to be delivered
 		extend(config, "felix.service.timeout", null, false);
