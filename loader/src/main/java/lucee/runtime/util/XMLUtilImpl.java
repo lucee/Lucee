@@ -42,13 +42,10 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.ccil.cowan.tagsoup.Parser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -222,27 +219,9 @@ public final class XMLUtilImpl implements XMLUtil {
 			catch (ParserConfigurationException e) {
 				throw new SAXException(e);
 			}
-
-			/*
-			 * DOMParser parser = new DOMParser(); print.out("parse"); parser.setEntityResolver(new
-			 * XMLEntityResolverDefaultHandler(validator)); parser.parse(xml); return parser.getDocument();
-			 */
 		}
 
-		XMLReader reader = new Parser();
-		reader.setFeature(Parser.namespacesFeature, true);
-		reader.setFeature(Parser.namespacePrefixesFeature, true);
-
-		try {
-			Transformer transformer = TransformerFactory.newInstance().newTransformer();
-
-			DOMResult result = new DOMResult();
-			transformer.transform(new SAXSource(reader, xml), result);
-			return getDocument(result.getNode());
-		}
-		catch (Exception e) {
-			throw new SAXException(e);
-		}
+		throw new RuntimeException("HTML parsing is not supported in this implementation of XMLUtil");
 	}
 
 	private DocumentBuilderFactory newDocumentBuilderFactory() {
