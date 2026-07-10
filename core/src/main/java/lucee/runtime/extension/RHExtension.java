@@ -560,11 +560,9 @@ public final class RHExtension implements Serializable {
 		if (metadata == null) {
 			synchronized (this) {
 				if (metadata == null) {
-					// Always attempt cache read using hash (which is always set)
 					try {
 						metadata = read(config, hash);
 						if (metadata != null) {// && data.containsKey("startBundles")) {
-							System.out.println("[RHExtension.getMetadata] Cache HIT: " + hash);
 							return metadata;
 						}
 					}
@@ -572,8 +570,6 @@ public final class RHExtension implements Serializable {
 						LogUtil.log(config, "extension-metadata-read", e, Log.LEVEL_ERROR, "application");
 					}
 
-					// init from file
-					System.out.println("[RHExtension.getMetadata] Cache MISS: " + hash + " - reading from file");
 					ExtensionMetadata tmp = new ExtensionMetadata();
 					try {
 						init(config, tmp, extensionFile, hash);
