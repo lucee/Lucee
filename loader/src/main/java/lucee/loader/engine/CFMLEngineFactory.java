@@ -682,9 +682,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					}
 				}
 
-				engine = _getCore(lucee);
-
-				setEngine(engine);
+				setEngine(loadAndGetEngine(lucee));
 				ltmp = System.currentTimeMillis();
 				log(LoggerImpl.LOG_DEBUG, "loaded the engine from lucee jar in " + (ltmp - start) + "ms");
 				start = ltmp;
@@ -909,11 +907,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (logger != null) {
 			logger.log(level, msg);
 		}
-	}
-
-	private CFMLEngine _getCore(File rc) throws IOException, BundleException, ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException,
-			IllegalAccessException, InvocationTargetException {
-		return loadAndGetEngine(rc);
 	}
 
 	// should no longer be used, points to update provider that will no longer be available in the
