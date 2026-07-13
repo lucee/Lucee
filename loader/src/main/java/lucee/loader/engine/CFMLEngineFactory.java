@@ -1740,8 +1740,15 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	private CFMLEngine loadAndGetEngine(final File coreFile) throws IOException, BundleException, ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+		long start = System.currentTimeMillis();
 		bundleCollection = BundleLoader.loadBundles(this, getResourceRoot(), getBundleDirectory(), coreFile, bundleCollection);
-		return getEngine(bundleCollection);
+		log(LoggerImpl.LOG_DEBUG, "BundleLoader.loadBundles: " + (System.currentTimeMillis() - start) + "ms");
+
+		start = System.currentTimeMillis();
+		CFMLEngine engine = getEngine(bundleCollection);
+		log(LoggerImpl.LOG_DEBUG, "getEngine (load CFMLEngineImpl + getInstance): " + (System.currentTimeMillis() - start) + "ms");
+
+		return engine;
 	}
 
 	/**
@@ -1760,16 +1767,24 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			throws ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 
 		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "state: " + BundleUtil.bundleState(bc.core.getState(), ""));
-		// bundle.getBundleContext().getServiceReference(CFMLEngine.class.getName());
 		log(org.apache.felix.resolver.Logger.LOG_DEBUG, Constants.FRAMEWORK_BOOTDELEGATION + ":" + bc.getBundleContext().getProperty(Constants.FRAMEWORK_BOOTDELEGATION));
 		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "felix.cache.rootdir: " + bc.getBundleContext().getProperty("felix.cache.rootdir"));
 
-		// log(Logger.LOG_DEBUG,bc.master.loadClass(TP.class.getName()).getClassLoader().toString());
+		long start = System.currentTimeMillis();
 		final Class<?> clazz = bc.core.loadClass("lucee.runtime.engine.CFMLEngineImpl");
-		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "class:" + clazz.getName());
-		final Method m = clazz.getMethod("getInstance", new Class[] { CFMLEngineFactory.class, BundleCollection.class });
-		return (CFMLEngine) m.invoke(null, new Object[] { this, bc });
+		log(LoggerImpl.LOG_DEBUG, "loadClass(CFMLEngineImpl): " + (System.currentTimeMillis() - start) + "ms");
 
+		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "class:" + clazz.getName());
+
+		start = System.currentTimeMillis();
+		final Method m = clazz.getMethod("getInstance", new Class[] { CFMLEngineFactory.class, BundleCollection.class });
+		log(LoggerImpl.LOG_DEBUG, "getMethod(getInstance): " + (System.currentTimeMillis() - start) + "ms");
+
+		start = System.currentTimeMillis();
+		CFMLEngine engine = (CFMLEngine) m.invoke(null, new Object[] { this, bc });
+		log(LoggerImpl.LOG_DEBUG, "getInstance().invoke (engine initialization): " + (System.currentTimeMillis() - start) + "ms");
+
+		return engine;
 	}
 
 	public Logger getLogger() {

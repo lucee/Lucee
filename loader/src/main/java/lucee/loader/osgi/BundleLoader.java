@@ -121,7 +121,10 @@ public class BundleLoader {
 
 			final Map<String, String> requiredBundleFragments = readRequireBundle(rbf); // Require-Bundle-Fragment
 
+			tmp = System.currentTimeMillis();
 			final Map<String, File> availableBundles = loadAvailableBundles(jarDirectory, requiredBundles, requiredBundleFragments);
+			engFac.log(LoggerImpl.LOG_DEBUG, "loadAvailableBundles: " + (System.currentTimeMillis() - tmp) + "ms");
+			start = System.currentTimeMillis();
 
 			// deploys bundled bundles to bundle directory
 			// deployBundledBundles(jarDirectory, availableBundles);
@@ -176,10 +179,10 @@ public class BundleLoader {
 
 	public static List<Bundle> addRequiredBundles(final Map<String, String> requiredBundles, final Map<String, File> availableBundles, final JarFile luceeCore, boolean always,
 			CFMLEngineFactory engFac, BundleContext bc) {
+		long start = System.currentTimeMillis();
 		final List<Bundle> bundles = new ArrayList<>();
 		final List<Bundle> bundlesSync = Collections.synchronizedList(bundles);
 		Iterator<Entry<String, String>> it = requiredBundles.entrySet().iterator();
-		// Use regular threads
 		List<CompletableFuture<?>> futures = new ArrayList<>();
 		while (it.hasNext()) {
 			Entry<String, String> e = it.next();
@@ -199,6 +202,7 @@ public class BundleLoader {
 		}
 
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+		engFac.log(LoggerImpl.LOG_DEBUG, "addRequiredBundles (" + requiredBundles.size() + " bundles): " + (System.currentTimeMillis() - start) + "ms");
 		return bundles;
 	}
 

@@ -3,7 +3,16 @@
     "allow": [
       "Bash(git show:*)",
       "Bash(git stash show:*)",
-      "Bash(cat /Users/mic/Test/lucee-7/startup.jsonl | jq -r '.stack[]' | sort | uniq -c | sort -rn | head -50)"
+      "Bash(cat /Users/mic/Test/lucee-7/startup.jsonl | jq -r '.stack[]' | sort | uniq -c | sort -rn | head -50)",
+      "Bash(cat /Users/mic/Test/lucee-7/bin/catalina.sh | grep -i lucee | head -10)",
+      "Bash(find /Users/mic/Test/lucee-7 -type f -name \"*.jar\" | xargs grep -l \"lucee.loader.servlet\" 2>/dev/null | head -5)",
+      "Bash(cp /Users/mic/Projects/Lucee/Lucee7/loader/target/8.0.0.171-SNAPSHOT.lco /Users/mic/Test/lucee-7/lucee-server/patches/)",
+      "Bash(cp /Users/mic/Projects/Lucee/Lucee7/loader/target/lucee-8.0.0.171-SNAPSHOT.jar /Users/mic/Test/lucee-7/lib/ext/)",
+      "Bash(rm -rf /Users/mic/Test/lucee-7/lucee-server/felix-cache)",
+      "Bash(pkill -f \"lucee-7\")",
+      "Bash(timeout 30 bin/startup.sh)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'Add detailed startup timing logs to identify bottlenecks *)"
     ]
   }
 }

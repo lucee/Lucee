@@ -274,6 +274,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	private CFMLEngineImpl(CFMLEngineFactory factory, BundleCollection bc) {
+		long constructorStart = System.currentTimeMillis();
+		long phaseStart = constructorStart;
 
 		// Kick some stuff to get it started in parallel because it takes forever to load
 		ThreadUtil.getThread(() -> {
@@ -410,21 +412,27 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		UpdateInfo updateInfo;
 		Resource configDir = null;
 		try {
+			long tConfig = System.currentTimeMillis();
 			configDir = getSeverContextConfigDirectory(factory);
 			updateInfo = ConfigFactory.getNew(this, configDir, true);
+			LogUtil.log(Log.LEVEL_DEBUG, LOG_NAME, "ConfigFactory.getNew: " + (System.currentTimeMillis() - tConfig) + "ms");
 		}
 		catch (Exception e) {
 			throw Caster.toPageRuntimeException(e);
 		}
 		CFMLEngineFactory.registerInstance((this));// patch, not really good but it works
+		long tServer = System.currentTimeMillis();
 		ConfigServerImpl cs = getConfigServerImpl(null, quick = true, false);
+		LogUtil.log(Log.LEVEL_DEBUG, LOG_NAME, "getConfigServerImpl: " + (System.currentTimeMillis() - tServer) + "ms");
 
 		boolean isRe = configDir == null ? false : ConfigFactory.isRequiredExtension(this, configDir, null);
 		boolean installExtensions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.install", null), true);
 
 		// copy bundled extension to local extension directory (if never done before)
 		if (installExtensions && updateInfo.updateType != ConfigFactory.NEW_NONE) {
+			long tDeploy = System.currentTimeMillis();
 			int count = deployBundledExtension(cs, false);
+			LogUtil.log(Log.LEVEL_DEBUG, LOG_NAME, "deployBundledExtension: " + (System.currentTimeMillis() - tDeploy) + "ms");
 			LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
 					count == 0 ? "No new extension available to add to local extension directory" : "Copied [" + count + "] bundled extension(s) to local extension directory");
 		}
@@ -624,6 +632,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			LogUtil.log(cs, Log.LEVEL_INFO, "startup", "Start CFML Controller");
 			controler.start();
 		}
+		LogUtil.log(Log.LEVEL_DEBUG, LOG_NAME, "CFMLEngineImpl constructor total: " + (System.currentTimeMillis() - constructorStart) + "ms");
 	}
 
 	private static void checkInvalidExtensions(CFMLEngineImpl eng, ConfigPro config, Set<ExtensionDefintion> extensionsToInstall, Set<RHExtension> extensionsToRemove) {
