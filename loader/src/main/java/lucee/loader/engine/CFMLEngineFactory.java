@@ -808,6 +808,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		// Override via -Dfelix.resolver.parallelism=N
 		int parallelism = Math.min(Math.max(1, Runtime.getRuntime().availableProcessors()), 8);
 		extend(config, "felix.resolver.parallelism", "" + parallelism, false);
+		extend(config, "felix.resolver.parallel", "true", false);
 
 		// Skip waiting for service events to be delivered
 		extend(config, "felix.service.timeout", null, false);
