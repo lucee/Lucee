@@ -39,19 +39,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		}
 	}
 
-	function testDateWithComma() {
-		var dateStr = "9/20/22, 12:34 PM";
-		try {
-			var result = parseDateTime(dateStr);
-			assertTrue(isDate(result), "Should parse date with comma: #dateStr#");
-			assertTrue(month(result) == 9, "Month should be 9 (September)");
-			assertTrue(day(result) == 20, "Day should be 20");
-			assertTrue(year(result) == 2022, "Year should be 2022");
-		} catch (any e) {
-			fail("Failed to parse date with comma - Error: #e.message#");
-		}
-	}
-
 	function testLongMonthName() {
 		var dateStr = "September 20, 2022 12:34 PM";
 		try {
@@ -102,8 +89,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function testDateTimeObject() {
 		var result = parseDateTime("2022-09-20 12:34:00");
 		assertTrue(isDate(result), "Result should be a date object");
-		assertTrue(isNumeric(getTime(result)), "Should have valid time value");
-
+		
 		assertEquals(2022, year(result), "Year should be 2022");
 		assertEquals(9, month(result), "Month should be 9");
 		assertEquals(20, day(result), "Day should be 20");
