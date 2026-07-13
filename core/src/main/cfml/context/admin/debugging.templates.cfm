@@ -29,19 +29,19 @@
     
 <!--- load available drivers --->
 <cfset driverNames=structnew("linked")>
-<cfset driverNames=ComponentListPackageAsStruct("lucee-server.admin.debug",driverNames)>
 <cfset driverNames=ComponentListPackageAsStruct("lucee.admin.debug",driverNames)>
+<!--- we prefer lucee-server over lucee, so we check that afterwards --->
+<cfset driverNames=ComponentListPackageAsStruct("lucee-server.admin.debug",driverNames)>
 <cfset driverNames=ComponentListPackageAsStruct("debug",driverNames)>
 
-
 <cfset drivers={}>
-    <cfloop collection="#driverNames#" index="n" item="fn">
-    	<cfif n EQ "Debug" or n EQ "Field" or n EQ "Group">
-        	<cfcontinue>
-        </cfif>
-    	<cfset tmp=createObject('component',fn)>
-   		<cfset drivers[trim(tmp.getId())]=tmp>
-    </cfloop>	
+<cfloop collection="#driverNames#" index="n" item="fn">
+	<cfif n EQ "Debug" or n EQ "Field" or n EQ "Group">
+		<cfcontinue>
+	</cfif>
+	<cfset tmp=createObject('component',fn)>
+	<cfset drivers[trim(tmp.getId())]=tmp>
+</cfloop>	
 <!--- 
 <span class="CheckError">
 The Gateway Implementation is currently in Beta State. Its functionality can change before it's final release.
