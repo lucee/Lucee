@@ -48,6 +48,7 @@ import org.osgi.framework.BundleException;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.engine.CFMLEngineFactorySupport;
+import lucee.loader.util.ExtensionFilter;
 import lucee.loader.util.Util;
 
 public class BundleLoader {
@@ -203,7 +204,7 @@ public class BundleLoader {
 
 	private static Map<String, File> loadAvailableBundles(final File jarDirectory, final Map<String, String> requiredBundles, final Map<String, String> requiredBundleFragments) {
 		final Map<String, File> rtn = new ConcurrentHashMap<>();
-		final File[] jars = jarDirectory.listFiles();
+		final File[] jars = jarDirectory.listFiles(new ExtensionFilter(new String[] { ".jar" }));
 
 		if (jars != null && jars.length > 0) {
 			// Create a thread pool with a fixed number of threads
@@ -214,7 +215,7 @@ public class BundleLoader {
 			List<File> remainings = null;
 			boolean has;
 			for (File jar: jars) {
-				if (!jar.isFile() || !jar.getName().endsWith(".jar")) continue;
+				// if (!jar.isFile() || !jar.getName().endsWith(".jar")) continue;
 				String fullname = null;
 				has = false;
 				try {
