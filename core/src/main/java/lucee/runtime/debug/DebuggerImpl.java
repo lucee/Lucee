@@ -403,7 +403,7 @@ public final class DebuggerImpl implements Debugger {
 						pc.addPageSource(p.getPageSource(), true);
 						// load info with debug template
 						try {
-							Component c = pc.loadComponent(fullname);
+							Component c = loadComponent(pc, fullname);
 							ModernAppListener.info(pc, c, args);
 						}
 						finally {
@@ -822,6 +822,20 @@ public final class DebuggerImpl implements Debugger {
 		debugging.setEL(KeyConstants._id, pci.getRequestId() + "-" + pci.getId());
 
 		return debugging;
+	}
+
+	private static Component loadComponent(PageContext pc, String fullname) throws PageException {
+		try {
+			return pc.loadComponent(fullname);
+		}
+		catch (PageException e) {
+			// in multi-mode try lucee-server variant
+			if (fullname != null && fullname.startsWith("lucee.")) {
+				String serverFullname = "lucee-server" + fullname.substring(5);
+				return pc.loadComponent(serverFullname);
+			}
+			throw e;
+		}
 	}
 
 	public void setAbort(TemplateLine abort) {
