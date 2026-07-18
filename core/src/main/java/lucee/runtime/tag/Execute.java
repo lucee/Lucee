@@ -261,7 +261,9 @@ public final class Execute extends BodyTagImpl {
 			throw pe;
 		}
 		catch (Exception e) {
-			throw new ApplicationException("Error invoking external process", e.getMessage());
+			ApplicationException ae = new ApplicationException("Error invoking external process", e.getMessage());
+			ae.initCause(e);
+			throw ae;
 		}
 		return EVAL_PAGE;
 	}
