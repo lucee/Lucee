@@ -710,7 +710,6 @@ public final class Directory extends TagImpl {
 				newDirectories.add(tmp);
 				tmp = tmp.getParentResource();
 			}
-			lucee.aprint.o(newDirectories);
 		}
 
 		try {
