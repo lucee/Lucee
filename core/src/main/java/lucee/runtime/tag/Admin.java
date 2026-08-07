@@ -542,15 +542,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			else password = null;
 
 			// Config
-			// Only call getConfigServer if we have a valid password or no password is required (initial setup)
 			if (type == TYPE_SERVER) {
-				ConfigServerImpl csi = ConfigUtil.getConfigServerImpl(configWeb);
-				// If there's no password set on the server, allow access without password (initial setup)
-				// Otherwise, require the password to match
-				if (csi.hasPassword() && password == null) {
-					// Password is required but not provided/matched
-					throw new ExpressionException("No access, password is invalid");
-				}
 				config = (ConfigPro) pageContext.getConfig().getConfigServer(password);
 			}
 

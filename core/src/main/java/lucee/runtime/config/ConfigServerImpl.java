@@ -7673,8 +7673,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	public void checkAccess(Password password) throws ExpressionException {
-		if (!hasPassword()) throw new ExpressionException("Cannot access, no password is defined");
-		if (!passwordEqual(password)) throw new ExpressionException("No access, password is invalid");
+		if (hasPassword() && !passwordEqual(password)) throw new ExpressionException("No access, password is invalid");
 	}
 
 	public void checkAccess(String key, long timeNonce) throws PageException {
