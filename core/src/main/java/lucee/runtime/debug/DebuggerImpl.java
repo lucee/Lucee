@@ -384,23 +384,25 @@ public final class DebuggerImpl implements Debugger {
 
 					// load Pagesource of the template
 					String path = debugEntry.getPath();
-					PageSource[] arr = ((PageContextImpl) pc).getPageSources(path);
-					Page p = PageSourceImpl.loadPage(pc, arr, null);
+					if (!StringUtil.isEmpty(path)) {
+						PageSource[] arr = ((PageContextImpl) pc).getPageSources(path);
+						Page p = PageSourceImpl.loadPage(pc, arr, null);
 
-					String fullname = debugEntry.getFullname();
-					if (p != null) {
-						arr = ((PageContextImpl) pc).getPageSources(path);
-						p = PageSourceImpl.loadPage(pc, arr);
-						pc.addPageSource(p.getPageSource(), true);
-						// load info with debug template
-						try {
-							Component c = pc.loadComponent(fullname);
-							ModernAppListener.info(pc, c, args);
+						String fullname = debugEntry.getFullname();
+						if (p != null) {
+							arr = ((PageContextImpl) pc).getPageSources(path);
+							p = PageSourceImpl.loadPage(pc, arr);
+							pc.addPageSource(p.getPageSource(), true);
+							// load info with debug template
+							try {
+								Component c = pc.loadComponent(fullname);
+								ModernAppListener.info(pc, c, args);
+							}
+							finally {
+								pc.removeLastPageSource(true);
+							}
+							return;
 						}
-						finally {
-							pc.removeLastPageSource(true);
-						}
-						return;
 					}
 				}
 			}

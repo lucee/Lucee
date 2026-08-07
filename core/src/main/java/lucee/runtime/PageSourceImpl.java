@@ -535,13 +535,16 @@ public final class PageSourceImpl implements PageSource {
 		if (dspPath != null) return dspPath;
 
 		if (!mapping.hasArchive()) {
-			return dspPath = StringUtil.toString(getPhyscalFile(), null);
+			String result = StringUtil.toString(getPhyscalFile(), null);
+			return dspPath = result != null ? result : relPath;
 		}
 		else if (isLoad(LOAD_PHYSICAL)) {
-			return dspPath = StringUtil.toString(getPhyscalFile(), null);
+			String result = StringUtil.toString(getPhyscalFile(), null);
+			return dspPath = result != null ? result : getArchiveSourcePath();
 		}
 		else if (isLoad(LOAD_ARCHIVE)) {
-			return dspPath = StringUtil.toString(getArchiveSourcePath(), null);
+			String result = StringUtil.toString(getArchiveSourcePath(), null);
+			return dspPath = result != null ? result : relPath;
 		}
 		else {
 			boolean pse = physcalExists();
@@ -550,11 +553,11 @@ public final class PageSourceImpl implements PageSource {
 			if (mapping.isPhysicalFirst()) {
 				if (pse) return dspPath = getPhyscalFile().toString();
 				else if (ase) return dspPath = getArchiveSourcePath();
-				return dspPath = getPhyscalFile().toString();
+				return dspPath = relPath;
 			}
 			if (ase) return dspPath = getArchiveSourcePath();
 			else if (pse) return dspPath = getPhyscalFile().toString();
-			return dspPath = getArchiveSourcePath();
+			return dspPath = relPath;
 		}
 	}
 
