@@ -6647,7 +6647,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public String getSalt() {
-		salt = null;// TEST PW
 		if (salt == null) {
 			synchronized (SystemUtil.createToken("config", "getSalt")) {
 				if (salt == null) {
