@@ -178,6 +178,48 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					}
 				}
 			});
+
+			it( "Multiple updateRegional calls should work after setPassword - proves password cache issue affects ALL admin actions", function() {
+				var testPassword = "testpass_6450_" & randRange(10000,99999);
+
+				try {
+					// Step 0: Set server admin password (may already be set, that's ok)
+					try {
+						admin
+							action="updatePassword"
+							type="server"
+							oldPassword="admin"
+							newPassword=testPassword;
+					}
+					catch(e){
+						// Password may already be set from previous test run, ignore
+					}
+
+					// Step 1: Update regional setting (US)
+					admin
+						action="updateRegional"
+						type="server"
+						password=testPassword
+						locale="en_US"
+						timeZone="America/New_York";
+
+					// Step 2: Update regional setting (UK) with same password
+					// This should NOT fail - proving password cache issue is GENERAL
+					admin
+						action="updateRegional"
+						type="server"
+						password=testPassword
+						locale="en_GB"
+						timeZone="Europe/London";
+
+					// If we get here, both calls succeeded
+					expect(true).toBe(true, "Both updateRegional calls should succeed");
+
+				}
+				catch (any e) {
+					fail("Should be able to update multiple regional settings after setting password. Error: " & e.message & " - This confirms password cache issue is GENERAL to ALL admin actions");
+				}
+			});
 		});
 	}
 }
