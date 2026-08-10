@@ -3,18 +3,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults, testBox ){
 		describe( "Testcase for LDEV-6450 - Password cache issue (general problem with all admin actions that call store())", function(){
 
-			var testPassword = "testpass_6450_" & randRange(10000,99999);
-
-			beforeAll( function() {
-				// Set server admin password once for all tests
-				admin
-					action="updatePassword"
-					type="server"
-					oldPassword="admin"
-					newPassword=testPassword;
-			});
-
 			it( "Multiple updateMapping calls should work after setPassword", function() {
+				var testPassword = "testpass_6450_" & randRange(10000,99999);
 				var testVirtual1 = "/test_6450_mapping1_" & randRange(10000,99999);
 				var testVirtual2 = "/test_6450_mapping2_" & randRange(10000,99999);
 				var testPhysical = getTempDirectory() & "lucee_test_6450/";
@@ -25,7 +15,19 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				}
 
 				try {
-					// Step 1: Create first mapping with the password set in beforeAll
+					// Step 0: Set server admin password (may already be set, that's ok)
+					try {
+						admin
+							action="updatePassword"
+							type="server"
+							oldPassword="admin"
+							newPassword=testPassword;
+					}
+					catch(e){
+						// Password may already be set from previous test run, ignore
+					}
+
+					// Step 1: Create first mapping with the password
 					admin
 						action="updateMapping"
 						type="server"
@@ -107,6 +109,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it( "Mixed admin actions (updateMapping + removeMapping) should work after setPassword - proves password cache affects all admin actions", function() {
+				var testPassword = "testpass_6450_" & randRange(10000,99999);
 				var testVirtual = "/test_6450_mixed_" & randRange(10000,99999);
 				var testPhysical = getTempDirectory() & "lucee_test_6450_mixed/";
 
@@ -115,7 +118,19 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				}
 
 				try {
-					// Step 1: Create mapping with password set in beforeAll
+					// Step 0: Set server admin password (may already be set, that's ok)
+					try {
+						admin
+							action="updatePassword"
+							type="server"
+							oldPassword="admin"
+							newPassword=testPassword;
+					}
+					catch(e){
+						// Password may already be set from previous test run, ignore
+					}
+
+					// Step 1: Create mapping with the password
 					admin
 						action="updateMapping"
 						type="server"
