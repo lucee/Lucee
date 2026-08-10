@@ -1,10 +1,20 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults, testBox ){
-		describe( "Testcase for LDEV-6450 - Password cache issue after updateMapping", function(){
+		describe( "Testcase for LDEV-6450 - Password cache issue (general problem with all admin actions that call store())", function(){
+
+			var testPassword = "testpass_6450_" & randRange(10000,99999);
+
+			beforeAll( function() {
+				// Set server admin password once for all tests
+				admin
+					action="updatePassword"
+					type="server"
+					oldPassword="admin"
+					newPassword=testPassword;
+			});
 
 			it( "Multiple updateMapping calls should work after setPassword", function() {
-				var testPassword = "testpass_6450_" & randRange(10000,99999);
 				var testVirtual1 = "/test_6450_mapping1_" & randRange(10000,99999);
 				var testVirtual2 = "/test_6450_mapping2_" & randRange(10000,99999);
 				var testPhysical = getTempDirectory() & "lucee_test_6450/";
@@ -15,14 +25,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				}
 
 				try {
-					// Step 1: Set server admin password
-					admin
-						action="updatePassword"
-						type="server"
-						oldPassword="admin"
-						newPassword=testPassword;
-
-					// Step 2: Create first mapping with the new password
+					// Step 1: Create first mapping with the password set in beforeAll
 					admin
 						action="updateMapping"
 						type="server"
@@ -32,7 +35,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 						toplevel="true"
 						primary="physical";
 
-					// Step 3: Create second mapping with the same password
+					// Step 2: Create second mapping with the same password
 					// This should NOT fail with "No access, password is invalid"
 					// Bug: after first updateMapping, password cache is stale
 					admin
@@ -44,7 +47,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 						toplevel="true"
 						primary="physical";
 
-					// Step 4: Verify both mappings exist
+					// Step 3: Verify both mappings exist
 					var mappings = [];
 					admin
 						action="getMappings"
@@ -92,6 +95,64 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					}
 
 					// Remove test directory
+					try {
+						if (directoryExists(testPhysical)) {
+							directoryDelete(testPhysical, true);
+						}
+					}
+					catch (any e) {
+						// Ignore cleanup errors
+					}
+				}
+			});
+
+			it( "Mixed admin actions (updateMapping + removeMapping) should work after setPassword - proves password cache affects all admin actions", function() {
+				var testVirtual = "/test_6450_mixed_" & randRange(10000,99999);
+				var testPhysical = getTempDirectory() & "lucee_test_6450_mixed/";
+
+				if (!directoryExists(testPhysical)) {
+					directoryCreate(testPhysical);
+				}
+
+				try {
+					// Step 1: Create mapping with password set in beforeAll
+					admin
+						action="updateMapping"
+						type="server"
+						password=testPassword
+						virtual=testVirtual
+						physical=testPhysical
+						toplevel="true"
+						primary="physical";
+
+					// Step 2: Remove mapping with the same password
+					// This should NOT fail - proving password cache issue affects ALL admin actions
+					admin
+						action="removeMapping"
+						type="server"
+						password=testPassword
+						virtual=testVirtual;
+
+					// Step 3: Verify mapping is removed
+					var mappings = [];
+					admin
+						action="getMappings"
+						type="server"
+						password=testPassword
+						returnVariable="mappings";
+
+					var mappingFound = false;
+					for (var mapping in mappings) {
+						if (mapping.virtual == testVirtual) mappingFound = true;
+					}
+
+					expect(mappingFound).toBe(false, "Mapping should be removed after removeMapping");
+
+				}
+				catch (any e) {
+					fail("Should be able to remove mapping after setting password. Error: " & e.message & " - This confirms password cache issue is GENERAL to all admin actions");
+				}
+				finally {
 					try {
 						if (directoryExists(testPhysical)) {
 							directoryDelete(testPhysical, true);
