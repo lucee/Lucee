@@ -7315,17 +7315,22 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private void createSaltAndPW(Struct root) throws IOException {
 		if (root == null) return;
 
-		boolean update = false;
 		String salt = metaSalt.get(this, root);
 		// not existing?
 		if (StringUtil.isEmpty(salt, true) || !Decision.isUUId(salt)) {
 			// create salt
 			root.setEL("salt", salt = CreateUUID.invoke());
-			update = true;
+			try {
+				ConfigFile.write(getConfigFile(), root, null);
+			}
+			catch (ConverterException e) {
+				throw ExceptionUtil.toIOException(e);
+			}
+			resetSalt();
 		}
 
 		Password pw = metaPassword.get(this, root);
-
+		boolean update = false;
 		// no password yet
 		if (pw == null) {
 			Resource pwFile = getConfigDir().getRealResource("password.txt");
@@ -7672,7 +7677,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	public void checkAccess(Password password) throws ExpressionException {
-		if (hasPassword() && (password == null || !passwordEqual(password))) throw new ExpressionException("No access, password is invalid");
+		if (!hasPassword()) throw new ExpressionException("Cannot access, no password is defined");
+		if (!passwordEqual(password)) throw new ExpressionException("No access, password is invalid");
 	}
 
 	public void checkAccess(String key, long timeNonce) throws PageException {

@@ -233,12 +233,23 @@ public final class PasswordImpl implements Password {
 			if (data.containsKey("pw")) data.remove("pw");
 			if (data.containsKey("password")) data.remove("password");
 
-			if (pw.getType() == HASHED_SALTED) data.setEL("hspw", pw.getPassword());
+			if (pw.getType() == HASHED_SALTED) {
+				data.setEL("hspw", pw.getPassword());
+				// Persist the salt along with the password hash
+				if (pw.getSalt() != null) {
+					data.setEL("salt", pw.getSalt());
+				}
+			}
 			// password is not hashed and salted
 			else {
 				PasswordImpl pwi;
 				if (pw instanceof PasswordImpl && (pwi = ((PasswordImpl) pw)).rawPassword != null) {
-					data.setEL("hspw", hash(pwi.rawPassword, getSalt(data)));
+					String hashedValue = hash(pwi.rawPassword, getSalt(data));
+					data.setEL("hspw", hashedValue);
+					// Persist the salt along with the password hash
+					if (pwi.getSalt() != null) {
+						data.setEL("salt", pwi.getSalt());
+					}
 				}
 				else {
 					data.setEL("pw", pw.getPassword());// this should never happen
@@ -312,10 +323,8 @@ public final class PasswordImpl implements Password {
 	public static void updatePassword(ConfigPro config, Password passwordOld, Password passwordNew) throws IOException, PageException, ConverterException {
 		if (!config.hasPassword()) {
 			config.setPassword(passwordNew);
-
 			ConfigAdmin admin = ConfigAdmin.newInstance(config, passwordNew);
 			admin.setPassword(passwordNew);
-
 			admin.store(true);
 			ConfigUtil.getConfigServerImpl(config).resetPassword().resetSalt();
 			// validate

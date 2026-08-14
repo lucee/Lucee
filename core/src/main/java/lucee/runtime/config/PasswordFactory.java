@@ -21,8 +21,6 @@ public class PasswordFactory implements PropFactory<Password> {
 
 	@Override
 	public Password evaluate(Config config, String name, Object val, short source) throws PageException {
-		((ConfigPro) config).getSalt();
-
 		return PasswordImpl.read(config, name, Caster.toString(val), ((ConfigPro) config).getSalt());
 	}
 

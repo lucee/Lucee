@@ -117,7 +117,7 @@ public final class SchedulerImpl implements Scheduler {
 		}
 	}
 
-	public void refresh(Array tasks) throws PageException, ScheduleException {
+	public void refresh(Array tasks) throws PageException {
 		synchronized (sync) {
 			Queue<TaskRef> newTasks = readInAllTasks(tasks);
 
