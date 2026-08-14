@@ -6684,6 +6684,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		return getPassword().getSalt();
 	}
 
+	/**
+	 * @return the system property / environment variable that defines the admin password (and therefore takes
+	 *         precedence over the config file), or <code>null</code> when the password is not defined that way.
+	 */
+	public String getPasswordEnvVarSource() {
+		return metaPassword.getEnvVarSystemPropSource();
+	}
+
 	@Override
 	public int getPasswordOrigin() {
 		if (getPassword() == null) return Password.ORIGIN_UNKNOW;

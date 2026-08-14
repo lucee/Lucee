@@ -365,6 +365,20 @@ public class Prop<T> {
 		return defaultValue;
 	}
 
+	/**
+	 * @return the name of the system property / environment variable that currently defines this
+	 *         property (and therefore takes precedence over the config file), or <code>null</code> when
+	 *         the value does not come from a system property / environment variable.
+	 */
+	public String getEnvVarSystemPropSource() {
+		if (noEnvVar) return null;
+		for (String key: envVarSystemProps()) {
+			final Object val = SystemUtil.getSystemPropOrEnvVarObject(key, null);
+			if (!StringUtil.isEmpty(val)) return key;
+		}
+		return null;
+	}
+
 	private T get(ConfigServerImpl config, String key, Object val, short source) throws PageException {
 		// only string values can contain placeholders (${...}); resolve them before evaluating
 		if (Decision.isSimpleValue(val) && val instanceof String) {

@@ -28,6 +28,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.crypt.BlowfishEasy;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
@@ -321,6 +322,14 @@ public final class PasswordImpl implements Password {
 	}
 
 	public static void updatePassword(ConfigPro config, Password passwordOld, Password passwordNew) throws IOException, PageException, ConverterException {
+		// the admin password can be defined via system property / environment variable, in which case it always
+		// takes precedence over the config file. Updating it in the config file would silently have no effect, so
+		// we fail with a clear message instead.
+		String envSource = ConfigUtil.getConfigServerImpl(config).getPasswordEnvVarSource();
+		if (envSource != null) {
+			throw new ApplicationException("cannot update the password, because it is defined via the system property [" + envSource
+					+ "] / environment variable [" + SystemUtil.convertSystemPropToEnvVar(envSource) + "], which takes precedence over the configuration file");
+		}
 		if (!config.hasPassword()) {
 			config.setPassword(passwordNew);
 			ConfigAdmin admin = ConfigAdmin.newInstance(config, passwordNew);
