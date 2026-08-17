@@ -460,6 +460,16 @@ public class Prop<T> {
 			}
 		}
 
+		// a setting defined via system property / environment variable always takes precedence over the
+		// config file (see get()), so updating it here would silently have no effect - fail with a clear
+		// message instead of writing a value that will be ignored.
+		String envSource = getEnvVarSystemPropSource();
+		if (envSource != null) {
+			String settingName = StringUtil.isEmpty(parent, true) ? keys[0] : (parent + "." + keys[0]);
+			throw new ApplicationException("cannot update the setting [" + settingName + "], because it is defined via the system property [" + envSource
+					+ "] / environment variable [" + SystemUtil.convertSystemPropToEnvVar(envSource) + "], which takes precedence over the configuration file");
+		}
+
 		T existing = getFromInput(config, input);
 		Object serialized = null;
 		if (choices != null) {
