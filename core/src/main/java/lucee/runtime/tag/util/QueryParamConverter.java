@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.lang.SQLComments;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
@@ -146,26 +147,14 @@ public final class QueryParamConverter {
 
 		for (int i = 0; i < sqlLen; i++) {
 			c = sql.charAt(i);
-			if (!inQuotes && sqlLen + 1 > i) {
-				// read multi line
-				if (c == '/' && sql.charAt(i + 1) == '*') {
-					int end = sql.indexOf("*/", i + 2);
-					if (end != -1) {
-						i = end + 2;
-						if (i == sqlLen) break;
-						c = sql.charAt(i);
-					}
-				}
-
-				// read single line
-				if (c == '-' && sql.charAt(i + 1) == '-') {
-					int end = sql.indexOf('\n', i + 1);
-					if (end != -1) {
-						i = end + 1;
-						if (i == sqlLen) break;
-						c = sql.charAt(i);
-					}
-					else break;
+			if (!inQuotes) {
+				int ce = SQLComments.end(sql, i);
+				if (ce != -1) {
+					// preserve the comment verbatim, so DB drivers (e.g. ProxySQL routing) still see it,
+					// and so any ? or : inside the comment is never treated as a parameter
+					sb.append(sql, i, ce);
+					i = ce - 1; // the for-loop increment lands us on ce
+					continue;
 				}
 			}
 

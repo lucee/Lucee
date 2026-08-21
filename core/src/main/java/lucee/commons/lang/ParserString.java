@@ -61,6 +61,18 @@ public final class ParserString {
 	}
 
 	/**
+	 * Constructor that optionally strips SQL comments before parsing. Use for SQL that is fed to
+	 * Lucee's internal parsers (Query-of-Query), which cannot handle comments. The comment removal is
+	 * quote-aware, so comment markers inside string literals are preserved.
+	 *
+	 * @param text SQL text
+	 * @param doIgnoreComments if <code>true</code>, strip SQL comments before parsing
+	 */
+	public ParserString(String text, boolean doIgnoreComments) {
+		init(doIgnoreComments ? SQLComments.strip(text) : text);
+	}
+
+	/**
 	 * Gemeinsame Initialmethode der drei Konstruktoren, diese erhaelt den CFML Code als char[] und
 	 * uebertraegt ihn, in die interen Datenhaltung.
 	 * 

@@ -642,7 +642,7 @@
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
       <!-- this checks to see that all the required bundles are provided, so that none are missing -->
-      <jvmarg value="-Dlucee.enable.bundle.download=false"/><!-- we do always download to make sure this is available -->
+      <jvmarg value="-Dlucee.enable.bundle.download=true"/><!-- we do always download to make sure this is available -->
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
       <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
       <jvmarg value="-Dlucee.compiler.java.version=${javaVersionCoreDefault}"/>
