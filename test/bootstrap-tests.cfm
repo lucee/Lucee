@@ -24,24 +24,32 @@
 	if ( len( baseDir ) eq 0 )
 		basedir=test; // allow running test suite via browser
 
-	request.SERVERADMINPASSWORD = "webweb";
+	// The admin password can be defined via the environment variable LUCEE_ADMIN_PASSWORD
+	// (system property lucee.admin.password), which takes precedence over the config file and therefore
+	// cannot be changed via updatePassword (it throws). When it is defined, use it as-is; otherwise set our own.
+	envAdminPW = server.system.environment.LUCEE_ADMIN_PASSWORD ?: ( server.system.properties[ "lucee.admin.password" ] ?: "" );
+
+	request.SERVERADMINPASSWORD = len( envAdminPW ) ? envAdminPW : "webweb";
 	server.SERVERADMINPASSWORD = request.SERVERADMINPASSWORD;
 
-	oldpassword="admin";
-
-	systemOutput( "set web admin password", true);
-
-	systemOutput( "set server admin password", true );
-	try {
-		admin
-			action="updatePassword"
-			type="server"
-			oldPassword="#oldpassword#"
-			newPassword="#request.SERVERADMINPASSWORD#";
+	if ( len( envAdminPW ) ) {
+		systemOutput( "admin password is defined via env var / system property, using it as-is", true );
 	}
-	catch(e){
-		systemOutput( cfcatch.message, true);
-	}	// may exist from previous execution
+	else {
+		oldpassword = "admin";
+
+		systemOutput( "set server admin password", true );
+		try {
+			admin
+				action="updatePassword"
+				type="server"
+				oldPassword="#oldpassword#"
+				newPassword="#request.SERVERADMINPASSWORD#";
+		}
+		catch(e){
+			systemOutput( cfcatch.message, true);
+		}	// may exist from previous execution
+	}
 
 	// create "/test" mapping
 	admin

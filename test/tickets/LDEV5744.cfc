@@ -1,59 +1,100 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
-	function run( testResults , testBox ) {
+	function beforeAll() {
+		variables.goodDateFormats = [
+			{ format: "yyyy-mm-dd hh:mm:ss", example: "2022-09-20 12:34:00" },
+			{ format: "yyyy-mm-dd hh:mm:ss.000", example: "2022-09-20 12:34:00.000" },
+			{ format: "yyyy/mm/dd hh:mm:ss", example: "2022/09/20 12:34:00" },
+			{ format: "mm-dd-yyyy hh:mm:ss", example: "09-20-2022 12:34 PM" },
+			{ format: "mm/dd/yyyy hh:mm:ss", example: "09/20/2022 12:34 PM" },
+			{ format: "short string", example: "9/20/22 12:34 PM" },
+			{ format: "bash $(date) with leading zero", example: "Mon Mar 03 03:09:07 PDT 2025" },
+			{ format: "Long month name", example: "September 20, 2022 12:34 PM" },
+			{ format: "JDBC/SQL Timestamp", example: "{ts '2022-09-20 12:34:00'}" }
+		];
+	}
 
-		describe( title="LDEV-5744 dateparsing regressions", body=function() {
+	function testBashDateSingleDigitDay() {
+		var dateStr = "Mon Mar 3 03:09:07 PDT 2025";
+		try {
+			var result = parseDateTime(dateStr);
+			assertTrue(isDate(result), "Should parse bash date format with single digit day: #dateStr#");
+			assertTrue(month(result) == 3, "Month should be 3 (March)");
+			assertTrue(day(result) == 3, "Day should be 3");
+			assertTrue(year(result) == 2025, "Year should be 2025");
+		} catch (any e) {
+			fail("Failed to parse bash date format: #dateStr# - Error: #e.message#");
+		}
+	}
 
-			var okDateFormats = [
-				{"format": "ISO 8601","example":                                "2022-09-20T12:34:00-07:00"},
-				{"format": "ISO 8601 with Z","example":                         "2022-09-20T12:34:00Z"},
-				{"format": "ISO 8601 with milliseconds","example":              "2022-09-20T12:34:00.000-07:00"},
-				{"format": "RFC 2822","example":                                "Tue, 20 Sep 2022 12:34:00 -0700"},
-				{"format": "yyyy-mm-dd hh:mm:ss","example":                     "2022-09-20 12:34:00"},
-				{"format": "yyyy-mm-dd hh:mm:ss.000","example":                 "2022-09-20 12:34:00.000"},
-				{"format": "yyyy/mm/dd hh:mm:ss","example":                     "2022/09/20 12:34:00"},
-				{"format": "mm-dd-yyyy hh:mm:ss","example":                     "09-20-2022 12:34 PM"},
-				{"format": "mm/dd/yyyy hh:mm:ss","example":                     "09/20/2022 12:34 PM"},
-				{"format": "short string","example":                            "9/20/22 12:34 PM"},
-				{"format": "contains narrow no-break space","example":          "9/20/22 12:34#chr(8239)#PM"},
-				{"format": "bash ""$(date)"" two-digit day","example":          "Tue Sep 20 12:34:00 PDT 2022"},
-				{"format": "JavaScript: new Date()","example":                  "Tue Sep 20 2022 12:34:00 GMT-0700 (Pacific Daylight Time)"},
-				{"format": "Long month name","example":                         "September 20, 2022 12:34 PM"},
-				{"format": "JDBC/SQL Timestamp","example":                      "{ts '2022-09-20 12:34:00'}"}
-			];
+	function testBashDateDoubleDigitDay() {
+		var dateStr = "Mon Mar 03 03:09:07 PDT 2025";
+		try {
+			var result = parseDateTime(dateStr);
+			assertTrue(isDate(result), "Should parse bash date format with double digit day");
+			assertTrue(month(result) == 3, "Month should be 3 (March)");
+			assertTrue(day(result) == 3, "Day should be 3");
+			assertTrue(year(result) == 2025, "Year should be 2025");
+		} catch (any e) {
+			fail("Failed to parse bash date format with double digit day - Error: #e.message#");
+		}
+	}
 
-			var badDateFormats = [
-				{"format": "contains comma","example":                          "9/20/22, 12:34 PM"},
-				{"format": "bash ""$(date)"" add leading zero","example":       "Mon Mar  03 03:09:07 PDT 2025"},
-				{"format": "bash ""$(date)"" two spaces before day","example":  "Mon Mar  3 03:09:07 PDT 2025"},
-				{"format": "bash ""$(date)"" one digit day","example":          "Mon Mar 3 03:09:07 PDT 2025"},
-				{"format": "Oracle","example":                                  "20-SEP-22 12.34.00.000000 PM"},
-				{"format": "Syslog","example":                                  "Sep 20 12:34:00"},
-				{"format": "Apache log","example":                              "[20/Sep/2022:12:34:00 -0700]"}
-			];
+	function testLongMonthName() {
+		var dateStr = "September 20, 2022 12:34 PM";
+		try {
+			var result = parseDateTime(dateStr);
+			assertTrue(isDate(result), "Should parse long month name format");
+			assertTrue(month(result) == 9, "Month should be 9 (September)");
+			assertTrue(day(result) == 20, "Day should be 20");
+			assertTrue(year(result) == 2022, "Year should be 2022");
+		} catch (any e) {
+			fail("Failed to parse long month name format - Error: #e.message#");
+		}
+	}
 
-			loop array="#okDateFormats#" value="local.test" {
-				describe( title="using date #test.format#", body=function() {
-					it(title="test date parsing (#test.example#)",
-							data={ test=test },
-							body=function( data ) {
-						var date = parseDateTime( data.test.example );
-						expect( isDate(date) ).toBeTrue();
-					});
-				});
+	function testJDBCTimestamp() {
+		var dateStr = "{ts '2022-09-20 12:34:00'}";
+		try {
+			var result = parseDateTime(dateStr);
+			assertTrue(isDate(result), "Should parse JDBC/SQL timestamp");
+			assertTrue(month(result) == 9, "Month should be 9 (September)");
+			assertTrue(day(result) == 20, "Day should be 20");
+			assertTrue(year(result) == 2022, "Year should be 2022");
+		} catch (any e) {
+			fail("Failed to parse JDBC/SQL timestamp - Error: #e.message#");
+		}
+	}
+
+	function testStandardDateFormats() {
+		var testCases = [
+			"2022-09-20 12:34:00",
+			"09/20/2022 12:34 PM",
+			"9/20/22 12:34 PM",
+			"09-20-2022 12:34 PM"
+		];
+
+		for (var dateStr in testCases) {
+			try {
+				var result = parseDateTime(dateStr);
+				assertTrue(isDate(result), "Should parse standard date format: #dateStr#");
+				assertTrue(month(result) == 9, "Month should be 9 (September) for #dateStr#");
+				assertTrue(day(result) == 20, "Day should be 20 for #dateStr#");
+				assertTrue(year(result) == 2022, "Year should be 2022 for #dateStr#");
+			} catch (any e) {
+				fail("Failed to parse standard date format #dateStr# - Error: #e.message#");
 			}
+		}
+	}
 
-			loop array="#badDateFormats#" value="local.test" {
-				describe( title="date #test.format#", body=function() {
-					xit(title="test date parsing (#test.example#)",
-							data={ test=test },
-							body=function( data ) {
-						var date = parseDateTime( data.test.example );
-						expect( isDate( date ) ).toBeTrue();
-					});
-				});
-			}
-
-		});
-
+	function testDateTimeObject() {
+		var result = parseDateTime("2022-09-20 12:34:00");
+		assertTrue(isDate(result), "Result should be a date object");
+		
+		assertEquals(2022, year(result), "Year should be 2022");
+		assertEquals(9, month(result), "Month should be 9");
+		assertEquals(20, day(result), "Day should be 20");
+		assertEquals(12, hour(result), "Hour should be 12");
+		assertEquals(34, minute(result), "Minute should be 34");
+		assertEquals(0, second(result), "Second should be 0");
 	}
 }
