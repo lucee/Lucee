@@ -63,7 +63,7 @@ public final class SelectParser {
 	// select <select-statement> from <tables> where <where-statement>
 	public Selects parse(String sql) throws SQLParserException {
 		columnIndex = 0;
-		ParserString raw = new ParserString(sql.trim());
+		ParserString raw = new ParserString(sql.trim(), true);
 		Selects selects = new Selects();
 		Select select = new Select();
 

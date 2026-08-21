@@ -865,19 +865,38 @@ public final class OSGiUtil {
 			localDir = " (" + factory.getBundleDirectory() + ")";
 		}
 		catch (IOException e) {}
-		String upLoc = "";
+		String updateLoc = null;
 		if (!ThreadLocalPageContext.insideServerNewInstance()) {
 			try {
-				upLoc = " (" + factory.getUpdateLocation() + ")";
+				updateLoc = factory.getUpdateLocation().toExternalForm();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+				log(e);
+			}
 		}
 		else {
-			upLoc = " (" + ConfigFactoryImpl.DEFAULT_LOCATION + ")";
+			updateLoc = ConfigFactoryImpl.DEFAULT_LOCATION;
 		}
+		String upLoc = updateLoc == null ? "" : " (" + updateLoc + ")";
 		String bundleError = "";
 		String parentBundle = parents == null ? " " : String.join(",", parents);
-		String downloadText = downloadIfNecessary ? " or from the update provider [" + upLoc + "]" : "";
+		String downloadText = "";
+		if (downloadIfNecessary) {
+			downloadText = " or from the update provider [" + upLoc + "]";
+			// also spell out the full, copy-pasteable download URL, so it can be tried manually
+			if (updateLoc != null) {
+				try {
+					VersionRange vr = bundleRange.getVersionRange();
+					String v = (vr != null && vr.getFrom() != null && vr.getFrom().getVersion() != null) ? vr.getFrom().getVersion().toString() : null;
+					String base = updateLoc.endsWith("/") ? updateLoc.substring(0, updateLoc.length() - 1) : updateLoc;
+					downloadText += ", you can download it manually from [" + base + "/rest/update/provider/download/" + bundleRange.getName() + (v != null ? "/" + v : "") + "]";
+				}
+				catch (Exception e) {
+					// building the hint URL must never mask the original "bundle not available" error, just log it
+					log(e);
+				}
+			}
+		}
 		if (versionsFound.length() > 0) {
 			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] " + parentBundleText(parentBundle) + "is not available in version ["
 					+ bundleRange.getVersionRange() + "] locally [" + localDir + "]" + downloadText + ", the following versions are available locally [" + versionsFound + "].";

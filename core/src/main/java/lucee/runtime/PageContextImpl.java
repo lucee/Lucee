@@ -299,7 +299,7 @@ public final class PageContextImpl extends PageContext {
 	private Application application;
 
 	private final DebuggerImpl debugger = new DebuggerImpl();
-	private long requestTimeout = -1;
+	private volatile long requestTimeout = -1;
 	private short enablecfoutputonly = 0;
 	private int outputState;
 	private String cfid;
@@ -335,8 +335,8 @@ public final class PageContextImpl extends PageContext {
 
 	private Tag parentTag = null;
 	private Tag currentTag = null;
-	private Thread thread;
-	private long startTime;
+	private volatile Thread thread;
+	private volatile long startTime;
 	private long startTimeNS;
 	private long endTimeNS;
 

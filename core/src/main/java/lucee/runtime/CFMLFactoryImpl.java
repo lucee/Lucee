@@ -244,11 +244,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if (pc == null) pc = new PageContextImpl(scopeContext, config, servlet, tmplPC, ignoreScopes);
 
 		if (timeout > 0) pc.setRequestTimeout(timeout);
-		if (register2RunningThreads) {
-			runningPcs.put(Integer.valueOf(pc.getId()), pc);
-			if (isChild) runningChildPcs.put(Integer.valueOf(pc.getId()), pc);
-
-		}
 		this._servlet = servlet;
 		if (register2Thread) {
 			if (isChild) ThreadLocalPageContext.registerChild(pc);
@@ -256,6 +251,12 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 
 		pc.initialize(servlet, req, rsp, errorPageURL, needsSession, bufferSize, autoflush, isChild, ignoreScopes, tmplPC);
+
+		// register into the running maps only after initialize() has set startTime (LDEV-6453)
+		if (register2RunningThreads) {
+			runningPcs.put(Integer.valueOf(pc.getId()), pc);
+			if (isChild) runningChildPcs.put(Integer.valueOf(pc.getId()), pc);
+		}
 
 		return pc;
 	}
@@ -296,6 +297,17 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			tmpRegister = true;
 		}
 		boolean reuse = true;
+
+		// remove from the running maps before release() resets startTime, so checkTimeout() never
+		// observes a still-registered pc with startTime==0 (LDEV-6453)
+		runningPcs.remove(Integer.valueOf(pc.getId()));
+		if (parent != null) {
+			runningChildPcs.remove(Integer.valueOf(pc.getId()));
+			if (parent instanceof PageContextImpl) {
+				((PageContextImpl) parent).removeChildPageContext(pc);
+			}
+		}
+
 		try {
 			reuse = !pc.hasFamily(); // we do not recycle when still referenced by child threads
 			pc.release();
@@ -310,13 +322,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 		else if (unregisterFromThread) ThreadLocalPageContext.release();
 
-		runningPcs.remove(Integer.valueOf(pc.getId()));
-		if (parent != null) {
-			runningChildPcs.remove(Integer.valueOf(pc.getId()));
-			if (parent instanceof PageContextImpl) {
-				((PageContextImpl) parent).removeChildPageContext(pc);
-			}
-		}
 		if (pcs.size() < PC_POOL_MAX_SIZE && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse) pcs.push((PageContextImpl) pc);
 
 		if (runningPcs.size() > MAX_SIZE) clean(runningPcs);
@@ -330,7 +335,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		while (it.hasNext()) {
 			pci = it.next();
 			if (pci.isGatewayContext() || pci.getStartTime() + MAX_AGE > now) continue;
-			it.remove();
+			it.remove(); // drop stale/leaked entries older than MAX_AGE
 		}
 	}
 
@@ -359,11 +364,13 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				e = it.next();
 				pc = e.getValue();
 				if (pc == null) continue;
+				long start = pc.getStartTime();
+				if (start <= 0) continue; // pc is being acquired or released, not an active request (LDEV-6453)
 				long timeout = pc.getRequestTimeout();
 				Thread th;
 				// reached timeout (adjusted for debugger suspend time)
 				long suspendedMillis = pc.getDebuggerTotalSuspendedMillis();
-				if (pc.getStartTime() + timeout + suspendedMillis < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
+				if (start + timeout + suspendedMillis < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
 					Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 					if (reachedConcurrentReqThreshold() && reachedMemoryThreshold() && reachedCPUThreshold()) {
 						if (log != null) {
@@ -397,7 +404,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				}
 				// after 10 seconds downgrade priority of the thread (adjusted for debugger suspend time);
 				// skipped under virtual threads — VirtualThread.setPriority is a no-op
-				else if (!ThreadUtil.ALLOW_VIRTUAL_THREADS && pc.getStartTime() + 10000 + suspendedMillis < System.currentTimeMillis() && (th = pc.getThread()) != null
+				else if (!ThreadUtil.ALLOW_VIRTUAL_THREADS && start + 10000 + suspendedMillis < System.currentTimeMillis() && (th = pc.getThread()) != null
 						&& th.getPriority() != Thread.MIN_PRIORITY) {
 							Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 							if (log != null) {
