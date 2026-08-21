@@ -237,15 +237,16 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if (pc == null) pc = new PageContextImpl(scopeContext, config, servlet, tmplPC, ignoreScopes);
 
 		if (timeout > 0) pc.setRequestTimeout(timeout);
-		if (register2RunningThreads) {
-			runningPcs.put(Integer.valueOf(pc.getId()), pc);
-			if (isChild) runningChildPcs.put(Integer.valueOf(pc.getId()), pc);
-
-		}
 		this._servlet = servlet;
 		if (register2Thread) ThreadLocalPageContext.register(pc);
 
 		pc.initialize(servlet, req, rsp, errorPageURL, needsSession, bufferSize, autoflush, isChild, ignoreScopes, tmplPC);
+
+		// register into the running maps only after initialize() has set startTime (LDEV-6453)
+		if (register2RunningThreads) {
+			runningPcs.put(Integer.valueOf(pc.getId()), pc);
+			if (isChild) runningChildPcs.put(Integer.valueOf(pc.getId()), pc);
+		}
 
 		return pc;
 	}
