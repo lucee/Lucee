@@ -64,7 +64,10 @@ request.basedir = basedir;
 request.srcall = srcall;
 request.testFolder = test;
 
-request.SERVERADMINPASSWORD = "webweb";
+// the admin password can be defined via env var LUCEE_ADMIN_PASSWORD (system property lucee.admin.password),
+// which takes precedence over the config file and cannot be changed via updatePassword; use it as-is when defined
+envAdminPW = server.system.environment.LUCEE_ADMIN_PASSWORD ?: ( server.system.properties[ "lucee.admin.password" ] ?: "" );
+request.SERVERADMINPASSWORD = len( envAdminPW ) ? envAdminPW : "webweb";
 server.SERVERADMINPASSWORD = request.SERVERADMINPASSWORD;
 
 NL = "
@@ -173,14 +176,18 @@ try {
 	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
 	setupTestServices = new test._setupTestServices().setup();
 
-	try {
-		admin
-			action="updatePassword"
-			type="server"
-			oldPassword=""
-			newPassword="#request.SERVERADMINPASSWORD#";
+	// set a password for the admin - but only when it is not already defined via env var / system property
+	// (LUCEE_ADMIN_PASSWORD / lucee.admin.password), which takes precedence and cannot be changed here
+	if ( len( envAdminPW ) EQ 0 ) {
+		try {
+			admin
+				action="updatePassword"
+				type="server"
+				oldPassword=""
+				newPassword="#request.SERVERADMINPASSWORD#";
+		}
+		catch(e){}	// may exist from previous execution
 	}
-	catch(e){}	// may exist from previous execution
 
 	systemOutput( "set admin password #dateTimeFormat(now())#", true );
 
