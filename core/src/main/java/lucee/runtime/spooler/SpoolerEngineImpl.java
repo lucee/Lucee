@@ -140,8 +140,17 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 		add++;
 		if (task.nextExecution() == 0) task.setNextExecution(System.currentTimeMillis());
 		task.setId(createId(config, task));
-		store(config, task);
-		start(config);
+		if (store(config, task)) {
+			start(config);
+		}
+		else {
+			// The task could not be persisted (e.g. it holds a non-serializable field). The spooler
+			// only ever loads tasks from disk, so a task that was never written would be silently
+			// dropped (e.g. a spooled cfmail vanishing with only an error in the log). Execute it
+			// inline instead so the work is not lost - like spooling was disabled for this one task.
+			// store() has already logged the persistence failure at ERROR.
+			execute(config, task);
+		}
 	}
 
 	// add to interface
@@ -211,16 +220,24 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 		return task;
 	}
 
-	private void store(ConfigWeb config, SpoolerTask task) {
+	private boolean store(ConfigWeb config, SpoolerTask task) {
 		ObjectOutputStream oos = null;
 		Resource persis = getFile(config, task);
 		if (persis.exists()) persis.delete();
 		try {
 			oos = new ObjectOutputStream(persis.getOutputStream());
 			oos.writeObject(task);
+			return true;
 		}
 		catch (IOException e) {
-			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
+			// Report the failure at ERROR - a task that cannot be persisted would otherwise be lost
+			// without notice. Remove any partial/corrupt file so it is not half-read later.
+			LogUtil.logx(config, Log.LEVEL_ERROR, "remote-client", "unable to persist spooler task [" + task.getId() + "] of type [" + task.getType()
+					+ "]: " + ExceptionUtil.getMessage(e, true), "remoteclient", "application");
+			IOUtil.closeEL(oos);
+			oos = null;
+			if (persis.exists()) persis.delete();
+			return false;
 		}
 		finally {
 			try {
