@@ -12238,6 +12238,31 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 
+	<!-- QueryConvertTypes -->
+	<function>
+		<name>QueryConvertTypes</name>
+		<class>lucee.runtime.functions.query.QueryConvertTypes</class>
+		<member-name>convertTypes</member-name>
+		<keywords>query</keywords>
+		<introduced>8.0.0.188</introduced>
+		<description>Converts every value of a query to the type declared by its column (e.g. date/time columns to date objects, numeric columns to numbers, bit/boolean columns to booleans). Columns with a type that has no matching CFML type (e.g. "object"/"other") and values that cannot be converted are left unchanged. By default a new query is returned and the original is left untouched.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>The query whose values should be converted to their column types.</description>
+    </argument>
+		<argument>
+			<name>inline</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>When set to true the given query is modified in place and returned, otherwise a new query with the converted values is returned and the original query is left untouched.</description>
+    </argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
 	<!-- QueryDeleteColumn -->
 	<function>
 		<name>QueryDeleteColumn</name>
