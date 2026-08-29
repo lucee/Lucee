@@ -110,6 +110,99 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 				expect(result.recordCount).tobe(0);
 			});
 		});
+		//test for LDEV-5823
+		describe("Testcase for LDEV-5823", function() {
+
+			beforeEach(function( currentSpec ){
+				var inboxBeforeMove = getInboxMails();
+				if(inboxBeforeMove.recordCount == 0){
+					var sendMailResult = _internalRequest(
+						template="#variables.uri#/sendMails.cfm",
+						forms = {username: variables.username}
+					).filecontent;
+					expect(sendMailResult).tobe("Done!!!");
+					inboxBeforeMove = getInboxMails();
+				}
+			});
+
+			it( title="CFIMAP action='delete' - Folder Attribute Test", skip="#notHasServices()#", body=function( currentSpec ) {
+				try {
+					// Delete the folder if it exists
+					cfimap(
+						action = "DeleteFolder",
+						folder = "NewFolderFromIMAP123",
+						server = "#creds.imap.SERVER#",
+						port = "#creds.imap.PORT_INSECURE#",
+						username = "#variables.username#",
+						password = "#creds.imap.PASSWORD#",
+						secure = "no"
+					);
+				} catch (any ee) {}
+			
+				// Create the folder if it doesn't exist
+				cfimap(
+					action = "CreateFolder",
+					server = "#creds.imap.SERVER#",
+					port = "#creds.imap.PORT_INSECURE#",
+					username = "#variables.username#",
+					password = "#creds.imap.PASSWORD#",
+					secure = "no",
+					folder = "NewFolderFromIMAP123"
+				);
+			
+				// Open connection
+				cfimap(
+					action = "open",
+					connection = "openConnc",
+					server = "#creds.imap.SERVER#",
+					port = "#creds.imap.PORT_INSECURE#",
+					username = "#variables.username#",
+					password = "#creds.imap.PASSWORD#",
+					secure = "no"
+				);
+			
+				// Move mail to the new folder
+				cfimap(
+					action = "MoveMail",
+					Newfolder = "NewFolderFromIMAP123",
+					messagenumber = "1",
+					server = "#creds.imap.SERVER#",
+					port = "#creds.imap.PORT_INSECURE#",
+					username = "#variables.username#",
+					password = "#creds.imap.PASSWORD#",
+					secure = "no"
+				);
+				// Close connection
+				cfimap(
+					action = "close",
+					connection = "openConnc"
+				);
+							
+				// Get message count after move
+				var resultAfterMove = ListAllFolders("NewFolderFromIMAP123");
+				var totalMessagesAfterMove = resultAfterMove.TOTALMESSAGES;
+			
+				// Delete message number 1 from the folder
+				cfimap(
+					action = "delete",
+					folder = "NewFolderFromIMAP123",
+					messagenumber = "1",
+					server = "#creds.imap.SERVER#",
+					port = "#creds.imap.PORT_INSECURE#",
+					username = "#variables.username#",
+					password = "#creds.imap.PASSWORD#",
+					secure = "no"
+				);
+			
+				var resultAfterDelete = ListAllFolders("NewFolderFromIMAP123");
+				var totalMessagesAfterDelete = resultAfterDelete.TOTALMESSAGES;
+			
+				// Expect the count to be 1 after move, and 0 after delete
+				expect(totalMessagesAfterMove).toBe(1);
+				expect(totalMessagesAfterDelete).toBe(0);
+			});
+
+		});
 	}
 
 	private string function createURI(string calledName) {
@@ -149,6 +242,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 		imap attributeCollection = "#attrs#";
 
 		return mails;
+	}
+
+	private query function ListAllFolders(string a1){
+		cfimap(
+			action = "ListAllFolders",
+			server = "#creds.imap.SERVER#",
+			port = "#creds.imap.PORT_INSECURE#",
+			username = "#variables.username#",
+			password = "#creds.imap.PASSWORD#",
+			secure = "no",
+			name = "local.Folder"
+		);
+		query name="local.result" dbtype="query"{
+			echo("SELECT * FROM local.Folder WHERE fullname = '#arguments.a1#' ");
+		}
+		return local.result;
 	}
 
 
