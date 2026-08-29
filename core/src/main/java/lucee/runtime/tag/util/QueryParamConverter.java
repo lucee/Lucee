@@ -146,11 +146,12 @@ public class QueryParamConverter {
 
 		for (int i = 0; i < sqlLen; i++) {
 			c = sql.charAt(i);
-			if (!inQuotes && sqlLen + 1 > i) {
+			if (!inQuotes && i < (sqlLen - 1)) {
 				// read multi line
 				if (c == '/' && sql.charAt(i + 1) == '*') {
 					int end = sql.indexOf("*/", i + 2);
 					if (end != -1) {
+						sb.append(sql.substring(i, end+2));
 						i = end + 2;
 						if (i == sqlLen) break;
 						c = sql.charAt(i);
@@ -158,14 +159,14 @@ public class QueryParamConverter {
 				}
 
 				// read single line
-				if (c == '-' && sql.charAt(i + 1) == '-') {
+				if (c == '-' && i < (sqlLen - 1) && sql.charAt(i + 1) == '-') {
 					int end = sql.indexOf('\n', i + 1);
-					if (end != -1) {
-						i = end + 1;
-						if (i == sqlLen) break;
-						c = sql.charAt(i);
-					}
-					else break;
+					if (end == -1) {
+						end = sqlLen-1; // end of sql string
+					} 
+					sb.append(sql.substring(i, end+1));
+					i = end;
+					continue;
 				}
 			}
 
@@ -190,7 +191,7 @@ public class QueryParamConverter {
 						continue;
 					}
 
-					if (++_qm > initialParamSize) throw new ApplicationException("there are more question marks in the SQL than params defined", "SQL: " + sql + "");
+					if (++_qm > initialParamSize) throw new ApplicationException("There are more question marks ["+(qm+1)+"] in the SQL than params defined ["+initialParamSize+"], at position ["+ i +"]", "SQL: " + sql + ", ParsedSQL:" + sb.toString());
 				}
 				else if (c == ':') {
 

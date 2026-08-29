@@ -112,7 +112,7 @@ public final class SQLImpl implements SQL, Serializable {
 		int index = 0;
 		for (int i = 0; i < sqlLen; i++) {
 			c = strSQL.charAt(i);
-			if (!inQuotes && sqlLen + 1 > i) {
+			if (!inQuotes && i < (sqlLen - 1)) {
 				// read multi line
 				if (c == '/' && strSQL.charAt(i + 1) == '*') {
 					int end = strSQL.indexOf("*/", i + 2);
@@ -124,14 +124,16 @@ public final class SQLImpl implements SQL, Serializable {
 				}
 
 				// read single line
-				if (c == '-' && strSQL.charAt(i + 1) == '-') {
+				if (c == '-' && i < (sqlLen - 1) && strSQL.charAt(i + 1) == '-') {
 					int end = strSQL.indexOf('\n', i + 1);
-					if (end != -1) {
-						i = end + 1;
-						if (i == sqlLen) break;
-						c = strSQL.charAt(i);
-					}
-					else break;
+					if (end == -1) {
+						i = sqlLen; // end of sql string
+					} else {
+						i = end;
+					} 
+					if (i == sqlLen) break;
+					//c = strSQL.charAt(i);
+					continue;
 				}
 			}
 
@@ -148,7 +150,8 @@ public final class SQLImpl implements SQL, Serializable {
 				sb.append(c);
 			}
 			else if (!inQuotes && c == '?') {
-				if ((index + 1) > items.length) throw new RuntimeException("there are more question marks in the SQL than params defined, in the SQL String: [" + strSQL + "]");
+				if ((index + 1) > items.length) throw new RuntimeException("There are more question marks [" + (index+1)
+					+ "] in the SQL than params defined [" + items.length + "], in the SQL String: [" + strSQL + "]");
 
 				if (pattern) {
 					StringBuilder tmp = new StringBuilder();

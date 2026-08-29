@@ -463,7 +463,8 @@ public final class HSQLDBHandler {
 			if (spe.getCause() != null && spe.getCause() instanceof IllegalQoQException) {
 				throw Caster.toPageException(spe);
 			}
-			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
+			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString(), true);
+
 			try {
 				QueryImpl query = executer.execute(pc, sql, prettySQL, maxrows);
 				query.setExecutionTime(stopwatch.time());
@@ -520,7 +521,7 @@ public final class HSQLDBHandler {
 				tables = hsql2.getInvokedTables();
 			}
 			else {
-				if (prettySQL == null) prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
+				if (prettySQL == null) prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString(),true);
 				HSQLUtil hsql = new HSQLUtil(prettySQL);
 				tables = hsql.getInvokedTables();
 				isUnion = hsql.isUnion();
@@ -533,7 +534,8 @@ public final class HSQLDBHandler {
 
 		}
 		catch (ParseException e) {
-			throw new DatabaseException(e.getMessage(), null, sql, null);
+			throw (IllegalQoQException) (new IllegalQoQException("QoQ: error executing sql statement on query, " + e.getMessage(), null, sql, null).initCause(e));
+			//throw new DatabaseException(e.getMessage(), e, sql, null);
 		}
 
 	}
