@@ -47,6 +47,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="currency" {
 				assertEquals("1,20", "#LSEuroCurrencyFormat(1.2,"none")#");
 				setLocale(orgLocale);
 			});
+
+			  //TestCase for LDEV-5486
+			it(title="test Suite for LDEV-5486", skip=true, body = function( currentSpec ) {
+                setLocale( "English (United States)" );
+                assertEquals( "USD 1.20", "#LSEuroCurrencyFormat( 1.2,"international","" )#" ); //expected USD 1.20 But it return XXX 1.20
+                setLocale( orgLocale );
+            });
 		});
 	}
 
