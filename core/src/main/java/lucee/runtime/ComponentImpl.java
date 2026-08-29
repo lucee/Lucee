@@ -2440,9 +2440,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 
 		top.properties.properties.put(propNameLower, propImpl);
-		if (propImpl.getDefaultAsObject() != null) {
+		Object defaultObj = propImpl.getDefaultAsObject();
+		if (defaultObj != null && !(defaultObj instanceof lucee.runtime.component.ExpressionDefault)) {
+			// Expression-form defaults are seeded by the pseudo-constructor's inline emission
+			// (see TagProperty.emitExpressionEvalAndSet); only literal defaults are eager-set here.
 			Key propKey = propImpl.getNameAsKey();
-			scope.setEL(propKey, propImpl.getDefaultAsObject());
+			scope.setEL(propKey, defaultObj);
 			if (ownPropertyDefaults == null) ownPropertyDefaults = new HashSet<>();
 			ownPropertyDefaults.add(propKey);
 		}
