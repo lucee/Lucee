@@ -423,6 +423,16 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		data.name = name;
 	}
 
+	/**
+	 * whether to do a batch insert
+	 * 
+	 * @param batch value to set
+	 **/
+	public void setBatch(boolean batch) {
+		data.batch = batch;
+	}
+
+
 	public String getName() {
 		return data.name == null ? "query" : data.name;
 	}
@@ -1128,6 +1138,9 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 			if (data.returntype == RETURN_TYPE_STRUCT) {
 				return QueryImpl.toStruct(pageContext, dc, sql, data.columnName, data.maxrows, data.blockfactor, data.timeout, getName(data), tl, createUpdateData, true);
+			}
+			if (data.batch){
+				return QueryImpl.executeBatch(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl, createUpdateData, true);
 			}
 			return new QueryImpl(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl, createUpdateData, true, data.indexName);
 		}

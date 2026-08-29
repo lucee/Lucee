@@ -91,6 +91,7 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.query.caster.Cast;
+import lucee.runtime.tag.util.QueryParamConverter;
 import lucee.runtime.type.comparator.NumberSortRegisterComparator;
 import lucee.runtime.type.comparator.SortRegister;
 import lucee.runtime.type.comparator.SortRegisterComparator;
@@ -372,6 +373,141 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 	private static void logThresholdReached(Log log, long exeTime, int recordcount, int columncount, SQL sql) {
 		log.log(Log.LEVEL_WARN, "query", "Large query result detected: execution-time:" + Caster.toString(exeTime / 1000000d) + "ms, rows=" + recordcount + ", columns="
 				+ columncount + ", threshold=" + luceeQueryResultThreshold + ", query=" + sql + ", tagcontext=" + ExceptionUtil.getTagContextLine(new Throwable()));
+	}
+
+	public static QueryArray executeBatch(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, TemplateLine templateLine, boolean createUpdateData,
+			boolean allowToCachePreperadeStatement) throws PageException {
+
+		QueryArray qr = new QueryArray(name, sql, templateLine);
+		qr.setDatasourceName(dc.getDatasource().getName());
+		
+		// MSSQL is handled separatly
+		/* 
+		if (useMSSQLModern && DataSourceUtil.isMSSQLDriver(dc)) {
+			executeMSSQL(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, qry, qr, keyName);
+			return;
+		}
+		*/
+		TimeZone tz = ThreadLocalPageContext.getTimeZone(pc);
+
+		// check if datasource support Generated Keys
+		boolean createGeneratedKeys = createUpdateData;
+		if (createUpdateData) {
+			if (!dc.supportsGetGeneratedKeys()) createGeneratedKeys = false;
+		}
+
+		// check SQL Restrictions
+		if (dc.getDatasource().hasSQLRestriction()) {
+			QueryUtil.checkSQLRestriction(pc, dc, sql);
+		}
+
+		Statement stat = null;
+		// Stopwatch stopwatch=new Stopwatch();
+		long start = System.nanoTime();
+		// stopwatch.start();
+		boolean hasResult = false;
+		// boolean closeStatement=true;
+		try {
+			SQLItem[] items = sql.getItems();
+			if (items.length == 0) throw new DatabaseException("Query batch requires [params] to be passed","", sql, dc);
+			// some driver do not support second argument
+			PreparedStatement preStat = dc.getPreparedStatement(sql, createGeneratedKeys, allowToCachePreperadeStatement);
+			dc.setAutoCommit(false);
+			// closeStatement=false;
+			stat = preStat;
+			setAttributes(preStat, maxrow, fetchsize, timeout);
+			int rowsToCommit = 0;
+			int initialParamCount = 0;
+			for (int i = 0; i < items.length; i++) {
+				/* TODO
+				- avoid reparsing sql
+				- handle structs too
+				- param count check below fails before whilst reparsing sql stage
+				*/
+				SQL _row = QueryParamConverter.convert(sql.getSQLString(), Caster.toArray(items[i].getValue()));
+				SQLItem[] row = _row.getItems();
+				if (i == 0 ) initialParamCount = row.length;
+				else if (row.length != initialParamCount) throw new DatabaseException("The number of query batch params for row [" + (i+1)
+					+ "] doesn't have same number of params [" + row.length + "] as the first row [" + initialParamCount + "]", "", sql, dc);
+				setItems(pc, ThreadLocalPageContext.getTimeZone(pc), preStat, row);
+
+				rowsToCommit++;
+				QueryUtil.addBatch(pc, preStat);
+				if (rowsToCommit % fetchsize == 0) { // blockfactor
+					QueryUtil.executeBatch(pc, preStat);
+					rowsToCommit = 0;
+				}
+			}
+			if (rowsToCommit > 0) QueryUtil.executeBatch(pc, preStat);
+			hasResult = false;// QueryUtil.execute(pc, preStat);
+			setUpdateCount(qr, stat);
+			dc.commit();
+			/*
+			int uc;
+			// ResultSet res;
+			do {
+				if (hasResult) {
+					// res=stat.getResultSet();
+					// if(fillResult(dc,res, maxrow, true,createGeneratedKeys,tz))break;
+					if (fillResult(qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)) break;
+				}
+				else if ((uc = setUpdateCount(qry != null ? qry : qr, stat)) != -1) {
+					if (uc > 0 && createGeneratedKeys && qry != null) qry.setGeneratedKeys(dc, stat, tz);
+				}
+				else break;
+
+				try {
+					// hasResult=stat.getMoreResults(Statement.CLOSE_CURRENT_RESULT);
+					hasResult = stat.getMoreResults();
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					break;
+				}
+			}
+			while (true);
+			*/
+		}
+		catch (SQLException e) {
+			try {
+				dc.rollback();
+			}
+			catch (SQLException se) {
+				e.addSuppressed(se);
+			}
+			throw new DatabaseException(e, sql, dc);
+		}
+		catch (Throwable e) {
+			try {
+				dc.rollback();
+			}
+			catch (SQLException se) {
+				e.addSuppressed(se);
+			}
+			ExceptionUtil.rethrowIfNecessary(e);
+			throw Caster.toPageException(e);
+		}
+		finally {
+			DBUtil.setAutoCommitEL(dc, true);
+			// if(closeStatement)
+			DBUtil.closeEL(stat);
+		}
+		/*
+		if (qry != null) {
+			qry.exeTime = System.nanoTime() - start;
+
+			if (qry.columncount == 0) {
+				if (qry.columnNames == null) qry.columnNames = new Collection.Key[0];
+				if (qry.columns == null) qry.columns = new QueryColumnImpl[0];
+			}
+		}
+		else {
+			qr.setExecutionTime(System.nanoTime() - start);
+		}
+		*/
+		qr.setExecutionTime(System.nanoTime() - start);
+		return qr;
+
 	}
 
 	private static void executeMSSQL(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, boolean createUpdateData,
