@@ -1195,6 +1195,22 @@ public class OSGiUtil {
 
 		String preferedName = bf.getSymbolicName() + "-" + bf.getVersionAsString() + ".jar";
 		if (!preferedName.equals(f.getName())) {
+			// LDEV-6145: do not rename if Felix already has this bundle registered at the current path.
+			// Renaming without updating Felix leaves the cache pointing at the old (now missing) path,
+			// causing "Bundle symbolic name and version are not unique" on the next restart.
+			try {
+				BundleContext bc = CFMLEngineFactory.getInstance().getBundleContext();
+				if (bc != null) {
+					String location = f.getAbsolutePath();
+					for (Bundle b: bc.getBundles()) {
+						if (location.equals(b.getLocation())) return bf;
+					}
+				}
+			}
+			catch (Exception e) {
+				// engine not yet started; safe to rename
+			}
+
 			try {
 				File nf = new File(f.getParentFile(), preferedName);
 				if (f.renameTo(nf)) {
