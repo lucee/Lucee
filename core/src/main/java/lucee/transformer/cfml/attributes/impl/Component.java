@@ -34,6 +34,13 @@ public final class Component implements AttributeEvaluator {
 	@Override
 	public TagLibTag evaluate(TagLibTag tagLibTag, Tag tag) throws AttributeEvaluatorException {
 		tagLibTag.setParseBody(false);
+
+		// Check for unsupported initMethod attribute
+		Attribute initMethodAttr = tag.getAttribute("initMethod");
+		if (initMethodAttr != null) {
+			throw new AttributeEvaluatorException("Attribute [initMethod] is not supported in this version of Lucee. This feature is available in Lucee 7.0.1 and later.");
+		}
+
 		Attribute attr = tag.getAttribute("output");
 		if (attr != null) {
 			Expression expr = attr.getValue();
