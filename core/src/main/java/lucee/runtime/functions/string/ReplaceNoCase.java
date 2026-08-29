@@ -50,7 +50,7 @@ public final class ReplaceNoCase extends BIF {
 	}
 
 	private static String _call(PageContext pc, String str, String sub1, String sub2, boolean onlyFirst) throws FunctionException {
-		if (StringUtil.isEmpty(sub1)) throw new FunctionException(pc, "ReplaceNoCase", 2, "sub1", "The string length must be greater than 0");
+		if (StringUtil.isEmpty(sub1)) return str;
 		return StringUtil.replace(str, sub1, sub2, onlyFirst, true);
 	}
 
