@@ -53,7 +53,9 @@ public final class DoWhile extends StatementBaseNoFinal implements FlowControlBr
 	 * @param label
 	 */
 	public DoWhile(Expression expr, Body body, Position start, Position end, String label) {
-		super(expr.getFactory(), start, end);
+		// Pass null for start to prevent emitting wrapper line - the body statements have their own lines.
+		// The 'do' keyword doesn't generate bytecode itself, it's just a loop entry point.
+		super(expr.getFactory(), null, end);
 		this.expr = expr.getFactory().toExprBoolean(expr);
 		this.body = body;
 		body.setParent(this);

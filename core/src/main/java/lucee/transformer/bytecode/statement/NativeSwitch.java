@@ -75,9 +75,10 @@ public final class NativeSwitch extends StatementBaseNoFinal implements FlowCont
 		while (it.hasNext()) {
 			c = it.next();
 			adapter.visitLabel(c.label);
-			bc.visitLine(c.startPos);
+			// Don't emit case wrapper lines - the body statements have their own line numbers.
+			// Emitting start/end here causes bytecode position conflicts since no instructions
+			// are generated between the case label and the first body statement.
 			c.body.writeOut(bc);
-			bc.visitLine(c.endPos);
 			if (c.doBreak) {
 				adapter.goTo(end);
 			}
