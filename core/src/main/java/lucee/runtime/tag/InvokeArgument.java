@@ -22,6 +22,7 @@ import jakarta.servlet.jsp.tagext.Tag;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
+import lucee.runtime.op.Caster;
 
 // TODO tag invokeargument
 // attr omit
@@ -48,6 +49,13 @@ public final class InvokeArgument extends TagImpl {
 	 * @param value value to set
 	 **/
 	public void setValue(Object value) {
+		if (value instanceof String) {
+			Double d = Caster.toDouble(value, null);
+			if (d != null) {
+				this.value = d;
+				return;
+			}
+		}
 		this.value = value;
 	}
 
