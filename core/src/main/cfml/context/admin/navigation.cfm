@@ -113,10 +113,11 @@
 				padding: 2% 1% 2% 1% ;
 			}
 			.navSearch{
-				border-color:  #request.singleMode?'##666':(request.adminType=="web"?'##39c':'##BF4F36')# !important;
-				background-color: ##fff !important;
+				border-color: ##e2e0da ;
+				background-color: var(--input-bg);
 				width: 89% !important;
-				padding: 1px 1px 1px 1px;
+				padding: 5px 5px 5px 5px;
+				border-radius: 15px;
 			}
 		</style>
 
