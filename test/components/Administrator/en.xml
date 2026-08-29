@@ -1073,8 +1073,8 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.licencedevelopmore">more</data>
 	<data key="overview.licencedevelop">Develop</data>
 	<data key="overview.server_name">Host Name</data>
-	<data key="overview.twitter">Twitter</data>
-	<data key="overview.twitterDesc">Follow us on Twitter.</data>
+	<data key="overview.twitter">X (formerly Twitter)</data>
+	<data key="overview.twitterDesc">Follow us on X (formerly Twitter).</data>
 	<data key="overview.blog">Blog</data>
 	<data key="overview.blogDesc"> The latest news from Lucee is always posted on our blog.</data>
 	<data key="overview.mailinglist">Mailing list</data>
