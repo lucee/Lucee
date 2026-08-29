@@ -89,7 +89,7 @@ Error Output --->
 </div>
 <div style="text-align: center;">
 	<form method="post">
-		<table class="tbl" width="740">	
+		<table class="tbl" width="1200">	
 		<cfmodule template="remoteclients.cfm" colspan="2">
 		<tr>
 			<td colspan="2">
