@@ -5999,8 +5999,9 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public void updateLoginSettings(boolean captcha, boolean rememberMe, int delay) {
+	public void updateLoginSettings(boolean captcha, String captchaDifficulty, boolean rememberMe, int delay) {
 		root.setEL("loginCaptcha", captcha);
+		root.setEL("loginCaptchaDifficulty", captchaDifficulty);
 		root.setEL("loginRememberme", rememberMe);
 		root.setEL("loginDelay", delay);
 	}

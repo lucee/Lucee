@@ -22,6 +22,7 @@
 					password="#session["password" & request.adminType]#"
 					rememberme="#structKeyExists(form,"remembermeEnable") and form.remembermeEnable#"
 					captcha="#structKeyExists(form,"captcha") and form.captcha#"
+					captchaDifficulty="#form.captchaDifficulty#"
 					delay="#form.delay#">
 
 		</cfcase>
@@ -111,6 +112,25 @@ Error Output --->
 						<td>
 							<cfinputClassic type="checkbox" class="checkbox" name="captcha" checked="#settings.captcha#" value="true">
 							<div class="comment">#stText.Login.useCaptchaDesc#</div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">#stText.login.CaptchaDifficulty#</th>
+						<td>
+							<div class="captcha-difficulty-group">
+								<div class="captcha-difficulty-column">
+									<span class="comment">Low</span>
+									<cfinputClassic type="radio" class="radio" name="captchaDifficulty" checked="#settings.captchaDifficulty EQ 'low'#" value="low">
+								</div>
+								<div class="captcha-difficulty-column">
+									<span class="comment">Medium</span>
+									<cfinputClassic type="radio" class="radio" name="captchaDifficulty" checked="#settings.captchaDifficulty EQ 'medium'#" value="medium">
+								</div>
+								<div class="captcha-difficulty-column">
+									<span class="comment">High</span>
+									<cfinputClassic type="radio" class="radio" name="captchaDifficulty" checked="#settings.captchaDifficulty EQ 'high'#" value="high">
+								</div>
+							</div>
 						</td>
 					</tr>
 					<tr>

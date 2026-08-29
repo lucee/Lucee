@@ -699,6 +699,7 @@ public abstract class ConfigFactory {
 		{
 			Struct login = ConfigWebUtil.getAsStruct("login", root);
 			moveAsBool("captcha", "loginCaptcha", login, root);
+			move("captchaDifficulty", "loginCaptchaDifficulty", login, root);
 			moveAsBool("rememberme", "loginRememberme", login, root);
 			moveAsInt("delay", "loginDelay", login, root);
 		}
