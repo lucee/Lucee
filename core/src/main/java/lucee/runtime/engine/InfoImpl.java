@@ -112,7 +112,8 @@ public final class InfoImpl implements Info {
 					Integer.parseInt(dateStr.substring(index4 + 1, index5)), // minute
 					Integer.parseInt(dateStr.substring(index5 + 1, index6)) // second
 			);
-			return ldt.atZone(ZoneId.of(dateStr.substring(index6 + 1))).toInstant().toEpochMilli();
+			String zone = "IST".equals(dateStr.substring(index6 + 1)) ? "Asia/Kolkata" : dateStr.substring(index6 + 1);
+			return ldt.atZone(ZoneId.of(zone)).toInstant().toEpochMilli();
 		}
 		// fallback (slower, but more forgiving)
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss z", Locale.ENGLISH);
