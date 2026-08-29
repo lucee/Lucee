@@ -127,6 +127,8 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		this.output = output;
 		this.bufferOutput = bufferOutput;
 
+		this.canUseFastPath = calculateCanUseFastPath( arguments );
+
 		this.strReturnType = strReturnType;
 		this.returnType = returnType;
 
@@ -212,6 +214,7 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		cachedWithin = StringUtil.emptyAsNull(ExternalizableUtil.readString(in), true);
 		int tmp = in.readInt();
 		localMode = tmp == -1 ? null : tmp;
+		canUseFastPath = calculateCanUseFastPath( arguments );
 
 		if (arguments != null && arguments.length > 0) {
 			this.argumentsSet = new HashSet<Collection.Key>();
@@ -257,6 +260,16 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		ExternalizableUtil.writeString(out, Caster.toString(cachedWithin, null));
 
 		out.writeInt(localMode == null ? -1 : localMode.intValue());
+	}
+
+	private static boolean calculateCanUseFastPath( FunctionArgument[] arguments ) {
+		if (arguments == null) return true;
+		for (FunctionArgument arg : arguments) {
+			if (arg.getType() != CFTypes.TYPE_ANY || arg.getDefaultType() != FunctionArgument.DEFAULT_TYPE_NULL || arg.isRequired() || !arg.isPassByReference()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override
