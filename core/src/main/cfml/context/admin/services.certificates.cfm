@@ -6,9 +6,7 @@
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
 
-
-
-<!--- 
+<!---
 Defaults --->
 <cfparam name="url.action2" default="list">
 <cfparam name="form.mainAction" default="none">
@@ -24,34 +22,33 @@ Defaults --->
 <cfset _port=session.certPort>
 
 <cfscript>
-	LuceeTrustStore = false;
-	if ((server.system.properties["lucee.use.lucee.SSL.TrustStore"]?: false)
-			|| (server.system.environment["lucee_use_lucee_SSL_TrustStore"]?: false)){
-		LuceeTrustStore = true;
-	};
-	
+	customCaCertsEnabled = !(server.system.properties["lucee.ssl.customcacerts.enabled"]?: "true").equalsIgnoreCase("false");
 </cfscript>
 
-<cfif !LuceeTrustStore>
+<cfif !customCaCertsEnabled>
 	<p>
-	<b>As Lucee is currently using the JVM TrustStore/cacerts file, this functionality isn't available.</b>
+	<b>Custom CA certificates are disabled.</b>
 	<br><br>
-	Set the following System or Environment variables to enable: <code>lucee.use.lucee.SSL.TrustStore = true;</code>
+	Set the following System or Environment variable to enable: <code>lucee.ssl.customcacerts.enabled=true</code>
 	</p>
 </cfif>
 
 <cftry>
 	<cfswitch expression="#form.mainAction#">
-	<!--- UPDATE --->
-    
+	<!--- INSTALL --->
 		<cfcase value="#stText.services.certificate.install#">
-			<cfadmin 
+			<cfadmin
                 type="#request.adminType#"
 				password="#session["password"&request.adminType]#"
                 action="updatesslcertificate" host="#form.host#" port="#form.port#">
-			
-		
-		</cfcase>	
+		</cfcase>
+	<!--- REMOVE --->
+		<cfcase value="Remove">
+			<cfadmin
+				type="#request.adminType#"
+				password="#session["password"&request.adminType]#"
+				action="removesslcertificate" alias="#form.alias#">
+		</cfcase>
     </cfswitch>
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
@@ -61,13 +58,13 @@ Defaults --->
 </cftry>
 
 
-<!--- 
+<!---
 Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
 
-<!--- 
+<!---
 Error Output --->
 <cfset printError(error)>
 <cfoutput>
@@ -104,9 +101,55 @@ Error Output --->
 		</table>
 	</cfformClassic>
 
+	<!--- Installed certificates in custom-cacerts --->
+	<cfif customCaCertsEnabled>
+		<cftry>
+			<cfadmin
+				type="#request.adminType#"
+				password="#session["password"&request.adminType]#"
+				action="getallsslcertificate" returnvariable="installedCerts">
+
+			<h2>Installed Certificates</h2>
+			<cfif installedCerts.recordcount>
+				<table class="maintbl">
+					<thead>
+						<tr>
+							<th>#stText.services.certificate.subject#</th>
+							<th>#stText.services.certificate.issuer#</th>
+							<th>Alias</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<cfloop query="installedCerts">
+							<tr>
+								<td>#installedCerts.subject#</td>
+								<td>#installedCerts.issuer#</td>
+								<td>#installedCerts.alias#</td>
+								<td>
+									<form action="#request.self#?action=#url.action#" method="post" style="display:inline">
+										<input type="hidden" name="alias" value="#installedCerts.alias#">
+										<input type="hidden" name="mainAction" value="Remove">
+										<input class="button small" type="submit" value="Remove" onclick="return confirm('Remove certificate #JSStringFormat(installedCerts.alias)#?')">
+									</form>
+								</td>
+							</tr>
+						</cfloop>
+					</tbody>
+				</table>
+			<cfelse>
+				<p>No certificates installed in custom-cacerts.</p>
+			</cfif>
+			<cfcatch>
+				<div class="error">#cfcatch.message# #cfcatch.detail#</div>
+			</cfcatch>
+		</cftry>
+	</cfif>
+
+	<!--- Preview certs from remote host --->
 	<cfif len(_host) and len(_port)>
 		<cftry>
-			<cfadmin 
+			<cfadmin
                 type="#request.adminType#"
 				password="#session["password"&request.adminType]#"
 				action="getsslcertificate" host="#_host#" port="#_port#" returnvariable="qry">

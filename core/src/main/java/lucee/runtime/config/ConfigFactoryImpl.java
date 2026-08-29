@@ -27,6 +27,7 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -157,6 +158,7 @@ import lucee.runtime.monitor.RequestMonitorPro;
 import lucee.runtime.monitor.RequestMonitorProImpl;
 import lucee.runtime.monitor.RequestMonitorWrap;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.http.SSLUtil;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
@@ -339,6 +341,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			config.resetScheduledTasks();
 			// admin mode
 			load(config, root, false, doNew, essentialOnly);
+			SSLUtil.init( Paths.get( config.getConfigDir().getAbsolutePath(), "security" ) );
 
 			if (!essentialOnly) {
 				createContextFiles(configDir, config, doNew);

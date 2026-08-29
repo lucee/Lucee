@@ -18,12 +18,11 @@
  **/
 package lucee.runtime.functions.other;
 
-import lucee.commons.io.SystemUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.commons.io.res.Resource;
 import lucee.runtime.net.http.CertificateInstaller;
 import lucee.runtime.op.Caster;
 
@@ -31,34 +30,34 @@ public final class SSLCertificateInstall implements Function {
 
 	private static final long serialVersionUID = -831759073098524176L;
 
-	public static String call(PageContext pc, String host) throws PageException {
-		return call(pc, host, 443);
+	public static String call( PageContext pc, String host ) throws PageException {
+		return call( pc, host, 443 );
 	}
 
-	public static String call(PageContext pc, String host, Number port) throws PageException {
-		return call(pc, host, port, null, null);
+	public static String call( PageContext pc, String host, Number port ) throws PageException {
+		return call( pc, host, port, null, null );
 	}
 
-	public static String call(PageContext pc, String host, Number port, Object cacerts) throws PageException {
-		return call(pc, host, port, cacerts, null);
+	public static String call( PageContext pc, String host, Number port, Object cacerts ) throws PageException {
+		return call( pc, host, port, cacerts, null );
 	}
 
-	public static String call(PageContext pc, String host, Number port, Object cacerts, String password) throws PageException {
-		CertificateInstaller installer;
-		Resource _cacerts;
+	public static String call( PageContext pc, String host, Number port, Object cacerts, String password ) throws PageException {
 		try {
-			if (cacerts == null) {
-				if (!SystemUtil.getSystemPropOrEnvVar("lucee.use.lucee.SSL.TrustStore", "").equalsIgnoreCase("true"))
-					throw new ApplicationException("Using JVM cacerts, set lucee.use.lucee.SSL.TrustStore=true to enable"); // LDEV-917
-				_cacerts = pc.getConfig().getSecurityDirectory();
-			} else {
-				_cacerts = Caster.toResource(pc, cacerts, true);
+			if ( cacerts == null ) {
+				CertificateInstaller.installToCustomCaCerts( host, Caster.toIntValue( port ) );
 			}
-			if (password == null) installer = new CertificateInstaller(_cacerts, host, Caster.toIntValue(port)); // use default password changeit
-			else installer = new CertificateInstaller(_cacerts, host, Caster.toIntValue(port), password.toCharArray());
-			installer.installAll(true);
-		} catch (Exception e){
-			throw Caster.toPageException(e);
+			else {
+				Resource keystore = Caster.toResource( pc, cacerts, true );
+				CertificateInstaller installer = password == null
+					? new CertificateInstaller( keystore, host, Caster.toIntValue( port ) )
+					: new CertificateInstaller( keystore, host, Caster.toIntValue( port ), password.toCharArray() );
+				installer.installAll( true );
+			}
+			HTTPEngine4Impl.releaseConnectionManager();
+		}
+		catch ( Exception e ) {
+			throw Caster.toPageException( e );
 		}
 		return "";
 	}
