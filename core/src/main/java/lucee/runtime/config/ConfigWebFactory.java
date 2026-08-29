@@ -4389,7 +4389,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 	}
 
-	private static void _loadJavaSettings(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
+	static void _loadJavaSettings(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			if (config instanceof ConfigServerImpl) {
 
