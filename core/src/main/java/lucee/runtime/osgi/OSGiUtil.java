@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -2380,12 +2381,23 @@ public final class OSGiUtil {
 		return bootDelegation;
 	}
 
+	private static final ConcurrentHashMap<String, Boolean> CLASS_BOOTELEGATION_CACHE = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<String, Boolean> PKG_BOOTELEGATION_CACHE = new ConcurrentHashMap<>();
+
 	public static boolean isClassInBootelegation(String className) {
-		return isInBootelegation(className, false);
+		Boolean cached = CLASS_BOOTELEGATION_CACHE.get(className);
+		if (cached != null) return cached;
+		boolean result = isInBootelegation(className, false);
+		CLASS_BOOTELEGATION_CACHE.put(className, result);
+		return result;
 	}
 
-	public static boolean isPackageInBootelegation(String className) {
-		return isInBootelegation(className, true);
+	public static boolean isPackageInBootelegation(String packageName) {
+		Boolean cached = PKG_BOOTELEGATION_CACHE.get(packageName);
+		if (cached != null) return cached;
+		boolean result = isInBootelegation(packageName, true);
+		PKG_BOOTELEGATION_CACHE.put(packageName, result);
+		return result;
 	}
 
 	private static boolean isInBootelegation(String name, boolean isPackage) {
