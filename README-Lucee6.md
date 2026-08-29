@@ -5,7 +5,6 @@ Lucee 6 comes with a lot of new features and functionality that improve your int
 
 Stay tuned as we explore the exciting world of Lucee 6. Get ready to elevate your CFML game with the latest and greatest.
 
-
 # Java
 
 Lucee now offers an array of enhanced functionalities for a more seamless integration between Lucee and Java applications and code.
