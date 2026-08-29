@@ -1404,12 +1404,11 @@ public final class SystemUtil {
 	}
 
 	private static boolean _stop(Thread thread, Log log, boolean force) {
-		// we try to interrupt/stop the suspended thrad
+		// we try to interrupt/stop the suspended thread
 		suspendEL(thread);
 		try {
 			if (isInLucee(thread)) {
-				if (!force) thread.interrupt();
-				else thread.stop();
+				thread.interrupt();
 			}
 			else {
 				if (log != null) {
