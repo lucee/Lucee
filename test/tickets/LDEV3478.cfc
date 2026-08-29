@@ -163,7 +163,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 			if ( listFirst( header, "=" ) eq arguments.name )
 				arrayAppend( matches, header );
 		}
-		matches = [ "remove this to test LDEV-1105, duplicate cfid cookies" ];
 		return matches;
 	}
 
