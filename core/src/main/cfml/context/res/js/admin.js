@@ -65,17 +65,20 @@ function initMenu() {
 }
 
 $(".checkbox").change(function () {
-	$(".enablebutton").attr({ disabled: true, style: "opacity:0.5" });
-	if ($(".checkbox:checked").length) {
-		$(".enablebutton").attr({ disabled: false, style: "opacity:1" });
+ 	var $form = $(this).closest("form");
+    var $btns = $form.find(".enablebutton");
+	$btns.attr({ disabled: true, style: "opacity:0.5" });
+	if ($form.find(".checkbox:checked").length) {
+			$btns.attr({ disabled: false, style: "opacity:1" });
 	}
 });
 $("#clickCancel").click(function () {
+	var $form = $(this).closest("form");
 	if ($('.maintbl').find('input[name="rowreadonly"]').prop("checked"))
 		$('.maintbl').find('input[name="rowreadonly"]').trigger('click')
 	else
-		$('.maintbl').find("input.checkbox").prop("checked", false)
-	$(".enablebutton").attr({ disabled: true, style: "opacity:0.5" });
+		$form.find('.maintbl input.checkbox').prop("checked", false);
+    $form.find(".enablebutton").attr({ disabled: true, style: "opacity:0.5" });
 });
 
 function initMenu2() {
