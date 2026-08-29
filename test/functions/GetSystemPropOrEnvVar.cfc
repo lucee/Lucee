@@ -31,6 +31,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					}
 				});
 			});
+			
+			//For LDEV-5425
+			xit( title = "should return the default value instead of an empty value for GetSystemPropOrEnvVar(prop)", body = function( currentSpec ) {
+                var props = GetSystemPropOrEnvVar();
+                ArrayEach( props, function( item ){
+                    var result = GetSystemPropOrEnvVar( item.sysProp );
+                    expect( len(result) ).toBeGT( 0 );
+                });
+            })
 
 		});
 	}
