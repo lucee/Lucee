@@ -1252,6 +1252,30 @@ public final class ConfigUtil {
 			}
 		}
 
+		// virtual directory mappings from x-vdirs header (mod_cfml)
+		if (pc != null && config instanceof ConfigWebImpl) {
+			Mapping[] vdirMappings = ((ConfigWebImpl) config).getVirtualDirectoryMappings( pc );
+			if (vdirMappings != null) {
+				for (int i = 0; i < vdirMappings.length; i++) {
+					mapping = vdirMappings[i];
+					if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
+						if (asPageSource) {
+							ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+							if (onlyFirstMatch) return new PageSource[] { ps };
+							else list.add(ps);
+						}
+						else {
+							if (mapping instanceof MappingImpl) res = ((MappingImpl) mapping).getResource(realPath.substring(mapping.getVirtual().length()));
+							else res = mapping.getPageSource(realPath.substring(mapping.getVirtual().length())).getResource();
+
+							if (onlyFirstMatch) return new Resource[] { res };
+							else list.add(res);
+						}
+					}
+				}
+			}
+		}
+
 		if (useDefaultMapping) {
 			if (rootApp != null) mapping = rootApp;
 			else mapping = thisMappings[thisMappings.length - 1];
@@ -1358,6 +1382,23 @@ public final class ConfigUtil {
 					if (ps.physcalExists()) return ps;
 				}
 				else if (ps.exists()) return ps;
+			}
+		}
+
+		// virtual directory mappings from x-vdirs header (mod_cfml)
+		if (pc != null && config instanceof ConfigWebImpl) {
+			Mapping[] vdirMappings = ((ConfigWebImpl) config).getVirtualDirectoryMappings( pc );
+			if (vdirMappings != null) {
+				for (int i = 0; i < vdirMappings.length; i++) {
+					mapping = vdirMappings[i];
+					if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
+						ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+						if (onlyPhysicalExisting) {
+							if (ps.physcalExists()) return ps;
+						}
+						else if (ps.exists()) return ps;
+					}
+				}
 			}
 		}
 
