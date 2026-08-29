@@ -137,9 +137,9 @@ public class QueryParamConverter {
 
 	private static SQL convert(String sql, List<SQLItems<SQLItem>> items, List<SQLItems<NamedSQLItem>> namedItems) throws ApplicationException, PageException {
 		// if(namedParams.size()==0) return new Pair<String, List<Param>>(sql,params);
-
-		StringBuilder sb = new StringBuilder();
-		int sqlLen = sql.length(), initialParamSize = items.size();
+		int sqlLen = sql.length();
+		StringBuilder sb = new StringBuilder(sqlLen);
+		int initialParamSize = items.size();
 		char c, quoteType = 0, p = 0, pp = 0;
 		boolean inQuotes = false;
 		int qm = 0, _qm = 0;

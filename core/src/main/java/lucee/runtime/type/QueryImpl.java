@@ -1581,8 +1581,15 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	@Override
 	public String toString() {
 		Collection.Key[] keys = keys();
+		// each column is padded out 23 chars + 1 char, 3 header rows, query / recordcount... better initial size
+		int size = ((( 23 * (2 * keys.length)) + 1) * (getRecordcount() + 3)) + 35;
+		if (sql != null ) size = size + sql.getSQLString().length() + 55;
+		if (exeTime > 0) size = size + 25 + 55;
 
-		StringBuffer sb = new StringBuffer();
+		//lucee.aprint.o("");
+		//lucee.aprint.o(size);
+
+		StringBuffer sb = new StringBuffer(size);
 
 		sb.append("| Query: ").append(this.name).append("\tRecordCount: ").append(getRecordcount()).append('\n');
 
