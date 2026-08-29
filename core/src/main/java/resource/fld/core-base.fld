@@ -19589,7 +19589,197 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>any</type>
 		</return>
 	</function>
-	
+
+	<!-- jfrAvailable -->
+	<function>
+		<name>jfrAvailable</name>
+		<class>lucee.runtime.functions.jfr.JfrAvailable</class>
+		<keywords>performance,monitoring,jfr,flight recorder</keywords>
+		<description>Returns true if Java Flight Recorder is available in this JVM (JDK 11+).</description>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+
+	<!-- jfrEnabled -->
+	<function>
+		<name>jfrEnabled</name>
+		<class>lucee.runtime.functions.jfr.JfrEnabled</class>
+		<keywords>performance,monitoring,jfr,flight recorder</keywords>
+		<description>Returns true if Java Flight Recorder is currently recording events.</description>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+
+	<!-- jfrEmit -->
+	<function>
+		<name>jfrEmit</name>
+		<class>lucee.runtime.functions.jfr.JfrEmit</class>
+		<keywords>performance,monitoring,jfr,flight recorder,event</keywords>
+		<description>Emits an instant (point-in-time) Java Flight Recorder event with optional data.</description>
+		<argument>
+			<name>category</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Event category (e.g. "database", "http", "business")</description>
+		</argument>
+		<argument>
+			<name>label</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Event label or message</description>
+		</argument>
+		<argument>
+			<name>data</name>
+			<type>struct</type>
+			<required>No</required>
+			<description>Additional event data as a struct (will be JSON serialized)</description>
+		</argument>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+
+	<!-- jfrBegin -->
+	<function>
+		<name>jfrBegin</name>
+		<class>lucee.runtime.functions.jfr.JfrBegin</class>
+		<keywords>performance,monitoring,jfr,flight recorder,duration,timer</keywords>
+		<description>Starts a Java Flight Recorder duration event and returns an event ID. Use jfrCommit() to complete the event.</description>
+		<argument>
+			<name>category</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Event category (e.g. "database", "http", "business")</description>
+		</argument>
+		<argument>
+			<name>label</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Event label or name (defaults to category if not provided)</description>
+		</argument>
+		<argument>
+			<name>data</name>
+			<type>struct</type>
+			<required>No</required>
+			<description>Initial event data as a struct</description>
+		</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+
+	<!-- jfrCommit -->
+	<function>
+		<name>jfrCommit</name>
+		<class>lucee.runtime.functions.jfr.JfrCommit</class>
+		<keywords>performance,monitoring,jfr,flight recorder,duration,threshold</keywords>
+		<description>Commits a previously started JFR duration event, recording its total duration. Optionally filters events by minimum duration threshold to reduce overhead.</description>
+		<argument>
+			<name>eventId</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Event ID returned from jfrBegin()</description>
+		</argument>
+		<argument>
+			<name>data</name>
+			<type>struct</type>
+			<required>No</required>
+			<description>Additional event data to add at commit time (will be merged with data from jfrBegin)</description>
+		</argument>
+		<argument>
+			<name>threshold</name>
+			<type>numeric</type>
+			<required>No</required>
+			<default>0</default>
+			<description>Minimum duration in seconds to record event. Use 0 (default) to record all events, -1 to disable threshold checking, or a positive number (e.g. 0.1 for 100ms) to only record events that took at least this long. Useful for filtering out fast operations and reducing JFR overhead.</description>
+		</argument>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+
+	<!-- jfrAnalyze -->
+	<function>
+		<name>jfrAnalyze</name>
+		<class>lucee.runtime.functions.jfr.JfrAnalyze</class>
+		<keywords>performance,monitoring,jfr,flight recorder,analyze,recording</keywords>
+		<description>Analyzes a JFR recording file and returns events as an array of structs or query. Supports filtering, sorting, and output control via options struct.</description>
+		<argument>
+			<name>jfrFile</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Path to the JFR recording file (.jfr)</description>
+		</argument>
+		<argument>
+			<name>returnType</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Return format: "array" (default) or "query"</description>
+		</argument>
+		<argument>
+			<name>options</name>
+			<type>struct</type>
+			<required>No</required>
+			<description>Optional filtering and output control options:
+- eventTypes (string/array): Filter by event type names
+- category (string/array): Filter by event categories
+- startTime (datetime): Only events after this time
+- endTime (datetime): Only events before this time
+- minDuration (numeric): Minimum event duration in milliseconds
+- maxDuration (numeric): Maximum event duration in milliseconds
+- includeStackTraces (boolean): Include stack traces (default: false)
+- maxEvents (numeric): Limit number of events returned
+- sortBy (string): Sort by field: "duration", "startTime", or "eventType"
+- sortOrder (string): "asc" (default) or "desc"
+- fields (string/array): Specific fields to include in output</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+
+	<!-- jfrStartRecording -->
+	<function>
+		<name>jfrStartRecording</name>
+		<class>lucee.runtime.functions.jfr.JfrStartRecording</class>
+		<keywords>performance,monitoring,jfr,flight recorder,recording</keywords>
+		<description>Starts a new JFR recording programmatically with optional configuration.</description>
+		<argument>
+			<name>options</name>
+			<type>struct</type>
+			<required>No</required>
+			<description>Recording options: name, maxAge (seconds), maxSize (bytes), dumpOnExit, destination, settings</description>
+		</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+
+	<!-- jfrStopRecording -->
+	<function>
+		<name>jfrStopRecording</name>
+		<class>lucee.runtime.functions.jfr.JfrStopRecording</class>
+		<keywords>performance,monitoring,jfr,flight recorder,recording</keywords>
+		<description>Stops a JFR recording and optionally dumps it to a file.</description>
+		<argument>
+			<name>recordingId</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>Recording ID returned from jfrStartRecording()</description>
+		</argument>
+		<argument>
+			<name>destination</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Path where to save the recording file (.jfr)</description>
+		</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+
 	<!-- Empty -->
 	<function>
 		<name>Empty</name>
