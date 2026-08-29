@@ -51,6 +51,9 @@ body.dark-mode {
   color: var(--text-color);
 }
 
+body.dark-mode button#error-details {
+  color: black;
+}
 /* Layout elements */
 body.dark-mode #layout {
   background-color: var(--bg-color);
@@ -163,6 +166,9 @@ body.dark-mode textarea {
   color: var(--text-color);
 }
 
+body.dark-mode input.btn{
+  background-color: red !important;
+}
 /* Buttons */
 body.dark-mode .button,
 body.dark-mode .submit,
@@ -335,6 +341,10 @@ body.dark-mode td[style*="border:0"] div {
 }
 
 /* Override inline styles */
+body.dark-mode textarea.note {
+  color: black !important;
+}
+
 body.dark-mode [style*="color"] {
   color: var(--text-color) !important;
 }
