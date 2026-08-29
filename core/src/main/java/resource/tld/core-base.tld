@@ -1106,7 +1106,7 @@ Example:
 		<attribute>
 			<type>string</type>
 			<name>name</name>
-			<required>false</required>
+			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The full pathname of the application to execute.
 		Note: On Windows, you must specify the extension as part of the application's name. For example,
