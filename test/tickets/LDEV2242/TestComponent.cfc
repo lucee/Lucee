@@ -3,4 +3,6 @@ component accessors="true" {
     property name="stringProp" type="string";
     property name="structProp" type="struct";
     property name="testcfcProp" type="testcfc";
+    property name="logbox" type="logbox";
+    property name="logboxNoType";
 }
