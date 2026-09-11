@@ -287,23 +287,6 @@ public class PhysicalClassLoaderFactory {
 		}
 	}
 
-	/**
-	 * The class loaders this factory has handed out. An extension can contribute classes through
-	 * Maven coordinates instead of a bundle (a tag-class declared as
-	 * maven="group:artifact:version"), and those are only ever loaded into the RPC class loaders
-	 * built here - so these are the only place left to look for such a class.
-	 *
-	 * @return the currently cached class loaders
-	 */
-	public static Collection<ClassLoader> getClassLoaders() {
-		List<ClassLoader> list = new ArrayList<ClassLoader>(classLoaders.size());
-		for (CachedLoader cached: classLoaders.values()) {
-			PhysicalClassLoader pcl = cached.get();
-			if (pcl != null) list.add(pcl);
-		}
-		return list;
-	}
-
 	private static class CachedLoader {
 		final PhysicalClassLoader loader;
 		volatile long lastAccess;

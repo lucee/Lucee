@@ -28,6 +28,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -36,16 +38,13 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.PhysicalClassLoaderFactory;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
@@ -93,6 +92,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 	private boolean init;
 
 	private Config config;
+	private final Map<String, ClassLoader> taskLoaders = new ConcurrentHashMap<>();
 
 	public SpoolerEngineImpl(Config config, String label) {
 
@@ -143,6 +143,8 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 		add++;
 		if (task.nextExecution() == 0) task.setNextExecution(System.currentTimeMillis());
 		task.setId(createId(config, task));
+		ClassLoader cl = task.getClass().getClassLoader();
+		if (cl != null) taskLoaders.put(task.getClass().getName(), cl);
 		if (store(config, task)) {
 			start(config);
 		}
@@ -208,9 +210,12 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 		SpoolerTask task = defaultValue;
 		try {
 			is = res.getInputStream();
-			ois = new TaskObjectInputStream(CFMLEngineFactory.getInstance().getClass().getClassLoader(), is);
-
+			ois = new TaskInputStream(is);
 			task = (SpoolerTask) ois.readObject();
+		}
+		// the task class is not loaded (yet), keep the file so it can be read once it is
+		catch (ClassNotFoundException e) {
+			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
 		}
 		catch (Exception e) {
 			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
@@ -686,71 +691,22 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 		return config.getRemoteClientDirectory();
 	}
 
-	/**
-	 * Reads a spooler task back from disk.
-	 *
-	 * A task does not have to come from the core - an extension can contribute one (the mail
-	 * extension's MailSpoolerTask, for instance), and an extension's classes are not necessarily
-	 * visible to the core class loader: they live either in the extension's own OSGi bundle or,
-	 * when the extension declares its implementation through Maven coordinates, in one of the RPC
-	 * class loaders. Resolving against the core class loader alone therefore fails with a
-	 * ClassNotFoundException, and since the spooler only ever runs tasks it has read back from
-	 * disk, the task - a queued cfmail, say - is dropped after having been stored successfully.
-	 */
-	private static class TaskObjectInputStream extends JavaConverter.ObjectInputStreamImpl {
+	private final class TaskInputStream extends ObjectInputStream {
+		private ClassLoader cl;
 
-		/**
-		 * The extension class loader this task came from, remembered as soon as one class in the
-		 * stream has been found in it. Everything a task references has to be resolved through the
-		 * same loader: the same class from two loaders is two distinct types, and reading the task
-		 * then fails with "cannot assign instance of X to field ... of type X". Preferring that
-		 * loader is safe for core classes too, since it delegates to the core loader for anything
-		 * it does not provide itself.
-		 */
-		private ClassLoader extensionLoader;
-
-		public TaskObjectInputStream(ClassLoader cl, InputStream in) throws IOException {
-			super(cl, in);
+		private TaskInputStream(InputStream in) throws IOException {
+			super(in);
 		}
 
 		@Override
 		protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-			String name = desc.getName();
-
-			if (extensionLoader != null) {
-				Class<?> clazz = load(extensionLoader, name);
-				if (clazz != null) return clazz;
-			}
-
+			// the first class in the stream is the task itself, read the whole stream with the loader it was created by
+			if (cl == null) cl = taskLoaders.getOrDefault(desc.getName(), CFMLEngineFactory.getInstance().getClass().getClassLoader());
 			try {
+				return Class.forName(desc.getName(), false, cl);
+			}
+			catch (ClassNotFoundException e) {
 				return super.resolveClass(desc);
-			}
-			catch (ClassNotFoundException cnfe) {
-				// an extension shipping its classes as an OSGi bundle
-				Class<?> clazz = ClassUtil.loadClass(name, null);
-
-				// an extension shipping them through Maven coordinates
-				if (clazz == null) {
-					for (ClassLoader cl: PhysicalClassLoaderFactory.getClassLoaders()) {
-						clazz = load(cl, name);
-						if (clazz != null) break;
-					}
-				}
-
-				if (clazz == null) throw cnfe;
-				if (clazz.getClassLoader() != null) extensionLoader = clazz.getClassLoader();
-				return clazz;
-			}
-		}
-
-		private static Class<?> load(ClassLoader cl, String name) {
-			try {
-				// Class.forName also understands the array descriptors a serialized stream uses
-				return Class.forName(name, false, cl);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				return null;
 			}
 		}
 	}

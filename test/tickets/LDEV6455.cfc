@@ -6,17 +6,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			it( title="a spooled task contributed by an extension can be read back", body = function( currentSpec ) {
 				var subject = "LDEV6455-" & createUUID();
 
-				// Queue a mail without ever sending it: the send time is a day out, so the spooler
-				// leaves the task alone and this test needs no mail server. What matters is that
-				// the task class comes from the mail extension rather than from the core.
+				// sendTime is a day out, so the task is stored but never sent and no mail server is needed
 				mail to="receiver@lucee.org" from="sender@lucee.org" subject=subject
 						server="localhost" port=25 spoolEnable=true sendTime=dateAdd( "d", 1, now() ) {
 					echo( "LDEV-6455" );
 				}
 
-				// Listing reads every task back from disk. A task whose class the core class
-				// loader cannot see failed to deserialize and was then deleted, so the queued
-				// mail disappeared without ever being sent and without an error to the caller.
+				// listing reads every task back from disk
 				admin action="getSpoolerTasks" type="web" password=server.WEBADMINPASSWORD
 						startrow="1" maxrow="1000" returnVariable="local.tasks";
 
