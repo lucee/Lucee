@@ -401,7 +401,7 @@
 	// As a Set of Array and Structures, so that it is sorted
 
 	favoriteLis = "";
-
+	
 	context='';
 	// write Naviagtion
 	current.label="Overview";
@@ -411,6 +411,8 @@
 	strNav ="";
 	adminUrls = []; // track menu urls for automated testing
 	hasScheduler=extensionExists("97EB5427-F051-4684-91EBA6DBB5C5203F");
+	hasMail=extensionExists("212BA548-F15A-4EBD-8B1EEDF8DD8A844D");
+
 	for(i=1;i lte arrayLen(navigation);i=i+1) {
 		stNavi = navigation[i];
 		hasChildren=structKeyExists(stNavi,"children");
@@ -440,6 +442,7 @@
 					if (structKeyExists(stCld,'_action'))_action=stCld._action;
 					else _action=stNavi.action & '.' & stCld.action;
 					if(!hasScheduler && _action=="services.schedule") continue;
+					if(!hasMail && _action=="services.mail") continue;
 					isfavorite = application.adminfunctions.isfavorite(_action);
 					li = '<li' & (isfavorite ? ' class="favorite"':'') & '><a '&(isActive?'class="menu_active"':'class="menu_inactive"')&' href="' & request.self & '?action=' &ListCompact( _action,'.') & '"> ' & stCld.label & '</a></li>';
 					ArrayAppend(adminUrls, request.self & '?action=' &ListCompact( _action,'.'));

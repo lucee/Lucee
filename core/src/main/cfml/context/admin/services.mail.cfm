@@ -1,4 +1,10 @@
-<!--- 
+<cfscript>
+	// mail moved to an extension; without it there is nothing to configure here
+	if(!extensionExists("212BA548-F15A-4EBD-8B1EEDF8DD8A844D")) {
+		cflocation(url="#request.self#" addtoken="no");
+	}
+</cfscript>
+<!---
 Defaults --->
 <cfparam name="form.mainAction" default="none">
 <cfparam name="error" default="#struct(message:"",detail:"")#">
