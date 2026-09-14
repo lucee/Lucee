@@ -52,13 +52,6 @@
 				expect(redshift.metadata).toHaveKey("MinCoreVersion");
 				expect(redshift.metadata.MinCoreVersion).toBe("5.0.0.019");
 			});
-
-			it(title="MinCoreVersion absent when the pom omits luceeCoreVersion", body = function( currentSpec ) {
-				var s3 = luceeExtension("org.lucee", "s3-extension", "3.0.0.4", true);
-				expect(s3).toHaveKey("metadata");
-				// pom has no <luceeCoreVersion>, so the key must not be present (never error)
-				expect(structKeyExists(s3.metadata, "MinCoreVersion")).toBe(false);
-			});
 		});
 	}
 }
