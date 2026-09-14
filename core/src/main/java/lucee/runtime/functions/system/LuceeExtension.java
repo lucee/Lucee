@@ -92,7 +92,7 @@ public final class LuceeExtension extends BIF {
 						}
 						double minLoader = em.getMinLoaderVersion();
 						if (minLoader > 0D) {
-							meta.set("MinCoreVersion", minLoader);
+							meta.set("MinLoaderVersion", minLoader);
 						}
 					}
 					applyArtifactImage(ep, meta, artifactId);
@@ -146,6 +146,8 @@ public final class LuceeExtension extends BIF {
 				if (!StringUtil.isEmpty(image, true)) meta.set(KeyConstants._image, image);
 				String buildDate = props.get("buildDate");
 				if (!StringUtil.isEmpty(buildDate, true)) meta.set("buildDate", buildDate);
+				String minCoreVersion = props.get("luceeCoreVersion");
+				if (!StringUtil.isEmpty(minCoreVersion, true)) meta.set("MinCoreVersion", minCoreVersion);
 			}
 			if (!meta.containsKey("buildDate") && detail.containsKey(KeyConstants._lastModified)) {
 				meta.set("buildDate", detail.get(KeyConstants._lastModified));

@@ -41,6 +41,24 @@
 					debug("data for #local.artifact# version #versions[len(versions)]# : #serializeJSON(last)#");
 				}
 			});
+
+			it(title="expose MinCoreVersion from the pom in metadata", body = function( currentSpec ) {
+				var quartz = luceeExtension("org.lucee", "quartz-extension", "1.0.0.56", true);
+				expect(quartz).toHaveKey("metadata");
+				expect(quartz.metadata).toHaveKey("MinCoreVersion");
+				expect(quartz.metadata.MinCoreVersion).toBe("7.0.0.211-BETA");
+
+				var redshift = luceeExtension("org.lucee", "redshift-jdbc-extension", "2.2.8.1", true);
+				expect(redshift.metadata).toHaveKey("MinCoreVersion");
+				expect(redshift.metadata.MinCoreVersion).toBe("5.0.0.019");
+			});
+
+			it(title="MinCoreVersion absent when the pom omits luceeCoreVersion", body = function( currentSpec ) {
+				var s3 = luceeExtension("org.lucee", "s3-extension", "3.0.0.4", true);
+				expect(s3).toHaveKey("metadata");
+				// pom has no <luceeCoreVersion>, so the key must not be present (never error)
+				expect(structKeyExists(s3.metadata, "MinCoreVersion")).toBe(false);
+			});
 		});
 	}
 }
