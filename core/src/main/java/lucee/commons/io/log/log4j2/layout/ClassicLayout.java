@@ -19,12 +19,11 @@
 package lucee.commons.io.log.log4j2.layout;
 
 import java.nio.charset.StandardCharsets;
-
-import java.util.Locale;
 import java.util.TimeZone;
 
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
+import org.apache.logging.log4j.core.pattern.DatePatternConverter;
 import org.apache.logging.log4j.message.Message;
 
 import lucee.commons.io.log.log4j2.ContextualMessage;
@@ -33,10 +32,16 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.format.DateFormat;
-import lucee.runtime.format.TimeFormat;
 
 public final class ClassicLayout extends AbstractStringLayout { // TODO <Serializable>
+
+	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+
+	// quotes, commas, date (10), time (8), line separator, plus slack for doubled quotes
+	private static final int FIXED_OVERHEAD = 64;
+
+	private final DatePatternConverter date;
+	private final DatePatternConverter time;
 
 	public ClassicLayout() {
 		// TODO custom charset?
@@ -44,12 +49,12 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 
 				"\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Context\",\"Application\",\"Message\"" + LINE_SEPARATOR
 				: "\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Application\",\"Message\"" + LINE_SEPARATOR).getBytes(StandardCharsets.UTF_8), new byte[0]);
+
+		// zone resolved once for the life of the layout, log4j caches everything above second precision
+		String tz = TimeZone.getDefault().getID();
+		date = DatePatternConverter.newInstance( new String[] { "MM/dd/yyyy", tz, "en-US" } );
+		time = DatePatternConverter.newInstance( new String[] { "HH:mm:ss", tz, "en-US" } );
 	}
-
-	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
-
-	private static final DateFormat dateFormat = new DateFormat(Locale.US);
-	private static final TimeFormat timeFormat = new TimeFormat(Locale.US);
 
 	@Override
 	public String getContentType() {
@@ -59,8 +64,6 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 
 	@Override
 	public String toSerializable(final LogEvent event) {
-
-		StringBuilder data = new StringBuilder();
 		String msg, application, context;
 		Message message = event.getMessage();
 		if (message instanceof ContextualMessage) {
@@ -74,67 +77,73 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 			application = "";
 			context = ContextualMessage.getLabel();
 		}
-		data.append('"');
-		data.append(event.getLevel().toString());
-		data.append('"');
 
+		Throwable t = event.getThrown();
+		String level = event.getLevel().toString();
+		String thread = event.getThreadName();
+		msg = getFormattedMessage( t, msg );
+		String stacktrace = t != null ? ExceptionUtil.getStacktrace( t, false, true ) : "";
+
+		StringBuilder data = new StringBuilder( FIXED_OVERHEAD + level.length() + thread.length() + context.length() + application.length() + msg.length() + stacktrace.length() );
+
+		data.append('"').append( level ).append('"');
 		data.append(',');
-
-		data.append('"');
-		data.append(event.getThreadName());
-		data.append('"');
-
+		data.append('"').append( thread ).append('"');
 		data.append(',');
 
 		// Date
 		data.append('"');
-
-		data.append(dateFormat.format(event.getTimeMillis(), "mm/dd/yyyy", TimeZone.getDefault()));
+		date.format( event, data );
 		data.append('"');
-
 		data.append(',');
 
 		// Time
 		data.append('"');
-		data.append(timeFormat.format(event.getTimeMillis(), "HH:mm:ss", TimeZone.getDefault()));
+		time.format( event, data );
 		data.append('"');
-
 		data.append(',');
 
 		// Context
 		if (LogAdapter.logWebContextInfo) {
-			data.append('"');
-			data.append(StringUtil.replace(context, "\"", "\"\"", false));
-			data.append('"');
+			appendQuoted( data, context );
 			data.append(',');
 		}
 
 		// Application
-		data.append('"');
-		data.append(StringUtil.replace(application, "\"", "\"\"", false));
-		data.append('"');
-
+		appendQuoted( data, application );
 		data.append(',');
 
 		// Message
-		Throwable t = event.getThrown();
 		data.append('"');
-		String fm = getFormattedMessage(t, msg);
 		if (t != null) {
-			String est = ExceptionUtil.getStacktrace(t, false, true);
 			// the stack trace starts with the class name and message of the exception, so only add the message
 			// in front when it says something more, and separate the two (LDEV-6119, LDEV-6214)
-			if (!StringUtil.isEmpty(fm, true) && !est.startsWith(fm)) {
-				data.append(StringUtil.replace(fm, "\"", "\"\"", false));
+			if (!StringUtil.isEmpty(msg, true) && !stacktrace.startsWith(msg)) {
+				appendEscaped( data, msg );
 				data.append(';');
 			}
-			data.append(StringUtil.replace(est, "\"", "\"\"", false));
+			appendEscaped( data, stacktrace );
 		}
-		else data.append(StringUtil.replace(fm, "\"", "\"\"", false));
+		else appendEscaped( data, msg );
 		data.append('"');
 
 		return data.append(LINE_SEPARATOR).toString();
+	}
 
+	private static void appendQuoted( StringBuilder sb, String str ) {
+		sb.append('"');
+		appendEscaped( sb, str );
+		sb.append('"');
+	}
+
+	// CSV escaping, a double quote becomes two, single scan, no intermediate string
+	private static void appendEscaped( StringBuilder sb, String str ) {
+		int len = str.length();
+		for ( int i = 0; i < len; i++ ) {
+			char c = str.charAt( i );
+			if ( c == '"' ) sb.append( '"' );
+			sb.append( c );
+		}
 	}
 
 	public static String getFormattedMessage(Throwable throwable, String message) {
