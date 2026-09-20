@@ -27,18 +27,28 @@ public final class VersionRange implements Serializable {
 		while (it.hasNext()) {
 			str = it.next();
 			if (StringUtil.isEmpty(str, true) || str.equals("-")) continue;
-			index = str.indexOf('-');
-			if (index == -1) {
-				f = OSGiUtil.toVersion(str, null);
+
+			// Try parsing as a single version first (e.g., "7.0.1.7-SNAPSHOT")
+			Version singleVersion = OSGiUtil.toVersion(str, null);
+			if (singleVersion != null) {
+				f = singleVersion;
 				t = null;
 			}
 			else {
-				l = str.substring(0, index).trim();
-				r = str.substring(index + 1).trim();
-				if (!StringUtil.isEmpty(l, true)) f = OSGiUtil.toVersion(l, null);
-				else f = null;
-				if (!StringUtil.isEmpty(r, true)) t = OSGiUtil.toVersion(r, null);
-				else t = null;
+				// If not a valid single version, try parsing as a range
+				index = str.indexOf('-');
+				if (index == -1) {
+					f = null;
+					t = null;
+				}
+				else {
+					l = str.substring(0, index).trim();
+					r = str.substring(index + 1).trim();
+					if (!StringUtil.isEmpty(l, true)) f = OSGiUtil.toVersion(l, null);
+					else f = null;
+					if (!StringUtil.isEmpty(r, true)) t = OSGiUtil.toVersion(r, null);
+					else t = null;
+				}
 			}
 			vrs.add(new VR(f, t));
 		}
