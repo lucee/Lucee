@@ -55,63 +55,104 @@ public final class ListDeleteAt extends BIF {
 	}
 
 	public static String _call(PageContext pc, String list, int pos, char[] del, boolean includeEmptyFields) throws ExpressionException {
-
-		StringBuilder sb = new StringBuilder();
-		int len = list.length();
-		int index = 0;
-		char last = 0, c;
-
+		
 		if (pos < 1) throw new FunctionException(pc, "ListDeleteAt", 2, "index", "index must be greater than 0");
-
-		pos--;
-
-		int i = 0;
-
-		// ignore all delimiter at start
-		if (!includeEmptyFields) for (; i < len; i++) {
-			c = list.charAt(i);
-			if (!equal(del, c)) break;
-			sb.append(c);
-		}
-
-		// before
-		for (; i < len; i++) {
-
-			c = list.charAt(i);
-			if (index == pos && !equal(del, c)) break;
-			if (equal(del, c)) {
-				if (includeEmptyFields || !equal(del, last)) index++;
+		
+		// Handle empty list
+		if (list.length() == 0) return "";
+		
+		int targetIndex = pos - 1; // Convert to 0-based
+		
+		// When includeEmptyFields=true, we need to handle empty elements properly
+		if (includeEmptyFields) {
+			// Split the list into elements, including empty ones
+			java.util.List<String> elements = new java.util.ArrayList<>();
+			int len = list.length();
+			int start = 0;
+			
+			// Parse the list to identify all elements including empty ones
+			for (int i = 0; i <= len; i++) {
+				if (i == len || equal(del, list.charAt(i))) {
+					// Found an element boundary
+					elements.add(list.substring(start, i));
+					start = i + 1;
+				}
 			}
-			sb.append(c);
-			last = c;
-		}
-
-		// suppress item
-		for (; i < len; i++) {
-			if (equal(del, list.charAt(i))) break;
-		}
-
-		// ignore following delimiter
-		for (; i < len; i++) {
-			if (!equal(del, list.charAt(i))) break;
-		}
-
-		if (i == len) {
-
-			while (sb.length() > 0 && equal(del, sb.charAt(sb.length() - 1))) {
-				sb.delete(sb.length() - 1, sb.length());
+			
+			// Validate position
+			if (targetIndex >= elements.size()) {
+				throw new FunctionException(pc, "ListDeleteAt", 2, "index", 
+					"index must be an integer between 1 and " + elements.size());
 			}
-			if (pos > index) throw new FunctionException(pc, "ListDeleteAt", 2, "index", "index must be an integer between 1 and " + (index + 1));
-
+			
+			// Remove the element at targetIndex
+			elements.remove(targetIndex);
+			
+			// Rebuild the list
+			StringBuilder result = new StringBuilder();
+			for (int i = 0; i < elements.size(); i++) {
+				if (i > 0) {
+					result.append(del[0]); // Use first delimiter character
+				}
+				result.append(elements.get(i));
+			}
+			
+			return result.toString();
+			
+		} else {
+			// Original logic for includeEmptyFields=false
+			StringBuilder sb = new StringBuilder();
+			int len = list.length();
+			int index = 0;
+			char last = 0, c;
+			int i = 0;
+			
+			// ignore all delimiter at start
+			for (; i < len; i++) {
+				c = list.charAt(i);
+				if (!equal(del, c)) break;
+				sb.append(c);
+			}
+			
+			// before
+			for (; i < len; i++) {
+				c = list.charAt(i);
+				if (index == targetIndex && !equal(del, c)) break;
+				if (equal(del, c)) {
+					if (!equal(del, last)) index++;
+				}
+				sb.append(c);
+				last = c;
+			}
+			
+			// suppress item
+			for (; i < len; i++) {
+				if (equal(del, list.charAt(i))) break;
+			}
+			
+			// ignore following delimiter
+			for (; i < len; i++) {
+				if (!equal(del, list.charAt(i))) break;
+			}
+			
+			if (i == len) {
+				while (sb.length() > 0 && equal(del, sb.charAt(sb.length() - 1))) {
+					sb.delete(sb.length() - 1, sb.length());
+				}
+				if (targetIndex > index) {
+					throw new FunctionException(pc, "ListDeleteAt", 2, "index", 
+						"index must be an integer between 1 and " + (index + 1));
+				}
+				return sb.toString();
+			}
+			
+			// fill the rest
+			for (; i < len; i++) {
+				sb.append(list.charAt(i));
+			}
+			
 			return sb.toString();
 		}
-
-		// fill the rest
-		for (; i < len; i++) {
-			sb.append(list.charAt(i));
-		}
-
-		return sb.toString();
 	}
 
 	private static boolean equal(char[] del, char c) {
