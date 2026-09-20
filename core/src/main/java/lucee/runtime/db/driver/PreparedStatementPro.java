@@ -31,4 +31,8 @@ public interface PreparedStatementPro extends PreparedStatement, StatementPro {
 	public ResultSet executeQuery(PageContext pc) throws SQLException;
 
 	public int executeUpdate(PageContext pc) throws SQLException;
+
+	public void addBatch(PageContext pc) throws SQLException;
+
+	public int[] executeBatch(PageContext pc) throws SQLException;
 }

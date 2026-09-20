@@ -353,6 +353,23 @@ public final class QueryUtil {
 		return ps.execute();
 	}
 
+	public static void addBatch(PageContext pc, PreparedStatement ps) throws SQLException {
+		if (ps instanceof PreparedStatementPro) {
+			PreparedStatementPro psp = (PreparedStatementPro) ps;
+			psp.addBatch(pc);
+			return;
+		}
+		ps.addBatch();
+	}
+
+	public static int[] executeBatch(PageContext pc, PreparedStatement ps) throws SQLException {
+		if (ps instanceof PreparedStatementPro) {
+			PreparedStatementPro psp = (PreparedStatementPro) ps;
+			return psp.executeBatch(pc);
+		}
+		return ps.executeBatch();
+	}
+
 	public static String getColumnName(ResultSetMetaData meta, int column) throws SQLException {
 		try {
 			return meta.getColumnLabel(column);

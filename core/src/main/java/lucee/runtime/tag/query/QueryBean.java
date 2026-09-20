@@ -95,6 +95,7 @@ public final class QueryBean implements Serializable {
 	public TagListener listener;
 	public Object rawDatasource;
 	public boolean async;
+	public boolean batch;
 
 	public void release() {
 		items.clear();
@@ -133,6 +134,7 @@ public final class QueryBean implements Serializable {
 		listener = null;
 		async = false;
 		indexName = null;
+		batch = false;
 	}
 
 }
