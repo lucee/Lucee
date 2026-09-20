@@ -55,12 +55,12 @@
 				<cfif hasNavigation>
 					<td id="navtd" class="lotd">
 						<div id="nav">
-								<!---<form method="get" action="#cgi.SCRIPT_NAME#">
+								<form method="get" action="#cgi.SCRIPT_NAME#">
 									<input type="hidden" name="action" value="admin.search">
 									<input type="text" name="q" size="15"  class="navSearch" id="lucee-admin-search-input" placeholder="#stText.buttons.search.ucase()#">
-									<button type="submit" class="sprite  btn-search"><!--- <span>#stText.buttons.search# ---></span></button>
+									<button type="submit" class="sprite  btn-search"><!--- <span>#stText.buttons.search# ---></button>
 									<!--- btn-mini title="#stText.buttons.search#" --->
-								</form>--->
+								</form>
 							#attributes.navigation#
 						</div>
 					</td>
