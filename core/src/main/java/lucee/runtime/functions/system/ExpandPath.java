@@ -106,6 +106,8 @@ public final class ExpandPath implements Function {
 		if (res.isAbsolute()) return toReturnValue(relPath, res);
 
 		PageSource ps = pc.getBasePageSource();
+		// LDEV-5841: if base page source is null, use current page source instead of falling back to servlet root
+		if (ps == null) ps = ((PageContextImpl) pc).getCurrentPageSource();
 		res = ps == null ? ResourceUtil.getCanonicalResourceEL(ResourceUtil.toResourceExisting(pc.getConfig(), ReqRspUtil.getRootPath(pc.getServletContext())))
 				: ResourceUtil.getResource(pc, ps);
 

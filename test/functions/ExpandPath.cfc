@@ -18,15 +18,9 @@
  ---><cfscript>
 
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="mappings" {
-    /*try{
-        dir=getDirectoryFromPath(GetBaseTemplatePath());
-        dir=mid(dir,1,len(dir)-1);
-    }
-    // inside jsr223 getBaseTemplatePath is not supported
-    catch(e){
-        
-    }*/
-    dir=server.coldfusion.rootdir;
+    // LDEV-5841: expandPath(".") now correctly resolves to current template directory
+    dir=getDirectoryFromPath(getCurrentTemplatePath());
+    dir=mid(dir,1,len(dir)-1);
 
     parent=getDirectoryFromPath(dir);
     parent=mid(parent,1,len(parent)-1);
