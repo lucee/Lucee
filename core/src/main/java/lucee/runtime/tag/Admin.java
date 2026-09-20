@@ -421,6 +421,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			schedule.setResolveurl(getBoolV("resolveURL", false));
 			schedule.setPort(Double.valueOf(getDouble("port", -1)));
 			schedule.setProxyport(Double.valueOf(getDouble("proxyPort", 80)));
+			schedule.setAutodelete(getBoolV("autoDelete", false));
 			schedule.setUnique(getBoolV("unique", false));
 
 			String rtn = getString("returnvariable", null);

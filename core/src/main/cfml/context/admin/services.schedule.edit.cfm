@@ -123,6 +123,7 @@ ACTIONS --->
 				file="#nullIfEmpty(form.file)#"
 				serverpassword="#variables.passwordserver#"
 				remoteClients="#request.getRemoteClients()#"
+				autoDelete="#formBool('autoDelete')#"
 				>
 
    <cfif StructKeyExists(form,"paused") and form.paused>
@@ -135,7 +136,16 @@ ACTIONS --->
 					task="#trim(form.name)#"
 					remoteClients="#request.getRemoteClients()#">
    <cfelse>
-		<cfadmin
+		<cfschedule action="list" returnvariable="tasks">
+		<cfset taskExists = false>
+		<cfloop query="tasks">
+			<cfif trim(tasks.task) EQ trim(form.name)>
+				<cfset taskExists = true>
+				<cfbreak>
+			</cfif>
+		</cfloop>
+		<cfif taskExists>
+			<cfadmin
 						action="schedule"
 						type="#request.adminType#"
 						password="#session["password"&request.adminType]#"
@@ -143,6 +153,7 @@ ACTIONS --->
 						scheduleAction="resume"
 						task="#trim(form.name)#"
 						remoteClients="#request.getRemoteClients()#">
+		</cfif>				
 	</cfif>
 
 		<cflocation url="#request.self#?action=#url.action#" addtoken="no">
@@ -572,6 +583,13 @@ Error Output--->
 						</tr>
 					</cfdefaultcase>
 				</cfswitch>
+				<tr>
+					<th scope="row">#stText.Schedule.autodelete#</th>
+					<td>
+						<input type="checkbox" class="checkbox" name="autoDelete" value="yes"<cfif task.autodelete> checked</cfif> />
+						<div class="comment">#stText.Schedule.autodeletedesc#</div>
+					</td>
+				</tr>
 				<tr>
 					<th scope="row">#stText.Schedule.paused#</th>
 					<td>
