@@ -4,9 +4,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="metadata,component
 		describe( "LDEV-6469 GetMetadata().functions includes inherited methods for same-named CFCs", function() {
 
 			it( "includes inherited methods and their annotations when child and parent share the same filename", function() {
-				// child.Default extends parent.Default — same simple class name, different packages.
-				// After LDEV-6056, PageSource.equals() distinguishes those files, so getUDFs()
-				// skips parent methods from the child's top-level functions array.
 				var uri    = createURI( "LDEV6469/test.cfm" );
 				var result = deserializeJSON( _InternalRequest( template: uri ).fileContent.trim() );
 
@@ -16,6 +13,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="metadata,component
 					"inherited render() should be in GetMetadata().functions; found: #result.functionNames.toList()#" );
 				expect( isBoolean( result.renderCacheable ) && !result.renderCacheable ).toBeTrue(
 					"inherited render() should retain @cacheable false; got: #serializeJSON( result.renderCacheable )#" );
+			});
+
+			it( "does not flatten inherited methods from a differently named parent into functions", function() {
+				var uri    = createURI( "LDEV6469/testNamed.cfm" );
+				var result = deserializeJSON( _InternalRequest( template: uri ).fileContent.trim() );
+
+				expect( result.functionNames ).toInclude( "own" );
+				expect( result.functionNames ).notToInclude( "frombase" );
+				expect( result.extendsFunctionNames ).toInclude( "frombase" );
 			});
 
 		});
