@@ -326,8 +326,15 @@ public final class OSGiUtil {
 			return defaultValue;
 		}
 
-		if (qualifier == null) return new Version(major, minor, micro);
-		return new Version(major, minor, micro, qualifier);
+		try {
+			if (qualifier == null) return new Version(major, minor, micro);
+			return new Version(major, minor, micro, qualifier);
+		}
+		catch (IllegalArgumentException e) {
+			// a malformed qualifier (e.g. a space in an S3 listing entry) makes the OSGi
+			// Version constructor throw; this overload must return defaultValue instead.
+			return defaultValue;
+		}
 	}
 
 	public static Version toVersion(String version) throws BundleException {
