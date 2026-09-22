@@ -1948,9 +1948,27 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			udf = it.next();
 			if (udf instanceof UDFGSProperty) continue;
 			if (udf.getAccess() > access) continue;
-			if (udf.getPageSource() != null && !udf.getPageSource().equals(comp._getPageSource())) continue;
+			if (!isMetadataUDFForComponent(udf, comp)) continue;
 			if (udf instanceof UDFImpl) arr.append(ComponentUtil.getMetaData(pc, ((UDFImpl) udf).properties, isStatic));
 		}
+	}
+
+	/**
+	 * LDEV-6469: after LDEV-6056, PageSource.equals() uses the full display path, so same-named CFCs in
+	 * different packages no longer match. GetMetadata().functions used that equals() check to decide
+	 * which inherited methods to include, so those methods disappeared. Keep the display-path equals()
+	 * (needed for super.method()), but still treat a matching file name as declared on this component,
+	 * which is how metadata behaved before LDEV-6056.
+	 */
+	private static boolean isMetadataUDFForComponent(UDF udf, ComponentImpl comp) {
+		PageSource udfPs = udf.getPageSource();
+		if (udfPs == null) return true;
+
+		PageSource compPs = comp._getPageSource();
+		if (udfPs.equals(compPs)) return true;
+
+		String udfFile = udfPs.getFileName();
+		return udfFile != null && udfFile.equals(compPs.getFileName());
 	}
 
 	public boolean isInitalized() {
