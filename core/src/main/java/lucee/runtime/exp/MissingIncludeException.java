@@ -63,7 +63,9 @@ public final class MissingIncludeException extends PageExceptionImpl {
 	}
 
 	private void setDetail(PageSource ps) {
-		setAdditional(KeyConstants._Detail, "File not found: " + ps.getDisplayPath());
+		// CVE-2026-29519: the requested path is reflected into HTML error output, so escape it here at the
+		// single point where untrusted request-path data enters the exception detail.
+		setAdditional(KeyConstants._Detail, "File not found: " + StringUtil.escapeHTML(StringUtil.emptyIfNull(ps.getDisplayPath())));
 	}
 
 	/**
@@ -74,9 +76,11 @@ public final class MissingIncludeException extends PageExceptionImpl {
 	}
 
 	private static String createMessage(PageSource pageSource) {
+		// CVE-2026-29519: escape the requested path before it becomes the (HTML-rendered) exception message.
+		String realpath = StringUtil.escapeHTML(StringUtil.emptyIfNull(pageSource.getRealpathWithVirtual()));
 		String dsp = pageSource.getDisplayPath();
-		if (dsp == null) return "Page [" + pageSource.getRealpathWithVirtual() + "] not found";
-		return "Page [" + pageSource.getRealpathWithVirtual() + "] [" + dsp + "] not found";
+		if (dsp == null) return "Page [" + realpath + "] not found";
+		return "Page [" + realpath + "] [" + StringUtil.escapeHTML(dsp) + "] not found";
 	}
 
 	@Override
