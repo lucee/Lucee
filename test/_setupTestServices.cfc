@@ -650,7 +650,8 @@ component {
 		server.getDatasource = getTestService;
 		server.getTestService = getTestService;
 		// TODO hmmmf closures and this scope!
-		server.getDefaultBundleVersion = getDefaultBundleVersion;  
+		server.getDefaultBundleVersion = getDefaultBundleVersion;
+		server.getExtensionVersion = getExtensionVersion;
 		server.getBundleVersions = getBundleVersions;
 		server.checkVersionGTE = checkVersionGTE;
 		server.doesJDBCSupportMaven = doesJDBCSupportMaven;
@@ -906,6 +907,16 @@ component {
 			//systemOutput( "getDefaultBundleVersion: [" & arguments.bundleName & "] FALLLING BACK TO DEFAULT [" & arguments.fallbackVersion & "]", true );
 			return arguments.fallbackVersion ;
 		}
+	}
+
+	// version of the installed extension, so tests run against the build under test, not a hardwired version
+	function getExtensionVersion( extensionName ) cachedWithin="request" {
+		var q = extensionList();
+		loop query=q {
+			if ( findNoCase( arguments.extensionName, q.name ) )
+				return q.version;
+		}
+		throw( message="extension [#arguments.extensionName#] is not installed" );
 	}
 
 	function getBundleVersions() cachedWithin="#createTimeSpan( 1, 0, 0, 0 )#"{
