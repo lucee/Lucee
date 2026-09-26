@@ -95,13 +95,10 @@ jobs:
       if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
       run: echo "LUCEE_TEST_JAVA_VERSION=${{ inputs.LUCEE_TEST_JAVA_VERSION }}" >> $GITHUB_ENV
 
-    - uses: szenius/set-timezone@v2.0
-      with:
-        timezoneLinux: "UTC"
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set up Test Java Version ${{ env.LUCEE_TEST_JAVA_VERSION }}
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v6
       if: ${{ env.LUCEE_TEST_JAVA_VERSION != '' }}
       with:
         java-version: ${{ env.LUCEE_TEST_JAVA_VERSION }}
@@ -112,19 +109,19 @@ jobs:
       run: echo "LUCEE_TEST_JAVA_EXEC=${{ env.JAVA_HOME }}/bin/java" >> $GITHUB_ENV
 
     - name: Set up build JDK '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v6
       if: ${{ env.LUCEE_TEST_JAVA_VERSION != env.LUCEE_BUILD_JAVA_VERSION }}
       with:
         java-version: '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
         distribution: 'temurin'
     - name: Cache Lucee extensions
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/work/Lucee/Lucee/cache/
         key: lucee-extensions
         restore-keys: lucee-extensions
     - name: Cache Maven packages
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: |
           ~/.m2/repository/*
@@ -291,15 +288,13 @@ jobs:
           fi
         fi
     - name: clean github.ref_name
-      uses: mad9000/actions-find-and-replace-string@5
       id: cleanrefname
       if: always()
-      with:
-          source: ${{ github.ref_name }}
-          find: '/'
-          replace: '-'
+      env:
+        REF_NAME: ${{ github.ref_name }}
+      run: echo "value=${REF_NAME//\//-}" >> $GITHUB_OUTPUT
     - name: Upload Artifact (junit-test-results)
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: always()
       with:
         name: Lucee-${{ steps.cleanrefname.outputs.value }}-junit-test-results-${{ github.run_number }}
@@ -308,7 +303,7 @@ jobs:
       run: |
         rm -rfv ~/.m2/repository/org/lucee/lucee/
     - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v2
+      uses: EnricoMi/publish-unit-test-result-action@d0a4676d0e0b938bc201470d88276b7c74c712b3 # v2.24.0
       if: always()
       with:
         files: test/reports/*.xml

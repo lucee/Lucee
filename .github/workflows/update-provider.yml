@@ -13,19 +13,19 @@ jobs:
       luceeVersion: zero-7.0.0.169-SNAPSHOT
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Set up JDK 21
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v6
       with:
         java-version: '21'
         distribution: 'temurin'
     - name: Cache Maven packages
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.m2
         key: lucee-script-runner-maven-cache
     - name: Cache Lucee files
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/work/_actions/lucee/script-runner/main/lucee-download-cache
         key: lucee-downloads
