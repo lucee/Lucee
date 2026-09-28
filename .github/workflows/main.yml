@@ -11,8 +11,9 @@ on:
         type: string
         default: '21'
   push:
-    branches:
-      - '**' # thus ignoring tagging
+    # Do not run the full build on the credential-check branch.
+    branches-ignore:
+      - test/maven-central-auth
   pull_request:
   workflow_dispatch:
     inputs:
