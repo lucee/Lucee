@@ -42,7 +42,6 @@ import lucee.runtime.compiler.CFMLCompilerImpl.Result;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServerImpl;
-import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
@@ -1205,12 +1204,8 @@ public final class PageSourceImpl implements PageSource {
 
 	private void signalRecompileToInspectTicker() {
 		if (mapping.getInspectTemplate() != ConfigPro.INSPECT_AUTO) return;
-		Config cfg = mapping.getConfig();
-		ConfigServerImpl cs;
-		if (cfg instanceof ConfigServerImpl) cs = (ConfigServerImpl) cfg;
-		else if (cfg instanceof ConfigWebImpl) cs = ((ConfigWebImpl) cfg).getConfigServerImpl();
-		else return;
-		cs.requestFastTick();
+		ConfigServerImpl cs = ConfigServerImpl.getConfigServerImpl(mapping.getConfig());
+		if (cs != null) cs.requestFastTick();
 	}
 
 }

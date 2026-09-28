@@ -518,6 +518,18 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		inspectScheduler.shutdownNow();
 	}
 
+	/**
+	 * Web mappings are built with SingleContextConfigWeb / MultiContextConfigWeb, not the ConfigWebImpl wrapper.
+	 * Resolving only the wrapper left the inspect ticker unstarted, so Auto behaved like Never.
+	 */
+	public static ConfigServerImpl getConfigServerImpl(Config config) {
+		if (config instanceof ConfigServerImpl) return (ConfigServerImpl) config;
+		if (config instanceof ConfigWebImpl) return ((ConfigWebImpl) config).getConfigServerImpl();
+		if (config instanceof SingleContextConfigWeb) return ((SingleContextConfigWeb) config).getConfigServerImpl();
+		if (config instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) config).getConfigServerImpl();
+		return null;
+	}
+
 	public void ensureInspectTickerStarted() {
 		ScheduledFuture<?> f = nextTick;
 		if (f != null && !f.isDone()) return;

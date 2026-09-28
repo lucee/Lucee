@@ -38,7 +38,6 @@ import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
@@ -112,10 +111,7 @@ public final class PageSourcePool implements Dumpable {
 			cleanLoaders();
 		}
 		if (mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO && mapping.getPhysical() != null) {
-			Config cfg = mapping.getConfig();
-			ConfigServerImpl cs = null;
-			if (cfg instanceof ConfigServerImpl) cs = (ConfigServerImpl) cfg;
-			else if (cfg instanceof ConfigWebImpl) cs = ((ConfigWebImpl) cfg).getConfigServerImpl();
+			ConfigServerImpl cs = ConfigServerImpl.getConfigServerImpl(mapping.getConfig());
 			if (cs != null) cs.ensureInspectTickerStarted();
 		}
 
