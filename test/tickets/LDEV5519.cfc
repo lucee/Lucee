@@ -54,6 +54,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( i.intValue() ).toBe( 42 );
 			});
 
+			it( title='String.valueOf with char[] should call valueOf(char[]), not valueOf(Object)', body=function() {
+				var chars = "abc".toCharArray();
+				expect( java.lang.String::valueOf( chars ) ).toBe( "abc" );
+			});
+
+			it( title='StringBuilder.append with char[] should call append(char[]), not append(Object)', body=function() {
+				var chars = "abc".toCharArray();
+				var sb = new java.lang.StringBuilder();
+				sb.append( chars );
+				expect( sb.toString() ).toBe( "abc" );
+			});
+
 		});
 	}
 
