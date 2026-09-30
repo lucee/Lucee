@@ -2537,6 +2537,30 @@ If not specified, falls back to the `timeout` attribute value.</description>
 			<description>Password used to decrypt the client certificate.</description>
 		</attribute>
 		<attribute>
+			<type>string</type>
+			<name>trustStore</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.1</introduced>
+			<description>Path to a custom trust store (JKS or PKCS12) for SSL certificate validation. When specified, certificates in this store are trusted in addition to the JVM's default cacerts.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>trustStorePassword</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.1</introduced>
+			<description>Password for the custom trust store. Defaults to 'changeit' if not specified.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>sslVerify</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.1</introduced>
+			<description>When set to false, disables SSL certificate and hostname verification (equivalent to curl -k). Default is true. Use with caution as this makes connections vulnerable to man-in-the-middle attacks.</description>
+		</attribute>
+		<attribute>
 			<type>boolean</type>
 			<name>pooling</name>
 			<required>false</required>

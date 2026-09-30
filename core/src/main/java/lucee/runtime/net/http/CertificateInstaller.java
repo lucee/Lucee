@@ -19,8 +19,9 @@
 package lucee.runtime.net.http;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -30,6 +31,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -44,10 +46,11 @@ import javax.net.ssl.X509TrustManager;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.ResourcesImpl;
 
 public final class CertificateInstaller {
 
-	private static Map<String, String> installed = new WeakHashMap();
+	private static Map<String, String> installed = new WeakHashMap<>();
 
 	private String host;
 	private int port;
@@ -68,20 +71,19 @@ public final class CertificateInstaller {
 		this.port = port;
 		this.passphrase = passphrase;
 
-		ks = null;
-		InputStream in = source.getInputStream();
-		try {
-			ks = KeyStore.getInstance(KeyStore.getDefaultType());
-			ks.load(in, passphrase);
-		}
-		finally {
-			IOUtil.close(in);
-		}
+		ks = SSLUtil.loadKeyStore( Paths.get( source.getAbsolutePath() ), passphrase );
 
-		context = SSLContext.getInstance("SSL");
+		context = SSLContext.getInstance("TLS");
 		tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		tmf.init(ks);
-		X509TrustManager defaultTrustManager = (X509TrustManager) tmf.getTrustManagers()[0];
+		X509TrustManager defaultTrustManager = null;
+		for ( TrustManager candidate : tmf.getTrustManagers() ) {
+			if ( candidate instanceof X509TrustManager ) {
+				defaultTrustManager = (X509TrustManager) candidate;
+				break;
+			}
+		}
+		if ( defaultTrustManager == null ) throw new GeneralSecurityException( "No X509TrustManager found" );
 		tm = new SavingTrustManager(defaultTrustManager);
 		context.init(null, new TrustManager[] { tm }, null);
 
@@ -152,27 +154,32 @@ public final class CertificateInstaller {
 		return tm.chain;
 	}
 
-	public static List<X509Certificate> getAllCertificates(Resource source) throws GeneralSecurityException, IOException {
-		KeyStore ks = null;
-		InputStream in = source.getInputStream();
-		try {
-			ks = KeyStore.getInstance(KeyStore.getDefaultType());
-			ks.load(in, "changeit".toCharArray());
-		}
-		finally {
-			IOUtil.close(in);
-		}
+	public static void installToCustomCaCerts( String host, int port ) throws GeneralSecurityException, IOException {
+		if ( !SSLUtil.isCustomCaCertsEnabled() ) throw new GeneralSecurityException( "custom-cacerts is disabled. Set lucee.ssl.customcacerts.enabled=true or provide a custom keystore path." );
+		Path customCaCertsPath = SSLUtil.getCustomCaCertsPath();
+		if ( customCaCertsPath == null ) throw new GeneralSecurityException( "Could not determine custom-cacerts path. Lucee config may not be initialized." );
+		SSLUtil.initCustomCaCerts();
+		Resource keystore = ResourcesImpl.getFileResourceProvider().getResource( customCaCertsPath.toString() );
+		new CertificateInstaller( keystore, host, port ).installAll( true );
+	}
 
-		List<X509Certificate> list = new ArrayList<>();
+	public static List<X509Certificate> getAllCertificates(Resource source) throws GeneralSecurityException {
+		return new ArrayList<>( getAllCertificatesWithAliases( source ).values() );
+	}
+
+	public static Map<String, X509Certificate> getAllCertificatesWithAliases(Resource source) throws GeneralSecurityException {
+		KeyStore ks = SSLUtil.loadKeyStore( Paths.get( source.getAbsolutePath() ), "changeit".toCharArray() );
+
+		Map<String, X509Certificate> map = new LinkedHashMap<>();
 		Enumeration<String> aliases = ks.aliases();
-		while (aliases.hasMoreElements()) {
+		while ( aliases.hasMoreElements() ) {
 			String alias = aliases.nextElement();
-			Certificate cert = ks.getCertificate(alias);
-			if (cert instanceof X509Certificate) {
-				list.add((X509Certificate) cert);
+			Certificate cert = ks.getCertificate( alias );
+			if ( cert instanceof X509Certificate ) {
+				map.put( alias, (X509Certificate) cert );
 			}
 		}
-		return list; // Adjust return based on method implementation
+		return map;
 	}
 
 	private static class SavingTrustManager implements X509TrustManager {
