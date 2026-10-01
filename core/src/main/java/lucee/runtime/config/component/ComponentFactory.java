@@ -32,7 +32,8 @@ public final class ComponentFactory {
 	 */
 	public static void deploy(Resource dir, boolean doNew) {
 		String path = "/resource/component/" + (Constants.DEFAULT_PACKAGE.replace('.', '/')) + "/";
-		deploy(dir, path, doNew, "HelperBase", "Feed", "Http", "Mail", "Query", "Result", "Administrator", "Component");
+		// LDEV-6484 Mail.cfc is deployed by the mail extension, cfmail is not part of the core anymore
+		deploy(dir, path, doNew, "HelperBase", "Feed", "Http", "Query", "Result", "Administrator", "Component");
 
 		// orm
 		{
