@@ -5509,9 +5509,15 @@ public final class ConfigAdmin {
 				Iterator<Map<String, String>> itl = mappings.iterator();
 				Map<String, String> map;
 				String virtual;
+				Set<String> usedByOthers = getMappingsUsedByOtherExtensions(ci, rhe);
 				while (itl.hasNext()) {
 					map = itl.next();
 					virtual = map.get("virtual");
+					// LDEV-6462 do not remove a mapping another installed extension still declares
+					if (usedByOthers.contains(toMappingKey(virtual))) {
+						logger.info("extension", "keep Mapping [" + virtual + "], it is also used by another extension");
+						continue;
+					}
 					_removeMapping(virtual);
 					logger.info("extension", "remove Mapping [" + virtual + "]");
 				}
@@ -6534,6 +6540,28 @@ public final class ConfigAdmin {
 				}
 			}
 		}
+	}
+
+	// virtual paths (see toMappingKey) of the mappings declared by all installed extensions except the given one
+	private static Set<String> getMappingsUsedByOtherExtensions(ConfigPro config, RHExtension rhe) {
+		Set<String> used = new HashSet<>();
+		List<Map<String, String>> mappings;
+		for (RHExtension other: config.getAllRHExtensions()) {
+			if (other == null || rhe.getId().equalsIgnoreCase(other.getId())) continue;
+			mappings = other.getMetadata().getMappings();
+			if (ArrayUtil.isEmpty(mappings)) continue;
+			for (Map<String, String> map: mappings) {
+				used.add(toMappingKey(map.get("virtual")));
+			}
+		}
+		return used;
+	}
+
+	private static String toMappingKey(String virtual) {
+		if (virtual == null) return "";
+		virtual = virtual.trim().toLowerCase();
+		while (virtual.length() > 1 && virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
+		return virtual;
 	}
 
 	private String[] _removeExtensionCheckOtherUsage(Array children, Struct curr, String type) {
