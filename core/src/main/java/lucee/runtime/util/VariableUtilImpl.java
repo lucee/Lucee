@@ -36,6 +36,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.international.GetTimeZoneInfo;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -832,6 +833,20 @@ public final class VariableUtilImpl implements VariableUtil {
 
 	@Override
 	public Object callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, boolean noNull, Object defaultValue) {
+		// LDEV-5671: ?. null-safes a null left side and a function that does not exist,
+		// but an exception thrown while the function runs must propagate
+		if (coll == null) return defaultValue;
+		UDF udf = getUDFForSafeNavigation(pc, coll, key);
+		if (udf != null) {
+			Object obj;
+			try {
+				obj = coll instanceof Objects ? ((Objects) coll).call(pc, key, args) : udf.call(pc, key, args, false);
+			}
+			catch (PageException pe) {
+				throw new PageRuntimeException(pe);
+			}
+			return (noNull && obj == null && !NullSupportHelper.full(pc)) ? defaultValue : obj;
+		}
 		// MUST make an independent impl for performance reasons
 		try {
 			if (!noNull || NullSupportHelper.full(pc)) return callFunctionWithoutNamedValues(pc, coll, key, args);
@@ -877,6 +892,20 @@ public final class VariableUtilImpl implements VariableUtil {
 
 	@Override
 	public Object callFunctionWithNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, boolean noNull, Object defaultValue) {
+		// LDEV-5671: ?. null-safes a null left side and a function that does not exist,
+		// but an exception thrown while the function runs must propagate
+		if (coll == null) return defaultValue;
+		UDF udf = getUDFForSafeNavigation(pc, coll, key);
+		if (udf != null) {
+			Object obj;
+			try {
+				obj = coll instanceof Objects ? ((Objects) coll).callWithNamedValues(pc, key, Caster.toFunctionValues(args)) : udf.callWithNamedValues(pc, key, Caster.toFunctionValues(args), false);
+			}
+			catch (PageException pe) {
+				throw new PageRuntimeException(pe);
+			}
+			return (noNull && obj == null && !NullSupportHelper.full(pc)) ? defaultValue : obj;
+		}
 		// MUST make an independent impl for performance reasons
 		try {
 			if (!noNull || NullSupportHelper.full(pc)) return callFunctionWithNamedValues(pc, coll, key, args);
@@ -933,6 +962,13 @@ public final class VariableUtilImpl implements VariableUtil {
 
 		}
 		return pc.getCollection(obj, KeyConstants._COLUMNLIST);
+	}
+
+
+	// LDEV-5671: the UDF a safe-navigated call will run, or null (missing function, built-in member function, Java method)
+	private UDF getUDFForSafeNavigation(PageContext pc, Object coll, Collection.Key key) {
+		Object prop = getLight(pc, coll, key, null);
+		return prop instanceof UDF ? (UDF) prop : null;
 	}
 
 }
