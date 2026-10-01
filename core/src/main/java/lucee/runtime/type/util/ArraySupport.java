@@ -40,6 +40,9 @@ import lucee.runtime.type.it.EntryArrayIterator;
 
 public abstract class ArraySupport extends AbstractList implements ArrayPro, List, Objects {
 
+	// LDEV-6475 pinned to the value the JVM computed on 6.2/7.0/7.1/8.0, part of the serialized form of every array
+	private static final long serialVersionUID = -4612800228498832263L;
+
 	public static final short TYPE_OBJECT = 0;
 	public static final short TYPE_BOOLEAN = 1;
 	public static final short TYPE_BYTE = 2;
