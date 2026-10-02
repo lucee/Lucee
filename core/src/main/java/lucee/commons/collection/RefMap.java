@@ -1,5 +1,9 @@
 package lucee.commons.collection;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
@@ -9,15 +13,21 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-public class RefMap<K, V> extends AbstractMap<K, V> {
+public class RefMap<K, V> extends AbstractMap<K, V> implements Serializable {
+
+	private static final long serialVersionUID = 2097388121567149447L;
 
 	public enum ReferenceType {
 		SOFT, WEAK
 	}
 
-	private final Map<K, Reference<V>> delegate;
+	// references are not serializable, see writeObject/readObject
+	private transient Map<K, Reference<V>> delegate;
 	private final ReferenceType type;
+	private final boolean concurrent;
 
 	/**
 	 * Creates a RefMap with default HashMap delegate
@@ -47,6 +57,7 @@ public class RefMap<K, V> extends AbstractMap<K, V> {
 	public RefMap(ReferenceType type, Map<K, Reference<V>> delegateMap) {
 		this.type = type;
 		this.delegate = delegateMap;
+		this.concurrent = delegateMap instanceof ConcurrentMap;
 	}
 
 	@Override
@@ -176,6 +187,28 @@ public class RefMap<K, V> extends AbstractMap<K, V> {
 			return new WeakReference<>(value);
 		default:
 			throw new IllegalStateException("Unknown reference type: " + type);
+		}
+	}
+
+	// LDEV-6476 write the entries that are still alive as a plain map, the references are recreated on read
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		out.defaultWriteObject();
+		Map<K, V> live = new HashMap<K, V>();
+		V value;
+		for (Entry<K, Reference<V>> e: delegate.entrySet()) {
+			value = e.getValue().get();
+			if (value != null) live.put(e.getKey(), value);
+		}
+		out.writeObject(live);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		Map<K, V> live = (Map<K, V>) in.readObject();
+		delegate = concurrent ? new ConcurrentHashMap<K, Reference<V>>() : new HashMap<K, Reference<V>>();
+		for (Entry<K, V> e: live.entrySet()) {
+			delegate.put(e.getKey(), createReference(e.getValue()));
 		}
 	}
 
