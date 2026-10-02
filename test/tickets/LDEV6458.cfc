@@ -35,15 +35,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings
 					hostname=variables.host port=variables.port mailusername="" mailpassword="";
 			});
 
-			it( title="admin 'Send test mail' sends the mail", body=function( currentSpec ) {
+			it( title="admin 'Send test mail' sends the mail", skip=noAdmin(), body=function( currentSpec ) {
 				variables.smtp.purgeEmailFromAllMailboxes();
 				admin action="updateMailServer" type="server" password=server.SERVERADMINPASSWORD
 					hostname=variables.host port=variables.port dbusername="" dbpassword="" id="new"
 					life=createTimeSpan( 0, 0, 1, 0 ) idle=createTimeSpan( 0, 0, 0, 10 );
 				try {
-					// the CI build maps the admin source to /admin/ (see AdminPages.cfc), a plain jar serves it from /lucee/admin/
-					var adminRoot = server.system.environment.LUCEE_TEST_ADMIN_PATH ?: "";
-					if ( !len( adminRoot ) ) adminRoot = fileExists( expandPath( "/admin/index.cfm" ) ) ? "/admin/" : "/lucee/admin/";
+					var adminRoot = getAdminRoot();
 					var login = _internalRequest(
 						template: adminRoot & "index.cfm",
 						forms: { login_passwordserver: server.SERVERADMINPASSWORD, lang: "en", rememberMe: "s", submit: "submit" }
@@ -78,5 +76,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings
 			});
 
 		});
+	}
+
+	// the CI build maps the admin source to /admin/ (see AdminPages.cfc), a plain jar serves it from /lucee/admin/ (archive),
+	// light builds (e.g. script-runner in the extension CIs) have no admin at all, returns "" then
+	private string function getAdminRoot() {
+		var adminRoot = server.system.environment.LUCEE_TEST_ADMIN_PATH ?: "";
+		if ( len( adminRoot ) ) return adminRoot;
+		for ( adminRoot in [ "/admin/", "/lucee/admin/" ] ) {
+			if ( !isNull( getPageContext().getRelativePageSourceExisting( adminRoot & "index.cfm" ) ) ) return adminRoot;
+		}
+		return "";
+	}
+
+	private boolean function noAdmin() {
+		return !len( getAdminRoot() );
 	}
 }
