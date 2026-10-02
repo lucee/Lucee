@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="extension,maven" skip=false {
 
 	function run( testResults, testBox ) {
-		describe( "LDEV-XXXX ExtensionProvider.detail() keeps lite and lite.asc separate for SNAPSHOT classifiers", function() {
+		describe( "LDEV-6492 ExtensionProvider.detail() keeps lite and lite.asc separate for SNAPSHOT classifiers", function() {
 
 			it( title="mail-extension SNAPSHOT detail has lite (.lex) and lite.asc, not overwritten by the GPG signature", body=function( currentSpec ) {
 				// mail-extension 1.1.0.9-SNAPSHOT publishes both classifier=lite extension=lex and classifier=lite extension=lex.asc.
