@@ -812,7 +812,12 @@ public final class PageContextImpl extends PageContext {
 		gatewayContext = false;
 		listenerContext = false;
 
-		manager.release();
+		try {
+			manager.release();
+		}
+		catch (Exception e) {
+			LogUtil.log(this, "datasource", PageContextImpl.class.getName(), e);
+		}
 		includeOnce.clear();
 		pe = null;
 		this.literalTimestampWithTSOffset = false;
