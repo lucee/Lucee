@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( args.arg2 ).toBe( "default 2" );
 			});
 
-			it( title='full null support, no arguments, without defaults', skip=true, body=function() {
+			it( title='full null support, no arguments, without defaults', body=function() {
 				var args = _udfNoDefaults(); // args scope is currently empty
 				expect( isNull( args.arg1 ) ).toBeTrue();
 				expect( isNull( args.arg2 ) ).toBeTrue();
@@ -61,7 +61,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it( title='normal, no arguments, without defaults', body=function() {
-				var args = _udfNoDefaults();
+				var args = _udfNoDefaults(); // args scope is currently empty
 				expect( args ).notToHaveKey( "arg1" ); // keys with null values don't exist
 				expect( args ).notToHaveKey( "arg2" ); // keys with null values don't exist
 				expect( isNull( args.arg1 ) ).toBeTrue();
