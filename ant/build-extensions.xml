@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="all" basedir="." name="LuceeExtensions">
+<project default="all" basedir="." name="LuceeExtensions" xmlns:unless="ant:unless">
 
 <scriptdef name="readRequiredExtensions" language="javascript" classpath="${nashorn_classpath}">
 	<attribute name="file" />
@@ -324,6 +324,50 @@
 			}
 		]]>
 	</scriptdef>
+
+	<!--
+		Downloads an extension (.lex) into the build cache.
+		Tries Maven Central (extURLMaven) first and falls back to cdn.lucee.org (extURLCDN),
+		e.g. for SNAPSHOT builds that are not published to Maven Central.
+		Fails with both URLs in the message if neither has the file.
+	-->
+	<macrodef name="download-extension">
+		<attribute name="groupPath" description="group as path, e.g. org/lucee"/>
+		<attribute name="artifact" description="artifact id, e.g. mail-extension"/>
+		<attribute name="version" description="version, e.g. 1.1.0.9-SNAPSHOT"/>
+		<attribute name="dest" description="target file in the cache"/>
+		<sequential>
+			<local name="ext.downloaded"/>
+			<local name="ext.urlMaven"/>
+			<local name="ext.urlCDN"/>
+			<property name="ext.urlMaven" value="${extURLMaven}@{groupPath}/@{artifact}/@{version}/@{artifact}-@{version}.lex"/>
+			<property name="ext.urlCDN" value="${extURLCDN}@{groupPath}/@{artifact}/@{version}/@{artifact}-@{version}.lex"/>
+
+			<!-- 1. Maven Central -->
+			<echo level="info">download @{artifact}-@{version} from Maven Central: ${ext.urlMaven}</echo>
+			<get src="${ext.urlMaven}" dest="@{dest}" ignoreerrors="true"/>
+			<condition property="ext.downloaded">
+				<and>
+					<available file="@{dest}"/>
+					<length file="@{dest}" when="greater" length="0"/>
+				</and>
+			</condition>
+
+			<!-- 2. fallback: cdn.lucee.org -->
+			<echo unless:set="ext.downloaded" level="warning">@{artifact}-@{version} not available on Maven Central, falling back to CDN: ${ext.urlCDN}</echo>
+			<delete unless:set="ext.downloaded" file="@{dest}" quiet="true"/>
+			<get unless:set="ext.downloaded" src="${ext.urlCDN}" dest="@{dest}" ignoreerrors="true"/>
+			<condition property="ext.downloaded">
+				<and>
+					<available file="@{dest}"/>
+					<length file="@{dest}" when="greater" length="0"/>
+				</and>
+			</condition>
+
+			<delete unless:set="ext.downloaded" file="@{dest}" quiet="true"/>
+			<fail unless="ext.downloaded" message="Could not download extension @{artifact}-@{version}, tried:${line.separator}  - ${ext.urlMaven}${line.separator}  - ${ext.urlCDN}"/>
+		</sequential>
+	</macrodef>
 
 	<target name="check-cache">
 		<available file="${cache}/testbox-${testboxVersion}.zip" property="testbox.present"/>
