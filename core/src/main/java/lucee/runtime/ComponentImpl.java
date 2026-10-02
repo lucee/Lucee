@@ -2725,7 +2725,7 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 		this.isRestEnabled = other.isRestEnabled;
 		this.afterConstructor = other.afterConstructor;
 		this.base = other.base;
-		// this.componentPage=other.componentPage;
+		this.cpRef = other.cpRef;
 		this.pageSource = other.pageSource;
 		// this.constructorUDFs=other.constructorUDFs;
 		this.dataMemberDefaultAccess = other.dataMemberDefaultAccess;
