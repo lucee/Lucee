@@ -3,7 +3,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 		describe( title="Test case LDEV-5629 invoke with tag based cfc", body=function() {
 
-			it(title="checking cfinvokeargument preserves types", skip=true, body=function( currentSpec ) {
+			it(title="checking cfinvokeargument preserves types", body=function( currentSpec ) {
 				```
 				<cfinvoke component="LDEV5629.ldev5629_tag" method="testNumbers" returnvariable="local.result">
 					<cfinvokeargument name="tStr" value="string to test" >
@@ -27,7 +27,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 		describe( title="Test case LDEV-5629 invoke with script based cfc", body=function() {
 
-			it(title="checking cfinvokeargument preserves types", skip=true, body=function( currentSpec ) {
+			it(title="checking cfinvokeargument preserves types", body=function( currentSpec ) {
 				```
 				<cfinvoke component="LDEV5629.ldev5629_script" method="testNumbers" returnvariable="local.result">
 					<cfinvokeargument name="tStr" value="string to test" >
