@@ -185,7 +185,7 @@ public final class JavaConverter extends ConverterSupport implements BinaryConve
 	 * constraints). Returns null if the mail extension is not installed (deserialization then fails as it
 	 * did before).
 	 */
-	private static Class<?> loadFromExtensions(String className) {
+	public static Class<?> loadFromExtensions(String className) {
 		Config config = ThreadLocalPageContext.getConfig();
 		if (!(config instanceof ConfigPro)) return null;
 		try {
