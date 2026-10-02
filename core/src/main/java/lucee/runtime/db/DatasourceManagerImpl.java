@@ -33,6 +33,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.DeprecatedException;
@@ -95,7 +96,13 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 					if (existingDC == null) {
 						DatasourceConnection newDC = config.getDatasourceConnectionPool().getDatasourceConnection(config, ds, user, pass);
 						if (!autoCommit) {
-							newDC.setAutoCommit(false);
+							try {
+								newDC.setAutoCommit(false);
+							}
+							catch (SQLException e) {
+								invalidate(newDC);
+								throw e;
+							}
 							if (isolation != Connection.TRANSACTION_NONE) DBUtil.setTransactionIsolationEL(newDC.getConnection(), isolation);
 						}
 						newDC.setManaged(true);
@@ -193,6 +200,21 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 			// connection is still borrowed when it's actually closed, causing phantom connections
 			dc.release();
 		}
+	}
+
+	private static void invalidate(DatasourceConnection dc) {
+		dc.setManaged(false);
+		if (dc instanceof DatasourceConnectionImpl) {
+			DatasourceConnPool pool = ((DatasourceConnectionImpl) dc).getPool();
+			if (pool != null) {
+				try {
+					pool.invalidateObject(dc);
+					return;
+				}
+				catch (Exception e) {}
+			}
+		}
+		dc.release();
 	}
 
 	@Override
@@ -450,7 +472,14 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 					if (dc.isManaged()) {
 						dc.setManaged(false);
-						dc.setAutoCommit(true);
+						try {
+							dc.setAutoCommit(true);
+						}
+						catch (Exception e) {
+							// LDEV-6129 the connection is in an unknown state, never return it to the pool, but also never drop it
+							invalidate(dc);
+							throw e;
+						}
 						DBUtil.setTransactionIsolationEL(dc.getConnection(), dc.getDefaultTransactionIsolation());
 						releaseConnection(null, dc, true);
 					}
