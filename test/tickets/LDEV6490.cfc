@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="serialize,component,metadata" {
 
 	function run( testResults, testBox ) {
-		describe( "LDEV-XXXX getMetadata() on a component restored with objectLoad( objectSave( cfc ) )", function() {
+		describe( "LDEV-6490 getMetadata() on a component restored with objectLoad( objectSave( cfc ) )", function() {
 
 			it( "getMetadata() works on a fresh instance (control)", function() {
 				var meta = getMetadata( newBean() );
@@ -20,7 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="serialize,componen
 	}
 
 	private function newBean() {
-		var bean = new LDEVXXXX.Bean();
+		var bean = new LDEV6490.Bean();
 		bean.setName( "test" );
 		return bean;
 	}
