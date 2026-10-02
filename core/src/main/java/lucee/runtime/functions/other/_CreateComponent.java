@@ -64,8 +64,12 @@ public final class _CreateComponent {
 			path = Caster.toString(objArr[objArr.length - 2]);
 		}
 
-		// not store the index to make it faster
-		ComponentImpl cfc = type != TYPE_JAVA ? ComponentLoader.searchComponent(pc, null, path, null, null, false, true, true, type == TYPE_CFML) : null;
+		// FQN fast-path: when the name is unambiguously a Java fully-qualified name
+		// (java.*, javax.*, jakarta.*, sun.*, jdk.*), skip the CFC search entirely.
+		// _search would walk every component mapping looking for e.g. /java/lang/StringBuilder.cfc
+		// and never find one. Only short-circuits when type is TYPE_BOTH (default for new operator).
+		boolean skipCfcSearch = type == TYPE_BOTH && isJavaFqn(path);
+		ComponentImpl cfc = (type != TYPE_JAVA && !skipCfcSearch) ? ComponentLoader.searchComponent(pc, null, path, null, null, false, true, true, type == TYPE_CFML) : null;
 		// if type is TYPE_CFML we do not have to check for it here anymore, because the line above has a
 		// cfc or throws an exception
 		Class cls = cfc == null ? cls = loadClass(pc, path, type) : null;
@@ -136,6 +140,18 @@ public final class _CreateComponent {
 		return rtn;
 	}
 
+	private static boolean isJavaFqn(String path) {
+		if (path == null || path.length() < 5) return false;
+		return path.startsWith("java.")
+				|| path.startsWith("javax.")
+				|| path.startsWith("jakarta.")
+				|| path.startsWith("sun.")
+				|| path.startsWith("jdk.")
+				|| path.startsWith("com.sun.")
+				|| path.startsWith("org.w3c.")
+				|| path.startsWith("org.xml.");
+	}
+
 	public static Class loadClass(PageContext pc, String path, int type) throws ApplicationException {
 		Class cls = null;
 		// no package
@@ -156,8 +172,12 @@ public final class _CreateComponent {
 			}
 		}
 		if (cls == null) {
+			// Fast path: cached resolution via JavaProxy's class cache (same default RPC classloader)
+			cls = JavaProxy.tryCachedLoad(pc, path);
+			if (cls != null) return cls;
 			try {
 				cls = ClassUtil.loadClass(pc, path);
+				JavaProxy.cacheClassLookup(pc, path, cls);
 			}
 			catch (Exception e) {
 				ApplicationException ae = new ApplicationException("could not find " + (type == TYPE_BOTH ? "component or class" : "class") + "  with name [" + path + "]");

@@ -56,6 +56,39 @@ public final class JavaProxy implements Function {
 
 	private static final long serialVersionUID = 2696152022196556309L;
 
+	private static final java.util.concurrent.ConcurrentHashMap<ClassLoader, java.util.concurrent.ConcurrentHashMap<String, Class<?>>> CLASS_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+
+	public static Class<?> tryCachedLoad(PageContext pc, String className) {
+		try {
+			ClassLoader cl = ((PageContextImpl) pc).getRPCClassLoader(null);
+			java.util.concurrent.ConcurrentHashMap<String, Class<?>> classCache = CLASS_CACHE.get(cl);
+			if (classCache == null) return null;
+			return classCache.get(className);
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
+
+	public static void cacheClassLookup(PageContext pc, String className, Class<?> cls) {
+		if (cls == null) return;
+		try {
+			ClassLoader cl = ((PageContextImpl) pc).getRPCClassLoader(null);
+			getClassCacheFor(cl).put(className, cls);
+		}
+		catch (Exception e) {
+			// ignore — cache miss is recoverable
+		}
+	}
+
+	private static java.util.concurrent.ConcurrentHashMap<String, Class<?>> getClassCacheFor(ClassLoader cl) {
+		java.util.concurrent.ConcurrentHashMap<String, Class<?>> classCache = CLASS_CACHE.get(cl);
+		if (classCache == null) {
+			classCache = CLASS_CACHE.computeIfAbsent(cl, k -> new java.util.concurrent.ConcurrentHashMap<>());
+		}
+		return classCache;
+	}
+
 	public static Object call(PageContext pc, String className) throws PageException {
 		return call(pc, className, null, null, null);
 	}
@@ -141,6 +174,38 @@ public final class JavaProxy implements Function {
 	private static Class<?> loadClassByPath(PageContext pc, String className, String[] paths) throws PageException {
 
 		PageContextImpl pci = (PageContextImpl) pc;
+
+		// Fast path: no paths means the default RPC classloader resolves this className. Cache the result.
+		if (paths == null) {
+			try {
+				ClassLoader cl = pci.getRPCClassLoader(null);
+				java.util.concurrent.ConcurrentHashMap<String, Class<?>> classCache = getClassCacheFor(cl);
+				Class<?> cached = classCache.get(className);
+				if (cached != null) return cached;
+				Class<?> loaded;
+				try {
+					loaded = ClassUtil.loadClass(cl, className);
+				}
+				catch (ClassException ce) {
+					if (className.indexOf('.') == -1) {
+						try {
+							loaded = ClassUtil.loadClass(cl, "java.lang." + className);
+						}
+						catch (ClassException e) {
+							throw ce;
+						}
+					}
+					else throw ce;
+				}
+				classCache.put(className, loaded);
+				return loaded;
+			}
+			catch (Exception e) {
+				if (e instanceof PageException) throw (PageException) e;
+				throw Caster.toPageException(e);
+			}
+		}
+
 		java.util.List<Resource> resources = new ArrayList<Resource>();
 
 		if (paths != null && paths.length > 0) {
