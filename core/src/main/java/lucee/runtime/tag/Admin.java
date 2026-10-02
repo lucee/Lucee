@@ -20,6 +20,7 @@ package lucee.runtime.tag;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.cert.X509Certificate;
@@ -152,7 +153,6 @@ import lucee.runtime.monitor.Monitor;
 import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.http.CertificateInstaller;
 import lucee.runtime.net.http.ReqRspUtil;
-// import lucee.runtime.net.mail.SMTPVerifier; // removed with mail functionality
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
 // import lucee.runtime.net.mail.ServerImpl; // removed with mail functionality
@@ -199,6 +199,7 @@ import lucee.runtime.util.PageContextUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
+import lucee.transformer.library.tag.TagLibTag;
 
 public final class Admin extends TagImpl implements DynamicAttributes {
 
@@ -2951,14 +2952,48 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				getString("admin", action, "mailpassword"));
 	}
 
-	private void _doVerifyMailServer(String host, int port, String user, String pass) {
-		// TODO Mail functionality removed
-		// try {
-		// SMTPVerifier.verify(host, user, pass, port);
-		// }
-		// catch (SMTPException e) {
-		// throw Caster.toPageException(e);
-		// }
+	private void _doVerifyMailServer(String host, int port, String user, String pass) throws PageException {
+		// the SMTPVerifier lives in the mail extension, load it through the classloader of the cfmail tag
+		// handler (same approach as JavaConverter.loadFromExtensions)
+		Class<?> verifier = loadFromMailExtension("org.lucee.extension.mail.SMTPVerifier");
+		try {
+			verifier.getMethod("verify", String.class, String.class, String.class, int.class).invoke(null, host, user, pass, port);
+		}
+		catch (InvocationTargetException ite) {
+			throw Caster.toPageException(ite.getTargetException());
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	/**
+	 * loads a class provided by the mail extension, through the classloader of the cfmail tag handler (the
+	 * loader the mail extension runs on)
+	 */
+	private Class<?> loadFromMailExtension(String className) throws PageException {
+		Class<?> tagClass = null;
+		Config c = pageContext.getConfig();
+		if (c instanceof ConfigPro) {
+			try {
+				for (TagLib tld: ((ConfigPro) c).getTLDs()) {
+					TagLibTag tag = tld == null ? null : tld.getTag("mail");
+					ClassDefinition cd = tag == null ? null : tag.getTagClassDefinition();
+					tagClass = cd == null ? null : cd.getClazz(null);
+					if (tagClass != null) break;
+				}
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+		}
+		if (tagClass == null) throw new ApplicationException("The mail extension is not installed, it is required to verify a mail server");
+		try {
+			return Class.forName(className, true, tagClass.getClassLoader());
+		}
+		catch (ClassNotFoundException e) {
+			throw new ApplicationException("The installed mail extension does not provide the class [" + className + "], please update the mail extension");
+		}
 	}
 
 	/**
