@@ -1635,7 +1635,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					ImportDefintion di = getComponentDefaultImport();
 					String pack = di == null ? null : di.getPackageAsPath();
 					if (StringUtil.isEmpty(pack, true)) pack = "";
-					else if (!pack.endsWith("/")) pack += "";
+					else if (!pack.endsWith("/")) pack += "/";
 					// name
 					String componentName = getBaseComponentTemplate();
 
@@ -1690,7 +1690,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 								Resource a = m.getArchive();
 								String archive = m.getStrArchive();
-								if (p != null) {
+								if (a != null) {
 									try {
 										archive = a.getCanonicalPath() + " (" + m.getStrArchive() + ")";
 									}
