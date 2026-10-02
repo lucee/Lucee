@@ -37,7 +37,7 @@ public final class UDFGetterProperty extends UDFGSProperty {
 	private final Key propName;
 
 	public UDFGetterProperty(Component component, Property prop) {
-		super(component, "get" + StringUtil.ucFirst(prop.getName()), EMPTY, CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_ANY));
+		super(component, "get" + StringUtil.ucFirst(prop.getName()), EMPTY, CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_ANY), prop.getType());
 		this.prop = prop;
 		this.propName = KeyImpl.init(prop.getName());
 	}
