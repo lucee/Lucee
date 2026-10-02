@@ -285,5 +285,5 @@ Require-Extension: org.lucee:mysql-jdbc-extension:9.7.0,
  org.lucee:esapi-extension:3.1.0.1-RC,
  org.lucee:scheduler-classic-extension:1.0.0.1,
  org.lucee:compress-extension:2.1.0.3-RC,
- org.lucee:mail-extension:1.1.0.10-SNAPSHOT,
- org.lucee:ftp-extension:1.0.0.8-RC
+ org.lucee:mail-extension:1.1.0.10-SNAPSHOT;since=7.1.0.0,
+ org.lucee:ftp-extension:1.0.0.8-RC;since=7.1.0.0
