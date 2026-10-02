@@ -745,6 +745,7 @@
       <jvmarg value="-DindividualStorageKeys=false"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
+      <jvmarg value="-Dlucee.cli.contextRoot=${test}"/>
       <!-- TODO remove axis, lucene -->
       <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis},${extHibernate},${extEHCache}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
