@@ -5679,6 +5679,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>string</type>
+			<name>cacheprefix</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Specifies a custom cache prefix for storing the query results. If provided, this prefix will be prepended to the auto-generated cache ID. This allows for predictable cache management using cache functions with key patterns. Requires cachedwithin or cachedafter to be specified for caching to occur.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>provider</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>

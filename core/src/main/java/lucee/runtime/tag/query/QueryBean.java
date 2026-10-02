@@ -62,6 +62,12 @@ public final class QueryBean implements Serializable {
 	public DateTime cachedAfter;
 
 	/**
+	 * The cache prefix to use for caching query results.
+	 * If specified, this prefix will be prepended to the auto-generated cache ID.
+	 */
+	public String cachePrefix = null;
+
+	/**
 	 * The name query. Must begin with a letter and may consist of letters, numbers, and the underscore
 	 * character, spaces are not allowed. The query name is used later in the page to reference the
 	 * query's record set.
@@ -104,7 +110,7 @@ public final class QueryBean implements Serializable {
 		timeout = null;
 		cachedWithin = null;
 		cachedAfter = null;
-		// cachename="";
+		cachePrefix = null;
 		blockfactor = -1;
 		dbtype = null;
 		debug = true;
