@@ -200,7 +200,7 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 
 	@Override
 	public void resetBuffer() {
-		commited = true;
+		if (commited) throw new IllegalStateException("Cannot reset buffer after response has been committed");
 	}
 
 	@Override
@@ -210,7 +210,7 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 
 	@Override
 	public void reset() {
-		commited = true;
+		if (commited) throw new IllegalStateException("Cannot reset buffer after response has been committed");
 	}
 
 	@Override
