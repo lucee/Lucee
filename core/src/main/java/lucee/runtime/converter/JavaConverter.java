@@ -31,10 +31,17 @@ import java.io.Writer;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.coder.CoderException;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.transformer.library.tag.TagLib;
+import lucee.transformer.library.tag.TagLibTag;
 
 // FUTURE make this available to loader
 
@@ -122,6 +129,7 @@ public final class JavaConverter extends ConverterSupport implements BinaryConve
 	public static class ObjectInputStreamImpl extends ObjectInputStream {
 
 		private ClassLoader cl;
+		private ClassLoader extensionLoader;
 
 		public ObjectInputStreamImpl(ClassLoader cl, InputStream in) throws IOException {
 			super(in);
@@ -130,20 +138,68 @@ public final class JavaConverter extends ConverterSupport implements BinaryConve
 
 		@Override
 		protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-			if (cl == null) return super.resolveClass(desc);
-
 			String name = desc.getName();
-			try {
-				return Class.forName(name, false, cl);
+
+			// once one class of the graph resolved through an extension, the rest uses the same loader
+			if (extensionLoader != null) {
+				try {
+					return Class.forName(name, false, extensionLoader);
+				}
+				catch (ClassNotFoundException cnf) {}
 			}
-			catch (ClassNotFoundException ex) {
+
+			if (cl != null) {
+				try {
+					return Class.forName(name, false, cl);
+				}
+				catch (ClassNotFoundException ex) {}
+			}
+
+			try {
 				return super.resolveClass(desc);
+			}
+			catch (ClassNotFoundException cnf) {
+				// the class may be contributed by an installed extension and therefore not visible to the
+				// core engine classloader (e.g. the mail extension's MailSpoolerTask persisted by the
+				// spooler). Resolve it through the extension's maven artifacts and reuse that loader.
+				Class<?> clazz = loadFromExtensions(name);
+				if (clazz != null) {
+					extensionLoader = clazz.getClassLoader();
+					return clazz;
+				}
+				throw cnf;
 			}
 		}
 
 		public ClassLoader getClassLoader() {
 			return cl;
 		}
+	}
+
+	/**
+	 * Resolves a class that is not reachable from the core engine classloader through the mail extension.
+	 * The only extension that uses the spooler is the mail extension (maven-only, Lucee 7.1+), so its
+	 * cfmail tag handler is loaded from the same maven artifact as the spooler task. Loading the class
+	 * through that tag handler's own classloader - the exact, cached loader instance the extension runs on
+	 * - gives back a class with the same identity as everywhere else (no ClassCastException / loader
+	 * constraints). Returns null if the mail extension is not installed (deserialization then fails as it
+	 * did before).
+	 */
+	private static Class<?> loadFromExtensions(String className) {
+		Config config = ThreadLocalPageContext.getConfig();
+		if (!(config instanceof ConfigPro)) return null;
+		try {
+			for (TagLib tld: ((ConfigPro) config).getTLDs()) {
+				TagLibTag tag = tld == null ? null : tld.getTag("mail");
+				ClassDefinition cd = tag == null ? null : tag.getTagClassDefinition();
+				Class<?> tagClass = cd == null ? null : cd.getClazz(null);
+				if (tagClass != null) return Class.forName(className, false, tagClass.getClassLoader());
+			}
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+		}
+		return null;
 	}
 
 }

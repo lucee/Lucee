@@ -43,7 +43,7 @@
 				struct(action:"datasource",label:arguments.stMenu.services.datasource),
 				struct(action:"orm",label:arguments.stMenu.services.orm),
 				struct(action:"search",label:arguments.stMenu.services.search,hidden: arguments.adminType NEQ "web" and not arguments.singlemode),
-				//struct(action:"mail",label:arguments.stMenu.services.mail),
+				struct(action:"mail",label:arguments.stMenu.services.mail),
 				struct(action:"tasks",label:arguments.stMenu.services.tasks),
 				struct(action:"schedule",label:arguments.stMenu.services.schedule,hidden:arguments.adminType NEQ "web" and not arguments.singlemode),
 				struct(action:"update",label:arguments.stMenu.services.update,hidden:arguments.adminType EQ "web" and not arguments.singlemode,display:true),
