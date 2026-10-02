@@ -21,6 +21,7 @@ package lucee.runtime.op;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.net.IDN;
 import java.net.URI;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -82,6 +83,11 @@ public final class Decision {
 	private static final String STRING_DEFAULT_VALUE = "this is a unique string";
 
 	private static Pattern ssnPattern;
+	private static final Pattern EMAIL_LOCAL_PATTERN = Pattern.compile("[\\p{L}\\p{M}\\p{N}!#$%&'*+/=?^_`{|}~-]+(\\.[\\p{L}\\p{M}\\p{N}!#$%&'*+/=?^_`{|}~-]+)*");
+	private static final Pattern EMAIL_DOMAIN_LABEL_PATTERN = Pattern.compile("[\\p{L}\\p{M}\\p{N}]([\\p{L}\\p{M}\\p{N}-]*[\\p{L}\\p{M}\\p{N}])?");
+	private static final Pattern EMAIL_TLD_PATTERN = Pattern.compile("[\\p{L}\\p{M}]{2,}|(?i:xn--[a-z0-9-]+)");
+	private static final Pattern EMAIL_QUOTED_LOCAL_PATTERN = Pattern.compile("\"(?:[^\"\\\\\\r\\n]|\\\\.)*\"");
+	private static final Pattern EMAIL_IPV4_LITERAL_PATTERN = Pattern.compile("\\[(?:(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)\\]");
 	private static Pattern phonePattern;
 	private static Pattern zipPattern;
 
@@ -873,12 +879,41 @@ public final class Decision {
 	 * @return
 	 */
 	public static boolean isEmail(Object value) {
-
-		// TODO Mail functionality removed - basic email validation only call return
-		// MailUtil.isValidEmail(value); if mail extension is installed
+		// core email check, no mail extension needed; mirrors 6.2/7.0 MailUtil.isValidEmail():
+		// local part: dot-atom or quoted string (max 64), domain: LDH labels (max 63) with an alpha or xn-- TLD, or an IPv4 literal
 		String str = Caster.toString(value, null);
 		if (str == null) return false;
-		return str.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+		// a quoted local part may contain @, so split at the last one
+		int pos = str.lastIndexOf('@');
+		if (pos < 1 || pos == str.length() - 1) return false;
+		String local = str.substring(0, pos);
+		String domain = str.substring(pos + 1);
+		// local part may only be 64 characters, domain only 255
+		if (local.length() > 64 || domain.length() > 255) return false;
+		if (!EMAIL_LOCAL_PATTERN.matcher(local).matches()) {
+			// quoted local part ("john doe"), consecutive dots are rejected as in 6.2/7.0
+			if (!EMAIL_QUOTED_LOCAL_PATTERN.matcher(local).matches() || local.contains("..")) return false;
+		}
+		// IPv4 address literal (user@[192.168.0.1])
+		if (EMAIL_IPV4_LITERAL_PATTERN.matcher(domain).matches()) return true;
+		String[] labels = domain.split("\\.", -1);
+		if (labels.length < 2) return false;
+		// each domain label may only be 63 characters
+		for (String label: labels) {
+			if (label.length() > 63 || !EMAIL_DOMAIN_LABEL_PATTERN.matcher(label).matches()) return false;
+		}
+		if (!EMAIL_TLD_PATTERN.matcher(labels[labels.length - 1]).matches()) return false;
+		// as in 6.2/7.0 the length limits apply to the ASCII (punycode) form of an internationalized domain
+		if (!StringUtil.isAscii(domain)) {
+			try {
+				// throws if a label is longer than 63 characters once converted
+				if (IDN.toASCII(domain).length() > 255) return false;
+			}
+			catch (IllegalArgumentException e) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
