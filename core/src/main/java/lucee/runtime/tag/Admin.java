@@ -20,6 +20,7 @@ package lucee.runtime.tag;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.sql.Connection;
@@ -112,6 +113,7 @@ import lucee.runtime.config.Prop;
 import lucee.runtime.config.RemoteClient;
 import lucee.runtime.config.RemoteClientImpl;
 import lucee.runtime.config.ResetFilter;
+import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
@@ -153,7 +155,6 @@ import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.GAVSO;
 import lucee.runtime.net.http.CertificateInstaller;
 import lucee.runtime.net.http.ReqRspUtil;
-// import lucee.runtime.net.mail.SMTPVerifier; // removed with mail functionality
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
 // import lucee.runtime.net.mail.ServerImpl; // removed with mail functionality
@@ -2963,14 +2964,20 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				getString("admin", action, "mailpassword"));
 	}
 
-	private void _doVerifyMailServer(String host, int port, String user, String pass) {
-		// TODO Mail functionality removed
-		// try {
-		// SMTPVerifier.verify(host, user, pass, port);
-		// }
-		// catch (SMTPException e) {
-		// throw Caster.toPageException(e);
-		// }
+	private void _doVerifyMailServer(String host, int port, String user, String pass) throws PageException {
+		// the SMTPVerifier lives in the mail extension (loaded through the classloader of the cfmail tag handler)
+		Class<?> verifier = JavaConverter.loadFromExtensions("org.lucee.extension.mail.SMTPVerifier");
+		if (verifier == null) throw new ApplicationException(
+				"The mail extension is not installed or does not provide the class [org.lucee.extension.mail.SMTPVerifier], it is required to verify a mail server");
+		try {
+			verifier.getMethod("verify", String.class, String.class, String.class, int.class).invoke(null, host, user, pass, port);
+		}
+		catch (InvocationTargetException ite) {
+			throw Caster.toPageException(ite.getTargetException());
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	/**

@@ -200,11 +200,7 @@ Defaults --->
 		<cfcase value="Send test mail">
 			<cftry>
 				<cfset data = queryRowData(ms,url.row)>
-				<!--- <cfdump var="#data#" /><cfabort /> 
-				<cfmail from="#form.fromMail#" to="#form.toMail#" subject="Test email from Lucee" server="#data.hostname#" username="#data.username#" password="#data.password#" port="#data.port#" usetls="#data.tls#" usessl="#data.ssl#" async="false" debug="true">
-					Hi this is a test email from your lucee server instance.
-				</cfmail>
-				--->
+				<cfinclude template="services.mail.testmail.cfm">
 				<cfset stVeritfyMessages[data.hostname].Label = "OK">
 				<cfset stVeritfyMessages[data.hostname].contextType = (request.adminType=='server'?'global':'global,local')>
 				<cfset stVeritfyMessages[data.hostname].message = "Test mail has been sent successfully using [ #data.hostname# ].">
