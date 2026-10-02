@@ -11824,6 +11824,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- queryColumnArray -->
 	<function>
 		<name>queryColumnArray</name>
+		<alias>queryColumnNames</alias>
 		<class>lucee.runtime.functions.query.QueryColumnArray</class>
 		<member-name>columnArray</member-name>
 		<keywords>query,array</keywords>
