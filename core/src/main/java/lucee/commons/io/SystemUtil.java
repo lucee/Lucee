@@ -235,39 +235,7 @@ public final class SystemUtil {
 		MemoryPoolMXBean tmp = getPermGenSpaceBean();
 		if (tmp != permGenSpaceBean) permGenSpaceBean = null;
 
-		if (JAVA_VERSION_STRING.startsWith("35.")) JAVA_VERSION = JAVA_VERSION_35;
-		else if (JAVA_VERSION_STRING.startsWith("34.")) JAVA_VERSION = JAVA_VERSION_34;
-		else if (JAVA_VERSION_STRING.startsWith("33.")) JAVA_VERSION = JAVA_VERSION_33;
-		else if (JAVA_VERSION_STRING.startsWith("32.")) JAVA_VERSION = JAVA_VERSION_32;
-		else if (JAVA_VERSION_STRING.startsWith("31.")) JAVA_VERSION = JAVA_VERSION_31;
-		else if (JAVA_VERSION_STRING.startsWith("30.")) JAVA_VERSION = JAVA_VERSION_30;
-		else if (JAVA_VERSION_STRING.startsWith("29.")) JAVA_VERSION = JAVA_VERSION_29;
-		else if (JAVA_VERSION_STRING.startsWith("28.")) JAVA_VERSION = JAVA_VERSION_28;
-		else if (JAVA_VERSION_STRING.startsWith("27.")) JAVA_VERSION = JAVA_VERSION_27;
-		else if (JAVA_VERSION_STRING.startsWith("26.")) JAVA_VERSION = JAVA_VERSION_26;
-		else if (JAVA_VERSION_STRING.startsWith("25.")) JAVA_VERSION = JAVA_VERSION_25;
-		else if (JAVA_VERSION_STRING.startsWith("24.")) JAVA_VERSION = JAVA_VERSION_24;
-		else if (JAVA_VERSION_STRING.startsWith("23.")) JAVA_VERSION = JAVA_VERSION_23;
-		else if (JAVA_VERSION_STRING.startsWith("22.")) JAVA_VERSION = JAVA_VERSION_22;
-		else if (JAVA_VERSION_STRING.startsWith("21.")) JAVA_VERSION = JAVA_VERSION_21;
-		else if (JAVA_VERSION_STRING.startsWith("20.")) JAVA_VERSION = JAVA_VERSION_20;
-		else if (JAVA_VERSION_STRING.startsWith("19.")) JAVA_VERSION = JAVA_VERSION_19;
-		else if (JAVA_VERSION_STRING.startsWith("18.")) JAVA_VERSION = JAVA_VERSION_18;
-		else if (JAVA_VERSION_STRING.startsWith("17.")) JAVA_VERSION = JAVA_VERSION_17;
-		else if (JAVA_VERSION_STRING.startsWith("16.")) JAVA_VERSION = JAVA_VERSION_16;
-		else if (JAVA_VERSION_STRING.startsWith("15.")) JAVA_VERSION = JAVA_VERSION_15;
-
-		else if (JAVA_VERSION_STRING.startsWith("1.14.") || JAVA_VERSION_STRING.startsWith("14")) JAVA_VERSION = JAVA_VERSION_14;
-		else if (JAVA_VERSION_STRING.startsWith("1.13.") || JAVA_VERSION_STRING.startsWith("13")) JAVA_VERSION = JAVA_VERSION_13;
-		else if (JAVA_VERSION_STRING.startsWith("1.12.") || JAVA_VERSION_STRING.startsWith("12")) JAVA_VERSION = JAVA_VERSION_12;
-		else if (JAVA_VERSION_STRING.startsWith("1.11.") || JAVA_VERSION_STRING.startsWith("11")) JAVA_VERSION = JAVA_VERSION_11;
-		else if (JAVA_VERSION_STRING.startsWith("1.10.") || JAVA_VERSION_STRING.startsWith("10")) JAVA_VERSION = JAVA_VERSION_10;
-		else if (JAVA_VERSION_STRING.startsWith("1.9.") || JAVA_VERSION_STRING.startsWith("9.")) JAVA_VERSION = JAVA_VERSION_9;
-		else if (JAVA_VERSION_STRING.startsWith("1.8.") || JAVA_VERSION_STRING.startsWith("8.")) JAVA_VERSION = JAVA_VERSION_8;
-		else if (JAVA_VERSION_STRING.startsWith("1.7.") || JAVA_VERSION_STRING.startsWith("7.")) JAVA_VERSION = JAVA_VERSION_7;
-		else if (JAVA_VERSION_STRING.startsWith("1.6.") || JAVA_VERSION_STRING.startsWith("6.")) JAVA_VERSION = JAVA_VERSION_6;
-
-		else JAVA_VERSION = 0;
+		JAVA_VERSION = Runtime.version().feature();
 	}
 
 	private static final Map<String, String> tokens = Collections.synchronizedMap(new AccessOrderLimitedSizeMap<String, String>(10000, 100));
