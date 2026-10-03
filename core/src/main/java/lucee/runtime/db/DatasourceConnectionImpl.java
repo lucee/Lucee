@@ -99,6 +99,14 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 		return datasource;
 	}
 
+	/**
+	 * Returns the pool this connection was borrowed from. Core-internal, not exposed on the loader
+	 * {@code DatasourceConnection} interface.
+	 */
+	public DatasourceConnPool getPool() {
+		return pool;
+	}
+
 	@Override
 	public boolean isTimeout() {
 		int timeout = datasource.getIdleTimeout();
