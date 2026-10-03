@@ -22,16 +22,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 
 				var appName = listFirst( trim( cfmlSessionId.filecontent ), '-' ) & "-" ;
 
-				// allow session to expire
-				expect( getSessionCount( appName ) ).toBe( 1 );
-
-				sleep(1001);
-				admin
-					action="purgeExpiredSessions"
-					type="server"
-					password="#request.SERVERADMINPASSWORD#";
-				//systemOutput(server.LDEV4166_ended_CFML_Sessions, true);
-				// let's check first that the session actually ended!
 				expect( getSessionCount( appName ) ).toBe( 0 );
 				expect( structKeyExists( server.LDEV4166_ended_CFML_Sessions, trim( cfmlSessionId.filecontent ) ) ).toBeTrue();
 			});
@@ -46,15 +36,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 
 				var appName = listFirst( trim( j2eeSessionId.filecontent ), '-' ) & "-" ;
 
-				expect( getSessionCount( appName ) ).toBe( 1 );
-				// allow session to expire
-				sleep(1001);
-				admin
-					action="purgeExpiredSessions"
-					type="server"
-					password="#request.SERVERADMINPASSWORD#";
-				//systemOutput(server.LDEV4166_ended_JEE_Sessions, true);
-				// let's check first that the session actually ended!
 				expect( getSessionCount( appName ) ).toBe( 0 );
 				expect( structKeyExists( server.LDEV4166_ended_JEE_Sessions, trim( j2eeSessionId.filecontent ) ) ).toBeTrue();
 			});

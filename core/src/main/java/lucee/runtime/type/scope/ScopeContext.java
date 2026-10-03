@@ -963,7 +963,7 @@ public final class ScopeContext {
 		if (hasSessionManagement) {
 			if (isJ2EESession) {
 				// For J2EE sessions, try the HttpSession attribute first
-				HttpSession httpSession = pc.getSession();
+				HttpSession httpSession = pc.getHttpServletRequest().getSession(false);
 				if (httpSession != null) {
 					Object session = httpSession.getAttribute(appContext.getName());
 					if (session instanceof JSession) {
@@ -999,7 +999,7 @@ public final class ScopeContext {
 
 		// For J2EE sessions, handle the servlet container's session (JSESSIONID)
 		if (isJ2EESession && hasSessionManagement) {
-			HttpSession httpSession = pc.getSession();
+			HttpSession httpSession = pc.getHttpServletRequest().getSession(false);
 			if (httpSession != null) {
 				if (migrateSessionData) {
 					// sessionRotate: rotate to a new session ID but keep session alive
@@ -1016,21 +1016,26 @@ public final class ScopeContext {
 		// For J2EE sessionRotate with a real httpSession (Tomcat), don't reset session - we already called
 		// changeSessionId() and want to keep the data
 		// But for JSR-223 (where httpSession is null), we need to reset to create a new session
-		HttpSession httpSessionForReset = pc.getSession();
+		HttpSession httpSessionForReset = pc.getHttpServletRequest().getSession(false);
 		if (!(isJ2EESession && migrateSessionData && httpSessionForReset != null)) {
 			pc.resetSession();
 		}
 		pc.resetClient();
 
 		if (oldSession != null) {
-			UserScope newSession;
-			if (isJ2EESession) {
-				newSession = getSessionScope(pc);
+			if (migrateSessionData) {
+				UserScope newSession;
+				if (isJ2EESession) {
+					newSession = getSessionScope(pc);
+				}
+				else {
+					newSession = (UserScope) getCFScope(pc, true, Scope.SCOPE_SESSION);
+				}
+				migrate(pc, oldSession, newSession, migrateSessionData);
 			}
 			else {
-				newSession = (UserScope) getCFScope(pc, true, Scope.SCOPE_SESSION);
+				oldSession.clear();
 			}
-			migrate(pc, oldSession, newSession, migrateSessionData);
 		}
 		if (oldClient != null) migrate(pc, oldClient, (UserScope) getCFScope(pc, true, Scope.SCOPE_CLIENT), migrateClientData);
 
