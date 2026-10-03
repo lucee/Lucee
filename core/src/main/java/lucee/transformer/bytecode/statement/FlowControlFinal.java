@@ -20,10 +20,46 @@ package lucee.transformer.bytecode.statement;
 
 import org.objectweb.asm.Label;
 
+import lucee.transformer.TransformerException;
+import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.visitor.OnFinally;
+
+/**
+ * finally code of a statement (try, for-in, ...) that a break, continue or retry has to pass on its
+ * way out
+ */
 public interface FlowControlFinal {
-	public Label getFinalEntryLabel();
 
-	public void setAfterFinalGOTOLabel(Label label);
+	/**
+	 * returns the label to jump to, to execute the finally code and then go on to the given label.
+	 * every distinct target gets its own entry, a break and a continue inside the same statement must
+	 * not share one (LDEV-6510)
+	 * 
+	 * @param afterFinalGOTOLabel label to go to after the finally code
+	 * @return entry label
+	 */
+	public Label getFinalEntryLabel(Label afterFinalGOTOLabel);
 
-	public Label getAfterFinalGOTOLabel();
+	/**
+	 * writes the finally code (see setOnFinally) once for every entry requested with
+	 * getFinalEntryLabel, each followed by a jump to its own target
+	 * 
+	 * @param bc
+	 * @throws TransformerException
+	 */
+	public void writeOutFinalEntries(BytecodeContext bc) throws TransformerException;
+
+	/**
+	 * set the finally code that belongs to this statement
+	 * 
+	 * @param onFinally
+	 */
+	public void setOnFinally(OnFinally onFinally);
+
+	/**
+	 * the finally code that belongs to this statement, can be null
+	 * 
+	 * @return finally code
+	 */
+	public OnFinally getOnFinally();
 }
