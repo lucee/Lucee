@@ -1276,19 +1276,20 @@ public final class ASMUtil {
 						else if ("11".equals(vs) || "11.0".equals(vs)) javaBytecodeVersion = Opcodes.V11;
 						else if ("12".equals(vs) || "12.0".equals(vs)) javaBytecodeVersion = Opcodes.V12;
 						else if ("13".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V13;
-						else if ("14".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V14;
-						else if ("15".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V15;
-						else if ("16".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V16;
-						else if ("17".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V17;
-						else if ("18".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V18;
-						else if ("19".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V19;
+						else if ("14".equals(vs) || "14.0".equals(vs)) javaBytecodeVersion = Opcodes.V14;
+						else if ("15".equals(vs) || "15.0".equals(vs)) javaBytecodeVersion = Opcodes.V15;
+						else if ("16".equals(vs) || "16.0".equals(vs)) javaBytecodeVersion = Opcodes.V16;
+						else if ("17".equals(vs) || "17.0".equals(vs)) javaBytecodeVersion = Opcodes.V17;
+						else if ("18".equals(vs) || "18.0".equals(vs)) javaBytecodeVersion = Opcodes.V18;
+						else if ("19".equals(vs) || "19.0".equals(vs)) javaBytecodeVersion = Opcodes.V19;
 						else if ("20".equals(vs) || "20.0".equals(vs)) javaBytecodeVersion = Opcodes.V20;
 						else if ("21".equals(vs) || "21.0".equals(vs)) javaBytecodeVersion = Opcodes.V21;
 						else if ("22".equals(vs) || "22.0".equals(vs)) javaBytecodeVersion = Opcodes.V22;
 						else if ("23".equals(vs) || "23.0".equals(vs)) javaBytecodeVersion = Opcodes.V23;
 						else if ("24".equals(vs) || "24.0".equals(vs)) javaBytecodeVersion = Opcodes.V24;
 						else if ("25".equals(vs) || "25.0".equals(vs)) javaBytecodeVersion = Opcodes.V25;
-						// else if ("26".equals(vs) || "26.0".equals(vs)) javaBytecodeVersion = Opcodes.V26;
+						else if ("26".equals(vs) || "26.0".equals(vs)) javaBytecodeVersion = Opcodes.V26;
+						else if ("27".equals(vs) || "27.0".equals(vs)) javaBytecodeVersion = Opcodes.V27;
 					}
 
 					// we do not use the version of the JVM by default, because this would limit the use of lucee
@@ -1343,7 +1344,7 @@ public final class ASMUtil {
 	}
 
 	public static int getMaxVersion() {
-		return Opcodes.V24;
+		return Opcodes.V27;
 	}
 
 	private static Map<Type, String> names = new HashMap<>();
