@@ -160,7 +160,6 @@ public final class Location extends TagImpl {
 			if (LogUtil.doesDebug(log)) log.log(Log.LEVEL_DEBUG, "cflocation", "redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
 		}
 
-		rsp.setHeader("Connection", "close"); // IE unter IIS6, Win2K3 und Resin
 		rsp.setStatus(statuscode);
 		rsp.setHeader("location", url);
 

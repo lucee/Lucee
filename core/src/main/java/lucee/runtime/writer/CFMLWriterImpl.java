@@ -84,7 +84,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	private void _check() throws IOException {
 		if (autoFlush && buffer != null && buffer.length() > bufferSize) {
-			_flush(true);
+			_flush(this.closeConn);
 		}
 	}
 

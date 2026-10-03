@@ -190,7 +190,6 @@ public final class RestUtil {
 			}
 		}
 		HttpServletResponse rsp = pc.getHttpServletResponse();
-		rsp.setHeader("Connection", "close"); // IE unter IIS6, Win2K3 und Resin
 		rsp.setStatus(status);
 	}
 
