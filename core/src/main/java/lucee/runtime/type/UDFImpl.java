@@ -254,7 +254,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 
 		Object cachedWithin = getCachedWithin(pc);
 		String cacheId = CacheHandlerCollectionImpl.createId(this, null, newArgs);
-		CacheHandler cacheHandler = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null).getInstanceMatchingObject(getCachedWithin(pc), null);
+		CacheHandler cacheHandler = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null).getInstanceMatchingObject(cachedWithin, null);
 
 		if (cacheHandler instanceof CacheHandlerPro) {
 			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pc, cacheId, cachedWithin);

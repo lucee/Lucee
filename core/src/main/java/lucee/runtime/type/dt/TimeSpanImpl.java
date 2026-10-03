@@ -39,6 +39,11 @@ public final class TimeSpanImpl implements TimeSpan, Serializable {
 	private double value;
 	private long valueMillis;
 
+	// value is set once in the constructors and never mutated, so the string form is
+	// stable for the life of the instance. transient: excluded from the default
+	// serialVersionUID computation, recomputed lazily after deserialization.
+	private transient String str;
+
 	private long day;
 	private int hour;
 	private int minute;
@@ -111,12 +116,14 @@ public final class TimeSpanImpl implements TimeSpan, Serializable {
 
 	@Override
 	public String castToString() {
-		return Caster.toString(value);
+		String s = str;
+		if (s == null) str = s = Caster.toString(value);
+		return s;
 	}
 
 	@Override
 	public String castToString(String defaultValue) {
-		return Caster.toString(value);
+		return castToString();
 	}
 
 	@Override

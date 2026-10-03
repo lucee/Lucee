@@ -82,7 +82,7 @@ public final class TimespanCacheHandler implements CacheHandlerPro {
 	public void set(PageContext pc, String id, Object cachedWithin, CacheItem value) throws PageException {
 
 		long cachedWithinMillis;
-		if (Decision.isDate(cachedWithin, false) && !(cachedWithin instanceof TimeSpan))
+		if (!(cachedWithin instanceof TimeSpan) && Decision.isDate(cachedWithin, false))
 			cachedWithinMillis = Caster.toDate(cachedWithin, null).getTime() - System.currentTimeMillis();
 		else cachedWithinMillis = Caster.toTimespan(cachedWithin).getMillis();
 
@@ -184,7 +184,7 @@ public final class TimespanCacheHandler implements CacheHandlerPro {
 
 		Date cachedAfter;
 
-		if (Decision.isDate(cachePolicy, false) && !(cachePolicy instanceof TimeSpan)) {
+		if (!(cachePolicy instanceof TimeSpan) && Decision.isDate(cachePolicy, false)) {
 			// cachedAfter was passed
 			cachedAfter = Caster.toDate(cachePolicy, null);
 		}

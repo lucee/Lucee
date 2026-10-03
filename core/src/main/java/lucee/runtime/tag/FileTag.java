@@ -666,11 +666,12 @@ public final class FileTag extends BodyTagImpl {
 			if (tmp != null) setCachedwithin(tmp);
 		}
 
-		String cacheId = createCacheId(isBinary);
+		String cacheId = null;
 		CacheHandler cacheHandler = null;
 
 		if (cachedWithin != null) {
 
+			cacheId = createCacheId(isBinary);
 			cacheHandler = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FILE, null).getInstanceMatchingObject(cachedWithin, null);
 
 			if (cacheHandler instanceof CacheHandlerPro) {

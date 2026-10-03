@@ -23,6 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 	variables.queryCacheName = "testQueryCache";
 	variables.functionCacheName = "testFunctionCache";
 	variables.httpCacheName = "testHttpCache";
+	variables.fileCacheName = "testFileCache";
 	variables.datasourceName = "testCacheDS";
 	variables.httpbin = server.getTestService("httpbin");
 
@@ -38,6 +39,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 			cacheClear(variables.queryCacheName);
 			cacheClear(variables.functionCacheName);
 			cacheClear(variables.httpCacheName);
+			cacheClear(variables.fileCacheName);
 		} catch(any e) {
 			// Ignore cleanup errors
 		}
@@ -189,6 +191,47 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 		expect(local.qTest3.uuid).notToBe(firstUuid);
 	}
 
+	public void function testQueryCachedWithinTimespanAndNumberUseTimespanHandler() localmode=true {
+		if (!variables.hasDS) return;
+
+		for ( var policy in [ createTimeSpan( 0, 1, 0, 0 ), 0.5 ] ) {
+			cacheClear( cacheName=variables.queryCacheName );
+			query datasource="#variables.datasourceName#" name="local.qTest" cachedwithin=policy {
+				writeOutput("SELECT RANDOM_UUID() AS uuid");
+			}
+			// timespan handler stores in the query cache, request handler doesn't
+			expect( cacheCount( variables.queryCacheName ) ).toBe( 1 );
+		}
+	}
+
+	public void function testQueryCachedWithinRequestFromComponent() localmode=true {
+		if (!variables.hasDS) return;
+
+		cacheClear( cacheName=variables.queryCacheName );
+		var policy = new CachedWithin.RequestPolicy();
+
+		query datasource="#variables.datasourceName#" name="local.qTest1" cachedwithin=policy {
+			writeOutput("SELECT RANDOM_UUID() AS uuid");
+		}
+		query datasource="#variables.datasourceName#" name="local.qTest2" cachedwithin=policy {
+			writeOutput("SELECT RANDOM_UUID() AS uuid");
+		}
+
+		// a component whose _toString() returns "request" selects the request handler
+		expect( local.qTest2.uuid ).toBe( local.qTest1.uuid );
+		expect( cacheCount( variables.queryCacheName ) ).toBe( 0 );
+	}
+
+	public void function testQueryCachedWithinInvalidThrows() localmode=true {
+		if (!variables.hasDS) return;
+
+		expect( function() {
+			query datasource="#variables.datasourceName#" name="local.qTest" cachedwithin="nonsense" {
+				writeOutput("SELECT 1 AS one");
+			}
+		}).toThrow( regex="Cachedwithin value \[nonsense\] is invalid" );
+	}
+
 	// ========================================
 	// Function Tests
 	// ========================================
@@ -306,6 +349,37 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 	}
 
 	// ========================================
+	// File Tests
+	// ========================================
+
+	public void function testFileCachedWithin() localmode=true {
+		var path = prepareFileTest( "cached.txt" );
+
+		// First read - creates cache
+		file action="read" file=path variable="local.first" cachedwithin=createTimeSpan( 0, 1, 0, 0 );
+		expect( local.first ).toBe( "original" );
+
+		fileWrite( path, "changed" );
+
+		// Second read - should return cached content
+		file action="read" file=path variable="local.second" cachedwithin=createTimeSpan( 0, 1, 0, 0 );
+		expect( local.second ).toBe( "original" );
+	}
+
+	public void function testFileWithoutCachedWithin() localmode=true {
+		var path = prepareFileTest( "uncached.txt" );
+
+		file action="read" file=path variable="local.first";
+		expect( local.first ).toBe( "original" );
+
+		fileWrite( path, "changed" );
+
+		// No cachedwithin - should see the new content
+		file action="read" file=path variable="local.second";
+		expect( local.second ).toBe( "changed" );
+	}
+
+	// ========================================
 	// Error and Edge Case Tests
 	// ========================================
 
@@ -348,6 +422,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 	// Helper Functions
 	// ========================================
 
+	private string function prepareFileTest( required string name ) {
+		cacheClear( cacheName=variables.fileCacheName );
+		var dir = getTempDirectory() & "cachedWithinFile/";
+		if ( directoryExists( dir ) ) directoryDelete( dir, true );
+		directoryCreate( dir );
+		var path = dir & arguments.name;
+		fileWrite( path, "original" );
+		return path;
+	}
+
 	private void function defineCaches() {
 		// Configure test caches (separate cache for each type)
 		var cache={};
@@ -373,6 +457,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 			class: 'lucee.runtime.cache.ram.RamCache',
 			storage: false,
 			default: "http",
+			custom: {
+				"timeToIdleSeconds": 86400,
+				"timeToLiveSeconds": 86400
+			}
+		};
+		cache[variables.fileCacheName] = {
+			class: 'lucee.runtime.cache.ram.RamCache',
+			storage: false,
+			default: "file",
 			custom: {
 				"timeToIdleSeconds": 86400,
 				"timeToLiveSeconds": 86400
