@@ -88,6 +88,9 @@ import lucee.transformer.library.tag.TagLib;
 
 public final class ConfigUtil {
 
+	private static final Resource[] EMPTY_RESOURCES = new Resource[0];
+	private static final PageSource[] EMPTY_PAGE_SOURCES = new PageSource[0];
+
 	private static String enckey;
 
 	private static ConfigWebImpl dummyConfigWeb;
@@ -1171,7 +1174,7 @@ public final class ConfigUtil {
 		Mapping rootApp = null;
 		PageSource ps;
 		Resource res;
-		List list = asPageSource ? new ArrayList<PageSource>() : new ArrayList<Resource>();
+		List list = onlyFirstMatch ? null : (asPageSource ? new ArrayList<PageSource>() : new ArrayList<Resource>());
 
 		if (mappings != null) {
 			for (int i = 0; i < mappings.length; i++) {
@@ -1314,6 +1317,7 @@ public final class ConfigUtil {
 				else list.add(res);
 			}
 		}
+		if (list == null || list.isEmpty()) return asPageSource ? EMPTY_PAGE_SOURCES : EMPTY_RESOURCES;
 		if (asPageSource) return list.toArray(new PageSource[list.size()]);
 		else return list.toArray(new Resource[list.size()]);
 	}
