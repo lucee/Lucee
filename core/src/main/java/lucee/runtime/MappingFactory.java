@@ -1,10 +1,10 @@
 package lucee.runtime;
 
-import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigFactoryImpl;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Prop;
 import lucee.runtime.config.PropFactory;
@@ -138,8 +138,9 @@ public class MappingFactory implements PropFactory<Mapping> {
 	}
 
 	private static short inspectTemplate(Config config, Struct data) {
-		String strInsTemp = SystemUtil.getSystemPropOrEnvVar("lucee.inspect.template", null); // TODO
-		if (StringUtil.isEmpty(strInsTemp, true)) strInsTemp = ConfigFactoryImpl.getAttr(config, data, "inspectTemplate");
+		// a system property / environment variable wins over the mapping, resolved once by the Prop
+		if (ConfigServerImpl.metaInspectTemplate.getEnvVarSystemPropSource() != null) return config.getInspectTemplate();
+		String strInsTemp = ConfigFactoryImpl.getAttr(config, data, "inspectTemplate");
 		if (StringUtil.isEmpty(strInsTemp, true)) strInsTemp = ConfigFactoryImpl.getAttr(config, data, "inspect");
 		if (StringUtil.isEmpty(strInsTemp, true)) {
 			Boolean trusted = Caster.toBoolean(ConfigFactoryImpl.getAttr(config, data, "trusted"), null);

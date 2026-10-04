@@ -1056,7 +1056,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private final ConfigValue<Short> compileType = new ConfigValue<>(metaCompileType);
 
 	@SuppressWarnings("unchecked")
-	public final static Prop<Short> metaInspectTemplate = Prop.shor().keys("inspectTemplate").defaultValue(INSPECT_AUTO)
+	public final static Prop<Short> metaInspectTemplate = Prop.shor().keys("inspectTemplate").systemPropEnvVar("lucee.inspect.template").defaultValue(INSPECT_AUTO)
 			.choices(
 					new Choice<Short>(INSPECT_AUTO, "auto").description("Optimized Performance: Lucee performs background checks intermittently to detect template modifications "
 							+ "without blocking requests. When a change is detected, Lucee temporarily increases check frequency, "
@@ -5143,8 +5143,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	@Override
 	public short getInspectTemplate() {
 		// allow overriding the configured inspectTemplate via system property / environment variable
-		String strInspectTemplate = SystemUtil.getSystemPropOrEnvVar("lucee.inspect.template", null);
-		if (!StringUtil.isEmpty(strInspectTemplate, true)) return ConfigUtil.inspectTemplate(strInspectTemplate, ConfigPro.INSPECT_AUTO);
 		return inspectTemplate.get(this, root);
 	}
 
