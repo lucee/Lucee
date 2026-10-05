@@ -4081,6 +4081,7 @@ To use cached data, the function must be called with the exact same arguments.
 		<name>Log</name>
 		<tag-class>lucee.runtime.tag.Log</tag-class>
 		<tte-class>lucee.transformer.cfml.evaluator.impl.Log</tte-class>
+		<ttt-class>lucee.transformer.bytecode.statement.tag.TagLog</ttt-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<description>Writes a message to a log file.</description>
