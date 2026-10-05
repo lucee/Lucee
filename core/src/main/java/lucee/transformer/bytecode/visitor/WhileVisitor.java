@@ -23,16 +23,19 @@ import org.objectweb.asm.Opcodes;
 
 import lucee.transformer.Position;
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.util.InterruptHandlerInjector;
 
 public final class WhileVisitor implements LoopVisitor {
 
 	private Label begin;
 	private Label end;
+	private int loopCounter;
 
 	public void visitBeforeExpression(BytecodeContext bc) {
 		begin = new Label();
 		end = new Label();
 		bc.getAdapter().visitLabel(begin);
+		loopCounter = InterruptHandlerInjector.writeLoopInit(bc.getAdapter());
 	}
 
 	public void visitAfterExpressionBeforeBody(BytecodeContext bc) {
@@ -41,6 +44,8 @@ public final class WhileVisitor implements LoopVisitor {
 
 	public void visitAfterBody(BytecodeContext bc, Position endline) {
 		bc.getAdapter().visitJumpInsn(Opcodes.GOTO, begin);
+		
+		InterruptHandlerInjector.writeLoopBodyEnd(bc.getAdapter(), loopCounter, end, "during while loop");
 		bc.getAdapter().visitLabel(end);
 		bc.visitLine(endline);
 	}

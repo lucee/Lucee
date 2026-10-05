@@ -25,6 +25,7 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import lucee.transformer.Position;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.bytecode.util.InterruptHandlerInjector;
 
 public final class ForDoubleVisitor implements Opcodes, LoopVisitor {
 
@@ -33,9 +34,11 @@ public final class ForDoubleVisitor implements Opcodes, LoopVisitor {
 	public Label beforeBody = new Label(), afterBody = new Label();
 	public Label beforeUpdate = new Label(), afterUpdate = new Label();
 	public int i;
+	private int loopCounter;
 
 	public int visitBeforeExpression(GeneratorAdapter adapter, int start, int step, boolean isLocal) {
 		// init
+		loopCounter = InterruptHandlerInjector.writeLoopInit(adapter);
 		adapter.visitLabel(beforeInit);
 		forInit(adapter, start, isLocal);
 		adapter.goTo(beforeExpr);
@@ -75,6 +78,8 @@ public final class ForDoubleVisitor implements Opcodes, LoopVisitor {
 			adapter.visitVarInsn(DSTORE, i);
 		}
 		else adapter.visitIincInsn(i, step);
+
+		InterruptHandlerInjector.writeLoopBodyEnd(adapter, loopCounter, beforeExpr, "during for loop");
 	}
 
 	/**

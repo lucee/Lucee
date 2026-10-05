@@ -23,6 +23,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.GeneratorAdapter;
 
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.util.InterruptHandlerInjector;
 
 // TODO testen wurde noch nicht getestet
 
@@ -31,21 +32,25 @@ public final class DoWhileVisitor implements LoopVisitor {
 	private Label begin;
 	private Label end;
 	private Label beforeEnd;
+	private int loopCounter;
 
 	public void visitBeginBody(GeneratorAdapter mv) {
 		end = new Label();
 		beforeEnd = new Label();
 
 		begin = new Label();
+		loopCounter = InterruptHandlerInjector.writeLoopInit(mv);
 		mv.visitLabel(begin);
 	}
 
 	public void visitEndBodyBeginExpr(GeneratorAdapter mv) {
+		InterruptHandlerInjector.writeLoopBodyEnd(mv, loopCounter, beforeEnd, "during do while");
 		mv.visitLabel(beforeEnd);
 	}
 
 	public void visitEndExpr(GeneratorAdapter mv) {
 		mv.ifZCmp(Opcodes.IFNE, begin);
+		InterruptHandlerInjector.writePreempt(mv, end, "after do while");
 		mv.visitLabel(end);
 	}
 
