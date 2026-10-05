@@ -47,8 +47,8 @@ See the section on [`code`](##code).
 ");
 
 
-variables.htmlString=trim('<h2>Headline with ID</h2>
-<h2>Another headline with ID</h2>
+variables.htmlString=trim('<h2 id="headline-with-id">Headline with ID</h2>
+<h2 id="another-headline-with-id">Another headline with ID</h2>
 <ul>
 <li>List with ID</li>
 </ul>
@@ -100,7 +100,7 @@ This is <em><strong>TXTMARK</strong></em>
 				}
 			});
 
-			it( title = "Checking markdownToHTML supports tables", skip=true, body=function( currentSpec ) {
+			it( title = "Checking markdownToHTML supports tables", skip=false, body=function( currentSpec ) {
 				var md = [
 					"| First Header  | Second Header |",
 					"| ------------- | ------------- |",
@@ -111,6 +111,23 @@ This is <em><strong>TXTMARK</strong></em>
 				expect( html ).toInclude( "</table>" );
 			});
 
+			it( title = "Checking markdownToHTML supports autolinking", skip=false, body=function( currentSpec ) {
+				var md = [
+					"https://lucee.org"
+				].toList( chr( 10 ) );
+				var html = markdownToHtml( md );
+				expect( html ).toInclude( '<a href="https://lucee.org">' );
+			});
+
+			it( title = "Checking markdownToHTML supports header anchors", skip=false, body=function( currentSpec ) {
+				var md = [
+					"## Lucee"
+				].toList( chr( 10 ) );
+				var html = markdownToHtml( md );
+				expect( html ).toInclude( '<h1 id="lucee">Lucee</h1>' );
+			});
+			
+			
 		});
 	} 
 
