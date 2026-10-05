@@ -30,6 +30,7 @@
   <property name="extEHCache"   value="org.lucee:ehcache-extension:2.10.9.2-BETA"/>
   <property name="extJtds"      value="org.lucee:jtds-jdbc-extension:1.3.1.1-SNAPSHOT"/>
   <property name="extMD"      value="org.lucee:markdown-extension:1.0.0.2-RC"/>
+  <property name="extSMB"     value="org.lucee:smb-extension:1.0.0.3-RC"/>
   <property name="extFtp"      value="org.lucee:ftp-extension:1.0.0.8-RC"/>
   <property name="extImage"     value="org.lucee:image-extension:2.0.0.34"/>
 
@@ -239,6 +240,22 @@
         </or>
     </condition>
 </fail>
+<fail message="Missing Markdown data from [Require-Extension] inside ${coreManifest}.">
+    <condition>
+        <or>
+            <not><isset property="extMarkdownExtension"/></not>
+            <not><isset property="extMarkdownExtensionVersion"/></not>
+        </or>
+    </condition>
+</fail>
+<fail message="Missing SMB data from [Require-Extension] inside ${coreManifest}.">
+    <condition>
+        <or>
+            <not><isset property="extSmbExtension"/></not>
+            <not><isset property="extSmbExtensionVersion"/></not>
+        </or>
+    </condition>
+</fail>
 
 <echo level="info">  
 
@@ -320,7 +337,7 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-s3,check-pdf,check-admin,check-doc,check-image,check-esapi,check-scheduler,check-compress,check-mail,check-ftp,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-s3,check-pdf,check-admin,check-doc,check-image,check-esapi,check-scheduler,check-compress,check-mail,check-ftp,check-markdown,check-smb,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 
@@ -767,7 +784,7 @@
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
       <!-- TODO remove axis, lucene -->
-      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis},${extHibernate},${extEHCache},${extJtds},${extMD},${extFtp},${extImage}"/>
+      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis},${extHibernate},${extEHCache},${extJtds},${extMD},${extSMB},${extFtp},${extImage}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
