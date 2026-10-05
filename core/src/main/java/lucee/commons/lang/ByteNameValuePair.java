@@ -25,9 +25,9 @@ import java.io.UnsupportedEncodingException;
  */
 public final class ByteNameValuePair {
 
-	private byte[] name;
-	private byte[] value;
-	private boolean urlEncoded;
+	final byte[] name;
+	final byte[] value;
+	final boolean urlEncoded;
 
 	/**
 	 * constructor of the class
@@ -72,13 +72,6 @@ public final class ByteNameValuePair {
 	}
 
 	/**
-	 * @param name The name to set.
-	 */
-	public void setName(byte[] name) {
-		this.name = name;
-	}
-
-	/**
 	 * @return Returns the value.
 	 */
 	public byte[] getValue() {
@@ -107,14 +100,7 @@ public final class ByteNameValuePair {
 			return defaultValue;
 		}
 	}
-
-	/**
-	 * @param value The value to set.
-	 */
-	public void setValue(byte[] value) {
-		this.value = value;
-	}
-
+	
 	/**
 	 * @return the urlEncoded
 	 */

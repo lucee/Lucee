@@ -24,8 +24,8 @@ import java.io.Serializable;
  * a Simple name value Pair
  */
 public final class Pair<K, V> implements Serializable {
-	K name;
-	V value;
+	final K name;
+	final V value;
 
 	/**
 	 * Constructor of the class
@@ -45,13 +45,6 @@ public final class Pair<K, V> implements Serializable {
 		return name;
 	}
 
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(K name) {
-		this.name = name;
-	}
-
 	@Override
 	public String toString() {
 		return name + ":" + value;
@@ -62,13 +55,6 @@ public final class Pair<K, V> implements Serializable {
 	 */
 	public V getValue() {
 		return value;
-	}
-
-	/**
-	 * @param value the value to set
-	 */
-	public void setValue(V value) {
-		this.value = value;
 	}
 
 }
