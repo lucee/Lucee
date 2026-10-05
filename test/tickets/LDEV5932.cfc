@@ -114,16 +114,41 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					return;
 				}
 
-				cfhttp(
-					url="#variables.updateProvider.url#/rest/update/provider/echoGet",
-					method="GET",
-					result="local.result",
-					compression=true
-				);
+				// updateProvider (https://update.lucee.org / Cloudflare) is occasionally
+				// unreachable from CI ("Connection Failure. Status code unavailable.").
+				// Retry briefly, then skip rather than fail the suite on a network flake.
+				// When a real 200 is returned, Accept-Encoding assertions stay strict.
+				var result = {};
+				var maxAttempts = 3;
+				for ( var attempt = 1; attempt <= maxAttempts; attempt++ ) {
+					cfhttp(
+						url="#variables.updateProvider.url#/rest/update/provider/echoGet",
+						method="GET",
+						result="local.httpResult",
+						compression=true
+					);
+					result = local.httpResult;
+					if ( !findNoCase( "Connection Failure", result.statusCode ?: "" )
+							&& !findNoCase( "Status code unavailable", result.statusCode ?: "" ) ) {
+						break;
+					}
+					if ( attempt < maxAttempts ) {
+						sleep( 500 * attempt );
+					}
+				}
 
-				expect( local.result.statusCode ).toBe( "200 OK" );
+				if ( findNoCase( "Connection Failure", result.statusCode ?: "" )
+						|| findNoCase( "Status code unavailable", result.statusCode ?: "" ) ) {
+					systemOutput(
+						"LDEV-5932: skipping echoGET Accept-Encoding check - updateProvider unreachable: #result.statusCode ?: 'unknown'#",
+						true
+					);
+					return;
+				}
 
-				var data = deserializeJSON( local.result.fileContent );
+				expect( result.statusCode ).toBe( "200 OK" );
+
+				var data = deserializeJSON( result.fileContent );
 
 				// Verify Accept-Encoding header was sent (proves compression is being requested)
 				expect( data ).toHaveKey( "httpRequestData" );
