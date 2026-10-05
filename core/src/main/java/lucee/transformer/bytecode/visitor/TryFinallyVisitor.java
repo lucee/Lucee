@@ -25,7 +25,6 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.statement.FlowControlFinal;
-import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 
 public final class TryFinallyVisitor implements Opcodes {
@@ -41,6 +40,7 @@ public final class TryFinallyVisitor implements Opcodes {
 	public TryFinallyVisitor(OnFinally onFinally, FlowControlFinal fcf) {
 		this.onFinally = onFinally;
 		this.fcf = fcf;
+		if (fcf != null) fcf.setOnFinally(onFinally);
 	}
 
 	public void visitTryBegin(BytecodeContext bc) {
@@ -71,14 +71,7 @@ public final class TryFinallyVisitor implements Opcodes {
 		ga.visitLabel(beforeFinally);
 
 		onFinally.writeOut(bc);
-		if (fcf != null && fcf.getAfterFinalGOTOLabel() != null) {
-			Label _end = new Label();
-			ga.visitJumpInsn(Opcodes.GOTO, _end); // ignore when coming not from break/continue
-			ASMUtil.visitLabel(ga, fcf.getFinalEntryLabel());
-			onFinally.writeOut(bc);
-			ga.visitJumpInsn(Opcodes.GOTO, fcf.getAfterFinalGOTOLabel());
-			ga.visitLabel(_end);
-		}
+		if (fcf != null) fcf.writeOutFinalEntries(bc);
 
 		ga.visitLabel(afterFinally);
 

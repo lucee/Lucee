@@ -86,9 +86,14 @@ public final class RepoReader extends DefaultHandler {
 		String key;
 		Object lastModified = null;
 		for (Entry<String, Map<String, Object>> e: artifacts.entrySet()) {
-			key = Caster.toString(e.getValue().get("classifier"), null);
-			if (StringUtil.isEmpty(key, true)) key = Caster.toString(e.getValue().get("extension"), null);
-			if (StringUtil.isEmpty(key, true)) key = e.getKey();
+			String classifier = Caster.toString(e.getValue().get("classifier"), null);
+			String extension = Caster.toString(e.getValue().get("extension"), null);
+			if (!StringUtil.isEmpty(classifier, true)) {
+				key = classifier;
+				if (!StringUtil.isEmpty(extension, true) && extension.endsWith(".asc")) key = classifier + ".asc";
+			}
+			else if (!StringUtil.isEmpty(extension, true)) key = extension;
+			else key = e.getKey();
 			res.put(key, e.getValue().get("url"));
 			if (lastModified == null) {
 				Object tmp = e.getValue().get("lastModified");

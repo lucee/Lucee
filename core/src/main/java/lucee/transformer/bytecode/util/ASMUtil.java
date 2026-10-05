@@ -90,6 +90,7 @@ import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.tag.TagScript;
 import lucee.transformer.bytecode.statement.tag.TagTry;
 import lucee.transformer.bytecode.util.SourceNameClassVisitor.SourceInfo;
+import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
@@ -263,25 +264,20 @@ public final class ASMUtil {
 		else if (FlowControl.CONTINUE == flowType) end = ((FlowControlContinue) fc).getContinueLabel();
 		else end = ((FlowControlRetry) fc).getRetryLabel();
 
-		// first jump to all final labels
-		FlowControlFinal[] arr = finallyLabels.toArray(new FlowControlFinal[finallyLabels.size()]);
-		if (arr.length > 0) {
-			FlowControlFinal fcf;
-			for (int i = 0; i < arr.length; i++) {
-				fcf = arr[i];
-
-				// first
-				if (i == 0) {
-					adapter.visitJumpInsn(Opcodes.GOTO, fcf.getFinalEntryLabel());
-				}
-
-				// last
-				if (arr.length == i + 1) fcf.setAfterFinalGOTOLabel(end);
-				else fcf.setAfterFinalGOTOLabel(arr[i + 1].getFinalEntryLabel());
-			}
-
+		// pass all finally blocks between here and the target, from the outermost to the innermost. every
+		// finally has its own entry per target, so a break and a continue in the same try do not end up at
+		// the same place (LDEV-6510)
+		Label target = end;
+		OnFinally onFinally;
+		for (int i = finallyLabels.size() - 1; i >= 0; i--) {
+			FlowControlFinal fcf = finallyLabels.get(i);
+			// we are already in the finally code of that statement, going through it again would run it
+			// again in an endless loop
+			onFinally = fcf.getOnFinally();
+			if (onFinally != null && bc.insideFinally(onFinally)) continue;
+			target = fcf.getFinalEntryLabel(target);
 		}
-		else bc.getAdapter().visitJumpInsn(Opcodes.GOTO, end);
+		adapter.visitJumpInsn(Opcodes.GOTO, target);
 	}
 
 	public static boolean hasAncestorTryStatement(Statement stat) {
