@@ -13,7 +13,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(testLocalPrefixInFinally(3)).toBe("Start-Try-Finally-End");
 			});
 			
-			xit( title="compound concatenation operator(&=) in finally with local scope prefix", body = function( currentSpec ) {
+			it( title="compound concatenation operator(&=) in finally with local scope prefix", body = function( currentSpec ) {
 				var res = testLocalPrefixInFinally(4);
 				expect(res).toBe("Start-Try-Finally-End");
 			});
