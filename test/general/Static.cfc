@@ -258,6 +258,47 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 		});
 
+		describe( "nested static constructors", function(){
+			// NestedStaticOuter's static constructor instantiates NestedStaticInner, whose
+			// own static constructor runs to completion inside it. Both extend
+			// NestedStaticBase, so static writes during either constructor must stay on the
+			// class being constructed instead of falling through to the base static scope.
+			it( title="static writes during a nested constructor stay on their own class", body=function( currentSpec ){
+				new static.NestedStaticOuter();
+
+				var outer = getComponentStaticScope( "static.NestedStaticOuter" );
+				var inner = getComponentStaticScope( "static.NestedStaticInner" );
+				var base = getComponentStaticScope( "static.NestedStaticBase" );
+
+				expect( outer.shared ).toBe( "outer" );
+				expect( inner.shared ).toBe( "inner" );
+				expect( base.shared ).toBe( "base" );
+
+				// written after the nested constructor returned, on a key the base already
+				// holds — the one that only stays local if the flag survived the nesting
+				expect( outer.afterNested ).toBe( "outer" );
+				expect( base.afterNested ).toBe( "base" );
+			});
+			it( title="functions declared in either static block land on their own static scope", body=function( currentSpec ){
+				new static.NestedStaticOuter();
+
+				expect( static.NestedStaticOuter::afterInner() ).toBe( "outer-after-inner" );
+				expect( static.NestedStaticInner::innerFn() ).toBe( "inner-fn" );
+
+				// an instance function declared in the component body is not static
+				expect( structKeyExists( getComponentStaticScope( "static.NestedStaticOuter" ), "instanceFn" ) ).toBeFalse();
+				expect( new static.NestedStaticOuter().instanceFn() ).toBe( "outer-instance" );
+			});
+			it( title="static constructor runs once — a second instantiation does not re-run it", body=function( currentSpec ){
+				var first = getComponentStaticScope( "static.NestedStaticOuter" ).innerInstance.getId();
+				new static.NestedStaticOuter();
+				var second = getComponentStaticScope( "static.NestedStaticOuter" ).innerInstance.getId();
+
+				expect( second ).toBe( first );
+				expect( getComponentStaticScope( "static.NestedStaticBase" ).afterNested ).toBe( "base" );
+			});
+		});
+
 	}
 }
 
