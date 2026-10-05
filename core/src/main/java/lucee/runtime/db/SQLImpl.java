@@ -105,8 +105,8 @@ public final class SQLImpl implements SQL, Serializable {
 
 		if (items.length == 0) return strSQL;
 
-		StringBuilder sb = new StringBuilder();
 		int sqlLen = strSQL.length();
+		StringBuilder sb = new StringBuilder(sqlLen);
 		char c, quoteType = 0, p = 0;
 		boolean inQuotes = false;
 		int index = 0;
