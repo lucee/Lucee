@@ -385,6 +385,8 @@
 		<available file="${cache}/mvn_${extCompressExtension}_${extCompressExtensionVersion}.lex" property="compress.present"/>
 		<available file="${cache}/mvn_${extMailExtension}_${extMailExtensionVersion}.lex" property="mail.present"/>
 		<available file="${cache}/mvn_${extFtpExtension}_${extFtpExtensionVersion}.lex" property="ftp.present"/>
+		<available file="${cache}/mvn_${extMarkdownExtension}_${extMarkdownExtensionVersion}.lex" property="markdown.present"/>
+		<available file="${cache}/mvn_${extSmbExtension}_${extSmbExtensionVersion}.lex" property="smb.present"/>
 	</target>
 
 	<target name="check-mysql" depends="check-cache" unless="mysql.present">
@@ -479,6 +481,20 @@
 			artifact="${extFtpExtensionArtifact}"
 			version="${extFtpExtensionVersion}"
 			dest="${cache}/mvn_${extFtpExtension}_${extFtpExtensionVersion}.lex"/>
+	</target>
+	<target name="check-markdown" depends="check-cache" unless="markdown.present">
+		<getExtensionLex
+			group="${extMarkdownExtensionGroup}"
+			artifact="${extMarkdownExtensionArtifact}"
+			version="${extMarkdownExtensionVersion}"
+			dest="${cache}/mvn_${extMarkdownExtension}_${extMarkdownExtensionVersion}.lex"/>
+	</target>
+	<target name="check-smb" depends="check-cache" unless="smb.present">
+		<getExtensionLex
+			group="${extSmbExtensionGroup}"
+			artifact="${extSmbExtensionArtifact}"
+			version="${extSmbExtensionVersion}"
+			dest="${cache}/mvn_${extSmbExtension}_${extSmbExtensionVersion}.lex"/>
 	</target>
 
 
@@ -687,6 +703,36 @@
 			tofile="${goal}/extensions/${ext_ftp.filename}"/>
 		<echo level="info">add:${goal}/extensions/${ext_ftp.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_ftp.filename};</echo>
+
+		<!-- add extension Markdown -->
+		<loadmf jar="${cache}/${extMarkdownExtensionFilename}" prefix="ext_markdown."/>
+		<toFileName id="${ext_markdown.id}" name="${ext_markdown.name}" version="${ext_markdown.version}" 
+		    group="${extMarkdownExtensionGroup}"
+		    artifact="${extMarkdownExtensionArtifact}"
+		    property="ext_markdown.filename"/>
+		<copy 
+			file="${cache}/${extMarkdownExtensionFilename}" 
+			todir="${goal}/extensions/"/>
+		<move 
+			file="${goal}/extensions/${extMarkdownExtensionFilename}" 
+			tofile="${goal}/extensions/${ext_markdown.filename}"/>
+		<echo level="info">add:${goal}/extensions/${ext_markdown.filename}</echo>
+		<echo file="${goal}/extensions/.index" append="true">${ext_markdown.filename};</echo>
+
+		<!-- add extension SMB -->
+		<loadmf jar="${cache}/${extSmbExtensionFilename}" prefix="ext_smb."/>
+		<toFileName id="${ext_smb.id}" name="${ext_smb.name}" version="${ext_smb.version}" 
+		    group="${extSmbExtensionGroup}"
+		    artifact="${extSmbExtensionArtifact}"
+		    property="ext_smb.filename"/>
+		<copy 
+			file="${cache}/${extSmbExtensionFilename}" 
+			todir="${goal}/extensions/"/>
+		<move 
+			file="${goal}/extensions/${extSmbExtensionFilename}" 
+			tofile="${goal}/extensions/${ext_smb.filename}"/>
+		<echo level="info">add:${goal}/extensions/${ext_smb.filename}</echo>
+		<echo file="${goal}/extensions/.index" append="true">${ext_smb.filename};</echo>
 
 	</target>
 
