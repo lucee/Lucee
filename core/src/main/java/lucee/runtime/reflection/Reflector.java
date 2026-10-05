@@ -90,6 +90,15 @@ public final class Reflector {
 
 	private static WeakFieldStorage fStorage = new WeakFieldStorage();
 
+	public static final Object UNCONVERTIBLE = new Object();
+
+	private static final ClassValue<Class[]> INTERFACES_CACHE = new ClassValue<Class[]>() {
+		@Override
+		protected Class[] computeValue(Class<?> type) {
+			return type.getInterfaces();
+		}
+	};
+
 	/**
 	 * check if Class is instanceof another Class
 	 * 
@@ -202,7 +211,7 @@ public final class Reflector {
 	}
 
 	private static boolean _checkInterfaces(Class src, String trg, boolean caseSensitive) {
-		Class[] interfaces = src.getInterfaces();
+		Class[] interfaces = INTERFACES_CACHE.get(src);
 		if (interfaces == null) return false;
 		for (int i = 0; i < interfaces.length; i++) {
 			if (caseSensitive) {
@@ -218,7 +227,7 @@ public final class Reflector {
 	}
 
 	private static boolean _checkInterfaces(Class src, Class trg, boolean exatctMatch) {
-		Class[] interfaces = src.getInterfaces();
+		Class[] interfaces = INTERFACES_CACHE.get(src);
 		if (interfaces == null) return false;
 		for (int i = 0; i < interfaces.length; i++) {
 			if (interfaces[i] == trg || (!exatctMatch && interfaces[i].getName().equals(trg.getName()))) return true;
@@ -294,16 +303,24 @@ public final class Reflector {
 
 	public static Object convert(Object src, Class trgClass, RefInteger rating, Object defaultValue) {
 		try {
-			return convert(src, trgClass, rating);
+			Object trg = _convertOrSentinel(src, trgClass, rating);
+			if (trg == UNCONVERTIBLE) return defaultValue;
+			return rating == null ? trg : _applyRating(src, trg, rating);
 		}
-		catch (PageException e) {// MUST handle this better
+		catch (PageException e) {
 			return defaultValue;
 		}
 	}
 
+	public static Object convertSafe(Object src, Class trgClass, RefInteger rating) throws PageException {
+		Object trg = _convertOrSentinel(src, trgClass, rating);
+		if (trg == UNCONVERTIBLE) return UNCONVERTIBLE;
+		return rating == null ? trg : _applyRating(src, trg, rating);
+	}
+
 	/**
 	 * convert Object from src to trg Type, if possible
-	 * 
+	 *
 	 * @param src Object to convert
 	 * @param trgClass Target Class
 	 * @param rating
@@ -311,72 +328,86 @@ public final class Reflector {
 	 * @throws PageException
 	 */
 	public static Object convert(Object src, Class trgClass, RefInteger rating) throws PageException {
-		if (rating != null) {
-			Object trg = _convert(src, trgClass, rating);
-			if (src == trg) {
-				rating.plus(10);
-				return trg;
-			}
-			if (src == null || trg == null) {
-				rating.plus(0);
-				return trg;
-			}
-			if (isInstaneOf(src.getClass(), trg.getClass(), true)) {
-				rating.plus(9);
-				return trg;
-			}
-			if (src.equals(trg)) {
-				rating.plus(8);
-				return trg;
-			}
+		Object trg = _convert(src, trgClass, rating);
+		return rating == null ? trg : _applyRating(src, trg, rating);
+	}
 
-			// different number
-			boolean bothNumbers = src instanceof Number && trg instanceof Number;
-			if (bothNumbers && ((Number) src).doubleValue() == ((Number) trg).doubleValue()) {
-				rating.plus(7);
-				return trg;
-			}
-
-			String sSrc = Caster.toString(src, null);
-			String sTrg = Caster.toString(trg, null);
-			if (sSrc != null && sTrg != null) {
-
-				// different number types
-				if (src instanceof Number && trg instanceof Number && sSrc.equals(sTrg)) {
-					rating.plus(6);
-					return trg;
-				}
-
-				// looks the same
-				if (sSrc.equals(sTrg)) {
-					rating.plus(5);
-					return trg;
-				}
-				if (sSrc.equalsIgnoreCase(sTrg)) {
-					rating.plus(4);
-					return trg;
-				}
-			}
-
-			// CF Equal
-			try {
-				if (OpUtil.equals(ThreadLocalPageContext.get(), src, trg, false, true)) {
-					rating.plus(3);
-					return trg;
-				}
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-			}
-
+	private static Object _applyRating(Object src, Object trg, RefInteger rating) {
+		if (src == trg) {
+			rating.plus(10);
 			return trg;
 		}
-		return _convert(src, trgClass, rating);
+		if (src == null || trg == null) {
+			rating.plus(0);
+			return trg;
+		}
+		if (isInstaneOf(src.getClass(), trg.getClass(), true)) {
+			rating.plus(9);
+			return trg;
+		}
+		if (src.equals(trg)) {
+			rating.plus(8);
+			return trg;
+		}
+
+		// different number
+		boolean bothNumbers = src instanceof Number && trg instanceof Number;
+		if (bothNumbers && ((Number) src).doubleValue() == ((Number) trg).doubleValue()) {
+			rating.plus(7);
+			return trg;
+		}
+
+		String sSrc = Caster.toString(src, null);
+		String sTrg = Caster.toString(trg, null);
+		if (sSrc != null && sTrg != null) {
+
+			// different number types
+			if (src instanceof Number && trg instanceof Number && sSrc.equals(sTrg)) {
+				rating.plus(6);
+				return trg;
+			}
+
+			// looks the same
+			if (sSrc.equals(sTrg)) {
+				rating.plus(5);
+				return trg;
+			}
+			if (sSrc.equalsIgnoreCase(sTrg)) {
+				rating.plus(4);
+				return trg;
+			}
+		}
+
+		// CF Equal
+		try {
+			if (OpUtil.equals(ThreadLocalPageContext.get(), src, trg, false, true)) {
+				rating.plus(3);
+				return trg;
+			}
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+		}
+
+		return trg;
 	}
 
 	public static Object _convert(Object src, final Class trgClass, RefInteger rating) throws PageException {
+		Object result = _convertOrSentinel(src, trgClass, rating);
+		if (result == UNCONVERTIBLE) {
+			if (src == null) throw new ApplicationException("can't convert [null] to [" + trgClass.getName() + "]");
+			throw new ApplicationException("can't convert [" + Caster.toClassName(src) + "] to [" + Caster.toClassName(trgClass) + "]");
+		}
+		return result;
+	}
+
+	public static Object convertOrSentinel(Object src, final Class trgClass, RefInteger rating) throws PageException {
+		return _convertOrSentinel(src, trgClass, rating);
+	}
+
+	private static Object _convertOrSentinel(Object src, final Class trgClass, RefInteger rating) throws PageException {
 		if (src == null) {
-			if (trgClass.isPrimitive()) throw new ApplicationException("can't convert [null] to [" + trgClass.getName() + "]");
+			if (trgClass.isPrimitive()) return UNCONVERTIBLE;
 			return null;
 		}
 		if (like(src.getClass(), trgClass)) return src;
@@ -384,7 +415,7 @@ public final class Reflector {
 
 		if (src instanceof ObjectWrap) {
 			src = ((ObjectWrap) src).getEmbededObject();
-			return _convert(src, trgClass, rating);
+			return _convertOrSentinel(src, trgClass, rating);
 		}
 
 		// component as class
@@ -465,10 +496,9 @@ public final class Reflector {
 			}
 		}
 		if (trgClass.isPrimitive()) {
-			// return convert(src,srcClass,toReferenceClass(trgClass));
-			return _convert(src, toReferenceClass(trgClass), rating);
+			return _convertOrSentinel(src, toReferenceClass(trgClass), rating);
 		}
-		throw new ApplicationException("can't convert [" + Caster.toClassName(src) + "] to [" + Caster.toClassName(trgClass) + "]");
+		return UNCONVERTIBLE;
 	}
 
 	public static Object componentToClass(PageContext pc, Component src) throws PageException {
