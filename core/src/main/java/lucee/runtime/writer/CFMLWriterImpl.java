@@ -33,6 +33,7 @@ import lucee.runtime.cache.legacy.CacheItem;
 import lucee.runtime.net.http.HttpServletResponseWrap;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.scope.CookieImpl;
 
 /**
  * Implementation of a JSpWriter
@@ -315,7 +316,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 				cacheItem.store(barr, false);
 				// writeCache(barr,false);
 			}
-
+			((CookieImpl) ((PageContextImpl) pc).cookieScope() ).setCookieHeaders(response);
 			if (closeConn) response.setHeader("connection", "close");
 			// if(showVersion)response.setHeader(Constants.NAME+"-Version", version);
 			boolean allowCompression;
