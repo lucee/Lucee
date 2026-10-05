@@ -27,6 +27,7 @@ import java.util.ListIterator;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.it.ArrayListIteratorImpl;
 
 public final class ArrayAsList implements List {
@@ -38,6 +39,7 @@ public final class ArrayAsList implements List {
 	}
 
 	public static List toList(Array array) {
+		if (array instanceof ArrayImpl) return (List) array;
 		if (array instanceof ListAsArray) return ((ListAsArray) array).list;
 		if (array instanceof List) return (List) array;
 		return new ArrayAsList(array);
