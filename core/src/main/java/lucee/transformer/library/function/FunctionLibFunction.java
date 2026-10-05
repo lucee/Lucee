@@ -342,6 +342,7 @@ public final class FunctionLibFunction {
 
 	public void setFunctionClass(ClassDefinition cd) {
 		functionCD = cd;
+		bif = null;
 	}
 
 	/**
