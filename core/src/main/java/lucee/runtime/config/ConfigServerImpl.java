@@ -241,6 +241,7 @@ import lucee.runtime.video.VideoExecuterNotSupported;
 import lucee.transformer.dynamic.meta.Method;
 import lucee.transformer.library.ClassDefinitionFactory;
 import lucee.transformer.library.ClassDefinitionImpl;
+import lucee.runtime.functions.string.MarkdownToHTML;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.function.FunctionLibFactory;
@@ -2961,6 +2962,19 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			fl = FunctionLibFactory.loadFromFile(fileFld, getIdentification());
 			overwrite(cfmlFlds, fl);
 		}
+		// LDEV-3027: the bundled markdown extension escapes HTML in safeMode but does not
+		// drop unsafe URL schemes. Keep its renderer and sanitize href/src afterwards.
+		installMarkdownSafeMode();
+	}
+
+	private void installMarkdownSafeMode() {
+		if (cfmlFlds == null) return;
+		FunctionLibFunction markdown = cfmlFlds.getFunction("markdowntohtml");
+		if (markdown == null) return;
+		ClassDefinition cd = markdown.getFunctionClassDefinition();
+		if (cd == null || cd.isClassNameEqualTo(MarkdownToHTML.class.getName())) return;
+		MarkdownToHTML.bindDelegate(cd);
+		markdown.setFunctionClass(new ClassDefinitionImpl(MarkdownToHTML.class));
 	}
 
 	@Override
