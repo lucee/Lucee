@@ -20,7 +20,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="extensions" {
 			it( title="MarkdownToHTML() is available when markdown extension is installed", body=function( currentSpec ) {
 				// the extension provides MarkdownToHTML(); "markdown" is only an alias of its first argument, not a function
 				expect( function() { getFunctionData( "MarkdownToHTML" ); } ).notToThrow();
-				expect( markdownToHTML( "## Hello" ) ).toInclude( "<h2" );
+				// use single quotes: in CFML double-quoted strings "##" escapes to "#", which would yield <h1>
+				expect( markdownToHTML( '## Hello' ) ).toInclude( "<h2" );
 			});
 
 			it( title="smb resource provider is registered when smb extension is installed", body=function( currentSpec ) {
