@@ -587,9 +587,10 @@ public final class PageImpl extends BodyBase implements Page {
 
 			if (functions.length == 0) {}
 			else if (functions.length == 1) {
-				bc.visitLine(functions[0].getStart());
+				// Don't emit function wrapper lines - the body statements have their own line numbers.
+				// Emitting start/end here causes bytecode position conflicts since no instructions
+				// are generated between the function start and the first body statement.
 				functions[0].getBody().writeOut(bc);
-				bc.visitLine(functions[0].getEnd());
 			}
 			else writeOutUdfCallInner(bc, functions, 0, functions.length);
 			adapter.visitInsn(Opcodes.ACONST_NULL);
@@ -1761,11 +1762,10 @@ public final class PageImpl extends BodyBase implements Page {
 			adapter.loadArg(0);
 			adapter.invokeVirtual(Types.COMPONENT_IMPL, BEFORE_CALL);
 			adapter.storeLocal(oldData);
-			bc.visitLine(component.getStart());
+			// Don't emit component wrapper lines - the body statements have their own line numbers.
 
 			funcs = writeOutCallBody(bc, component.getBody(), IFunction.PAGE_TYPE_COMPONENT, false);
 
-			bc.visitLine(component.getEnd());
 			int t = tcf.visitTryEndCatchBeging(bc);
 			// BodyContentUtil.flushAndPop(pc,bc);
 			adapter.loadArg(0);
@@ -1783,9 +1783,8 @@ public final class PageImpl extends BodyBase implements Page {
 			adapter.invokeStatic(Types.BC_UTIL, CLEAR_AND_POP);
 		}
 		else {
-			bc.visitLine(component.getStart());
+			// Don't emit component wrapper lines - the body statements have their own line numbers.
 			funcs = writeOutCallBody(bc, component.getBody(), IFunction.PAGE_TYPE_COMPONENT, false);
-			bc.visitLine(component.getEnd());
 		}
 
 		adapter.visitLabel(afterIf); // Move this label after the main logic
@@ -1807,9 +1806,8 @@ public final class PageImpl extends BodyBase implements Page {
 		adapter.visitLocalVariable("this", "L" + name + ";", null, methodBegin, methodEnd, 0);
 		adapter.visitLabel(methodBegin);
 
-		bc.visitLine(interf.getStart());
+		// Don't emit interface wrapper lines - the body statements have their own line numbers.
 		List<IFunction> funcs = writeOutCallBody(bc, interf.getBody(), IFunction.PAGE_TYPE_INTERFACE, false);
-		bc.visitLine(interf.getEnd());
 
 		adapter.returnValue();
 		adapter.visitLabel(methodEnd);
