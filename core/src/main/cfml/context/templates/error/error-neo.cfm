@@ -67,8 +67,8 @@
 	<tr>
 		<td width="400" colspan="2" style="COLOR: black; FONT: 8pt/11pt verdana">
 			<cfoutput><cfloop index="idx" from="1" to="#arraylen(catch.tagcontext)#">
-				<cfif idx EQ 1>The error occurred in <b>#catch.tagcontext[idx].template#:&nbsp;line #catch.tagcontext[idx].line#</b><br>
-				<cfelse><b>Called from</b> #catch.tagcontext[idx].template#:&nbsp;line #catch.tagcontext[idx].line#<br>
+				<cfif idx EQ 1>The error occurred in <b>#HTMLEditFormat(catch.tagcontext[idx].template)#:&nbsp;line #catch.tagcontext[idx].line#</b><br>
+				<cfelse><b>Called from</b> #HTMLEditFormat(catch.tagcontext[idx].template)#:&nbsp;line #catch.tagcontext[idx].line#<br>
 				</cfif>
 			</cfloop></cfoutput>
 		</td>
@@ -92,15 +92,15 @@
             <table border="0" cellpadding="0" cellspacing="0">
         	<tr>
         	    <td style="COLOR: black; FONT: 8pt/11pt verdana">Browser&nbsp;&nbsp;</td>
-        		<td><font style="COLOR: black; FONT: 8pt/11pt verdana">#cgi.HTTP_USER_AGENT#</td>
+        		<td><font style="COLOR: black; FONT: 8pt/11pt verdana">#HTMLEditFormat(cgi.HTTP_USER_AGENT)#</td>
         	</tr>
         	<tr>
         		<td style="COLOR: black; FONT: 8pt/11pt verdana">Remote Address&nbsp;&nbsp;</td>
-        		<td style="COLOR: black; FONT: 8pt/11pt verdana">#cgi.REMOTE_ADDR#</td>
+        		<td style="COLOR: black; FONT: 8pt/11pt verdana">#HTMLEditFormat(cgi.REMOTE_ADDR)#</td>
         	</tr>
         	<tr>
         	    <td style="COLOR: black; FONT: 8pt/11pt verdana">Referrer&nbsp;&nbsp;</td>
-        		<td style="COLOR: black; FONT: 8pt/11pt verdana">#cgi.HTTP_REFERER#</td>
+        		<td style="COLOR: black; FONT: 8pt/11pt verdana">#HTMLEditFormat(cgi.HTTP_REFERER)#</td>
         	</tr>
         	<tr>
         	    <td style="COLOR: black; FONT: 8pt/11pt verdana">Date/Time&nbsp;&nbsp;</td>

@@ -17,10 +17,11 @@ public final class MarkdownToHTML extends BIF implements Function {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length < 1 || args.length > 2) {
-			throw new FunctionException(pc, "MarkdownToHTML", 1, 2, args.length);
+		if (args.length < 1 || args.length > 3) {
+			throw new FunctionException(pc, "MarkdownToHTML", 1, 3, args.length);
 		}
-		return call(pc, Caster.toString(args[0]));
+		if (args.length == 1) return call(pc, Caster.toString(args[0]));
+		return call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]));
 	}
 
 	public static String call(PageContext pc, String markdown) {
@@ -36,7 +37,8 @@ public final class MarkdownToHTML extends BIF implements Function {
 		// Parse the markdown to a Node
 		Node document = parser.parse(markdown);
 		// Create a HTML renderer
-		HtmlRenderer renderer = HtmlRenderer.builder().build();
+		// safe mode escapes raw HTML in the markdown source and drops unsafe link/image urls (javascript: etc.)
+		HtmlRenderer renderer = HtmlRenderer.builder().escapeHtml(safeMode).sanitizeUrls(safeMode).build();
 		// Render the Node to HTML
 		return renderer.render(document);
 	}
