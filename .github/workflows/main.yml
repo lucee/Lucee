@@ -1,4 +1,4 @@
-name: Build 7.0
+name: Build 7.1
 
 on: 
   workflow_call:
@@ -32,6 +32,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # LDEV-6516: contents:write to annotated-tag published revisions; actions for artifacts
+    permissions:
+      contents: write
+      actions: write
+      checks: write
+      pull-requests: write
     env:
       DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/8.0') }}"
       # Push to 8.0 with "[release]" in the commit message deploys to Maven even when pom version ends with -ALPHA
@@ -96,6 +102,7 @@ jobs:
       run: echo "LUCEE_TEST_JAVA_VERSION=${{ inputs.LUCEE_TEST_JAVA_VERSION }}" >> $GITHUB_ENV
 
     - uses: actions/checkout@v7
+      # Tags fetched explicitly in Resolve next revision
 
     - name: Set up Test Java Version ${{ env.LUCEE_TEST_JAVA_VERSION }}
       uses: actions/setup-java@v6
@@ -183,16 +190,91 @@ jobs:
         echo "aimock failed to become ready"
         cat "$RUNNER_TEMP/aimock.log"
         exit 1
+    - name: Resolve next revision
+      id: resolve-revision
+      run: |
+        set -euo pipefail
+        # LDEV-6516: on mainline 8.0 push (DO_DEPLOY), allocate next build from tags / Maven metadata.
+        # PRs and forks keep the default POM revision and must not consume production build numbers.
+        if [ "${{ env.DO_DEPLOY }}" != "true" ]; then
+          echo "Skipping revision bump (not a mainline 8.0 deploy build)"
+          exit 0
+        fi
+        # Match build step: without GPG secrets CI only runs tests — do not consume a build number
+        if [ "${{ secrets.GPG_PASSPHRASE }}" == "" ]; then
+          echo "Skipping revision bump (no GPG / deploy credentials; test-only run)"
+          exit 0
+        fi
+
+        BASE=$(mvn -f loader/pom.xml help:evaluate -Dexpression=lucee.version.base -q -DforceStdout | tr -d '\r')
+        QUALIFIER=$(mvn -f loader/pom.xml help:evaluate -Dexpression=lucee.version.qualifier -q -DforceStdout | tr -d '\r')
+        echo "Base=$BASE qualifier=$QUALIFIER"
+
+        # Ensure tags are available for max(build)+1
+        git fetch --tags --force origin 2>/dev/null || true
+
+        MAX_BUILD=""
+        while IFS= read -r tag; do
+          [ -z "$tag" ] && continue
+          build="${tag#"${BASE}".}"
+          case "$build" in
+            ''|*[!0-9]*) continue ;;
+          esac
+          if [ -z "$MAX_BUILD" ] || [ "$build" -gt "$MAX_BUILD" ]; then
+            MAX_BUILD="$build"
+          fi
+        done < <(git tag -l "${BASE}.*")
+
+        if [ -z "$MAX_BUILD" ]; then
+          echo "No git tags matching ${BASE}.N — falling back to Maven metadata"
+          META_FILES=""
+          for url in \
+            "https://cdn.lucee.org/org/lucee/lucee/maven-metadata.xml" \
+            "https://repo1.maven.org/maven2/org/lucee/lucee/maven-metadata.xml" \
+            "https://central.sonatype.com/repository/maven-snapshots/org/lucee/lucee/maven-metadata.xml"
+          do
+            tmp=$(mktemp)
+            if curl -fsSL --max-time 30 "$url" -o "$tmp"; then
+              META_FILES="$META_FILES $tmp"
+            else
+              rm -f "$tmp"
+            fi
+          done
+          if [ -n "$META_FILES" ]; then
+            # Match base.N or base.N-QUALIFIER
+            MAX_BUILD=$(cat $META_FILES | sed -n "s/.*<version>${BASE}\.\([0-9][0-9]*\)\([-.].*\)\?<\/version>.*/\1/p" | sort -n | tail -1 || true)
+            rm -f $META_FILES
+          fi
+        fi
+
+        if [ -z "$MAX_BUILD" ]; then
+          NEXT_BUILD=0
+        else
+          NEXT_BUILD=$((MAX_BUILD + 1))
+        fi
+
+        VERSION="${BASE}.${NEXT_BUILD}${QUALIFIER}"
+        # Tag shape matches existing practice: numeric 4-part without -SNAPSHOT
+        TAG="${BASE}.${NEXT_BUILD}"
+
+        echo "Resolved VERSION=$VERSION (max seen build=${MAX_BUILD:-none})"
+        echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+        echo "TAG=$TAG" >> "$GITHUB_ENV"
+
     - name: Extract version number
       id: extract-version
       run: |
-        VERSION=$(mvn -f loader/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout | tr -d '[:space:]\r\n')
+        set -euo pipefail
+        if [ -z "${VERSION:-}" ]; then
+          VERSION=$(mvn -f loader/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout | tr -d '[:space:]\r\n')
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+        fi
         echo "VERSION: '$VERSION'"
         if [[ ! "$VERSION" =~ ^[0-9]+(\.[0-9]+)+(-[A-Za-z]+)?$ ]]; then
           echo "::error::Invalid extracted version '$VERSION' — aborting before any deploy"
           exit 1
         fi
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "Using VERSION=$VERSION"
     - name: Build Lucee with Maven
       env:
         MYSQL_SERVER: localhost
@@ -267,24 +349,32 @@ jobs:
         echo "-------DO_DEPLOY: ${{ env.DO_DEPLOY }} -------"
         echo "-------FORCE_RELEASE: ${{ env.FORCE_RELEASE }} -------"
         echo "-------VERSION_CLEAN: '$VERSION_CLEAN' -------"
+        REVISION_ARGS=()
+        if [ -n "${VERSION:-}" ]; then
+          REVISION_ARGS=(-Drevision="$VERSION")
+          echo "------- Using -Drevision=$VERSION -------"
+        fi
         if [[ "$VERSION_CLEAN" == *-SNAPSHOT ]]; then
           echo "------- Maven Deploy SNAPSHOT on ${{ github.event_name }} ---------"
-          mvn -B -e -f loader/pom.xml clean deploy --settings maven-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean deploy --settings maven-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
         elif [[ "$VERSION_CLEAN" == *-ALPHA ]]; then
           if [[ "${{ env.FORCE_RELEASE }}" == "true" && "${{ env.DO_DEPLOY }}" == "true" ]]; then
             echo "------- Maven Deploy RELEASE (forced via [release] commit message) on ${{ github.event_name }} -------"
-            mvn -B -e -f loader/pom.xml clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+            mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+            echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
           else
             echo "------- Maven Install ALPHA (no deployment) on ${{ github.event_name }} ---------"
-            mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+            mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
           fi
         else
           if [[ "${{ env.DO_DEPLOY }}" == "true" ]]; then
             echo "------- Maven Deploy RELEASE on ${{ github.event_name }} -------"
-            mvn -B -e -f loader/pom.xml clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+            mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+            echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
           else
             echo "------- Maven Test RELEASE (no deploy) on ${{ github.event_name }} ---------"
-            mvn -B -e -f loader/pom.xml test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+            mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
           fi
         fi
     - name: clean github.ref_name
@@ -302,6 +392,20 @@ jobs:
     - name: Remove Lucee build artifacts from local maven cache (avoid growing cache)
       run: |
         rm -rfv ~/.m2/repository/org/lucee/lucee/
+    - name: Tag published revision
+      if: success() && env.DID_DEPLOY == 'true' && env.TAG != ''
+      run: |
+        set -euo pipefail
+        echo "Creating annotated tag $TAG for $VERSION"
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+          echo "Tag $TAG already exists — skipping"
+        else
+          git tag -a "$TAG" -m "$TAG"
+          git push origin "refs/tags/$TAG"
+        fi
+
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@d0a4676d0e0b938bc201470d88276b7c74c712b3 # v2.24.0
       if: always()

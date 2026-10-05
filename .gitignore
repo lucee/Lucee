@@ -48,3 +48,4 @@ buildVersionNumber.txt
 # Eclipse-derived IDE files (.classpath/.project regenerate from pom.xml)
 .project
 node_modules/
+.flattened-pom.xml
