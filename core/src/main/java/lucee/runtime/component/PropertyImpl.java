@@ -81,6 +81,8 @@ public final class PropertyImpl extends MemberSupport implements Property, ASMPr
 	@Override
 	public String getDefault() {
 		if (_default == null) return null;
+		// expression-form: source string would corrupt callers piping it into scope.set
+		if (_default instanceof ExpressionDefault) return null;
 		try {
 			return Caster.toString(_default);
 		}
