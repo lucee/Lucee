@@ -39,7 +39,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	private function checkOSGIBundlesMappings( mappings ){
-		var mfPath = expandpath("../core/src/main/java/META-INF/MANIFEST.MF");
+		// LDEV-5841: expandPath now resolves correctly from current template directory
+		// Navigate from test/tickets/LDEV5567 -> ../../../ (project root) -> core/...
+		var mfPath = expandpath("../../../core/src/main/java/META-INF/MANIFEST.MF");
 		var manifestBundles = getBundlesFromManifest( mfPath );
 
 		var missing = structFilter( manifestBundles, function( key, value ){

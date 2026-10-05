@@ -11,7 +11,7 @@ component name='application' accessors=true output=false persistent=false {
 	
 	this.ormenabled = true;
 	this.ormsettings.autogenmap			= true;
-	this.ormsettings.cfclocation		= ['/orm'];
+	this.ormsettings.cfclocation		= ['orm'];
 	this.ormsettings.logsql				= false;
 	//this.ormsettings.dialect			= 'MySQL5';
 	this.ormsettings.useDBForMapping	= false;
