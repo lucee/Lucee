@@ -1038,6 +1038,22 @@
 		"default": 16
 	},
 	{
+		"sysprop": "lucee.scope.arguments.array",
+		"envvar": "LUCEE_SCOPE_ARGUMENTS_ARRAY",
+		"desc": "Enables array-based storage optimization for the arguments scope (default: true). Uses a lightweight Object[] array for small scopes (1-5 arguments), providing 8-10% performance improvement. Set to false to use HashMap storage instead.",
+		"category": "performance",
+		"type": "boolean",
+		"default": true
+	},
+	{
+		"sysprop": "lucee.scope.local.array",
+		"envvar": "LUCEE_SCOPE_LOCAL_ARRAY",
+		"desc": "Enables array-based storage optimization for the local scope (default: true). Uses a lightweight Object[] array for small scopes (1-5 variables), providing 8-10% performance improvement. Set to false to use HashMap storage instead.",
+		"category": "performance",
+		"type": "boolean",
+		"default": true
+	},
+	{
 		"sysprop": "lucee.scope.local.capacity",
 		"envvar": "LUCEE_SCOPE_LOCAL_CAPACITY",
 		"desc": "Sets the initial capacity (size) for the local scope hashmap",
