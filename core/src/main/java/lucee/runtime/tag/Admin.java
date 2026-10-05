@@ -2642,7 +2642,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		String tmp = getString("admin", action, "newName");
-		Pattern pattern = Pattern.compile("[a-zA-Z0-9_-]*");
+		Pattern pattern = Pattern.compile("[.a-zA-Z0-9_-]*");
 		Matcher matcher = pattern.matcher(tmp);
 
 		if (matcher.matches() == false) {
