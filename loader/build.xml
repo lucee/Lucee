@@ -2,8 +2,6 @@
 <project default="core" basedir="." name="Lucee" 
   xmlns:resolver="antlib:org.apache.maven.resolver.ant">
 
-  <property name="version" value="8.0.0.202-SNAPSHOT"/>
-
   <taskdef uri="antlib:org.apache.maven.resolver.ant" resource="org/apache/maven/resolver/ant/antlib.xml">
     <classpath>
        <fileset dir="../ant/lib" includes="maven-resolver-ant-tasks-*.jar"/>
@@ -31,6 +29,7 @@
   </target>
 
   <resolver:pom file="pom.xml" id="pom"/>
+  <property name="version" value="${pom.version}"/>
 
   <target name="setEnv" depends="setupNashorn">
     <path id="compile.classpath"/>
