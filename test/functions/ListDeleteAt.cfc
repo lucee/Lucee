@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 		});
 
-		describe("LDEV-5803 listDeleteAt Functionality", function() {
+		describe("LDEV-5803 review theslistDeleteAt Functionality", function() {
 
 			it("Deletes element at given position (default/comma delimiter)", function() {
 				expect( listDeleteAt("a,b,c,d", 3) ).toBe("a,b,d");
@@ -54,9 +54,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}).toThrow( "", "index must be an integer" );
 			});
 
-			xit("LDEV-720 Handles zero or negative position", function() {
-				expect( listDeleteAt("a,b,c", 0) ).toBe("a,b,c");
-				expect( listDeleteAt("a,b,c", -1) ).toBe("a,b,c");
+			it("LDEV-720 Handles zero or negative position", function() {
+				expect( function(){
+					listDeleteAt("a,b,c", 0);
+				}).toThrow( "", "index must be greater than 0" );
+				expect( function(){
+					listDeleteAt("a,b,c", -1);
+				}).toThrow( "", "index must be greater than 0" );
 			});
 
 			it("Handles alternate delimiters", function() {
@@ -67,19 +71,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( listDeleteAt("a--b--c", 2, "--") ).toBe("a--c");
 			});
 
-			xit("Handles includeEmptyFields argument", function() {
+			it("Handles includeEmptyFields argument", function() {
 				expect( listDeleteAt("a,,b", 2, ",", true) ).toBe("a,b");
 			});
 
-			xit("Handles lists with empty elements", function() {
-				expect( listDeleteAt(",a,b,,c,,", 5, ",", true) ).toBe(",a,b,,c,");
+			it("Handles lists with empty elements", function() {
+				expect( listDeleteAt(",a,b,,c,,", 5, ",", true) ).toBe(",a,b,,,");
 			});
 
 			it("Handles removing element from empty list", function() {
 				expect( listDeleteAt("", 1) ).toBe("");
 			});
 
-			xit("Deletes empty element at start", function() {
+			it("Deletes empty element at start", function() {
 				expect( listDeleteAt(",a,b", 1, ",", true) ).toBe("a,b");
 			});
 
@@ -87,11 +91,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( listDeleteAt("a,b,", 3, ",", true) ).toBe("a,b");
 			});
 
-			xit("Handles all empty list", function() {
+			it("Handles all empty list", function() {
 				expect( listDeleteAt(",,", 2, ",", true) ).toBe(",");
 			});
 
-			xit("Deletes inner empty element", function() {
+			it("Deletes inner empty element", function() {
 				expect( listDeleteAt("a,,b", 2, ",", true) ).toBe("a,b");
 			});
 
