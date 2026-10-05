@@ -20,6 +20,7 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 	protected PageSource psOrg;
 	protected int startLine;
 	protected int endLine;
+	boolean canUseFastPath;
 
 	public UDFPropertiesBase() {
 	}
