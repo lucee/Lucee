@@ -26,6 +26,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
 import java.util.zip.GZIPOutputStream;
 
 import jakarta.servlet.ServletOutputStream;
@@ -361,14 +362,24 @@ public class CFMLWriterImpl extends CFMLWriter {
 	}
 
 	private static CharsetEncoder adoptEncoder(WriterPool pool, boolean child, Charset charset) {
-		if (child) return charset.newEncoder();
+		if (child) return configureEncoder(charset.newEncoder());
 		if (pool.encoder != null && charset.equals(pool.encoderCharset)) {
 			pool.encoder.reset();
 			return pool.encoder;
 		}
-		pool.encoder = charset.newEncoder();
+		pool.encoder = configureEncoder(charset.newEncoder());
 		pool.encoderCharset = charset;
 		return pool.encoder;
+	}
+
+	// String.getBytes(Charset) replaces unmappable input. CharsetEncoder defaults to REPORT,
+	// which throws and, because PageContextImpl.flush swallows that IOException, drops the
+	// whole response. error.cfm's braille spinner hits this when the response charset is
+	// still the servlet default ISO-8859-1.
+	private static CharsetEncoder configureEncoder(CharsetEncoder enc) {
+		enc.onMalformedInput(CodingErrorAction.REPLACE);
+		enc.onUnmappableCharacter(CodingErrorAction.REPLACE);
+		return enc;
 	}
 
 	private String _toString(boolean releaseHeadData) {
