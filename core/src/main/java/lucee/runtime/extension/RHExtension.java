@@ -83,6 +83,7 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.listener.SerializationSettings;
+import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
@@ -723,7 +724,7 @@ public class RHExtension implements Serializable {
 
 	private void readMaven(String label, String str, Log logger) {
 		if (!StringUtil.isEmpty(str, true)) {
-			mavens = toSettings(logger, str);
+			mavens = toMavenSettings(logger, str);
 			mavensJson = str;
 		}
 		if (mavens == null) mavens = new ArrayList<Map<String, String>>();
@@ -1335,6 +1336,51 @@ public class RHExtension implements Serializable {
 		}
 
 		return;
+	}
+
+	// LDEV-6297: accepts JSON or gradle GAV-comma; JSON tried first to preserve in-the-wild 6.2 manifests
+	private static List<Map<String, String>> toMavenSettings(Log log, String str) {
+		List<Map<String, String>> list = new ArrayList<>();
+
+		boolean parsedJson = false;
+		try {
+			Object res = DeserializeJSON.call(null, str);
+			if (Decision.isStruct(res)) {
+				parsedJson = true;
+				_toSetting(list, Caster.toMap(res), true);
+			}
+			else if (Decision.isArray(res)) {
+				parsedJson = true;
+				Iterator it = Caster.toList(res).iterator();
+				while (it.hasNext()) {
+					_toSetting(list, Caster.toMap(it.next()), true);
+				}
+			}
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			// not JSON — fall through to gradle GAV-comma
+		}
+		if (parsedJson) return list;
+
+		List<MavenUtil.GAVSO> gavsos = MavenUtil.toGAVSOs(str, null);
+		if (!gavsos.isEmpty()) {
+			for (MavenUtil.GAVSO gavso: gavsos) {
+				Map<String, String> m = new HashMap<>();
+				m.put("groupId", gavso.g);
+				m.put("artifactId", gavso.a);
+				if (gavso.v != null) m.put("version", gavso.v);
+				if (gavso.s != null) m.put("scope", gavso.s);
+				if (gavso.o != null) m.put("optional", gavso.o);
+				if (gavso.c != null) m.put("checksum", gavso.c);
+				list.add(m);
+			}
+			return list;
+		}
+
+		log.error("Extension Installation",
+				"Could not parse maven manifest field — expected JSON or 'group:artifact:version' form: " + str);
+		return list;
 	}
 
 	private static void _toSetting(List list, Map src, boolean valueAsString) throws PageException {
