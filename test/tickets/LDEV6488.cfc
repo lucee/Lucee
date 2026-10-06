@@ -13,7 +13,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap,pop,mail" {
 
 	variables.imapCfg = server.getTestService( "imap" );
 	variables.popCfg = server.getTestService( "pop" );
-	variables.mailExtensionId = "212BA548-F15A-4EBD-8B1EEDF8DD8A844D";
 
 	function run( testResults, testBox ) {
 		describe( title="LDEV-6488 cfimap / cfpop secure=true", skip=notHasServices(), body=function() {
@@ -90,8 +89,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap,pop,mail" {
 	private string function sslProtocols( required numeric type, required string prefix, required struct cfg ) {
 		var result = "";
 		withTrustAll( function() {
-			var mc = mailClientClass().getInstance( javaCast( "int", type ), cfg.SERVER, javaCast( "int", cfg.PORT_SECURE ),
-				newUser(), cfg.PASSWORD, true, "ldev6488-" & createUUID(), "" );
+			var cls = mailClientClass();
+			var mc = staticMethod( cls, "getInstance", 8 ).invoke( javaCast( "null", "" ), [ javaCast( "int", type ), cfg.SERVER,
+				javaCast( "int", cfg.PORT_SECURE ), newUser(), cfg.PASSWORD, true, "ldev6488-" & createUUID(), "" ] );
 			try {
 				var c = mc.getClass();
 				while ( c.getSimpleName() != "MailClient" ) c = c.getSuperclass();
@@ -100,21 +100,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap,pop,mail" {
 				result = f.get( mc ).getProperties().getProperty( "mail.#prefix#.ssl.protocols", "" );
 			}
 			finally {
-				mailClientClass().removeInstance( mc );
+				staticMethod( cls, "removeInstance", 1 ).invoke( javaCast( "null", "" ), [ mc ] );
 			}
 		});
 		return result;
 	}
 
-	// 7.1+: org.lucee.extension.mail.MailClient from the mail extension, before: lucee.runtime.net.mail.MailClient in core
+	// the MailClient class cfimap really uses, loaded through the class loader of the cfimap tag class:
+	// 7.1+ org.lucee.extension.mail.MailClient from the mail extension, before lucee.runtime.net.mail.MailClient in core.
+	// (createObject with the extension's maven coordinates can resolve jakarta.mail from another class loader)
 	private function mailClientClass() {
-		var q = extensionList();
-		loop query=q {
-			if ( q.id == variables.mailExtensionId ) {
-				return createObject( "java", "org.lucee.extension.mail.MailClient", { maven: [ "org.lucee:mail:" & q.version ] } );
-			}
+		loop array=getPageContext().getConfig().getTLDs() item="local.tld" {
+			var tag = tld.getTag( "imap" );
+			if ( isNull( tag ) ) continue;
+			var tagClass = tag.getTagClassDefinition().getClazz();
+			var name = left( tagClass.getName(), 25 ) == "org.lucee.extension.mail." ? "org.lucee.extension.mail.MailClient" : "lucee.runtime.net.mail.MailClient";
+			return tagClass.getClassLoader().loadClass( name );
 		}
-		return createObject( "java", "lucee.runtime.net.mail.MailClient" );
+		throw "no imap tag found";
+	}
+
+	private function staticMethod( required cls, required string name, required numeric paramCount ) {
+		loop array=arguments.cls.getMethods() item="local.m" {
+			if ( m.getName() == arguments.name && arrayLen( m.getParameterTypes() ) == arguments.paramCount ) return m;
+		}
+		throw "method [#arguments.name#] not found in [#arguments.cls.getName()#]";
 	}
 
 	// greenmail uses a self-signed certificate
