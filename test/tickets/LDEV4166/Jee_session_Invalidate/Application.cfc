@@ -22,7 +22,7 @@ component {
 
 	function onSessionEnd(SessionScope, ApplicationScope) {
 		// systemOutput("#now()# session ended #cgi.SCRIPT_NAME# #sessionScope.sessionid#", true);
-		server.LDEV4166_ended_JEE_Sessions[ arguments.sessionScope.sessionid ] = now();
+		server.LDEV4166_ended_JEE_Sessions[ arguments.sessionScope.sessionid ] = ( server.LDEV4166_ended_JEE_Sessions[ arguments.sessionScope.sessionid ] ?: 0 ) + 1;
 	}
 	
 	public function onRequestStart() {
