@@ -144,6 +144,8 @@ import lucee.runtime.op.OperationImpl;
 import lucee.runtime.op.StringsImpl;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.schedule.SchedulerImpl;
+import lucee.runtime.spooler.SpoolerEngine;
+import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Struct;
@@ -1249,6 +1251,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					SchedulerImpl scheduler = ((SchedulerImpl) config.getScheduler());
 					if (scheduler != null) scheduler.stop();
 
+					// spooler (LDEV-6350)
+					stopSpooler(config);
+
 					// scopes
 					try {
 						cfmlFactory.getScopeContext().clear();
@@ -1296,6 +1301,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				}
 			}
 
+			// spooler of the server context (LDEV-6350)
+			if (configId == null) stopSpooler(configServer);
+
 			// release felix itself
 			shutdownFelix();
 
@@ -1317,6 +1325,17 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	 * 
 	 * }
 	 */
+
+	private void stopSpooler(Config config) {
+		if (config == null) return;
+		try {
+			SpoolerEngine se = config.getSpoolerEngine();
+			if (se instanceof SpoolerEngineImpl) ((SpoolerEngineImpl) se).stop();
+		}
+		catch (Exception ee) {
+			LogUtil.log(configServer, "controller", ee);
+		}
+	}
 
 	private void shutdownFelix() {
 		CFMLEngineFactory f = getCFMLEngineFactory();
