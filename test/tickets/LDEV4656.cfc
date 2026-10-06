@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it( title='full null support, no arguments, without defaults', body=function() {
-				var args = _udfNoDefaults(); // args scope is currently empty
+				var args = _udfNoDefaults();
 				expect( isNull( args.arg1 ) ).toBeTrue();
 				expect( isNull( args.arg2 ) ).toBeTrue();
 				expect( args ).toHaveKey( "arg1" );
