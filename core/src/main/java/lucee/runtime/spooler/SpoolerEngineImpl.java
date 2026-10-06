@@ -175,13 +175,27 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 	}
 
 	public void start(ConfigWeb config) {
-		if (thread == null || !thread.isAlive()) {
+		if (thread == null || !thread.isAlive() || thread.stopped) {
 			thread = new SpoolerThread(config, this);
 			thread.setPriority(Thread.MIN_PRIORITY);
 			thread.start();
 		}
 		else if (thread.sleeping) {
 			thread.interrupt();
+		}
+	}
+
+	/**
+	 * Stops the spooler thread of this engine (LDEV-6350). The engine calls this on a reset (restart, .lco
+	 * update), otherwise the old engine's spooler thread keeps waiting for the next task and holds on to the
+	 * old engine's classes. The tasks stay in the persist directory, so the new engine picks them up. A task
+	 * that is executing right now is not interrupted. A later add() starts a new spooler thread.
+	 */
+	public void stop() {
+		SpoolerThread t = thread;
+		if (t != null && t.isAlive()) {
+			t.stopped = true;
+			t.interrupt();
 		}
 	}
 
@@ -448,6 +462,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 		private SpoolerEngineImpl engine;
 		private boolean sleeping;
+		private volatile boolean stopped;
 		private final int maxThreads;
 		private ConfigWeb config;
 
@@ -476,12 +491,13 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 			TaskThread tt;
 			int adds;
 
-			while (getOpenTaskCount() > 0) {
+			while (!stopped && getOpenTaskCount() > 0) {
 				adds = engine.adds();
 				taskNames = getOpenDirectory().list(FILTER);
 				// tasks=engine.getOpenTasks();
 				nextExection = Long.MAX_VALUE;
 				for (int i = 0; i < taskNames.length; i++) {
+					if (stopped) break;
 					task = getTaskByName(getOpenDirectory(), taskNames[i]);
 					if (task == null) continue;
 
@@ -495,6 +511,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 				}
 
 				nextExection = joinTasks(runningTasks, 0, nextExection);
+				if (stopped) break;
 				if (adds != engine.adds()) continue;
 
 				if (nextExection == Long.MAX_VALUE) break;
