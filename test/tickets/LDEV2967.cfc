@@ -1,8 +1,8 @@
 /*
  * LDEV-2967: useTLS=true failed with "Could not convert socket to TLS" /
  * "SSLHandshakeException: A potential protocol version downgrade attack" (e.g. Office 365).
- * Cause: Lucee set mail.smtp.ssl.protocols to all protocols the JDK *supports* (incl. SSLv2Hello),
- * so the client could not negotiate TLS 1.3 properly. Since LDEV-5893 Lucee uses the JDK's *enabled* protocols.
+ * Cause: Lucee set mail.smtp.ssl.protocols to all protocols the JDK *supports* (incl. TLSv1 / TLSv1.1, which the JDK
+ * and modern mail servers have disabled). Since LDEV-5893 Lucee uses the JDK's *enabled* protocols.
  *
  * Spec 1 runs everywhere: after a useTLS mail, the protocols Lucee set must not contain SSLv2Hello/SSLv3/TLSv1/TLSv1.1.
  * Spec 2 needs an SMTP server with real STARTTLS (TLS 1.2 + 1.3, any cert) on 127.0.0.1:MAIL_TLS_SINK_PORT
