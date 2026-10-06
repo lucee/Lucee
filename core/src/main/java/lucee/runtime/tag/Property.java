@@ -84,9 +84,17 @@ public final class Property extends TagImpl implements DynamicAttributes {
 	}
 
 	/**
-	 * @param _default The _default to set.
+	 * FUTURE exists for backward compatibility with archives
 	 */
 	public void setDefault(String _default) {
+		property.setDefault(_default);
+		setDynamicAttribute(null, "default", _default);
+	}
+
+	/**
+	 * @param _default The _default to set.
+	 */
+	public void setDefault(Object _default) {
 		property.setDefault(_default);
 		setDynamicAttribute(null, "default", _default);
 

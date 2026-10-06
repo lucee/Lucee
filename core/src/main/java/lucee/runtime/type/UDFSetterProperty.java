@@ -23,6 +23,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.component.Property;
+import lucee.runtime.component.PropertyImpl;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
@@ -130,12 +131,14 @@ public final class UDFSetterProperty extends UDFGSProperty {
 
 	@Override
 	public Object getDefaultValue(PageContext pc, int index) throws PageException {
-		return prop.getDefault();
+		// FUTURE getDefaultAsObject was added in Beta pahse of Lucee 7, so we keep the checkcast in place
+		return ((PropertyImpl) prop).getDefaultAsObject();
 	}
 
 	@Override
 	public Object getDefaultValue(PageContext pc, int index, Object defaultValue) throws PageException {
-		return prop.getDefault();
+		// FUTURE getDefaultAsObject was added in Beta pahse of Lucee 7, so we keep the checkcast in place
+		return ((PropertyImpl) prop).getDefaultAsObject();
 	}
 
 	@Override
