@@ -1,0 +1,54 @@
+name: Attach assets to GitHub release
+
+# Manually attach the express zip, jar, light, zero and lco of an already published version to its GitHub release
+# (same files as the "Attach Lucee artifacts" step of the build, for versions built before that step existed).
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Lucee version, for example 7.0.6.9-RC'
+        required: true
+        type: string
+      target:
+        description: 'Commit SHA or branch the release is tagged on, only needed if the tag does not exist yet'
+        required: false
+        type: string
+
+jobs:
+  release-assets:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VERSION: ${{ inputs.version }}
+      TARGET: ${{ inputs.target }}
+    steps:
+    - name: Validate version
+      run: |
+        if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(-(RC|BETA|ALPHA))?$'; then
+          echo "::error::[$VERSION] is not a release version (snapshots are not released)"; exit 1
+        fi
+    - name: Download from cdn.lucee.org
+      run: |
+        FILES="lucee-express-$VERSION.zip lucee-$VERSION.jar lucee-light-$VERSION.jar lucee-zero-$VERSION.jar $VERSION.lco"
+        echo "FILES=$FILES" >> $GITHUB_ENV
+        for f in $FILES; do
+          curl -fL --retry 3 -o "$f" "https://cdn.lucee.org/$f"
+          ls -l "$f"
+        done
+    - name: Create the release if needed and upload the files
+      run: |
+        if ! gh release view "$VERSION" > /dev/null 2>&1; then
+          PRE=""; case "$VERSION" in *-RC|*-BETA|*-ALPHA) PRE="--prerelease";; esac
+          TGT=""
+          if [ -n "$TARGET" ]; then
+            TGT="--target $TARGET"
+          elif ! gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$VERSION" > /dev/null 2>&1; then
+            echo "::error::tag $VERSION does not exist, provide the target (commit SHA) input"; exit 1
+          fi
+          gh release create "$VERSION" --title "Lucee $VERSION" --notes "Lucee $VERSION" $PRE $TGT
+        fi
+        gh release upload "$VERSION" $FILES --clobber
+        gh release view "$VERSION" --json url,assets --jq '.url, (.assets[] | .name + " " + (.size|tostring))'
