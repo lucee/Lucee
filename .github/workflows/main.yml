@@ -243,6 +243,10 @@ jobs:
           VERSION=$(mvn -f loader/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout | tr -d '\r')
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
         fi
+        # LDEV-6529: fail early on a bogus version (e.g. "1", the version of Maven's standalone-pom without a pom.xml)
+        if ! echo "$VERSION" | grep -Eq '^[0-9]+(\.[0-9]+){3}(-[A-Za-z0-9]+)*$'; then
+          echo "::error::[$VERSION] is not a Lucee version"; exit 1
+        fi
         echo "Using VERSION=$VERSION"
     - name: Build Lucee with Maven
       env:
@@ -364,26 +368,42 @@ jobs:
           git push origin "refs/tags/$TAG"
         fi
     - name: Attach Lucee artifacts (express zip, jar, light, zero, lco) to the GitHub release
-      if: ${{ env.DID_DEPLOY == 'true' && !endsWith(env.VERSION, '-SNAPSHOT') }}
+      # LDEV-6529: releases only (no snapshots), uses the files this job just built, nothing comes from cdn.lucee.org
+      if: ${{ env.DID_DEPLOY == 'true' && env.VERSION != '' && !contains(env.VERSION, '-SNAPSHOT') }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # same files (same names, same bytes) as on cdn.lucee.org: upload_to_s3.cfm puts jar, lco, light and zero on S3,
-        # the update server builds the express zip when upload_to_s3.cfm triggers buildLatest
-        FILES="lucee-express-$VERSION.zip lucee-$VERSION.jar lucee-light-$VERSION.jar lucee-zero-$VERSION.jar $VERSION.lco"
-        for f in $FILES; do
-          for i in $(seq 1 30); do
-            if curl -sfL -o "$f" "https://cdn.lucee.org/$f"; then break; fi
-            echo "$f not available yet ($i/30) ..."; sleep 30
-          done
-          test -s "$f"
-        done
+        set -euo pipefail
+        # the version of what was actually built: loader/target/<version>.lco (next to <version>.jvmNN.lco)
+        mapfile -t LCOS < <(find loader/target -maxdepth 1 -type f -name '*.lco' ! -name '*.jvm*.lco' -printf '%f\n')
+        if [ "${#LCOS[@]}" -ne 1 ]; then
+          echo "::error::expected exactly one <version>.lco in loader/target, found [${LCOS[*]:-}]"; exit 1
+        fi
+        BUILT="${LCOS[0]%.lco}"
+        case "$BUILT" in *-SNAPSHOT*) echo "$BUILT is a snapshot, not attaching it to a release"; exit 0;; esac
+        if [ "$BUILT" != "$VERSION" ]; then
+          echo "::error::VERSION [$VERSION] does not match the built version [$BUILT]"; exit 1
+        fi
+        if [ -z "${TAG:-}" ]; then
+          echo "::error::no release tag for $BUILT (TAG is set by Resolve next revision)"; exit 1
+        fi
+
+        # same file names as on cdn.lucee.org
+        mkdir -p release-assets
+        cp "loader/target/lucee-$BUILT.jar" "release-assets/lucee-$BUILT.jar"
+        cp "loader/target/lucee-light-$BUILT.jar" "release-assets/lucee-light-$BUILT.jar"
+        cp "loader/target/lucee-zero-$BUILT.jar" "release-assets/lucee-zero-$BUILT.jar"
+        cp "loader/target/$BUILT.lco" "release-assets/$BUILT.lco"
+        .github/scripts/build-express.sh "$BUILT" "loader/target/lucee-$BUILT.jar" "release-assets/lucee-express-$BUILT.zip"
+        ls -l release-assets
+
         # the release uses the annotated tag created by "Tag published revision" (numeric, without qualifier)
         if ! gh release view "$TAG" > /dev/null 2>&1; then
-          PRE=""; case "$VERSION" in *-RC*|*-BETA*|*-ALPHA*) PRE="--prerelease";; esac
-          gh release create "$TAG" --verify-tag --title "Lucee $VERSION" --notes "Lucee $VERSION" $PRE
+          ARGS=(--verify-tag --title "Lucee $BUILT" --notes "Lucee $BUILT")
+          case "$BUILT" in *-RC*|*-BETA*|*-ALPHA*) ARGS+=(--prerelease);; esac
+          gh release create "$TAG" "${ARGS[@]}"
         fi
-        gh release upload "$TAG" $FILES --clobber
+        gh release upload "$TAG" release-assets/* --clobber
 
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
