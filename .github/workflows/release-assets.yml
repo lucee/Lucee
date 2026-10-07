@@ -2,6 +2,10 @@ name: Attach assets to GitHub release
 
 # Manually attach the express zip, jar, light, zero and lco of an already published version to its GitHub release
 # (same files as the "Attach Lucee artifacts" step of the build, for versions built before that step existed).
+# LDEV-6529: there is no local build here, so:
+# - jar, light, zero and lco come from Maven Central (renamed to the cdn.lucee.org file names)
+# - the express zip is the one already on cdn.lucee.org if it exists (the bytes users already downloaded),
+#   otherwise it is built from the Maven Central jar with .github/scripts/build-express.sh, like the build does
 
 on:
   workflow_dispatch:
@@ -22,7 +26,7 @@ jobs:
       contents: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      GH_REPO: ${{ github.repository }} # no checkout in this job, gh needs to know the repository
+      GH_REPO: ${{ github.repository }}
       VERSION: ${{ inputs.version }}
       TARGET: ${{ inputs.target }}
     steps:
@@ -31,25 +35,42 @@ jobs:
         if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(-(RC|BETA|ALPHA))?$'; then
           echo "::error::[$VERSION] is not a release version (snapshots are not released)"; exit 1
         fi
-    - name: Download from cdn.lucee.org
+    - uses: actions/checkout@v4
+      with:
+        sparse-checkout: .github/scripts
+    - name: Download jar, light, zero and lco from Maven Central
       run: |
-        FILES="lucee-express-$VERSION.zip lucee-$VERSION.jar lucee-light-$VERSION.jar lucee-zero-$VERSION.jar $VERSION.lco"
-        echo "FILES=$FILES" >> $GITHUB_ENV
-        for f in $FILES; do
-          curl -fL --retry 3 -o "$f" "https://cdn.lucee.org/$f"
-          ls -l "$f"
-        done
+        set -euo pipefail
+        mkdir -p release-assets
+        MVN="https://repo1.maven.org/maven2/org/lucee/lucee/$VERSION"
+        curl -fsSL --retry 3 -o "release-assets/lucee-$VERSION.jar" "$MVN/lucee-$VERSION.jar"
+        curl -fsSL --retry 3 -o "release-assets/lucee-light-$VERSION.jar" "$MVN/lucee-$VERSION-light.jar"
+        curl -fsSL --retry 3 -o "release-assets/lucee-zero-$VERSION.jar" "$MVN/lucee-$VERSION-zero.jar"
+        curl -fsSL --retry 3 -o "release-assets/$VERSION.lco" "$MVN/lucee-$VERSION.lco"
+    - name: Express zip (cdn.lucee.org if published there, otherwise built from the jar)
+      run: |
+        set -euo pipefail
+        EXPRESS="release-assets/lucee-express-$VERSION.zip"
+        if curl -fsSL --retry 3 -o "$EXPRESS" "https://cdn.lucee.org/lucee-express-$VERSION.zip" && unzip -tq "$EXPRESS"; then
+          echo "using the published cdn.lucee.org/lucee-express-$VERSION.zip"
+        else
+          rm -f "$EXPRESS"
+          echo "lucee-express-$VERSION.zip is not on cdn.lucee.org, building it from the Maven Central jar"
+          .github/scripts/build-express.sh "$VERSION" "release-assets/lucee-$VERSION.jar" "$EXPRESS"
+        fi
+        ls -l release-assets
     - name: Create the release if needed and upload the files
       run: |
+        set -euo pipefail
         if ! gh release view "$VERSION" > /dev/null 2>&1; then
-          PRE=""; case "$VERSION" in *-RC|*-BETA|*-ALPHA) PRE="--prerelease";; esac
-          TGT=""
+          ARGS=(--title "Lucee $VERSION" --notes "Lucee $VERSION")
+          case "$VERSION" in *-RC|*-BETA|*-ALPHA) ARGS+=(--prerelease);; esac
           if [ -n "$TARGET" ]; then
-            TGT="--target $TARGET"
+            ARGS+=(--target "$TARGET")
           elif ! gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$VERSION" > /dev/null 2>&1; then
             echo "::error::tag $VERSION does not exist, provide the target (commit SHA) input"; exit 1
           fi
-          gh release create "$VERSION" --title "Lucee $VERSION" --notes "Lucee $VERSION" $PRE $TGT
+          gh release create "$VERSION" "${ARGS[@]}"
         fi
-        gh release upload "$VERSION" $FILES --clobber
+        gh release upload "$VERSION" release-assets/* --clobber
         gh release view "$VERSION" --json url,assets --jq '.url, (.assets[] | .name + " " + (.size|tostring))'
