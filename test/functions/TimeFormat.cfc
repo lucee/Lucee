@@ -19,7 +19,12 @@
 
 	
 	function beforeAll(){
+		variables.startingTZ = getTimeZone();
 	};
+
+	function afterAll(){
+		setTimeZone( variables.startingTZ );
+	}
 
  	public function testTimeFormatTimeZone_lz() localMode="modern" {
 
@@ -96,10 +101,10 @@
  	}
 
  	public function testTimeFormatTimeZone_X() localMode="modern" {
+		org=getTimeZone();
  		setTimeZone("CET");
 
 		dt=createDateTime(2000);
-		org=getTimeZone();
 		try{
 			setTimeZone("UTC");
 			assertEquals('Z',timeFormat(dt,'X'));

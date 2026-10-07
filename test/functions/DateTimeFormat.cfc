@@ -1,4 +1,13 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
+	function beforeAll(){
+		variables.appTZ = getApplicationSettings().timezone;
+	}
+
+	function afterAll(){
+		application action="update" timezone="#variables.appTZ#";
+		setTimeZone( variables.appTZ );
+	}
+
 	function run( testResults , testBox ) {
 		describe( title="checking dateAndTimeFormat()", body=function() {
 			beforeEach( function(){

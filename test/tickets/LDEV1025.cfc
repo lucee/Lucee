@@ -16,7 +16,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
         return listFirst( arr[1], "-" ); // return 25 from java 25-ea
     }
 
+	function afterAll(){
+		setTimeZone( variables.suiteStartingTZ );
+	}
+
 	function run( testResults , testBox ) {
+		// stash here, not in beforeAll, run() sets the timezone while specs are collected
+		variables.suiteStartingTZ = getTimeZone();
 		setTimeZone("CEST");
 		describe( "Test suite for LDEV-1025", function() {
 			describe("checking 'DateFormat' function with all mask", function() {

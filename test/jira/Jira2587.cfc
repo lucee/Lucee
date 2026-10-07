@@ -18,6 +18,14 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
+	function beforeAll(){
+		variables.startingTZ = getTimeZone();
+	}
+
+	function afterAll(){
+		setTimeZone( variables.startingTZ );
+	}
+
 	public function setUp(){
 		setTimeZone("CET");
 		variables.date=createDateTime(2009,6,9,14,30,3);
