@@ -32,6 +32,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # GitHub release for lucee-express
+      checks: write
+      pull-requests: write
+      issues: read
+      actions: read
     env:
       DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/7.0') }}"
       LUCEE_BUILD_JAVA_VERSION: 21
@@ -240,6 +246,26 @@ jobs:
           echo "------- Maven Deploy RELEASE on ${{ github.event_name }} -------";
           mvn -B -e -f loader/pom.xml clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
         fi
+    - name: Attach Lucee artifacts (express zip, jar, light, zero, lco) to the GitHub release
+      if: ${{ env.DO_DEPLOY == 'true' && !endsWith(env.VERSION, '-SNAPSHOT') }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # same files (same names, same bytes) as on cdn.lucee.org: upload_to_s3.cfm puts jar, lco, light and zero on S3,
+        # the update server builds the express zip when upload_to_s3.cfm triggers buildLatest
+        FILES="lucee-express-$VERSION.zip lucee-$VERSION.jar lucee-light-$VERSION.jar lucee-zero-$VERSION.jar $VERSION.lco"
+        for f in $FILES; do
+          for i in $(seq 1 30); do
+            if curl -sfL -o "$f" "https://cdn.lucee.org/$f"; then break; fi
+            echo "$f not available yet ($i/30) ..."; sleep 30
+          done
+          test -s "$f"
+        done
+        if ! gh release view "$VERSION" > /dev/null 2>&1; then
+          PRE=""; case "$VERSION" in *-RC*|*-BETA*|*-ALPHA*) PRE="--prerelease";; esac
+          gh release create "$VERSION" --target "$GITHUB_SHA" --title "Lucee $VERSION" --notes "Lucee $VERSION" $PRE
+        fi
+        gh release upload "$VERSION" $FILES --clobber
     - name: clean github.ref_name
       uses: mad9000/actions-find-and-replace-string@5
       id: cleanrefname
