@@ -18,6 +18,7 @@
  **/
 package lucee.commons.lang;
 
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 
 public final class RandomUtil {
@@ -27,25 +28,39 @@ public final class RandomUtil {
 
 	public static final char[] CHARS_LC = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
 			'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+	private static final byte[] BYTES = toBytes(CHARS);
+	private static final byte[] BYTES_LC = toBytes(CHARS_LC);
 	private static final SecureRandom SR = new SecureRandom();
 
 	public static String createRandomString(int length) {
-		if (length < 1) return "";
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < length; i++) {
-			int rnd = (int) (SR.nextDouble() * (CHARS.length - 1));
-			sb.append(CHARS[rnd]);
-		}
-		return sb.toString();
+		return create(BYTES, length);
 	}
 
 	public static String createRandomStringLC(int length) {
+		return create(BYTES_LC, length);
+	}
+
+	// one nextBytes() per string (each takes the provider's global lock), mapped by rejection sampling so every char is equally likely
+	private static String create(byte[] chars, int length) {
 		if (length < 1) return "";
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < length; i++) {
-			int rnd = (int) (SR.nextDouble() * (CHARS_LC.length - 1));
-			sb.append(CHARS_LC[rnd]);
+		int n = chars.length;
+		int limit = 256 - (256 % n);
+		byte[] buf = new byte[length + (length >> 3) + 4];
+		byte[] out = new byte[length];
+		int i = 0;
+		while (i < length) {
+			SR.nextBytes(buf);
+			for (int pos = 0; pos < buf.length && i < length; pos++) {
+				int b = buf[pos] & 0xFF;
+				if (b < limit) out[i++] = chars[b % n];
+			}
 		}
-		return sb.toString();
+		return new String(out, StandardCharsets.ISO_8859_1);
+	}
+
+	private static byte[] toBytes(char[] chars) {
+		byte[] b = new byte[chars.length];
+		for (int i = 0; i < chars.length; i++) b[i] = (byte) chars[i];
+		return b;
 	}
 }
