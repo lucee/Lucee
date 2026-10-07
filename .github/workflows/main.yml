@@ -123,7 +123,8 @@ jobs:
         path: |
           ~/.m2/repository/*
           !~/.m2/repository/org/lucee/lucee/
-        key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
+          !~/.m2/repository/org/lucee/lucee-express/
+        key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml','loader/pom.xml','express/pom.xml','core/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-
     
@@ -159,7 +160,7 @@ jobs:
     - name: Extract version number
       id: extract-version
       run: |
-        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        VERSION=$(mvn -f loader/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
     - name: Build Lucee with Maven
       env:
@@ -232,14 +233,24 @@ jobs:
         echo "-------DO_DEPLOY: ${{ env.DO_DEPLOY }} -------";
         if [ "${{ secrets.GPG_PASSPHRASE }}" == "" ]; then
           echo "------- Maven Test on ${{ github.event_name }} ---------";
-          mvn -B -e -f loader/pom.xml test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          mvn -B -e -f pom.xml test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         elif [[ "$VERSION" == *-SNAPSHOT ]]; then
           echo "------- Maven Deploy SNAPSHOT on ${{ github.event_name }} ---------";
-          mvn -B -e -f loader/pom.xml clean deploy -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          mvn -B -e -f pom.xml -Drevision="$VERSION" clean deploy -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         else
           echo "------- Maven Deploy RELEASE on ${{ github.event_name }} -------";
-          mvn -B -e -f loader/pom.xml clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
+          mvn -B -e -f pom.xml -Drevision="$VERSION" clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
         fi
+    - name: Verify lucee-express on Maven Central (informational)
+      if: ${{ env.DO_DEPLOY == 'true' && !endsWith(env.VERSION, '-SNAPSHOT') }}
+      continue-on-error: true
+      run: |
+        URL="https://repo1.maven.org/maven2/org/lucee/lucee-express/$VERSION/lucee-express-$VERSION.pom"
+        for i in $(seq 1 60); do
+          if curl -sfI "$URL" > /dev/null; then break; fi
+          echo "waiting for Central sync ($i/60) ..."; sleep 60
+        done
+        java express/verify/LuceeExpress.java "$VERSION" /tmp/express-central --cache /tmp/express-cache
     - name: clean github.ref_name
       uses: mad9000/actions-find-and-replace-string@5
       id: cleanrefname
@@ -256,7 +267,7 @@ jobs:
         path: test/reports/*.xml
     - name: Remove Lucee build artifacts from local maven cache (avoid growing cache)
       run: |
-        rm -rfv ~/.m2/repository/org/lucee/lucee/
+        rm -rfv ~/.m2/repository/org/lucee/lucee/ ~/.m2/repository/org/lucee/lucee-express/
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()

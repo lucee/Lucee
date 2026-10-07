@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Root reactor so org.lucee:lucee and org.lucee:lucee-express go into ONE
+     central-publishing bundle (= one release event). Not published itself (excludeArtifacts). -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.lucee</groupId>
+  <artifactId>lucee-reactor</artifactId>
+  <version>1</version>
+  <packaging>pom</packaging>
+  <modules>
+    <module>loader</module>   <!-- org.lucee:lucee (unchanged) -->
+    <module>express</module>  <!-- org.lucee:lucee-express (new), depends on org.lucee:lucee:${revision} -> built after loader -->
+  </modules>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
+        <version>0.8.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <publishingServerId>ossrh</publishingServerId>
+          <autoPublish>true</autoPublish>
+          <deploymentName>lucee ${revision}</deploymentName>
+          <excludeArtifacts>lucee-reactor</excludeArtifacts>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

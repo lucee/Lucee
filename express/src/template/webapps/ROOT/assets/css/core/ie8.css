@@ -1,0 +1,56 @@
+input[type="checkbox"] + label.checked:before {
+	background-position: -162px -68px;
+	content: ","; /* IE8 Fix, force repaint of before */
+}
+
+input[type="radio"] + label.checked:before {
+	background-position: -162px -96px;
+	content: ","; /* IE8 Fix, force repaint of before */
+}
+
+input[type="radio"] + label.checked:before {
+	background-position: -162px -96px;
+	content: ","; /* IE8 Fix, force repaint of before */
+}
+
+input[type="checkbox"] + label,
+input[type="radio"] + label {
+	max-width: none;
+	padding-left: 25px !important;
+	width: 100%;
+	width: auto;
+}
+
+.form-control,
+input[type="email"],
+input[type="number"],
+input[type="password"],
+input[type="tel"],
+input[type="url"],
+input[type="text"],
+textarea {
+	padding-top: 13px;
+}
+
+select.form-control {
+	padding-top: 12px;
+	padding-bottom: 11px;
+	height: auto;
+}
+
+.announcement-ticker-wrapper .announcement-ticker .announcement {
+	min-height: 0;
+}
+
+.search-form .search-query {
+	padding-top: 10px;
+}
+
+.supplier-list li.third-child,
+.featured-articles .article.third-child {
+	clear: left !important;
+}
+
+.royalSlider .rsNav .rsNavItem {
+	min-height: 83px;
+}

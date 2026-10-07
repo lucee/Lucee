@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  org.lucee:lucee-express:<luceeVersion>  (LDEV: publish Lucee Express as a Maven "recipe")
+
+  Published artifacts (same Central deployment as org.lucee:lucee, via the root reactor pom.xml):
+    lucee-express-<v>.pom            packaging pom; <dependencies> = the parts that are already on Central
+    lucee-express-<v>-template.zip   classifier "template": the ~36 Lucee-specific files (conf, scripts, welcome page)
+
+  Layout rules v1 (property lucee.express.layout), applied by every assembler in this order:
+    1. tar.gz dependency -> extract into the root, strip the first path segment, skip webapps/
+    2. jar dependencies  -> lib/ext/<artifactId>-<version>[-<classifier>].jar
+    3. template zip      -> extract over the root (overrides Tomcat's conf/*)
+
+  The verify phase assembles the distribution from the just-built artifacts + Central and boots it
+  (verify/verify-express.sh). A failure aborts the reactor before central-publishing uploads the bundle.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.lucee</groupId>
+  <artifactId>lucee-express</artifactId>
+  <version>${revision}</version>
+  <packaging>pom</packaging>
+
+  <name>Lucee Express</name>
+  <description>Lucee Express (Lucee on Apache Tomcat) described as Maven artifacts instead of a 78 MB zip.
+    Assemble: Apache Tomcat distribution (tar.gz) extracted without its top folder and without webapps/,
+    every jar dependency copied to lib/ext/{artifactId}-{version}.jar, then the attached
+    lucee-express-{version}-template.zip (classifier template) extracted over it.
+    Reference assembler: https://github.com/lucee/lucee-express-assembler</description>
+  <url>https://www.lucee.org</url>
+
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License, Version 2.1</name>
+      <url>https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt</url>
+      <distribution>repo</distribution>
+    </license>
+    <license>
+      <name>Apache License, Version 2.0 (Apache Tomcat)</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Lucee Association Switzerland</name>
+      <organization>Lucee Association Switzerland</organization>
+      <organizationUrl>https://www.lucee.org</organizationUrl>
+    </developer>
+  </developers>
+  <scm>
+    <url>https://github.com/lucee/Lucee</url>
+    <connection>scm:git:https://github.com/lucee/Lucee.git</connection>
+  </scm>
+
+  <properties>
+    <!-- default only, must equal <version> in loader/pom.xml; CI always passes -Drevision -->
+    <revision>7.0.7.0-SNAPSHOT</revision>
+    <lucee.version>${revision}</lucee.version>
+    <!-- Tomcat patch shipped with this Lucee line; bump deliberately (keep equal to the CDN express template) -->
+    <tomcat.version>11.0.22</tomcat.version>
+    <!-- layout rules version understood by assemblers; they refuse a newer value -->
+    <lucee.express.layout>1</lucee.express.layout>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <express.verify.skip>false</express.verify.skip>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>tomcat</artifactId>
+      <version>${tomcat.version}</version>
+      <type>tar.gz</type>
+    </dependency>
+    <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>lucee</artifactId>
+      <version>${revision}</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>4.0.1</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet.jsp</groupId>
+      <artifactId>javax.servlet.jsp-api</artifactId>
+      <version>2.3.3</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+    </dependency>
+    <dependency>
+      <groupId>javax.el</groupId>
+      <artifactId>javax.el-api</artifactId>
+      <version>3.0.0</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation><property><name>performRelease</name><value>true</value></property></activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution><id>sign-artifacts</id><phase>verify</phase><goals><goal>sign</goal></goals></execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <build>
+    <plugins>
+      <!-- published POM = Central metadata + resolved properties + concrete dependency versions, no build logic
+           (resolveCiFriendliesOnly would also work but leaks <build>, <profiles> and the default <revision>) -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>1.8.0</version>
+        <configuration>
+          <flattenMode>ossrh</flattenMode>
+          <pomElements>
+            <properties>interpolate</properties>
+          </pomElements>
+          <updatePomFile>true</updatePomFile>
+        </configuration>
+        <executions>
+          <execution><id>flatten</id><phase>process-resources</phase><goals><goal>flatten</goal></goals></execution>
+          <execution><id>flatten.clean</id><phase>clean</phase><goals><goal>clean</goal></goals></execution>
+        </executions>
+      </plugin>
+
+      <!-- build lucee-express-<v>-template.zip from src/template (service.bat gets the Tomcat version) -->
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>template-zip</id>
+            <phase>package</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target>
+                <property name="tpl" value="${project.build.directory}/template"/>
+                <delete dir="${tpl}"/>
+                <copy todir="${tpl}" preservelastmodified="true">
+                  <fileset dir="${basedir}/src/template" excludes="bin/service.bat"/>
+                </copy>
+                <copy file="${basedir}/src/template/bin/service.bat" todir="${tpl}/bin" preservelastmodified="true">
+                  <filterset begintoken="@" endtoken="@"><filter token="tomcat.version" value="${tomcat.version}"/></filterset>
+                </copy>
+                <mkdir dir="${tpl}/lucee-server/context/deploy"/>
+                <zip destfile="${project.build.directory}/lucee-express-${project.version}-template.zip" level="9">
+                  <zipfileset dir="${tpl}" excludes="**/*.sh" filemode="644" dirmode="755"/>
+                  <zipfileset dir="${tpl}" includes="**/*.sh" filemode="755"/>
+                </zip>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>attach-template</id>
+            <phase>package</phase>
+            <goals><goal>attach-artifact</goal></goals>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>${project.build.directory}/lucee-express-${project.version}-template.zip</file>
+                  <type>zip</type>
+                  <classifier>template</classifier>
+                </artifact>
+              </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- pre-publish gate: assemble from the built POM/template + Central, compare, boot, check server.lucee.version -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>verify-express</id>
+            <phase>verify</phase>
+            <goals><goal>exec</goal></goals>
+            <configuration>
+              <skip>${express.verify.skip}</skip>
+              <executable>bash</executable>
+              <arguments>
+                <argument>${basedir}/verify/verify-express.sh</argument>
+                <argument>${project.version}</argument>
+                <argument>${tomcat.version}</argument>
+                <argument>${basedir}/.flattened-pom.xml</argument>
+                <argument>${project.build.directory}/lucee-express-${project.version}-template.zip</argument>
+                <argument>${project.build.directory}/express-verify</argument>
+                <argument>${settings.localRepository}</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
+        <version>0.8.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <publishingServerId>ossrh</publishingServerId>
+          <autoPublish>true</autoPublish>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
