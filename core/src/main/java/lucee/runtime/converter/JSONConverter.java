@@ -54,6 +54,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.engine.Controler;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -377,6 +378,7 @@ public final class JSONConverter extends ConverterSupport {
 		String k;
 		Object value;
 		boolean doIt = false;
+		boolean skipNull = !NullSupportHelper.full(pc);
 		while (it.hasNext()) {
 
 			e = it.next();
@@ -385,6 +387,8 @@ public final class JSONConverter extends ConverterSupport {
 			value = e.getValue();
 
 			if (!addUDFs && (value instanceof UDF || value == null)) continue;
+			// without full null support, a key holding null does not exist (see structKeyExists)
+			if (skipNull && value == null) continue;
 			if (doIt) {
 				sb.append(',');
 				sb.append(eol);
