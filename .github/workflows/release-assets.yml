@@ -22,6 +22,7 @@ jobs:
       contents: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }} # no checkout in this job, gh needs to know the repository
       VERSION: ${{ inputs.version }}
       TARGET: ${{ inputs.target }}
     steps:
