@@ -395,6 +395,7 @@ jobs:
         cp "loader/target/lucee-zero-$BUILT.jar" "release-assets/lucee-zero-$BUILT.jar"
         cp "loader/target/$BUILT.lco" "release-assets/$BUILT.lco"
         .github/scripts/build-express.sh "$BUILT" "loader/target/lucee-$BUILT.jar" "release-assets/lucee-express-$BUILT.zip"
+        .github/scripts/build-war.sh "$BUILT" "loader/target/lucee-$BUILT.jar" "release-assets/lucee-$BUILT.war"
         ls -l release-assets
 
         # the release uses the annotated tag created by "Tag published revision" (numeric, without qualifier)
