@@ -367,6 +367,16 @@ jobs:
           git tag -a "$TAG" -m "$TAG"
           git push origin "refs/tags/$TAG"
         fi
+    - name: Trigger the Lucee Docker image build
+      # LDEV-6536: runs after the maven deploy, so the jar is on Maven already (was in ant/upload_to_s3.cfm)
+      if: success() && env.DID_DEPLOY == 'true' && env.VERSION != ''
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
+      run: |
+        jq -n --arg v "$VERSION" '{event_type: "build-docker-images", client_payload: {LUCEE_VERSION: $v}}' \
+          | gh api repos/lucee/lucee-dockerfiles/dispatches --input -
+        echo "Lucee Docker build triggered for $VERSION, see https://github.com/lucee/lucee-dockerfiles/actions"
     - name: Attach Lucee artifacts (express zip, jar, light, zero, lco) to the GitHub release
       # LDEV-6529: releases only (no snapshots), uses the files this job just built, nothing comes from cdn.lucee.org
       if: ${{ env.DID_DEPLOY == 'true' && env.VERSION != '' && !contains(env.VERSION, '-SNAPSHOT') }}
