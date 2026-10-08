@@ -1,7 +1,7 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax,thread" {
 
 	function run( testResults , testBox ) {
-		describe( "Testcase for LDEV-4156", function() {
+		describe( "Testcase for LDEV-4157", function() {
 			it( title="tag-island after the thread", body=function() {
 				try {
 					var result = _InternalRequest(
