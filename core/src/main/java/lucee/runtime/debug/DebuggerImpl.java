@@ -396,8 +396,9 @@ public final class DebuggerImpl implements Debugger {
 
 					// load Pagesource of the template
 					String path = debugEntry.getPath();
-					PageSource[] arr = ((PageContextImpl) pc).getPageSources(path);
-					Page p = PageSourceImpl.loadPage(pc, arr, null);
+					// a debug template without a path falls back to the default output
+					PageSource[] arr = StringUtil.isEmpty(path, true) ? null : ((PageContextImpl) pc).getPageSources(path);
+					Page p = arr == null ? null : PageSourceImpl.loadPage(pc, arr, null);
 
 					String fullname = debugEntry.getFullname();
 					if (p != null) {
