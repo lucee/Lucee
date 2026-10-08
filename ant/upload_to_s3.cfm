@@ -2,23 +2,34 @@
 	// firstly, check are we even deploying to s3
 	DO_DEPLOY = server.system.environment.DO_DEPLOY ?: false;
 
+	// LDEV-6537 cdn.lucee.org is retired, from 2027-03-01 00:00 UTC nothing is uploaded to the S3 bucket behind it anymore.
+	// Builds are still published to Maven (Sonatype snapshots / Maven Central) and GitHub releases,
+	// light and zero are still built here because the maven build attaches them.
+	CDN_RETIRED = now() GTE createDateTime( 2027, 3, 1, 0, 0, 0, 0, "UTC" );
+	PUBLISH_TO_S3 = DO_DEPLOY && !CDN_RETIRED;
+
 	_logger( "" );
 	_logger( " #### Publish Builds to S3" );
+	if ( DO_DEPLOY && CDN_RETIRED ) {
+		_logger( "Not publishing to S3, cdn.lucee.org is retired since 2027-03-01 (LDEV-6537), only building Light and Zero" );
+	}
 
 	// secondly, do we have the s3 extension?
-	s3ExtVersion = extensionList().filter( function(row){ return row.name contains "s3"; }).version;
-	if ( s3Extversion eq "" ){
-		_logger( "ERROR! The S3 Extension isn't installed!" );
-		return;
-		//throw "The S3 Extension isn't installed!"; // fatal
-	} else {
-		_logger( "Using S3 Extension: #s3ExtVersion#" );
+	if ( PUBLISH_TO_S3 ) {
+		s3ExtVersion = extensionList().filter( function(row){ return row.name contains "s3"; }).version;
+		if ( s3Extversion eq "" ){
+			_logger( "ERROR! The S3 Extension isn't installed!" );
+			return;
+			//throw "The S3 Extension isn't installed!"; // fatal
+		} else {
+			_logger( "Using S3 Extension: #s3ExtVersion#" );
+		}
 	}
 
 	// finally check for S3 credentials
 	if ( isNull( server.system.environment.S3_ACCESS_ID_DOWNLOAD )
 			|| isNull( server.system.environment.S3_SECRET_KEY_DOWNLOAD ) ) {
-		if ( DO_DEPLOY ){
+		if ( PUBLISH_TO_S3 ){
 			_logger( "no S3 credentials defined to upload to S3");
 			return;
 		}
@@ -51,7 +62,7 @@
 	trg = {};
 
 	// test s3 access
-	if ( DO_DEPLOY ) {
+	if ( PUBLISH_TO_S3 ) {
 		s3_bucket = "lucee-downloads";
 		trg.dir = "s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/#s3_bucket#/";
 		trg.mvnRootDir = trg.dir & "org/lucee/lucee/";
@@ -70,18 +81,18 @@
 			_logger( "S3 Bucket Access OK: [#s3_bucket#]" );
 		}
 	} 
-	else {
+	else if ( !DO_DEPLOY ) {
 		_logger( "Not publishing to S3 as DO_DEPLOY is false, only building Light and Zero" );
 	}
 
 	// we only upload / publish artifacts once LDEV-3921
 	buildExistsOnS3 = false;
-	if ( DO_DEPLOY && fileExists( trg.jar ) && fileExists( trg.core ) && fileExists( trg.mvnDir & src.mvnJarName ) ){
+	if ( PUBLISH_TO_S3 && fileExists( trg.jar ) && fileExists( trg.core ) && fileExists( trg.mvnDir & src.mvnJarName ) ){
 		_logger( "Build artifacts have already been uploaded to s3 for this version" );
 		buildExistsOnS3 = true;
 	}
 
-	if ( DO_DEPLOY && !buildExistsOnS3 ){
+	if ( PUBLISH_TO_S3 && !buildExistsOnS3 ){
 		// copy jar
 		publishToS3( src.jar, trg.jar, "Publish [#src.jar#] to S3: ");
 		publishToS3( src.jar, trg.mvnDir & src.mvnJarName, "Publish [#src.jar#] to [#trg.mvnDirRel & src.mvnJarName#] on S3: ");
@@ -95,7 +106,7 @@
 	// Lucee light build (no extensions)
 	src.lightName = "lucee-light-" & src.version & ".jar";
 	src.light = src.dir & src.lightName;
-	if ( DO_DEPLOY ){
+	if ( PUBLISH_TO_S3 ){
 		if ( !buildExistsOnS3 ){
 			_logger( "Build and upload [#src.light#] to S3 / maven" );
 		} else {
@@ -106,7 +117,7 @@
 	}
 
 	createLight( src.jar,src.light,src.version, false );
-	if ( DO_DEPLOY && !buildExistsOnS3 ){
+	if ( PUBLISH_TO_S3 && !buildExistsOnS3 ){
 		trg.light = trg.dir & src.lightName;
 		publishToS3( src.light, trg.light, "Publish Light build to s3: ");
 		publishToS3( src.light, trg.mvnDir & src.mvnJarLightName, "Publish [#src.light#] to [#trg.mvnDirRel & src.mvnJarLightName#] on S3: ");
@@ -115,7 +126,7 @@
 	// Lucee zero build, built from light but also no admin or docs
 	src.zeroName = "lucee-zero-" & src.version & ".jar";
 	src.zero = src.dir & src.zeroName;
-	if ( DO_DEPLOY ){
+	if ( PUBLISH_TO_S3 ){
 		if ( !buildExistsOnS3 ){
 			_logger( "Build and upload [#src.zero#] to S3 / maven" );
 		} else{
@@ -127,14 +138,14 @@
 
 	createLight( src.light, src.zero, src.version, true );
 
-	if ( DO_DEPLOY && !buildExistsOnS3 ) {
+	if ( PUBLISH_TO_S3 && !buildExistsOnS3 ) {
 		trg.zero = trg.dir & src.zeroName;
 		publishToS3( src.zero, trg.zero, "Publish Zero build to s3: " );
 		publishToS3( src.zero, trg.mvnDir & src.mvnJarZeroName, "Publish [#src.zero#] to [#trg.mvnDirRel & src.mvnJarZeroName#] on S3");
 	}
 
 	// metadata
-	if ( DO_DEPLOY) {
+	if ( PUBLISH_TO_S3 ) {
 		publishMetadataToS3( src.version ,trg.mvnDir & src.mvnMetadataName ,trg.mvnRootDir& src.mvnMetadataName,"Publish Metadata to S3: ");
 	}
 
