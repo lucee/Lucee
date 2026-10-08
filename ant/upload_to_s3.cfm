@@ -176,30 +176,7 @@
 		echo(e);
 	}
 
-	// Lucee Docker builds
-	if ( buildExistsOnS3 ){
-		_logger("Skip Triggering Lucee Docker builds as build was already published to s3" );
-	} else {
-		_logger("Triggering Lucee Docker builds [#server.system.properties.luceeVersion#]" );
-
-		gha_pat_token = server.system.environment.LUCEE_DOCKER_FILES_PAT_TOKEN; // github person action token
-		body = {
-			"event_type": "build-docker-images",
-			"client_payload": {
-				"LUCEE_VERSION": server.system.properties.luceeVersion
-			}
-		};
-		try {
-			http url="https://api.github.com/repos/lucee/lucee-dockerfiles/dispatches" method="POST" result="result" timeout="90"{
-				httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
-				httpparam type="body" value='#body.toJson()#';
-			}
-			_logger("Lucee Docker builds triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/lucee/lucee-dockerfiles/actions for output)" );
-		} catch (e){
-			_logger("Lucee Docker build ERRORED?" );
-			echo(e);
-		}
-	}
+	// the Lucee Docker build is triggered by .github/workflows/main.yml after the maven deploy (LDEV-6536)
 
 	// express
 
