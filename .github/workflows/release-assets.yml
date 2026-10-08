@@ -18,6 +18,11 @@ on:
         description: 'Commit SHA or branch the release is tagged on, only needed if the tag does not exist yet'
         required: false
         type: string
+      installers_only:
+        description: 'Only attach the installers (copied from cdn.lucee.org if they exist there), skip jar, light, zero, lco and express zip'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   release-assets:
@@ -39,6 +44,7 @@ jobs:
       with:
         sparse-checkout: .github/scripts
     - name: Download jar, light, zero and lco from Maven Central
+      if: ${{ !inputs.installers_only }}
       run: |
         set -euo pipefail
         mkdir -p release-assets
@@ -48,6 +54,7 @@ jobs:
         curl -fsSL --retry 3 -o "release-assets/lucee-zero-$VERSION.jar" "$MVN/lucee-$VERSION-zero.jar"
         curl -fsSL --retry 3 -o "release-assets/$VERSION.lco" "$MVN/lucee-$VERSION.lco"
     - name: Express zip (cdn.lucee.org if published there, otherwise built from the jar)
+      if: ${{ !inputs.installers_only }}
       run: |
         set -euo pipefail
         EXPRESS="release-assets/lucee-express-$VERSION.zip"
@@ -59,9 +66,25 @@ jobs:
           .github/scripts/build-express.sh "$VERSION" "release-assets/lucee-$VERSION.jar" "$EXPRESS"
         fi
         ls -l release-assets
+    - name: Installers (copied byte for byte from cdn.lucee.org, only those that exist there)
+      run: |
+        set -euo pipefail
+        mkdir -p release-assets
+        for n in windows-x64-installer.exe linux-x64-installer.run linux-aarch64-installer.run; do
+          f="lucee-$VERSION-$n"
+          if curl -fsSL --retry 3 -o "release-assets/$f" "https://cdn.lucee.org/$f"; then
+            ls -l "release-assets/$f"
+          else
+            rm -f "release-assets/$f"
+            echo "$f is not on cdn.lucee.org, skipping"
+          fi
+        done
     - name: Create the release if needed and upload the files
       run: |
         set -euo pipefail
+        if [ -z "$(ls -A release-assets)" ]; then
+          echo "nothing to attach for $VERSION"; exit 0
+        fi
         if ! gh release view "$VERSION" > /dev/null 2>&1; then
           ARGS=(--title "Lucee $VERSION" --notes "Lucee $VERSION")
           case "$VERSION" in *-RC|*-BETA|*-ALPHA) ARGS+=(--prerelease);; esac
