@@ -502,8 +502,7 @@ public final class ConfigUtil {
 
 	public static void checkGeneralReadAccess(ConfigPro config, Password password) throws SecurityException {
 		SecurityManager sm = config.getSecurityManager();
-		short access = sm.getAccess(SecurityManager.TYPE_ACCESS_READ);
-		if (config instanceof ConfigServer) access = SecurityManager.ACCESS_PROTECTED;
+		short access = toGeneralAccess(config, sm.getAccess(SecurityManager.TYPE_ACCESS_READ));
 		if (access == SecurityManager.ACCESS_PROTECTED) {
 			checkPassword(config, "read", password);
 		}
@@ -515,15 +514,19 @@ public final class ConfigUtil {
 	public static void checkGeneralWriteAccess(ConfigPro config, Password password) throws SecurityException {
 		SecurityManager sm = config.getSecurityManager();
 		if (sm == null) return;
-		short access = sm.getAccess(SecurityManager.TYPE_ACCESS_WRITE);
-
-		if (config instanceof ConfigServer) access = SecurityManager.ACCESS_PROTECTED;
+		short access = toGeneralAccess(config, sm.getAccess(SecurityManager.TYPE_ACCESS_WRITE));
 		if (access == SecurityManager.ACCESS_PROTECTED) {
 			checkPassword(config, "write", password);
 		}
 		else if (access == SecurityManager.ACCESS_CLOSE) {
 			throw new SecurityException("can't access, write access is disabled");
 		}
+	}
+
+	private static short toGeneralAccess(ConfigPro config, short access) {
+		// there is no higher context left that could reopen a closed server context, so "closed" falls back to "password protected" there
+		if (config instanceof ConfigServer && access == SecurityManager.ACCESS_CLOSE) return SecurityManager.ACCESS_PROTECTED;
+		return access;
 	}
 
 	public static void checkPassword(ConfigPro config, String type, Password password) throws SecurityException {

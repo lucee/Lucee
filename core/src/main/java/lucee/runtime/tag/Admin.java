@@ -543,9 +543,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			else password = null;
 
 			// Config
-			if (type == TYPE_SERVER) {
-				config = (ConfigPro) pageContext.getConfig().getConfigServer(password);
-			}
+			// access is checked per action based on the general read/write access setting (open, protected, closed)
+			if (type == TYPE_SERVER) config = ConfigUtil.getConfigServerImpl(configWeb);
 
 			admin = ConfigAdmin.newInstance(config, password);
 		}
@@ -616,7 +615,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getRemoteClientTasks", ACCESS_FREE) && check2(ACCESS_READ)) doGetSpoolerTasks();
 		else if (check("getDatasourceDriverList", ACCESS_FREE) && check2(ACCESS_READ)) doGetDatasourceDriverList();
 		else if (check("getDebuggingList", ACCESS_FREE) && check2(ACCESS_READ)) doGetDebuggingList();
-		else if (check("getLoggedDebugData", ACCESS_FREE)) // no password necessary for this
+		else if (check("getLoggedDebugData", ACCESS_FREE) && check2(ACCESS_READ)) // no password necessary for this when read access is open
 			doGetLoggedDebugData();
 		else if (check("PurgeDebugPool", ACCESS_FREE) && check2(ACCESS_WRITE)) doPurgeDebugPool();
 		else if (check("PurgeExpiredSessions", ACCESS_FREE) && check2(ACCESS_WRITE)) doPurgeExpiredSessions();
@@ -652,7 +651,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getDebug", ACCESS_FREE) && check2(ACCESS_READ)) doGetDebug();
 		else if (check("getMonitoring", ACCESS_FREE) && check2(ACCESS_READ)) doGetMonitoring();
 		else if (check("getSecurity", ACCESS_FREE) && check2(ACCESS_READ)) doGetSecurity();
-		else if (check("getDebugEntry", ACCESS_FREE)) doGetDebugEntry();
+		else if (check("getDebugEntry", ACCESS_FREE) && check2(ACCESS_READ)) doGetDebugEntry();
 		else if (check("getError", ACCESS_FREE) && check2(ACCESS_READ)) doGetError();
 		else if (check("getRegex", ACCESS_FREE) && check2(ACCESS_READ)) doGetRegex();
 		else if (check("verifyremoteclient", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyRemoteClient();
@@ -1442,7 +1441,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doHasIndividualSecurity() throws PageException {
 		pageContext.setVariable(getString("admin", action, "returnVariable"),
-				Caster.toBoolean(pageContext.getConfig().getConfigServer(password).hasIndividualSecurityManager(getString("admin", action, "id")
+				Caster.toBoolean(ConfigUtil.getConfigServer(config, password).hasIndividualSecurityManager(getString("admin", action, "id")
 
 				)));
 	}
@@ -2490,7 +2489,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			fillGetRunningThreads(qry, pageContext.getConfig());
 		}
 		else {
-			ConfigServer cs = pageContext.getConfig().getConfigServer(password);
+			ConfigServer cs = ConfigUtil.getConfigServer(config, password);
 			ConfigWeb[] webs = cs.getConfigWebs();
 			for (int i = 0; i < webs.length; i++) {
 				fillGetRunningThreads(qry, webs[i]);
@@ -3103,7 +3102,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			terminateRunningThread(pageContext.getConfig(), id);
 		}
 		else {
-			ConfigServer cs = pageContext.getConfig().getConfigServer(password);
+			ConfigServer cs = ConfigUtil.getConfigServer(config, password);
 			ConfigWeb[] webs = cs.getConfigWebs();
 			for (int i = 0; i < webs.length; i++) {
 				if (terminateRunningThread(webs[i], id)) break;
