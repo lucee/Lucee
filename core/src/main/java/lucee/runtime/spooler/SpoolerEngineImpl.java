@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
+import java.io.ObjectStreamField;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -222,7 +224,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 		SpoolerTask task = defaultValue;
 		try {
 			is = res.getInputStream();
-			ois = new JavaConverter.ObjectInputStreamImpl(CFMLEngineFactory.getInstance().getClass().getClassLoader(), is);
+			ois = new TaskInputStream(CFMLEngineFactory.getInstance().getClass().getClassLoader(), is);
 
 			task = (SpoolerTask) ois.readObject();
 		}
@@ -737,6 +739,48 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 	public Resource getPersisDirectory(ConfigWeb config) {
 		return config.getRemoteClientDirectory();
+	}
+}
+
+/**
+ * Reads a persisted task. Most Lucee classes have no explicit serialVersionUID, so Java computes one from the
+ * class shape (methods, interfaces, ...), and it often changes between versions even if the serialized fields
+ * stay the same. A task written before an update (e.g. a queued mail) then fails with "local class
+ * incompatible" and is lost (LDEV-3213). When the serialized fields of the stream and the local class are the
+ * same, the local class descriptor is used instead. If the fields differ, the stream is read as before (and
+ * fails as before).
+ */
+final class TaskInputStream extends JavaConverter.ObjectInputStreamImpl {
+
+	public TaskInputStream(ClassLoader cl, InputStream in) throws IOException {
+		super(cl, in);
+	}
+
+	@Override
+	protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
+		ObjectStreamClass streamDesc = super.readClassDescriptor();
+		Class<?> local;
+		try {
+			local = resolveClass(streamDesc);
+		}
+		catch (ClassNotFoundException cnfe) {
+			return streamDesc;
+		}
+		ObjectStreamClass localDesc = ObjectStreamClass.lookup(local);
+		if (localDesc == null || localDesc.getSerialVersionUID() == streamDesc.getSerialVersionUID()) return streamDesc;
+		if (!sameFields(streamDesc.getFields(), localDesc.getFields())) return streamDesc;
+		return localDesc;
+	}
+
+	private static boolean sameFields(ObjectStreamField[] left, ObjectStreamField[] right) {
+		if (left.length != right.length) return false;
+		for (int i = 0; i < left.length; i++) {
+			if (!left[i].getName().equals(right[i].getName())) return false;
+			if (left[i].getTypeCode() != right[i].getTypeCode()) return false;
+			String l = left[i].getTypeString(), r = right[i].getTypeString();
+			if (l == null ? r != null : !l.equals(r)) return false;
+		}
+		return true;
 	}
 }
 
