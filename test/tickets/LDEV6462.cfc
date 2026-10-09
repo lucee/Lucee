@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="extension,mappings" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="extension" {
 
 	variables.SCHEDULER_CLASSIC = "97EB5427-F051-4684-91EBA6DBB5C5203F";
 
