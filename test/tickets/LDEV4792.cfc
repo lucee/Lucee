@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="static,closure" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="static" {
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-4792 call a closure stored as a final member of the static scope", function() {
