@@ -480,11 +480,11 @@ public final class DebuggerImpl implements Debugger {
 					SQLItem[] params = qe.getSQL().getItems();
 					StringBuilder paramValue = new StringBuilder();
 					StringBuilder paramType = new StringBuilder();
+					String delim = "";
 					for (int i = 0; i < params.length; i++) {
-						paramValue.append(params[i].getValue()).toString();
-						if (i < params.length - 1) paramValue.append(",");
-						paramType.append(SQLCaster.toStringType(params[i].getType(), "")).toString();
-						if (i < params.length - 1) paramType.append(",");
+						paramValue.append(delim + params[i].getValue()).toString();
+						paramType.append(delim + SQLCaster.toStringType(params[i].getType(), "")).toString();	
+						delim = ",,";
 					}
 					qryQueries.setAt(KeyConstants._paramValue, row, paramValue.toString());
 					qryQueries.setAt(KeyConstants._paramType, row, paramType.toString());
