@@ -781,7 +781,7 @@ label:hover {
 
 .commentError {
     font-size: 12px;
-    color: #bf4f36;
+    color: #bf4f36 !important;
     text-decoration: none;
 }
 
