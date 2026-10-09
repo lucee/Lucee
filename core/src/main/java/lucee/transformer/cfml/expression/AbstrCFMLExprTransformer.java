@@ -1438,7 +1438,13 @@ public abstract class AbstrCFMLExprTransformer {
 		}
 
 		data.srcCode.setPos(data.srcCode.getPos() - 9); // go before "component"
-		return new ComponentAsExpression(data, componentStatement(data, data.getParent()));
+		TagComponent tc = componentStatement(data, data.getParent());
+		// not an inline component (for example "new component ()"), let the caller handle it as a regular "new" (LDEV-5533)
+		if (tc == null) {
+			data.srcCode.setPos(start);
+			return null;
+		}
+		return new ComponentAsExpression(data, tc);
 	}
 
 	protected abstract TagComponent componentStatement(Data data, Body parent) throws TemplateException;
@@ -1465,8 +1471,9 @@ public abstract class AbstrCFMLExprTransformer {
 			return null;
 		}
 
-		return new FunctionAsExpression(
-				lambdaPart(data, "lambda_" + CreateUniqueId.invoke(), Component.ACCESS_PUBLIC, Component.MODIFIER_NONE, "any", data.srcCode.getPosition(), args));
+		Function func = lambdaPart(data, "lambda_" + CreateUniqueId.invoke(), Component.ACCESS_PUBLIC, Component.MODIFIER_NONE, "any", data.srcCode.getPosition(), args);
+		func.setParent(data.getParent());
+		return new FunctionAsExpression(func);
 	}
 
 	protected abstract Function lambdaPart(Data data, String id, int access, int modifier, String rtnType, Position line, ArrayList<lucee.transformer.statement.Argument> args)

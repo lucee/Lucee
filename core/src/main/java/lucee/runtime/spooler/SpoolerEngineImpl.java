@@ -62,6 +62,9 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 	private static final TaskFileFilter FILTER = new TaskFileFilter();
 
+	// an unreadable task file younger than this may still be written, so it is skipped instead of moved aside
+	private static final long BROKEN_GRACE_PERIOD = 60000L;
+
 	private String label;
 
 	// private LinkedList<SpoolerTask> openTaskss=new LinkedList<SpoolerTask>();
@@ -167,13 +170,27 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 	}
 
 	public void start(ConfigWeb config) {
-		if (thread == null || !thread.isAlive()) {
+		if (thread == null || !thread.isAlive() || thread.stopped) {
 			thread = new SpoolerThread(config, this);
 			thread.setPriority(Thread.MIN_PRIORITY);
 			thread.start();
 		}
 		else if (thread.sleeping) {
 			thread.interrupt();
+		}
+	}
+
+	/**
+	 * Stops the spooler thread of this engine (LDEV-6350). The engine calls this on a reset (restart, .lco
+	 * update), otherwise the old engine's spooler thread keeps waiting for the next task and holds on to the
+	 * old engine's classes. The tasks stay in the persist directory, so the new engine picks them up. A task
+	 * that is executing right now is not interrupted. A later add() starts a new spooler thread.
+	 */
+	public void stop() {
+		SpoolerThread t = thread;
+		if (t != null && t.isAlive()) {
+			t.stopped = true;
+			t.interrupt();
 		}
 	}
 
@@ -201,9 +218,10 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 			return (SpoolerTask) ois.readObject();
 		}
-		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
-			res.delete();
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			if (t instanceof VirtualMachineError) throw (VirtualMachineError) t;
+			moveAside(res, t);
 			return defaultValue;
 		}
 		finally {
@@ -212,13 +230,47 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 		}
 	}
 
+	/**
+	 * A task file that cannot be read is not deleted (that may lose a task, e.g. one that is still being
+	 * written or whose classes are not loaded yet). A recent file is skipped and read again on the next
+	 * run, an older one is moved to the "broken" directory next to "open" and "closed", so it is no longer
+	 * read on every run but can still be inspected or restored.
+	 */
+	private void moveAside(Resource res, Throwable t) {
+		if (!res.exists()) return; // removed or renamed by another thread in the meantime
+		if (res.lastModified() + BROKEN_GRACE_PERIOD > System.currentTimeMillis()) {
+			LogUtil.logx(config, Log.LEVEL_DEBUG, "remote-client", "skipping spooler task file [" + res.getAbsolutePath() + "] for now, it cannot be read yet: " + ExceptionUtil.getMessage(t, true),
+					"remoteclient", "application");
+			return;
+		}
+		Resource dir = res.getParentResource().getParentResource().getRealResource("broken");
+		Resource target = dir.getRealResource(res.getName());
+		long size = res.length();
+		try {
+			dir.mkdirs();
+			ResourceUtil.moveTo(res, target, true);
+			LogUtil.logx(config, Log.LEVEL_ERROR, "remote-client", "unable to read spooler task file [" + res.getAbsolutePath() + "] (" + size + " bytes), moved it to ["
+					+ target.getAbsolutePath() + "]: " + ExceptionUtil.getMessage(t, true), "remoteclient", "application");
+		}
+		catch (Exception ee) {
+			LogUtil.logx(config, Log.LEVEL_ERROR, "remote-client", "unable to read spooler task file [" + res.getAbsolutePath() + "]: " + ExceptionUtil.getMessage(t, true)
+					+ "; moving it to [" + target.getAbsolutePath() + "] failed: " + ExceptionUtil.getMessage(ee, true), "remoteclient", "application");
+		}
+	}
+
 	private boolean store(ConfigWeb config, SpoolerTask task) {
 		ObjectOutputStream oos = null;
 		Resource persis = getFile(config, task);
-		if (persis.exists()) persis.delete();
+		// write to a temp file (not matched by the *.tsk filter) and rename it, so the spooler thread or the
+		// admin task list never read a task file that is only partially written
+		Resource tmp = persis.getParentResource().getRealResource(persis.getName() + ".tmp");
 		try {
-			oos = new ObjectOutputStream(persis.getOutputStream());
+			if (tmp.exists()) tmp.delete();
+			oos = new ObjectOutputStream(tmp.getOutputStream());
 			oos.writeObject(task);
+			oos.close();
+			oos = null;
+			tmp.moveTo(persis);
 			return true;
 		}
 		catch (IOException e) {
@@ -228,6 +280,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 					+ "]: " + ExceptionUtil.getMessage(e, true), "remoteclient", "application");
 			IOUtil.closeEL(oos);
 			oos = null;
+			if (tmp.exists()) tmp.delete();
 			if (persis.exists()) persis.delete();
 			return false;
 		}
@@ -440,6 +493,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 		private SpoolerEngineImpl engine;
 		private boolean sleeping;
+		private volatile boolean stopped;
 		private final int maxThreads;
 		private ConfigWeb config;
 
@@ -468,12 +522,13 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 			TaskThread tt;
 			int adds;
 
-			while (getOpenTaskCount() > 0) {
+			while (!stopped && getOpenTaskCount() > 0) {
 				adds = engine.adds();
 				taskNames = getOpenDirectory().list(FILTER);
 				// tasks=engine.getOpenTasks();
 				nextExection = Long.MAX_VALUE;
 				for (int i = 0; i < taskNames.length; i++) {
+					if (stopped) break;
 					task = getTaskByName(getOpenDirectory(), taskNames[i]);
 					if (task == null) continue;
 
@@ -487,6 +542,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 				}
 
 				nextExection = joinTasks(runningTasks, 0, nextExection);
+				if (stopped) break;
 				if (adds != engine.adds()) continue;
 
 				if (nextExection == Long.MAX_VALUE) break;

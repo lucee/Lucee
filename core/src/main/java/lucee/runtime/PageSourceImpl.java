@@ -534,13 +534,16 @@ public final class PageSourceImpl implements PageSource {
 	public String getDisplayPath() {
 		if (dspPath != null) return dspPath;
 
+		Resource physical;
 		if (!mapping.hasArchive()) {
-			String result = StringUtil.toString(getPhyscalFile(), null);
-			return dspPath = result != null ? result : relPath;
+			physical = getPhyscalFile();
+			if (physical == null) return getUnresolvedDisplayPath();
+			return dspPath = physical.toString();
 		}
 		else if (isLoad(LOAD_PHYSICAL)) {
-			String result = StringUtil.toString(getPhyscalFile(), null);
-			return dspPath = result != null ? result : getArchiveSourcePath();
+			physical = getPhyscalFile();
+			String result = physical != null ? physical.toString() : getArchiveSourcePath();
+			return dspPath = result != null ? result : relPath;
 		}
 		else if (isLoad(LOAD_ARCHIVE)) {
 			String result = StringUtil.toString(getArchiveSourcePath(), null);
@@ -553,12 +556,27 @@ public final class PageSourceImpl implements PageSource {
 			if (mapping.isPhysicalFirst()) {
 				if (pse) return dspPath = getPhyscalFile().toString();
 				else if (ase) return dspPath = getArchiveSourcePath();
-				return dspPath = relPath;
+				physical = getPhyscalFile();
+				if (physical != null) return dspPath = physical.toString();
+				String result = getArchiveSourcePath();
+				return dspPath = result != null ? result : relPath;
 			}
 			if (ase) return dspPath = getArchiveSourcePath();
 			else if (pse) return dspPath = getPhyscalFile().toString();
 			return dspPath = relPath;
 		}
+	}
+
+	// the mapping has neither a resolvable physical nor an archive (e.g. missing drive or archive, unknown resource provider),
+	// so show the configured location; not cached, the mapping can still resolve later
+	private String getUnresolvedDisplayPath() {
+		String strPhysical = mapping.getStrPhysical();
+		if (StringUtil.isEmpty(strPhysical, true)) return getRealpathWithVirtual();
+		strPhysical = strPhysical.trim();
+		while (strPhysical.endsWith("/") || strPhysical.endsWith("\\")) {
+			strPhysical = strPhysical.substring(0, strPhysical.length() - 1);
+		}
+		return strPhysical + relPath;
 	}
 
 	public boolean isComponent() {

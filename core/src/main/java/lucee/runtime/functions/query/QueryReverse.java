@@ -17,7 +17,7 @@ public final class QueryReverse extends BIF implements Function {
 	public static Query call(PageContext pc, Query qry) throws PageException {
 
 		Key[] names = qry.getColumnNames();
-		QueryImpl rq = new QueryImpl(names, qry.getRecordcount(), qry.getName());
+		QueryImpl rq = QueryImpl.newInstanceWithSameColumns(qry, qry.getRecordcount(), qry.getName());
 
 		int newRow = 0;
 		for (int row = qry.getRecordcount(); row > 0; row--) {

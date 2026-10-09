@@ -3186,7 +3186,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					ImportDefintion di = getComponentDefaultImport();
 					String pack = di == null ? null : di.getPackageAsPath();
 					if (StringUtil.isEmpty(pack, true)) pack = "";
-					else if (!pack.endsWith("/")) pack += "";
+					else if (!pack.endsWith("/")) pack += "/";
 					// name
 					String componentName = getBaseComponentTemplate();
 

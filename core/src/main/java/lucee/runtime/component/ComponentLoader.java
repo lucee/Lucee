@@ -112,7 +112,8 @@ public final class ComponentLoader {
 			synchronized (SystemUtil.createToken(cp.getPageSource().getDisplayPath(), cp.getHash() + "")) {
 				ss = cp.getStaticScope();
 				if (ss == null) {
-					ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope();
+					// no validation, loading the static scope is not an instantiation, so this also works for abstract components
+					ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false, false).staticScope();
 					cp.setStaticScope(ss);
 					return ss;
 				}
@@ -139,7 +140,7 @@ public final class ComponentLoader {
 
 		// if we had changes we need to reload
 		if (reload) {
-			ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope();
+			ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false, false).staticScope();
 			cp.setStaticScope(ss);
 		}
 

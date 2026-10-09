@@ -198,8 +198,7 @@ public final class Filter extends BIF implements ClosureFunc {
 
 	private static Collection invoke(PageContext pc, Query qry, UDF udf, ExecutorService es, List<Future<Data<Pair<Object, Object>>>> futures)
 			throws CasterException, PageException {
-		Key[] colNames = qry.getColumnNames();
-		Query rtn = new QueryImpl(colNames, 0, qry.getName());
+		Query rtn = QueryImpl.newInstanceWithSameColumns(qry, 0, qry.getName());
 		final int pid = pc.getId();
 		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
 		int rowNbr;

@@ -339,20 +339,34 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 
 	@Override
 	public Object call(PageContext pc, Key key, Object[] args) throws PageException {
-		Member m = _get(pc, key, null);
-		if (m instanceof UDF) {
-			return _call(pc, key, ((UDF) m), null, args);
+		UDF udf = toUDF(_get(pc, key, null));
+		if (udf != null) {
+			return _call(pc, key, udf, null, args);
 		}
 		throw notExisting(key);
 	}
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key key, Struct args) throws PageException {
-		Member m = _get(pc, key, null);
-		if (m instanceof UDF) {
-			return _call(pc, key, ((UDF) m), args, null);
+		UDF udf = toUDF(_get(pc, key, null));
+		if (udf != null) {
+			return _call(pc, key, udf, args, null);
 		}
 		throw notExisting(key);
+	}
+
+	/**
+	 * a member is callable when it is a function or a data member holding a function, for example
+	 * "final fn = () => ..." in a static constructor is stored as a DataMember to keep the modifier
+	 * (LDEV-4792)
+	 */
+	private static UDF toUDF(Member m) {
+		if (m instanceof UDF) return (UDF) m;
+		if (m instanceof DataMember) {
+			Object v = m.getValue();
+			if (v instanceof UDF) return (UDF) v;
+		}
+		return null;
 	}
 
 	Object _call(PageContext pc, Collection.Key calledName, UDF udf, Struct namedArgs, Object[] args) throws PageException {

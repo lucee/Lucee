@@ -843,6 +843,36 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
+	 * creates a new query with the same columns (name and type) as the given query and the given number
+	 * of empty rows. Functions that build a new query out of an existing one (queryFilter, queryMap,
+	 * querySlice, queryReverse) use it, so the copied values keep the type of their column and are not
+	 * interpreted again (a varchar "0003" stays "0003" and does not become the number 3).
+	 *
+	 * @param template query to take the columns from
+	 * @param rowNumber count of rows to generate (empty fields)
+	 * @param name
+	 * @throws DatabaseException
+	 */
+	public static QueryImpl newInstanceWithSameColumns(Query template, int rowNumber, String name) throws DatabaseException {
+		Collection.Key[] names = template.getColumnNames();
+		QueryImpl qry = new QueryImpl(names, rowNumber, name);
+		QueryColumn col;
+		for (int i = 0; i < names.length; i++) {
+			col = template.getColumn(names[i], null);
+			if (col instanceof QueryColumnImpl) {
+				// take the type as it is, an untyped column stays untyped (no type detection is triggered)
+				qry.columns[i].type = ((QueryColumnImpl) col).type;
+				qry.columns[i].typeChecked = ((QueryColumnImpl) col).typeChecked;
+			}
+			else if (col != null) {
+				qry.columns[i].type = col.getType();
+				qry.columns[i].typeChecked = (qry.columns[i].type != Types.OTHER);
+			}
+		}
+		return qry;
+	}
+
+	/**
 	 * constructor of the class, to generate an empty resultset (no database execution)
 	 *
 	 * @param strColumns columns for the resultset
@@ -1996,6 +2026,27 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 
 	public Map<Key, Integer> getIndexes() {
 		return indexes;
+	}
+
+	/**
+	 * indexes the rows of an already populated query by the values of the given column, like
+	 * fillResult does it for a query read from a ResultSet (LDEV-5360)
+	 * 
+	 * @param indexName column to index
+	 */
+	public void index(Collection.Key indexName) {
+		this.indexName = indexName;
+		Map<Collection.Key, Integer> map = new ConcurrentHashMap<Collection.Key, Integer>();
+		QueryColumn column = getColumn(indexName, null);
+		if (column != null) {
+			int rc = getRecordcount();
+			Collection.Key k;
+			for (int row = 1; row <= rc; row++) {
+				k = Caster.toKey(column.get(row, null), null);
+				if (k != null) map.put(k, row);
+			}
+		}
+		this.indexes = map;
 	}
 
 	@Override

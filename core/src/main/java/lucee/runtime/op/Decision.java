@@ -83,11 +83,15 @@ public final class Decision {
 	private static final String STRING_DEFAULT_VALUE = "this is a unique string";
 
 	private static Pattern ssnPattern;
-	private static final Pattern EMAIL_LOCAL_PATTERN = Pattern.compile("[\\p{L}\\p{M}\\p{N}!#$%&'*+/=?^_`{|}~-]+(\\.[\\p{L}\\p{M}\\p{N}!#$%&'*+/=?^_`{|}~-]+)*");
+	// RFC 5322 atext, plus any non-ASCII character except control, format and space characters (RFC 6531 SMTPUTF8)
+	private static final String EMAIL_ATEXT = "[-A-Za-z0-9!#$%&'*+/=?^_`{|}~[\\P{ASCII}&&[^\\p{C}\\p{Z}]]]";
+	private static final Pattern EMAIL_LOCAL_PATTERN = Pattern.compile(EMAIL_ATEXT + "+(\\." + EMAIL_ATEXT + "+)*");
 	private static final Pattern EMAIL_DOMAIN_LABEL_PATTERN = Pattern.compile("[\\p{L}\\p{M}\\p{N}]([\\p{L}\\p{M}\\p{N}-]*[\\p{L}\\p{M}\\p{N}])?");
 	private static final Pattern EMAIL_TLD_PATTERN = Pattern.compile("[\\p{L}\\p{M}]{2,}|(?i:xn--[a-z0-9-]+)");
-	private static final Pattern EMAIL_QUOTED_LOCAL_PATTERN = Pattern.compile("\"(?:[^\"\\\\\\r\\n]|\\\\.)*\"");
-	private static final Pattern EMAIL_IPV4_LITERAL_PATTERN = Pattern.compile("\\[(?:(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)\\]");
+	// RFC 5321 Quoted-string: qtextSMTP (printable ASCII and space, except " and \), quoted-pairSMTP (\ + printable ASCII or space)
+	private static final Pattern EMAIL_QUOTED_LOCAL_PATTERN = Pattern
+			.compile("\"(?:[\\x20\\x21\\x23-\\x5B\\x5D-\\x7E[\\P{ASCII}&&[^\\p{C}\\p{Z}]]]|\\\\[\\x20-\\x7E])*\"");
+	private static final Pattern EMAIL_IPV4_PATTERN = Pattern.compile("(?:(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)");
 	private static Pattern phonePattern;
 	private static Pattern zipPattern;
 
@@ -879,8 +883,9 @@ public final class Decision {
 	 * @return
 	 */
 	public static boolean isEmail(Object value) {
-		// core email check, no mail extension needed; mirrors 6.2/7.0 MailUtil.isValidEmail():
-		// local part: dot-atom or quoted string (max 64), domain: LDH labels (max 63) with an alpha or xn-- TLD, or an IPv4 literal
+		// core email check (RFC 5321 Mailbox / RFC 5322 addr-spec), no mail extension needed:
+		// local part: dot-atom or quoted string (max 64), domain: LDH labels (max 63) with an alpha or xn-- TLD, or an IPv4 / IPv6
+		// address literal. A display name, comments, surrounding whitespace or list separators make the value invalid.
 		String str = Caster.toString(value, null);
 		if (str == null) return false;
 		// a quoted local part may contain @, so split at the last one
@@ -890,12 +895,10 @@ public final class Decision {
 		String domain = str.substring(pos + 1);
 		// local part may only be 64 characters, domain only 255
 		if (local.length() > 64 || domain.length() > 255) return false;
-		if (!EMAIL_LOCAL_PATTERN.matcher(local).matches()) {
-			// quoted local part ("john doe"), consecutive dots are rejected as in 6.2/7.0
-			if (!EMAIL_QUOTED_LOCAL_PATTERN.matcher(local).matches() || local.contains("..")) return false;
-		}
-		// IPv4 address literal (user@[192.168.0.1])
-		if (EMAIL_IPV4_LITERAL_PATTERN.matcher(domain).matches()) return true;
+		// dot-atom (no leading, trailing or consecutive dots) or a quoted string ("john..doe")
+		if (!EMAIL_LOCAL_PATTERN.matcher(local).matches() && !EMAIL_QUOTED_LOCAL_PATTERN.matcher(local).matches()) return false;
+		// address literal (user@[192.168.0.1], user@[IPv6:2001:db8::1])
+		if (domain.charAt(0) == '[') return domain.charAt(domain.length() - 1) == ']' && isEmailAddressLiteral(domain.substring(1, domain.length() - 1));
 		String[] labels = domain.split("\\.", -1);
 		if (labels.length < 2) return false;
 		// each domain label may only be 63 characters
@@ -914,6 +917,44 @@ public final class Decision {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * RFC 5321 address literal without the brackets: an IPv4 address or "IPv6:" followed by an IPv6 address (full or with "::",
+	 * optionally ending with an IPv4 address)
+	 */
+	private static boolean isEmailAddressLiteral(String literal) {
+		if (EMAIL_IPV4_PATTERN.matcher(literal).matches()) return true;
+		if (!literal.regionMatches(true, 0, "IPv6:", 0, 5)) return false;
+		String addr = literal.substring(5);
+		int groups = 0;
+		int lastColon = addr.lastIndexOf(':');
+		if (lastColon == -1) return false;
+		// a trailing IPv4 address counts as two groups
+		if (addr.indexOf('.', lastColon) != -1) {
+			if (!EMAIL_IPV4_PATTERN.matcher(addr.substring(lastColon + 1)).matches()) return false;
+			groups = 2;
+			addr = addr.substring(0, lastColon + 1);
+			// "::" directly before the IPv4 address
+			if (!addr.endsWith("::")) addr = addr.substring(0, lastColon);
+		}
+		int compressed = addr.indexOf("::");
+		if (compressed != -1 && addr.indexOf("::", compressed + 1) != -1) return false;
+		String head = compressed == -1 ? addr : addr.substring(0, compressed);
+		String tail = compressed == -1 ? "" : addr.substring(compressed + 2);
+		for (String part: new String[] { head, tail }) {
+			if (part.isEmpty()) continue;
+			for (String group: part.split(":", -1)) {
+				if (group.isEmpty() || group.length() > 4) return false;
+				for (int i = 0; i < group.length(); i++) {
+					char c = group.charAt(i);
+					if ((c < '0' || c > '9') && (c < 'a' || c > 'f') && (c < 'A' || c > 'F')) return false;
+				}
+				groups++;
+			}
+		}
+		// RFC 5321: 8 groups, or at most 6 next to "::"
+		return compressed == -1 ? groups == 8 : groups <= 6;
 	}
 
 	/**

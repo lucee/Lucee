@@ -692,6 +692,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				if ("query".equals(data.dbtype)) {
 					QueryImpl q = executeQoQ(pageContext, data, sqlQuery, tl);
 					q.setTemplateLine(tl);
+					if (data.indexName != null) q.index(data.indexName);
 					if (data.returntype == RETURN_TYPE_ARRAY) queryResult = QueryArray.toQueryArray(q); // TODO this should be done in queryExecute
 																										// itself so
 					// we not have to convert afterwards

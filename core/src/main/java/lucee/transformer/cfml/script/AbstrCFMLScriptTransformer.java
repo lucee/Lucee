@@ -2049,7 +2049,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private final Statement __singleAttrStatement(Body parent, Data data, TagLibTag tlt, boolean allowTwiceAttr) throws TemplateException {
 		String tagName = tlt.getName();
 		if (data.srcCode.forwardIfCurrent(tagName)) {
-			if (!data.srcCode.isCurrent(' ') && !data.srcCode.isCurrent(';')) {
+			// the name has to be followed by a space, a line feed, a semicolon or the end of the block
+			if (!data.srcCode.isAfterLast() && !Character.isWhitespace(data.srcCode.getCurrent()) && !data.srcCode.isCurrent(';') && !data.srcCode.isCurrent('}')) {
 				data.srcCode.setPos(data.srcCode.getPos() - tagName.length());
 				return null;
 			}
@@ -2075,7 +2076,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if (attr != null) {
 			attrType = attr.getScriptSupport();
 			char c = data.srcCode.getCurrent();
-			if (ATTR_TYPE_REQUIRED == attrType || (!data.srcCode.isCurrent(';') && ATTR_TYPE_OPTIONAL == attrType)) {
+			// an optional attribute has to be on the same line, a line feed or the end of the block ends the statement (like with return)
+			boolean end = data.srcCode.isCurrent(';') || data.srcCode.isCurrent('}') || data.srcCode.isAfterLast() || data.srcCode.getPosition().line != line.line;
+			if (ATTR_TYPE_REQUIRED == attrType || (!end && ATTR_TYPE_OPTIONAL == attrType)) {
 				if (data.srcCode.isCurrent('{')) {// this can be only a json string
 					int p = data.srcCode.getPos();
 					try {
