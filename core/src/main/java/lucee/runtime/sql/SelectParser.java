@@ -846,6 +846,9 @@ public final class SelectParser {
 				raw.removeSpace();
 				arg.setAlias(identifier(raw, null));
 				raw.removeSpace();
+				// the type used by cast can come with a length or a precision and scale, like varchar(10) or
+				// decimal(10,2). QoQ values have no length, so it is read and ignored
+				typeLength(raw);
 			}
 
 		}
@@ -883,6 +886,18 @@ public final class SelectParser {
 		raw.removeSpace();
 		return new ValueNumber(rtn.toString());
 
+	}
+
+	private void typeLength(ParserString raw) throws SQLParserException {
+		if (!raw.forwardIfCurrent('(')) return;
+		do {
+			raw.removeSpace();
+			if (digit(raw).isEmpty()) throw new SQLParserException("invalid length of a type, a number is expected");
+			raw.removeSpace();
+		}
+		while (raw.forwardIfCurrent(','));
+		if (!raw.forwardIfCurrent(')')) throw new SQLParserException("missing closing ) of the length of a type");
+		raw.removeSpace();
 	}
 
 	private String digit(ParserString raw) {
