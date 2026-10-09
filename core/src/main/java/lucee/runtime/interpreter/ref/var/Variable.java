@@ -61,13 +61,13 @@ public final class Variable extends RefSupport implements Set {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
+		if (limited) throw new SecurityInterpreterException("Dynamic evaluation blocked: variable expansion is not permitted in this context.");
 		return pc.get(parent.getCollection(pc), KeyImpl.init(getKeyAsString(pc)));
 	}
 
 	@Override
 	public Object touchValue(PageContext pc) throws PageException {
-		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
+		if (limited) throw new SecurityInterpreterException("Dynamic evaluation blocked: variable expansion is not permitted in this context.");
 		Object p = parent.touchValue(pc);
 		if (p instanceof Query) {
 			Object o = ((Query) p).getColumn(KeyImpl.init(getKeyAsString(pc)), null);
@@ -80,7 +80,7 @@ public final class Variable extends RefSupport implements Set {
 
 	@Override
 	public Object getCollection(PageContext pc) throws PageException {
-		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
+		if (limited) throw new SecurityInterpreterException("Dynamic evaluation blocked: variable expansion is not permitted in this context.");
 		Object p = parent.getValue(pc);
 		if (p instanceof Query) {
 			return ((Query) p).getColumn(KeyImpl.init(getKeyAsString(pc)));
@@ -90,7 +90,7 @@ public final class Variable extends RefSupport implements Set {
 
 	@Override
 	public Object setValue(PageContext pc, Object obj) throws PageException {
-		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
+		if (limited) throw new SecurityInterpreterException("Dynamic evaluation blocked: variable expansion is not permitted in this context.");
 		return pc.set(parent.touchValue(pc), KeyImpl.init(getKeyAsString(pc)), obj);
 	}
 
