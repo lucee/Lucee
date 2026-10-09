@@ -22,6 +22,9 @@
 package lucee.runtime.functions.international;
 
 import java.text.DateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -72,6 +75,20 @@ public final class LSParseDateTime implements Function {
 		if (oDate instanceof Date) return Caster.toDate(oDate, tz);
 
 		String strDate = StringUtil.replaceSpecialWhiteSpace(Caster.toString(oDate));
+
+		if (format != null && "epoch".equalsIgnoreCase(format.trim())) {
+			Instant instant = Instant.ofEpochMilli(Long.parseLong(oDate.toString()) * 1000);
+			LocalDateTime localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+			strDate = StringUtil.replaceSpecialWhiteSpace(Caster.toString(localDateTime));
+			return DateCaster.toDateTime(locale, strDate, tz, isUSLike(locale));
+		}
+
+		else if (format != null && "epochms".equalsIgnoreCase(format.trim())) {
+			Instant instant = Instant.ofEpochMilli(Long.parseLong(oDate.toString()));
+			LocalDateTime localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+			strDate = StringUtil.replaceSpecialWhiteSpace(Caster.toString(localDateTime));
+			return DateCaster.toDateTime(locale, strDate, tz, isUSLike(locale));
+		}
 
 		// regular parse date time
 		if (StringUtil.isEmpty(format, true)) return DateCaster.toDateTime(locale, strDate, tz, isUSLike(locale));
