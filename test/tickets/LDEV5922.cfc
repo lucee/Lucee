@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax,loop" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" {
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-5922 loops inside a finally block", function() {
