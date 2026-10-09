@@ -65,7 +65,8 @@ public abstract class CacheSupport implements CachePro {
 		while (it.hasNext()) {
 			key = it.next();
 			entry = getQuiet(key, null);
-			if (all || filter.accept(entry)) list.add(key);
+			if (all) list.add(key);
+			else if (entry != null && filter.accept(entry)) list.add(key); // possible that the entry is gone since keys(); call above
 		}
 		return list;
 	}
@@ -102,6 +103,7 @@ public abstract class CacheSupport implements CachePro {
 		CacheEntry entry;
 		while (it.hasNext()) {
 			entry = getQuiet(it.next(), null);
+			if (entry == null) continue; // possible that the entry is gone since keys(); call above
 			if (filter.accept(entry)) list.add(entry);
 		}
 		return list;
@@ -136,6 +138,7 @@ public abstract class CacheSupport implements CachePro {
 		while (it.hasNext()) {
 			key = it.next();
 			entry = getQuiet(key, null);
+			if (entry == null) continue; // possible that the entry is gone since keys(); call above
 			if (filter.accept(entry)) list.add(entry.getValue());
 		}
 		return list;
@@ -175,6 +178,7 @@ public abstract class CacheSupport implements CachePro {
 		while (it.hasNext()) {
 			key = it.next();
 			entry = getQuiet(key, null);
+			if (filter != null && entry == null) continue; // possible that the entry is gone since keys(); call above
 			if (filter == null || filter.accept(entry)) {
 				remove(key);
 				count++;
