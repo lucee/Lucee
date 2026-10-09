@@ -221,15 +221,13 @@ public final class Map extends BIF implements ClosureFunc {
 	}
 
 	private static Query invoke(PageContext pc, Query qry, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures, Query template) throws PageException {
-		Key[] colNames = qry.getColumnNames();
-
 		QueryImpl rtn;
 
 		if (template == null) {
-			rtn = new QueryImpl(colNames, 0, qry.getName());
+			rtn = QueryImpl.newInstanceWithSameColumns(qry, 0, qry.getName());
 		}
 		else {
-			rtn = new QueryImpl(template.getColumnNames(), 0, template.getName());
+			rtn = QueryImpl.newInstanceWithSameColumns(template, 0, template.getName());
 			/*
 			 * // check if we have the necessary columns for(Key colName:colNames) {
 			 * if(rtn.getColumn(colName,null)==null) { rtn.addColumn(colName,new ArrayImpl()); } }
