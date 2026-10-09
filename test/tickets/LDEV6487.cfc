@@ -2,7 +2,8 @@
  * LDEV-6487: on 7.1 / 8.0 isValid( "email" ) used a placeholder regex after the mail code moved to the
  * mail extension. It rejected valid addresses (apostrophe, unicode, quoted local part, IP literal) and
  * accepted invalid ones (dots at the wrong place, no TLD). The expectations below are what 6.2 / 7.0
- * (MailUtil.isValidEmail) return, except the last describe block, where the new check is deliberately stricter.
+ * (MailUtil.isValidEmail) return, except the last describe block, where the new check is deliberately stricter,
+ * and the quoted "a..b" and IPv6 literal cases, which LDEV-3095 made valid (RFC 5321).
  */
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
@@ -80,23 +81,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			it( title="accepts quoted local parts", body=function() {
 				assertValid( [
 					'"john doe"@example.com', '"john"@example.com', '"a\"b"@example.com', '"a\\b"@example.com', '"a@b"@example.com', '"a.b"@example.com',
-					'".a"@example.com', '""@example.com', '"jürgen"@example.com', '"x"@müller.de', '"' & repeatString( "a", 62 ) & '"@example.com'
+					'".a"@example.com', '""@example.com', '"jürgen"@example.com', '"x"@müller.de', '"' & repeatString( "a", 62 ) & '"@example.com',
+					'"a..b"@example.com' // LDEV-3095: consecutive dots are allowed inside quotes (6.2 / 7.0 rejected them)
 				] );
 			});
 
 			it( title="rejects malformed quoted local parts", body=function() {
 				assertInvalid( [
-					'"a"b"@example.com', '"unterminated@example.com', '"a..b"@example.com', '"a' & chr( 10 ) & 'b"@example.com',
+					'"a"b"@example.com', '"unterminated@example.com', '"a' & chr( 10 ) & 'b"@example.com',
 					'"' & repeatString( "a", 63 ) & '"@example.com'
 				] );
 			});
 
 			it( title="accepts IPv4 address literals", body=function() {
 				assertValid( [ "user@[192.168.0.1]", "user@[0.0.0.0]", "user@[255.255.255.255]", '"john doe"@[192.168.0.1]' ] );
+				// LDEV-3095: IPv6 address literals are valid too (6.2 / 7.0 rejected them)
+				assertValid( [ "user@[IPv6:2001:db8::1]" ] );
 			});
 
 			it( title="rejects malformed address literals", body=function() {
-				assertInvalid( [ "user@[IPv6:2001:db8::1]", "user@[192.168.0.1", "user@[192.168.0.1].com", "user@[ 192.168.0.1 ]" ] );
+				assertInvalid( [ "user@[192.168.0.1", "user@[192.168.0.1].com", "user@[ 192.168.0.1 ]" ] );
 			});
 
 			it( title="applies the length limits (local part 64, domain label 63 and domain 255 as punycode)", body=function() {
