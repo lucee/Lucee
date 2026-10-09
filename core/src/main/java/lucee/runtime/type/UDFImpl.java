@@ -131,6 +131,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 		throw new UDFCasterException(this, arg, value, index);
 	}
 
+	// with full null support, a null passed in (explicitly or forwarded via argumentCollection) falls back
+	// to the default value if there is one (ACF compatible), it still counts as passed for required
+	private Object nullOrDefault(PageContext pc, FunctionArgument arg, int index, Object _null) throws PageException {
+		Object d = getDefaultValue(pc, index, _null);
+		if (d == _null || d == null) return null;
+		return castTo(pc, arg, d, index + 1);
+	}
+
 	private void defineArguments(PageContextImpl pc, FunctionArgument[] funcArgs, Object[] args, Argument newArgs) throws PageException {
 		// define argument scope
 		boolean fns = pc.getFullNullSupport();
@@ -139,7 +147,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 		for (int i = 0; i < funcArgs.length; i++) {
 			// argument defined
 			if (args.length > i && (args[i] != null || fns)) {
-				newArgs.setEL(funcArgs[i].getName(), castToAndClone(pc, funcArgs[i], args[i], i + 1, fns));
+				newArgs.setEL(funcArgs[i].getName(), args[i] == null ? nullOrDefault(pc, funcArgs[i], i, _null) : castToAndClone(pc, funcArgs[i], args[i], i + 1, fns));
 			}
 			// argument not defined
 			else {
@@ -148,7 +156,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 					if (funcArgs[i].isRequired()) {
 						throw new ExpressionException("The parameter [" + funcArgs[i].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 					}
-					if (!fns) newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
+					newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
 				}
 				else {
 					newArgs.setEL(funcArgs[i].getName(), castTo(pc, funcArgs[i], d, i + 1));
@@ -174,12 +182,12 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 			name = funcArgs[i].getName();
 			value = values.remove(name, _null);
 			if (value != _null) {
-				newArgs.set(name, castToAndClone(pc, funcArgs[i], value, i + 1, fns));
+				newArgs.set(name, value == null ? nullOrDefault(pc, funcArgs[i], i, _null) : castToAndClone(pc, funcArgs[i], value, i + 1, fns));
 				continue;
 			}
 			value = values.remove(ArgumentIntKey.init(i + 1), _null);
 			if (value != _null) {
-				newArgs.set(name, castToAndClone(pc, funcArgs[i], value, i + 1, fns));
+				newArgs.set(name, value == null ? nullOrDefault(pc, funcArgs[i], i, _null) : castToAndClone(pc, funcArgs[i], value, i + 1, fns));
 				continue;
 			}
 
@@ -189,7 +197,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 				if (funcArgs[i].isRequired()) {
 					throw new ExpressionException("The parameter [" + funcArgs[i].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 				}
-				if (!fns) newArgs.set(name, Argument.NULL);
+				newArgs.set(name, Argument.NULL);
 			}
 			else newArgs.set(name, castTo(pc, funcArgs[i], defaultValue, i + 1));
 		}
@@ -645,6 +653,29 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 
 	@Override
 	public String getCacheId(Collection arguments, String defaultValue) {
+		// build the id from the same argument scope a cached call uses, otherwise cachedWithinFlush/cachedWithinId miss
+		PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
+		if (pc != null) {
+			Argument newArgs = pc.getScopeFactory().getArgumentInstance();
+			try {
+				if (arguments instanceof Struct) {
+					defineArguments(pc, getFunctionArguments(), (Struct) Duplicator.duplicate(arguments, false), newArgs);
+					return CacheHandlerCollectionImpl.createId(this, null, newArgs);
+				}
+				if (Decision.isCastableToArray(arguments)) {
+					Object[] arr = Caster.toNativeArray(arguments, null);
+					if (arr != null) {
+						defineArguments(pc, getFunctionArguments(), arr, newArgs);
+						return CacheHandlerCollectionImpl.createId(this, null, newArgs);
+					}
+				}
+			}
+			catch (PageException pe) {
+			}
+			finally {
+				pc.getScopeFactory().recycle(pc, newArgs);
+			}
+		}
 		if (arguments instanceof Struct) {
 			return CacheHandlerCollectionImpl.createId(this, null, (Struct) arguments);
 		}
