@@ -188,6 +188,7 @@ public final class GetApplicationSettings extends BIF {
 
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
+		sct.setEL("inspectTemplate", ConfigUtil.inspectTemplate(pc.getConfig().getInspectTemplate(), "once"));
 
 		sct.setEL("componentPathCache", Caster.toBoolean(((ConfigPro) pc.getConfig()).useComponentPathCache()));
 		sct.setEL("componentLocalSearch", Caster.toBoolean(((ConfigPro) pc.getConfig()).getComponentLocalSearch()));
