@@ -1,140 +1,58 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true  {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="directory" {
 
 	function beforeAll() {
-		variables.base = GetDirectoryFromPath(getcurrentTemplatepath()) & "LDEV2152\";
-		if( directoryExists( base ) ){
-			directoryDelete (base, true );
-		}
-		directoryCreate( base );
-
-		var dirList = "b,n";
-		loop list="b,n" item="local.index" {
-			directorycreate( base & index );
-			if( index is "b" ){
-				directoryCreate (base & 'b\d' );
-			}
-		}
-
-		loop list="a.txt,c.txt,j.txt" item="local.fn" {
+		variables.base = getTempDirectory() & "LDEV2152-" & createUUID() & "/";
+		directoryCreate( base & "b/d", true, true );
+		directoryCreate( base & "n" );
+		loop list="a.txt,c.txt,j.txt,b/e.txt,b/d/g.txt,b/d/p.txt,n/h.txt,n/o.txt" item="local.fn" {
 			fileWrite( base & fn, "" );
 		}
-		fileWrite( base & 'b\e.txt', "" );
-		filewrite( base & 'b\d\g.txt', "" );
-		filewrite( base & 'b\d\p.txt', "" );
-		filewrite( base & 'n\h.txt', "" );
-		filewrite( base & 'n\o.txt', "" );
-		
-	
-		// systemOutput("----testdata -----", true );
-		var dirList = directorylist( base, true, 'path', '*.txt', 'directory ASC');
-		loop array=dirList item="local.dir" index="local.i" {
-		// 	systemOutput( dir, true );
-		}
-		// systemOutput("---------", true );
 	}
 
-	function run( testResults , testBox ) {
-		describe( "test suite for LDEV-2152", function() {
-			it(title = "recursive directorylist() with attribute listinfo = 'query'", skip=true, body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'query', '*.txt', 'directory ASC');
-				var names = queryColumnData( dirList, "name" );
-				expect( names ).toBe ( [ "a.txt", "c.txt", "j.txt", "e.txt", "g.txt", "p.txt", "h.txt", "o.txt" ] );
+	function afterAll() {
+		if ( directoryExists( base ) ) directoryDelete( base, true );
+	}
+
+	function run( testResults, testBox ) {
+		describe( "LDEV-2152 recursive directoryList() sorted by directory", function() {
+
+			it( title="listInfo=query, sort='directory asc, name asc'", body=function( currentSpec ) {
+				var q = directoryList( base, true, "query", "*.txt", "directory asc, name asc" );
+				expect( queryColumnData( q, "name" ) ).toBe( [ "a.txt", "c.txt", "j.txt", "e.txt", "g.txt", "p.txt", "h.txt", "o.txt" ] );
 			});
 
-			it(title = "recursive directorylist() with attribute listinfo = 'query',sort = 'desc'", skip=true, body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'query', '*.txt', 'directory DESC');
-				var names = queryColumnData( dirList, "name" );
-				expect( names ).toBe(['h.txt','o.txt','g.txt','p.txt','e.txt','a.txt','c.txt','j.txt']);
+			it( title="listInfo=query, sort='directory desc, name asc'", body=function( currentSpec ) {
+				var q = directoryList( base, true, "query", "*.txt", "directory desc, name asc" );
+				expect( queryColumnData( q, "name" ) ).toBe( [ "h.txt", "o.txt", "g.txt", "p.txt", "e.txt", "a.txt", "c.txt", "j.txt" ] );
 			});
 
-			it(title = "recursive directorylist() with attribute listinfo = 'path', sort directory ASC", body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'path', '*.txt', 'directory ASC');
-				dirList = clearDirList( dirList );
-				expect( dirList ).toBe( [ '/a.txt', '/c.txt','/j.txt','/b/e.txt','/b/d/g.txt','/b/d/p.txt','/n/h.txt','/n/o.txt' ] );
+			it( title="listInfo=path, sort='directory asc, name asc'", body=function( currentSpec ) {
+				var arr = directoryList( base, true, "path", "*.txt", "directory asc, name asc" );
+				expect( relative( arr ) ).toBe( [ "/a.txt", "/c.txt", "/j.txt", "/b/e.txt", "/b/d/g.txt", "/b/d/p.txt", "/n/h.txt", "/n/o.txt" ] );
 			});
 
-			it(title = "recursive directorylist() with attribute listinfo = 'path',sort = 'directory desc'", body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'path', '*.txt', 'directory DESC');
-				dirList = clearDirList( dirList );
-				expect ( dirList ).toBe( ['/n/h.txt','/n/o.txt','/b/d/g.txt', '/b/d/p.txt', '/b/e.txt', '/a.txt', '/c.txt', '/j.txt'] );
+			it( title="listInfo=path, sort='directory desc, name asc'", body=function( currentSpec ) {
+				var arr = directoryList( base, true, "path", "*.txt", "directory desc, name asc" );
+				expect( relative( arr ) ).toBe( [ "/n/h.txt", "/n/o.txt", "/b/d/g.txt", "/b/d/p.txt", "/b/e.txt", "/a.txt", "/c.txt", "/j.txt" ] );
 			});
 
-			// fails 5.3
-			it(title = "recursive directorylist() with attribute listinfo = 'name', sort directory ASC", body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'name', '*.txt', 'directory ASC' );
-				expect( dirList ).toBe( ['a.txt', 'c.txt', 'j.txt', 'e.txt', 'g.txt', 'p.txt', 'h.txt', 'o.txt'] );
+			it( title="listInfo=name, sort='directory asc, name asc'", body=function( currentSpec ) {
+				var arr = directoryList( base, true, "name", "*.txt", "directory asc, name asc" );
+				expect( arr ).toBe( [ "a.txt", "c.txt", "j.txt", "e.txt", "g.txt", "p.txt", "h.txt", "o.txt" ] );
 			});
 
-			// fails 5.3
-			it(title = "recursive directorylist() with attribute listinfo = 'name',sort = 'directory desc'", body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'name', '*.txt', 'directory DESC' );
-				expect( dirList ).toBe( [ 'h.txt', 'o.txt', 'g.txt', 'p.txt', 'e.txt', 'a.txt', 'c.txt', 'j.txt' ] );
-			});
-		});
-
-		describe( "test suite for LDEV-3188", function() {
-			//directorylist() - sort order doesn't work properly for listinfo - name.
-
-			it(title = "recursive directorylist() with attribute listinfo = 'name', sort='name'", body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'name', '*.txt', 'name');
-				expect( dirList ).toBe( ['a.txt', 'c.txt', 'e.txt', 'g.txt', 'h.txt', 'j.txt', 'o.txt', 'p.txt'] );
-			});
-
-			it(title = "recursive directorylist() with attribute listinfo = 'name', sort='name asc'", body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'name', '*.txt', 'name asc');
-				expect( dirList ).toBe( ['a.txt', 'c.txt', 'e.txt', 'g.txt', 'h.txt', 'j.txt', 'o.txt', 'p.txt'] );
-			});
-
-			it(title = "recursive directorylist() with attribute listinfo = 'name', sort='name DESC'", body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'name', '*.txt', 'name desc');
-				expect( dirList ).toBe( ['p.txt', 'o.txt', 'j.txt', 'h.txt', 'g.txt', 'e.txt', 'c.txt', 'a.txt'] );
-			});
-
-			it(title = "recursive directorylist() with attribute listinfo = 'path', sort='path DESC'", body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'name', '*.txt', 'name desc');
-				loop array=dirList item="local.dir" index="local.i" {
-					dirList[ local.i ] =  listlast( dir, "LDEV2152" );
-				}
-				expect( dirList ).toBe( ['p.txt', 'o.txt', 'j.txt', 'h.txt', 'g.txt', 'e.txt', 'c.txt', 'a.txt'] );
-			});
-
-			it(title = "recursive directorylist() sort='size'", body = function( currentSpec ) {
-				// systemOutput("============================================================", true);
-				var base = "#getDirectoryFromPath(getCurrentTemplatePath())#\files\";
-
-				if (directoryExists(base)) directoryDelete(base, true);
-
-				if (!directoryExists(base)) directoryCreate(base);
-
-				var a = listToArray( "a,b,c,d,aaaa,aaa,bb" );
-
-				for ( local.i = 1; i lte a.len(); i++ ) {
-					fileWrite( "#base#/#a[i]#.txt", a[ i ] );
-				} 
-				// systemOutput( 'directoryList(base, true, "query", "", "Size")', true );
-				// systemOutput( directoryList(base, true, "query", "", "Size"), true );
-				// systemOutput( 'directoryList(base, true, "path", "", "Size")', true );
-				// systemOutput( directoryList(base, true, "path", "", "Size"), true );
-				// systemOutput( 'directoryList(base, true, "name", "", "Size")', true );
-				// systemOutput( directoryList(base, true, "name", "", "Size"), true );
-
-				if (directoryExists(base)) directoryDelete(base, true);
-				// systemOutput("============================================================", true);
+			it( title="listInfo=name, sort='directory desc, name asc'", body=function( currentSpec ) {
+				var arr = directoryList( base, true, "name", "*.txt", "directory desc, name asc" );
+				expect( arr ).toBe( [ "h.txt", "o.txt", "g.txt", "p.txt", "e.txt", "a.txt", "c.txt", "j.txt" ] );
 			});
 		});
 	}
 
-	private array function clearDirList( required array dirList ) {
-		var clean = [];
-		loop array=#arguments.dirList# item="local.dir" index="local.i" {
-			ArrayAppend(clean, replace( listLast( dir, "LDEV2152" ), "\", "/", "all" ) );
-		}
-		return clean;
-	}
-
-	function afterAll(){
-		if ( directoryExists( base ) ){
-			directoryDelete( base, true) ;
-		}
+	private array function relative( required array paths ) {
+		var root = replace( base, "\", "/", "all" );
+		if ( right( root, 1 ) == "/" ) root = left( root, len( root ) - 1 );
+		return arguments.paths.map( function( p ) {
+			return replace( replace( p, "\", "/", "all" ), root, "" );
+		});
 	}
 }
