@@ -1,15 +1,17 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax,component" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" {
 
 	function beforeAll() {
 		variables.dir = getDirectoryFromPath( getCurrentTemplatePath() ) & "LDEV5533/";
 		afterAll();
 		directoryCreate( variables.dir & "withCfc/", true );
 		directoryCreate( variables.dir & "noCfc/", true );
-		// a component that is literally called "component", and a caller next to it
+		// a component that is literally called "component", and a caller next to it.
+		// "component" also matches the built-in org.lucee.cfml.Component (default import org.lucee.cfml.*),
+		// which wins once it is in the import cache, so the specs compare both spellings instead of expecting this file
 		fileWrite( variables.dir & "withCfc/component.cfc", 'component { function hi() { return "component.cfc"; } }' );
 		fileWrite( variables.dir & "withCfc/Caller.cfc", 'component {
-			function withSpace() { var x = new component (); return x.hi(); }
-			function withoutSpace() { var x = new component(); return x.hi(); }
+			function withSpace() { var x = new component (); return getMetadata( x ).path; }
+			function withoutSpace() { var x = new component(); return getMetadata( x ).path; }
 		}' );
 		// syntax from the ticket, there is no component.cfc in this directory
 		fileWrite( variables.dir & "noCfc/Ticket.cfc", 'component { function make() { cfc = new component () { }; return cfc; } }' );
@@ -39,10 +41,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax,component" 
 				expect( err.message ).notToInclude( "getFactory()" );
 			});
 
-			it( title="new component () with a space creates an instance of component.cfc", body=function( currentSpec ) {
+			it( title="new component () with a space is a regular new, same as new component()", body=function( currentSpec ) {
 				var caller = new LDEV5533.withCfc.Caller();
-				expect( caller.withSpace() ).toBe( "component.cfc" );
-				expect( caller.withoutSpace() ).toBe( "component.cfc" );
+				var withoutSpace = caller.withoutSpace();
+				expect( withoutSpace ).toInclude( "component.cfc" );
+				expect( caller.withSpace() ).toBe( withoutSpace );
 			});
 
 			it( title="inline components still work", body=function( currentSpec ) {
