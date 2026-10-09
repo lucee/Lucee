@@ -70,6 +70,9 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 	private static final Collection.Key TRIES = KeyConstants._tries;
 	private static final Collection.Key TRIES_MAX = KeyConstants._triesmax;
 
+	// an unreadable task file younger than this may still be written, so it is skipped instead of moved aside
+	private static final long BROKEN_GRACE_PERIOD = 60000L;
+
 	private String label;
 
 	// private LinkedList<SpoolerTask> openTaskss=new LinkedList<SpoolerTask>();
@@ -223,24 +226,59 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 			task = (SpoolerTask) ois.readObject();
 		}
-		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			if (t instanceof VirtualMachineError) throw (VirtualMachineError) t;
 			IOUtil.closeEL(is);
 			IOUtil.closeEL(ois);
-			res.delete();
+			moveAside(res, t);
 		}
 		IOUtil.closeEL(is);
 		IOUtil.closeEL(ois);
 		return task;
 	}
 
+	/**
+	 * A task file that cannot be read is not deleted (that may lose a task, e.g. one that is still being
+	 * written or whose classes are not loaded yet). A recent file is skipped and read again on the next
+	 * run, an older one is moved to the "broken" directory next to "open" and "closed", so it is no longer
+	 * read on every run but can still be inspected or restored.
+	 */
+	private void moveAside(Resource res, Throwable t) {
+		if (!res.exists()) return; // removed or renamed by another thread in the meantime
+		if (res.lastModified() + BROKEN_GRACE_PERIOD > System.currentTimeMillis()) {
+			LogUtil.logx(config, Log.LEVEL_DEBUG, "remote-client", "skipping spooler task file [" + res.getAbsolutePath() + "] for now, it cannot be read yet: " + ExceptionUtil.getMessage(t, true),
+					"remoteclient", "application");
+			return;
+		}
+		Resource dir = res.getParentResource().getParentResource().getRealResource("broken");
+		Resource target = dir.getRealResource(res.getName());
+		long size = res.length();
+		try {
+			dir.mkdirs();
+			ResourceUtil.moveTo(res, target, true);
+			LogUtil.logx(config, Log.LEVEL_ERROR, "remote-client", "unable to read spooler task file [" + res.getAbsolutePath() + "] (" + size + " bytes), moved it to ["
+					+ target.getAbsolutePath() + "]: " + ExceptionUtil.getMessage(t, true), "remoteclient", "application");
+		}
+		catch (Exception ee) {
+			LogUtil.logx(config, Log.LEVEL_ERROR, "remote-client", "unable to read spooler task file [" + res.getAbsolutePath() + "]: " + ExceptionUtil.getMessage(t, true)
+					+ "; moving it to [" + target.getAbsolutePath() + "] failed: " + ExceptionUtil.getMessage(ee, true), "remoteclient", "application");
+		}
+	}
+
 	private boolean store(ConfigWeb config, SpoolerTask task) {
 		ObjectOutputStream oos = null;
 		Resource persis = getFile(config, task);
-		if (persis.exists()) persis.delete();
+		// write to a temp file (not matched by the *.tsk filter) and rename it, so the spooler thread or the
+		// admin task list never read a task file that is only partially written
+		Resource tmp = persis.getParentResource().getRealResource(persis.getName() + ".tmp");
 		try {
-			oos = new ObjectOutputStream(persis.getOutputStream());
+			if (tmp.exists()) tmp.delete();
+			oos = new ObjectOutputStream(tmp.getOutputStream());
 			oos.writeObject(task);
+			oos.close();
+			oos = null;
+			tmp.moveTo(persis);
 			return true;
 		}
 		catch (IOException e) {
@@ -250,6 +288,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 					+ "]: " + ExceptionUtil.getMessage(e, true), "remoteclient", "application");
 			IOUtil.closeEL(oos);
 			oos = null;
+			if (tmp.exists()) tmp.delete();
 			if (persis.exists()) persis.delete();
 			return false;
 		}
