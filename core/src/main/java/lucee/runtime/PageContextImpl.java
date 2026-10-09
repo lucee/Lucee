@@ -4347,7 +4347,8 @@ public final class PageContextImpl extends PageContext {
 
 	public void resetSession() {
 		if (this.session != null && this.session instanceof JSession) {
-			getSession().invalidate();
+			HttpSession httpSession = getHttpServletRequest().getSession(false);
+			if (httpSession != null) httpSession.invalidate();
 		}
 		this.session = null;
 	}
