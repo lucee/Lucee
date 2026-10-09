@@ -2031,6 +2031,27 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 		return indexes;
 	}
 
+	/**
+	 * indexes the rows of an already populated query by the values of the given column, like
+	 * fillResult does it for a query read from a ResultSet (LDEV-5360)
+	 * 
+	 * @param indexName column to index
+	 */
+	public void index(Collection.Key indexName) {
+		this.indexName = indexName;
+		Map<Collection.Key, Integer> map = new ConcurrentHashMap<Collection.Key, Integer>();
+		QueryColumn column = getColumn(indexName, null);
+		if (column != null) {
+			int rc = getRecordcount();
+			Collection.Key k;
+			for (int row = 1; row <= rc; row++) {
+				k = Caster.toKey(column.get(row, null), null);
+				if (k != null) map.put(k, row);
+			}
+		}
+		this.indexes = map;
+	}
+
 	@Override
 	public String getData(int row, int col) throws IndexOutOfBoundsException {
 		Collection.Key[] keys = keys();
