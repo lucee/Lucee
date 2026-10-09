@@ -4470,12 +4470,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// server context
 			if (config instanceof ConfigServer) {
 				boolean captcha = Caster.toBooleanValue(getAttr(root, "loginCaptcha"), false);
+				String captchaDifficulty = getAttr(root, "loginCaptchaDifficulty");
 				boolean rememberme = Caster.toBooleanValue(getAttr(root, "loginRememberme"), true);
 
 				int delay = Caster.toIntValue(getAttr(root, "loginDelay"), 1);
 				ConfigServerImpl cs = (ConfigServerImpl) config;
 				cs.setLoginDelay(delay);
 				cs.setLoginCaptcha(captcha);
+				cs.setLoginCaptchaDifficulty(captchaDifficulty);
 				cs.setRememberMe(rememberme);
 			}
 		}

@@ -581,6 +581,7 @@
       "unequalpasswords": "The new password and the reentered password are not the same",
       "useCaptcha": "Captcha",
       "useCaptchaDesc": "Use Captcha in the login to make sure the form is submitted by a human.",
+      "CaptchaDifficulty": "Captcha difficulty",
       "web": "Web",
       "ww": "one Week",
       "yyyy": "one Year"

@@ -829,6 +829,8 @@ public interface Config {
 
 	public boolean getLoginCaptcha();
 
+	public String getLoginCaptchaDifficulty();
+
 	public boolean getRememberMe();
 
 	public boolean getFullNullSupport();

@@ -1924,7 +1924,7 @@ component {
 	* @captcha Use Captcha in the login to make sure the form is submitted by a human.
 	* @delay Sets the delay between login attempts. This is a global setting for all user requests.
 	*/
-	public void function updateLoginSettings( boolean rememberMe, boolean captcha, numeric delay ){
+	public void function updateLoginSettings( boolean rememberMe, boolean captcha, string captchaDifficulty, numeric delay ){
 		var existing = getLoginSettings();
 		admin
 			action="updateLoginSettings"
@@ -1932,6 +1932,7 @@ component {
 			password="#variables.password#"
 			rememberme=isNull(arguments.rememberme) || isEmpty(arguments.rememberme) ? existing.rememberme : arguments.rememberme
 			captcha=isNull(arguments.captcha) || isEmpty(arguments.captcha) ? existing.captcha : arguments.captcha
+			captchaDifficulty=isNull(arguments.captchaDifficulty) || isEmpty(arguments.captchaDifficulty) ? existing.captchaDifficulty : arguments.captchaDifficulty
 			delay=isNull(arguments.delay) || isEmpty(arguments.delay) ? existing.delay : arguments.delay;
 	}
 

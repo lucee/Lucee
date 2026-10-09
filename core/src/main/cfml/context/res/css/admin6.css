@@ -465,6 +465,19 @@ td.fieldPadded {
 	 * padding:2px 0 5px 0;
 	*/
 }
+/* captcha difficulty group */
+.captcha-difficulty-group {
+    gap: 1em;
+    display: flex;
+    align-items: flex-start;
+}
+
+.captcha-difficulty-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 25px;
+}
 
 .admin-single th {
 	background-color: rgba(95, 135, 49, 0.1);
