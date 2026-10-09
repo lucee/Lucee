@@ -25,9 +25,14 @@ on:
         required: false
         type: string
 
-#concurrency:
-#  group: ${{ github.head_ref }}
-#  cancel-in-progress: true
+# Run builds of the same ref one after another, so every merge on a release branch
+# resolves its own revision (max tag + 1) after the previous build has tagged.
+# PRs have their own ref (refs/pull/N/merge), so they are not blocked by branch builds.
+# queue: max keeps up to 100 pending runs (default would keep only one and cancel older pending runs).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
 
 jobs:
   build:
