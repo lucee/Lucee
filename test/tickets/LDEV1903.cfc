@@ -2,7 +2,7 @@
  * LDEV-1903: cfpop getAll, looping over message.cids and reading message.cids[key] throws "key [...] not found".
  * Uses the pop + smtp test services (greenmail in CI, auth disabled so every login creates its own mailbox).
  */
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,mail" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 
 	variables.popCfg = server.getTestService( "pop" );
 	variables.smtpCfg = server.getTestService( "smtp" );
