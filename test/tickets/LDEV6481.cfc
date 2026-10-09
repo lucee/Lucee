@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="component,gateway" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="component" {
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-6481 ConfigImpl.getBaseComponentPageSource() when Component.cfc is not deployed yet", function() {
