@@ -1465,8 +1465,9 @@ public abstract class AbstrCFMLExprTransformer {
 			return null;
 		}
 
-		return new FunctionAsExpression(
-				lambdaPart(data, "lambda_" + CreateUniqueId.invoke(), Component.ACCESS_PUBLIC, Component.MODIFIER_NONE, "any", data.srcCode.getPosition(), args));
+		Function func = lambdaPart(data, "lambda_" + CreateUniqueId.invoke(), Component.ACCESS_PUBLIC, Component.MODIFIER_NONE, "any", data.srcCode.getPosition(), args);
+		func.setParent(data.getParent());
+		return new FunctionAsExpression(func);
 	}
 
 	protected abstract Function lambdaPart(Data data, String id, int access, int modifier, String rtnType, Position line, ArrayList<lucee.transformer.statement.Argument> args)
