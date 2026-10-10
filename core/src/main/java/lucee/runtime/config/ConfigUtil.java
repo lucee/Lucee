@@ -1402,10 +1402,17 @@ public final class ConfigUtil {
 			}
 		}
 		Mapping[] thisMappings = config.getMappings();
+		// LDEV-6483 the root mapping is the one with virtual "/", not the last one. The server config has no "/" mapping
+		// and its mappings have no defined order, so the last mapping (e.g. /lucee-server) was never checked
+		Mapping rootMapping = rootApp;
 
 		// config mappings
-		for (int i = 0; i < thisMappings.length - 1; i++) {
+		for (int i = 0; i < thisMappings.length; i++) {
 			mapping = thisMappings[i];
+			if ("/".equals(mapping.getVirtual())) {
+				if (rootMapping == null) rootMapping = mapping;
+				continue;
+			}
 			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
 				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
 				if (onlyPhysicalExisting) {
@@ -1415,9 +1422,8 @@ public final class ConfigUtil {
 			}
 		}
 
-		if (useDefaultMapping) {
-			if (rootApp != null) mapping = rootApp;
-			else mapping = thisMappings[thisMappings.length - 1];
+		if (useDefaultMapping && (rootMapping != null || thisMappings.length > 0)) {
+			mapping = rootMapping != null ? rootMapping : thisMappings[thisMappings.length - 1];
 
 			ps = mapping.getPageSource(realPath);
 			if (onlyPhysicalExisting) {
