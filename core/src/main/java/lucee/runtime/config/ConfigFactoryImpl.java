@@ -3794,7 +3794,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 	}
 
-	public static void loadProxy(ConfigServerImpl config, Struct root) {
+	public static ProxyData loadProxy(ConfigImpl config, Struct root) {
 		try {
 			boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 			Struct proxy = ConfigUtil.getAsStruct("proxy", root);
@@ -3826,14 +3826,14 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 				ProxyDataImpl pd = (ProxyDataImpl) ProxyDataImpl.getInstance(server, port, username, password);
 				pd.setExcludes(excludes);
 				pd.setIncludes(includes);
-				config.setProxyData(pd);
-
+				return pd;
 			}
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			log(config, t);
 		}
+		return null;
 	}
 
 	public static boolean loadError(ConfigImpl config, Struct root, boolean defaultValue) {

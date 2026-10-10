@@ -321,6 +321,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private ResourceProvider defaultResourceProvider;
 
 	private ProxyData proxy = null;
+	private boolean initProxy = true;
 
 	private Resource clientScopeDir;
 	private Resource sessionScopeDir;
@@ -3144,14 +3145,27 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	@Override
 	public ProxyData getProxyData() {
+		if (initProxy) {
+			synchronized (SystemUtil.createToken("ConfigImpl", "getProxyData")) {
+				if (initProxy) {
+					proxy = ConfigFactoryImpl.loadProxy(this, root);
+					initProxy = false;
+				}
+			}
+		}
 		return proxy;
 	}
 
-	/**
-	 * @param proxy the proxyPassword to set
-	 */
-	protected void setProxyData(ProxyData proxy) {
-		this.proxy = proxy;
+	public ConfigImpl resetProxyData() {
+		if (!initProxy) {
+			synchronized (SystemUtil.createToken("ConfigImpl", "getProxyData")) {
+				if (!initProxy) {
+					proxy = null;
+					initProxy = true;
+				}
+			}
+		}
+		return this;
 	}
 
 	@Override
