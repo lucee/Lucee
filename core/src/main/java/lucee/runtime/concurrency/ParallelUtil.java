@@ -48,8 +48,11 @@ public final class ParallelUtil {
 	 * </ul>
 	 * 
 	 * the boolean values "true"/"false" are deprecated and only kept for backward compatibility; "false"
-	 * maps to {@link #PARALLEL_NONE} and "true" follows the same gating as the cfthread tag's [virtual]
-	 * attribute ({@link #PARALLEL_VIRTUAL} when {@link ThreadUtil#ALLOW_VIRTUAL_THREADS} is true, otherwise {@link #PARALLEL_THREAD}).
+	 * maps to {@link #PARALLEL_NONE} and "true" maps to {@link #PARALLEL_VIRTUAL} when
+	 * {@link ThreadUtil#ALLOW_VIRTUAL_THREADS} is true (Java 21+ and the system property / environment
+	 * variable "lucee.allow.virtual.threads" not set to false, it defaults to true), otherwise to
+	 * {@link #PARALLEL_THREAD}. This is independent of "lucee.thread.virtual", which only sets the
+	 * default for the cfthread tag's [virtual] attribute.
 	 * 
 	 * @param parallel the raw argument value
 	 * @return the matching parallel mode
@@ -64,8 +67,9 @@ public final class ParallelUtil {
 		Boolean b = Caster.toBoolean(str, null);
 		if (b != null) {
 			if (!b.booleanValue()) return PARALLEL_NONE;
-			// "true" follows the same gating as cfthread's [virtual] attribute — VTs only when ThreadUtil deems them safe
-			// (Java 25+ and lucee.allow.virtual.threads not disabled), matching 7.1 behaviour.
+			// "true" uses virtual threads when ThreadUtil.ALLOW_VIRTUAL_THREADS is true (Java 21+ and
+			// lucee.allow.virtual.threads not set to false, default is true), otherwise platform threads.
+			// Note: 7.1 only did this on Java 25+ with lucee.allow.virtual.threads=true (default false).
 			return ThreadUtil.ALLOW_VIRTUAL_THREADS ? PARALLEL_VIRTUAL : PARALLEL_THREAD;
 		}
 

@@ -723,7 +723,7 @@
 	{
 		"sysprop": "lucee.maven.default.repositories",
 		"envvar": "LUCEE_MAVEN_DEFAULT_REPOSITORIES",
-		"desc": "Specifies a comma-separated list of Maven repository URLs to use before the default repositories (Maven Central, Sonatype, JCenter). This allows customizing the Maven repositories used by Lucee for downloading dependencies. URL must include a trailing /",
+		"desc": "Kept from Lucee 7 for backward compatibility, prefer `maven.repository` in .CFConfig.json; only used when no release repository is configured (`maven.repository` / `lucee.mvn.repo.releases`). Specifies a comma-separated list of Maven repository URLs to use before the default repositories (Maven Central, Google Maven Central mirror, Lucee repository). This allows customizing the Maven repositories used by Lucee for downloading dependencies. URL must include a trailing /",
 		"category": "osgi",
 		"type": "string",
 		"default": null
@@ -1341,6 +1341,14 @@
 		"type": "boolean",
 		"introduced": "7.0.0.334",
 		"default": false
+	},
+	{
+		"sysprop": "lucee.allow.virtual.threads",
+		"envvar": "LUCEE_ALLOW_VIRTUAL_THREADS",
+		"desc": "Allows Lucee to use Java virtual threads internally and for the deprecated `parallel=true` argument of the parallel iteration functions (arrayEach, structEach, ...). When `true` (default) and running on Java 21 or newer, `parallel=true` runs on virtual threads, set to `false` to use platform threads instead. Explicit modes (`parallel=\"thread\"`, `parallel=\"virtual\"`) are not affected",
+		"category": "performance",
+		"type": "boolean",
+		"default": true
 	},
 	{
 		"sysprop": "lucee.threads.maxDefault",
