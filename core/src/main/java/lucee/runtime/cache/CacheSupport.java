@@ -55,7 +55,7 @@ public abstract class CacheSupport implements CachePro {
 
 	@Override
 	public List<String> keys(CacheEntryFilter filter) throws IOException {
-		boolean all = CacheUtil.allowAll(filter);
+		if (CacheUtil.allowAll(filter)) return keys();
 
 		List<String> keys = keys();
 		List<String> list = new ArrayList<String>();
@@ -65,7 +65,7 @@ public abstract class CacheSupport implements CachePro {
 		while (it.hasNext()) {
 			key = it.next();
 			entry = getQuiet(key, null);
-			if (all || filter.accept(entry)) list.add(key);
+			if (entry != null && filter.accept(entry)) list.add(key); // possible that the entry is gone since keys(); call above
 		}
 		return list;
 	}
@@ -102,6 +102,7 @@ public abstract class CacheSupport implements CachePro {
 		CacheEntry entry;
 		while (it.hasNext()) {
 			entry = getQuiet(it.next(), null);
+			if (entry == null) continue; // possible that the entry is gone since keys(); call above
 			if (filter.accept(entry)) list.add(entry);
 		}
 		return list;
@@ -136,6 +137,7 @@ public abstract class CacheSupport implements CachePro {
 		while (it.hasNext()) {
 			key = it.next();
 			entry = getQuiet(key, null);
+			if (entry == null) continue; // possible that the entry is gone since keys(); call above
 			if (filter.accept(entry)) list.add(entry.getValue());
 		}
 		return list;
@@ -175,7 +177,8 @@ public abstract class CacheSupport implements CachePro {
 		while (it.hasNext()) {
 			key = it.next();
 			entry = getQuiet(key, null);
-			if (filter == null || filter.accept(entry)) {
+			if (entry == null) continue; // possible that the entry is gone since keys(); call above
+			if (filter.accept(entry)) {
 				remove(key);
 				count++;
 			}
