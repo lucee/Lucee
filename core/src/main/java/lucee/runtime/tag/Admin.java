@@ -5193,6 +5193,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateProxy(getBool("admin", action, "proxyenabled"), getString("admin", action, "proxyserver"), getInt("admin", action, "proxyport"),
 				getString("admin", action, "proxyusername"), getString("admin", action, "proxypassword"));
 		store();
+		ConfigUtil.getConfigServerImpl(config).resetProxyData();
 	}
 
 	private void doUpdateCharset() throws PageException {
