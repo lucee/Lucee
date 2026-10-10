@@ -5,6 +5,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 	variables.allKeys = [ "k1", "k2", "k3", "k4", "k5" ];
 
 	function beforeAll() {
+		try {
+			variables.prevQueryCache = cacheGetDefaultCacheName( "query" );
+		}
+		catch ( any e ) {
+			variables.prevQueryCache = "";
+		}
+		variables.ramCaches = {};
 		var caches = {};
 		caches[ variables.cacheName ] = {
 			class: "lucee.runtime.cache.ram.RamCache",
@@ -20,6 +27,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 			cacheClear( cacheName=variables.cacheName );
 		}
 		catch ( any e ) {}
+		for ( var n in variables.ramCaches ) variables.ramCaches[ n ].release();
+		if ( len( variables.prevQueryCache ) ) {
+			application action="update" caches={ "query": variables.prevQueryCache };
+		}
 	}
 
 	function run( testResults, testBox ) {
@@ -59,11 +70,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 			});
 
 			it( title="RamCache remove(CacheEntryFilter) passes the stored entry, not a decoupled copy", body=function( currentSpec ) {
-				var cache = newCache();
+				var cache = newCache( "decoupled" );
 				cache.decouple();
 				// decouple() applies to puts too, so add the entries afterwards
-				cache.clear();
-				for ( var k in variables.allKeys ) cache.put( k, { "key": k }, javacast( "null", "" ), javacast( "null", "" ) );
+				fillCache( cache );
 
 				var first = newFilter( cache, false, false );
 				cache.remove( first.proxy );
@@ -96,11 +106,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 		});
 	}
 
-	private function newCache() {
-		var cache = createObject( "java", "lucee.runtime.cache.ram.RamCache" ).init();
-		cache.init( javacast( "long", 0 ), javacast( "long", 0 ), javacast( "int", 60 ) );
-		for ( var k in variables.allKeys ) cache.put( k, { "key": k }, javacast( "null", "" ), javacast( "null", "" ) );
-		return cache;
+	// one RamCache per name, each starts a cleaner thread, so reuse and release them in afterAll
+	private function newCache( string name="default" ) {
+		if ( !structKeyExists( variables.ramCaches, arguments.name ) ) {
+			var cache = createObject( "java", "lucee.runtime.cache.ram.RamCache" ).init();
+			cache.init( javacast( "long", 0 ), javacast( "long", 0 ), javacast( "int", 60 ) );
+			variables.ramCaches[ arguments.name ] = cache;
+		}
+		return fillCache( variables.ramCaches[ arguments.name ] );
+	}
+
+	private function fillCache( required cache ) {
+		arguments.cache.clear();
+		for ( var k in variables.allKeys ) arguments.cache.put( k, { "key": k }, javacast( "null", "" ), javacast( "null", "" ) );
+		return arguments.cache;
 	}
 
 	private struct function newFilter( required cache, boolean result=true, boolean removeOther=true ) {
