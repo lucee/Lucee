@@ -379,6 +379,23 @@ public class Prop<T> {
 		return null;
 	}
 
+	/**
+	 * @param root the config root struct
+	 * @return true when this property is explicitly defined, either via one of its system properties /
+	 *         environment variables or via one of its keys in the config (inside the parent struct when
+	 *         a parent is defined)
+	 */
+	public boolean isDefined(Struct root) {
+		if (getEnvVarSystemPropSource() != null) return true;
+		if (root == null) return false;
+		Struct data = parent == null ? root : ConfigUtil.getAsStruct(parent, root);
+		if (data == null) return false;
+		for (String key: keys) {
+			if (!StringUtil.isEmpty(data.get(KeyImpl.init(key), null))) return true;
+		}
+		return false;
+	}
+
 	private T get(ConfigServerImpl config, String key, Object val, short source) throws PageException {
 		// only string values can contain placeholders (${...}); resolve them before evaluating
 		if (Decision.isSimpleValue(val) && val instanceof String) {
