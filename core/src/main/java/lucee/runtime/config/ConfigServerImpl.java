@@ -1318,6 +1318,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private List<ExtensionDefintion> extensions;
 	private RHExtension[] extensionsX;
 	private int extensionsLoadCount = 0;
+	private Map<String, RHExtension> extensionsLoading;
 
 	private static Prop<ResourceProviderDef> metaDefaultResourceProviderDef = Prop.custom(ResourceProviderDefFactory.getInstance(false)).keys("defaultResourceProvider")
 			.description("Defines the primary Resource Provider for the engine, responsible for handling standard file system operations. "
@@ -4818,6 +4819,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (extensionsX == null) {
 			synchronized (SystemUtil.createToken("config", "extensions")) {
 				if (extensionsX == null) {
+					// re-entered by the loading thread, e.g. uninstalling an orphaned extension asks for the other installed extensions (LDEV-6462)
+					if (extensionsLoading != null) return extensionsLoading.values().toArray(new RHExtension[extensionsLoading.size()]);
 					boolean firstLoad = extensionsLoadCount == 0;
 					Log log = getLog("deploy");
 					extensionsLoadCount++;
@@ -4825,122 +4828,128 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					if (LogUtil.doesInfo(log)) log.info("extensions", "Loading " + definitions.size() + " extension definitions from config");
 					// print.e(extensions);
 					Map<String, RHExtension> exts = new HashMap<>();
-					{
-						RHExtension ext;
-						for (ExtensionDefintion ed: definitions) {
-							try {
-								if (LogUtil.doesDebug(log)) log.debug("extensions", "Converting extension definition: " + ed);
-								ext = ed.toRHExtension(this);
-								if (!ext.installed()) {
-									if (LogUtil.doesInfo(log)) log.info("extensions", "Deploying extension: " + ext.getId() + " v" + ext.getVersion());
-									DeployHandler.deployExtension(this, ext, false, false, log);
-								}
-								if (LogUtil.doesDebug(log)) log.debug("extensions", "Added extension: " + ext.getStorageName());
-								exts.put(ext.getStorageName(), ext);
-							}
-							catch (Exception ex) {
-								if (LogUtil.doesError(log)) {
-									log.error("start-bundles", ex);
-								}
-							}
-
-						}
-					}
-
-					// start bundles in parallel but wait for them to finish
-					CountDownLatch latch = new CountDownLatch(exts.size());
-					try (ExecutorService executor = ThreadUtil.createExecutorService()) {
-
-						for (RHExtension ext: exts.values()) {
-							executor.submit(() -> {
+					extensionsLoading = exts;
+					try {
+						{
+							RHExtension ext;
+							for (ExtensionDefintion ed: definitions) {
 								try {
-									// Call the startBundles method for each extension
-									startBundles(this, ext, firstLoad);
+									if (LogUtil.doesDebug(log)) log.debug("extensions", "Converting extension definition: " + ed);
+									ext = ed.toRHExtension(this);
+									if (!ext.installed()) {
+										if (LogUtil.doesInfo(log)) log.info("extensions", "Deploying extension: " + ext.getId() + " v" + ext.getVersion());
+										DeployHandler.deployExtension(this, ext, false, false, log);
+									}
+									if (LogUtil.doesDebug(log)) log.debug("extensions", "Added extension: " + ext.getStorageName());
+									exts.put(ext.getStorageName(), ext);
 								}
 								catch (Exception ex) {
 									if (LogUtil.doesError(log)) {
 										log.error("start-bundles", ex);
+									}
+								}
+
+							}
+						}
+
+						// start bundles in parallel but wait for them to finish
+						CountDownLatch latch = new CountDownLatch(exts.size());
+						try (ExecutorService executor = ThreadUtil.createExecutorService()) {
+
+							for (RHExtension ext: exts.values()) {
+								executor.submit(() -> {
+									try {
+										// Call the startBundles method for each extension
+										startBundles(this, ext, firstLoad);
+									}
+									catch (Exception ex) {
+										if (LogUtil.doesError(log)) {
+											log.error("start-bundles", ex);
+										}
+									}
+									finally {
+										// Count down the latch regardless of success or failure
+										latch.countDown();
+									}
+								});
+							}
+
+							// Wait for all virtual threads to complete
+							try {
+								latch.await();
+							}
+							catch (InterruptedException e) {
+								Thread.currentThread().interrupt();
+								throw new RuntimeException("Interrupted while waiting for extension processing", e);
+							}
+						}
+
+						// uninstall extensions no longer used
+						Boolean cleanupExtension = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cleanup.extension", null), true);
+						if (cleanupExtension) {
+
+							List<lucee.runtime.extension.RHExtensionCollection.Entry> installedExtensions = RHExtension.getInstalledExtensions(this);
+							if (!installedExtensions.isEmpty()) {
+								ResetFilter filter = null;
+								try {
+
+									for (lucee.runtime.extension.RHExtensionCollection.Entry entry: installedExtensions) {
+										if (!exts.containsKey(entry.getFilename())) {
+											// is it installed in a different version what should not happen
+											RHExtension other = RHExtension.getInstalledDifferentVersion(this, entry.getRHExtension().toExtensionDefinition(), log);
+											if (other != null) {
+
+												if (LogUtil.doesError(log)) {
+													log.error("start-bundles",
+															"Found the extension [" + entry.getFilename() + "] in the installed folder what is installed in a different version");
+												}
+												try {
+													entry.getRHExtension().delete(this, log);
+												}
+												catch (Exception ex) {
+													if (LogUtil.doesError(log)) {
+														log.error("start-bundles", ex);
+													}
+												}
+											}
+											else {
+
+												if (LogUtil.doesInfo(log)) {
+													log.info("start-bundles", "Found the extension [" + entry.getRHExtension().toExtensionDefinition()
+															+ "] in the installed folder that is not present in the configuration in any version, so we will uninstall it");
+												}
+
+												try {
+													if (filter == null) filter = new ResetFilter();
+													ConfigAdmin._removeRHExtension(this, entry.getRHExtension(), null, filter, true, log);
+													if (LogUtil.doesInfo(log)) {
+														log.info("start-bundles", "removed extension [" + entry.getRHExtension().toExtensionDefinition() + "]");
+													}
+												}
+												catch (PageException ex) {
+													LogUtil.log("deploy", "start-bundles", ex);
+												}
+											}
+										}
 									}
 								}
 								finally {
-									// Count down the latch regardless of success or failure
-									latch.countDown();
-								}
-							});
-						}
-
-						// Wait for all virtual threads to complete
-						try {
-							latch.await();
-						}
-						catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-							throw new RuntimeException("Interrupted while waiting for extension processing", e);
-						}
-					}
-
-					// uninstall extensions no longer used
-					Boolean cleanupExtension = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cleanup.extension", null), true);
-					if (cleanupExtension) {
-
-						List<lucee.runtime.extension.RHExtensionCollection.Entry> installedExtensions = RHExtension.getInstalledExtensions(this);
-						if (!installedExtensions.isEmpty()) {
-							ResetFilter filter = null;
-							try {
-
-								for (lucee.runtime.extension.RHExtensionCollection.Entry entry: installedExtensions) {
-									if (!exts.containsKey(entry.getFilename())) {
-										// is it installed in a different version what should not happen
-										RHExtension other = RHExtension.getInstalledDifferentVersion(this, entry.getRHExtension().toExtensionDefinition(), log);
-										if (other != null) {
-
-											if (LogUtil.doesError(log)) {
-												log.error("start-bundles",
-														"Found the extension [" + entry.getFilename() + "] in the installed folder what is installed in a different version");
-											}
-											try {
-												entry.getRHExtension().delete(this, log);
-											}
-											catch (Exception ex) {
-												if (LogUtil.doesError(log)) {
-													log.error("start-bundles", ex);
-												}
-											}
-										}
-										else {
-
-											if (LogUtil.doesInfo(log)) {
-												log.info("start-bundles", "Found the extension [" + entry.getRHExtension().toExtensionDefinition()
-														+ "] in the installed folder that is not present in the configuration in any version, so we will uninstall it");
-											}
-
-											try {
-												if (filter == null) filter = new ResetFilter();
-												ConfigAdmin._removeRHExtension(this, entry.getRHExtension(), null, filter, true, log);
-												if (LogUtil.doesInfo(log)) {
-													log.info("start-bundles", "removed extension [" + entry.getRHExtension().toExtensionDefinition() + "]");
-												}
-											}
-											catch (PageException ex) {
-												LogUtil.log("deploy", "start-bundles", ex);
-											}
+									try {
+										if (filter != null) filter.reset(this);
+									}
+									catch (Exception ex) {
+										if (LogUtil.doesError(log)) {
+											log.error("start-bundles", ex);
 										}
 									}
 								}
 							}
-							finally {
-								try {
-									if (filter != null) filter.reset(this);
-								}
-								catch (Exception ex) {
-									if (LogUtil.doesError(log)) {
-										log.error("start-bundles", ex);
-									}
-								}
-							}
 						}
+						extensionsX = exts.values().toArray(new RHExtension[exts.size()]);
 					}
-					extensionsX = exts.values().toArray(new RHExtension[exts.size()]);
+					finally {
+						extensionsLoading = null;
+					}
 				}
 			}
 		}
