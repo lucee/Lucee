@@ -437,7 +437,7 @@ All elements in the array must contain values that can be converted to numeric.<
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -500,7 +500,7 @@ All elements in the array must contain values that can be converted to numeric.<
 			<default>false</default>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -540,7 +540,7 @@ All elements in the array must contain values that can be converted to numeric.<
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -732,7 +732,7 @@ Remember CFML arrays start at 1 not 0.</description>
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -772,7 +772,7 @@ Remember CFML arrays start at 1 not 0.</description>
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -834,7 +834,7 @@ Remember CFML arrays start at 1 not 0.</description>
 			<default>false</default>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -876,7 +876,7 @@ Remember CFML arrays start at 1 not 0.</description>
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -924,7 +924,7 @@ Remember CFML arrays start at 1 not 0.</description>
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -14520,7 +14520,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -14560,7 +14560,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -14599,7 +14599,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -14637,7 +14637,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -14676,7 +14676,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -14907,7 +14907,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -14947,7 +14947,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -14987,7 +14987,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -15050,7 +15050,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<default>false</default>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -15090,7 +15090,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -15130,7 +15130,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -15169,7 +15169,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -15210,7 +15210,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -15272,7 +15272,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<default>false</default>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -15312,7 +15312,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
@@ -15352,7 +15352,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parallel</name>
 			<type>string</type>
 			<required>No</required>
-			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
 			<name>maxConcurrency</name>
