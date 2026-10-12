@@ -121,6 +121,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private boolean monitoringEnabled = false;
 	private int delay = 1;
 	private boolean captcha = false;
+	private String captchaDifficulty = "medium";
 	private boolean rememberMe = true;
 	// private static ConfigServerImpl instance;
 
@@ -489,6 +490,10 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		this.captcha = captcha;
 	}
 
+	protected void setLoginCaptchaDifficulty(String captchaDifficulty) {
+		this.captchaDifficulty = captchaDifficulty;
+	}
+
 	protected void setRememberMe(boolean rememberMe) {
 		this.rememberMe = rememberMe;
 	}
@@ -501,6 +506,11 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	@Override
 	public boolean getLoginCaptcha() {
 		return captcha;
+	}
+
+	@Override
+	public String getLoginCaptchaDifficulty() {
+		return (captchaDifficulty == null || captchaDifficulty.isEmpty()) ? "medium" : captchaDifficulty;
 	}
 
 	@Override

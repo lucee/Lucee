@@ -4703,8 +4703,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateLoginSettings() throws PageException {
 		boolean rememberMe = getBool("admin", "UpdateLoginSettings", "rememberme");
 		boolean captcha = getBool("admin", "UpdateLoginSettings", "captcha");
+		String captchaDifficulty = getString("admin", "UpdateLoginSettings", "captchaDifficulty");
 		int delay = getInt("admin", "UpdateLoginSettings", "delay");
-		admin.updateLoginSettings(captcha, rememberMe, delay);
+		admin.updateLoginSettings(captcha, captchaDifficulty, rememberMe, delay);
 		store();
 	}
 
@@ -5226,6 +5227,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ConfigPro c = (ConfigPro) ThreadLocalPageContext.getConfig(config);
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 		sct.set("captcha", Caster.toBoolean(c.getLoginCaptcha()));
+		sct.set("captchaDifficulty", Caster.toString(c.getLoginCaptchaDifficulty(), "medium"));
 		sct.set("delay", Caster.toDouble(c.getLoginDelay()));
 		sct.set("rememberme", Caster.toBoolean(c.getRememberMe()));
 		if (c instanceof ConfigWebPro) {

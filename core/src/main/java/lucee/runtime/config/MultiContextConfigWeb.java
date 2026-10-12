@@ -343,6 +343,11 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 	}
 
 	@Override
+	public String getLoginCaptchaDifficulty() {
+		return configServer.getLoginCaptchaDifficulty();
+	}
+
+	@Override
 	public boolean getRememberMe() {
 		return configServer.getRememberMe();
 	}
