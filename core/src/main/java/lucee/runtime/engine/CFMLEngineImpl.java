@@ -137,6 +137,7 @@ import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.HttpServletRequestDummy;
 import lucee.runtime.net.http.HttpServletResponseDummy;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.mvn.MavenDeployer;
 import lucee.runtime.op.CastImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.CreationImpl;
@@ -429,6 +430,17 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		boolean isRe = configDir == null ? false : ConfigFactory.isRequiredExtension(this, configDir, null);
 		boolean installExtensions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.install", null), true);
+
+		// deploy maven artifacts bundled with the core, needed by the bundled extensions
+		if (updateInfo.updateType != ConfigFactory.NEW_NONE) {
+			try {
+				ClassLoader mcl = CFMLEngineFactory.getInstance().getCFMLEngineFactory().getClass().getClassLoader();
+				MavenDeployer.deployBundled(cs.getMavenDir(), mcl, cs.getLog("deploy"));
+			}
+			catch (Exception e) {
+				LogUtil.log(LOG_NAME, LOG_TYPE_NAME, e);
+			}
+		}
 
 		// copy bundled extension to local extension directory (if never done before)
 		if (installExtensions && updateInfo.updateType != ConfigFactory.NEW_NONE) {

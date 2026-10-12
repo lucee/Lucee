@@ -111,6 +111,7 @@ import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.gateway.GatewayEntryImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.monitor.Monitor;
+import lucee.runtime.mvn.MavenDeployer;
 import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.GAVSO;
 import lucee.runtime.net.proxy.ProxyData;
@@ -5357,8 +5358,7 @@ public final class ConfigAdmin {
 	}
 
 	void updateMaven(InputStream is, String realpath, boolean closeStream, boolean store, Log log) throws IOException {
-		Resource dir = config.getMavenDir();
-		Resource localFile = write(config.getMavenDir(), is, realpath, closeStream, false);
+		Resource localFile = MavenDeployer.deploy(config.getMavenDir(), is, realpath, closeStream, false);
 		if (localFile != null) {
 			log.info("extension", "created file [" + localFile + "] provided by the extension");
 		}
