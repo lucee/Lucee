@@ -999,7 +999,8 @@ public final class MavenUtil {
 	 * String format (Gradle style): groupId:artifactId[:version[:classifier]][@extension]. A known
 	 * scope (compile, provided, runtime, test, system, import) in 4th position is the legacy form
 	 * groupId:artifactId:version:scope[:optional[:checksum]], otherwise the 4th part is the classifier
-	 * and further parts are scope[:optional[:checksum]].
+	 * and further parts are scope[:optional[:checksum]]. A classifier that equals a scope name (for
+	 * example "test") cannot be expressed in the string form, use the struct form for that.
 	 */
 	private static MavenCoordinate parseCoordinate(Object obj, boolean strict) throws ApplicationException {
 		if (obj instanceof MavenCoordinate) return (MavenCoordinate) obj;
@@ -1041,11 +1042,12 @@ public final class MavenUtil {
 				str = str.substring(0, at);
 			}
 			String[] arr = ListUtil.listToStringArray(str, ':');
-			if (arr.length > 1 && arr.length < 8) {
-				int index = 3;
-				String classifier = null;
-				// a known scope in 4th position keeps its legacy meaning (scope[:optional[:checksum]]), anything else is the classifier
-				if (arr.length > index && toScope(arr[index].trim(), -1) == -1) classifier = arr[index++].trim();
+			int index = 3;
+			String classifier = null;
+			// a known scope in 4th position keeps its legacy meaning (scope[:optional[:checksum]]), anything else is the classifier
+			if (arr.length > index && toScope(arr[index].trim(), -1) == -1) classifier = arr[index++].trim();
+			boolean validScope = arr.length <= index || toScope(arr[index].trim(), -1) != -1;
+			if (arr.length > 1 && arr.length < 8 && validScope) {
 				return new MavenCoordinate(
 
 						arr[0].trim(), // group

@@ -124,6 +124,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mvn" {
 				}).toThrow();
 			});
 
+			it( title="an unknown scope after the classifier throws", body=function() {
+				expect( function() {
+					parse( "a:b:1:foo:bar" );
+				}).toThrow();
+			});
+
+			it( title="a classifier named like a scope is possible in the struct form", body=function() {
+				var g = parse( { groupId: "a", artifactId: "b", version: "1", classifier: "test" } );
+				expect( g.classifier ).toBe( "test" );
+				expect( g.toStruct( g ).keyExists( "scope" ) ).toBeFalse();
+			});
+
 			it( title="invalid input throws", body=function() {
 				expect( function() {
 					parse( "justone" );
