@@ -825,6 +825,7 @@
       <jvmarg value="-DluceeCore=${trgLoader}/${version}.lco"/>
       <jvmarg value="-DtrgLoader=${trgLoader}"/>
       <jvmarg value="-DluceeVersion=${version}"/>
+      <jvmarg value="-DluceePom=${rootDir}/loader/.flattened-pom.xml"/>
       <!--
       <jvmarg value="-Dlucee.cascading.write.to.variables.log=deploy"/>
       <jvmarg value="-Dfelix.log.level=debug"/>
