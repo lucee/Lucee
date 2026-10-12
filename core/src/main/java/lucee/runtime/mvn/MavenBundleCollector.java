@@ -47,7 +47,7 @@ public final class MavenBundleCollector {
 			if (!args[i].contains("://")) continue;
 			repos.add(args[i].endsWith("/") ? args[i] : args[i] + "/");
 		}
-		if (repos.isEmpty()) repos.add("https://repo1.maven.org/maven2/");
+		if (repos.isEmpty()) throw new IOException("no repository url defined, pass at least one repository url as argument");
 
 		File extensions = args.length > 3 && !args[3].contains("://") ? new File(args[3]) : null;
 
@@ -122,7 +122,14 @@ public final class MavenBundleCollector {
 				ZipEntry entry = entries.nextElement();
 				String name = entry.getName();
 				if (entry.isDirectory() || !name.startsWith("maven/") || name.endsWith(".sha1")) continue;
-				Path dest = root.resolve(name.substring(6)).normalize();
+				String rel = name.substring(6);
+				// extensions may contain files outside the repository layout (for example a copy of their own pom
+				// directly in "maven/"), those cannot be resolved by Maven and are ignored
+				if (!MavenDeployer.isRepositoryPath(rel)) {
+					System.out.println("  ignoring [" + name + "] in [" + lex.getName() + "], not in group/artifact/version layout");
+					continue;
+				}
+				Path dest = root.resolve(rel).normalize();
 				if (!dest.startsWith(root)) throw new IOException("invalid entry [" + name + "] in [" + lex + "]");
 				byte[] data;
 				try (InputStream is = zip.getInputStream(entry)) {
