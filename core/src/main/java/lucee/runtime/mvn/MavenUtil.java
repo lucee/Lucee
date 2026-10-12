@@ -247,7 +247,13 @@ public final class MavenUtil {
 			o = resolvePlaceholders(current, o, properties);
 		}
 
-		return POM.getInstance(localDirectory, current.getRepositories(), g, a, v, s, o, null, current.getDependencyScope(), current.getDependencyScopeManagement(), false, log);
+		String classifier = rd.classifier;
+		if (classifier != null) {
+			classifier = resolvePlaceholders(current, classifier, properties);
+		}
+
+		return POM.getInstance(localDirectory, current.getRepositories(), g, a, v, classifier, s, o, null, current.getDependencyScope(), current.getDependencyScopeManagement(), false,
+				log);
 	}
 
 	public static class GAVSO implements Serializable {
@@ -257,27 +263,34 @@ public final class MavenUtil {
 		public final String g;// groupId
 		public final String a;// artifactId
 		public final String v;// version
+		public final String classifier;
+		public final String extension;// packaging, null when implied by the context
 		public final String s;// scope
 		public final String o;// optional
-		public final String c;// checksum
+		public final String checksum;
 		private int d;// dependency
 
 		public GAVSO(String g, String a, String v) {
-			this.g = g;
-			this.a = a;
-			this.v = v;
-			this.s = null;
-			this.o = null;
-			this.c = null;
+			this(g, a, v, null, null, null, null, null);
 		}
 
-		public GAVSO(String g, String a, String v, String s, String o, String c) {
+		public GAVSO(String g, String a, String v, String classifier) {
+			this(g, a, v, classifier, null, null, null, null);
+		}
+
+		public GAVSO(String g, String a, String v, String s, String o, String checksum) {
+			this(g, a, v, null, null, s, o, checksum);
+		}
+
+		public GAVSO(String g, String a, String v, String classifier, String extension, String s, String o, String checksum) {
 			this.g = g;
 			this.a = a;
 			this.v = v;
+			this.classifier = StringUtil.isEmpty(classifier, true) ? null : classifier.trim();
+			this.extension = StringUtil.isEmpty(extension, true) ? null : extension.trim();
 			this.s = s;
 			this.o = o;
-			this.c = c;
+			this.checksum = checksum;
 		}
 
 		public GAVSO setDependency(int d) {
@@ -289,30 +302,20 @@ public final class MavenUtil {
 			return d;
 		}
 
+		/**
+		 * Gradle style: g:a:v[:classifier][@extension]
+		 */
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder();
-
-			if (!StringUtil.isEmpty(g, true)) sb.append(g);
-			if (!StringUtil.isEmpty(a, true)) {
-				if (sb.length() > 0) sb.append(':');
-				sb.append(a);
-			}
-			if (!StringUtil.isEmpty(v, true)) {
-				if (sb.length() > 0) sb.append(':');
-				sb.append(v);
-			}
-			if (!StringUtil.isEmpty(s, true)) {
-				if (sb.length() > 0) sb.append(':');
-				sb.append(s);
-			}
-			if (!StringUtil.isEmpty(o, true)) {
-				if (sb.length() > 0) sb.append(':');
-				sb.append(o);
-			}
+			StringBuilder sb = new StringBuilder(toGAVC());
+			if (extension != null) sb.append('@').append(extension);
 			return sb.toString();
 		}
 
+		/**
+		 * g:a:v, the classifier is not part of it (a classified artifact shares the POM of the main
+		 * artifact)
+		 */
 		public String toGAV() {
 			StringBuilder sb = new StringBuilder();
 
@@ -326,6 +329,15 @@ public final class MavenUtil {
 				sb.append(v);
 			}
 			return sb.toString();
+		}
+
+		/**
+		 * g:a:v[:classifier]
+		 */
+		public String toGAVC() {
+			String gav = toGAV();
+			if (classifier == null) return gav;
+			return gav + ":" + classifier;
 		}
 
 		private String toGA() {
@@ -342,7 +354,12 @@ public final class MavenUtil {
 		@Override
 		public boolean equals(Object other) {
 			if (!(other instanceof GAVSO)) return false;
-			return toGAV().equals(((GAVSO) other).toGAV());
+			return toGAVC().equals(((GAVSO) other).toGAVC());
+		}
+
+		@Override
+		public int hashCode() {
+			return toGAVC().hashCode();
 		}
 
 		/**
@@ -359,9 +376,11 @@ public final class MavenUtil {
 			if (!StringUtil.isEmpty(g, true)) sct.setEL(KeyConstants._groupId, g);
 			if (!StringUtil.isEmpty(a, true)) sct.setEL(KeyConstants._artifactId, a);
 			if (!StringUtil.isEmpty(v, true)) sct.setEL(KeyConstants._version, v);
+			if (classifier != null) sct.setEL(KeyConstants._classifier, classifier);
+			if (extension != null) sct.setEL(KeyConstants._extension, extension);
 			if (!StringUtil.isEmpty(s, true)) sct.setEL(KeyConstants._scope, s);
 			if (!StringUtil.isEmpty(o, true)) sct.setEL(KeyConstants._optional, o);
-			if (!StringUtil.isEmpty(c, true)) sct.setEL(KeyConstants._checksum, c);
+			if (!StringUtil.isEmpty(checksum, true)) sct.setEL(KeyConstants._checksum, checksum);
 			return sct;
 		}
 
@@ -604,8 +623,7 @@ public final class MavenUtil {
 								+ "(environment variables: LUCEE_MAVEN_DOWNLOAD_POLICY_STARTUP / LUCEE_MAVEN_DOWNLOAD_POLICY_RUNTIME) to 'warn' or 'ignore'.");
 					}
 
-					String scriptName = pom.getGroupId().replace('.', '/') + "/" + pom.getArtifactId() + "/" + pom.getVersion() + "/" + pom.getArtifactId() + "-" + pom.getVersion()
-							+ "." + type;
+					String scriptName = pom.toScriptName(type);
 					StringBuilder info = null;
 					StringBuilder failureSummary = null;
 					Exception lastException = null;
@@ -644,7 +662,7 @@ public final class MavenUtil {
 							try {
 								if (isSnap) {
 									RepoReader repoReader = new RepoReader(r.url, pom.getGroupId(), pom.getArtifactId(), version);
-									Map<String, Object> result = repoReader.read(type);
+									Map<String, Object> result = repoReader.read(type, "pom".equalsIgnoreCase(type) ? null : pom.getClassifier());
 									// result is null when the repo has no snapshot metadata for this artifact (404/not found);
 									// leave url null so we fall through to the direct artifact URL (yielding a clean 404, not an NPE)
 									String strUrl = result == null ? null : Caster.toString(result.get(type));
@@ -945,6 +963,24 @@ public final class MavenUtil {
 	}
 
 	public static GAVSO toGAVSO(Object obj, GAVSO defaultValue) {
+		try {
+			GAVSO gavso = parseGAVSO(obj, false);
+			return gavso == null ? defaultValue : gavso;
+		}
+		catch (ApplicationException ae) {
+			return defaultValue;
+		}
+	}
+
+	public static GAVSO toGAVSO(Object obj) throws ApplicationException {
+		return parseGAVSO(obj, true);
+	}
+
+	/**
+	 * String format (Gradle style): groupId:artifactId[:version[:classifier]][@extension]. Scope,
+	 * optional and checksum are only available in the struct form.
+	 */
+	private static GAVSO parseGAVSO(Object obj, boolean strict) throws ApplicationException {
 		if (obj instanceof GAVSO) return (GAVSO) obj;
 
 		Struct el = Caster.toStruct(obj, null, false);
@@ -959,81 +995,32 @@ public final class MavenUtil {
 				if (StringUtil.isEmpty(v, true)) v = Caster.toString(el.get(KeyConstants._v, null), null);
 				if (StringUtil.isEmpty(v, true)) v = null;
 
-				return new GAVSO(g, a,
-
-						v,
-
-						Caster.toString(el.get(KeyConstants._scope, null), null),
-
-						Caster.toString(el.get(KeyConstants._optional, null), null),
-
+				return new GAVSO(g, a, v, Caster.toString(el.get(KeyConstants._classifier, null), null), Caster.toString(el.get(KeyConstants._extension, null), null),
+						Caster.toString(el.get(KeyConstants._scope, null), null), Caster.toString(el.get(KeyConstants._optional, null), null),
 						Caster.toString(el.get(KeyConstants._checksum, null), null));
 			}
 
 			// single entry with gradle style?
 			String m = Caster.toString(el.get(KeyConstants._maven, null), null);
-			if (!StringUtil.isEmpty(m, true)) {
-				return toGAVSO(m, defaultValue);
-			}
-			return defaultValue;
-		}
-		// gradle style?
-		String str = Caster.toString(obj, null);
-		if (!StringUtil.isEmpty(str)) {
-			String[] arr = ListUtil.listToStringArray(str, ':');
-			if (arr.length > 1 && arr.length < 7) {
-				return new GAVSO(
+			if (!StringUtil.isEmpty(m, true)) return parseGAVSO(m, strict);
 
-						arr[0].trim(), // group
-
-						arr[1].trim(), // artifact
-
-						arr.length > 2 ? arr[2].trim() : null, // version
-
-						arr.length > 3 ? arr[3].trim() : null, // scope
-
-						arr.length > 4 ? arr[4].trim() : null, // optional
-
-						arr.length > 5 ? arr[5].trim() : null // checksum
-
-				);
-			}
-		}
-
-		return defaultValue;
-	}
-
-	public static GAVSO toGAVSO(Object obj) throws ApplicationException {
-		Struct el = Caster.toStruct(obj, null);
-		if (el != null) {
-			String g = Caster.toString(el.get(KeyConstants._groupId, null), null);
-			if (StringUtil.isEmpty(g)) g = Caster.toString(el.get(KeyConstants._g, null), null);
+			if (!strict) return null;
 			if (StringUtil.isEmpty(g)) throw new ApplicationException("Missing required field: groupId. Ensure that the 'groupId' key is present and not empty.");
-
-			String a = Caster.toString(el.get(KeyConstants._artifactId, null), null);
-			if (StringUtil.isEmpty(a)) a = Caster.toString(el.get(KeyConstants._a, null), null);
-			if (StringUtil.isEmpty(a)) throw new ApplicationException("Missing required field: artifactId. Ensure that the 'artifactId' key is present and not empty.");
-
-			String v = Caster.toString(el.get(KeyConstants._version, null), null);
-			if (StringUtil.isEmpty(v, true)) v = Caster.toString(el.get(KeyConstants._v, null), null);
-			if (StringUtil.isEmpty(v, true)) v = null;
-
-			return new GAVSO(g, a, v,
-
-					Caster.toString(el.get(KeyConstants._scope, null), null),
-
-					Caster.toString(el.get(KeyConstants._optional, null), null),
-
-					Caster.toString(el.get(KeyConstants._checksum, null), null)
-
-			);
-
+			throw new ApplicationException("Missing required field: artifactId. Ensure that the 'artifactId' key is present and not empty.");
 		}
+
 		// gradle style?
 		String str = Caster.toString(obj, null);
 		if (!StringUtil.isEmpty(str)) {
+			str = str.trim();
+			String extension = null;
+			int at = str.lastIndexOf('@');
+			if (at != -1) {
+				extension = str.substring(at + 1).trim();
+				str = str.substring(0, at);
+			}
 			String[] arr = ListUtil.listToStringArray(str, ':');
-			if (arr.length > 1 && arr.length < 7) {
+			if (arr.length > 1 && arr.length < 5) {
 				return new GAVSO(
 
 						arr[0].trim(), // group
@@ -1042,20 +1029,17 @@ public final class MavenUtil {
 
 						arr.length > 2 ? arr[2].trim() : null, // version
 
-						arr.length > 3 ? arr[3].trim() : null, // scope
+						arr.length > 3 ? arr[3].trim() : null, // classifier
 
-						arr.length > 4 ? arr[4].trim() : null, // optional
-
-						arr.length > 5 ? arr[5].trim() : null // checksum
-
-				);
+						extension, null, null, null);
 			}
-			throw new ApplicationException("Invalid Maven data in string [" + str + "]. " + "Expected format: '<group>:<artifact>:<version>[:<scope>[:<optional>]]'.");
+			if (!strict) return null;
+			throw new ApplicationException("Invalid Maven data in string [" + str + "]. Expected format: '<group>:<artifact>:<version>[:<classifier>][@<extension>]'.");
 		}
-		throw new ApplicationException("Unable to parse Maven data from the provided input of type [" + Caster.toTypeName(obj) + "]. " + "Supported formats are: "
-				+ "1) A Struct with keys 'groupId', 'artifactId', and 'version' (optionally 'scope' and 'optional'), or "
-				+ "2) A String in the format 'group:artifact:version[:scope[:optional]]'. " + "Ensure the input conforms to one of these formats.");
-
+		if (!strict) return null;
+		throw new ApplicationException("Unable to parse Maven data from the provided input of type [" + Caster.toTypeName(obj) + "]. Supported formats are: "
+				+ "1) A Struct with keys 'groupId', 'artifactId', and 'version' (optionally 'classifier', 'extension', 'scope', 'optional' and 'checksum'), or "
+				+ "2) A String in the format 'group:artifact:version[:classifier][@extension]'. Ensure the input conforms to one of these formats.");
 	}
 
 	// LDEV-6250: not called — Maven does not restrict version format (see

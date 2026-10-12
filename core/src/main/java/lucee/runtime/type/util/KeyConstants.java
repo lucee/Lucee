@@ -980,6 +980,8 @@ public final class KeyConstants {
 	public static final Key _system = init("system");
 	public static final Key _filecontent = init("filecontent");
 	public static final Key _checksum = init("checksum");
+	public static final Key _classifier = init("classifier");
+	public static final Key _extension = init("extension");
 	public static final Key _tries = init("tries");
 	public static final Key _interval = init("interval");
 	public static final Key _intervall = init("intervall");

@@ -216,6 +216,8 @@ public final class POMReader extends DefaultHandler {
 				else if ("version".equals(name)) dependency.version = content.toString().trim();
 				else if ("scope".equals(name)) dependency.scope = content.toString().trim();
 				else if ("optional".equals(name)) dependency.optional = content.toString().trim();
+				else if ("classifier".equals(name)) dependency.classifier = content.toString().trim();
+				else if ("type".equals(name)) dependency.type = content.toString().trim();
 				else if (debug) aprint.e("!!!!!!! ==>" + name + ":" + content.toString().trim());
 			}
 			else if (insideRepositories && repository != null) {
@@ -232,6 +234,8 @@ public final class POMReader extends DefaultHandler {
 				else if ("version".equals(name)) dependencyManagement.version = content.toString().trim();
 				else if ("scope".equals(name)) dependencyManagement.scope = content.toString().trim();
 				else if ("optional".equals(name)) dependencyManagement.optional = content.toString().trim();
+				else if ("classifier".equals(name)) dependencyManagement.classifier = content.toString().trim();
+				else if ("type".equals(name)) dependencyManagement.type = content.toString().trim();
 				else if (debug) aprint.e("xxxxxx ==>" + name + ":" + content.toString().trim());
 			}
 		}
@@ -304,10 +308,12 @@ public final class POMReader extends DefaultHandler {
 		public String version;
 		public String scope;
 		public String optional;
+		public String classifier;
+		public String type;
 
 		@Override
 		public String toString() {
-			return "groupId:" + groupId + ";artifactId:" + artifactId + ";version:" + version + ";scope:" + scope + ";optional:" + optional;
+			return "groupId:" + groupId + ";artifactId:" + artifactId + ";version:" + version + ";classifier:" + classifier + ";scope:" + scope + ";optional:" + optional;
 		}
 	}
 
