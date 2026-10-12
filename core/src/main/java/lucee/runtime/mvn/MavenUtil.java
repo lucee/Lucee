@@ -247,40 +247,72 @@ public final class MavenUtil {
 			o = resolvePlaceholders(current, o, properties);
 		}
 
-		return POM.getInstance(localDirectory, current.getRepositories(), g, a, v, s, o, null, current.getDependencyScope(), current.getDependencyScopeManagement(), false, log);
+		String classifier = rd.classifier;
+		if (classifier != null) {
+			classifier = resolvePlaceholders(current, classifier, properties);
+		}
+
+		// type: test-jar is the jar with the classifier "tests", pom/zip/... have an extension of their own
+		String extension = null;
+		String type = rd.type == null ? null : resolvePlaceholders(current, rd.type, properties);
+		if (!StringUtil.isEmpty(type, true)) {
+			type = type.trim().toLowerCase();
+			if ("test-jar".equals(type)) {
+				if (StringUtil.isEmpty(classifier, true)) classifier = "tests";
+			}
+			else if ("javadoc".equals(type)) {
+				if (StringUtil.isEmpty(classifier, true)) classifier = "javadoc";
+			}
+			else if ("java-source".equals(type)) {
+				if (StringUtil.isEmpty(classifier, true)) classifier = "sources";
+			}
+			else if (!"jar".equals(type) && !"bundle".equals(type) && !"maven-plugin".equals(type) && !"ejb".equals(type) && !"ejb-client".equals(type)) {
+				extension = type;
+			}
+		}
+
+		return POM.getInstance(localDirectory, current.getRepositories(), g, a, v, classifier, extension, s, o, null, current.getDependencyScope(),
+				current.getDependencyScopeManagement(), false, log);
 	}
 
-	public static class GAVSO implements Serializable {
+	public static class MavenCoordinate implements Serializable {
 
 		public static int ORIGIN_DEPENDENCY = 1;
 
-		public final String g;// groupId
-		public final String a;// artifactId
-		public final String v;// version
-		public final String s;// scope
-		public final String o;// optional
-		public final String c;// checksum
+		public final String groupId;// groupId
+		public final String artifactId;// artifactId
+		public final String version;// version
+		public final String classifier;
+		public final String extension;// packaging, null when implied by the context
+		public final String scope;// scope
+		public final String optional;// optional
+		public final String checksum;
 		private int d;// dependency
 
-		public GAVSO(String g, String a, String v) {
-			this.g = g;
-			this.a = a;
-			this.v = v;
-			this.s = null;
-			this.o = null;
-			this.c = null;
+		public MavenCoordinate(String groupId, String artifactId, String version) {
+			this(groupId, artifactId, version, null, null, null, null, null);
 		}
 
-		public GAVSO(String g, String a, String v, String s, String o, String c) {
-			this.g = g;
-			this.a = a;
-			this.v = v;
-			this.s = s;
-			this.o = o;
-			this.c = c;
+		public MavenCoordinate(String groupId, String artifactId, String version, String classifier) {
+			this(groupId, artifactId, version, classifier, null, null, null, null);
 		}
 
-		public GAVSO setDependency(int d) {
+		public MavenCoordinate(String groupId, String artifactId, String version, String scope, String optional, String checksum) {
+			this(groupId, artifactId, version, null, null, scope, optional, checksum);
+		}
+
+		public MavenCoordinate(String groupId, String artifactId, String version, String classifier, String extension, String scope, String optional, String checksum) {
+			this.groupId = groupId;
+			this.artifactId = artifactId;
+			this.version = version;
+			this.classifier = StringUtil.isEmpty(classifier, true) ? null : classifier.trim();
+			this.extension = StringUtil.isEmpty(extension, true) ? null : extension.trim();
+			this.scope = scope;
+			this.optional = optional;
+			this.checksum = checksum;
+		}
+
+		public MavenCoordinate setDependency(int d) {
 			this.d = d;
 			return this;
 		}
@@ -289,60 +321,64 @@ public final class MavenUtil {
 			return d;
 		}
 
+		/**
+		 * Gradle style: g:a:v[:classifier][@extension]
+		 */
 		@Override
 		public String toString() {
+			StringBuilder sb = new StringBuilder(toGAVC());
+			if (extension != null) sb.append('@').append(extension);
+			return sb.toString();
+		}
+
+		/**
+		 * g:a:v, the classifier is not part of it (a classified artifact shares the POM of the main
+		 * artifact)
+		 */
+		public String toGAV() {
 			StringBuilder sb = new StringBuilder();
 
-			if (!StringUtil.isEmpty(g, true)) sb.append(g);
-			if (!StringUtil.isEmpty(a, true)) {
+			if (!StringUtil.isEmpty(groupId, true)) sb.append(groupId);
+			if (!StringUtil.isEmpty(artifactId, true)) {
 				if (sb.length() > 0) sb.append(':');
-				sb.append(a);
+				sb.append(artifactId);
 			}
-			if (!StringUtil.isEmpty(v, true)) {
+			if (!StringUtil.isEmpty(version, true)) {
 				if (sb.length() > 0) sb.append(':');
-				sb.append(v);
-			}
-			if (!StringUtil.isEmpty(s, true)) {
-				if (sb.length() > 0) sb.append(':');
-				sb.append(s);
-			}
-			if (!StringUtil.isEmpty(o, true)) {
-				if (sb.length() > 0) sb.append(':');
-				sb.append(o);
+				sb.append(version);
 			}
 			return sb.toString();
 		}
 
-		public String toGAV() {
-			StringBuilder sb = new StringBuilder();
-
-			if (!StringUtil.isEmpty(g, true)) sb.append(g);
-			if (!StringUtil.isEmpty(a, true)) {
-				if (sb.length() > 0) sb.append(':');
-				sb.append(a);
-			}
-			if (!StringUtil.isEmpty(v, true)) {
-				if (sb.length() > 0) sb.append(':');
-				sb.append(v);
-			}
-			return sb.toString();
+		/**
+		 * g:a:v[:classifier]
+		 */
+		public String toGAVC() {
+			String gav = toGAV();
+			if (classifier == null) return gav;
+			return gav + ":" + classifier;
 		}
 
 		private String toGA() {
 			StringBuilder sb = new StringBuilder();
 
-			if (!StringUtil.isEmpty(g, true)) sb.append(g);
-			if (!StringUtil.isEmpty(a, true)) {
+			if (!StringUtil.isEmpty(groupId, true)) sb.append(groupId);
+			if (!StringUtil.isEmpty(artifactId, true)) {
 				if (sb.length() > 0) sb.append(':');
-				sb.append(a);
+				sb.append(artifactId);
 			}
 			return sb.toString();
 		}
 
 		@Override
 		public boolean equals(Object other) {
-			if (!(other instanceof GAVSO)) return false;
-			return toGAV().equals(((GAVSO) other).toGAV());
+			if (!(other instanceof MavenCoordinate)) return false;
+			return toGAVC().equals(((MavenCoordinate) other).toGAVC());
+		}
+
+		@Override
+		public int hashCode() {
+			return toGAVC().hashCode();
 		}
 
 		/**
@@ -351,38 +387,40 @@ public final class MavenUtil {
 		 * @param other
 		 * @return
 		 */
-		public boolean same(GAVSO other) {
+		public boolean same(MavenCoordinate other) {
 			return toGA().equals(other.toGA());
 		}
 
 		public Struct populate(Struct sct) {
-			if (!StringUtil.isEmpty(g, true)) sct.setEL(KeyConstants._groupId, g);
-			if (!StringUtil.isEmpty(a, true)) sct.setEL(KeyConstants._artifactId, a);
-			if (!StringUtil.isEmpty(v, true)) sct.setEL(KeyConstants._version, v);
-			if (!StringUtil.isEmpty(s, true)) sct.setEL(KeyConstants._scope, s);
-			if (!StringUtil.isEmpty(o, true)) sct.setEL(KeyConstants._optional, o);
-			if (!StringUtil.isEmpty(c, true)) sct.setEL(KeyConstants._checksum, c);
+			if (!StringUtil.isEmpty(groupId, true)) sct.setEL(KeyConstants._groupId, groupId);
+			if (!StringUtil.isEmpty(artifactId, true)) sct.setEL(KeyConstants._artifactId, artifactId);
+			if (!StringUtil.isEmpty(version, true)) sct.setEL(KeyConstants._version, version);
+			if (classifier != null) sct.setEL(KeyConstants._classifier, classifier);
+			if (extension != null) sct.setEL(KeyConstants._extension, extension);
+			if (!StringUtil.isEmpty(scope, true)) sct.setEL(KeyConstants._scope, scope);
+			if (!StringUtil.isEmpty(optional, true)) sct.setEL(KeyConstants._optional, optional);
+			if (!StringUtil.isEmpty(checksum, true)) sct.setEL(KeyConstants._checksum, checksum);
 			return sct;
 		}
 
-		public static Struct toStruct(GAVSO gavso) {
-			return gavso.populate(new StructImpl(Struct.TYPE_LINKED));
+		public static Struct toStruct(MavenCoordinate coordinate) {
+			return coordinate.populate(new StructImpl(Struct.TYPE_LINKED));
 		}
 
-		public static Array toArray(List<GAVSO> list) {
+		public static Array toArray(List<MavenCoordinate> list) {
 			ArrayImpl arr = new ArrayImpl();
 			if (list == null || list.isEmpty()) return arr;
-			for (GAVSO gavso: list) {
-				arr.appendEL(gavso.populate(new StructImpl(Struct.TYPE_LINKED)));
+			for (MavenCoordinate coordinate: list) {
+				arr.appendEL(coordinate.populate(new StructImpl(Struct.TYPE_LINKED)));
 			}
 			return arr;
 		}
 
-		public static Array toArray(GAVSO[] list) {
+		public static Array toArray(MavenCoordinate[] list) {
 			ArrayImpl arr = new ArrayImpl();
 			if (list == null || list.length == 0) return arr;
-			for (GAVSO gavso: list) {
-				arr.appendEL(gavso.populate(new StructImpl(Struct.TYPE_LINKED)));
+			for (MavenCoordinate coordinate: list) {
+				arr.appendEL(coordinate.populate(new StructImpl(Struct.TYPE_LINKED)));
 			}
 			return arr;
 		}
@@ -390,22 +428,22 @@ public final class MavenUtil {
 		/**
 		 * same group and artifact id, but version MAY differ
 		 * 
-		 * @param gavso
+		 * @param coordinate
 		 * @return
 		 */
-		public boolean equalID(GAVSO other) {
-			if (!g.equalsIgnoreCase(other.g)) return false;
-			if (!a.equalsIgnoreCase(other.a)) return false;
+		public boolean equalID(MavenCoordinate other) {
+			if (!groupId.equalsIgnoreCase(other.groupId)) return false;
+			if (!artifactId.equalsIgnoreCase(other.artifactId)) return false;
 			return true;
 		}
 
-		public boolean equalIDAndVersion(GAVSO other) {
-			if (!v.equalsIgnoreCase(other.v)) return false;
+		public boolean equalIDAndVersion(MavenCoordinate other) {
+			if (!version.equalsIgnoreCase(other.version)) return false;
 			return equalID(other);
 		}
 
 		public boolean isValid() {
-			return (!StringUtil.isEmpty(g, true) && !StringUtil.isEmpty(a, true) && !StringUtil.isEmpty(v, true));
+			return (!StringUtil.isEmpty(groupId, true) && !StringUtil.isEmpty(artifactId, true) && !StringUtil.isEmpty(version, true));
 		}
 	}
 
@@ -604,8 +642,7 @@ public final class MavenUtil {
 								+ "(environment variables: LUCEE_MAVEN_DOWNLOAD_POLICY_STARTUP / LUCEE_MAVEN_DOWNLOAD_POLICY_RUNTIME) to 'warn' or 'ignore'.");
 					}
 
-					String scriptName = pom.getGroupId().replace('.', '/') + "/" + pom.getArtifactId() + "/" + pom.getVersion() + "/" + pom.getArtifactId() + "-" + pom.getVersion()
-							+ "." + type;
+					String scriptName = pom.toScriptName(type);
 					StringBuilder info = null;
 					StringBuilder failureSummary = null;
 					Exception lastException = null;
@@ -644,7 +681,7 @@ public final class MavenUtil {
 							try {
 								if (isSnap) {
 									RepoReader repoReader = new RepoReader(r.url, pom.getGroupId(), pom.getArtifactId(), version);
-									Map<String, Object> result = repoReader.read(type);
+									Map<String, Object> result = repoReader.read(type, "pom".equalsIgnoreCase(type) ? null : pom.getClassifier());
 									// result is null when the repo has no snapshot metadata for this artifact (404/not found);
 									// leave url null so we fall through to the direct artifact URL (yielding a clean 404, not an NPE)
 									String strUrl = result == null ? null : Caster.toString(result.get(type));
@@ -883,14 +920,14 @@ public final class MavenUtil {
 		}
 	}
 
-	public static List<GAVSO> toGAVSOs(Object obj, List<GAVSO> defaultValue) {
+	public static List<MavenCoordinate> toCoordinates(Object obj, List<MavenCoordinate> defaultValue) {
 		// array
-		List<GAVSO> list = new ArrayList<>();
+		List<MavenCoordinate> list = new ArrayList<>();
 		Object[] arr = Caster.toNativeArray(obj, null);
 		if (arr != null) {
-			GAVSO tmp;
+			MavenCoordinate tmp;
 			for (Object o: arr) {
-				tmp = toGAVSO(o, null);
+				tmp = toCoordinate(o, null);
 				if (tmp != null) list.add(tmp);
 			}
 			return list;
@@ -898,7 +935,7 @@ public final class MavenUtil {
 		// struct
 		Struct el = Caster.toStruct(obj, null);
 		if (el != null) {
-			GAVSO tmp = toGAVSO(el, null);
+			MavenCoordinate tmp = toCoordinate(el, null);
 			if (tmp != null) list.add(tmp);
 			return list;
 		}
@@ -906,9 +943,9 @@ public final class MavenUtil {
 		// gradle style?
 		String str = Caster.toString(obj, null);
 		if (!StringUtil.isEmpty(str)) {
-			GAVSO tmp;
+			MavenCoordinate tmp;
 			for (String s: ListUtil.listToStringArray(str, ',')) {
-				tmp = toGAVSO(s, null);
+				tmp = toCoordinate(s, null);
 				if (tmp != null) list.add(tmp);
 			}
 			return list;
@@ -916,20 +953,20 @@ public final class MavenUtil {
 		return list;
 	}
 
-	public static List<GAVSO> toGAVSOs(Object obj) throws ApplicationException {
+	public static List<MavenCoordinate> toCoordinates(Object obj) throws ApplicationException {
 		// array
-		List<GAVSO> list = new ArrayList<>();
+		List<MavenCoordinate> list = new ArrayList<>();
 		Object[] arr = Caster.toNativeArray(obj, null);
 		if (arr != null) {
 			for (Object o: arr) {
-				list.add(toGAVSO(o));
+				list.add(toCoordinate(o));
 			}
 			return list;
 		}
 		// struct
 		Struct el = Caster.toStruct(obj, null);
 		if (el != null) {
-			list.add(toGAVSO(el));
+			list.add(toCoordinate(el));
 			return list;
 		}
 
@@ -937,15 +974,36 @@ public final class MavenUtil {
 		String str = Caster.toString(obj, null);
 		if (!StringUtil.isEmpty(str)) {
 			for (String s: ListUtil.listToStringArray(str, ',')) {
-				list.add(toGAVSO(s));
+				list.add(toCoordinate(s));
 			}
 			return list;
 		}
 		return list;
 	}
 
-	public static GAVSO toGAVSO(Object obj, GAVSO defaultValue) {
-		if (obj instanceof GAVSO) return (GAVSO) obj;
+	public static MavenCoordinate toCoordinate(Object obj, MavenCoordinate defaultValue) {
+		try {
+			MavenCoordinate coordinate = parseCoordinate(obj, false);
+			return coordinate == null ? defaultValue : coordinate;
+		}
+		catch (ApplicationException ae) {
+			return defaultValue;
+		}
+	}
+
+	public static MavenCoordinate toCoordinate(Object obj) throws ApplicationException {
+		return parseCoordinate(obj, true);
+	}
+
+	/**
+	 * String format (Gradle style): groupId:artifactId[:version[:classifier]][@extension]. A known
+	 * scope (compile, provided, runtime, test, system, import) in 4th position is the legacy form
+	 * groupId:artifactId:version:scope[:optional[:checksum]], otherwise the 4th part is the classifier
+	 * and further parts are scope[:optional[:checksum]]. A classifier that equals a scope name (for
+	 * example "test") cannot be expressed in the string form, use the struct form for that.
+	 */
+	private static MavenCoordinate parseCoordinate(Object obj, boolean strict) throws ApplicationException {
+		if (obj instanceof MavenCoordinate) return (MavenCoordinate) obj;
 
 		Struct el = Caster.toStruct(obj, null, false);
 		if (el != null) {
@@ -959,82 +1017,38 @@ public final class MavenUtil {
 				if (StringUtil.isEmpty(v, true)) v = Caster.toString(el.get(KeyConstants._v, null), null);
 				if (StringUtil.isEmpty(v, true)) v = null;
 
-				return new GAVSO(g, a,
-
-						v,
-
-						Caster.toString(el.get(KeyConstants._scope, null), null),
-
-						Caster.toString(el.get(KeyConstants._optional, null), null),
-
+				return new MavenCoordinate(g, a, v, Caster.toString(el.get(KeyConstants._classifier, null), null), Caster.toString(el.get(KeyConstants._extension, null), null),
+						Caster.toString(el.get(KeyConstants._scope, null), null), Caster.toString(el.get(KeyConstants._optional, null), null),
 						Caster.toString(el.get(KeyConstants._checksum, null), null));
 			}
 
 			// single entry with gradle style?
 			String m = Caster.toString(el.get(KeyConstants._maven, null), null);
-			if (!StringUtil.isEmpty(m, true)) {
-				return toGAVSO(m, defaultValue);
-			}
-			return defaultValue;
-		}
-		// gradle style?
-		String str = Caster.toString(obj, null);
-		if (!StringUtil.isEmpty(str)) {
-			String[] arr = ListUtil.listToStringArray(str, ':');
-			if (arr.length > 1 && arr.length < 7) {
-				return new GAVSO(
+			if (!StringUtil.isEmpty(m, true)) return parseCoordinate(m, strict);
 
-						arr[0].trim(), // group
-
-						arr[1].trim(), // artifact
-
-						arr.length > 2 ? arr[2].trim() : null, // version
-
-						arr.length > 3 ? arr[3].trim() : null, // scope
-
-						arr.length > 4 ? arr[4].trim() : null, // optional
-
-						arr.length > 5 ? arr[5].trim() : null // checksum
-
-				);
-			}
-		}
-
-		return defaultValue;
-	}
-
-	public static GAVSO toGAVSO(Object obj) throws ApplicationException {
-		Struct el = Caster.toStruct(obj, null);
-		if (el != null) {
-			String g = Caster.toString(el.get(KeyConstants._groupId, null), null);
-			if (StringUtil.isEmpty(g)) g = Caster.toString(el.get(KeyConstants._g, null), null);
+			if (!strict) return null;
 			if (StringUtil.isEmpty(g)) throw new ApplicationException("Missing required field: groupId. Ensure that the 'groupId' key is present and not empty.");
-
-			String a = Caster.toString(el.get(KeyConstants._artifactId, null), null);
-			if (StringUtil.isEmpty(a)) a = Caster.toString(el.get(KeyConstants._a, null), null);
-			if (StringUtil.isEmpty(a)) throw new ApplicationException("Missing required field: artifactId. Ensure that the 'artifactId' key is present and not empty.");
-
-			String v = Caster.toString(el.get(KeyConstants._version, null), null);
-			if (StringUtil.isEmpty(v, true)) v = Caster.toString(el.get(KeyConstants._v, null), null);
-			if (StringUtil.isEmpty(v, true)) v = null;
-
-			return new GAVSO(g, a, v,
-
-					Caster.toString(el.get(KeyConstants._scope, null), null),
-
-					Caster.toString(el.get(KeyConstants._optional, null), null),
-
-					Caster.toString(el.get(KeyConstants._checksum, null), null)
-
-			);
-
+			throw new ApplicationException("Missing required field: artifactId. Ensure that the 'artifactId' key is present and not empty.");
 		}
+
 		// gradle style?
 		String str = Caster.toString(obj, null);
 		if (!StringUtil.isEmpty(str)) {
+			str = str.trim();
+			String extension = null;
+			int at = str.lastIndexOf('@');
+			if (at != -1) {
+				extension = str.substring(at + 1).trim();
+				str = str.substring(0, at);
+			}
 			String[] arr = ListUtil.listToStringArray(str, ':');
-			if (arr.length > 1 && arr.length < 7) {
-				return new GAVSO(
+			int index = 3;
+			String classifier = null;
+			// a known scope in 4th position keeps its legacy meaning (scope[:optional[:checksum]]), anything else is the classifier
+			if (arr.length > index && toScope(arr[index].trim(), -1) == -1) classifier = arr[index++].trim();
+			boolean validScope = arr.length <= index || toScope(arr[index].trim(), -1) != -1;
+			if (arr.length > 1 && arr.length < 8 && validScope) {
+				return new MavenCoordinate(
 
 						arr[0].trim(), // group
 
@@ -1042,20 +1056,25 @@ public final class MavenUtil {
 
 						arr.length > 2 ? arr[2].trim() : null, // version
 
-						arr.length > 3 ? arr[3].trim() : null, // scope
+						classifier,
 
-						arr.length > 4 ? arr[4].trim() : null, // optional
+						extension,
 
-						arr.length > 5 ? arr[5].trim() : null // checksum
+						arr.length > index ? arr[index].trim() : null, // scope
+
+						arr.length > index + 1 ? arr[index + 1].trim() : null, // optional
+
+						arr.length > index + 2 ? arr[index + 2].trim() : null // checksum
 
 				);
 			}
-			throw new ApplicationException("Invalid Maven data in string [" + str + "]. " + "Expected format: '<group>:<artifact>:<version>[:<scope>[:<optional>]]'.");
+			if (!strict) return null;
+			throw new ApplicationException("Invalid Maven data in string [" + str + "]. Expected format: '<group>:<artifact>:<version>[:<classifier>][@<extension>]'.");
 		}
-		throw new ApplicationException("Unable to parse Maven data from the provided input of type [" + Caster.toTypeName(obj) + "]. " + "Supported formats are: "
-				+ "1) A Struct with keys 'groupId', 'artifactId', and 'version' (optionally 'scope' and 'optional'), or "
-				+ "2) A String in the format 'group:artifact:version[:scope[:optional]]'. " + "Ensure the input conforms to one of these formats.");
-
+		if (!strict) return null;
+		throw new ApplicationException("Unable to parse Maven data from the provided input of type [" + Caster.toTypeName(obj) + "]. Supported formats are: "
+				+ "1) A Struct with keys 'groupId', 'artifactId', and 'version' (optionally 'classifier', 'extension', 'scope', 'optional' and 'checksum'), or "
+				+ "2) A String in the format 'group:artifact:version[:classifier][@extension]'. Ensure the input conforms to one of these formats.");
 	}
 
 	// LDEV-6250: not called — Maven does not restrict version format (see
@@ -1075,9 +1094,9 @@ public final class MavenUtil {
 		return version.matches(versionPattern);
 	}
 
-	public static String toString(GAVSO[] gavsos) {
+	public static String toString(MavenCoordinate[] coordinates) {
 		StringBuilder sb = new StringBuilder();
-		for (GAVSO g: gavsos) {
+		for (MavenCoordinate g: coordinates) {
 			if (sb.length() > 0) sb.append(',');
 			sb.append(g.toString());
 		}

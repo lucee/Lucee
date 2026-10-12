@@ -10,7 +10,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.extension.ExtensionMetadata;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.type.Collection.Key;
@@ -33,10 +33,10 @@ public final class ExtensionInfo extends BIF implements Function {
 		Struct sct = new StructImpl();
 
 		// is id a gav?
-		GAVSO gav = MavenUtil.toGAVSO(id, null);
+		MavenCoordinate coordinate = MavenUtil.toCoordinate(id, null);
 
 		for (RHExtension ext: extensions) {
-			if ((gav != null && ext.hasGAV() && new GAVSO(ext.getGroupId(), ext.getArtifactId(), ext.getVersion()).equals(gav))
+			if ((coordinate != null && ext.hasGAV() && new MavenCoordinate(ext.getGroupId(), ext.getArtifactId(), ext.getVersion()).equals(coordinate))
 					|| (ext.getId().equalsIgnoreCase(id) || ext.getMetadata().getSymbolicName().equalsIgnoreCase(id))) {
 
 				ExtensionMetadata md = ext.getMetadata();

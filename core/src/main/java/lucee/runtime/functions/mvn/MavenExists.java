@@ -8,7 +8,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.mvn.POM;
 
 public final class MavenExists implements Function {
@@ -21,9 +21,9 @@ public final class MavenExists implements Function {
 			throw new FunctionException(pc, "MavenExists", 1, "groupId",
 					"single-argument form must be a gradle-style coord [groupId:artifactId] or [groupId:artifactId:version], got [" + coord + "]");
 		}
-		GAVSO gavso = MavenUtil.toGAVSO(coord, null);
-		if (gavso == null) throw new FunctionException(pc, "MavenExists", 1, "groupId", "cannot parse [" + coord + "] as a gradle-style coord");
-		return call(pc, gavso.g, gavso.a, gavso.v);
+		MavenCoordinate coordinate = MavenUtil.toCoordinate(coord, null);
+		if (coordinate == null) throw new FunctionException(pc, "MavenExists", 1, "groupId", "cannot parse [" + coord + "] as a gradle-style coord");
+		return call(pc, coordinate.groupId, coordinate.artifactId, coordinate.version);
 	}
 
 	public static boolean call(PageContext pc, String groupId, String artifactId) throws PageException {

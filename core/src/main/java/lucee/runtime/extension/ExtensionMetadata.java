@@ -10,7 +10,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleInfo;
@@ -90,7 +90,7 @@ public final class ExtensionMetadata implements Serializable {
 	private transient List<Map<String, String>> mappings;
 	private String mappingsRaw;
 
-	private transient List<MavenUtil.GAVSO> maven;
+	private transient List<MavenUtil.MavenCoordinate> maven;
 	private String mavenRaw;
 
 	private transient List<Map<String, Object>> eventGatewayInstances;
@@ -138,12 +138,12 @@ public final class ExtensionMetadata implements Serializable {
 		}
 	}
 
-	public List<MavenUtil.GAVSO> getMaven() {
+	public List<MavenUtil.MavenCoordinate> getMaven() {
 		if (maven == null) {
 			if (!StringUtil.isEmpty(mavenRaw, true)) {
-				maven = MavenUtil.toGAVSOs(mavenRaw, null);
+				maven = MavenUtil.toCoordinates(mavenRaw, null);
 			}
-			if (maven == null) maven = new ArrayList<GAVSO>();
+			if (maven == null) maven = new ArrayList<MavenCoordinate>();
 		}
 		return maven;
 	}

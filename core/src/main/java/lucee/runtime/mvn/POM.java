@@ -19,6 +19,7 @@ import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.SerializableObject;
@@ -54,6 +55,8 @@ public final class POM {
 	private final String groupId;
 	private final String artifactId;
 	private final String version;
+	private final String classifier;
+	private final String extension;
 	private final String scope;
 	private final String optional;
 	private final int dependencyScope;
@@ -92,6 +95,18 @@ public final class POM {
 		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, null, SCOPES_FOR_RUNTIME, SCOPES_FOR_MANAGEMENT, true, log);
 	}
 
+	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, String classifier, int dependencyScope, Log log) {
+		return getInstance(localDirectory, groupId, artifactId, version, classifier, null, dependencyScope, log);
+	}
+
+	/**
+	 * @param extension overrides the artifact extension that is otherwise taken from the packaging of
+	 *            the POM, null for default
+	 */
+	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, String classifier, String extension, int dependencyScope, Log log) {
+		return getInstance(localDirectory, null, groupId, artifactId, version, classifier, extension, null, null, null, dependencyScope, SCOPES_FOR_MANAGEMENT, true, log);
+	}
+
 	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, int dependencyScope, Log log) {
 		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, null, dependencyScope, SCOPES_FOR_MANAGEMENT, true, log);
 	}
@@ -103,21 +118,27 @@ public final class POM {
 
 	static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String scope, String optional,
 			String checksum, int dependencyScope, int dependencyScopeManagement, boolean triggeerLoad, Log log) {
+		return getInstance(localDirectory, repositories, groupId, artifactId, version, null, null, scope, optional, checksum, dependencyScope, dependencyScopeManagement,
+				triggeerLoad, log);
+	}
+
+	static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String classifier, String extension,
+			String scope, String optional, String checksum, int dependencyScope, int dependencyScopeManagement, boolean triggeerLoad, Log log) {
 		triggeerLoad = false;
-		String id = toId(localDirectory, groupId, artifactId, version, scope, optional, dependencyScope, dependencyScopeManagement);
+		String id = toId(localDirectory, groupId, artifactId, version, classifier, extension, scope, optional, dependencyScope, dependencyScopeManagement);
 		final boolean load = triggeerLoad;
-		return cache.computeIfAbsent(id, k -> new POM(localDirectory, repositories, groupId, artifactId, version, scope, optional, checksum, dependencyScope,
+		return cache.computeIfAbsent(id, k -> new POM(localDirectory, repositories, groupId, artifactId, version, classifier, extension, scope, optional, checksum, dependencyScope,
 				dependencyScopeManagement, load, log));
 	}
 
-	private static String toId(Resource localDirectory, String groupId, String artifactId, String version, String scope, String optional, int dependencyScope,
-			int dependencyScopeManagement) {
-		// TODO Auto-generated method stub
-		return localDirectory + ":" + groupId + ":" + artifactId + ":" + version + ":" + scope + ":" + optional + ":" + dependencyScope + ":" + dependencyScopeManagement;
+	private static String toId(Resource localDirectory, String groupId, String artifactId, String version, String classifier, String extension, String scope, String optional,
+			int dependencyScope, int dependencyScopeManagement) {
+		return localDirectory + ":" + groupId + ":" + artifactId + ":" + version + (StringUtil.isEmpty(classifier, true) ? "" : ":" + classifier.trim())
+				+ (StringUtil.isEmpty(extension, true) ? "" : "@" + extension.trim()) + ":" + scope + ":" + optional + ":" + dependencyScope + ":" + dependencyScopeManagement;
 	}
 
-	private POM(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String scope, String optional, String checksum,
-			int dependencyScope, int dependencyScopeManagement, boolean triggeerLoad, Log list) {
+	private POM(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String classifier, String extension, String scope,
+			String optional, String checksum, int dependencyScope, int dependencyScopeManagement, boolean triggeerLoad, Log list) {
 
 		if (groupId == null) throw new IllegalArgumentException("groupId cannot be null");
 		if (artifactId == null) throw new IllegalArgumentException("artifactId cannot be null");
@@ -151,6 +172,8 @@ public final class POM {
 		this.groupId = groupId.trim();
 		this.artifactId = artifactId.trim();
 		this.version = version == null ? null : version.trim();
+		this.classifier = StringUtil.isEmpty(classifier, true) ? null : classifier.trim();
+		this.extension = StringUtil.isEmpty(extension, true) ? null : extension.trim().toLowerCase();
 		this.scope = scope == null ? null : scope.trim();
 		this.optional = optional == null ? null : optional.trim();
 		this.dependencyScopeManagement = dependencyScopeManagement;
@@ -191,6 +214,10 @@ public final class POM {
 					if (artifactExtension == null || "bundle".equalsIgnoreCase(artifactExtension)) {
 						custom = false;
 						this.artifactExtension = "jar";
+					}
+					if (extension != null) {
+						this.artifactExtension = extension;
+						custom = false;
 					}
 
 					this.name = reader.getName();
@@ -295,6 +322,13 @@ public final class POM {
 
 	public String getVersion() {
 		return version;
+	}
+
+	/**
+	 * @return the classifier of the artifact or null; the POM itself never has a classifier
+	 */
+	public String getClassifier() {
+		return classifier;
 	}
 
 	public String getPackaging() throws IOException {
@@ -434,7 +468,8 @@ public final class POM {
 	}
 
 	public String id() {
-		return groupId + ":" + artifactId + ":" + version;
+		String id = classifier == null ? groupId + ":" + artifactId + ":" + version : groupId + ":" + artifactId + ":" + version + ":" + classifier;
+		return extension == null ? id : id + "@" + extension;
 	}
 
 	public boolean isOptional() {
@@ -446,13 +481,32 @@ public final class POM {
 	}
 
 	Resource local(Resource dir, String extension) {
-		return local(dir, groupId, artifactId, version, extension);
+		return local(dir, groupId, artifactId, version, "pom".equalsIgnoreCase(extension) ? null : classifier, extension);
 	}
 
 	public static Resource local(Resource dir, String groupId, String artifactId, String version, String extension) {
+		return local(dir, groupId, artifactId, version, null, extension);
+	}
+
+	public static Resource local(Resource dir, String groupId, String artifactId, String version, String classifier, String extension) {
 		Resource parent = localDir(dir, groupId, artifactId, version);
 		if (!parent.isDirectory()) parent.mkdirs();
-		return parent.getRealResource(artifactId + "-" + version + "." + extension);
+		return parent.getRealResource(toFileName(artifactId, version, classifier, extension));
+	}
+
+	/**
+	 * artifactId-version[-classifier].extension
+	 */
+	public static String toFileName(String artifactId, String version, String classifier, String extension) {
+		return artifactId + "-" + version + (StringUtil.isEmpty(classifier, true) ? "" : "-" + classifier.trim()) + "." + extension;
+	}
+
+	/**
+	 * path of the artifact relative to the repository root, the POM never has a classifier
+	 */
+	public String toScriptName(String extension) {
+		return groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/"
+				+ toFileName(artifactId, version, "pom".equalsIgnoreCase(extension) ? null : classifier, extension);
 	}
 
 	/** Pure path resolution for the {@code {mvnDir}/{group}/{artifact}/{version}/} directory. No side effects. */
@@ -471,7 +525,7 @@ public final class POM {
 		Repository[] repos = MavenUtil.sort(repositories);
 
 		StringBuilder sb = null;
-		String scriptName = groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/" + artifactId + "-" + version + "." + type;
+		String scriptName = toScriptName(type);
 
 		// without validation, we simply use the first repo from the array
 		if (!validate) {

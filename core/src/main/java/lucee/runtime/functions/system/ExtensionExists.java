@@ -11,7 +11,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 
 public final class ExtensionExists extends BIF implements Function {
@@ -29,10 +29,10 @@ public final class ExtensionExists extends BIF implements Function {
 
 	private static boolean find(String id, String version, RHExtension[] extensions) {
 		// is id a gav?
-		GAVSO gav = MavenUtil.toGAVSO(id, null);
-		if (gav != null) {
+		MavenCoordinate coordinate = MavenUtil.toCoordinate(id, null);
+		if (coordinate != null) {
 			for (RHExtension ext: extensions) {
-				if (ext.hasGAV() && new GAVSO(ext.getGroupId(), ext.getArtifactId(), ext.getVersion()).equals(gav)) {
+				if (ext.hasGAV() && new MavenCoordinate(ext.getGroupId(), ext.getArtifactId(), ext.getVersion()).equals(coordinate)) {
 					return true;
 				}
 			}

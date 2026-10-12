@@ -7,7 +7,7 @@ import java.util.Map;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 
 public class RHExtensionCollection {
 
@@ -52,9 +52,9 @@ public class RHExtensionCollection {
 
 		// get match by gav (unlikely that this happen in the future)
 		if (!name.startsWith("mvn_")) {
-			GAVSO gav = ed.getGAVSO(ThreadLocalPageContext.getConfigServer(), true);
-			if (gav != null) {
-				entry = getByName(ExtensionDefintion.getStorageName(gav));
+			MavenCoordinate coordinate = ed.getCoordinate(ThreadLocalPageContext.getConfigServer(), true);
+			if (coordinate != null) {
+				entry = getByName(ExtensionDefintion.getStorageName(coordinate));
 				if (entry != null) {
 					return entry;
 				}

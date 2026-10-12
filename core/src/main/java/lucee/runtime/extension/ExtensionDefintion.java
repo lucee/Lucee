@@ -13,7 +13,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.maven.ExtensionProvider;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.util.ListUtil;
@@ -25,7 +25,7 @@ public final class ExtensionDefintion {
 	private Resource source;
 	private Config config;
 	private RHExtension rhe;
-	private GAVSO gavso;
+	private MavenCoordinate coordinate;
 
 	public ExtensionDefintion() {}
 
@@ -56,32 +56,32 @@ public final class ExtensionDefintion {
 		return id;
 	}
 
-	public GAVSO getGAVSO(Config config, boolean investigate) {
-		if (gavso != null) return gavso;
-		return gavso = ExtensionProvider.toGAVSO((ConfigPro) config, getId(), investigate, gavso);
+	public MavenCoordinate getCoordinate(Config config, boolean investigate) {
+		if (coordinate != null) return coordinate;
+		return coordinate = ExtensionProvider.toCoordinate((ConfigPro) config, getId(), investigate, coordinate);
 	}
 
-	public ExtensionDefintion setGAVSO(GAVSO gavso) {
-		this.gavso = gavso;
-		if (gavso != null) {
-			if (!StringUtil.isEmpty(gavso.g, true)) setParam("groupId", gavso.g);
-			if (!StringUtil.isEmpty(gavso.a, true)) setParam("artifactId", gavso.a);
-			if (!StringUtil.isEmpty(gavso.v, true)) setParam("version", gavso.v);
-			if (!StringUtil.isEmpty(gavso.s, true)) setParam("scope", gavso.s);
-			if (!StringUtil.isEmpty(gavso.o, true)) setParam("optional", gavso.o);
+	public ExtensionDefintion setCoordinate(MavenCoordinate coordinate) {
+		this.coordinate = coordinate;
+		if (coordinate != null) {
+			if (!StringUtil.isEmpty(coordinate.groupId, true)) setParam("groupId", coordinate.groupId);
+			if (!StringUtil.isEmpty(coordinate.artifactId, true)) setParam("artifactId", coordinate.artifactId);
+			if (!StringUtil.isEmpty(coordinate.version, true)) setParam("version", coordinate.version);
+			if (!StringUtil.isEmpty(coordinate.scope, true)) setParam("scope", coordinate.scope);
+			if (!StringUtil.isEmpty(coordinate.optional, true)) setParam("optional", coordinate.optional);
 		}
 		return this;
 	}
 
 	public String getArtifactId() {
-		if (gavso != null) return gavso.a;
+		if (coordinate != null) return coordinate.artifactId;
 
 		if (getId() != null) {
 			// TODO only check once
-			GAVSO tmp = ExtensionProvider.toGAVSO((ConfigPro) config, getId(), true, gavso);
+			MavenCoordinate tmp = ExtensionProvider.toCoordinate((ConfigPro) config, getId(), true, coordinate);
 			if (tmp != null) {
-				gavso = new GAVSO(tmp.g, tmp.a, getVersion());
-				return tmp.a;
+				coordinate = new MavenCoordinate(tmp.groupId, tmp.artifactId, getVersion());
+				return tmp.artifactId;
 			}
 		}
 
@@ -89,14 +89,14 @@ public final class ExtensionDefintion {
 	}
 
 	public String getGroupId() {
-		if (gavso != null) return gavso.g;
+		if (coordinate != null) return coordinate.groupId;
 
 		if (getId() != null) {
 			// TODO only check once
-			GAVSO tmp = ExtensionProvider.toGAVSO((ConfigPro) config, getId(), true, gavso);
+			MavenCoordinate tmp = ExtensionProvider.toCoordinate((ConfigPro) config, getId(), true, coordinate);
 			if (tmp != null) {
-				gavso = new GAVSO(tmp.g, tmp.a, getVersion());
-				return tmp.g;
+				coordinate = new MavenCoordinate(tmp.groupId, tmp.artifactId, getVersion());
+				return tmp.groupId;
 			}
 		}
 		return null;
@@ -120,7 +120,7 @@ public final class ExtensionDefintion {
 
 		String version = params.get("version");
 		if (StringUtil.isEmpty(version)) version = params.get("extension-version");
-		if (gavso != null && !StringUtil.isEmpty(gavso.v)) return gavso.v;
+		if (coordinate != null && !StringUtil.isEmpty(coordinate.version)) return coordinate.version;
 		if (StringUtil.isEmpty(version)) return null;
 		return version;
 	}
@@ -150,7 +150,7 @@ public final class ExtensionDefintion {
 		if (other instanceof ExtensionDefintion) {
 			ExtensionDefintion ed = (ExtensionDefintion) other;
 
-			if (ed.getGAVSO(config, false) != null && getGroupId() != null && getArtifactId() != null) {
+			if (ed.getCoordinate(config, false) != null && getGroupId() != null && getArtifactId() != null) {
 				return ed.getGroupId().equalsIgnoreCase(getGroupId()) && ed.getArtifactId().equalsIgnoreCase(getArtifactId());
 			}
 
@@ -216,10 +216,10 @@ public final class ExtensionDefintion {
 	}
 
 	public String getStorageName(boolean investigate) {
-		GAVSO gav = getGAVSO(config, investigate);
+		MavenCoordinate coordinate = getCoordinate(config, investigate);
 
-		if (gav != null) {
-			return getStorageName(gav);
+		if (coordinate != null) {
+			return getStorageName(coordinate);
 		}
 		if (!StringUtil.isEmpty(getId()) && !StringUtil.isEmpty(getVersion())) {
 			return getStorageName(getId(), getVersion());
@@ -228,8 +228,8 @@ public final class ExtensionDefintion {
 
 	}
 
-	public static String getStorageName(GAVSO gav) {
-		return "mvn_" + gav.g + "_" + gav.a + "_" + gav.v + ".lex";
+	public static String getStorageName(MavenCoordinate coordinate) {
+		return "mvn_" + coordinate.groupId + "_" + coordinate.artifactId + "_" + coordinate.version + ".lex";
 	}
 
 	public static String getStorageName(String id, String version) {
@@ -247,7 +247,7 @@ public final class ExtensionDefintion {
 
 		// maven
 		if (arr.length == 4 && arr[0].equals("mvn") && OSGiUtil.toVersion(arr[3], null) != null) {
-			return new ExtensionDefintion().setGAVSO(new GAVSO(arr[1], arr[2], arr[3]));
+			return new ExtensionDefintion().setCoordinate(new MavenCoordinate(arr[1], arr[2], arr[3]));
 		}
 		// id
 		if (arr.length == 3 && arr[0].equals("id") && Decision.isUUId(arr[1]) && OSGiUtil.toVersion(arr[2], null) != null) {

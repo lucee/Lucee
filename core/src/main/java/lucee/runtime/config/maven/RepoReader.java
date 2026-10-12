@@ -58,6 +58,14 @@ public final class RepoReader extends DefaultHandler {
 	}
 
 	public Map<String, Object> read(String requiredArtifactExtension) throws IOException, SAXException {
+		return read(requiredArtifactExtension, null);
+	}
+
+	/**
+	 * @param requiredClassifier classifier of the required artifact, when empty only an entry without
+	 *            classifier matches (a classified entry is never used as fallback)
+	 */
+	public Map<String, Object> read(String requiredArtifactExtension, String requiredClassifier) throws IOException, SAXException {
 		if (requiredArtifactExtension == null) requiredArtifactExtension = "jar";
 		else requiredArtifactExtension = requiredArtifactExtension.toLowerCase();
 
@@ -82,6 +90,19 @@ public final class RepoReader extends DefaultHandler {
 		finally {
 			IOUtil.close(r);
 		}
+		if (!StringUtil.isEmpty(requiredClassifier, true)) {
+			requiredClassifier = requiredClassifier.trim();
+			for (Map<String, Object> e: artifacts.values()) {
+				if (requiredClassifier.equals(Caster.toString(e.get("classifier"), null)) && requiredArtifactExtension.equalsIgnoreCase(Caster.toString(e.get("extension"), null))) {
+					Map<String, Object> res = new LinkedHashMap<>();
+					res.put(requiredArtifactExtension, e.get("url"));
+					if (e.get("lastModified") != null) res.put("lastModified", e.get("lastModified"));
+					return res;
+				}
+			}
+			return null;
+		}
+
 		Map<String, Object> res = new LinkedHashMap<>();
 		String key;
 		Object lastModified = null;
