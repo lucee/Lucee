@@ -40,8 +40,20 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 	// quotes, commas, date (10), time (8), line separator, plus slack for doubled quotes
 	private static final int FIXED_OVERHEAD = 64;
 
-	private final DatePatternConverter date;
-	private final DatePatternConverter time;
+	// date and time converters for one timezone, swapped as a pair when the default timezone changes
+	private static final class Converters {
+		final String tz;
+		final DatePatternConverter date;
+		final DatePatternConverter time;
+
+		Converters(String tz) {
+			this.tz = tz;
+			this.date = DatePatternConverter.newInstance(new String[] { "MM/dd/yyyy", tz, "en-US" });
+			this.time = DatePatternConverter.newInstance(new String[] { "HH:mm:ss", tz, "en-US" });
+		}
+	}
+
+	private volatile Converters converters;
 
 	public ClassicLayout() {
 		// TODO custom charset?
@@ -50,10 +62,16 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 				"\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Context\",\"Application\",\"Message\"" + LINE_SEPARATOR
 				: "\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Application\",\"Message\"" + LINE_SEPARATOR).getBytes(StandardCharsets.UTF_8), new byte[0]);
 
-		// zone resolved once for the life of the layout, log4j caches everything above second precision
+		converters = new Converters(TimeZone.getDefault().getID());
+	}
+
+	// the default timezone is read per event like before, the converters (which cache everything above
+	// second precision) are only rebuilt when it changed
+	private Converters converters() {
 		String tz = TimeZone.getDefault().getID();
-		date = DatePatternConverter.newInstance( new String[] { "MM/dd/yyyy", tz, "en-US" } );
-		time = DatePatternConverter.newInstance( new String[] { "HH:mm:ss", tz, "en-US" } );
+		Converters c = converters;
+		if (!c.tz.equals(tz)) converters = c = new Converters(tz);
+		return c;
 	}
 
 	@Override
@@ -80,8 +98,12 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 
 		Throwable t = event.getThrown();
 		String level = event.getLevel().toString();
-		String thread = event.getThreadName();
+		String thread = String.valueOf(event.getThreadName());
 		msg = getFormattedMessage( t, msg );
+		// null values are written as empty strings
+		if (msg == null) msg = "";
+		if (application == null) application = "";
+		if (context == null) context = "";
 		String stacktrace = t != null ? ExceptionUtil.getStacktrace( t, false, true ) : "";
 
 		StringBuilder data = new StringBuilder( FIXED_OVERHEAD + level.length() + thread.length() + context.length() + application.length() + msg.length() + stacktrace.length() );
@@ -91,15 +113,17 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 		data.append('"').append( thread ).append('"');
 		data.append(',');
 
+		Converters c = converters();
+
 		// Date
 		data.append('"');
-		date.format( event, data );
+		c.date.format( event, data );
 		data.append('"');
 		data.append(',');
 
 		// Time
 		data.append('"');
-		time.format( event, data );
+		c.time.format( event, data );
 		data.append('"');
 		data.append(',');
 
