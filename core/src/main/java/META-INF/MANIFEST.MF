@@ -288,4 +288,4 @@ Require-Extension: org.lucee:mysql-jdbc-extension:26.7.0:lite,
  org.lucee:mail-extension:1.1.0.11-RC:lite;since=7.1.0.0,
  org.lucee:ftp-extension:1.0.0.8-RC:lite;since=7.1.0.0,
  org.lucee:markdown-extension:1.0.0.2-RC:lite;since=8.0.0.0,
- org.lucee:smb-extension:1.0.0.3-RC:lite;since=8.0.0.0
+ org.lucee:smb-extension:1.0.0.7:lite;since=8.0.0.0
