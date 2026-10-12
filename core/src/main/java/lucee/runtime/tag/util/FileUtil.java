@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
+import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -134,4 +135,21 @@ public final class FileUtil {
 		return str.toLowerCase();
 	}
 
+	/**
+	 * returns true if the given blocklist contains the wildcard "*", which blocks all extensions
+	 */
+	public static boolean isBlockAll(ResourceFilter filter) {
+		if (filter instanceof ExtensionResourceFilter) return isBlockAll(((ExtensionResourceFilter) filter).getExtensions());
+		return false;
+	}
+
+	public static boolean isBlockAll(String[] extensions) {
+		if (extensions == null) return false;
+		for (String ext: extensions) {
+			if (ext == null) continue;
+			ext = ext.trim();
+			if ("*".equals(ext) || ".*".equals(ext) || "*.*".equals(ext)) return true;
+		}
+		return false;
+	}
 }

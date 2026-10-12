@@ -40,7 +40,6 @@ import lucee.commons.io.ModeUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
-import lucee.commons.io.res.filter.NotResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ModeObjectWrap;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -1078,49 +1077,55 @@ public final class FileTag extends BodyTagImpl {
 	 * @param contentType
 	 * @throws PageException
 	 */
+	/**
+	 * checks the extension of the uploaded file against the allowed/blocked extensions. A blocklist
+	 * containing "*" blocks all uploads, also files without an extension (ACF compatible, LDEV-2454).
+	 * 
+	 * @return the normalized extension or null if the file has no extension
+	 */
+	public static String checkExtension(Resource clientFile, ResourceFilter allowedExtensions, ResourceFilter blockedExtensions, ApplicationContext appContext)
+			throws PageException {
+		String ext = ResourceUtil.getExtension(clientFile, "");
+		boolean hasExt = !StringUtil.isEmpty(ext, true);
+		if (hasExt) ext = FileUtil.toExtensions(ext);
+
+		// allowed (when explicitly allowed we not have to check if blocked)
+		if (allowedExtensions != null) {
+			if (hasExt && !allowedExtensions.accept(clientFile)) throw new ApplicationException(
+					"Upload of files with extension [" + ext
+							+ "] is not permitted. The tag cffile/function fileUpload[All] only allows the following extensions in this context [" + allowedExtensions + "].",
+					DETAIL);
+			return hasExt ? ext : null;
+		}
+
+		// blocked by the tag/function
+		if (blockedExtensions != null) {
+			if (FileUtil.isBlockAll(blockedExtensions) || (hasExt && blockedExtensions.accept(clientFile))) {
+				throw new ApplicationException("Upload of " + (hasExt ? "files with extension [" + ext + "]" : "files without an extension")
+						+ " is not permitted. The tag cffile/function fileUpload[All] does not allow the following extensions in this context [" + blockedExtensions + "].",
+						DETAIL);
+			}
+			return hasExt ? ext : null;
+		}
+
+		// blocked by the application/system settings
+		String blocklistedTypes = appContext == null ? null : appContext.getBlockedExtForFileUpload();
+		if (StringUtil.isEmpty(blocklistedTypes))
+			blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
+		if (StringUtil.isEmpty(blocklistedTypes))
+			blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
+
+		String[] types = ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ','));
+		if (FileUtil.isBlockAll(types)) throw new ApplicationException(
+				"Upload of " + (hasExt ? "files with extension [" + ext + "]" : "files without an extension") + " is not permitted, all file uploads are blocked.", DETAIL);
+		if (hasExt && new ExtensionResourceFilter(false, true, false, types).accept(clientFile))
+			throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.", DETAIL);
+		return hasExt ? ext : null;
+	}
+
 	private static void checkContentType(String contentType, String accept, ResourceFilter allowedExtensions, ResourceFilter blockedExtensions, Resource clientFile, boolean strict,
 			ApplicationContext appContext) throws PageException {
-		String ext = ResourceUtil.getExtension(clientFile, "");
-
-		// check extension
-		if (!StringUtil.isEmpty(ext, true)) {
-			boolean extensionAccepted = false;
-			ext = FileUtil.toExtensions(ext);
-
-			// allowed
-			if (allowedExtensions != null) {
-				if (!allowedExtensions.accept(clientFile)) throw new ApplicationException(
-						"Upload of files with extension [" + ext
-								+ "] is not permitted. The tag cffile/function fileUpload[All] only allows the following extensions in this context [" + allowedExtensions + "].",
-						DETAIL);
-				extensionAccepted = true;
-			}
-
-			// blocked (when explicitly allowed we not have to check if blocked)
-			if (!extensionAccepted) {
-				if (blockedExtensions != null) {
-					if (blockedExtensions.accept(clientFile)) {
-						throw new ApplicationException("Upload of files with extension [" + ext
-								+ "] is not permitted. The tag cffile/function fileUpload[All] does not allow the following extensions in this context [" + blockedExtensions
-								+ "].", DETAIL);
-					}
-					extensionAccepted = Boolean.TRUE;
-				}
-				else {
-					String blocklistedTypes = appContext.getBlockedExtForFileUpload();
-					if (StringUtil.isEmpty(blocklistedTypes))
-						blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
-					if (StringUtil.isEmpty(blocklistedTypes))
-						blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
-
-					NotResourceFilter filter = new NotResourceFilter(
-							new ExtensionResourceFilter(false, true, false, ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ','))));
-
-					if (!filter.accept(clientFile)) throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.", DETAIL);
-				}
-			}
-		}
-		else ext = null;
+		String ext = checkExtension(clientFile, allowedExtensions, blockedExtensions, appContext);
 
 		// mimetype
 		if (StringUtil.isEmpty(accept, true)) return;
