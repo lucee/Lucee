@@ -355,15 +355,20 @@ public abstract class AbstrCFMLExprTransformer {
 			}
 		}
 
-		// patch for test()(); only works at the end of an expression!
+		// LDEV-4160: immediate calls and member chaining, e.g. returnAUDF()().toList()
 		comments(data);
-		while (data.srcCode.isCurrent('(')) {
-			comments(data);
-			Call call = new Call(expr);
-			getFunctionMemberAttrs(data, null, false, call, null);
-			call.setEnd(data.srcCode.getPosition());
-			comments(data);
-			expr = call;
+		while (true) {
+			while (data.srcCode.isCurrent('(')) {
+				comments(data);
+				Call call = new Call(expr);
+				getFunctionMemberAttrs(data, null, false, call, null);
+				call.setEnd(data.srcCode.getPosition());
+				comments(data);
+				expr = call;
+			}
+			int pos = data.srcCode.getPos();
+			expr = subDynamic(data, expr, false, false);
+			if (data.srcCode.getPos() == pos) break;
 		}
 		return expr;
 	}
