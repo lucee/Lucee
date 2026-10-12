@@ -43,6 +43,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -140,6 +141,7 @@ import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.it.CollectionAsEntryIterator;
+import lucee.runtime.type.it.EnumAsIt;
 import lucee.runtime.type.scope.ObjectStruct;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -4516,8 +4518,14 @@ public final class Caster {
 		else if (o instanceof Iterator) {
 			return new CollectionAsEntryIterator((Iterator) o);
 		}
+		else if (o instanceof Iterable) {
+			return new CollectionAsEntryIterator(((Iterable) o).iterator());
+		}
+		else if (o instanceof Enumeration) {
+			return new CollectionAsEntryIterator(new EnumAsIt((Enumeration) o));
+		}
 
-		throw new CasterException("cannot cast object of type [" + toTypeName(o) + "] to a entry iterator (Iterator<Entry>)");
+		throw ForEachUtil.notLoopable(o);
 	}
 
 	public static Object toStringWhenKey(Object o) {

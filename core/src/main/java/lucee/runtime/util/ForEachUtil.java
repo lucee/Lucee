@@ -22,6 +22,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 
 import lucee.commons.lang.ClassUtil;
+import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
@@ -44,7 +45,8 @@ public final class ForEachUtil {
 		if (it != null) return it;
 
 		if (o instanceof ObjectWrap) return loopCollection(((ObjectWrap) o).getEmbededObject());
-		return loopCollection(Caster.toCollection(o));
+		if (o instanceof Iterable && !Decision.isCastableToArray(o)) return ((Iterable) o).iterator();
+		return loopCollection(toLoopCollection(o));
 	}
 
 	public static Iterator forEach(Object o) throws PageException {
@@ -58,7 +60,24 @@ public final class ForEachUtil {
 
 		if (Decision.isWrapped(o)) return forEach(Caster.unwrap(o));
 
-		return forEach(Caster.toCollection(o));
+		if (o instanceof Iterable && !Decision.isCastableToArray(o)) return ((Iterable) o).iterator();
+		return forEach(toLoopCollection(o));
+	}
+
+	private static Collection toLoopCollection(Object o) throws PageException {
+		try {
+			return Caster.toCollection(o);
+		}
+		catch (CasterException ce) {
+			CasterException e = notLoopable(o);
+			e.initCause(ce);
+			throw e;
+		}
+	}
+
+	public static CasterException notLoopable(Object o) {
+		return new CasterException("Can't loop over an object of type [" + Caster.toTypeName(o) + "]", "Java type of the object is " + Caster.toClassName(o)
+				+ ". Loops support CFML arrays, structs, queries, components and lists, and Java arrays, Maps, Iterables, Iterators and Enumerations");
 	}
 
 	private static Iterator _toIterator(Object o) {
@@ -72,8 +91,10 @@ public final class ForEachUtil {
 			return new EnumAsIt((Enumeration) o);
 		}
 		if (o instanceof JavaObject) {
-			Collection coll = Caster.toCollection(((JavaObject) o).getEmbededObject(null), null);
+			Object obj = ((JavaObject) o).getEmbededObject(null);
+			Collection coll = Caster.toCollection(obj, null);
 			if (coll != null) return coll.getIterator();
+			if (obj instanceof Iterable) return ((Iterable) obj).iterator();
 
 			String[] names = ClassUtil.getFieldNames(((JavaObject) o).getClazz());
 			return new ArrayIterator(names);
