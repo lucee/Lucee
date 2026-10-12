@@ -186,7 +186,7 @@
 		<get src="${extURL}${extDoc}?version=${extDocVersion}" dest="${cache}/${extDoc}-${extDocVersion}.lex"/>
 	</target>
 	<target name="check-image" depends="check-cache" unless="image.present">
-		<get src="https://repo1.maven.org/maven2/org/lucee/image-extension/${extImageVersion}/image-extension-${extImageVersion}.lex" dest="${cache}/${extImage}-${extImageVersion}.lex"/>
+		<get src="${extURLMaven}${extImageGroupPath}/${extImageArtifact}/${extImageVersion}/${extImageArtifact}-${extImageVersion}.lex" dest="${cache}/${extImage}-${extImageVersion}.lex"/>
 	</target>
 	<target name="check-esapi" depends="check-cache" unless="esapi.present">
 		<get src="${extURL}${extEsapi}?version=${extEsapiVersion}" dest="${cache}/${extEsapi}-${extEsapiVersion}.lex"/>

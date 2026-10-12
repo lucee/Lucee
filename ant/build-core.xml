@@ -15,6 +15,9 @@
   <property name="testboxURL" 
     value="https://downloads.ortussolutions.com/ortussolutions/testbox/${testboxVersion}/testbox-${testboxVersion}.zip"/>
   <property name="extURL" value="https://extension.lucee.org/rest/extension/provider/full/"/>
+  <property name="extURLMaven" value="https://repo1.maven.org/maven2/"/>
+  <property name="extImageGroupPath" value="org/lucee"/>
+  <property name="extImageArtifact" value="image-extension"/>
   
   <property name="extMongo"       value="E6634E1A-4CC5-4839-A83C67549ECA8D5B"/>
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A;version=2.1.214.0001L"/>
