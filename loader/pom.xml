@@ -577,13 +577,15 @@
       <dependency>
           <groupId>org.apache.tomcat.embed</groupId>
           <artifactId>tomcat-embed-core</artifactId>
-          <version>9.0.117</version>
+          <version>9.0.123</version>
+          <scope>provided</scope>
       </dependency>
       <!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-annotations-api -->
       <dependency>
           <groupId>org.apache.tomcat</groupId>
           <artifactId>tomcat-annotations-api</artifactId>
-          <version>9.0.117</version>
+          <version>9.0.123</version>
+          <scope>provided</scope>
       </dependency>
 
     <dependency>
