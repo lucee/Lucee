@@ -257,10 +257,21 @@ final class Perl5Util {
 	}
 
 	private static String escape(String replacement) throws MalformedPatternException {
+		// no char the steps below act on: all three would return the input unchanged
+		if (!hasEscapable(replacement)) return replacement;
 		replacement = _replace(replacement, "\\\\", "\\\\\\\\", false, true, false);
 		replacement = _escape(replacement);
 		replacement = _replace(replacement, "\\\\\\\\(\\d)", "\\$$1", false, true, false);
 		return replacement;
+	}
+
+	private static boolean hasEscapable(String str) {
+		char c;
+		for (int i = 0, len = str.length(); i < len; i++) {
+			c = str.charAt(i);
+			if ('\\' == c || '+' == c || '?' == c || '$' == c || '^' == c) return true;
+		}
+		return false;
 	}
 
 	public static String quotemeta(String str){
