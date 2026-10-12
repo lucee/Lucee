@@ -252,6 +252,32 @@ jobs:
           echo "------- Maven Deploy RELEASE on ${{ github.event_name }} -------";
           mvn -B -e -f loader/pom.xml clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
         fi
+    - name: Attach Lucee artifacts (express zip, war) to the GitHub release
+      # LDEV-6529: releases only (no snapshots), same as 7.1, uses the jar this job just built, nothing comes from cdn.lucee.org
+      if: ${{ success() && env.VERSION != '' && !contains(env.VERSION, '-SNAPSHOT') }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        HAS_GPG: ${{ secrets.GPG_PASSPHRASE != '' }}
+      run: |
+        set -euo pipefail
+        if [ "$HAS_GPG" != "true" ]; then echo "no release deploy in this run, nothing to attach"; exit 0; fi
+        JAR="loader/target/lucee-$VERSION.jar"
+        if [ ! -s "$JAR" ]; then
+          echo "::error::$JAR does not exist"; exit 1
+        fi
+        # same file names as on cdn.lucee.org
+        mkdir -p release-assets
+        .github/scripts/build-express.sh "$VERSION" "$JAR" "release-assets/lucee-express-$VERSION.zip"
+        .github/scripts/build-war.sh "$VERSION" "$JAR" "release-assets/lucee-$VERSION.war"
+        ls -l release-assets
+
+        TAG="$VERSION"
+        if ! gh release view "$TAG" > /dev/null 2>&1; then
+          ARGS=(--target "$GITHUB_SHA" --title "Lucee $VERSION" --notes "Lucee $VERSION")
+          case "$VERSION" in *-RC*|*-BETA*|*-ALPHA*) ARGS+=(--prerelease);; esac
+          gh release create "$TAG" "${ARGS[@]}"
+        fi
+        gh release upload "$TAG" release-assets/* --clobber
     - name: clean github.ref_name
       uses: mad9000/actions-find-and-replace-string@5
       id: cleanrefname
