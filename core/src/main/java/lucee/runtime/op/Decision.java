@@ -752,7 +752,8 @@ public final class Decision {
 	}
 
 	public static boolean isClosure(Object obj) {
-		if (obj instanceof Closure) return true;
+		// LDEV-4709: arrow functions (Lambda) are closures, matching ACF
+		if (obj instanceof Closure || obj instanceof Lambda) return true;
 		else if (obj instanceof ObjectWrap) {
 			return isClosure(((ObjectWrap) obj).getEmbededObject(null));
 		}
