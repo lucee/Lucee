@@ -311,7 +311,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 		final int count = countFM + countDM;
 
 		// count 0
-		if (count == 0) return _writeOutEmpty(bc);
+		if (count == 0) return _writeOutEmpty(bc, asCollection);
 
 		boolean supported = false;
 
@@ -449,7 +449,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 		final int count = countFM + countDM;
 
 		// count 0
-		if (count == 0) return _writeOutEmpty(bc);
+		if (count == 0) return _writeOutEmpty(bc, asCollection);
 
 		// pc
 		adapter.loadArg(0);
@@ -488,27 +488,30 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 	 * outputs an empty Variable, only scope Example: pc.formScope();
 	 * 
 	 * @param adapter
+	 * @param asCollection the scope is only read/written by key (unary op, arrayToList), no reference
+	 *            escapes, so it doesn't need binding
 	 * @throws TemplateException
 	 */
-	private Type _writeOutEmpty(BytecodeContext bc) throws TransformerException {
+	private Type _writeOutEmpty(BytecodeContext bc, Boolean asCollection) throws TransformerException {
 		if (ignoredFirstMember && (scope == Scope.SCOPE_LOCAL || scope == Scope.SCOPE_VAR)) return Types.VOID;
 
 		GeneratorAdapter adapter = bc.getAdapter();
 		adapter.loadArg(0);
 		Method m;
 		Type t = Types.PAGE_CONTEXT;
+		boolean bind = asCollection == null || !asCollection.booleanValue();
 		if (scope == Scope.SCOPE_ARGUMENTS) {
-			getFactory().TRUE().writeOut(bc, MODE_VALUE);
+			getFactory().createLitBoolean(bind).writeOut(bc, MODE_VALUE);
 			m = TypeScope.METHOD_ARGUMENT_BIND;
 		}
 		else if (scope == Scope.SCOPE_LOCAL) {
 			t = Types.PAGE_CONTEXT;
-			getFactory().TRUE().writeOut(bc, MODE_VALUE);
+			getFactory().createLitBoolean(bind).writeOut(bc, MODE_VALUE);
 			m = TypeScope.METHOD_LOCAL_BIND;
 		}
 		else if (scope == Scope.SCOPE_VAR) {
 			t = Types.PAGE_CONTEXT;
-			getFactory().TRUE().writeOut(bc, MODE_VALUE);
+			getFactory().createLitBoolean(bind).writeOut(bc, MODE_VALUE);
 			m = TypeScope.METHOD_VAR_BIND;
 		}
 		else if (scope == Scope.SCOPE_CLUSTER) {
