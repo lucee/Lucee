@@ -36,10 +36,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mvn" {
 				expect( g.toGAVC() ).toBe( "org.lucee:image-extension:2.0.0.35:lite" );
 			});
 
-			it( title="a scope word in 4th position is a classifier", body=function() {
+			it( title="a known scope in 4th position keeps its legacy meaning", body=function() {
 				var g = parse( "org.lucee:image-extension:2.0.0.35:runtime" );
-				expect( g.classifier ).toBe( "runtime" );
-				expect( isNull( g.scope ) ).toBeTrue();
+				expect( isNull( g.classifier ) ).toBeTrue();
+				expect( g.scope ).toBe( "runtime" );
+				expect( g.toString() ).toBe( "org.lucee:image-extension:2.0.0.35" );
+			});
+
+			it( title="legacy g:a:v:scope:optional:checksum", body=function() {
+				var g = parse( "a:b:1:compile:true:sha1:abc" );
+				expect( isNull( g.classifier ) ).toBeTrue();
+				expect( g.scope ).toBe( "compile" );
+				expect( g.optional ).toBe( "true" );
+				expect( g.checksum ).toBe( "sha1" );
+			});
+
+			it( title="classifier followed by scope and optional", body=function() {
+				var g = parse( "org.lwjgl:lwjgl:3.3.4:natives-linux:runtime:true" );
+				expect( g.classifier ).toBe( "natives-linux" );
+				expect( g.scope ).toBe( "runtime" );
+				expect( g.optional ).toBe( "true" );
 			});
 
 			it( title="string g:a:v:classifier@ext", body=function() {
@@ -104,7 +120,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mvn" {
 
 			it( title="too many parts throws", body=function() {
 				expect( function() {
-					parse( "a:b:c:d:e" );
+					parse( "a:b:c:d:e:f:g:h" );
 				}).toThrow();
 			});
 

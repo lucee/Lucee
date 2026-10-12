@@ -260,6 +260,12 @@ public final class MavenUtil {
 			if ("test-jar".equals(type)) {
 				if (StringUtil.isEmpty(classifier, true)) classifier = "tests";
 			}
+			else if ("javadoc".equals(type)) {
+				if (StringUtil.isEmpty(classifier, true)) classifier = "javadoc";
+			}
+			else if ("java-source".equals(type)) {
+				if (StringUtil.isEmpty(classifier, true)) classifier = "sources";
+			}
 			else if (!"jar".equals(type) && !"bundle".equals(type) && !"maven-plugin".equals(type) && !"ejb".equals(type) && !"ejb-client".equals(type)) {
 				extension = type;
 			}
@@ -990,8 +996,10 @@ public final class MavenUtil {
 	}
 
 	/**
-	 * String format (Gradle style): groupId:artifactId[:version[:classifier]][@extension]. Scope,
-	 * optional and checksum are only available in the struct form.
+	 * String format (Gradle style): groupId:artifactId[:version[:classifier]][@extension]. A known
+	 * scope (compile, provided, runtime, test, system, import) in 4th position is the legacy form
+	 * groupId:artifactId:version:scope[:optional[:checksum]], otherwise the 4th part is the classifier
+	 * and further parts are scope[:optional[:checksum]].
 	 */
 	private static MavenCoordinate parseCoordinate(Object obj, boolean strict) throws ApplicationException {
 		if (obj instanceof MavenCoordinate) return (MavenCoordinate) obj;
@@ -1033,7 +1041,11 @@ public final class MavenUtil {
 				str = str.substring(0, at);
 			}
 			String[] arr = ListUtil.listToStringArray(str, ':');
-			if (arr.length > 1 && arr.length < 5) {
+			if (arr.length > 1 && arr.length < 8) {
+				int index = 3;
+				String classifier = null;
+				// a known scope in 4th position keeps its legacy meaning (scope[:optional[:checksum]]), anything else is the classifier
+				if (arr.length > index && toScope(arr[index].trim(), -1) == -1) classifier = arr[index++].trim();
 				return new MavenCoordinate(
 
 						arr[0].trim(), // group
@@ -1042,9 +1054,17 @@ public final class MavenUtil {
 
 						arr.length > 2 ? arr[2].trim() : null, // version
 
-						arr.length > 3 ? arr[3].trim() : null, // classifier
+						classifier,
 
-						extension, null, null, null);
+						extension,
+
+						arr.length > index ? arr[index].trim() : null, // scope
+
+						arr.length > index + 1 ? arr[index + 1].trim() : null, // optional
+
+						arr.length > index + 2 ? arr[index + 2].trim() : null // checksum
+
+				);
 			}
 			if (!strict) return null;
 			throw new ApplicationException("Invalid Maven data in string [" + str + "]. Expected format: '<group>:<artifact>:<version>[:<classifier>][@<extension>]'.");
