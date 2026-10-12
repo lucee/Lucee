@@ -177,6 +177,41 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mvn" {
 				expect( names ).toBe( [ "lwjgl-3.3.4-natives-linux.jar" ] );
 			});
 
+			it( title="the extension of a coordinate overrides the packaging", body=function() {
+				var dir = toRes( variables.mvnDir & "repo-ext/" );
+				dir.mkdirs();
+				var pom = createObject( "java", "lucee.runtime.mvn.POM" ).getInstance( dir, "org.lucee", "image-extension", "3.1.0.11", "lite", "lex", 9, javaCast( "null", "" ) );
+				var art = pom.getArtifact();
+				expect( art.getName() ).toBe( "image-extension-3.1.0.11-lite.lex" );
+				expect( art.isFile() ).toBeTrue();
+			});
+
+			it( title="a dependency of type test-jar resolves to the tests classifier", body=function() {
+				var dir = variables.mvnDir & "dep-type/";
+				var pomDir = dir & "test/ldev6555type/1.0/";
+				directoryCreate( pomDir );
+				fileWrite( pomDir & "ldev6555type-1.0.pom", '<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>test</groupId>
+	<artifactId>ldev6555type</artifactId>
+	<version>1.0</version>
+	<packaging>pom</packaging>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.12.0</version>
+			<type>test-jar</type>
+		</dependency>
+	</dependencies>
+</project>' );
+				var pom = createObject( "java", "lucee.runtime.mvn.POM" ).getInstance( toRes( dir ), "test", "ldev6555type", "1.0", 9, javaCast( "null", "" ) );
+				var names = [];
+				for ( var jar in pom.getJars() ) arrayAppend( names, jar.getName() );
+				expect( names ).toBe( [ "commons-lang3-3.12.0-tests.jar" ] );
+			});
+
 			it( title="mavenLoad with a classifier", body=function() {
 				var res = mavenLoad( "org.lwjgl:lwjgl:3.3.4:natives-linux" );
 				var found = false;

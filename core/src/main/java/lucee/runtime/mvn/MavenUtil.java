@@ -252,8 +252,21 @@ public final class MavenUtil {
 			classifier = resolvePlaceholders(current, classifier, properties);
 		}
 
-		return POM.getInstance(localDirectory, current.getRepositories(), g, a, v, classifier, s, o, null, current.getDependencyScope(), current.getDependencyScopeManagement(), false,
-				log);
+		// type: test-jar is the jar with the classifier "tests", pom/zip/... have an extension of their own
+		String extension = null;
+		String type = rd.type == null ? null : resolvePlaceholders(current, rd.type, properties);
+		if (!StringUtil.isEmpty(type, true)) {
+			type = type.trim().toLowerCase();
+			if ("test-jar".equals(type)) {
+				if (StringUtil.isEmpty(classifier, true)) classifier = "tests";
+			}
+			else if (!"jar".equals(type) && !"bundle".equals(type) && !"maven-plugin".equals(type) && !"ejb".equals(type) && !"ejb-client".equals(type)) {
+				extension = type;
+			}
+		}
+
+		return POM.getInstance(localDirectory, current.getRepositories(), g, a, v, classifier, extension, s, o, null, current.getDependencyScope(),
+				current.getDependencyScopeManagement(), false, log);
 	}
 
 	public static class GAVSO implements Serializable {

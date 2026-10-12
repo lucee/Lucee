@@ -413,9 +413,13 @@ public final class JavaSettingsImpl implements JavaSettings {
 					dir.mkdirs();
 					Log log = LogUtil.getLog(config, "mvn", "application");
 					while (it.hasNext()) {
-						MavenUtil.GAVSO gavso = MavenUtil.toGAVSO(it.next(), null);
-						if (gavso != null) {
-							POM tmp = POM.getInstance(dir, gavso.g, gavso.a, gavso.v, gavso.classifier, MavenUtil.toScopes(gavso.s, POM.SCOPES_FOR_RUNTIME), log);
+						Object entry = it.next();
+						MavenUtil.GAVSO gavso = MavenUtil.toGAVSO(entry, null);
+						if (gavso == null) {
+							if (log != null) log.warn("javasettings", "ignored the maven entry [" + Caster.toString(entry, "") + "], expected format: group:artifact:version[:classifier][@extension] or a struct");
+						}
+						else {
+							POM tmp = POM.getInstance(dir, gavso.g, gavso.a, gavso.v, gavso.classifier, gavso.extension, MavenUtil.toScopes(gavso.s, POM.SCOPES_FOR_RUNTIME), log);
 							mapPoms.put("maven:" + tmp.id(), tmp);
 						}
 
