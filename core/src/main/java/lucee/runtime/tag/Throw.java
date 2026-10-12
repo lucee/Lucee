@@ -31,6 +31,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Struct;
@@ -185,12 +186,14 @@ public final class Throw extends TagImpl {
 				// Error Code
 				if (!StringUtil.isEmpty(errCode, true)) pe.setErrorCode(errCode);
 
-				// Additional
+				// Additional + TagContext (LDEV-4021)
 				if (pe instanceof PageExceptionImpl) {
 					PageExceptionImpl pei = (PageExceptionImpl) pe;
-					sct = Caster.toStruct(sct.get("additional", null), null);
-					if (sct != null) {
-						Iterator<Entry<Key, Object>> it = sct.entryIterator();
+					Array tc = Caster.toArray(sct.get(KeyConstants._TagContext, null), null);
+					if (tc != null) pei.setTagContext(tc);
+					Struct additional = Caster.toStruct(sct.get("additional", null), null);
+					if (additional != null) {
+						Iterator<Entry<Key, Object>> it = additional.entryIterator();
 						Entry<Key, Object> e;
 						while (it.hasNext()) {
 							e = it.next();
