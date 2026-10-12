@@ -263,16 +263,11 @@ public final class DBInfo extends TagImpl {
 		DatabaseMetaData metaData = conn.getMetaData();
 		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 		stopwatch.start();
-		table = setCase(metaData, table);
+		String[] st = resolveTable(metaData, _dbName, table);
+		String schema = st[0];
+		table = st[1];
 		pattern = setCase(metaData, pattern);
 		if (StringUtil.isEmpty(pattern, true)) pattern = null;
-
-		String schema = null;
-		int index = table.indexOf('.');
-		if (index > 0) {
-			schema = table.substring(0, index);
-			table = table.substring(index + 1);
-		}
 
 		Query qry = new QueryImpl(metaData.getColumns(_dbName, schema, table, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
 
@@ -460,13 +455,9 @@ public final class DBInfo extends TagImpl {
 		String _dbName = dbname(conn);
 		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 		stopwatch.start();
-		table = setCase(metaData, table);
-		int index = table.indexOf('.');
-		String schema = null;
-		if (index > 0) {
-			schema = table.substring(0, index);
-			table = table.substring(index + 1);
-		}
+		String[] st = resolveTable(metaData, _dbName, table);
+		String schema = st[0];
+		table = st[1];
 
 		lucee.runtime.type.Query qry = new QueryImpl(metaData.getExportedKeys(_dbName, schema, table), "query", pageContext.getTimeZone());
 		if (qry.getRecordcount() == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
@@ -480,12 +471,50 @@ public final class DBInfo extends TagImpl {
 		ResultSet tables = null;
 		if (StringUtil.isEmpty(table)) return;
 		try {
-			tables = metaData.getTables(_dbName, null, setCase(metaData, table), null);
-			if (!tables.next()) throw new ApplicationException("there is no table that match the following pattern [" + setCase(metaData, table) + "]");
+			String t = tableExists(metaData, _dbName, null, table) ? table : setCase(metaData, table);
+			tables = metaData.getTables(_dbName, null, t, null);
+			if (!tables.next()) throw new ApplicationException("there is no table that match the following pattern [" + t + "]");
 		}
 		finally {
 			if (tables != null) tables.close();
 
+		}
+	}
+
+	/**
+	 * splits [schema.]table and returns {schema, table}. The name is used as given if such a table
+	 * exists (e.g. a quoted mixed case table in PostgreSQL), otherwise it is folded to the case the
+	 * database stores unquoted identifiers in
+	 */
+	private String[] resolveTable(DatabaseMetaData metaData, String _dbName, String id) throws SQLException {
+		String schema = null, tbl = id;
+		int index = id.indexOf('.');
+		if (index > 0) {
+			schema = id.substring(0, index);
+			tbl = id.substring(index + 1);
+		}
+		String foldedSchema = schema == null ? null : setCase(metaData, schema);
+		String foldedTable = setCase(metaData, tbl);
+
+		if (!tbl.equals(foldedTable)) {
+			if (tableExists(metaData, _dbName, schema, tbl)) return new String[] { schema, tbl };
+			if (schema != null && !schema.equals(foldedSchema) && tableExists(metaData, _dbName, foldedSchema, tbl)) return new String[] { foldedSchema, tbl };
+		}
+		return new String[] { foldedSchema, foldedTable };
+	}
+
+	private boolean tableExists(DatabaseMetaData metaData, String _dbName, String schema, String table) throws SQLException {
+		if (StringUtil.isEmpty(table)) return false;
+		ResultSet rs = null;
+		try {
+			rs = metaData.getTables(_dbName, schema, table, null);
+			while (rs.next()) {
+				if (table.equals(rs.getString("TABLE_NAME"))) return true;
+			}
+			return false;
+		}
+		finally {
+			if (rs != null) rs.close();
 		}
 	}
 
@@ -508,13 +537,9 @@ public final class DBInfo extends TagImpl {
 		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 		stopwatch.start();
 
-		table = setCase(metaData, table);
-		int index = table.indexOf('.');
-		String schema = null;
-		if (index > 0) {
-			schema = table.substring(0, index);
-			table = table.substring(index + 1);
-		}
+		String[] st = resolveTable(metaData, _dbName, table);
+		String schema = st[0];
+		table = st[1];
 
 		ResultSet tables = metaData.getIndexInfo(_dbName, schema, table, false, true);
 		lucee.runtime.type.Query qry = new QueryImpl(tables, "query", pageContext.getTimeZone());

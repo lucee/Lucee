@@ -2772,12 +2772,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		String tmp = getString("admin", action, "newName");
-		Pattern pattern = Pattern.compile("[a-zA-Z0-9_-]*");
+		Pattern pattern = Pattern.compile("[a-zA-Z0-9_.-]*");
 		Matcher matcher = pattern.matcher(tmp);
 
 		if (matcher.matches() == false) {
 			throw new ExpressionException("Failed to create a datasource name [" + tmp
-					+ "]: only alphanumeric characters, underscores (_), and hyphens (-) are valid. Please ensure the name conforms to these formats.");
+					+ "]: only alphanumeric characters, underscores (_), hyphens (-) and dots (.) are valid. Please ensure the name conforms to these formats.");
 		}
 
 		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
@@ -5106,6 +5106,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateProxy(getBool("admin", action, "proxyenabled"), getString("admin", action, "proxyserver"), getInt("admin", action, "proxyport"),
 				getString("admin", action, "proxyusername"), getString("admin", action, "proxypassword"));
 		store();
+		ConfigUtil.getConfigServerImpl(config).resetProxyData();
 	}
 
 	private void doUpdateCharset() throws PageException {

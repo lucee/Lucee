@@ -8,6 +8,7 @@ Node scripts that organize Lucee build artifacts on S3 (`lucee-downloads` → `c
 |--------|----------|---------|
 | `organize-s3-artifacts.js` | [organize-artifacts.yml](../workflows/organize-artifacts.yml) | Copy/move Lucee core builds into `org/lucee/lucee/{version}/` and update per-artifact Maven metadata |
 | `organize-s3-extensions.js` | [organize-extensions.yml](../workflows/organize-extensions.yml) | Copy/move extension `.lex` files into `org/lucee/{artifactId}/{version}/`, update artifact metadata, refresh group index |
+| `upload-extension-to-s3.js` | [extension-s3-upload.yml](../workflows/extension-s3-upload.yml) (`workflow_call`) | Called by every extension build: uploads `.lex`/`-lite.lex`/`.pom` (+ `.sha1`) into `org/lucee/{artifactId}/{version}/`, updates version + artifact metadata and the group index. Holds the extension S3 cut-off (2027-03-01) |
 | `rebuild-group-metadata.js` | [rebuild-cdn-group-metadata.yml](../workflows/rebuild-cdn-group-metadata.yml) | Regenerate `org/lucee/maven-metadata.xml` and `org/lucee/index.html` only (no file moves) |
 
 Shared logic lives in `maven-group-metadata.js` (group-level metadata, version sorting, HTML index).
