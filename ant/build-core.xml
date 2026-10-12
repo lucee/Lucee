@@ -1091,7 +1091,7 @@
   </target>
 
   <!--
-    collect the maven dependencies declared by the lite version of the bundled extensions into ${goal}/maven
+    copy the maven folder of the bundled (full) extensions into ${goal}/maven
     (including .sha1 files and .index), they get deployed to the local maven repository on first start
   -->
   <target name="addMavenDependencies" if="buildLoaderJar" unless="skipMavenBundle">
@@ -1104,7 +1104,7 @@
         <pathelement path="${runtime_classpath}"/>
       </classpath>
       <arg value="${coreManifest}"/>
-      <arg value="${cache}/lite"/>
+      <arg value="${cache}"/>
       <arg value="${goal}/maven"/>
       <arg value="${extURLMaven}"/>
       <arg value="${extURLCDN}"/>

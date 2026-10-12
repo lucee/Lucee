@@ -3,44 +3,33 @@ package lucee.runtime.mvn;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Proxy;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.Enumeration;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.jar.Attributes;
 import java.util.jar.Manifest;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import lucee.commons.io.log.Log;
-import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.ResourcesImpl;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
-
 /**
- * Build time tool. Reads the Maven coordinates declared by (lite) extensions, resolves them
- * including all transitive dependencies and stores everything in repository layout inside a
- * directory, together with the .sha1 files and an ".index" file as read by
- * {@link MavenDeployer#deployBundled(Resource, ClassLoader, Log)}.
+ * Build time tool. Takes the "maven" folder (repository layout) of every extension listed in
+ * Require-Extension and copies it into one directory, together with the .sha1 files and an ".index"
+ * file as read by {@link MavenDeployer#deployBundled}.
  * 
  * Usage: MavenBundleCollector &lt;core MANIFEST.MF&gt; &lt;cache directory&gt; &lt;target directory&gt; [repository url]...
+ * 
+ * The full extension is taken from the cache directory (mvn_group_artifact_version.lex) and
+ * downloaded from the repositories if it is not there.
  */
 public final class MavenBundleCollector {
-
-	private static final Pattern MAVEN_ENTRY = Pattern.compile("['\"](?:maven|mvn)['\"]\\s*:\\s*['\"]([^'\"]+)['\"]", Pattern.CASE_INSENSITIVE);
 
 	private MavenBundleCollector() {
 	}
@@ -59,15 +48,14 @@ public final class MavenBundleCollector {
 		}
 		if (repos.isEmpty()) repos.add("https://repo1.maven.org/maven2/");
 
-		List<File> lexes = new ArrayList<>();
 		cache.mkdirs();
+		target.mkdirs();
 		for (String[] gav: readRequiredExtensions(manifest)) {
-			File lite = downloadLite(gav[0], gav[1], gav[2], cache, repos);
-			if (lite == null) System.out.println("WARN: no lite version available for [" + gav[0] + ":" + gav[1] + ":" + gav[2] + "], no maven dependencies collected for it");
-			else lexes.add(lite);
+			File lex = getExtension(gav[0], gav[1], gav[2], cache, repos);
+			int count = copyMavenFolder(lex, target);
+			System.out.println("extension [" + lex.getName() + "] provides [" + count + "] maven file(s)");
 		}
-		int count = collect(target, lexes);
-		System.out.println("collected [" + count + "] maven files in [" + target + "]");
+		System.out.println("collected [" + writeIndex(target.toPath()) + "] maven files in [" + target + "]");
 	}
 
 	/**
@@ -89,82 +77,55 @@ public final class MavenBundleCollector {
 		return result;
 	}
 
-	private static File downloadLite(String group, String artifact, String version, File cache, List<String> repos) throws IOException {
-		File dest = new File(cache, artifact + "-" + version + "-lite.lex");
-		if (dest.isFile() && dest.length() > 0) return dest;
+	private static File getExtension(String group, String artifact, String version, File cache, List<String> repos) throws IOException {
+		File file = new File(cache, "mvn_" + group + "_" + artifact + "_" + version + ".lex");
+		if (file.isFile() && file.length() > 0) return file;
+		StringBuilder tried = new StringBuilder();
 		for (String repo: repos) {
-			String url = repo + group.replace('.', '/') + "/" + artifact + "/" + version + "/" + artifact + "-" + version + "-lite.lex";
+			String url = repo + group.replace('.', '/') + "/" + artifact + "/" + version + "/" + artifact + "-" + version + ".lex";
 			System.out.println("download " + url);
 			try (InputStream is = new URL(url).openStream()) {
-				Files.copy(is, dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
-				return dest;
+				Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				return file;
 			}
 			catch (IOException ioe) {
-				System.out.println("  not available: " + ioe.getMessage());
+				tried.append("\n- ").append(url);
 			}
 		}
-		return null;
+		throw new IOException("could not download extension [" + group + ":" + artifact + ":" + version + "], tried:" + tried);
 	}
 
-	public static int collect(File target, List<File> extensions) throws IOException {
-		Set<GAVSO> coordinates = new LinkedHashSet<>();
-		for (File lex: extensions) {
-			List<GAVSO> list = readCoordinates(lex);
-			System.out.println("extension [" + lex.getName() + "] declares [" + list.size() + "] maven dependenc" + (list.size() == 1 ? "y" : "ies"));
-			coordinates.addAll(list);
-		}
-
-		target.mkdirs();
-		Resource dir = ResourcesImpl.getFileResourceProvider().getResource(target.getAbsolutePath());
-		Log log = consoleLog();
-		for (GAVSO g: coordinates) {
-			POM pom = POM.getInstance(dir, g.g, g.a, g.v, POM.SCOPES_FOR_RUNTIME, log);
-			pom.downloadArtifact();
-			for (POM dep: pom.getAllDependencies(false)) {
-				dep.downloadArtifact();
-			}
-		}
-		return writeIndex(target.toPath());
-	}
-
-	static List<GAVSO> readCoordinates(File lex) throws IOException {
-		List<GAVSO> result = new ArrayList<>();
+	private static int copyMavenFolder(File lex, File target) throws IOException {
+		int count = 0;
+		Path root = target.toPath().toAbsolutePath().normalize();
 		try (ZipFile zip = new ZipFile(lex)) {
-			ZipEntry entry = zip.getEntry("META-INF/MANIFEST.MF");
-			if (entry == null) throw new IOException("no manifest found in [" + lex + "]");
-			Manifest mf;
-			try (InputStream is = zip.getInputStream(entry)) {
-				mf = new Manifest(is);
-			}
-			for (Map.Entry<Object, Object> e: mf.getMainAttributes().entrySet()) {
-				String name = ((Attributes.Name) e.getKey()).toString();
-				String value = (String) e.getValue();
-				if ("maven".equalsIgnoreCase(name) || "mvn".equalsIgnoreCase(name)) {
-					List<GAVSO> list = MavenUtil.toGAVSOs(unwrap(value), null);
-					if (list != null) result.addAll(list);
-					continue;
+			Enumeration<? extends ZipEntry> entries = zip.entries();
+			while (entries.hasMoreElements()) {
+				ZipEntry entry = entries.nextElement();
+				String name = entry.getName();
+				if (entry.isDirectory() || !name.startsWith("maven/") || name.endsWith(".sha1")) continue;
+				Path dest = root.resolve(name.substring(6)).normalize();
+				if (!dest.startsWith(root)) throw new IOException("invalid entry [" + name + "] in [" + lex + "]");
+				byte[] data;
+				try (InputStream is = zip.getInputStream(entry)) {
+					data = is.readAllBytes();
 				}
-				Matcher m = MAVEN_ENTRY.matcher(value);
-				while (m.find()) {
-					GAVSO g = MavenUtil.toGAVSO(m.group(1), null);
-					if (g != null) result.add(g);
+				if (Files.isRegularFile(dest) && !java.util.Arrays.equals(Files.readAllBytes(dest), data)) {
+					throw new IOException("conflicting content for [" + name.substring(6) + "] provided by [" + lex.getName() + "]");
 				}
+				Files.createDirectories(dest.getParent());
+				Files.write(dest, data);
+				count++;
 			}
 		}
-		return result;
-	}
-
-	private static String unwrap(String str) {
-		str = str.trim();
-		if (str.length() > 1 && (str.charAt(0) == '"' || str.charAt(0) == '\'') && str.charAt(str.length() - 1) == str.charAt(0)) return str.substring(1, str.length() - 1);
-		return str;
+		return count;
 	}
 
 	private static int writeIndex(Path root) throws IOException {
 		List<String> files;
 		try (Stream<Path> walk = Files.walk(root)) {
 			files = walk.filter(Files::isRegularFile).map(p -> root.relativize(p).toString().replace(File.separatorChar, '/')).filter(p -> !p.endsWith(".sha1") && !p.startsWith("."))
-					.filter(p -> !p.endsWith(".lastUpdated") && !p.endsWith("maven-metadata.xml")).collect(Collectors.toList());
+					.collect(Collectors.toList());
 		}
 		Collections.sort(files);
 		StringBuilder index = new StringBuilder();
@@ -189,18 +150,5 @@ public final class MavenBundleCollector {
 		catch (java.security.NoSuchAlgorithmException e) {
 			throw new IOException(e);
 		}
-	}
-
-	private static Log consoleLog() {
-		return (Log) Proxy.newProxyInstance(Log.class.getClassLoader(), new Class[] { Log.class }, (proxy, method, a) -> {
-			String n = method.getName();
-			if ((n.equals("error") || n.equals("warn") || n.equals("info")) && a != null && a.length >= 2 && a[1] instanceof String) {
-				System.out.println(n + ": " + a[1]);
-			}
-			Class<?> rt = method.getReturnType();
-			if (rt == int.class) return 0;
-			if (rt == boolean.class) return false;
-			return null;
-		});
 	}
 }
