@@ -96,6 +96,10 @@
 			}
 
 
+			// the classifier is appended to the entry, copyExtensions reads the classified file from the cache but keeps the name without classifier
+			if ( classifier.length > 0 )
+				data += "@" + classifier;
+
 			project.log("ext" + _name + " = "+ _version);
 			project.log(_id);
 			
@@ -802,10 +806,19 @@
 
 
 			for (var e in extensions){
-				var extFile = extensions[e].split(";").join("-") + ".lex";
-				echo.setMessage( "copy Extension: " + sourceDir + "/" + extFile );
+				var entry = extensions[e];
+				var classifier = "";
+				var at = entry.indexOf( "@" );
+				if ( at != -1 ) {
+					classifier = entry.substring( at + 1 );
+					entry = entry.substring( 0, at );
+				}
+				var extFile = entry.split(";").join("-") + ".lex";
+				// the file in the cache has the classifier in its name, the one in the target does not
+				var cacheFile = classifier.length > 0 ? entry.split(";").join("-") + "_" + classifier + ".lex" : extFile;
+				echo.setMessage( "copy Extension: " + sourceDir + "/" + cacheFile );
 				echo.perform();	
-				copy.setFile( new java.io.File( sourceDir + "/" + extFile ) );
+				copy.setFile( new java.io.File( sourceDir + "/" + cacheFile ) );
 				copy.setTofile( new java.io.File( targetDir + "/" + extFile ) );
 				copy.perform();
 			}
