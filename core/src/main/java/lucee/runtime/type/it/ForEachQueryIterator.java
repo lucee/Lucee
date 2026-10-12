@@ -29,8 +29,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
-import lucee.runtime.type.QueryColumn;
-import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Resetable;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -43,7 +41,6 @@ public final class ForEachQueryIterator implements Iterator, Resetable {
 	private int start, current = 0;
 	private Key[] names;
 	private PageContext pcMayNull;
-	private QueryColumn[] columns;
 
 	public ForEachQueryIterator(PageContext pc, Query qry, int pid) {
 		this.pcMayNull = pc;
@@ -51,17 +48,6 @@ public final class ForEachQueryIterator implements Iterator, Resetable {
 		this.pid = pid;
 		this.start = qry.getCurrentrow(pid);
 		this.names = qry.getColumnNames();
-		if (qry instanceof QueryImpl) {
-			QueryColumn[] cols = new QueryColumn[names.length];
-			for (int i = 0; i < cols.length; i++) {
-				cols[i] = qry.getColumn(names[i], null);
-				if (cols[i] == null) {
-					cols = null;
-					break;
-				}
-			}
-			this.columns = cols;
-		}
 	}
 
 	@Override
@@ -75,15 +61,8 @@ public final class ForEachQueryIterator implements Iterator, Resetable {
 			if (qry.go(++current, pid)) {
 				Struct sct = new StructImpl(Struct.TYPE_LINKED);
 				Object empty = NullSupportHelper.full(this.pcMayNull = ThreadLocalPageContext.get(pcMayNull)) ? null : "";
-				if (columns != null) {
-					for (int i = 0; i < names.length; i++) {
-						sct.setEL(names[i], columns[i].get(current, empty));
-					}
-				}
-				else {
-					for (int i = 0; i < names.length; i++) {
-						sct.setEL(names[i], qry.get(names[i], empty));
-					}
+				for (int i = 0; i < names.length; i++) {
+					sct.setEL(names[i], qry.get(names[i], empty));
 				}
 				return sct;
 			}
