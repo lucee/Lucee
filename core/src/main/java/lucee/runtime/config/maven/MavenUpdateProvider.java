@@ -81,10 +81,6 @@ public final class MavenUpdateProvider {
 	public static final Repository REPOSITORY_MAVEN_CENTRAL_RELEASES = new Repository("Maven Release Repository", "https://repo1.maven.org/maven2/", TYPE_RELEASE,
 			Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.CENTRAL);
 
-	// GOOGLE
-	public static final Repository REPOSITORY_GOOGLE_CENTRAL_MIRROR = new Repository("Google Cloud Maven Central mirror",
-			"https://maven-central.storage-download.googleapis.com/maven2/", TYPE_RELEASE, Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.EMPTY);
-
 	// SONATYPE
 	public static final Repository REPOSITORY_SONATYPE_SNAPSHOTS = new Repository("Sonatype Repository for Snapshots (last 90 days)",
 			"https://central.sonatype.com/repository/maven-snapshots/", TYPE_SNAPSHOT, Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.EMPTY);
@@ -96,7 +92,7 @@ public final class MavenUpdateProvider {
 	////////////////////////////
 
 	public static final Repository[] DEFAULT_REPOSITORIES_SNAPSHOTS = new Repository[] { REPOSITORY_SONATYPE_SNAPSHOTS };
-	public static final Repository[] DEFAULT_REPOSITORIES_RELEASES = new Repository[] { REPOSITORY_MAVEN_CENTRAL_RELEASES, REPOSITORY_GOOGLE_CENTRAL_MIRROR, REPOSITORY_LUCEE };
+	public static final Repository[] DEFAULT_REPOSITORIES_RELEASES = new Repository[] { REPOSITORY_MAVEN_CENTRAL_RELEASES, REPOSITORY_LUCEE };
 	public static final Repository[] DEFAULT_REPOSITORIES_ALL = new Repository[] { REPOSITORY_LUCEE };
 
 	// private static final Repository[] DEFAULT_REPOSITORY_MIXED = new Repository[] {

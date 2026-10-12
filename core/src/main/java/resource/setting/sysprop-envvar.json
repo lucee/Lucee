@@ -723,7 +723,7 @@
 	{
 		"sysprop": "lucee.maven.default.repositories",
 		"envvar": "LUCEE_MAVEN_DEFAULT_REPOSITORIES",
-		"desc": "Kept from Lucee 7 for backward compatibility, prefer `maven.repository` in .CFConfig.json; only used when no release repository is configured (`maven.repository` / `lucee.mvn.repo.releases`). Specifies a comma-separated list of Maven repository URLs to use before the default repositories (Maven Central, Google Maven Central mirror, Lucee repository). This allows customizing the Maven repositories used by Lucee for downloading dependencies. URL must include a trailing /",
+		"desc": "Kept from Lucee 7 for backward compatibility, prefer `maven.repository` in .CFConfig.json; only used when no release repository is configured (`maven.repository` / `lucee.mvn.repo.releases`). Specifies a comma-separated list of Maven repository URLs to use before the default repositories (Maven Central, Lucee repository). This allows customizing the Maven repositories used by Lucee for downloading dependencies. URL must include a trailing /",
 		"category": "osgi",
 		"type": "string",
 		"default": null
@@ -775,10 +775,10 @@
 	{
 		"sysprop": "lucee.mvn.repo.releases",
 		"envvar": "LUCEE_MVN_REPO_RELEASES",
-		"desc": "Comma-separated Maven repository URLs used to override release repositories. When unset, Lucee uses Maven Central and the Google Cloud Maven Central mirror for releases; https://maven.lucee-services.com/ and ForgeBox are always included for extension discovery and Lucee artifacts.",
+		"desc": "Comma-separated Maven repository URLs used to override release repositories. When unset, Lucee uses Maven Central for releases; https://maven.lucee-services.com/ and ForgeBox are always included for extension discovery and Lucee artifacts.",
 		"category": "osgi",
 		"type": "string",
-		"default": "https://repo1.maven.org/maven2/,https://maven-central.storage-download.googleapis.com/maven2/"
+		"default": "https://repo1.maven.org/maven2/"
 	},
 	{
 		"sysprop": "lucee.mvn.repo.snapshots",
