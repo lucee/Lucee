@@ -20,8 +20,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * Build time tool. Takes the "maven" folder (repository layout) of every extension listed in
- * Require-Extension and copies it into one directory, together with the .sha1 files and an ".index"
+ * Build time tool. Takes the "maven" folder (repository layout) of every extension defined as lite
+ * in Require-Extension (group:artifact:version:lite) and copies it into one directory, together with the .sha1 files and an ".index"
  * file as read by {@link MavenDeployer#deployBundled}.
  * 
  * Usage: MavenBundleCollector &lt;core MANIFEST.MF&gt; &lt;cache directory&gt; &lt;target directory&gt; [extensions directory] [repository url]...
@@ -54,26 +54,26 @@ public final class MavenBundleCollector {
 		cache.mkdirs();
 		target.mkdirs();
 		for (String[] gav: readRequiredExtensions(manifest)) {
+			// only extensions defined as lite (group:artifact:version:lite) need their maven files bundled separately
+			if (!"lite".equals(gav[3])) continue;
 			File lex = getExtension(gav[0], gav[1], gav[2], cache, repos, "");
 			int count = copyMavenFolder(lex, target);
 			System.out.println("extension [" + lex.getName() + "] provides [" + count + "] maven file(s)");
 			if (extensions == null) continue;
 
-			// replace the bundled full extension with the lite one (same file name), the maven files are bundled separately
+			// the lite extension is bundled under the file name of the full extension
 			File bundled = new File(extensions, lex.getName());
-			if (count == 0 || !bundled.isFile()) continue;
+			if (!bundled.isFile()) throw new IOException("bundled extension [" + bundled + "] not found");
 			File lite = getExtension(gav[0], gav[1], gav[2], new File(cache, "lite"), repos, "-lite");
-			if (lite == null) System.out.println("  no lite version available, keeping the full extension");
-			else {
-				Files.copy(lite.toPath(), bundled.toPath(), StandardCopyOption.REPLACE_EXISTING);
-				System.out.println("  bundling [" + lite.getName() + "] (" + lite.length() + " bytes instead of " + lex.length() + ")");
-			}
+			if (lite == null) throw new IOException("extension [" + gav[0] + ":" + gav[1] + ":" + gav[2] + "] is defined as lite, but no lite version is available");
+			Files.copy(lite.toPath(), bundled.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			System.out.println("  bundling [" + lite.getName() + "] (" + lite.length() + " bytes instead of " + lex.length() + ")");
 		}
 		System.out.println("collected [" + writeIndex(target.toPath()) + "] maven files in [" + target + "]");
 	}
 
 	/**
-	 * @return group, artifact and version of every entry of Require-Extension
+	 * @return group, artifact, version and "lite" (or empty) of every entry of Require-Extension
 	 */
 	static List<String[]> readRequiredExtensions(File manifestFile) throws IOException {
 		Manifest mf;
@@ -86,7 +86,7 @@ public final class MavenBundleCollector {
 		for (String entry: str.split(",")) {
 			String[] gav = entry.split(";")[0].trim().split(":");
 			if (gav.length < 3) continue;
-			result.add(new String[] { gav[0].trim(), gav[1].trim(), gav[2].trim() });
+			result.add(new String[] { gav[0].trim(), gav[1].trim(), gav[2].trim(), gav.length > 3 && "lite".equalsIgnoreCase(gav[3].trim()) ? "lite" : "" });
 		}
 		return result;
 	}

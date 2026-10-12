@@ -1699,6 +1699,8 @@ public final class RHExtension implements Serializable {
 		GAVSO gavso = null;
 		for (String ss: arrr) {
 			res = null;
+			// group:artifact:version:lite, "lite" only tells the build to bundle the lite version of the extension
+			if (ss.length() > 5 && ss.regionMatches(true, ss.length() - 5, ":lite", 0, 5) && ss.chars().filter(ch -> ch == ':').count() == 3) ss = ss.substring(0, ss.length() - 5);
 			index = ss.indexOf('=');
 			if (index != -1) {
 				name = ss.substring(0, index).trim();
