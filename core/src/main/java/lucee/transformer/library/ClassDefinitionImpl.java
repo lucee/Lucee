@@ -46,7 +46,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
@@ -71,7 +71,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	private String maven;
 
 	private transient Class<T> clazz;
-	private transient GAVSO[] gavsos;
+	private transient MavenCoordinate[] coordinates;
 
 	public ClassDefinitionImpl(String className, String name, String version, Identification id) {
 		this.className = className == null ? null : className.trim();
@@ -319,12 +319,12 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		return maven != null;
 	}
 
-	public GAVSO[] getMaven() throws ApplicationException {
-		if (gavsos == null) {
-			List<GAVSO> gavsos = MavenUtil.toGAVSOs(maven);
-			if (gavsos != null && gavsos.size() > 0) this.gavsos = gavsos.toArray(new GAVSO[gavsos.size()]);
+	public MavenCoordinate[] getMaven() throws ApplicationException {
+		if (coordinates == null) {
+			List<MavenCoordinate> coordinates = MavenUtil.toCoordinates(maven);
+			if (coordinates != null && coordinates.size() > 0) this.coordinates = coordinates.toArray(new MavenCoordinate[coordinates.size()]);
 		}
-		return gavsos;
+		return coordinates;
 	}
 
 	public String getMavenRaw() {

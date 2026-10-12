@@ -269,7 +269,7 @@ public final class MavenUtil {
 				current.getDependencyScopeManagement(), false, log);
 	}
 
-	public static class GAVSO implements Serializable {
+	public static class MavenCoordinate implements Serializable {
 
 		public static int ORIGIN_DEPENDENCY = 1;
 
@@ -283,19 +283,19 @@ public final class MavenUtil {
 		public final String checksum;
 		private int d;// dependency
 
-		public GAVSO(String groupId, String artifactId, String version) {
+		public MavenCoordinate(String groupId, String artifactId, String version) {
 			this(groupId, artifactId, version, null, null, null, null, null);
 		}
 
-		public GAVSO(String groupId, String artifactId, String version, String classifier) {
+		public MavenCoordinate(String groupId, String artifactId, String version, String classifier) {
 			this(groupId, artifactId, version, classifier, null, null, null, null);
 		}
 
-		public GAVSO(String groupId, String artifactId, String version, String scope, String optional, String checksum) {
+		public MavenCoordinate(String groupId, String artifactId, String version, String scope, String optional, String checksum) {
 			this(groupId, artifactId, version, null, null, scope, optional, checksum);
 		}
 
-		public GAVSO(String groupId, String artifactId, String version, String classifier, String extension, String scope, String optional, String checksum) {
+		public MavenCoordinate(String groupId, String artifactId, String version, String classifier, String extension, String scope, String optional, String checksum) {
 			this.groupId = groupId;
 			this.artifactId = artifactId;
 			this.version = version;
@@ -306,7 +306,7 @@ public final class MavenUtil {
 			this.checksum = checksum;
 		}
 
-		public GAVSO setDependency(int d) {
+		public MavenCoordinate setDependency(int d) {
 			this.d = d;
 			return this;
 		}
@@ -366,8 +366,8 @@ public final class MavenUtil {
 
 		@Override
 		public boolean equals(Object other) {
-			if (!(other instanceof GAVSO)) return false;
-			return toGAVC().equals(((GAVSO) other).toGAVC());
+			if (!(other instanceof MavenCoordinate)) return false;
+			return toGAVC().equals(((MavenCoordinate) other).toGAVC());
 		}
 
 		@Override
@@ -381,7 +381,7 @@ public final class MavenUtil {
 		 * @param other
 		 * @return
 		 */
-		public boolean same(GAVSO other) {
+		public boolean same(MavenCoordinate other) {
 			return toGA().equals(other.toGA());
 		}
 
@@ -397,24 +397,24 @@ public final class MavenUtil {
 			return sct;
 		}
 
-		public static Struct toStruct(GAVSO gavso) {
-			return gavso.populate(new StructImpl(Struct.TYPE_LINKED));
+		public static Struct toStruct(MavenCoordinate coordinate) {
+			return coordinate.populate(new StructImpl(Struct.TYPE_LINKED));
 		}
 
-		public static Array toArray(List<GAVSO> list) {
+		public static Array toArray(List<MavenCoordinate> list) {
 			ArrayImpl arr = new ArrayImpl();
 			if (list == null || list.isEmpty()) return arr;
-			for (GAVSO gavso: list) {
-				arr.appendEL(gavso.populate(new StructImpl(Struct.TYPE_LINKED)));
+			for (MavenCoordinate coordinate: list) {
+				arr.appendEL(coordinate.populate(new StructImpl(Struct.TYPE_LINKED)));
 			}
 			return arr;
 		}
 
-		public static Array toArray(GAVSO[] list) {
+		public static Array toArray(MavenCoordinate[] list) {
 			ArrayImpl arr = new ArrayImpl();
 			if (list == null || list.length == 0) return arr;
-			for (GAVSO gavso: list) {
-				arr.appendEL(gavso.populate(new StructImpl(Struct.TYPE_LINKED)));
+			for (MavenCoordinate coordinate: list) {
+				arr.appendEL(coordinate.populate(new StructImpl(Struct.TYPE_LINKED)));
 			}
 			return arr;
 		}
@@ -422,16 +422,16 @@ public final class MavenUtil {
 		/**
 		 * same group and artifact id, but version MAY differ
 		 * 
-		 * @param gavso
+		 * @param coordinate
 		 * @return
 		 */
-		public boolean equalID(GAVSO other) {
+		public boolean equalID(MavenCoordinate other) {
 			if (!groupId.equalsIgnoreCase(other.groupId)) return false;
 			if (!artifactId.equalsIgnoreCase(other.artifactId)) return false;
 			return true;
 		}
 
-		public boolean equalIDAndVersion(GAVSO other) {
+		public boolean equalIDAndVersion(MavenCoordinate other) {
 			if (!version.equalsIgnoreCase(other.version)) return false;
 			return equalID(other);
 		}
@@ -914,14 +914,14 @@ public final class MavenUtil {
 		}
 	}
 
-	public static List<GAVSO> toGAVSOs(Object obj, List<GAVSO> defaultValue) {
+	public static List<MavenCoordinate> toCoordinates(Object obj, List<MavenCoordinate> defaultValue) {
 		// array
-		List<GAVSO> list = new ArrayList<>();
+		List<MavenCoordinate> list = new ArrayList<>();
 		Object[] arr = Caster.toNativeArray(obj, null);
 		if (arr != null) {
-			GAVSO tmp;
+			MavenCoordinate tmp;
 			for (Object o: arr) {
-				tmp = toGAVSO(o, null);
+				tmp = toCoordinate(o, null);
 				if (tmp != null) list.add(tmp);
 			}
 			return list;
@@ -929,7 +929,7 @@ public final class MavenUtil {
 		// struct
 		Struct el = Caster.toStruct(obj, null);
 		if (el != null) {
-			GAVSO tmp = toGAVSO(el, null);
+			MavenCoordinate tmp = toCoordinate(el, null);
 			if (tmp != null) list.add(tmp);
 			return list;
 		}
@@ -937,9 +937,9 @@ public final class MavenUtil {
 		// gradle style?
 		String str = Caster.toString(obj, null);
 		if (!StringUtil.isEmpty(str)) {
-			GAVSO tmp;
+			MavenCoordinate tmp;
 			for (String s: ListUtil.listToStringArray(str, ',')) {
-				tmp = toGAVSO(s, null);
+				tmp = toCoordinate(s, null);
 				if (tmp != null) list.add(tmp);
 			}
 			return list;
@@ -947,20 +947,20 @@ public final class MavenUtil {
 		return list;
 	}
 
-	public static List<GAVSO> toGAVSOs(Object obj) throws ApplicationException {
+	public static List<MavenCoordinate> toCoordinates(Object obj) throws ApplicationException {
 		// array
-		List<GAVSO> list = new ArrayList<>();
+		List<MavenCoordinate> list = new ArrayList<>();
 		Object[] arr = Caster.toNativeArray(obj, null);
 		if (arr != null) {
 			for (Object o: arr) {
-				list.add(toGAVSO(o));
+				list.add(toCoordinate(o));
 			}
 			return list;
 		}
 		// struct
 		Struct el = Caster.toStruct(obj, null);
 		if (el != null) {
-			list.add(toGAVSO(el));
+			list.add(toCoordinate(el));
 			return list;
 		}
 
@@ -968,33 +968,33 @@ public final class MavenUtil {
 		String str = Caster.toString(obj, null);
 		if (!StringUtil.isEmpty(str)) {
 			for (String s: ListUtil.listToStringArray(str, ',')) {
-				list.add(toGAVSO(s));
+				list.add(toCoordinate(s));
 			}
 			return list;
 		}
 		return list;
 	}
 
-	public static GAVSO toGAVSO(Object obj, GAVSO defaultValue) {
+	public static MavenCoordinate toCoordinate(Object obj, MavenCoordinate defaultValue) {
 		try {
-			GAVSO gavso = parseGAVSO(obj, false);
-			return gavso == null ? defaultValue : gavso;
+			MavenCoordinate coordinate = parseCoordinate(obj, false);
+			return coordinate == null ? defaultValue : coordinate;
 		}
 		catch (ApplicationException ae) {
 			return defaultValue;
 		}
 	}
 
-	public static GAVSO toGAVSO(Object obj) throws ApplicationException {
-		return parseGAVSO(obj, true);
+	public static MavenCoordinate toCoordinate(Object obj) throws ApplicationException {
+		return parseCoordinate(obj, true);
 	}
 
 	/**
 	 * String format (Gradle style): groupId:artifactId[:version[:classifier]][@extension]. Scope,
 	 * optional and checksum are only available in the struct form.
 	 */
-	private static GAVSO parseGAVSO(Object obj, boolean strict) throws ApplicationException {
-		if (obj instanceof GAVSO) return (GAVSO) obj;
+	private static MavenCoordinate parseCoordinate(Object obj, boolean strict) throws ApplicationException {
+		if (obj instanceof MavenCoordinate) return (MavenCoordinate) obj;
 
 		Struct el = Caster.toStruct(obj, null, false);
 		if (el != null) {
@@ -1008,14 +1008,14 @@ public final class MavenUtil {
 				if (StringUtil.isEmpty(v, true)) v = Caster.toString(el.get(KeyConstants._v, null), null);
 				if (StringUtil.isEmpty(v, true)) v = null;
 
-				return new GAVSO(g, a, v, Caster.toString(el.get(KeyConstants._classifier, null), null), Caster.toString(el.get(KeyConstants._extension, null), null),
+				return new MavenCoordinate(g, a, v, Caster.toString(el.get(KeyConstants._classifier, null), null), Caster.toString(el.get(KeyConstants._extension, null), null),
 						Caster.toString(el.get(KeyConstants._scope, null), null), Caster.toString(el.get(KeyConstants._optional, null), null),
 						Caster.toString(el.get(KeyConstants._checksum, null), null));
 			}
 
 			// single entry with gradle style?
 			String m = Caster.toString(el.get(KeyConstants._maven, null), null);
-			if (!StringUtil.isEmpty(m, true)) return parseGAVSO(m, strict);
+			if (!StringUtil.isEmpty(m, true)) return parseCoordinate(m, strict);
 
 			if (!strict) return null;
 			if (StringUtil.isEmpty(g)) throw new ApplicationException("Missing required field: groupId. Ensure that the 'groupId' key is present and not empty.");
@@ -1034,7 +1034,7 @@ public final class MavenUtil {
 			}
 			String[] arr = ListUtil.listToStringArray(str, ':');
 			if (arr.length > 1 && arr.length < 5) {
-				return new GAVSO(
+				return new MavenCoordinate(
 
 						arr[0].trim(), // group
 
@@ -1072,9 +1072,9 @@ public final class MavenUtil {
 		return version.matches(versionPattern);
 	}
 
-	public static String toString(GAVSO[] gavsos) {
+	public static String toString(MavenCoordinate[] coordinates) {
 		StringBuilder sb = new StringBuilder();
-		for (GAVSO g: gavsos) {
+		for (MavenCoordinate g: coordinates) {
 			if (sb.length() > 0) sb.append(',');
 			sb.append(g.toString());
 		}

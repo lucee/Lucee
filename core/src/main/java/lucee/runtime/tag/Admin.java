@@ -152,7 +152,7 @@ import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.net.http.CertificateInstaller;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.Server;
@@ -4078,7 +4078,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.setEL(KeyConstants._bundleVersion, cd.getVersionAsString());
 		sct.setEL(KeyConstants._bundleVersion, cd.getVersionAsString());
 		if (cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven()) {
-			sct.setEL(KeyConstants._maven, MavenUtil.GAVSO.toArray(((ClassDefinitionImpl) cd).getMaven()));
+			sct.setEL(KeyConstants._maven, MavenUtil.MavenCoordinate.toArray(((ClassDefinitionImpl) cd).getMaven()));
 		}
 
 		sct.setEL(KeyConstants._connectionString, d.getDsnOriginal());
@@ -4349,7 +4349,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		// GAV
 		if (!StringUtil.isEmpty(groupId, true) && !StringUtil.isEmpty(artifactId, true)) {
-			ed.setGAVSO(new GAVSO(groupId, artifactId, version));
+			ed.setCoordinate(new MavenCoordinate(groupId, artifactId, version));
 		}
 
 		ResetFilter filter = new ResetFilter();
@@ -4385,7 +4385,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		// GAV
 		if (!StringUtil.isEmpty(groupId, true) && !StringUtil.isEmpty(artifactId, true)) {
-			ed.setGAVSO(new GAVSO(groupId, artifactId, null));
+			ed.setCoordinate(new MavenCoordinate(groupId, artifactId, null));
 		}
 
 		admin.removeRHExtension(ed, config.getLog("deploy"));

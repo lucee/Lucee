@@ -53,7 +53,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -368,9 +368,9 @@ public final class JavaSettingsImpl implements JavaSettings {
 		return watchedExtensions;
 	}
 
-	public static JavaSettings getInstance(ConfigServer config, GAVSO... gavsoArr) {
+	public static JavaSettings getInstance(ConfigServer config, MavenCoordinate... coordinateArr) {
 		Struct sct = new StructImpl();
-		sct.setEL(KeyConstants._maven, new ArrayImpl(gavsoArr));
+		sct.setEL(KeyConstants._maven, new ArrayImpl(coordinateArr));
 		return getInstance(config, sct, null);
 	}
 
@@ -414,12 +414,12 @@ public final class JavaSettingsImpl implements JavaSettings {
 					Log log = LogUtil.getLog(config, "mvn", "application");
 					while (it.hasNext()) {
 						Object entry = it.next();
-						MavenUtil.GAVSO gavso = MavenUtil.toGAVSO(entry, null);
-						if (gavso == null) {
+						MavenUtil.MavenCoordinate coordinate = MavenUtil.toCoordinate(entry, null);
+						if (coordinate == null) {
 							if (log != null) log.warn("javasettings", "ignored the maven entry [" + Caster.toString(entry, "") + "], expected format: group:artifact:version[:classifier][@extension] or a struct");
 						}
 						else {
-							POM tmp = POM.getInstance(dir, gavso.groupId, gavso.artifactId, gavso.version, gavso.classifier, gavso.extension, MavenUtil.toScopes(gavso.scope, POM.SCOPES_FOR_RUNTIME), log);
+							POM tmp = POM.getInstance(dir, coordinate.groupId, coordinate.artifactId, coordinate.version, coordinate.classifier, coordinate.extension, MavenUtil.toScopes(coordinate.scope, POM.SCOPES_FOR_RUNTIME), log);
 							mapPoms.put("maven:" + tmp.id(), tmp);
 						}
 

@@ -76,7 +76,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
@@ -143,7 +143,7 @@ public final class RHExtension implements Serializable {
 	private boolean installed;
 	private ExtensionDefintion edInit;
 	private ExtensionDefintion edExtended;
-	private GAVSO gavso;
+	private MavenCoordinate coordinate;
 
 	/*
 	 * public static RHExtension getInstanceX(Config config, String id, String version) throws
@@ -368,9 +368,9 @@ public final class RHExtension implements Serializable {
 			}
 		}
 		if (downloadIfNecessary) {
-			GAVSO gav = ed.getGAVSO(config, true);
+			MavenCoordinate coordinate = ed.getCoordinate(config, true);
 			// check in existing instances by GAV
-			if (gav != null && gav.isValid()) {
+			if (coordinate != null && coordinate.isValid()) {
 				return _getInstance(config, DeployHandler.downloadExtensionFromMaven((ConfigPro) config, ed, false, true, log), ed, log).getRHExtension();
 			}
 
@@ -464,8 +464,8 @@ public final class RHExtension implements Serializable {
 	}
 
 	private static RHExtension _getInstanceByGAV(Config config, ExtensionDefintion ed, boolean investigate, Log log) {
-		GAVSO gav = ed.getGAVSO(config, investigate);
-		if (gav != null && gav.isValid()) {
+		MavenCoordinate coordinate = ed.getCoordinate(config, investigate);
+		if (coordinate != null && coordinate.isValid()) {
 			for (lucee.runtime.extension.RHExtensionCollection.Entry e: collection.getExtensions()) {
 				if (e.getFilename().equals(ed.getStorageName(investigate))) {
 					if (LogUtil.doesDebug(log)) {
@@ -493,8 +493,8 @@ public final class RHExtension implements Serializable {
 		initInstalled(config);
 
 		// by ga
-		GAVSO gav = ed.getGAVSO(config, true);
-		boolean hasGAV = gav != null && gav.isValid();
+		MavenCoordinate coordinate = ed.getCoordinate(config, true);
+		boolean hasGAV = coordinate != null && coordinate.isValid();
 		String id = ed.getId();
 		boolean hasId = !StringUtil.isEmpty(id, true);
 		RHExtension ext;
@@ -506,7 +506,7 @@ public final class RHExtension implements Serializable {
 			}
 
 			// gav
-			if (hasGAV && gav.groupId.equals(ext.getGroupId()) && gav.artifactId.equals(ext.getArtifactId())) {
+			if (hasGAV && coordinate.groupId.equals(ext.getGroupId()) && coordinate.artifactId.equals(ext.getArtifactId())) {
 				if (LogUtil.doesDebug(log)) {
 					log.debug("extension", "found a different version installed [" + ext.toExtensionDefinition() + "] as the version we wanna install [" + ed + "].");
 				}
@@ -536,8 +536,8 @@ public final class RHExtension implements Serializable {
 		if (ed != null) {
 			if (!StringUtil.isEmpty(ed.getId(), true)) _id = ed.getId().trim();
 			if (!StringUtil.isEmpty(ed.getVersion(), true)) _version = ed.getVersion().trim();
-			if (ed.getGAVSO(config, false) != null) {
-				this.gavso = ed.getGAVSO(config, false);
+			if (ed.getCoordinate(config, false) != null) {
+				this.coordinate = ed.getCoordinate(config, false);
 			}
 		}
 	}
@@ -1175,7 +1175,7 @@ public final class RHExtension implements Serializable {
 
 			// to we have Maven data
 			if (hasGAV()) {
-				el.setEL(KeyConstants._maven, new GAVSO(getGroupId(), getArtifactId(), getVersion()).toGAV());
+				el.setEL(KeyConstants._maven, new MavenCoordinate(getGroupId(), getArtifactId(), getVersion()).toGAV());
 			}
 			else {
 				// in case the extension has maven info in metadata, we dn't need to define id
@@ -1308,7 +1308,7 @@ public final class RHExtension implements Serializable {
 		coll.setEL(KeyConstants._jdbc, toArray(md.getJdbcs()));
 		coll.setEL(KeyImpl.init("startupHook"), toArray(md.getStartupHooks()));
 		coll.setEL(KeyConstants._mapping, toArray(md.getMappings()));
-		coll.setEL(KeyConstants._maven, MavenUtil.GAVSO.toArray(md.getMaven()));
+		coll.setEL(KeyConstants._maven, MavenUtil.MavenCoordinate.toArray(md.getMaven()));
 		coll.setEL(KeyImpl.init("eventGatewayInstances"), toArray(md.getEventGatewayInstances()));
 
 		BundleInfo[] bfs = md.getBundles();
@@ -1357,8 +1357,8 @@ public final class RHExtension implements Serializable {
 	}
 
 	public String getGroupId() {
-		if (gavso != null && gavso.groupId != null) {
-			return gavso.groupId;
+		if (coordinate != null && coordinate.groupId != null) {
+			return coordinate.groupId;
 		}
 
 		// from metadata
@@ -1366,16 +1366,16 @@ public final class RHExtension implements Serializable {
 		if (!StringUtil.isEmpty(g, true)) {
 			String a = getMetadata().getArtifactId();
 			if (!StringUtil.isEmpty(a, true)) {
-				gavso = new GAVSO(g, a, getVersion());
+				coordinate = new MavenCoordinate(g, a, getVersion());
 			}
 			return g;
 		}
 
 		if (getId() != null) {
-			GAVSO tmp = ExtensionProvider.toGAVSO((ConfigPro) config, getId(), true, null);
+			MavenCoordinate tmp = ExtensionProvider.toCoordinate((ConfigPro) config, getId(), true, null);
 			if (tmp != null) {
-				gavso = new GAVSO(tmp.groupId, tmp.artifactId, getVersion());
-				return gavso.groupId;
+				coordinate = new MavenCoordinate(tmp.groupId, tmp.artifactId, getVersion());
+				return coordinate.groupId;
 			}
 		}
 
@@ -1383,8 +1383,8 @@ public final class RHExtension implements Serializable {
 	}
 
 	public String getArtifactId() {
-		if (gavso != null && gavso.artifactId != null) {
-			return gavso.artifactId;
+		if (coordinate != null && coordinate.artifactId != null) {
+			return coordinate.artifactId;
 		}
 
 		// from metadata
@@ -1392,16 +1392,16 @@ public final class RHExtension implements Serializable {
 		if (!StringUtil.isEmpty(a, true)) {
 			String g = getMetadata().getGroupId();
 			if (!StringUtil.isEmpty(g, true)) {
-				gavso = new GAVSO(g, a, getVersion());
+				coordinate = new MavenCoordinate(g, a, getVersion());
 			}
 			return a;
 		}
 
 		if (getId() != null) {
-			GAVSO tmp = ExtensionProvider.toGAVSO(null, getId(), true, null);
+			MavenCoordinate tmp = ExtensionProvider.toCoordinate(null, getId(), true, null);
 			if (tmp != null) {
-				gavso = new GAVSO(tmp.groupId, tmp.artifactId, getVersion());
-				return gavso.artifactId;
+				coordinate = new MavenCoordinate(tmp.groupId, tmp.artifactId, getVersion());
+				return coordinate.artifactId;
 			}
 		}
 
@@ -1415,8 +1415,8 @@ public final class RHExtension implements Serializable {
 
 	public String getVersion() {
 		if (metadata == null && _version != null) return _version;
-		if (gavso != null && gavso.version != null) {
-			return gavso.version;
+		if (coordinate != null && coordinate.version != null) {
+			return coordinate.version;
 		}
 		return getMetadata()._getVersion();
 	}
@@ -1553,7 +1553,7 @@ public final class RHExtension implements Serializable {
 
 	public boolean equalsTo(ExtensionDefintion ed) {
 
-		if (ed.getGAVSO(config, true) != null && getGroupId() != null && getArtifactId() != null && getVersion() != null) {
+		if (ed.getCoordinate(config, true) != null && getGroupId() != null && getArtifactId() != null && getVersion() != null) {
 			return ed.getGroupId().equalsIgnoreCase(getGroupId()) && ed.getArtifactId().equalsIgnoreCase(getArtifactId()) && ed.getVersion().equalsIgnoreCase(getVersion());
 		}
 		if (ed.getId() == null) {
@@ -1576,7 +1576,7 @@ public final class RHExtension implements Serializable {
 		if (!StringUtil.isEmpty(gav, true)) {
 
 			if (hasGAV()) {
-				return gav.trim().equals(new GAVSO(getGroupId(), getArtifactId(), getVersion()).toGAV());
+				return gav.trim().equals(new MavenCoordinate(getGroupId(), getArtifactId(), getVersion()).toGAV());
 			}
 		}
 
@@ -1597,9 +1597,9 @@ public final class RHExtension implements Serializable {
 		// gav
 		String strGav = Caster.toString(data.get(KeyConstants._maven, null), null);
 		if (!StringUtil.isEmpty(strGav, true)) {
-			GAVSO gav = MavenUtil.toGAVSO(strGav, null);
-			if (gav != null && hasGAV()) {
-				return gav.same(new GAVSO(getGroupId(), getArtifactId(), getVersion()));
+			MavenCoordinate coordinate = MavenUtil.toCoordinate(strGav, null);
+			if (coordinate != null && hasGAV()) {
+				return coordinate.same(new MavenCoordinate(getGroupId(), getArtifactId(), getVersion()));
 			}
 		}
 
@@ -1616,9 +1616,9 @@ public final class RHExtension implements Serializable {
 		if (other == null) return false;
 		// gav
 		if (other.hasGAV()) {
-			GAVSO gav = new GAVSO(other.getGroupId(), other.getArtifactId(), other.getVersion());
+			MavenCoordinate coordinate = new MavenCoordinate(other.getGroupId(), other.getArtifactId(), other.getVersion());
 			if (hasGAV()) {
-				return gav.same(new GAVSO(getGroupId(), getArtifactId(), getVersion()));
+				return coordinate.same(new MavenCoordinate(getGroupId(), getArtifactId(), getVersion()));
 			}
 
 		}
@@ -1635,10 +1635,10 @@ public final class RHExtension implements Serializable {
 	public boolean same(ExtensionDefintion other) {
 		if (other == null) return false;
 		// gav
-		GAVSO gav = other.getGAVSO(config, false);
-		if (gav != null) {
+		MavenCoordinate coordinate = other.getCoordinate(config, false);
+		if (coordinate != null) {
 			if (hasGAV()) {
-				return gav.same(new GAVSO(getGroupId(), getArtifactId(), getVersion()));
+				return coordinate.same(new MavenCoordinate(getGroupId(), getArtifactId(), getVersion()));
 			}
 
 		}
@@ -1696,7 +1696,7 @@ public final class RHExtension implements Serializable {
 		Resource res;
 		ConfigServer c = ThreadLocalPageContext.getConfigServer();
 		Log log = c.getLog("deploy");
-		GAVSO gavso = null;
+		MavenCoordinate coordinate = null;
 		for (String ss: arrr) {
 			res = null;
 			index = ss.indexOf('=');
@@ -1708,8 +1708,8 @@ public final class RHExtension implements Serializable {
 				}
 			}
 			// gradle style maven
-			else if (ed.getId() == null && (gavso = MavenUtil.toGAVSO(ss, null)) != null) {
-				ExtensionDefintion tmp = ExtensionProvider.getInstance(c, gavso.groupId).toExtensionDefintion(c, gavso, true, null);
+			else if (ed.getId() == null && (coordinate = MavenUtil.toCoordinate(ss, null)) != null) {
+				ExtensionDefintion tmp = ExtensionProvider.getInstance(c, coordinate.groupId).toExtensionDefintion(c, coordinate, true, null);
 				if (tmp != null) ed = tmp;
 			}
 			else if (ed.getId() == null || Decision.isUUId(ed.getId())) {
@@ -1768,8 +1768,8 @@ public final class RHExtension implements Serializable {
 
 			// maven
 			else if ("maven".equalsIgnoreCase(name) || "mvn".equalsIgnoreCase(name)) {
-				GAVSO gav = MavenUtil.toGAVSO(value, null);
-				if (gav != null) ed.setGAVSO(gav);
+				MavenCoordinate coordinate = MavenUtil.toCoordinate(value, null);
+				if (coordinate != null) ed.setCoordinate(coordinate);
 			}
 
 			// source
@@ -1801,7 +1801,7 @@ public final class RHExtension implements Serializable {
 				}
 			}
 		}
-		if (ed.getId() == null && ed.getGAVSO(config, false) == null) return null;
+		if (ed.getId() == null && ed.getCoordinate(config, false) == null) return null;
 		return ed;
 
 	}
@@ -1840,7 +1840,7 @@ public final class RHExtension implements Serializable {
 				ed.setId(getId());
 				ed.setParam("version", getVersion());
 				if (hasGAV()) {
-					ed.setGAVSO(new GAVSO(getGroupId(), getArtifactId(), getVersion()));
+					ed.setCoordinate(new MavenCoordinate(getGroupId(), getArtifactId(), getVersion()));
 				}
 
 			}
@@ -1848,8 +1848,8 @@ public final class RHExtension implements Serializable {
 				ed = edInit;
 				if (ed.getId() == null) ed.setId(getId());
 				if (ed.getVersion() == null) ed.setParam("version", getVersion());
-				if (ed.getGAVSO(config, false) == null) {
-					ed.setGAVSO(new GAVSO(getGroupId(), getArtifactId(), getVersion()));
+				if (ed.getCoordinate(config, false) == null) {
+					ed.setCoordinate(new MavenCoordinate(getGroupId(), getArtifactId(), getVersion()));
 				}
 			}
 			if (extensionFile != null) ed.setSource(null, extensionFile);

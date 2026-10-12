@@ -12,7 +12,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -53,9 +53,9 @@ public final class MavenLoad implements Function {
 
 		while (it.hasNext()) {
 
-			GAVSO gavso = MavenUtil.toGAVSO(it.next());
+			MavenCoordinate coordinate = MavenUtil.toCoordinate(it.next());
 			try {
-				for (Resource r: POM.getInstance(dir, gavso.groupId, gavso.artifactId, gavso.version, gavso.classifier, gavso.extension, MavenUtil.toScope(gavso.scope, POM.SCOPES_FOR_RUNTIME), log).getJars()) {
+				for (Resource r: POM.getInstance(dir, coordinate.groupId, coordinate.artifactId, coordinate.version, coordinate.classifier, coordinate.extension, MavenUtil.toScope(coordinate.scope, POM.SCOPES_FOR_RUNTIME), log).getJars()) {
 					rtnData.set(r.getAbsolutePath(), "");
 				}
 			}

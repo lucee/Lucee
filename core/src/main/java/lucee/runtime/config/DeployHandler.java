@@ -44,7 +44,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
@@ -315,23 +315,23 @@ public final class DeployHandler {
 	private static Version getLatestVersionFor(ConfigPro config, ExtensionDefintion ed, boolean investigate, boolean throwOnError, Log log) throws PageException {
 		try {
 			// get extension from Maven
-			GAVSO gav = getGavById(config, ed, investigate, log);
-			ExtensionProvider ep = ExtensionProvider.getInstance(config, gav.groupId);
+			MavenCoordinate coordinate = getGavById(config, ed, investigate, log);
+			ExtensionProvider ep = ExtensionProvider.getInstance(config, coordinate.groupId);
 
 			Version version = StringUtil.isEmpty(ed.getVersion(), true) ? null : Version.parseVersion(ed.getVersion(), null);
 			// get latest version when no version is defined
 			if (version == null) {
 				// find out the last version still needs some investigated effort, maybe we will improve on that in
 				// the future.
-				version = ep.last(gav.artifactId);
+				version = ep.last(coordinate.artifactId);
 				if (LogUtil.doesDebug(log) && version != null) {
-					log.debug("main", "got latest version[" + version + "] for artifact [" + gav.artifactId + "]");
+					log.debug("main", "got latest version[" + version + "] for artifact [" + coordinate.artifactId + "]");
 				}
 				return version;
 			}
 
 			if (LogUtil.doesDebug(log)) {
-				log.debug("main", "use defined [" + version + "] for artifact [" + gav.artifactId + "]");
+				log.debug("main", "use defined [" + version + "] for artifact [" + coordinate.artifactId + "]");
 			}
 			return version;
 		}
@@ -349,21 +349,21 @@ public final class DeployHandler {
 
 	}
 
-	private static GAVSO getGavById(ConfigPro config, ExtensionDefintion ed, boolean investigate, Log log) throws ApplicationException {
+	private static MavenCoordinate getGavById(ConfigPro config, ExtensionDefintion ed, boolean investigate, Log log) throws ApplicationException {
 		String groupId = ed.getGroupId();
 		String artifactId = ed.getArtifactId();
 
 		if (!StringUtil.isEmpty(groupId, true) && !StringUtil.isEmpty(artifactId, true)) {
-			return new GAVSO(groupId, artifactId, null);
+			return new MavenCoordinate(groupId, artifactId, null);
 		}
 
 		// translate UUID to artifact
-		GAVSO gav = ExtensionProvider.toGAVSO(config, ed.getId(), investigate, null);
-		if (gav != null) {
+		MavenCoordinate coordinate = ExtensionProvider.toCoordinate(config, ed.getId(), investigate, null);
+		if (coordinate != null) {
 			if (LogUtil.doesDebug(log) && artifactId != null) {
-				log.debug("main", "resolved extension id [" + ed.getId() + "] to maven endpoint [" + gav.groupId + ":" + gav.artifactId + "]");
+				log.debug("main", "resolved extension id [" + ed.getId() + "] to maven endpoint [" + coordinate.groupId + ":" + coordinate.artifactId + "]");
 			}
-			return gav;
+			return coordinate;
 		}
 
 		throw new ApplicationException("could not link the exension with the id [" + ed.getId() + "] to any maven endpoint.");
@@ -371,27 +371,27 @@ public final class DeployHandler {
 
 	public static Resource downloadExtensionFromMaven(ConfigPro config, ExtensionDefintion ed, boolean investigate, boolean throwOnError, Log log) throws PageException {
 		try {
-			GAVSO gav = getGavById(config, ed, investigate, log);
-			ExtensionProvider ep = ExtensionProvider.getInstance(config, gav.groupId);
+			MavenCoordinate coordinate = getGavById(config, ed, investigate, log);
+			ExtensionProvider ep = ExtensionProvider.getInstance(config, coordinate.groupId);
 			Version version;
 			// get latest version when no version is defined
 			if (StringUtil.isEmpty(ed.getVersion(), true)) {
 				// find out the last version still needs some investigated effort, maybe we will improve on that in
 				// the future.
-				version = ep.last(gav.artifactId);
+				version = ep.last(coordinate.artifactId);
 				if (LogUtil.doesDebug(log) && version != null) {
-					log.debug("main", "get latest version[" + version + "] for artifact [" + gav.artifactId + "]");
+					log.debug("main", "get latest version[" + version + "] for artifact [" + coordinate.artifactId + "]");
 				}
 			}
 			else {
 				version = Version.parseVersion(ed.getVersion());
 				if (LogUtil.doesDebug(log) && version != null) {
-					log.debug("main", "use defined [" + version + "] for artifact [" + gav.artifactId + "]");
+					log.debug("main", "use defined [" + version + "] for artifact [" + coordinate.artifactId + "]");
 				}
 			}
 			if (version == null) return null;
 
-			return ep.getLEXResource(config, gav.artifactId, version);
+			return ep.getLEXResource(config, coordinate.artifactId, version);
 		}
 		catch (Exception e) {
 			if (throwOnError) throw Caster.toPageException(e);

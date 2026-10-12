@@ -10,7 +10,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mvn" {
 	}
 
 	function run( testResults, testBox ) {
-		describe( "LDEV-6555 Maven classifier support in GAVSO", function() {
+		describe( "LDEV-6555 Maven classifier support in MavenCoordinate", function() {
 
 			it( title="string g:a", body=function() {
 				var g = parse( "org.lucee:image-extension" );
@@ -97,7 +97,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mvn" {
 
 			it( title="populate writes the classifier to a struct", body=function() {
 				var g = parse( "org.lucee:image-extension:2.0.0.35:lite" );
-				var sct = createObject( "java", "lucee.runtime.mvn.MavenUtil$GAVSO" ).toStruct( g );
+				var sct = createObject( "java", "lucee.runtime.mvn.MavenUtil$MavenCoordinate" ).toStruct( g );
 				expect( sct.classifier ).toBe( "lite" );
 				expect( sct.version ).toBe( "2.0.0.35" );
 			});
@@ -233,7 +233,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mvn" {
 	}
 
 	private function parse( required any input ) {
-		return createObject( "java", "lucee.runtime.mvn.MavenUtil" ).toGAVSO( arguments.input );
+		return createObject( "java", "lucee.runtime.mvn.MavenUtil" ).toCoordinate( arguments.input );
 	}
 
 }

@@ -112,7 +112,7 @@ import lucee.runtime.gateway.GatewayEntryImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -692,36 +692,36 @@ public final class ConfigAdmin {
 				listenerSingleton, readOnly);
 	}
 
-	private void _updateMaven(GAVSO mvnEntry) throws PageException {
+	private void _updateMaven(MavenCoordinate coordinate) throws PageException {
 		Struct javasettings = _getRootElement("javasettings");
 		Array maven = ConfigUtil.getAsArray(config, javasettings, false, "maven", "mvn");
 
 		// update
-		GAVSO ex;
+		MavenCoordinate existingCoordinate;
 		Struct sct;
 		Iterator<Object> it = maven.valueIterator();
 		Version exVersion, newVersion;
 
 		while (it.hasNext()) {
 			sct = Caster.toStruct(it.next());
-			ex = MavenUtil.toGAVSO(sct);
+			existingCoordinate = MavenUtil.toCoordinate(sct);
 
 			// same GAV
-			if (ex.equals(mvnEntry)) {
-				LogUtil.logx(config, Log.LEVEL_INFO, "config", "Maven endpoint [" + mvnEntry + "] already exists", "deploy", "application");
+			if (existingCoordinate.equals(coordinate)) {
+				LogUtil.logx(config, Log.LEVEL_INFO, "config", "Maven endpoint [" + coordinate + "] already exists", "deploy", "application");
 				return;
 			}
 
 			// same GA, but different V
-			if (ex.same(mvnEntry)) {
-				newVersion = OSGiUtil.toVersion(mvnEntry.version, null);
+			if (existingCoordinate.same(coordinate)) {
+				newVersion = OSGiUtil.toVersion(coordinate.version, null);
 				if (newVersion == null) {
-					LogUtil.logx(config, Log.LEVEL_WARN, "config", "Skipping update for [" + mvnEntry + "], invalid version format", "deploy", "application");
+					LogUtil.logx(config, Log.LEVEL_WARN, "config", "Skipping update for [" + coordinate + "], invalid version format", "deploy", "application");
 					return;
 				}
 
 				try {
-					exVersion = OSGiUtil.toVersion(ex.version);
+					exVersion = OSGiUtil.toVersion(existingCoordinate.version);
 				}
 				catch (BundleException e) {
 					throw Caster.toPageException(e);
@@ -730,23 +730,23 @@ public final class ConfigAdmin {
 				// new version is bigger
 				int com = OSGiUtil.compare(newVersion, exVersion);
 				if (com > 0) {
-					LogUtil.logx(config, Log.LEVEL_INFO, "config", "Upgrading Maven endpoint from [" + ex + "] to [" + mvnEntry + "]", "deploy", "application");
-					sct.set(KeyConstants._version, mvnEntry.version);
+					LogUtil.logx(config, Log.LEVEL_INFO, "config", "Upgrading Maven endpoint from [" + existingCoordinate + "] to [" + coordinate + "]", "deploy", "application");
+					sct.set(KeyConstants._version, coordinate.version);
 				}
 				else if (com == 0) {
-					LogUtil.logx(config, Log.LEVEL_INFO, "config", "version [" + ex + "] already installed", "deploy", "application");
+					LogUtil.logx(config, Log.LEVEL_INFO, "config", "version [" + existingCoordinate + "] already installed", "deploy", "application");
 				}
 				else {
-					LogUtil.logx(config, Log.LEVEL_INFO, "config", "Skipping downgrade for [" + ex + "],newer version already installed", "deploy", "application");
+					LogUtil.logx(config, Log.LEVEL_INFO, "config", "Skipping downgrade for [" + existingCoordinate + "],newer version already installed", "deploy", "application");
 				}
 				return;
 			}
 		}
 
-		maven.append(mvnEntry.populate(new StructImpl(Struct.TYPE_LINKED)));
+		maven.append(coordinate.populate(new StructImpl(Struct.TYPE_LINKED)));
 	}
 
-	private void _removeMaven(MavenUtil.GAVSO gavso) {
+	private void _removeMaven(MavenUtil.MavenCoordinate coordinate) {
 		// MUST not sure if we really should remove them
 	}
 
@@ -4225,16 +4225,16 @@ public final class ConfigAdmin {
 
 			// update Maven
 			if (!ArrayUtil.isEmpty(rhext.getMetadata().getMaven())) {
-				Iterator<GAVSO> itl = rhext.getMetadata().getMaven().iterator();
-				GAVSO gavso;
+				Iterator<MavenCoordinate> itl = rhext.getMetadata().getMaven().iterator();
+				MavenCoordinate coordinate;
 				while (itl.hasNext()) {
-					gavso = itl.next();
-					if (gavso != null) {
-						_updateMaven(gavso);
+					coordinate = itl.next();
+					if (coordinate != null) {
+						_updateMaven(coordinate);
 						filter.add("resetJavaSettings");
 						reloadNecessary = true;
 					}
-					logger.info("extension", "Update maven endpoint [" + gavso + "] from extension [" + rhext.getMetadata().getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update maven endpoint [" + coordinate + "] from extension [" + rhext.getMetadata().getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4369,12 +4369,12 @@ public final class ConfigAdmin {
 			}
 
 			// update maven
-			List<GAVSO> mavens = rhext.getMetadata().getMaven();
+			List<MavenCoordinate> mavens = rhext.getMetadata().getMaven();
 			if (!ArrayUtil.isEmpty(mavens)) {
-				for (MavenUtil.GAVSO gavso: mavens) {
-					_updateMaven(gavso);
+				for (MavenUtil.MavenCoordinate coordinate: mavens) {
+					_updateMaven(coordinate);
 					reloadNecessary = true;
-					logger.debug("extension", "Update Maven [" + gavso + "]");
+					logger.debug("extension", "Update Maven [" + coordinate + "]");
 				}
 			}
 
@@ -4776,11 +4776,11 @@ public final class ConfigAdmin {
 			}
 
 			// remove maven
-			List<GAVSO> mavens = rhe.getMetadata().getMaven();
+			List<MavenCoordinate> mavens = rhe.getMetadata().getMaven();
 			if (!ArrayUtil.isEmpty(mavens)) {
-				for (GAVSO gavso: mavens) {
-					_removeMaven(gavso);
-					logger.info("extension", "remove Maven [" + gavso + "]");
+				for (MavenCoordinate coordinate: mavens) {
+					_removeMaven(coordinate);
+					logger.info("extension", "remove Maven [" + coordinate + "]");
 				}
 			}
 
