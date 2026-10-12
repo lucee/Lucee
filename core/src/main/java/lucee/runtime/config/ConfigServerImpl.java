@@ -4062,11 +4062,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 						ProxyDataImpl pd = (ProxyDataImpl) ProxyDataImpl.getInstance(server, port, user, pass);
 
 						String strIncludes = getProxyIncludes();
-						Set<String> includes = proxy != null ? ProxyDataImpl.toStringSet(strIncludes) : null;
+						Set<String> includes = !StringUtil.isEmpty(strIncludes, true) ? ProxyDataImpl.toStringSet(strIncludes) : null;
 						if (includes != null) pd.setIncludes(includes);
 
 						String strExcludes = getProxyExcludes();
-						Set<String> excludes = proxy != null ? ProxyDataImpl.toStringSet(strExcludes) : null;
+						Set<String> excludes = !StringUtil.isEmpty(strExcludes, true) ? ProxyDataImpl.toStringSet(strExcludes) : null;
 						if (excludes != null) pd.setExcludes(excludes);
 						proxy = pd;
 					}
@@ -4077,19 +4077,17 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	public ConfigServerImpl resetProxyData() {
-		if (proxy != null) {
-			synchronized (SystemUtil.createToken("config", "getProxyData")) {
-				if (proxy != null) {
-					proxy = null;
-					resetProxyEnabled();
-					resetProxyServer();
-					resetProxyUsername();
-					resetProxyPassword();
-					resetProxyPort();
-					resetProxyIncludes();
-					resetProxyExcludes();
-				}
-			}
+		// always reset the cached settings: when the proxy was disabled before (proxy == null), the
+		// cached "disabled" values must be dropped too, else a newly enabled proxy is never picked up
+		synchronized (SystemUtil.createToken("config", "getProxyData")) {
+			proxy = null;
+			resetProxyEnabled();
+			resetProxyServer();
+			resetProxyUsername();
+			resetProxyPassword();
+			resetProxyPort();
+			resetProxyIncludes();
+			resetProxyExcludes();
 		}
 		return this;
 	}
