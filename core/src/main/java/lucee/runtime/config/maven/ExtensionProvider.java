@@ -254,7 +254,7 @@ public class ExtensionProvider {
 		// org.lucee mappings
 		GAVSO gav = uuidMapping.get(uuid);
 		if (gav != null) {
-			return new GAVSO(gav.g, gav.a, null);
+			return new GAVSO(gav.groupId, gav.artifactId, null);
 		}
 		return defaultValue;
 	}
@@ -286,7 +286,7 @@ public class ExtensionProvider {
 		String uuid = null;
 		for (Entry<String, GAVSO> e: uuidMapping.entrySet()) {
 			GAVSO val = e.getValue();
-			if (val != null && val.g.equals(gavso.g) && val.a.equals(gavso.a)) {
+			if (val != null && val.groupId.equals(gavso.groupId) && val.artifactId.equals(gavso.artifactId)) {
 				uuid = e.getKey();
 			}
 		}
@@ -301,14 +301,14 @@ public class ExtensionProvider {
 		if (investigate) {
 			try {
 				Version version;
-				if (gavso.v == null) {
-					version = last(gavso.a);
+				if (gavso.version == null) {
+					version = last(gavso.artifactId);
 				}
 				else {
-					version = Version.parseVersion(gavso.v);
+					version = Version.parseVersion(gavso.version);
 				}
 
-				Resource res = getLEXResource((ConfigPro) config, gavso.a, version);
+				Resource res = getLEXResource((ConfigPro) config, gavso.artifactId, version);
 				return RHExtension.getInstance(config, res, null).toExtensionDefinition();
 			}
 			catch (Exception e) {
@@ -563,7 +563,7 @@ public class ExtensionProvider {
 
 	private static boolean has(String groupId, String artifactId) {
 		for (GAVSO val: uuidMapping.values()) {
-			if (val != null && val.g.equals(groupId) && val.a.equals(artifactId)) {
+			if (val != null && val.groupId.equals(groupId) && val.artifactId.equals(artifactId)) {
 				return true;
 			}
 		}

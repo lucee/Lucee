@@ -64,24 +64,24 @@ public final class ExtensionDefintion {
 	public ExtensionDefintion setGAVSO(GAVSO gavso) {
 		this.gavso = gavso;
 		if (gavso != null) {
-			if (!StringUtil.isEmpty(gavso.g, true)) setParam("groupId", gavso.g);
-			if (!StringUtil.isEmpty(gavso.a, true)) setParam("artifactId", gavso.a);
-			if (!StringUtil.isEmpty(gavso.v, true)) setParam("version", gavso.v);
-			if (!StringUtil.isEmpty(gavso.s, true)) setParam("scope", gavso.s);
-			if (!StringUtil.isEmpty(gavso.o, true)) setParam("optional", gavso.o);
+			if (!StringUtil.isEmpty(gavso.groupId, true)) setParam("groupId", gavso.groupId);
+			if (!StringUtil.isEmpty(gavso.artifactId, true)) setParam("artifactId", gavso.artifactId);
+			if (!StringUtil.isEmpty(gavso.version, true)) setParam("version", gavso.version);
+			if (!StringUtil.isEmpty(gavso.scope, true)) setParam("scope", gavso.scope);
+			if (!StringUtil.isEmpty(gavso.optional, true)) setParam("optional", gavso.optional);
 		}
 		return this;
 	}
 
 	public String getArtifactId() {
-		if (gavso != null) return gavso.a;
+		if (gavso != null) return gavso.artifactId;
 
 		if (getId() != null) {
 			// TODO only check once
 			GAVSO tmp = ExtensionProvider.toGAVSO((ConfigPro) config, getId(), true, gavso);
 			if (tmp != null) {
-				gavso = new GAVSO(tmp.g, tmp.a, getVersion());
-				return tmp.a;
+				gavso = new GAVSO(tmp.groupId, tmp.artifactId, getVersion());
+				return tmp.artifactId;
 			}
 		}
 
@@ -89,14 +89,14 @@ public final class ExtensionDefintion {
 	}
 
 	public String getGroupId() {
-		if (gavso != null) return gavso.g;
+		if (gavso != null) return gavso.groupId;
 
 		if (getId() != null) {
 			// TODO only check once
 			GAVSO tmp = ExtensionProvider.toGAVSO((ConfigPro) config, getId(), true, gavso);
 			if (tmp != null) {
-				gavso = new GAVSO(tmp.g, tmp.a, getVersion());
-				return tmp.g;
+				gavso = new GAVSO(tmp.groupId, tmp.artifactId, getVersion());
+				return tmp.groupId;
 			}
 		}
 		return null;
@@ -120,7 +120,7 @@ public final class ExtensionDefintion {
 
 		String version = params.get("version");
 		if (StringUtil.isEmpty(version)) version = params.get("extension-version");
-		if (gavso != null && !StringUtil.isEmpty(gavso.v)) return gavso.v;
+		if (gavso != null && !StringUtil.isEmpty(gavso.version)) return gavso.version;
 		if (StringUtil.isEmpty(version)) return null;
 		return version;
 	}
@@ -229,7 +229,7 @@ public final class ExtensionDefintion {
 	}
 
 	public static String getStorageName(GAVSO gav) {
-		return "mvn_" + gav.g + "_" + gav.a + "_" + gav.v + ".lex";
+		return "mvn_" + gav.groupId + "_" + gav.artifactId + "_" + gav.version + ".lex";
 	}
 
 	public static String getStorageName(String id, String version) {

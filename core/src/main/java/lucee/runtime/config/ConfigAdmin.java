@@ -714,14 +714,14 @@ public final class ConfigAdmin {
 
 			// same GA, but different V
 			if (ex.same(mvnEntry)) {
-				newVersion = OSGiUtil.toVersion(mvnEntry.v, null);
+				newVersion = OSGiUtil.toVersion(mvnEntry.version, null);
 				if (newVersion == null) {
 					LogUtil.logx(config, Log.LEVEL_WARN, "config", "Skipping update for [" + mvnEntry + "], invalid version format", "deploy", "application");
 					return;
 				}
 
 				try {
-					exVersion = OSGiUtil.toVersion(ex.v);
+					exVersion = OSGiUtil.toVersion(ex.version);
 				}
 				catch (BundleException e) {
 					throw Caster.toPageException(e);
@@ -731,7 +731,7 @@ public final class ConfigAdmin {
 				int com = OSGiUtil.compare(newVersion, exVersion);
 				if (com > 0) {
 					LogUtil.logx(config, Log.LEVEL_INFO, "config", "Upgrading Maven endpoint from [" + ex + "] to [" + mvnEntry + "]", "deploy", "application");
-					sct.set(KeyConstants._version, mvnEntry.v);
+					sct.set(KeyConstants._version, mvnEntry.version);
 				}
 				else if (com == 0) {
 					LogUtil.logx(config, Log.LEVEL_INFO, "config", "version [" + ex + "] already installed", "deploy", "application");

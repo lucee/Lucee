@@ -132,7 +132,7 @@ public final class Test {
 		long start = System.currentTimeMillis();
 		ResourceUtil.deleteContent(dir, null);
 		for (GAVSO gav: arr) {
-			POM pom = POM.getInstance(dir, null, gav.g, gav.a, gav.v, null, null, gav.checksum, POM.SCOPE_NOT_TEST, POM.SCOPE_ALL, true, null);
+			POM pom = POM.getInstance(dir, null, gav.groupId, gav.artifactId, gav.version, null, null, gav.checksum, POM.SCOPE_NOT_TEST, POM.SCOPE_ALL, true, null);
 
 			aprint.e("==========================================");
 			aprint.e(pom.getName());

@@ -316,22 +316,22 @@ public final class DeployHandler {
 		try {
 			// get extension from Maven
 			GAVSO gav = getGavById(config, ed, investigate, log);
-			ExtensionProvider ep = ExtensionProvider.getInstance(config, gav.g);
+			ExtensionProvider ep = ExtensionProvider.getInstance(config, gav.groupId);
 
 			Version version = StringUtil.isEmpty(ed.getVersion(), true) ? null : Version.parseVersion(ed.getVersion(), null);
 			// get latest version when no version is defined
 			if (version == null) {
 				// find out the last version still needs some investigated effort, maybe we will improve on that in
 				// the future.
-				version = ep.last(gav.a);
+				version = ep.last(gav.artifactId);
 				if (LogUtil.doesDebug(log) && version != null) {
-					log.debug("main", "got latest version[" + version + "] for artifact [" + gav.a + "]");
+					log.debug("main", "got latest version[" + version + "] for artifact [" + gav.artifactId + "]");
 				}
 				return version;
 			}
 
 			if (LogUtil.doesDebug(log)) {
-				log.debug("main", "use defined [" + version + "] for artifact [" + gav.a + "]");
+				log.debug("main", "use defined [" + version + "] for artifact [" + gav.artifactId + "]");
 			}
 			return version;
 		}
@@ -361,7 +361,7 @@ public final class DeployHandler {
 		GAVSO gav = ExtensionProvider.toGAVSO(config, ed.getId(), investigate, null);
 		if (gav != null) {
 			if (LogUtil.doesDebug(log) && artifactId != null) {
-				log.debug("main", "resolved extension id [" + ed.getId() + "] to maven endpoint [" + gav.g + ":" + gav.a + "]");
+				log.debug("main", "resolved extension id [" + ed.getId() + "] to maven endpoint [" + gav.groupId + ":" + gav.artifactId + "]");
 			}
 			return gav;
 		}
@@ -372,26 +372,26 @@ public final class DeployHandler {
 	public static Resource downloadExtensionFromMaven(ConfigPro config, ExtensionDefintion ed, boolean investigate, boolean throwOnError, Log log) throws PageException {
 		try {
 			GAVSO gav = getGavById(config, ed, investigate, log);
-			ExtensionProvider ep = ExtensionProvider.getInstance(config, gav.g);
+			ExtensionProvider ep = ExtensionProvider.getInstance(config, gav.groupId);
 			Version version;
 			// get latest version when no version is defined
 			if (StringUtil.isEmpty(ed.getVersion(), true)) {
 				// find out the last version still needs some investigated effort, maybe we will improve on that in
 				// the future.
-				version = ep.last(gav.a);
+				version = ep.last(gav.artifactId);
 				if (LogUtil.doesDebug(log) && version != null) {
-					log.debug("main", "get latest version[" + version + "] for artifact [" + gav.a + "]");
+					log.debug("main", "get latest version[" + version + "] for artifact [" + gav.artifactId + "]");
 				}
 			}
 			else {
 				version = Version.parseVersion(ed.getVersion());
 				if (LogUtil.doesDebug(log) && version != null) {
-					log.debug("main", "use defined [" + version + "] for artifact [" + gav.a + "]");
+					log.debug("main", "use defined [" + version + "] for artifact [" + gav.artifactId + "]");
 				}
 			}
 			if (version == null) return null;
 
-			return ep.getLEXResource(config, gav.a, version);
+			return ep.getLEXResource(config, gav.artifactId, version);
 		}
 		catch (Exception e) {
 			if (throwOnError) throw Caster.toPageException(e);

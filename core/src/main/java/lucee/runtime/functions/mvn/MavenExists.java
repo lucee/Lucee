@@ -23,7 +23,7 @@ public final class MavenExists implements Function {
 		}
 		GAVSO gavso = MavenUtil.toGAVSO(coord, null);
 		if (gavso == null) throw new FunctionException(pc, "MavenExists", 1, "groupId", "cannot parse [" + coord + "] as a gradle-style coord");
-		return call(pc, gavso.g, gavso.a, gavso.v);
+		return call(pc, gavso.groupId, gavso.artifactId, gavso.version);
 	}
 
 	public static boolean call(PageContext pc, String groupId, String artifactId) throws PageException {

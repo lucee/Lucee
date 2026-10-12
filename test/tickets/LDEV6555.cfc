@@ -14,22 +14,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mvn" {
 
 			it( title="string g:a", body=function() {
 				var g = parse( "org.lucee:image-extension" );
-				expect( g.g ).toBe( "org.lucee" );
-				expect( g.a ).toBe( "image-extension" );
-				expect( isNull( g.v ) ).toBeTrue();
+				expect( g.groupId ).toBe( "org.lucee" );
+				expect( g.artifactId ).toBe( "image-extension" );
+				expect( isNull( g.version ) ).toBeTrue();
 				expect( isNull( g.classifier ) ).toBeTrue();
 			});
 
 			it( title="string g:a:v has no classifier", body=function() {
 				var g = parse( "org.lucee:image-extension:2.0.0.35" );
-				expect( g.v ).toBe( "2.0.0.35" );
+				expect( g.version ).toBe( "2.0.0.35" );
 				expect( isNull( g.classifier ) ).toBeTrue();
 				expect( g.toString() ).toBe( "org.lucee:image-extension:2.0.0.35" );
 			});
 
 			it( title="string g:a:v:classifier", body=function() {
 				var g = parse( "org.lucee:image-extension:2.0.0.35:lite" );
-				expect( g.v ).toBe( "2.0.0.35" );
+				expect( g.version ).toBe( "2.0.0.35" );
 				expect( g.classifier ).toBe( "lite" );
 				expect( isNull( g.extension ) ).toBeTrue();
 				expect( g.toGAV() ).toBe( "org.lucee:image-extension:2.0.0.35" );
@@ -39,7 +39,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mvn" {
 			it( title="a scope word in 4th position is a classifier", body=function() {
 				var g = parse( "org.lucee:image-extension:2.0.0.35:runtime" );
 				expect( g.classifier ).toBe( "runtime" );
-				expect( isNull( g.s ) ).toBeTrue();
+				expect( isNull( g.scope ) ).toBeTrue();
 			});
 
 			it( title="string g:a:v:classifier@ext", body=function() {
@@ -68,8 +68,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mvn" {
 
 			it( title="struct keeps scope, optional and checksum", body=function() {
 				var g = parse( { groupId: "a", artifactId: "b", version: "1", scope: "runtime", optional: "true", checksum: "sha1:abc" } );
-				expect( g.s ).toBe( "runtime" );
-				expect( g.o ).toBe( "true" );
+				expect( g.scope ).toBe( "runtime" );
+				expect( g.optional ).toBe( "true" );
 				expect( g.checksum ).toBe( "sha1:abc" );
 			});
 

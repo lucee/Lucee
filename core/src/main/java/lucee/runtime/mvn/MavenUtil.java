@@ -273,36 +273,36 @@ public final class MavenUtil {
 
 		public static int ORIGIN_DEPENDENCY = 1;
 
-		public final String g;// groupId
-		public final String a;// artifactId
-		public final String v;// version
+		public final String groupId;// groupId
+		public final String artifactId;// artifactId
+		public final String version;// version
 		public final String classifier;
 		public final String extension;// packaging, null when implied by the context
-		public final String s;// scope
-		public final String o;// optional
+		public final String scope;// scope
+		public final String optional;// optional
 		public final String checksum;
 		private int d;// dependency
 
-		public GAVSO(String g, String a, String v) {
-			this(g, a, v, null, null, null, null, null);
+		public GAVSO(String groupId, String artifactId, String version) {
+			this(groupId, artifactId, version, null, null, null, null, null);
 		}
 
-		public GAVSO(String g, String a, String v, String classifier) {
-			this(g, a, v, classifier, null, null, null, null);
+		public GAVSO(String groupId, String artifactId, String version, String classifier) {
+			this(groupId, artifactId, version, classifier, null, null, null, null);
 		}
 
-		public GAVSO(String g, String a, String v, String s, String o, String checksum) {
-			this(g, a, v, null, null, s, o, checksum);
+		public GAVSO(String groupId, String artifactId, String version, String scope, String optional, String checksum) {
+			this(groupId, artifactId, version, null, null, scope, optional, checksum);
 		}
 
-		public GAVSO(String g, String a, String v, String classifier, String extension, String s, String o, String checksum) {
-			this.g = g;
-			this.a = a;
-			this.v = v;
+		public GAVSO(String groupId, String artifactId, String version, String classifier, String extension, String scope, String optional, String checksum) {
+			this.groupId = groupId;
+			this.artifactId = artifactId;
+			this.version = version;
 			this.classifier = StringUtil.isEmpty(classifier, true) ? null : classifier.trim();
 			this.extension = StringUtil.isEmpty(extension, true) ? null : extension.trim();
-			this.s = s;
-			this.o = o;
+			this.scope = scope;
+			this.optional = optional;
 			this.checksum = checksum;
 		}
 
@@ -332,14 +332,14 @@ public final class MavenUtil {
 		public String toGAV() {
 			StringBuilder sb = new StringBuilder();
 
-			if (!StringUtil.isEmpty(g, true)) sb.append(g);
-			if (!StringUtil.isEmpty(a, true)) {
+			if (!StringUtil.isEmpty(groupId, true)) sb.append(groupId);
+			if (!StringUtil.isEmpty(artifactId, true)) {
 				if (sb.length() > 0) sb.append(':');
-				sb.append(a);
+				sb.append(artifactId);
 			}
-			if (!StringUtil.isEmpty(v, true)) {
+			if (!StringUtil.isEmpty(version, true)) {
 				if (sb.length() > 0) sb.append(':');
-				sb.append(v);
+				sb.append(version);
 			}
 			return sb.toString();
 		}
@@ -356,10 +356,10 @@ public final class MavenUtil {
 		private String toGA() {
 			StringBuilder sb = new StringBuilder();
 
-			if (!StringUtil.isEmpty(g, true)) sb.append(g);
-			if (!StringUtil.isEmpty(a, true)) {
+			if (!StringUtil.isEmpty(groupId, true)) sb.append(groupId);
+			if (!StringUtil.isEmpty(artifactId, true)) {
 				if (sb.length() > 0) sb.append(':');
-				sb.append(a);
+				sb.append(artifactId);
 			}
 			return sb.toString();
 		}
@@ -386,13 +386,13 @@ public final class MavenUtil {
 		}
 
 		public Struct populate(Struct sct) {
-			if (!StringUtil.isEmpty(g, true)) sct.setEL(KeyConstants._groupId, g);
-			if (!StringUtil.isEmpty(a, true)) sct.setEL(KeyConstants._artifactId, a);
-			if (!StringUtil.isEmpty(v, true)) sct.setEL(KeyConstants._version, v);
+			if (!StringUtil.isEmpty(groupId, true)) sct.setEL(KeyConstants._groupId, groupId);
+			if (!StringUtil.isEmpty(artifactId, true)) sct.setEL(KeyConstants._artifactId, artifactId);
+			if (!StringUtil.isEmpty(version, true)) sct.setEL(KeyConstants._version, version);
 			if (classifier != null) sct.setEL(KeyConstants._classifier, classifier);
 			if (extension != null) sct.setEL(KeyConstants._extension, extension);
-			if (!StringUtil.isEmpty(s, true)) sct.setEL(KeyConstants._scope, s);
-			if (!StringUtil.isEmpty(o, true)) sct.setEL(KeyConstants._optional, o);
+			if (!StringUtil.isEmpty(scope, true)) sct.setEL(KeyConstants._scope, scope);
+			if (!StringUtil.isEmpty(optional, true)) sct.setEL(KeyConstants._optional, optional);
 			if (!StringUtil.isEmpty(checksum, true)) sct.setEL(KeyConstants._checksum, checksum);
 			return sct;
 		}
@@ -426,18 +426,18 @@ public final class MavenUtil {
 		 * @return
 		 */
 		public boolean equalID(GAVSO other) {
-			if (!g.equalsIgnoreCase(other.g)) return false;
-			if (!a.equalsIgnoreCase(other.a)) return false;
+			if (!groupId.equalsIgnoreCase(other.groupId)) return false;
+			if (!artifactId.equalsIgnoreCase(other.artifactId)) return false;
 			return true;
 		}
 
 		public boolean equalIDAndVersion(GAVSO other) {
-			if (!v.equalsIgnoreCase(other.v)) return false;
+			if (!version.equalsIgnoreCase(other.version)) return false;
 			return equalID(other);
 		}
 
 		public boolean isValid() {
-			return (!StringUtil.isEmpty(g, true) && !StringUtil.isEmpty(a, true) && !StringUtil.isEmpty(v, true));
+			return (!StringUtil.isEmpty(groupId, true) && !StringUtil.isEmpty(artifactId, true) && !StringUtil.isEmpty(version, true));
 		}
 	}
 

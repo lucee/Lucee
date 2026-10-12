@@ -506,7 +506,7 @@ public final class RHExtension implements Serializable {
 			}
 
 			// gav
-			if (hasGAV && gav.g.equals(ext.getGroupId()) && gav.a.equals(ext.getArtifactId())) {
+			if (hasGAV && gav.groupId.equals(ext.getGroupId()) && gav.artifactId.equals(ext.getArtifactId())) {
 				if (LogUtil.doesDebug(log)) {
 					log.debug("extension", "found a different version installed [" + ext.toExtensionDefinition() + "] as the version we wanna install [" + ed + "].");
 				}
@@ -1357,8 +1357,8 @@ public final class RHExtension implements Serializable {
 	}
 
 	public String getGroupId() {
-		if (gavso != null && gavso.g != null) {
-			return gavso.g;
+		if (gavso != null && gavso.groupId != null) {
+			return gavso.groupId;
 		}
 
 		// from metadata
@@ -1374,8 +1374,8 @@ public final class RHExtension implements Serializable {
 		if (getId() != null) {
 			GAVSO tmp = ExtensionProvider.toGAVSO((ConfigPro) config, getId(), true, null);
 			if (tmp != null) {
-				gavso = new GAVSO(tmp.g, tmp.a, getVersion());
-				return gavso.g;
+				gavso = new GAVSO(tmp.groupId, tmp.artifactId, getVersion());
+				return gavso.groupId;
 			}
 		}
 
@@ -1383,8 +1383,8 @@ public final class RHExtension implements Serializable {
 	}
 
 	public String getArtifactId() {
-		if (gavso != null && gavso.a != null) {
-			return gavso.a;
+		if (gavso != null && gavso.artifactId != null) {
+			return gavso.artifactId;
 		}
 
 		// from metadata
@@ -1400,8 +1400,8 @@ public final class RHExtension implements Serializable {
 		if (getId() != null) {
 			GAVSO tmp = ExtensionProvider.toGAVSO(null, getId(), true, null);
 			if (tmp != null) {
-				gavso = new GAVSO(tmp.g, tmp.a, getVersion());
-				return gavso.a;
+				gavso = new GAVSO(tmp.groupId, tmp.artifactId, getVersion());
+				return gavso.artifactId;
 			}
 		}
 
@@ -1415,8 +1415,8 @@ public final class RHExtension implements Serializable {
 
 	public String getVersion() {
 		if (metadata == null && _version != null) return _version;
-		if (gavso != null && gavso.v != null) {
-			return gavso.v;
+		if (gavso != null && gavso.version != null) {
+			return gavso.version;
 		}
 		return getMetadata()._getVersion();
 	}
@@ -1709,7 +1709,7 @@ public final class RHExtension implements Serializable {
 			}
 			// gradle style maven
 			else if (ed.getId() == null && (gavso = MavenUtil.toGAVSO(ss, null)) != null) {
-				ExtensionDefintion tmp = ExtensionProvider.getInstance(c, gavso.g).toExtensionDefintion(c, gavso, true, null);
+				ExtensionDefintion tmp = ExtensionProvider.getInstance(c, gavso.groupId).toExtensionDefintion(c, gavso, true, null);
 				if (tmp != null) ed = tmp;
 			}
 			else if (ed.getId() == null || Decision.isUUId(ed.getId())) {
