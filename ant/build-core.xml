@@ -1106,6 +1106,7 @@
       <arg value="${coreManifest}"/>
       <arg value="${cache}"/>
       <arg value="${goal}/maven"/>
+      <arg value="${goal}/extensions"/>
       <arg value="${extURLMaven}"/>
       <arg value="${extURLCDN}"/>
     </java>

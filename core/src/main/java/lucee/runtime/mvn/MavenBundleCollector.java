@@ -24,7 +24,7 @@ import java.util.zip.ZipFile;
  * Require-Extension and copies it into one directory, together with the .sha1 files and an ".index"
  * file as read by {@link MavenDeployer#deployBundled}.
  * 
- * Usage: MavenBundleCollector &lt;core MANIFEST.MF&gt; &lt;cache directory&gt; &lt;target directory&gt; [repository url]...
+ * Usage: MavenBundleCollector &lt;core MANIFEST.MF&gt; &lt;cache directory&gt; &lt;target directory&gt; [extensions directory] [repository url]...
  * 
  * The full extension is taken from the cache directory (mvn_group_artifact_version.lex) and
  * downloaded from the repositories if it is not there.
@@ -44,16 +44,30 @@ public final class MavenBundleCollector {
 		File target = new File(args[2]);
 		List<String> repos = new ArrayList<>();
 		for (int i = 3; i < args.length; i++) {
+			if (!args[i].contains("://")) continue;
 			repos.add(args[i].endsWith("/") ? args[i] : args[i] + "/");
 		}
 		if (repos.isEmpty()) repos.add("https://repo1.maven.org/maven2/");
 
+		File extensions = args.length > 3 && !args[3].contains("://") ? new File(args[3]) : null;
+
 		cache.mkdirs();
 		target.mkdirs();
 		for (String[] gav: readRequiredExtensions(manifest)) {
-			File lex = getExtension(gav[0], gav[1], gav[2], cache, repos);
+			File lex = getExtension(gav[0], gav[1], gav[2], cache, repos, "");
 			int count = copyMavenFolder(lex, target);
 			System.out.println("extension [" + lex.getName() + "] provides [" + count + "] maven file(s)");
+			if (extensions == null) continue;
+
+			// replace the bundled full extension with the lite one (same file name), the maven files are bundled separately
+			File bundled = new File(extensions, lex.getName());
+			if (count == 0 || !bundled.isFile()) continue;
+			File lite = getExtension(gav[0], gav[1], gav[2], new File(cache, "lite"), repos, "-lite");
+			if (lite == null) System.out.println("  no lite version available, keeping the full extension");
+			else {
+				Files.copy(lite.toPath(), bundled.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				System.out.println("  bundling [" + lite.getName() + "] (" + lite.length() + " bytes instead of " + lex.length() + ")");
+			}
 		}
 		System.out.println("collected [" + writeIndex(target.toPath()) + "] maven files in [" + target + "]");
 	}
@@ -77,21 +91,25 @@ public final class MavenBundleCollector {
 		return result;
 	}
 
-	private static File getExtension(String group, String artifact, String version, File cache, List<String> repos) throws IOException {
-		File file = new File(cache, "mvn_" + group + "_" + artifact + "_" + version + ".lex");
+	private static File getExtension(String group, String artifact, String version, File cache, List<String> repos, String classifier) throws IOException {
+		boolean lite = !classifier.isEmpty();
+		cache.mkdirs();
+		File file = new File(cache, "mvn_" + group + "_" + artifact + "_" + version + classifier + ".lex");
 		if (file.isFile() && file.length() > 0) return file;
 		StringBuilder tried = new StringBuilder();
 		for (String repo: repos) {
-			String url = repo + group.replace('.', '/') + "/" + artifact + "/" + version + "/" + artifact + "-" + version + ".lex";
+			String url = repo + group.replace('.', '/') + "/" + artifact + "/" + version + "/" + artifact + "-" + version + classifier + ".lex";
 			System.out.println("download " + url);
 			try (InputStream is = new URL(url).openStream()) {
 				Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
 				return file;
 			}
 			catch (IOException ioe) {
+				Files.deleteIfExists(file.toPath());
 				tried.append("\n- ").append(url);
 			}
 		}
+		if (lite) return null;
 		throw new IOException("could not download extension [" + group + ":" + artifact + ":" + version + "], tried:" + tried);
 	}
 
