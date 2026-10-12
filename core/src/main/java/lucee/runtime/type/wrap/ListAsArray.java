@@ -149,22 +149,12 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public int[] intKeys() {
-		ListIterator lit = list.listIterator();
-		ArrayList keys = new ArrayList();
-		int index = 0;
-		Object v;
-		while (lit.hasNext()) {
-			index = lit.nextIndex() + 1;
-			v = lit.next();
-			if (v != null) keys.add(Integer.valueOf(index));
+		// LDEV-4023: include null elements so arrayEach/Reduce visit them (ACF compat)
+		int len = list.size();
+		int[] intKeys = new int[len];
+		for (int i = 0; i < len; i++) {
+			intKeys[i] = i + 1;
 		}
-		int[] intKeys = new int[keys.size()];
-		Iterator it = keys.iterator();
-		index = 0;
-		while (it.hasNext()) {
-			intKeys[index++] = ((Integer) it.next()).intValue();
-		}
-
 		return intKeys;
 	}
 
