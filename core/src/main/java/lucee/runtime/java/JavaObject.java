@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.java;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -252,7 +253,7 @@ public class JavaObject implements Objects, ObjectWrap, CastablePro {
 		if (VariableUtilImpl.doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "call-method:" + methodName + " from class " + Caster.toTypeName(clazz));
 
 		// edge cases
-		if (methodName.equalsIgnoreCase("init")) {
+		if (methodName.equalsIgnoreCase("init") && (allowInit || !hasStaticMethod(methodName))) {
 			return init(arguments, TYPE_METHOD, methodName);
 		}
 		else if (methodName.equalsIgnoreCase("getClass")) {
@@ -280,6 +281,18 @@ public class JavaObject implements Objects, ObjectWrap, CastablePro {
 			return mi.invoke(obj);
 		}
 		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private boolean hasStaticMethod(String methodName) throws PageException {
+		try {
+			for (lucee.transformer.dynamic.meta.Method m: Reflector.getMethods(clazz)) {
+				if (m.isStatic() && m.getName().equalsIgnoreCase(methodName)) return true;
+			}
+			return false;
+		}
+		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
 	}
