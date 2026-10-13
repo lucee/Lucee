@@ -5068,13 +5068,22 @@ public final class ConfigAdmin {
 			if (!ArrayUtil.isEmpty(rhext.getMavens())) {
 				Iterator<Map<String, String>> itl = rhext.getMavens().iterator();
 				GAVSO gavso;
+				boolean mavenUpdated = false;
 				while (itl.hasNext()) {
 					gavso = MavenUtil.toGAVSO(itl.next());
 					if (gavso != null) {
 						_updateMaven(gavso);
 						reloadNecessary = true;
+						mavenUpdated = true;
 					}
 					logger.info("extension", "Update maven endpoint [" + gavso + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+				}
+				// LDEV-6297: refresh cached JavaSettings so the new maven entries reach the RPC classloader without a server restart
+				if (mavenUpdated && config instanceof ConfigImpl) {
+					ConfigWebFactory._loadJavaSettings(null, (ConfigImpl) config, root, logger);
+					// also invalidate the JVM-level default classloader cached in ModernApplicationContext,
+					// otherwise CFML createObject calls keep getting the stale classloader from before the refresh
+					lucee.runtime.listener.ModernApplicationContext.resetDefaultClassLoader();
 				}
 			}
 

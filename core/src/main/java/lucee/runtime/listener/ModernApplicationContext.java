@@ -1794,6 +1794,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		return defaultClassLoader;
 	}
 
+	// LDEV-6297: invalidate the cached default classloader so the next request rebuilds it from the (possibly just-refreshed) ConfigServer JavaSettings
+	public static void resetDefaultClassLoader() {
+		synchronized (token) {
+			defaultClassLoader = null;
+		}
+	}
+
 	@Override
 	public Map<Collection.Key, Object> getTagAttributeDefaultValues(PageContext pc, String tagClassName) {
 		if (!initDefaultAttributeValues) {
