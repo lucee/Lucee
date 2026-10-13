@@ -2025,6 +2025,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 			}
 
+			// LDEV-3672 "final this.x = 1;" has a modifier but no access (-1), use the default access then
+			if (access < Component.ACCESS_REMOTE || access > Component.ACCESS_PRIVATE) access = dataMemberDefaultAccess;
 			_data.put(key, new DataMember(existing != null ? existing.getAccess() : access, existing != null ? existing.getModifier() : modifier, value));
 
 		}
