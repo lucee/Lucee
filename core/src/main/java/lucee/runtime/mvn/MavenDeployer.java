@@ -78,9 +78,37 @@ public final class MavenDeployer {
 		return count;
 	}
 
+	/**
+	 * checks if the given path (relative to the repository root) follows the Maven repository layout
+	 * "group/path/artifact/version/artifact-version[-classifier].ext" (at least one group segment).
+	 */
+	public static boolean isRepositoryPath(String path) {
+		if (path == null) return false;
+		path = path.replace('\\', '/');
+		if (path.startsWith("/") || path.endsWith("/")) return false;
+		String[] parts = path.split("/");
+		if (parts.length < 4) return false;
+		for (String p: parts) {
+			if (p.isEmpty() || p.equals(".") || p.equals("..")) return false;
+		}
+		String artifact = parts[parts.length - 3];
+		String version = parts[parts.length - 2];
+		String name = parts[parts.length - 1];
+		String prefix = artifact + "-";
+		if (!name.startsWith(prefix)) return false;
+		// snapshots may use a timestamped version in the file name instead of "-SNAPSHOT"
+		if (version.endsWith("-SNAPSHOT")) return name.length() > prefix.length() + 1;
+		String rest = name.substring(prefix.length());
+		return rest.startsWith(version + ".") || rest.startsWith(version + "-");
+	}
+
 	private static boolean deployFile(Resource repository, ClassLoader cl, String path, Log log) throws IOException {
 		if (path.startsWith("/") || path.contains("../")) {
 			log.error(LOG_TYPE, "rejected bundled maven file [" + path + "], invalid path");
+			return false;
+		}
+		if (!isRepositoryPath(path)) {
+			log.warn(LOG_TYPE, "ignored bundled maven file [" + path + "], not in group/artifact/version layout");
 			return false;
 		}
 
