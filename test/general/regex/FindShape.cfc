@@ -65,6 +65,35 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 		});
 	}
 
+	public void function testScopeAllOffsetPastEndShape() {
+		variables._regex.eachEngine( function( engine ) {
+			var r = reFind( "[0-9]+", "abc 1", 10, true, "all" );
+			assertEquals( 1, arrayLen( r ) );
+			assertEquals( 0,  r[ 1 ].len[ 1 ] );
+			assertEquals( 0,  r[ 1 ].pos[ 1 ] );
+			assertEquals( "", r[ 1 ].match[ 1 ] );
+		});
+	}
+
+	public void function testScalarScopeAllPositions() {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( [ 1, 7, 15 ], reFind( "[0-9]+", "1 cat 22 dogs 333 fish", 1, false, "all" ) );
+		});
+	}
+
+	public void function testScalarScopeAllReturnsZeroOnNoMatch() {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 0, reFind( "[0-9]+", "no digits here", 1, false, "all" ) );
+			assertEquals( 0, reFind( "[0-9]+", "abc 1", 10, false, "all" ) );
+		});
+	}
+
+	public void function testReMatchNoMatchIsEmptyArray() {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( [], reMatch( "[0-9]+", "no digits here" ) );
+		});
+	}
+
 	public void function testReMatchArrayShape() {
 		variables._regex.eachEngine( function( engine ) {
 			assertEquals( [ "1", "22", "333" ], reMatch( "[0-9]+", "1 cat 22 dogs 333 fish" ) );

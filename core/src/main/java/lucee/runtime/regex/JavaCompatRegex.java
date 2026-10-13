@@ -33,10 +33,9 @@ class JavaCompatRegex extends JavaRegex {
 	public String replace(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
 			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-			StringBuilder sb = new StringBuilder();
-			if (m.find()) {
-				m.appendReplacement(sb, Matcher.quoteReplacement(expandReplacement(m, replacement)));
-			}
+			if (!m.find()) return strInput;
+			StringBuilder sb = new StringBuilder(strInput.length());
+			m.appendReplacement(sb, Matcher.quoteReplacement(expandReplacement(m, replacement)));
 			m.appendTail(sb);
 			return sb.toString();
 		}
@@ -49,10 +48,12 @@ class JavaCompatRegex extends JavaRegex {
 	public String replaceAll(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
 			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-			StringBuilder sb = new StringBuilder();
-			while (m.find()) {
+			if (!m.find()) return strInput;
+			StringBuilder sb = new StringBuilder(strInput.length());
+			do {
 				m.appendReplacement(sb, Matcher.quoteReplacement(expandReplacement(m, replacement)));
 			}
+			while (m.find());
 			m.appendTail(sb);
 			return sb.toString();
 		}

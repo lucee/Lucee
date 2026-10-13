@@ -150,7 +150,13 @@ class JavaRegex implements Regex {
 	@Override
 	public String replace(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			return toPattern(strPattern, caseSensitive, multiLine).matcher(strInput).replaceFirst(replacement);
+			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			if (!m.find()) return strInput;
+			// Matcher.replaceFirst starts from a 16-char builder and regrows it to the input's length
+			StringBuilder sb = new StringBuilder(strInput.length());
+			m.appendReplacement(sb, replacement);
+			m.appendTail(sb);
+			return sb.toString();
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -160,7 +166,16 @@ class JavaRegex implements Regex {
 	@Override
 	public String replaceAll(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			return toPattern(strPattern, caseSensitive, multiLine).matcher(strInput).replaceAll(replacement);
+			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			if (!m.find()) return strInput;
+			// Matcher.replaceAll starts from a 16-char builder and regrows it to the input's length
+			StringBuilder sb = new StringBuilder(strInput.length());
+			do {
+				m.appendReplacement(sb, replacement);
+			}
+			while (m.find());
+			m.appendTail(sb);
+			return sb.toString();
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -211,26 +226,27 @@ class JavaRegex implements Regex {
 	 */
 
 	private Struct findEmpty() {
-		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
-		Array a = new ArrayImpl();
+		Struct sct = new StructImpl(StructImpl.TYPE_LINKED, 4);
+		Array a = new ArrayImpl(1);
 		a.appendEL(ZERO);
 		sct.setEL(KeyConstants._len, a);
-		a = new ArrayImpl();
+		a = new ArrayImpl(1);
 		a.appendEL(ZERO);
 		sct.setEL(KeyConstants._pos, a);
-		a = new ArrayImpl();
+		a = new ArrayImpl(1);
 		a.appendEL("");
 		sct.setEL(KeyConstants._match, a);
 		return sct;
 	}
 
 	private Struct toStruct(Matcher matcher, String input) {
-		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
-		Array lenArray = new ArrayImpl();
-		Array posArray = new ArrayImpl();
-		Array matchArray = new ArrayImpl();
+		Struct sct = new StructImpl(StructImpl.TYPE_LINKED, 4);
+		int groups = matcher.groupCount() + 1;
+		Array lenArray = new ArrayImpl(groups);
+		Array posArray = new ArrayImpl(groups);
+		Array matchArray = new ArrayImpl(groups);
 
-		for (int i = 0; i <= matcher.groupCount(); i++) {
+		for (int i = 0; i < groups; i++) {
 			lenArray.appendEL(matcher.end(i) - matcher.start(i));
 			posArray.appendEL(matcher.start(i) + 1);
 			matchArray.appendEL(matcher.group(i));
