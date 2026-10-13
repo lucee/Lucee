@@ -43,6 +43,7 @@
 			var group="";
 			var groupPath="";
 			var artifact="";
+			var classifier="";
 
 			// GAV
 			var gav = strGAV.split( ':' );
@@ -62,6 +63,8 @@
 				}
 
 				_version=gav[2].trim();
+				if ( gav.length > 3 )
+					classifier=gav[3].trim();
 			}
 			//data += _id+"-"+_version;
 			data += "mvn_" + group + "_" + artifact + "_" + _version;
@@ -93,6 +96,10 @@
 			}
 
 
+			// the classifier is appended to the entry, copyExtensions reads the classified file from the cache but keeps the name without classifier
+			if ( classifier.length > 0 )
+				data += "@" + classifier;
+
 			project.log("ext" + _name + " = "+ _version);
 			project.log(_id);
 			
@@ -102,7 +109,9 @@
 			project.setProperty( "ext" + _name + "Group", group );
 			project.setProperty( "ext" + _name + "GroupPath", groupPath );
 			project.setProperty( "ext" + _name, _id );
-			project.setProperty( "ext" + _name + "Filename", "mvn_" + group + "_" + artifact + "_" + _version + ".lex");
+			project.setProperty( "ext" + _name + "Classifier", classifier );
+			// the classifier is part of the cache file name, the name inside the Lucee jar comes from the manifest of the extension
+			project.setProperty( "ext" + _name + "Filename", "mvn_" + group + "_" + artifact + "_" + _version + ( classifier.length > 0 ? "_" + classifier : "" ) + ".lex");
 		}
 		project.setProperty( "reqExt.length", count + "" );
 		project.setProperty( "reqExt.ids", ids );
@@ -164,6 +173,7 @@
 		<attribute name="group" />
 		<attribute name="artifact" />
 		<attribute name="version" />
+		<attribute name="classifier" />
 		<attribute name="dest" />
 		<![CDATA[
 			function normalizeUrl(base) {
@@ -178,14 +188,18 @@
 				return group.replace(/\./g, "/");
 			}
 
-			function literalLexUrl(repoUrl, group, artifact, version) {
-				var g = groupPath(group);
-				return normalizeUrl(repoUrl) + g + "/" + artifact + "/" + version + "/" + artifact + "-" + version + ".lex";
+			function classifierSuffix(classifier) {
+				return classifier ? "-" + classifier : "";
 			}
 
-			function resolvedLexUrl(repoUrl, group, artifact, version, resolvedValue) {
+			function literalLexUrl(repoUrl, group, artifact, version, classifier) {
 				var g = groupPath(group);
-				return normalizeUrl(repoUrl) + g + "/" + artifact + "/" + version + "/" + artifact + "-" + resolvedValue + ".lex";
+				return normalizeUrl(repoUrl) + g + "/" + artifact + "/" + version + "/" + artifact + "-" + version + classifierSuffix(classifier) + ".lex";
+			}
+
+			function resolvedLexUrl(repoUrl, group, artifact, version, resolvedValue, classifier) {
+				var g = groupPath(group);
+				return normalizeUrl(repoUrl) + g + "/" + artifact + "/" + version + "/" + artifact + "-" + resolvedValue + classifierSuffix(classifier) + ".lex";
 			}
 
 			function httpStatus(url) {
@@ -229,7 +243,8 @@
 				return null;
 			}
 
-			function resolveSnapshotLexValue(repoUrl, group, artifact, version) {
+			// the entry has to match classifier AND extension, without a classifier an entry with a classifier is never used
+			function resolveSnapshotLexValue(repoUrl, group, artifact, version, classifier) {
 				var g = groupPath(group);
 				var metaUrl = normalizeUrl(repoUrl) + g + "/" + artifact + "/" + version + "/maven-metadata.xml";
 				try {
@@ -238,22 +253,16 @@
 					factory.setNamespaceAware(false);
 					var doc = factory.newDocumentBuilder().parse(new org.xml.sax.InputSource(new java.io.StringReader(xml)));
 					var nodes = doc.getElementsByTagName("snapshotVersion");
-					var fallback = null;
 					for (var i = 0; i < nodes.getLength(); i++) {
 						var node = nodes.item(i);
 						var ext = childText(node, "extension");
-						var classifier = childText(node, "classifier");
+						var nodeClassifier = childText(node, "classifier");
 						var value = childText(node, "value");
-						if (ext === "lex" && value) {
-							if (!classifier) {
-								return value;
-							}
-							if (fallback === null) {
-								fallback = value;
-							}
+						if (ext === "lex" && value && (nodeClassifier || "") === (classifier || "")) {
+							return value;
 						}
 					}
-					return fallback;
+					return null;
 				} catch (e) {
 					return null;
 				}
@@ -279,6 +288,9 @@
 			var artifact = attributes.get("artifact").trim();
 			var version = attributes.get("version").trim();
 			var dest = attributes.get("dest").trim();
+			var classifier = attributes.get("classifier");
+			// an unset ant property is passed as the literal ${...}
+			classifier = (classifier === null || String(classifier).startsWith("${")) ? "" : String(classifier).trim();
 
 			if (version.startsWith('"') && version.endsWith('"')) {
 				version = version.substring(1, version.length() - 1).trim();
@@ -305,12 +317,12 @@
 
 				if (isSnapshot(version)) {
 					// for SNAPSHOTs always use metadata resolution to get the latest timestamped build
-					var resolved = resolveSnapshotLexValue(repoUrl, group, artifact, version);
+					var resolved = resolveSnapshotLexValue(repoUrl, group, artifact, version, classifier);
 					if (resolved) {
-						downloaded = tryDownload(resolvedLexUrl(repoUrl, group, artifact, version, resolved), dest, tried);
+						downloaded = tryDownload(resolvedLexUrl(repoUrl, group, artifact, version, resolved, classifier), dest, tried);
 					}
 				} else {
-					if (tryDownload(literalLexUrl(repoUrl, group, artifact, version), dest, tried)) {
+					if (tryDownload(literalLexUrl(repoUrl, group, artifact, version, classifier), dest, tried)) {
 						downloaded = true;
 					}
 				}
@@ -318,7 +330,7 @@
 
 			if (!downloaded) {
 				throw new java.lang.RuntimeException(
-					"Could not download [" + group + ":" + artifact + ":" + version + ".lex] from any repository. Tried:\n- "
+					"Could not download [" + group + ":" + artifact + ":" + version + (classifier ? ":" + classifier : "") + ".lex] from any repository. Tried:\n- "
 					+ tried.join("\n- ")
 				);
 			}
@@ -372,21 +384,21 @@
 	<target name="check-cache">
 		<available file="${cache}/testbox-${testboxVersion}.zip" property="testbox.present"/>
 
-		<available file="${cache}/mvn_${extMysqlJdbcExtension}_${extMysqlJdbcExtensionVersion}.lex" property="mysql.present"/>
-		<available file="${cache}/mvn_${extMssqlJdbcExtension}_${extMssqlJdbcExtensionVersion}.lex" property="mssql.present"/>
-		<available file="${cache}/mvn_${extPostgresqlJdbcExtension}_${extPostgresqlJdbcExtensionVersion}.lex" property="postgre.present"/>
-		<available file="${cache}/mvn_${extS3Extension}_${extS3ExtensionVersion}.lex" property="s3.present"/>
-		<available file="${cache}/mvn_${extAdministratorExtension}_${extAdministratorExtensionVersion}.lex" property="admin.present"/>
-		<available file="${cache}/mvn_${extDocumentationExtension}_${extDocumentationExtensionVersion}.lex" property="doc.present"/>
-		<available file="${cache}/mvn_${extPdfExtension}_${extPdfExtensionVersion}.lex" property="pdf.present"/>
-		<available file="${cache}/mvn_${extImageExtension}_${extImageExtensionVersion}.lex" property="image.present"/>
-		<available file="${cache}/mvn_${extEsapiExtension}_${extEsapiExtensionVersion}.lex" property="esapi.present"/>
-		<available file="${cache}/mvn_${extSchedulerClassicExtension}_${extSchedulerClassicExtensionVersion}.lex" property="scheduler.present"/>
-		<available file="${cache}/mvn_${extCompressExtension}_${extCompressExtensionVersion}.lex" property="compress.present"/>
-		<available file="${cache}/mvn_${extMailExtension}_${extMailExtensionVersion}.lex" property="mail.present"/>
-		<available file="${cache}/mvn_${extFtpExtension}_${extFtpExtensionVersion}.lex" property="ftp.present"/>
-		<available file="${cache}/mvn_${extMarkdownExtension}_${extMarkdownExtensionVersion}.lex" property="markdown.present"/>
-		<available file="${cache}/mvn_${extSmbExtension}_${extSmbExtensionVersion}.lex" property="smb.present"/>
+		<available file="${cache}/${extMysqlJdbcExtensionFilename}" property="mysql.present"/>
+		<available file="${cache}/${extMssqlJdbcExtensionFilename}" property="mssql.present"/>
+		<available file="${cache}/${extPostgresqlJdbcExtensionFilename}" property="postgre.present"/>
+		<available file="${cache}/${extS3ExtensionFilename}" property="s3.present"/>
+		<available file="${cache}/${extAdministratorExtensionFilename}" property="admin.present"/>
+		<available file="${cache}/${extDocumentationExtensionFilename}" property="doc.present"/>
+		<available file="${cache}/${extPdfExtensionFilename}" property="pdf.present"/>
+		<available file="${cache}/${extImageExtensionFilename}" property="image.present"/>
+		<available file="${cache}/${extEsapiExtensionFilename}" property="esapi.present"/>
+		<available file="${cache}/${extSchedulerClassicExtensionFilename}" property="scheduler.present"/>
+		<available file="${cache}/${extCompressExtensionFilename}" property="compress.present"/>
+		<available file="${cache}/${extMailExtensionFilename}" property="mail.present"/>
+		<available file="${cache}/${extFtpExtensionFilename}" property="ftp.present"/>
+		<available file="${cache}/${extMarkdownExtensionFilename}" property="markdown.present"/>
+		<available file="${cache}/${extSmbExtensionFilename}" property="smb.present"/>
 	</target>
 
 	<target name="check-mysql" depends="check-cache" unless="mysql.present">
@@ -394,7 +406,8 @@
 			group="${extMysqlJdbcExtensionGroup}"
 			artifact="${extMysqlJdbcExtensionArtifact}"
 			version="${extMysqlJdbcExtensionVersion}"
-			dest="${cache}/mvn_${extMysqlJdbcExtension}_${extMysqlJdbcExtensionVersion}.lex"/>
+			classifier="${extMysqlJdbcExtensionClassifier}"
+			dest="${cache}/${extMysqlJdbcExtensionFilename}"/>
 	</target> 
 	
 	<target name="check-mssql" depends="check-cache" unless="mssql.present">
@@ -402,7 +415,8 @@
 			group="${extMssqlJdbcExtensionGroup}"
 			artifact="${extMssqlJdbcExtensionArtifact}"
 			version="${extMssqlJdbcExtensionVersion}"
-			dest="${cache}/mvn_${extMssqlJdbcExtension}_${extMssqlJdbcExtensionVersion}.lex"/>
+			classifier="${extMssqlJdbcExtensionClassifier}"
+			dest="${cache}/${extMssqlJdbcExtensionFilename}"/>
 	</target> 
 
 	<target name="check-postgre" depends="check-cache" unless="postgre.present">
@@ -410,91 +424,104 @@
 			group="${extPostgresqlJdbcExtensionGroup}"
 			artifact="${extPostgresqlJdbcExtensionArtifact}"
 			version="${extPostgresqlJdbcExtensionVersion}"
-			dest="${cache}/mvn_${extPostgresqlJdbcExtension}_${extPostgresqlJdbcExtensionVersion}.lex"/>
+			classifier="${extPostgresqlJdbcExtensionClassifier}"
+			dest="${cache}/${extPostgresqlJdbcExtensionFilename}"/>
 	</target> 
 	<target name="check-s3" depends="check-cache" unless="s3.present">
 		<getExtensionLex
 			group="${extS3ExtensionGroup}"
 			artifact="${extS3ExtensionArtifact}"
 			version="${extS3ExtensionVersion}"
-			dest="${cache}/mvn_${extS3Extension}_${extS3ExtensionVersion}.lex"/>
+			classifier="${extS3ExtensionClassifier}"
+			dest="${cache}/${extS3ExtensionFilename}"/>
 	</target>
 	<target name="check-pdf" depends="check-cache" unless="pdf.present">
 		<getExtensionLex
 			group="${extPdfExtensionGroup}"
 			artifact="${extPdfExtensionArtifact}"
 			version="${extPdfExtensionVersion}"
-			dest="${cache}/mvn_${extPdfExtension}_${extPdfExtensionVersion}.lex"/>
+			classifier="${extPdfExtensionClassifier}"
+			dest="${cache}/${extPdfExtensionFilename}"/>
 	</target>
 	<target name="check-admin" depends="check-cache" unless="admin.present">
 		<getExtensionLex
 			group="${extAdministratorExtensionGroup}"
 			artifact="${extAdministratorExtensionArtifact}"
 			version="${extAdministratorExtensionVersion}"
-			dest="${cache}/mvn_${extAdministratorExtension}_${extAdministratorExtensionVersion}.lex"/>
+			classifier="${extAdministratorExtensionClassifier}"
+			dest="${cache}/${extAdministratorExtensionFilename}"/>
 	</target>
 	<target name="check-doc" depends="check-cache" unless="doc.present">
 		<getExtensionLex
 			group="${extDocumentationExtensionGroup}"
 			artifact="${extDocumentationExtensionArtifact}"
 			version="${extDocumentationExtensionVersion}"
-			dest="${cache}/mvn_${extDocumentationExtension}_${extDocumentationExtensionVersion}.lex"/>
+			classifier="${extDocumentationExtensionClassifier}"
+			dest="${cache}/${extDocumentationExtensionFilename}"/>
 	</target>
 	<target name="check-image" depends="check-cache" unless="image.present">
 		<getExtensionLex
 			group="${extImageExtensionGroup}"
 			artifact="${extImageExtensionArtifact}"
 			version="${extImageExtensionVersion}"
-			dest="${cache}/mvn_${extImageExtension}_${extImageExtensionVersion}.lex"/>
+			classifier="${extImageExtensionClassifier}"
+			dest="${cache}/${extImageExtensionFilename}"/>
 	</target>
 	<target name="check-esapi" depends="check-cache" unless="esapi.present">
 		<getExtensionLex
 			group="${extEsapiExtensionGroup}"
 			artifact="${extEsapiExtensionArtifact}"
 			version="${extEsapiExtensionVersion}"
-			dest="${cache}/mvn_${extEsapiExtension}_${extEsapiExtensionVersion}.lex"/>
+			classifier="${extEsapiExtensionClassifier}"
+			dest="${cache}/${extEsapiExtensionFilename}"/>
 	</target>
 	<target name="check-scheduler" depends="check-cache" unless="scheduler.present">
 		<getExtensionLex
 			group="${extSchedulerClassicExtensionGroup}"
 			artifact="${extSchedulerClassicExtensionArtifact}"
 			version="${extSchedulerClassicExtensionVersion}"
-			dest="${cache}/mvn_${extSchedulerClassicExtension}_${extSchedulerClassicExtensionVersion}.lex"/>
+			classifier="${extSchedulerClassicExtensionClassifier}"
+			dest="${cache}/${extSchedulerClassicExtensionFilename}"/>
 	</target>
 	<target name="check-compress" depends="check-cache" unless="compress.present">
 		<getExtensionLex
 			group="${extCompressExtensionGroup}"
 			artifact="${extCompressExtensionArtifact}"
 			version="${extCompressExtensionVersion}"
-			dest="${cache}/mvn_${extCompressExtension}_${extCompressExtensionVersion}.lex"/>
+			classifier="${extCompressExtensionClassifier}"
+			dest="${cache}/${extCompressExtensionFilename}"/>
 	</target>
 	<target name="check-mail" depends="check-cache" unless="mail.present">
 		<getExtensionLex
 			group="${extMailExtensionGroup}"
 			artifact="${extMailExtensionArtifact}"
 			version="${extMailExtensionVersion}"
-			dest="${cache}/mvn_${extMailExtension}_${extMailExtensionVersion}.lex"/>
+			classifier="${extMailExtensionClassifier}"
+			dest="${cache}/${extMailExtensionFilename}"/>
 	</target>
 	<target name="check-ftp" depends="check-cache" unless="ftp.present">
 		<getExtensionLex
 			group="${extFtpExtensionGroup}"
 			artifact="${extFtpExtensionArtifact}"
 			version="${extFtpExtensionVersion}"
-			dest="${cache}/mvn_${extFtpExtension}_${extFtpExtensionVersion}.lex"/>
+			classifier="${extFtpExtensionClassifier}"
+			dest="${cache}/${extFtpExtensionFilename}"/>
 	</target>
 	<target name="check-markdown" depends="check-cache" unless="markdown.present">
 		<getExtensionLex
 			group="${extMarkdownExtensionGroup}"
 			artifact="${extMarkdownExtensionArtifact}"
 			version="${extMarkdownExtensionVersion}"
-			dest="${cache}/mvn_${extMarkdownExtension}_${extMarkdownExtensionVersion}.lex"/>
+			classifier="${extMarkdownExtensionClassifier}"
+			dest="${cache}/${extMarkdownExtensionFilename}"/>
 	</target>
 	<target name="check-smb" depends="check-cache" unless="smb.present">
 		<getExtensionLex
 			group="${extSmbExtensionGroup}"
 			artifact="${extSmbExtensionArtifact}"
 			version="${extSmbExtensionVersion}"
-			dest="${cache}/mvn_${extSmbExtension}_${extSmbExtensionVersion}.lex"/>
+			classifier="${extSmbExtensionClassifier}"
+			dest="${cache}/${extSmbExtensionFilename}"/>
 	</target>
 
 
@@ -779,10 +806,19 @@
 
 
 			for (var e in extensions){
-				var extFile = extensions[e].split(";").join("-") + ".lex";
-				echo.setMessage( "copy Extension: " + sourceDir + "/" + extFile );
+				var entry = extensions[e];
+				var classifier = "";
+				var at = entry.indexOf( "@" );
+				if ( at != -1 ) {
+					classifier = entry.substring( at + 1 );
+					entry = entry.substring( 0, at );
+				}
+				var extFile = entry.split(";").join("-") + ".lex";
+				// the file in the cache has the classifier in its name, the one in the target does not
+				var cacheFile = classifier.length > 0 ? entry.split(";").join("-") + "_" + classifier + ".lex" : extFile;
+				echo.setMessage( "copy Extension: " + sourceDir + "/" + cacheFile );
 				echo.perform();	
-				copy.setFile( new java.io.File( sourceDir + "/" + extFile ) );
+				copy.setFile( new java.io.File( sourceDir + "/" + cacheFile ) );
 				copy.setTofile( new java.io.File( targetDir + "/" + extFile ) );
 				copy.perform();
 			}
