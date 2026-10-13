@@ -178,6 +178,16 @@ public final class ArrayUtil {
 		return 0;
 	}
 
+	// script switch: one case of find, null case values and failed compares don't match
+	public static boolean caseMatches(PageContext pc, Object caseValue, Object switchValue) {
+		try {
+			return caseValue != null && lucee.runtime.op.OpUtil.compare(pc, switchValue, caseValue) == 0;
+		}
+		catch (PageException e) {
+			return false;
+		}
+	}
+
 	/**
 	 * average of all values of the array, only work when all values are numeric
 	 * 
