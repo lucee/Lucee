@@ -638,16 +638,26 @@ select {
 
 
 .btn-search {
-    height: 17px;
-    width: 17px;
+    background: rgba(95, 135, 49, 0.2);
+    height: 25px;
+    width: 25px;
     display: inline-block;
     outline: none;
     text-decoration: none;
-    padding-bottom: 9px !important;
-    margin-left: -8% !important;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding-bottom: 17px !important;
+    margin-left: -9% !important;
     margin-top: 5px;
     border-width: 0;
-    background-position: -17px 0px;
+    background-position: 5px 5px;
+    transition: background 0.2s;
+    background-image: url('../img/search.png.cfm');
+    background-size: 15px 15px;
+    border-radius: 51%;
+    filter: brightness(0) saturate(100%) invert(49%) sepia(18%) saturate(1102%) hue-rotate(53deg) brightness(94%) contrast(92%);
+    background-repeat: no-repeat;
 }
 
 /* Form Input Sizing */
