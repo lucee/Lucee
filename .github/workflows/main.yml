@@ -375,7 +375,10 @@ jobs:
           REVISION_ARGS=(-Drevision="$VERSION")
           echo "------- Using -Drevision=$VERSION -------"
         fi
-        if [[ "$VERSION_CLEAN" == *-SNAPSHOT ]]; then
+        if [ "${{ secrets.GPG_PASSPHRASE }}" == "" ]; then
+          echo "------- Maven Test on ${{ github.event_name }} ---------"
+          mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+        elif [[ "$VERSION_CLEAN" == *-SNAPSHOT ]]; then
           echo "------- Maven Deploy SNAPSHOT on ${{ github.event_name }} ---------"
           mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean deploy --settings maven-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
           echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
