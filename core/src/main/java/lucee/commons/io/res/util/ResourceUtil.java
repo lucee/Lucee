@@ -197,10 +197,20 @@ public final class ResourceUtil {
 
 	public static Resource toResourceExisting(PageContext pc, String path, Resource defaultValue) {
 		try {
-			return toResourceExisting(pc, path);
+			if (pc == null) {
+				pc = ThreadLocalPageContext.get();
+				if (pc == null) {
+					Config c = ThreadLocalPageContext.getConfig();
+					if (c != null) return toResourceExisting(c, path, defaultValue);
+					Resource res = ResourcesImpl.getFileResourceProvider().getResource(path);
+					return res.exists() ? res : defaultValue;
+				}
+			}
+			Resource res = _findExisting(pc, path, pc.getConfig().allowRealPath());
+			return res != null ? res : defaultValue;
 		}
-		catch (Throwable e) {
-			ExceptionUtil.rethrowIfNecessary(e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -209,7 +219,7 @@ public final class ResourceUtil {
 	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) file must exist otherwise
 	 * throw exception
-	 * 
+	 *
 	 * @param pc Page Context to the current position in filesystem
 	 * @param path relative or absolute path for file object
 	 * @return file object from destination
@@ -229,20 +239,27 @@ public final class ResourceUtil {
 
 	public static Resource toResourceExisting(PageContext pc, String path, boolean allowRealpath, Resource defaultValue) {
 		try {
-			return toResourceExisting(pc, path, allowRealpath);
+			Resource res = _findExisting(pc, path, allowRealpath);
+			return res != null ? res : defaultValue;
 		}
-		catch (Throwable e) {
-			ExceptionUtil.rethrowIfNecessary(e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
 
 	public static Resource toResourceExisting(PageContext pc, String path, boolean allowRealpath) throws ExpressionException {
+		Resource res = _findExisting(pc, path, allowRealpath);
+		if (res != null) return res;
+		throw new ExpressionException("file or directory [" + StringUtil.max(path.replace('\\', '/'), 255, "...") + "] does not exist");
+	}
+
+	private static Resource _findExisting(PageContext pc, String path, boolean allowRealpath) {
 		path = path.replace('\\', '/');
 		Resource res = pc.getConfig().getResource(path);
 
 		if (res.exists()) return res;
-		else if (!allowRealpath) throw new ExpressionException("file or directory [" + StringUtil.max(path, 255, "...") + "] does not exist");
+		if (!allowRealpath) return null;
 
 		if (StringUtil.startsWith(path, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
@@ -258,8 +275,7 @@ public final class ResourceUtil {
 			}
 		}
 		res = getRealResource(pc, path, res);
-		if (res.exists()) return res;
-		throw new ExpressionException("file or directory [" + StringUtil.max(path, 255, "...") + "] does not exist");
+		return res.exists() ? res : null;
 	}
 
 	public static Resource toResourceExisting(Config config, String path) throws ExpressionException {

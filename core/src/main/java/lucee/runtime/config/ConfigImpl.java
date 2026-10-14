@@ -201,6 +201,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private static final long CACHE_DIR_SIZE_DEFAULT = 1024L * 1024L * 100L;
 
 	private final Map<String, PhysicalClassLoader> rpcClassLoaders = new ConcurrentHashMap<String, PhysicalClassLoader>();
+	private volatile ClassLoader defaultRpcClassLoader;
 	private PhysicalClassLoader directClassLoader;
 	private Map<String, DataSource> datasourcesAll;
 	private Map<String, DataSource> datasourcesNoQoQ;
@@ -3276,12 +3277,23 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
-		return PhysicalClassLoaderFactory.getRPCClassLoader(this, getJavaSettings(), reload);
+		ClassLoader cached = defaultRpcClassLoader;
+		if (!reload && cached != null) return cached;
+		ClassLoader cl = PhysicalClassLoaderFactory.getRPCClassLoader(this, getJavaSettings(), reload);
+		if (!reload) defaultRpcClassLoader = cl;
+		return cl;
 	}
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js) throws IOException {
-		return PhysicalClassLoaderFactory.getRPCClassLoader(this, js != null ? js : getJavaSettings(), reload);
+		if (js == null || js == getJavaSettings()) {
+			ClassLoader cached = defaultRpcClassLoader;
+			if (!reload && cached != null) return cached;
+			ClassLoader cl = PhysicalClassLoaderFactory.getRPCClassLoader(this, getJavaSettings(), reload);
+			if (!reload) defaultRpcClassLoader = cl;
+			return cl;
+		}
+		return PhysicalClassLoaderFactory.getRPCClassLoader(this, js, reload);
 	}
 
 	private static final Object dclt = new SerializableObject();
@@ -3305,6 +3317,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	public void clearRPCClassLoader() {
 		rpcClassLoaders.clear();
+		defaultRpcClassLoader = null;
 	}
 
 	@Override
@@ -6330,6 +6343,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (javaSettingsInstances) {
 				if (javaSettings != null) {
 					javaSettings = null;
+					defaultRpcClassLoader = null;
 				}
 			}
 		}
