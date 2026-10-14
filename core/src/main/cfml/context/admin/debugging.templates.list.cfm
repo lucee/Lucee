@@ -5,14 +5,14 @@
 		<cfcase value="#stText.Buttons.Update#">
 
 			<cfif form.debug == "resetServerAdmin">
-				
+
 				<cfadmin action="updateDebug"
 					type="#request.adminType#"
-					password="#session["password"&request.adminType]#"					
-	                debug=""
-					debugTemplate=""	                
+					password="#session["password"&request.adminType]#"
+					debug=""
+					debugTemplate=""
 					remoteClients="#request.getRemoteClients()#">
-			
+
 			<cfelse>
 
 				<cfadmin action="updateDebug"
@@ -30,13 +30,13 @@
 				<cfset data.ids=toArrayFromForm("id")>
 				<cfloop index="idx" from="1" to="#arrayLen(data.ids)#">
 					<cfif arrayIndexExists(data.rows, idx) and data.ids[idx] NEQ "">
-						<cfadmin 
+						<cfadmin
 							action="removeDebugEntry"
 							type="#request.adminType#"
 							password="#session["password"&request.adminType]#"
 							id="#data.ids[idx]#"
 							remoteClients="#request.getRemoteClients()#">
-						
+
 					</cfif>
 				</cfloop>
 		</cfcase>
@@ -47,31 +47,25 @@
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
-<!--- 
+<!---
 Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction neq stText.Buttons.verify>
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
 
 <cfset querySort(debug,"id")>
-<cfset qryWeb=queryNew("id,label,iprange,type,custom,readonly,driver")>
-<cfset qryServer=queryNew("id,label,iprange,type,custom,readonly,driver")>
+<cfset qry=queryNew("id,label,iprange,type,custom,readonly,driver")>
 
+<cfloop query="debug">
 
-<cfloop query="debug">	
-	<cfif not debug.readOnly>
-    	<cfset tmp=qryWeb>
-	<cfelse>
-    	<cfset tmp=qryServer>
-	</cfif>
-	<cfset QueryAddRow(tmp)>
-    <cfset QuerySetCell(tmp,"id",debug.id)>
-    <cfset QuerySetCell(tmp,"label",debug.label)>
-    <cfset QuerySetCell(tmp,"iprange",debug.iprange)>
-    <cfset QuerySetCell(tmp,"type",debug.type)>
-    <cfset QuerySetCell(tmp,"custom",debug.custom)>
-    <cfset QuerySetCell(tmp,"readonly",debug.readonly)>
-    <cfif structKeyExists(drivers,debug.type)><cfset QuerySetCell(tmp,"driver",drivers[debug.type])></cfif>
+	<cfset QueryAddRow(qry)>
+    <cfset QuerySetCell(qry,"id",debug.id)>
+    <cfset QuerySetCell(qry,"label",debug.label)>
+    <cfset QuerySetCell(qry,"iprange",debug.iprange)>
+    <cfset QuerySetCell(qry,"type",debug.type)>
+    <cfset QuerySetCell(qry,"custom",debug.custom)>
+    <cfset QuerySetCell(qry,"readonly",debug.readonly)>
+    <cfif structKeyExists(drivers,debug.type)><cfset QuerySetCell(qry,"driver",drivers[debug.type])></cfif>
 </cfloop>
 
 <cfoutput>
@@ -88,80 +82,66 @@ Redirtect to entry --->
 			div.appendChild(document.createTextNode(drivers[key]));
 		}
 	</script>
-	
+
 			#stText.debug.list.createDesc#
 
 	<!--- LIST --->
-	<cfloop list="server,web" index="k">
-		<cfset isWeb=k EQ "web">
-		<cfset qry=variables["qry"&k]>
-		<cfif qry.recordcount>
-			<h2>#stText.debug.list[k & "title"]#</h2>
-			<div class="itemintro">#stText.debug.list[k & "titleDesc"]#</div>
-			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-				<table class="maintbl">
-					<thead>
+	<cfif qry.recordcount>
+		<h2>#stText.debug.list["webtitle"]#</h2>
+		<div class="itemintro">#stText.debug.list["WebtitleDesc"]#</div>
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+			<table class="maintbl">
+				<thead>
+					<tr>
+						<th width="3%">
+							<input type="checkbox" class="checkbox" name="rowreadonly" onclick="selectAll(this)">
+						</th>
+						<th width="25%">#stText.debug.label#</th>
+						<th>#stText.debug.ipRange#</th>
+						<th width="15%"># stText.debug.type#</td>
+						<th width="3%"></th>
+					</tr>
+				</thead>
+				<tbody>
+					<cfloop query="qry">
+						<cfset drv=qry.driver>
+						<cfif isNull(drv) or IsSimpleValue(drv)>
+							<cfcontinue>
+						</cfif>
 						<tr>
-							<cfif isWeb>
-								<th width="3%">
-									<input type="checkbox" class="checkbox" name="rowreadonly" onclick="selectAll(this)">
-								</th>
-							</cfif>
-							<th width="25%">#stText.debug.label#</th>
-							<th>#stText.debug.ipRange#</th>
-							<th width="15%"># stText.debug.type#</td>
-							<cfif isWeb>
-								<th width="3%"></th>
-							</cfif>
+							<td>
+								<input type="checkbox" class="checkbox" name="row_#qry.currentrow#" id="clickCheckbox" value="#qry.currentrow#">
+							</td>
+							<td>
+								<input type="hidden" name="id_#qry.currentrow#" value="#qry.id#">
+								<input type="hidden" name="type_#qry.currentrow#" value="#qry.type#">
+								#qry.label#
+							</td>
+							<td>#replace(qry.ipRange,",","<br />","all")#</td>
+
+							<td>#qry.driver.getLabel()#</td>
+							<td>
+								#renderEditButton("#request.self#?action=#url.action#&action2=create&id=#qry.id#")#
+							</td>
 						</tr>
-					</thead>
-					<tbody>
-						<cfloop query="qry">
-							<cfset drv=qry.driver>
-							<cfif isNull(drv) or IsSimpleValue(drv)>
-								<cfcontinue>
-							</cfif>
-							<tr>
-								<cfif isWeb>
-									<td>
-										<input type="checkbox" class="checkbox" name="row_#qry.currentrow#" id="clickCheckbox" value="#qry.currentrow#">
-									</td>
-								</cfif>
-								<td>
-									<input type="hidden" name="id_#qry.currentrow#" value="#qry.id#">
-									<input type="hidden" name="type_#qry.currentrow#" value="#qry.type#">
-									#qry.label#
-								</td>
-								<td>#replace(qry.ipRange,",","<br />","all")#</td>
-								
-								<td>#qry.driver.getLabel()#</td>
-								<cfif isWeb>
-									<td>
-										#renderEditButton("#request.self#?action=#url.action#&action2=create&id=#qry.id#")#
-									</td>
-								</cfif>
-							</tr>
-						</cfloop>
-					</tbody>
-					<cfif isWeb>
-						<tfoot>
-							<tr>
-								<td colspan="#isWeb?5:3#">
-									<input type="submit" class="bl button submit enablebutton" name="mainAction" value="#stText.Buttons.delete#" disabled style="opacity:0.5">
-									<input type="reset" class="br button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#" disabled style="opacity:0.5">
-								</td>	
-							</tr>
-						</tfoot>
-					</cfif>
-				</table>
-			</cfformClassic>
-		</cfif>
-	</cfloop>
+					</cfloop>
+				</tbody>
+				<tfoot>
+					<tr>
+						<td colspan="5">
+							<input type="submit" class="bl button submit enablebutton" name="mainAction" value="#stText.Buttons.delete#" disabled style="opacity:0.5">
+							<input type="reset" class="br button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#" disabled style="opacity:0.5">
+						</td>
+					</tr>
+				</tfoot>
+			</table>
+		</cfformClassic>
+	</cfif>
 
 	<!--- Create debug entry --->
 	<cfif access EQ "yes">
 		<cfset _drivers=ListSort(StructKeyList(drivers),'textnocase')>
-	
+
 		<cfif listLen(_drivers)>
 			<h2>#stText.debug.createTitle#</h2>
 			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
@@ -169,7 +149,7 @@ Redirtect to entry --->
 					<tbody>
 						<tr>
 							<th scope="row">#stText.debug.label#</th>
-							<td><cfinputClassic type="text" name="label" value="" class="large" required="yes" 
+							<td><cfinputClassic type="text" name="label" value="" class="large" required="yes"
 								message="#stText.debug.labelMissing#"></td>
 						</tr>
 						<tr>
@@ -194,7 +174,7 @@ Redirtect to entry --->
 							</td>
 						</tr>
 					</tfoot>
-				</table>   
+				</table>
 			</cfformClassic>
 		<cfelse>
 			#stText.debug.noDriver#
