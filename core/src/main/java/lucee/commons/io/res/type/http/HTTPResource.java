@@ -68,9 +68,8 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 		try {
 			if (http == null) {
 				URL url = getURL();
-				ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
 				rsp = HTTPEngine.head(url, data.username, data.password, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, _getTimeout(), true, null,
-						data.userAgent, pd, null, true);
+						data.userAgent, getProxy(url), null, true);
 				return rsp.getContentType();
 			}
 			return http.getContentType();
@@ -106,7 +105,8 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	public InputStream getInputStream() throws IOException {
 		provider.read(this);
 
-		InputStream is = HTTPEngine.get(getURL(), data.username, data.password, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, _getTimeout(), data.userAgent);
+		URL url = getURL();
+		InputStream is = HTTPEngine.get(url, data.username, data.password, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, _getTimeout(), data.userAgent, getProxy(url));
 		if (is instanceof HTTPEngineInputStream) {
 			meta = ((HTTPEngineInputStream) is).getHTTPDownloaderHeadResponse();
 		}
@@ -115,9 +115,15 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 
 	private HTTPDownloaderHeadResponse getMeta() throws IOException {
 		if (meta == null) {
-			meta = HTTPEngine.head(getURL(), data.username, data.password, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, _getTimeout(), null, null);
+			URL url = getURL();
+			meta = HTTPEngine.head(url, data.username, data.password, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, _getTimeout(), null, getProxy(url));
 		}
 		return meta;
+	}
+
+	// the resource's own proxy or none, never the server proxy (HTTPEngine falls back to it on null)
+	private ProxyData getProxy(URL url) {
+		return ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
 	}
 
 	@Override

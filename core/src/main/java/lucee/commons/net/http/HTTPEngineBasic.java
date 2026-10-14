@@ -269,7 +269,7 @@ public abstract class HTTPEngineBasic {
 	/**
 	 * Get ProxyData from ThreadLocalPageContext Config (following Http.java pattern line 1099)
 	 */
-	private static ProxyData getProxyData(String host) {
+	protected static ProxyData getProxyData(String host) {
 		Config config = ThreadLocalPageContext.getConfigServer();
 		if (config != null) {
 			ProxyData proxy = config.getProxyData();
@@ -540,8 +540,9 @@ public abstract class HTTPEngineBasic {
 
 		// 4. Handle Auth/Proxy via Context instead of Builder
 		// This avoids mutating shared builder state across threads
+		CredentialsProvider credsProvider = null;
 		if (!StringUtil.isEmpty(username, true)) {
-			CredentialsProvider credsProvider = new BasicCredentialsProvider();
+			credsProvider = new BasicCredentialsProvider();
 			credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
 			context.setCredentialsProvider(credsProvider);
 		}
@@ -560,6 +561,13 @@ public abstract class HTTPEngineBasic {
 				baseRequest.setConfig(newConfig);
 			}
 
+			if (!StringUtil.isEmpty(proxy.getUsername())) {
+				if (credsProvider == null) {
+					credsProvider = new BasicCredentialsProvider();
+					context.setCredentialsProvider(credsProvider);
+				}
+				credsProvider.setCredentials(new AuthScope(proxy.getServer(), proxy.getPort()), new UsernamePasswordCredentials(proxy.getUsername(), proxy.getPassword()));
+			}
 		}
 
 		// This will be fast (3s) because the client and pool are already "warm"
