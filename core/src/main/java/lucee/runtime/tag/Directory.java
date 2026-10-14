@@ -87,6 +87,7 @@ public final class Directory extends TagImpl {
 	private static final Key DATE_LAST_MODIFIED = KeyConstants._dateLastModified;
 	private static final Key ATTRIBUTES = KeyConstants._attributes;
 	private static final Key DIRECTORY = KeyConstants._directory;
+	private static final Key PATH = KeyConstants._path;
 	private static final boolean IS_WINDOWS = SystemUtil.isWindows();
 	private static final boolean IS_UNIX = SystemUtil.isUnix();
 
@@ -448,10 +449,19 @@ public final class Directory extends TagImpl {
 		}
 
 		boolean typeArray = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_ARRAY_PATH);
-		boolean namesOnly = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_QUERY_NAME) || (listInfo == LIST_INFO_ARRAY_PATH);
+		// LDEV-3188 an array result with a sort is built from the full query listing (sorted like listInfo=query), then converted to the array
+		boolean sortedArray = typeArray && !StringUtil.isEmpty(sort, true);
+		boolean namesOnly = !sortedArray && ((listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_QUERY_NAME) || (listInfo == LIST_INFO_ARRAY_PATH));
 		Array array = null;
 		Object rtn;
 
+		if (sortedArray) {
+			// internal column holding the same absolute path the unsorted array returns
+			names = java.util.Arrays.copyOf(names, names.length + 1);
+			names[names.length - 1] = "path";
+			types = java.util.Arrays.copyOf(types, types.length + 1);
+			types[types.length - 1] = "VARCHAR";
+		}
 		Query query = new QueryImpl(namesOnly ? new String[] { "name" } : names, namesOnly ? new String[] { "VARCHAR" } : types, 0, "query");
 
 		if (typeArray) {
@@ -490,7 +500,7 @@ public final class Directory extends TagImpl {
 			}
 			else {
 				// Query All
-				_fillQueryAll(query, directory, filter, 0, hasMeta, recurse);
+				_fillQueryAll(query, directory, filter, 0, hasMeta, recurse, sortedArray);
 			}
 		}
 		catch (IOException e) {
@@ -523,8 +533,8 @@ public final class Directory extends TagImpl {
 			java.util.Iterator it = query.getIterator();
 			while (it.hasNext()) {
 				Struct row = (Struct) it.next();
-				if (namesOnly) array.appendEL(row.get(KeyConstants._name));
-				else array.appendEL(row.get(KeyConstants._directory) + lucee.commons.io.FileUtil.FILE_SEPERATOR_STRING + row.get(KeyConstants._name));
+				if (listInfo == LIST_INFO_ARRAY_NAME) array.appendEL(row.get(KeyConstants._name));
+				else array.appendEL(row.get(PATH));
 			}
 		}
 
@@ -560,7 +570,8 @@ public final class Directory extends TagImpl {
 		return sct;
 	}
 
-	private static int _fillQueryAll(Query query, Resource directory, ResourceFilter filter, int count, boolean hasMeta, boolean recurse) throws PageException, IOException {
+	private static int _fillQueryAll(Query query, Resource directory, ResourceFilter filter, int count, boolean hasMeta, boolean recurse, boolean withPath)
+			throws PageException, IOException {
 		if (!recurse && filter != null) {
 			Resource[] list = directory.listResources(filter);
 
@@ -588,6 +599,7 @@ public final class Directory extends TagImpl {
 				}
 
 				query.setAt(DIRECTORY, count, dir);
+				if (withPath) query.setAt(PATH, count, list[i].getAbsolutePath());
 			}
 			return count;
 		}
@@ -619,8 +631,9 @@ public final class Directory extends TagImpl {
 				}
 
 				query.setAt(DIRECTORY, count, dir);
+				if (withPath) query.setAt(PATH, count, list[i].getAbsolutePath());
 			}
-			if (recurse && isDir) count = _fillQueryAll(query, list[i], filter, count, hasMeta, recurse);
+			if (recurse && isDir) count = _fillQueryAll(query, list[i], filter, count, hasMeta, recurse, withPath);
 		}
 		return count;
 	}
