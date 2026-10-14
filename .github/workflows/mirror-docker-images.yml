@@ -64,6 +64,26 @@ jobs:
           docker push ghcr.io/lucee/httpbin:test-mirror
           echo "Successfully mirrored httpbin"
 
+      - name: Mirror Squid
+        run: |
+          echo "Pulling ubuntu/squid:latest"
+          docker pull ubuntu/squid:latest
+          echo "Tagging as ghcr.io/lucee/squid:test-mirror"
+          docker tag ubuntu/squid:latest ghcr.io/lucee/squid:test-mirror
+          echo "Pushing to ghcr.io/lucee/squid:test-mirror"
+          docker push ghcr.io/lucee/squid:test-mirror
+          echo "Successfully mirrored squid"
+
+      - name: Mirror Nginx
+        run: |
+          echo "Pulling nginx:alpine"
+          docker pull nginx:alpine
+          echo "Tagging as ghcr.io/lucee/nginx:test-mirror"
+          docker tag nginx:alpine ghcr.io/lucee/nginx:test-mirror
+          echo "Pushing to ghcr.io/lucee/nginx:test-mirror"
+          docker push ghcr.io/lucee/nginx:test-mirror
+          echo "Successfully mirrored nginx"
+
       - name: Mirror Mock LLM
         run: |
           echo "Pulling ghcr.io/dwmkerr/mock-llm:latest"
