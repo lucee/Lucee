@@ -314,10 +314,11 @@ public abstract class MailClient implements PoolItem {
 	 * @throws IOException
 	 * @throws PageException
 	 */
-	public void deleteMails(String messageNumber, String uid) throws MessagingException, IOException, PageException {
+	public void deleteMails(String messageNumber, String uid, String folderName) throws MessagingException, IOException, PageException {
 		Folder folder;
 		Message amessage[];
-		folder = _store.getFolder("INBOX");
+		String targetFolder = StringUtil.isEmpty(folderName) ? "INBOX" : folderName.trim();
+		folder = _store.getFolder(targetFolder);
 		folder.open(2);
 		Map<String, Message> map = getMessages(null, folder, uid, messageNumber, startrow, maxrows, false);
 		Iterator<String> iterator = map.keySet().iterator();
