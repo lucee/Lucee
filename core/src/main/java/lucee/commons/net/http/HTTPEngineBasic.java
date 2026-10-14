@@ -259,14 +259,6 @@ public abstract class HTTPEngineBasic {
 	}
 
 	/**
-	 * Build RequestConfig with separate connection and socket timeouts (following Http.java pattern)
-	 */
-	private static RequestConfig buildRequestConfig(long connectTimeout, long socketTimeout) {
-		return RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setConnectionRequestTimeout(2000).setConnectTimeout((int) connectTimeout)
-				.setSocketTimeout((int) socketTimeout).build();
-	}
-
-	/**
 	 * Get ProxyData from ThreadLocalPageContext Config (following Http.java pattern line 1099)
 	 */
 	protected static ProxyData getProxyData(String host) {
@@ -276,48 +268,6 @@ public abstract class HTTPEngineBasic {
 			return ProxyDataImpl.validate(proxy, host);
 		}
 		return null;
-	}
-
-	/**
-	 * Simple container for client and context
-	 */
-	private static class ClientContext {
-		final CloseableHttpClient client;
-		final HttpContext context;
-
-		ClientContext(CloseableHttpClient client, HttpContext context) {
-			this.client = client;
-			this.context = context;
-		}
-	}
-
-	/**
-	 * Setup HttpClientBuilder with proxy, credentials, and request config. Shared by get(), head(), and
-	 * exists() methods to avoid code duplication.
-	 */
-	private static ClientContext buildHttpClient(URL url, String username, String password, long connectTimeout, long readTimeout, HttpClientBuilder builder,
-			org.apache.http.client.methods.HttpUriRequest request) {
-
-		// Get proxy from Config (already validated in getProxyData)
-		ProxyData proxy = getProxyData(url.getHost());
-
-		// Build RequestConfig with separate connection and socket timeouts
-		RequestConfig requestConfig = buildRequestConfig(connectTimeout, readTimeout);
-		builder.setDefaultRequestConfig(requestConfig);
-
-		// Set credentials if provided
-		HttpHost httpHost = new HttpHost(url.getHost(), url.getPort());
-		HttpContext context = setCredentials(builder, httpHost, username, password, false);
-
-		// Set proxy on builder and request
-		setProxy(url.getHost(), builder, request, proxy);
-
-		// Build client
-		CloseableHttpClient client = builder.build();
-
-		// Return both client and context
-		if (context == null) context = new HttpClientContext();
-		return new ClientContext(client, context);
 	}
 
 	public static HeaderImpl[] toHeaders(Map<String, String> headers) {
