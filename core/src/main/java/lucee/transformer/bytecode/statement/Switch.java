@@ -42,19 +42,16 @@ import lucee.transformer.statement.HasBodies;
 
 public final class Switch extends StatementBaseNoFinal implements FlowControlBreak, HasBodies {
 
-	// Object append(Object o)
-	private static final Method APPEND = new Method("append", Types.OBJECT, new Type[] { Types.OBJECT });
-
 	public static final Method INIT = new Method("<init>", Types.VOID, new Type[] {});
 
-	// int find(Array array, Object object)
-	private static final Method FIND3 = new Method("find", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.ARRAY, Types.OBJECT });
+	// boolean caseMatches(PageContext pc, Object caseValue, Object switchValue)
+	private static final Method CASE_MATCHES = new Method("caseMatches", Types.BOOLEAN_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
 
 	private List<Case> cases = new ArrayList<Case>();
 	private Body defaultCase;
 	private Expression expr;
 
-	private NativeSwitch ns;
+	private Label end;
 
 	public Switch(Expression expr, Position start, Position end) {
 		super(expr.getFactory(), start, end);
@@ -93,47 +90,39 @@ public final class Switch extends StatementBaseNoFinal implements FlowControlBre
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
+		end = new Label();
 
-		// Array cases=new ArrayImpl(8, false);
-		int array = adapter.newLocal(Types.ARRAY);
-		adapter.newInstance(Types.ARRAY_IMPL);
-		adapter.dup();
-		adapter.invokeConstructor(Types.ARRAY_IMPL, INIT);
-
-		adapter.storeLocal(array);
-
-		// cases.append(case.value);
-		Iterator<Case> it = cases.iterator();
-		Case c;
-		while (it.hasNext()) {
-			c = it.next();
-
-			adapter.loadLocal(array);
-			c.expression.writeOut(bc, Expression.MODE_REF);
-			adapter.invokeVirtual(Types.ARRAY_IMPL, APPEND);
-			adapter.pop();
-		}
-
-		// int result=ArrayUtil.find(array,expression);
-		adapter.loadArg(0);
-		int result = adapter.newLocal(Types.INT_VALUE);
-		adapter.loadLocal(array);
+		// the switch expression first, then each case in source order until one matches (as ACF and cfswitch)
+		int value = adapter.newLocal(Types.OBJECT);
 		expr.writeOut(bc, Expression.MODE_REF);
-		adapter.invokeStatic(Types.ARRAY_UTIL, FIND3);
-		adapter.storeLocal(result);
+		adapter.storeLocal(value);
 
-		// switch(result)
-		ns = new NativeSwitch(bc.getFactory(), result, NativeSwitch.LOCAL_REF, getStart(), getEnd());
-		it = cases.iterator();
-		int count = 1;
-		while (it.hasNext()) {
-			c = it.next();
-			ns.addCase(count++, c.body, c.startPos, c.endPos, false);
+		// if(ArrayUtil.caseMatches(pc,case.value,value)) goto case body;
+		Label[] bodies = new Label[cases.size()];
+		int i = 0;
+		for (Case c: cases) {
+			bodies[i] = new Label();
+			adapter.loadArg(0);
+			c.expression.writeOut(bc, Expression.MODE_REF);
+			adapter.loadLocal(value);
+			adapter.invokeStatic(Types.ARRAY_UTIL, CASE_MATCHES);
+			adapter.ifZCmp(GeneratorAdapter.NE, bodies[i++]);
 		}
-		if (defaultCase != null) ns.addDefaultCase(defaultCase);
+		Label beforeDefault = new Label();
+		adapter.goTo(beforeDefault);
 
-		ns.writeOut(bc);
+		// bodies in source order so they fall through, default last
+		i = 0;
+		for (Case c: cases) {
+			adapter.visitLabel(bodies[i++]);
+			bc.visitLine(c.startPos);
+			c.body.writeOut(bc);
+			bc.visitLine(c.endPos);
+		}
 
+		adapter.visitLabel(beforeDefault);
+		if (defaultCase != null) defaultCase.writeOut(bc);
+		adapter.visitLabel(end);
 	}
 
 	/**
@@ -142,7 +131,7 @@ public final class Switch extends StatementBaseNoFinal implements FlowControlBre
 	 */
 	@Override
 	public Label getBreakLabel() {
-		return ns.getBreakLabel();
+		return end;
 	}
 
 	/**
@@ -150,7 +139,7 @@ public final class Switch extends StatementBaseNoFinal implements FlowControlBre
 	 * @see lucee.transformer.statement.FlowControl#getLabel()
 	 */
 	public Label getContinueLabel() {
-		return ns.getContinueLabel();
+		return end;
 	}
 
 	/**
