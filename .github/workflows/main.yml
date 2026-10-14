@@ -1,4 +1,4 @@
-name: Build 7.1
+name: Build 8.0
 
 on: 
   workflow_call:
