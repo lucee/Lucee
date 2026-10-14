@@ -1128,10 +1128,12 @@ public final class CFMLTransformer {
 
 		comment(data.srcCode, true);
 
+		String rawValue = null;
 		if (isDefaultValue || data.srcCode.forwardIfCurrent('=')) {
 			comment(data.srcCode, true);
 			// Value
 			value = attributeValue(data, tag, sbType.toString(), parseExpression[0], false, data.factory.createLitString(""));
+			rawValue = Attribute.sliceSource(data.srcCode, value);
 		}
 		// default value boolean true
 		else {
@@ -1145,7 +1147,9 @@ public final class CFMLTransformer {
 		}
 		comment(data.srcCode, true);
 
-		return new Attribute(dynamic.toBooleanValue(), name, value, sbType.toString());
+		Attribute attr = new Attribute(dynamic.toBooleanValue(), name, value, sbType.toString());
+		if (rawValue != null) attr.setRawValue(rawValue);
+		return attr;
 	}
 
 	/**

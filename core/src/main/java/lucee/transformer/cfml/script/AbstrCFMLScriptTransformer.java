@@ -2535,6 +2535,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if (oAllowExpression instanceof String) allowExpression = ((String) oAllowExpression).equalsIgnoreCase(nameLC);
 
 		Expression value = null;
+		String rawValue = null;
 
 		comments(data);
 
@@ -2543,7 +2544,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if (hasValue) {
 			comments(data);
 			value = attributeValue(data, allowExpression);
-
+			rawValue = Attribute.sliceSource(data.srcCode, value);
 		}
 		else {
 			value = defaultValue;
@@ -2556,7 +2557,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			tlta = tlt.getAttribute(nameLC, true);
 			if (tlta != null && tlta.getName() != null) nameLC = tlta.getName();
 		}
-		return new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue);
+		Attribute attr = new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue);
+		if (rawValue != null) attr.setRawValue(rawValue);
+		return attr;
 	}
 
 	private final String attributeName(SourceCode cfml, ArrayList<String> args, TagLibTag tag, RefBoolean dynamic, StringBuilder sbType, boolean allowTwiceAttr, boolean allowColon)

@@ -1229,10 +1229,9 @@ public final class PageImpl extends BodyBase implements Page {
 								// prop.setDefault(value) if it's a simple literal
 								// Only handle simple literals (Literal interface) - complex expressions like now()
 								// or #myVar# need PageContext and must be evaluated at runtime, not class-load time
-								if (propDefaultAttr != null && propDefaultAttr.getValue() instanceof Literal) {
+								if (propDefaultAttr != null && propDefaultAttr.getValue() != null) {
 									Expression defaultExpr = propDefaultAttr.getValue();
 
-									// Handle simple literals only - complex expressions handled at runtime
 									if (defaultExpr instanceof LitStringImpl) {
 										String value = ((LitStringImpl) defaultExpr).getString();
 										ga.loadLocal(propLocal);
@@ -1253,7 +1252,17 @@ public final class PageImpl extends BodyBase implements Page {
 										ga.box(Type.BOOLEAN_TYPE);
 										ga.invokeVirtual(Types.PROPERTY_IMPL, new Method("setDefault", Type.VOID_TYPE, new Type[] { Types.OBJECT }));
 									}
-									// else: complex expression - will be handled at runtime in TagProperty
+									else {
+										String source = propDefaultAttr.getRawValue();
+										if (source == null) source = "";
+										Type EXPRESSION_DEFAULT = Type.getType("Llucee/runtime/component/ExpressionDefault;");
+										ga.loadLocal(propLocal);
+										ga.newInstance(EXPRESSION_DEFAULT);
+										ga.dup();
+										ga.push(source);
+										ga.invokeConstructor(EXPRESSION_DEFAULT, new Method("<init>", Type.VOID_TYPE, new Type[] { Types.STRING }));
+										ga.invokeVirtual(Types.PROPERTY_IMPL, new Method("setDefault", Type.VOID_TYPE, new Type[] { Types.OBJECT }));
+									}
 								}
 
 								// Collect dynamic attributes (non-standard attributes)
