@@ -82,7 +82,7 @@
 
 		<cfset captchaExpected = structKeyExists(session, "cap") ? session.cap : "">
 		<cfset structDelete(session, "cap")>
-		<cfif loginSettings.captcha && extensionExists("B03E92E1-F2F3-4380-981922D0BDFEF2B8") && (!len(captchaExpected) || compare(form.captcha, captchaExpected) != 0)>
+		<cfif loginSettings.captcha && extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B") && (!len(captchaExpected) || compare(form.captcha, captchaExpected) != 0)>
 			<cfset login_error = "Invalid security code (captcha) definition">
 		<cfelse>
 			<cfadmin action="hashPassword"

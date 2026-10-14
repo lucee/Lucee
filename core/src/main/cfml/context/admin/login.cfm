@@ -61,7 +61,7 @@
 						</select>
 					</td>
 				</tr>
-				<cfif loginSettings.captcha && extensionExists("B03E92E1-F2F3-4380-981922D0BDFEF2B8")>
+				<cfif loginSettings.captcha && extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")>
 					<cfset cap=createRandomText(6)>
 					<cfset session.cap=cap>
 					<tr>
