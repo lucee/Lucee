@@ -12,21 +12,29 @@ component extends="org.lucee.cfml.test.LuceeTestCase" label="query" {
 				expect( uCase( q.columnList ) ).toBe( 'FOO,BAR,BAZ' );
 			});
 
-			it(title = "query.ColumnList with list and string member functions", skip="true", body = function( currentSpec ) {
+			it(title = "query.ColumnList with list and string member functions", body = function( currentSpec ) {
 				expect( q.columnList.uCase() ).toBe( 'FOO,BAR,BAZ' );
-				expect( q.columnList.stringLen() ).toBe( 11 );
+				expect( q.columnList.len() ).toBe( 11 );
 				expect( q.columnList.reverse() ).toBe( 'ZAB,RAB,OOF' );
 				expect( q.columnList.repeatString( 2 ) ).toBe( 'FOO,BAR,BAZFOO,BAR,BAZ' );
 				expect( q.columnList.listFindNoCase( 'bar' ) ).toBe( 2 );
 				expect( q.columnList.listFindNoCase( 'foo' ) ).toBe( 1 );
 			});
 
-			it(title = "query.recordcount with numeric member function", skip="true", body = function( currentSpec ) {
+			it(title = "query.recordcount with numeric member function", body = function( currentSpec ) {
 				expect( q.recordcount.numberFormat() ).toBe( 0 ); //  No matching Method/Function for lucee.runtime.type.QueryColumnRef.numberFormat() found
+				var q2 = queryNew( "a", "varchar", [ [ "x" ], [ "y" ] ] );
+				expect( q2.recordcount.numberFormat() ).toBe( 2 );
 			});
 
-			it(title = "query.currentrow with numeric member function", skip="true", body = function( currentSpec ) {
-				expect( q.currentrow.numberFormat() ).toBe( 0 ); //  No matching Method/Function for lucee.runtime.type.QueryColumnRef.numberFormat() found
+			it(title = "query.currentrow with numeric member function", body = function( currentSpec ) {
+				expect( q.currentrow.numberFormat() ).toBe( numberFormat( q.currentrow ) ); //  No matching Method/Function for lucee.runtime.type.QueryColumnRef.numberFormat() found
+				var q2 = queryNew( "a", "varchar", [ [ "x" ], [ "y" ] ] );
+				var rows = [];
+				loop query="q2" {
+					arrayAppend( rows, q2.currentrow.numberFormat() );
+				}
+				expect( arrayToList( rows ) ).toBe( "1,2" );
 			});
 		});
 	}
