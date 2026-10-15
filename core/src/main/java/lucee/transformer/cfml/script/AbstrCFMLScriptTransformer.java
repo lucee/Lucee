@@ -1364,6 +1364,11 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 				data.setParent(prior);
 			}
+			// LDEV-4062: a lambda without a body (`() =>;`) returns null
+			else if (!data.srcCode.isValidIndex() || isFinish(data) || data.srcCode.isCurrent(';') || data.srcCode.isCurrent(')') || data.srcCode.isCurrent(',') || data.srcCode.isCurrent('}')
+					|| data.srcCode.isCurrent(']')) {
+				data.docComment = null;
+			}
 			else {
 				if (data.srcCode.forwardIfCurrent("return ")) {
 					comments(data);
