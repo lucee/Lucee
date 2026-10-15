@@ -2262,7 +2262,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			if (_final) ((Assign) expr).setModifier(Member.MODIFIER_FINAL);
 		}
 
-		if (expr instanceof FunctionAsExpression) return ((FunctionAsExpression) expr).getFunction();
+		// LDEV-4286: a closure or lambda used as a statement is an expression, the created function is not used, so it needs to be removed from the stack
+		if (expr instanceof FunctionAsExpression && !(((FunctionAsExpression) expr).getFunction() instanceof Closure)
+				&& !(((FunctionAsExpression) expr).getFunction() instanceof Lambda))
+			return ((FunctionAsExpression) expr).getFunction();
 
 		return new ExpressionAsStatement(expr);
 	}
