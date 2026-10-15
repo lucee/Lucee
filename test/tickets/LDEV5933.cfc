@@ -70,18 +70,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="udf" {
 					expect( result.arg3 ).toBe( "c" );
 				});
 
-				it( title='fast path FNS: fewer args than defined - missing args should not exist', body=function() {
+				it( title='fast path FNS: fewer args than defined - missing args exist as null (same as the regular path, see LDEV-4656)', body=function() {
 					var result = _fastPathUDF( "a" );
 					expect( result.arg1 ).toBe( "a" );
-					expect( result ).notToHaveKey( "arg2" );
-					expect( result ).notToHaveKey( "arg3" );
+					expect( result ).toHaveKey( "arg2" );
+					expect( isNull( result.arg2 ) ).toBeTrue();
+					expect( isNull( result.arg3 ) ).toBeTrue();
 				});
 
 				it( title='fast path FNS: no args provided', body=function() {
 					var result = _fastPathUDF();
-					expect( result ).notToHaveKey( "arg1" );
-					expect( result ).notToHaveKey( "arg2" );
-					expect( result ).notToHaveKey( "arg3" );
+					expect( result ).toHaveKey( "arg1" );
+					expect( isNull( result.arg1 ) ).toBeTrue();
+					expect( isNull( result.arg2 ) ).toBeTrue();
+					expect( isNull( result.arg3 ) ).toBeTrue();
 				});
 
 				it( title='fast path FNS: null value passed explicitly', body=function() {

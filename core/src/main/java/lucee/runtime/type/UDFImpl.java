@@ -179,16 +179,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 	}
 
 	private void defineArgumentsFast(PageContextImpl pc, FunctionArgument[] funcArgs, Object[] args, Argument newArgs) {
-		for (int i = 0; i < args.length && i < funcArgs.length; i++) {
-			newArgs.setEL(funcArgs[i].getName(), args[i]);
+		// same result as defineArguments() for arguments without type, default or required flag
+		boolean fns = pc.getFullNullSupport();
+		for (int i = 0; i < funcArgs.length; i++) {
+			if (args.length > i && (args[i] != null || fns)) newArgs.setEL(funcArgs[i].getName(), args[i]);
+			else newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
 		}
 		for (int i = funcArgs.length; i < args.length; i++) {
 			newArgs.setEL(ArgumentIntKey.init(i + 1), args[i]);
-		}
-		if (args.length < funcArgs.length && !pc.getFullNullSupport()) {
-			for (int i = args.length; i < funcArgs.length; i++) {
-				newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
-			}
 		}
 	}
 
