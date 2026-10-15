@@ -15971,6 +15971,14 @@ function(key1, key2)
 			it is simply converted to a binary, with help of the given argument. 
 			the value can be a valid charset name, "web" for the web charset defined with this context or "resource" for the resource charset defined in the context.</description>
 		</argument>
+		<argument>
+			<name>precise</name>
+			<introduced>8.0.0.239</introduced>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>If set to true and the first argument is a base64 string, it must be 100% valid base64 (standard alphabet, correct padding, no whitespace), otherwise an exception is thrown. The precise decoder is faster than the default lenient one. Cannot be combined with the argument charset.</description>
+		</argument>
 		<return>
 			<type>binary</type>
 		</return>

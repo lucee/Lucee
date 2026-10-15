@@ -38,7 +38,52 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		img2=imageNew(barr2);
 		assertTrue(isImage(img2));
 
-	} 
+	}
+
+	// valid base64 for "Hello World" with "#" in place of the "=" padding
+	variables.sloppy = "SGVsbG8gV29ybGQ##";
+	variables.valid = "SGVsbG8gV29ybGQ=";
+
+	public void function testPreciseDefaultLenient() localmode="true" {
+		assertEquals( "Hello World", toString( toBinary( sloppy ) ) );
+		assertEquals( "Hello World", toString( toBinary( data=sloppy ) ) );
+		assertEquals( "Hello World", toString( toBinary( data=sloppy, precise=false ) ) );
+		assertEquals( "Hello World", toString( toBinary( sloppy, "", false ) ) );
+	}
+
+	public void function testPreciseValid() localmode="true" {
+		assertEquals( "Hello World", toString( toBinary( data=valid, precise=true ) ) );
+		assertEquals( "Hello World", toString( toBinary( valid, "", true ) ) );
+	}
+
+	public void function testPreciseInvalidThrows() localmode="true" {
+		expect( function() {
+			toBinary( data=sloppy, precise=true );
+		}).toThrow( regex="invalid character \[##\]" );
+		expect( function() {
+			toBinary( sloppy, "", true );
+		}).toThrow( regex="invalid character \[##\]" );
+	}
+
+	public void function testPreciseRejectsWhitespace() localmode="true" {
+		wrapped = "SGVsbG8g" & chr( 10 ) & "V29ybGQ=";
+		assertEquals( "Hello World", toString( toBinary( wrapped ) ) );
+		expect( function() {
+			toBinary( data=wrapped, precise=true );
+		}).toThrow();
+	}
+
+	public void function testPreciseBinaryPassthrough() localmode="true" {
+		bin = charsetDecode( "Hello World", "utf-8" );
+		assertEquals( "Hello World", toString( toBinary( data=bin, precise=true ) ) );
+	}
+
+	public void function testPreciseWithCharsetThrows() localmode="true" {
+		expect( function() {
+			toBinary( data="abc", charset="utf-8", precise=true );
+		}).toThrow( regex="\[precise\].*\[charset\]" );
+		assertEquals( "abc", toString( toBinary( data="abc", charset="utf-8", precise=false ) ) );
+	}
 
 } 
 </cfscript>
