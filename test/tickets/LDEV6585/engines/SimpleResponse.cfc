@@ -5,9 +5,9 @@ component implementsJava="lucee.runtime.ai.Response" {
 		return this;
 	}
 
-	function getTotalTokenUsed() { return javaCast( "long", 0 ); }
+	function getTotalTokenUsed() { return 0; }
 	function getAnswer() { return variables.answer; }
-	function getAnswers() { return createObject( "java", "java.util.ArrayList" ).init(); }
+	function getAnswers() { return []; }
 	function isMultiPart() { return false; }
 
 }

@@ -6,7 +6,7 @@ component implementsJava="lucee.runtime.ai.Request" {
 	}
 
 	function getQuestion() { return variables.question; }
-	function getQuestions() { return createObject( "java", "java.util.ArrayList" ).init(); }
+	function getQuestions() { return []; }
 	function isMultiPart() { return false; }
 
 }
