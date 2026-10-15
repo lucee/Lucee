@@ -4983,8 +4983,13 @@ public final class Caster {
 		if (src instanceof Resource) return (Resource) src;
 		if (src instanceof File) src = src.toString();
 		if (src instanceof String) {
-			if (existing) return ResourceUtil.toResourceExisting(pc, (String) src, allowRealpath);
-			return ResourceUtil.toResourceNotExisting(pc, (String) src, allowRealpath, false);
+			String strSrc = (String) src;
+			// If it's a URL and contains spaces, encode them
+			if (strSrc.startsWith("http") && strSrc.contains(" ")) {
+				strSrc = strSrc.replace(" ", "%20");
+			}
+			if (existing) return ResourceUtil.toResourceExisting(pc, strSrc, allowRealpath);
+			return ResourceUtil.toResourceNotExisting(pc, strSrc, allowRealpath, false);
 		}
 		if (src instanceof FileStreamWrapper) return ((FileStreamWrapper) src).getResource();
 		throw new CasterException(src, "Resource");
