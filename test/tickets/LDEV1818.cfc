@@ -10,6 +10,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 				expect(local.result).toBe('lucee');
 			});
+
+			it(title = "Interface with several methods, with and without semicolon", body = function( currentSpec ) {
+				var instance = new LDEV1818.Sample2();
+				expect( instance.create() ).toBe( 1 );
+				expect( instance.exists( "lucee" ) ).toBeTrue();
+				var meta = getComponentMetadata( "LDEV1818.test2" );
+				expect( arrayLen( meta.functions ) ).toBe( 3 );
+			});
 		});
 	}
-} 
+}
