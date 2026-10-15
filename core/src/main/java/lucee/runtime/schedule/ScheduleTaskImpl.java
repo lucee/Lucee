@@ -106,7 +106,7 @@ public final class ScheduleTaskImpl implements ScheduleTaskPro {
 
 		this.scheduler = scheduler;
 		String md5 = task.toLowerCase() + file + startDate + startTime + endDate + endTime + url + port + interval + timeout + credentials + proxy + resolveURL + publish + hidden
-				+ readonly + paused + unique + userAgent;
+				+ readonly + paused + autoDelete + unique + userAgent;
 		md5 = Md5.getDigestAsString(md5);
 		this.md5 = md5;
 

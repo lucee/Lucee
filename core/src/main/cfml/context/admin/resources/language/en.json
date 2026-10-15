@@ -1071,6 +1071,8 @@
       "pause": "pause",
       "paused": "Paused",
       "pausedesc": "By setting this flag, the execution of the task will be paused.",
+      "autodelete": "AutoDelete",
+      "autodeletedesc": "By setting this flag, the scheduled task get deleted when there is no possible future execution.",
       "port": "Port",
       "portdescription": "Port of the URL to call (HTTP Default: 80)",
       "proxy": "Proxy settings",

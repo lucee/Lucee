@@ -863,6 +863,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="schedule.detaildescription">The tasks displayed in red have expired and will no longer start.</data>
 	<data key="schedule.executiondescdaily">This task is executed once a day.</data>
 	<data key="schedule.pausedesc">By setting this flag, the execution of the task will be paused.</data>
+	<data key="schedule.autodeletedesc">By setting this flag, the scheduled task get deleted when there is no possible future execution.</data>
 	<data key="schedule.executiontime">Execution time</data>
 	<data key="schedule.description">Here you can add, modify, run, and delete scheduled tasks&lt;br/&gt;&lt;br/&gt;</data>
 	<data key="schedule.storeresponse">Sets, whether the response of server will be stored in a file or not</data>
@@ -915,6 +916,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="schedule.timeout">Timeout (in seconds)</data>
 	<data key="schedule.startsat">Start Date</data>
 	<data key="schedule.paused">Paused</data>
+	<data key="schedule.autodelete">AutoDelete</data>
 	<data key="schedule.executiondate">Execution date/time</data>
 	<data key="schedule.every">every</data>
 	<data key="schedule.monthly">monthly</data>
