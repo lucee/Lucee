@@ -4,7 +4,7 @@
 		style="background-color:##FFCC00;border-style:solid;border-color:##000000;border-width:1px;padding:10px;">
 	<tr>
 		<td valign="top" >
-			<textarea style="background-color:##FFCC00;border-style:solid;border-color:##000000;border-width:0px;" name="note" cols="40" rows="10">#req.note#</textarea>
+			<textarea style="background-color:##FFCC00;border-style:solid;border-color:##000000;border-width:0px;" name="note" cols="40" rows="10" class="note">#req.note#</textarea>
 		</td>
 	</tr>
 	</table>
