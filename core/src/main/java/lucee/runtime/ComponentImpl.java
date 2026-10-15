@@ -61,6 +61,7 @@ import lucee.runtime.component.Member;
 import lucee.runtime.component.MetaDataSoftReference;
 import lucee.runtime.component.MetadataUtil;
 import lucee.runtime.component.Property;
+import lucee.runtime.component.PropertyImpl;
 import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
@@ -2256,7 +2257,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	@Override
 	public void setProperty(Property property) throws PageException {
 		top.properties.properties.put(StringUtil.toLowerCase(property.getName()), property);
-		if (property.getDefault() != null) scope.setEL(KeyImpl.init(property.getName()), property.getDefault());
+		// FUTURE getDefaultAsObject was added in Beta pahse of Lucee 7, so we keep the checkcast in place
+		if (((PropertyImpl) property).getDefaultAsObject() != null) scope.setEL(KeyImpl.init(property.getName()), ((PropertyImpl) property).getDefaultAsObject());
 		if (top.properties.persistent || top.properties.accessors) {
 			PropertyFactory.createPropertyUDFs(this, property);
 		}

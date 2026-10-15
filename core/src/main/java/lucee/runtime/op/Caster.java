@@ -5329,13 +5329,14 @@ public final class Caster {
 	}
 
 	private static void _initPojo(PageContext pc, Pojo pojo, Property[] props, Struct sct, Component comp, Set<Object> done) throws PageException {
-		Property p;
+		PropertyImpl p;
 		Object v;
 		Collection.Key k;
 		CFMLExpressionInterpreter interpreter = new CFMLExpressionInterpreter(false);
 
 		for (int i = 0; i < props.length; i++) {
-			p = props[i];
+			// FUTURE getDefaultAsObject was added in Beta pahse of Lucee 7, so we keep the checkcast in place
+			p = (PropertyImpl) props[i];
 			k = Caster.toKey(p.getName());
 			// value
 			v = sct.get(k, null);
@@ -5345,18 +5346,21 @@ public final class Caster {
 
 			if (v != null) v = Caster.castTo(pc, p.getType(), v, false);
 			else {
-				if (!StringUtil.isEmpty(p.getDefault())) {
+				if (!StringUtil.isEmpty(p.getDefaultAsObject())) {
 					try {
-						v = Caster.castTo(pc, p.getType(), p.getDefault(), false);
+						v = Caster.castTo(pc, p.getType(), p.getDefaultAsObject(), false);
 
 					}
 					catch (PageException pe) {
 						try {
-							v = interpreter.interpret(pc, p.getDefault());
+							v = interpreter.interpret(pc, Caster.toString(p.getDefaultAsObject()));
 							v = Caster.castTo(pc, p.getType(), v, false);
 						}
 						catch (PageException pe2) {
-							throw new ExpressionException("can not use default value [" + p.getDefault() + "] for property [" + p.getName() + "] with type [" + p.getType() + "]");
+							ExpressionException ee = new ExpressionException("can not use default value from type [" + Caster.toTypeName(p.getDefaultAsObject())
+									+ "] for property [" + p.getName() + "] with type [" + p.getType() + "]");
+							ExceptionUtil.initCauseEL(ee, pe);
+							throw ee;
 						}
 					}
 				}

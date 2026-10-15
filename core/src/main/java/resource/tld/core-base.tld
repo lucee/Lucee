@@ -4720,7 +4720,7 @@ Lucee uses the number of characters in the file.</description>
 			<description>Whether the parameter is required</description>
 		</attribute>
 		<attribute>
-			<type>string</type>
+			<type>any</type>
 			<name>default</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
