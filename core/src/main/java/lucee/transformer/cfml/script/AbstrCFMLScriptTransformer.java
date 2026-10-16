@@ -1101,8 +1101,12 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		comments(data);
 
+		// LDEV-1818: in an interface, a function signature can end with a line feed instead of a semicolon
+		boolean endsWithLineFeed = !closure && data.isInterface && data.srcCode.hasNLBefore() && !data.srcCode.isCurrent('{')
+				&& !data.srcCode.isCurrent(';') && !isAttributeNext(data);
+
 		// attributes
-		Attribute[] attrs = attributes(null, null, data, SEMI_BLOCK, data.factory.EMPTY(), Boolean.TRUE, null, false, NO_ATTR_SEP, true);
+		Attribute[] attrs = endsWithLineFeed ? new Attribute[0] : attributes(null, null, data, SEMI_BLOCK, data.factory.EMPTY(), Boolean.TRUE, null, false, NO_ATTR_SEP, true);
 		boolean isJava = false;
 		for (Attribute attr: attrs) {
 			// check type
@@ -1223,7 +1227,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 			else {
 				func.register(data.page);
-				statement(data, body, CTX_FUNCTION);
+				if (!endsWithLineFeed) statement(data, body, CTX_FUNCTION);
 			}
 			data.setParent(prior);
 		}
@@ -1235,6 +1239,22 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if (closure) comments(data);
 
 		return func;
+	}
+
+	/**
+	 * checks if the next token is an attribute with a value ({@code name=...} or {@code name:...})
+	 */
+	private boolean isAttributeNext(Data data) throws TemplateException {
+		int pos = data.srcCode.getPos();
+		try {
+			String id = identifier(data, false);
+			if (id == null) return false;
+			comments(data);
+			return (data.srcCode.isCurrent('=') && !data.srcCode.isCurrent("==")) || data.srcCode.isCurrent(':');
+		}
+		finally {
+			data.srcCode.setPos(pos);
+		}
 	}
 
 	private Literal extract(Attribute[] attrs, String name) {
