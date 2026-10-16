@@ -14,15 +14,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="log" {
 				expect( reFind( '^"INFO","[^"]*","\d{2}/\d{2}/\d{4}","\d{2}:\d{2}:\d{2}",', line ) ).toBe( 1, line );
 			});
 
-			it( title="a change of the default timezone is picked up by the layout", body=function( currentSpec ) {
+			it( title="the log timestamp follows the request/application timezone, not the JVM default", body=function( currentSpec ) {
 				var TimeZone = createObject( "java", "java.util.TimeZone" );
-				var orig = TimeZone.getDefault();
+				var orig = getTimeZone();
 				var name = "ldev6530-" & lCase( createUUID() );
 				try {
-					// both far apart from each other, so the date or the hour differs from any other zone
+					// both far apart from each other and from any JVM default, so the date or the hour differs
 					for ( var id in [ "Pacific/Kiritimati", "Etc/GMT+12" ] ) {
+						setTimeZone( id );
 						var tz = TimeZone.getTimeZone( id );
-						TimeZone.setDefault( tz );
 						var before = fmt( tz );
 						cflog( text="tz #id#", file=name );
 						var after = fmt( tz );
@@ -33,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="log" {
 					}
 				}
 				finally {
-					TimeZone.setDefault( orig );
+					setTimeZone( orig );
 				}
 			});
 

@@ -20,6 +20,7 @@ package lucee.commons.io.log.log4j2.layout;
 
 import java.nio.charset.StandardCharsets;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
@@ -31,6 +32,7 @@ import lucee.commons.io.log.log4j2.LogAdapter;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.util.Util;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 
 public final class ClassicLayout extends AbstractStringLayout { // TODO <Serializable>
@@ -40,7 +42,7 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 	// quotes, commas, date (10), time (8), line separator, plus slack for doubled quotes
 	private static final int FIXED_OVERHEAD = 64;
 
-	// date and time converters for one timezone, swapped as a pair when the default timezone changes
+	// date and time converters for one timezone, built once per timezone and shared
 	private static final class Converters {
 		final String tz;
 		final DatePatternConverter date;
@@ -53,7 +55,9 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 		}
 	}
 
-	private volatile Converters converters;
+	// one converter pair per timezone, so apps with different timezones logging at the same time do not
+	// keep rebuilding them; the number of timezones is finite, so this stays small
+	private static final ConcurrentHashMap<String, Converters> CONVERTERS = new ConcurrentHashMap<>();
 
 	public ClassicLayout() {
 		// TODO custom charset?
@@ -61,17 +65,14 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 
 				"\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Context\",\"Application\",\"Message\"" + LINE_SEPARATOR
 				: "\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Application\",\"Message\"" + LINE_SEPARATOR).getBytes(StandardCharsets.UTF_8), new byte[0]);
-
-		converters = new Converters(TimeZone.getDefault().getID());
 	}
 
-	// the default timezone is read per event like before, the converters (which cache everything above
-	// second precision) are only rebuilt when it changed
-	private Converters converters() {
-		String tz = TimeZone.getDefault().getID();
-		Converters c = converters;
-		if (!c.tz.equals(tz)) converters = c = new Converters(tz);
-		return c;
+	// the timezone is resolved per event the Lucee way, not from the JVM default: the timezone of the
+	// current (or parent) PageContext, which reflects this.timezone / setTimeZone(), otherwise the
+	// timezone configured in the server config (admin)
+	private static Converters converters() {
+		TimeZone tz = ThreadLocalPageContext.getTimeZone();
+		return CONVERTERS.computeIfAbsent(tz.getID(), Converters::new);
 	}
 
 	@Override
