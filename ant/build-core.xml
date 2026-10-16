@@ -32,7 +32,7 @@
   <property name="extMD"      value="org.lucee:markdown-extension:1.0.0.2"/>
   <property name="extSMB"     value="org.lucee:smb-extension:1.0.0.10"/>
   <property name="extFtp"      value="org.lucee:ftp-extension:1.0.0.8"/>
-  <property name="extImage"     value="org.lucee:image-extension:3.1.0.11"/>
+  <property name="extImage"     value="org.lucee:image-extension:2.0.0.34"/>
 
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
