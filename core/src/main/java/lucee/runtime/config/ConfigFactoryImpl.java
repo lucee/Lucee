@@ -45,7 +45,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.osgi.framework.Bundle;
@@ -121,6 +120,7 @@ import lucee.runtime.dump.TextDumpWriter;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ConsoleExecutionLog;
 import lucee.runtime.engine.DebugExecutionLog;
+import lucee.runtime.engine.DebuggerExecutionLog;
 import lucee.runtime.engine.ExecutionLog;
 import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.engine.InfoImpl;
@@ -222,6 +222,17 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		((CFMLEngineImpl) ConfigUtil.getEngine(configWeb)).onStart(configWeb, false);
 
 		((GatewayEngineImpl) configWeb.getGatewayEngine()).autoStart();
+
+		// invoke config listener if set
+		try {
+			ConfigListener listener = configServer.getConfigListener();
+			if (listener != null) listener.onLoadWebContext(configServer, configWeb);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(configServer, t);
+		}
+
 		log(configServer, Log.LEVEL_INFO,
 				"\n===================================================================\n" + "WEB CONTEXT (" + createLabel(configServer, servletConfig) + ")\n"
 						+ "-------------------------------------------------------------------\n" + "- config:" + configDir + "\n" + "- webroot:"
@@ -280,7 +291,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			Resource configFileOld = configDir.getRealResource("lucee-server.xml");
 
 			// config file
-			Resource configFileNew = getConfigFile(configDir, true);
+			Resource configFileNew = getConfigFile(configDir, true, false);
 
 			boolean hasConfigOld = false;
 			boolean hasConfigNew = configFileNew.exists() && configFileNew.length() > 0;
@@ -325,6 +336,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "load config file");
 			Struct root = loadDocumentCreateIfFails(config, configFileNew, "server");
 			config.setRoot(root);
+			config.resetScheduledTasks();
 			// admin mode
 			load(config, root, false, doNew, essentialOnly);
 
@@ -372,6 +384,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		boolean doNew = iDoNew != NEW_NONE;
 		Struct root = loadDocumentCreateIfFails(null, configFile, "server");
 		configServer.setRoot(root);
+		configServer.resetScheduledTasks();
 		load(configServer, root, true, doNew, quick);
 		((CFMLEngineImpl) ConfigUtil.getEngine(configServer)).onStart(configServer, true);
 	}
@@ -426,6 +439,13 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		}
 		// Trigger startup hooks (lazy-loaded)
 		config.getStartups();
+
+		// Eagerly initialise the ExecutionLogFactory so its marker check + cfclasses
+		// purge (loadExeLog) runs BEFORE any request can reach PageSourceImpl.loadPhysical.
+		// Without this, loadExeLog runs lazily inside the first compile, by which point
+		// path 2 has already defined stale-version classes into the fresh PCL —
+		// purging cfclasses on disk then can't unload them and the rename storm runs.
+		config.getExecutionLogFactory();
 
 		config.setLoadTime(System.currentTimeMillis());
 	}
@@ -1049,7 +1069,8 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			}
 		}
 		// temp directory should be always accessible, even when access is local
-		reses.add(config.getTempDirectory());
+		Resource tempDir = config.getTempDirectory();
+		if (!reses.contains(tempDir)) reses.add(tempDir);
 		return reses.toArray(new Resource[reses.size()]);
 	}
 
@@ -1065,6 +1086,8 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 				_attr(config, el, "tag_registry", SecurityManager.VALUE_YES), _attr(config, el, "cache", SecurityManager.VALUE_YES),
 				_attr(config, el, "gateway", SecurityManager.VALUE_YES), _attr(config, el, "orm", SecurityManager.VALUE_YES),
 				_attr2(config, el, "access_read", SecurityManager.ACCESS_PROTECTED), _attr2(config, el, "access_write", SecurityManager.ACCESS_PROTECTED));
+		Array fileAccess = ConfigUtil.getAsArray("fileAccess", el);
+		if (fileAccess.size() > 0) sm.setCustomFileAccess(_loadFileAccess(config, fileAccess));
 		return sm;
 	}
 
@@ -1080,6 +1103,8 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		sm.setAccess(SecurityManager.TYPE_TAG_REGISTRY, _attr(config, el, "tag_registry", SecurityManager.VALUE_YES));
 		sm.setAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS, _attr(config, el, "direct_java_access", SecurityManager.VALUE_YES));
 		sm.setAccess(SecurityManager.TYPE_CFX_USAGE, _attr(config, el, "cfx_usage", SecurityManager.VALUE_YES));
+		Array fileAccess = ConfigUtil.getAsArray("fileAccess", el);
+		if (fileAccess.size() > 0) sm.setCustomFileAccess(_loadFileAccess(config, fileAccess));
 		return sm;
 	}
 
@@ -1558,51 +1583,60 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		return las;
 	}
 
+	/**
+	 * Human-readable description of what changed in the exeLog marker between boots.
+	 * The marker val format is "executionLogEnabled:lineBased:engineVersion" — emit a
+	 * specific reason for each component that actually differs.
+	 */
+	private static String describeMarkerChange(String previousVal, String newVal) {
+		if (previousVal == null) {
+			return "purging cfclasses: marker file not present (fresh install or first boot of this Lucee version) [" + newVal + "]";
+		}
+		String[] oldParts = previousVal.split(":", -1);
+		String[] newParts = newVal.split(":", -1);
+		StringBuilder reasons = new StringBuilder();
+		if (oldParts.length >= 1 && newParts.length >= 1 && !oldParts[0].equals(newParts[0])) {
+			reasons.append("execution log enabled: ").append(oldParts[0]).append(" -> ").append(newParts[0]);
+		}
+		if (oldParts.length >= 2 && newParts.length >= 2 && !oldParts[1].equals(newParts[1])) {
+			if (reasons.length() > 0) reasons.append("; ");
+			reasons.append("execution log lineBased: ").append(oldParts[1]).append(" -> ").append(newParts[1]);
+		}
+		if (oldParts.length >= 3 && newParts.length >= 3 && !oldParts[2].equals(newParts[2])) {
+			if (reasons.length() > 0) reasons.append("; ");
+			reasons.append("Lucee engine version: ").append(oldParts[2]).append(" -> ").append(newParts[2]);
+		}
+		if (reasons.length() == 0) {
+			reasons.append("marker mismatch with no specific delta detected [previous=").append(previousVal).append(", current=").append(newVal).append("]");
+		}
+		return "purging cfclasses, templates will recompile under the current engine (" + reasons + ")";
+	}
+
 	public static ExecutionLogFactory loadExeLog(ConfigImpl config, Struct root) {
 		try {
 			Struct el = ConfigUtil.getAsStruct("executionLog", root);
-			boolean hasChanged = false;
-			String val = Caster.toString(config.getExecutionLogEnabled());
-			try {
-				Resource contextDir = config.getConfigDir();
-				Resource exeLog = contextDir.getRealResource("exeLog");
 
-				if (!exeLog.exists()) {
-					exeLog.createNewFile();
-					IOUtil.write(exeLog, val, SystemUtil.getCharset(), false);
-					hasChanged = true;
-				}
-				else if (!IOUtil.toString(exeLog, SystemUtil.getCharset()).equals(val)) {
-					IOUtil.write(exeLog, val, SystemUtil.getCharset(), false);
-					hasChanged = true;
-				}
-			}
-			catch (IOException e) {
-				log(config, e);
-			}
-
-			if (hasChanged) {
-				try {
-					if (config.getClassDirectory().exists()) config.getClassDirectory().remove(true);
-				}
-				catch (IOException e) {
-					log(config, e);
-				}
-			}
-
-			// class
+			// Determine the execution log class first
 			String strClass = getAttr(config, el, "class");
-			Class clazz;
-			if (!StringUtil.isEmpty(strClass)) {
+			Class<? extends ExecutionLog> clazz = null;
+			Map<String, String> args = null;
+
+			// If debugger breakpoint support enabled and no explicit class configured, use DebuggerExecutionLog
+			if (StringUtil.isEmpty(strClass) && ConfigImpl.DEBUGGER) {
+				LogUtil.log(config, Log.LEVEL_INFO, "application", "Debugger breakpoint support enabled");
+				clazz = DebuggerExecutionLog.class;
+				args = new HashMap<String, String>();
+			}
+			else if (!StringUtil.isEmpty(strClass)) {
 				try {
 					if ("console".equalsIgnoreCase(strClass)) clazz = ConsoleExecutionLog.class;
 					else if ("debug".equalsIgnoreCase(strClass)) clazz = DebugExecutionLog.class;
 					else {
 						ClassDefinition cd = el != null ? getClassDefinition(config, el, "", config.getIdentification()) : null;
 
-						Class c = cd != null ? cd.getClazz() : null;
-						if (c != null && (ClassUtil.newInstance(c) instanceof ExecutionLog)) {
-							clazz = c;
+						Class<?> c = cd != null ? cd.getClazz() : null;
+						if (c != null && ExecutionLog.class.isAssignableFrom(c)) {
+							clazz = c.asSubclass(ExecutionLog.class);
 						}
 						else {
 							clazz = ConsoleExecutionLog.class;
@@ -1620,11 +1654,72 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "loaded ExecutionLog class " + clazz.getName());
 
 				// arguments
-				Map<String, String> args = toArguments(el, "arguments", true, false);
+				args = toArguments(el, "arguments", true, false);
 				if (args == null) args = toArguments(el, "classArguments", true, false);
-
-				return new ExecutionLogFactory(clazz, args);
 			}
+
+			if (clazz == null) {
+				clazz = ConsoleExecutionLog.class;
+				args = new HashMap<String, String>();
+			}
+
+			ExecutionLogFactory factory = new ExecutionLogFactory(clazz, args);
+
+			// Track ExecutionLog mode + engine version in marker file to detect
+			// restart-triggered cache invariants. Format:
+			//   "enabled:lineBased:engineVersion"
+			// If any component changes, purge cfclasses so we recompile under the new
+			// engine. Engine-version inclusion catches Lucee upgrades; without it,
+			// .class files compiled by the previous engine survive on disk and get
+			// loaded by the new engine via path 2 in PageSourceImpl.loadPhysical,
+			// then trigger phantom-rename storms (every page-reload recompiles).
+			String engineVersion = ConfigUtil.getCFMLEngine(config).getInfo().getVersion().toString();
+			String val = config.getExecutionLogEnabled() + ":" + factory.isLineBased() + ":" + engineVersion;
+
+			// Default to "cfclasses is untrusted; purge". Only skip the purge if the
+			// marker file exists AND matches the current val exactly. Any read
+			// failure also falls through to purge — when we can't prove the cache is
+			// valid, we don't trust it.
+			boolean cacheValid = false;
+			String previousVal = null;
+			try {
+				Resource exeLog = config.getConfigDir().getRealResource("exeLog");
+				if (exeLog.exists()) {
+					previousVal = IOUtil.toString(exeLog, SystemUtil.getCharset());
+					cacheValid = val.equals(previousVal);
+				}
+			}
+			catch (IOException e) {
+				log(config, e);
+			}
+
+			if (!cacheValid) {
+				// Only log when there's actually something to purge. Fresh installs with
+				// an empty cfclasses dir don't need noise. Logged at DEBUG so it routes
+				// to out.log (informational) rather than err.log (problems).
+				try {
+					if (config.getClassDirectory().exists()) {
+						log(config, Log.LEVEL_DEBUG, describeMarkerChange(previousVal, val));
+						config.getClassDirectory().remove(true);
+					}
+				}
+				catch (IOException e) {
+					log(config, e);
+				}
+				// Write the marker AFTER the purge so a crash between purge and write
+				// leaves the marker stale/missing — next boot detects and purges again
+				// rather than trusting a half-purged cfclasses.
+				try {
+					Resource exeLog = config.getConfigDir().getRealResource("exeLog");
+					if (!exeLog.exists()) exeLog.createNewFile();
+					IOUtil.write(exeLog, val, SystemUtil.getCharset(), false);
+				}
+				catch (IOException e) {
+					log(config, e);
+				}
+			}
+
+			return factory;
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1833,9 +1928,9 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 						continue;
 					}
 
-					// check if it is a bundle
-					if (!cd.isBundle()) {
-						log(config, Log.LEVEL_INFO, "jdbc driver [" + label + "] does not describe a bundle");
+					// check if it is a bundle or maven coordinates
+					if ( !cd.isBundle() && !( cd instanceof ClassDefinitionImpl && ( (ClassDefinitionImpl) cd ).isMaven() ) ) {
+						log(config, Log.LEVEL_INFO, "jdbc driver [" + label + "] does not describe a bundle or maven coordinates");
 						continue;
 					}
 					map.put(cd.toString(), new JDBCDriver(label, id, connStr, cd));
@@ -1870,9 +1965,8 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 						if (cache == null) continue;
 						cd = getClassDefinition(config, cache, "", config.getIdentification());
 
-						// check if it is a bundle
-						if (!cd.isBundle()) {
-							log(config, Log.LEVEL_INFO, "[" + cd + "] does not have bundle info");
+						if (!cd.isBundle() && !(cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven())) {
+							log(config, Log.LEVEL_WARN, "skipping cache definition [" + cd + "], no bundle or maven coordinates");
 							continue;
 						}
 						map.put(cd.getClassName(), cd);
@@ -2383,8 +2477,9 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			f = dir.getRealResource("interruptThread." + TEMPLATE_EXTENSION);
 			if (!f.exists() || doNew) createFileFromResourceEL("/resource/library/function/interruptThread." + TEMPLATE_EXTENSION, f);
 
+			// LDEV-6282: throw() is now a Java BIF; remove any stale CFML wrapper.
 			f = dir.getRealResource("throw." + TEMPLATE_EXTENSION);
-			if (!f.exists() || doNew) createFileFromResourceEL("/resource/library/function/throw." + TEMPLATE_EXTENSION, f);
+			if (f.exists()) delete(dir, "throw." + TEMPLATE_EXTENSION);
 
 			f = dir.getRealResource("trace." + TEMPLATE_EXTENSION);
 			if (!f.exists() || doNew) createFileFromResourceEL("/resource/library/function/trace." + TEMPLATE_EXTENSION, f);
@@ -3499,10 +3594,10 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			Log deployLog = config.getLog("deploy");
 			Array children = ConfigUtil.getAsArray("extensions", root);
 			RHExtension.removeDuplicates(children);
+			RHExtension.removeDisabled(children);
 			if (children.size() > 0) {
 				// Use a thread pool for processing
 				ExecutorService executor = ThreadUtil.createExecutorService(children.size(), true);
-				Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 				List<Future<ExtensionDefintion>> futures = new ArrayList<>();
 
 				Iterator<Object> it = children.valueIterator();
@@ -3699,7 +3794,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 	}
 
-	public static void loadProxy(ConfigServerImpl config, Struct root) {
+	public static ProxyData loadProxy(ConfigImpl config, Struct root) {
 		try {
 			boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 			Struct proxy = ConfigUtil.getAsStruct("proxy", root);
@@ -3731,14 +3826,14 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 				ProxyDataImpl pd = (ProxyDataImpl) ProxyDataImpl.getInstance(server, port, username, password);
 				pd.setExcludes(excludes);
 				pd.setIncludes(includes);
-				config.setProxyData(pd);
-
+				return pd;
 			}
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			log(config, t);
 		}
+		return null;
 	}
 
 	public static boolean loadError(ConfigImpl config, Struct root, boolean defaultValue) {
@@ -3842,7 +3937,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		return null;
 	}
 
-	public static Resource getConfigFile(Resource configDir, boolean server) throws IOException {
+	public static Resource getConfigFile(Resource configDir, boolean server, boolean returnOnlyWhenExist) throws IOException {
 		if (server) {
 			// lucee.base.config
 			String customCFConfig = SystemUtil.getSystemPropOrEnvVar("lucee.base.config", null);
@@ -3865,6 +3960,9 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			if (res.isFile()) return res;
 		}
 
+		if (returnOnlyWhenExist) {
+			return null;
+		}
 		// default location
 		return configDir.getRealResource(ConfigFactoryImpl.CONFIG_FILE_NAMES[0]);
 	}
@@ -3907,9 +4005,8 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 				else ConfigFactoryImpl.createFileFromResourceCheckSizeDiffEL("/resource/context/lucee-admin.lar", f);
 			}
 
-			create("/resource/context/",
-					new String[] { "lucee-context.lar", "lucee-doc.lar", "component-dump.cfm", "Application.cfc", "form.cfm", "graph.cfm", "wddx.cfm", "admin.cfm" }, contextDir,
-					doNew);
+			create("/resource/context/", new String[] { "lucee-context.lar", "lucee-doc.lar", "component-dump.cfm", "Application.cfc", "form.cfm", "graph.cfm", "wddx.cfm",
+					"admin.cfm", "formtag-form.cfm" }, contextDir, doNew);
 		}
 
 		// customtags

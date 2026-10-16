@@ -71,7 +71,7 @@ public final class TagHelper {
 
 	// TagUtil.setAttributeCollection(Tag, Struct)
 	private static final Method SET_ATTRIBUTE_COLLECTION = new Method("setAttributeCollection", Types.VOID,
-			new Type[] { Types.PAGE_CONTEXT, TAG, MISSING_ATTRIBUTE_ARRAY, Types.STRUCT, Types.INT_VALUE });
+			new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, MISSING_ATTRIBUTE_ARRAY, Types.STRUCT, Types.INT_VALUE });
 
 	// Tag use(String)
 	private static final Method USE_REG = new Method("use", TAG, new Type[] { Types.STRING, Types.STRING, Types.INT_VALUE, Types.STRING });
@@ -129,7 +129,7 @@ public final class TagHelper {
 	private static final Method DO_FINALLY = new Method("doFinally", Types.VOID, new Type[] {});
 
 	// JspWriter popBody()
-	private static final Method POP_BODY = new Method("popBody", Types.JSP_WRITER, new Type[] {});
+	private static final Method POP_BODY = new Method("popBody", Types.VOID, new Type[] { Types.PAGE_CONTEXT });
 
 	// void reuse(Tag tag)
 	private static final Method RE_USE_REG = new Method("reuse", Types.VOID, new Type[] { Types.TAG });
@@ -263,14 +263,16 @@ public final class TagHelper {
 
 		// attributeCollection
 		Attribute attrColl = tag.getAttribute("attributecollection");
+		boolean skipAttrColl = false;
 		if (attrColl != null) {
 			int attrType = tag.getTagLibTag().getAttributeType();
 			if (TagLibTag.ATTRIBUTE_TYPE_NONAME != attrType) {
-				tag.removeAttribute("attributecollection");
+				// LDEV-3847 do not remove the attribute from the tag, the same tag can be written more than once (finally block)
+				skipAttrColl = true;
 				// TagUtil.setAttributeCollection(Tag, Struct)
 				adapter.loadArg(0);
 				adapter.loadLocal(currLocal);
-				if (currType != TAG) adapter.checkCast(TAG);
+				// if (currType != TAG) adapter.checkCast(TAG);
 
 				///
 				TagLibTagAttr[] missings = tag.getMissingAttributes();
@@ -321,7 +323,7 @@ public final class TagHelper {
 		}
 
 		// set attributes
-		setAttributes(bc, tag, currLocal, currType, false, type != TYPE_REG);
+		setAttributes(bc, tag, currLocal, currType, false, type != TYPE_REG, skipAttrColl);
 		// Body
 		if (hasBody) {
 			final int state = adapter.newLocal(Types.INT_VALUE);
@@ -357,8 +359,7 @@ public final class TagHelper {
 					adapter.visitJumpInsn(Opcodes.IF_ICMPEQ, endIf);
 					// ... pc.popBody();
 					adapter.loadArg(0);
-					adapter.invokeVirtual(Types.PAGE_CONTEXT, POP_BODY);
-					adapter.pop();
+					adapter.invokeStatic(Types.PAGE_CONTEXT_UTIL, POP_BODY);
 					adapter.visitLabel(endIf);
 
 					// tag.doFinally();
@@ -429,6 +430,11 @@ public final class TagHelper {
 	}
 
 	private static void setAttributes(BytecodeContext bc, Tag tag, int currLocal, Type currType, boolean doDefault, boolean interf) throws TransformerException {
+		setAttributes(bc, tag, currLocal, currType, doDefault, interf, false);
+	}
+
+	private static void setAttributes(BytecodeContext bc, Tag tag, int currLocal, Type currType, boolean doDefault, boolean interf, boolean skipAttrColl)
+			throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 		Map<String, Attribute> attributes = tag.getAttributes();
 
@@ -438,6 +444,7 @@ public final class TagHelper {
 		while (it.hasNext()) {
 			attr = it.next();
 			if (doDefault != attr.isDefaultAttribute()) continue;
+			if (skipAttrColl && "attributecollection".equalsIgnoreCase(attr.getName())) continue;
 
 			if (attr.isDynamicType()) {
 				adapter.loadLocal(currLocal);

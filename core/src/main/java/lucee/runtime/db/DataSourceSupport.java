@@ -18,16 +18,11 @@
  */
 package lucee.runtime.db;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.lang.ref.SoftReference;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.BundleException;
 
@@ -38,7 +33,7 @@ import lucee.commons.sql.SQLUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.op.Caster;
 import lucee.runtime.tag.listener.TagListener;
 
 public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Serializable {
@@ -63,8 +58,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final String password;
 	private final ClassDefinition cd;
 
-	private transient Map<String, SoftReference<ProcMetaCollection>> procedureColumnCache;
-	private transient Driver driver;
+	private transient volatile Driver driver;
 	private transient Log log;
 	private final TagListener listener;
 	private final boolean requestExclusive;
@@ -112,29 +106,8 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 			return _getConnection(config, initialize(config), SQLUtil.connectionStringTranslatedPatch(config, getConnectionStringTranslated()), user, pass);
 
 		}
-		catch (InstantiationException e) {
-			throw new RuntimeException(e);
-		}
-		catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		catch (PageException e) {
-			throw new PageRuntimeException(e);
-		}
-		catch (IllegalArgumentException e) {
-			throw new RuntimeException(e);
-		}
-		catch (InvocationTargetException e) {
-			throw new RuntimeException(e.getTargetException());
-		}
-		catch (NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-		catch (SecurityException e) {
-			throw new RuntimeException(e);
+		catch (Exception e) {
+			throw Caster.toPageRuntimeException(e);
 		}
 	}
 
@@ -160,8 +133,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 			if (transactionIsolation == Connection.TRANSACTION_READ_UNCOMMITTED) return Connection.TRANSACTION_READ_UNCOMMITTED;
 			if (transactionIsolation == Connection.TRANSACTION_REPEATABLE_READ) return Connection.TRANSACTION_REPEATABLE_READ;
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 		return defaultValue;
 	}
 
@@ -170,58 +142,36 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		return defaultTransactionIsolation;
 	}
 
-	private Driver initialize(Config config) throws BundleException, InstantiationException, IllegalAccessException, IOException, IllegalArgumentException,
-			InvocationTargetException, NoSuchMethodException, SecurityException, PageException {
-		if (driver == null) {
+	private Driver initialize(Config config) throws Exception {
+		Driver d = driver;
+		if (d != null) return d;
+		synchronized (this) {
+			d = driver;
+			if (d != null) return d;
 			return driver = _initializeDriver(cd, config);
 		}
-		return driver;
 	}
 
-	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws BundleException, InstantiationException, IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException, NoSuchMethodException, SecurityException, IOException, PageException {
+	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws Exception {
 		// load the class
 		Driver d = (Driver) ClassUtil.newInstance(cd.getClazz());
 		return d;
 	}
 
-	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws BundleException, SQLException, PageException {
+	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws PageException {
 		try {
 			// Driver driver = _initializeDriver(_initializeCD(jdbc, cd, config),config);
 			Driver driver = _initializeDriver(cd, config);
 			_getConnection(config, driver, connStrTranslated, user, pass);
 		}
-		catch (InstantiationException e) {
-			throw new RuntimeException(e);
-		}
-		catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-		catch (IllegalArgumentException e) {
-			throw new RuntimeException(e);
-		}
-		catch (InvocationTargetException e) {
-			throw new RuntimeException(e.getTargetException());
-		}
-		catch (NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-		catch (SecurityException e) {
-			throw new RuntimeException(e);
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
+		catch (Exception e) {
+			throw Caster.toPageException(e);
 		}
 	}
 
 	@Override
 	public Object clone() {
 		return cloneReadOnly();
-	}
-
-	public Map<String, SoftReference<ProcMetaCollection>> getProcedureColumnCache() {
-		if (procedureColumnCache == null) procedureColumnCache = new ConcurrentHashMap<String, SoftReference<ProcMetaCollection>>();
-		return procedureColumnCache;
 	}
 
 	@Override

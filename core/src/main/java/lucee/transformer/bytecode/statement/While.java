@@ -74,6 +74,8 @@ public final class While extends StatementBaseNoFinal implements FlowControlBrea
 
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		begin = new Label(); // LDEV-5922 fresh labels per emission, a finally body is written more than once
+		end = new Label();
 		GeneratorAdapter adapter = bc.getAdapter();
 		adapter.visitLabel(begin);
 

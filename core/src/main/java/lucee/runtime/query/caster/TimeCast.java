@@ -27,6 +27,7 @@ import java.util.TimeZone;
 
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.dt.TimestampImpl;
 
 public final class TimeCast implements Cast {
 
@@ -41,7 +42,7 @@ public final class TimeCast implements Cast {
 		Time t = useTimeZone ? rst.getTime(columnIndex, JREDateTimeUtil.getThreadCalendar(tz)) : rst.getTime(columnIndex);
 		if (t == null) return null;
 
-		return new DateTimeImpl(t.getTime());
+		return Cast.JDBC_DATETIME_FORMAT ? new TimestampImpl(t, t.toString()) : new DateTimeImpl(t.getTime());
 
 	}
 

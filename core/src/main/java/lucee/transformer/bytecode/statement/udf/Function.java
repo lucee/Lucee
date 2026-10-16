@@ -20,8 +20,10 @@ package lucee.transformer.bytecode.statement.udf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -379,6 +381,18 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	}
 
 	private final void createArguments(BytecodeContext bc) throws TransformerException {
+		// LDEV-4122: the same argument name cannot be used twice in a function
+		Set<String> argNames = new HashSet<String>();
+		for (Argument a: arguments) {
+			if (a.getName() instanceof LitString) {
+				String argName = ((LitString) a.getName()).getString();
+				if (!argNames.add(argName.toLowerCase())) {
+					String fn = !(this instanceof Closure || this instanceof Lambda) && name instanceof LitString ? ((LitString) name).getString() : null;
+					throw new TransformerException(bc, "The argument [" + argName + "] is defined more than once" + (fn != null ? " in the function [" + fn + "]" : "")
+							+ ", an argument name can only be used once", a.getName().getStart() != null ? a.getName().getStart() : getStart());
+				}
+			}
+		}
 		GeneratorAdapter ga = bc.getAdapter();
 		ga.push(arguments.size());
 		ga.newArray(FUNCTION_ARGUMENT);

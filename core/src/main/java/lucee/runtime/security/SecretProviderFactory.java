@@ -1,6 +1,11 @@
 package lucee.runtime.security;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.osgi.framework.BundleException;
 
@@ -229,6 +234,67 @@ public class SecretProviderFactory {
 
 		SecretProvider sp = ((ConfigPro) config).getSecretProvider(secretProvider);
 		return new SecretProviderFactory.Ref(sp, key).touch(resolve);
+	}
+
+	public static Collection<String> listSecretNames(Config config, String secretProvider) throws PageException {
+		if (StringUtil.isEmpty(secretProvider, true)) {
+			Set<String> allNames = new TreeSet<>(); // TreeSet for sorted output
+			for (SecretProvider sp: ((ConfigPro) config).getSecretProviders().values()) {
+				try {
+					allNames.addAll(SecretProviderUtil.toSecretProviderExtended(sp).listSecretNames());
+				}
+				catch (PageException pe) {
+					// provider doesn't support listSecretNames, skip
+				}
+			}
+			return allNames;
+		}
+		return SecretProviderUtil.toSecretProviderExtended(((ConfigPro) config).getSecretProvider(secretProvider)).listSecretNames();
+	}
+
+	public static Map<String, Ref> listSecrets(Config config, String secretProvider, boolean resolve) throws PageException {
+		Map<String, Ref> all = new HashMap<>();
+
+		if (StringUtil.isEmpty(secretProvider, true)) {
+			for (SecretProvider sp: ((ConfigPro) config).getSecretProviders().values()) {
+				try {
+					for (String name: SecretProviderUtil.toSecretProviderExtended(sp).listSecretNames()) {
+						if (!all.containsKey(name)) {
+							all.put(name, new SecretProviderFactory.Ref(sp, name).touch(resolve));
+						}
+					}
+				}
+				catch (PageException pe) {
+					// provider doesn't support listSecretNames, skip
+				}
+			}
+			return all;
+		}
+
+		SecretProvider sp = ((ConfigPro) config).getSecretProvider(secretProvider);
+		try {
+			for (String name: SecretProviderUtil.toSecretProviderExtended(sp).listSecretNames()) {
+				all.put(name, new SecretProviderFactory.Ref(sp, name).touch(resolve));
+			}
+		}
+		catch (PageException pe) {
+			// provider doesn't support listSecretNames, return empty map
+		}
+		return all;
+	}
+
+	public static void removeSecret(Config config, String key, String secretProvider) throws PageException {
+		if (StringUtil.isEmpty(secretProvider, true)) {
+			for (SecretProvider sp: ((ConfigPro) config).getSecretProviders().values()) {
+				if (sp.getSecret(key, null) != null) {
+					SecretProviderUtil.toSecretProviderExtended(sp).removeSecret(key);
+					return;
+				}
+			}
+			throw new ApplicationException("No secret provider found that provides the key [" + key + "]");
+		}
+
+		SecretProviderUtil.toSecretProviderExtended(((ConfigPro) config).getSecretProvider(secretProvider)).removeSecret(key);
 	}
 
 }

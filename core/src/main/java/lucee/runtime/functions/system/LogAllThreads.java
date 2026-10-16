@@ -58,6 +58,7 @@ public final class LogAllThreads implements Function {
 			}
 		});
 
+		thread.setDaemon(true);
 		// Start the thread
 		thread.start();
 		return null;

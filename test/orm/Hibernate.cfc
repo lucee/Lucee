@@ -98,6 +98,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 		assertEquals("0",trim(result.fileContent));
 	}
 
+	public void function testMappedSuperClass() {
+		if (noOrm()) return;
+		local.uri=createURI("mappedSuperClass/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("",trim(result.fileContent));
+	}
+
 	// ormSettings dialects tests
 	public void function testDialectMYSQL() skip="notHasMysql" {
 		if (noOrm()) return;

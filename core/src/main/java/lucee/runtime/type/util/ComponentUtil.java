@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -94,6 +94,7 @@ import lucee.runtime.type.SimpleValue;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.UDFGSProperty;
 import lucee.runtime.type.UDFPropertiesBase;
 import lucee.runtime.type.dt.DateTime;
 import lucee.transformer.bytecode.BytecodeContext;
@@ -177,7 +178,7 @@ public final class ComponentUtil {
 		// null);
 		// fv.visitEnd();
 
-		LinkedHashMap<LitString, Integer> _keys = new LinkedHashMap<LitString, Integer>();
+		Map<LitString, Integer> _keys = new LinkedHashMap<LitString, Integer>();
 
 		// remote methods
 		Collection.Key[] keys = component.keys(Component.ACCESS_REMOTE);
@@ -578,7 +579,7 @@ public final class ComponentUtil {
 		return cl.loadClass(className);
 	}
 
-	private static int createMethod(PageContext pc, ConstrBytecodeContext constr, LinkedHashMap<LitString, Integer> keys, ClassWriter cw, String className, Object member, int max,
+	private static int createMethod(PageContext pc, ConstrBytecodeContext constr, Map<LitString, Integer> keys, ClassWriter cw, String className, Object member, int max,
 			boolean writeLog, boolean suppressWSbeforeArg, boolean output, boolean returnValue) throws PageException {
 
 		boolean hasOptionalArgs = false;
@@ -911,7 +912,28 @@ public final class ComponentUtil {
 
 		if (udfProps.getLocalMode() != null) func.set("localMode", AppListenerUtil.toLocalMode(udfProps.getLocalMode().intValue(), ""));
 
-		if (udfProps.getPageSource() != null) func.set(KeyConstants._owner, udfProps.getPageSource().getDisplayPath());
+		if (udf instanceof UDFGSProperty) {
+			UDFGSProperty gsProp = (UDFGSProperty) udf;
+			PageSource ps = null;
+
+			// LDEV-3335: For inherited accessors, use the property's original owner
+			Property prop = gsProp.getProperty();
+			if (prop instanceof PropertyImpl) {
+				ps = ((PropertyImpl) prop).getOwnerPageSource();
+			}
+
+			// Fallback to the UDF's PageSource if property owner not available
+			if (ps == null) {
+				ps = gsProp.getPageSource();
+			}
+
+			if (ps != null) {
+				func.set(KeyConstants._owner, ps.getDisplayPath());
+			}
+		}
+		else if (udfProps.getPageSource() != null) {
+			func.set(KeyConstants._owner, udfProps.getPageSource().getDisplayPath());
+		}
 
 		if (udfProps.getStartLine() > 0 && udfProps.getEndLine() > 0) {
 			Struct pos = new StructImpl();
@@ -1002,6 +1024,11 @@ public final class ComponentUtil {
 	}
 
 	private static class ReturnFormatValue implements Castable, SimpleValue, CharSequence, Dumpable {
+
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 1L;
 
 		@Override
 		public Boolean castToBoolean(Boolean defaultValue) {
@@ -1177,8 +1204,14 @@ public final class ComponentUtil {
 				StructUtil.copy(dynamicAttributes, property.getDynamicAttributes(), true);
 			}
 
+			// LDEV-3335: Set owner BEFORE setProperty() so inherited properties have the correct owner
+			// Only set owner for properties defined in this component, not inherited ones
+			// If already set (inherited from parent), don't overwrite
+			if (property.getOwnerPageSource() == null) {
+				property.setOwnerName(comp.getAbsName(), comp.getPageSource());
+			}
+
 			comp.setProperty(property);
-			property.setOwnerName(comp.getAbsName());
 		}
 	}
 

@@ -19,10 +19,11 @@
 package lucee.runtime.type;
 
 import lucee.commons.lang.CFTypes;
-import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
+import lucee.runtime.ComponentImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.component.Property;
+import lucee.runtime.component.PropertyImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection.Key;
 
@@ -32,19 +33,26 @@ public final class UDFGetterProperty extends UDFGSProperty {
 
 	private static final FunctionArgument[] EMPTY = new FunctionArgument[0];
 
-	private final Property prop;
 	// private ComponentScope scope;
 	private final Key propName;
 
 	public UDFGetterProperty(Component component, Property prop) {
-		super(component, "get" + StringUtil.ucFirst(prop.getName()), EMPTY, CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_ANY));
-		this.prop = prop;
-		this.propName = KeyImpl.init(prop.getName());
+		super(component, ((PropertyImpl) prop).getGetterName(), EMPTY, CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_ANY), prop.getType());
+		this.prop = prop; // Set parent's prop field
+		this.propName = ((PropertyImpl) prop).getNameAsKey();
 	}
 
 	@Override
 	public UDF duplicate() {
 		return new UDFGetterProperty(srcComponent, prop);
+	}
+
+	/**
+	 * Direct accessor bypass — called from ComponentImpl._call() to skip UDF dispatch overhead.
+	 * The caller already knows the component, so we skip getComponent(pc) resolution.
+	 */
+	public Object callDirect( ComponentImpl comp, PageContext pc ) {
+		return comp.getComponentScope().get( pc, propName, null );
 	}
 
 	@Override
@@ -70,6 +78,10 @@ public final class UDFGetterProperty extends UDFGSProperty {
 	@Override
 	public Object getDefaultValue(PageContext pc, int index, Object defaultValue) throws PageException {
 		return defaultValue;
+	}
+
+	public Property getProperty() {
+		return prop;
 	}
 
 	@Override

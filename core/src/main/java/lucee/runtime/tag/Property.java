@@ -147,7 +147,10 @@ public final class Property extends TagImpl implements DynamicAttributes {
 		if (pageContext.variablesScope() instanceof ComponentScope) {
 			Component comp = ((ComponentScope) pageContext.variablesScope()).getComponent();
 			comp.setProperty(property);
-			property.setOwnerName(comp.getAbsName());
+			// LDEV-3335: Only set owner if not already set (e.g., from parent component)
+			if (property.getOwnerPageSource() == null) {
+				property.setOwnerName(comp.getAbsName(), comp.getPageSource());
+			}
 		}
 
 		return SKIP_BODY;

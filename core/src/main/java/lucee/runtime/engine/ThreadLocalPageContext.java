@@ -46,6 +46,9 @@ public final class ThreadLocalPageContext {
 	private static ThreadLocal<Boolean> insideServerNewInstance = new ThreadLocal<Boolean>();
 	private static ThreadLocal<Boolean> insideGateway = new ThreadLocal<Boolean>();
 	private static ThreadLocal<Boolean> insideInheritableRegistration = new ThreadLocal<Boolean>();
+	// CCL_UNSET sentinel distinguishes "never saved" from "saved a null CCL"; some boot/gateway threads legitimately have a null context classloader.
+	private static final ClassLoader CCL_UNSET = new ClassLoader(null) {};
+	private static ThreadLocal<ClassLoader> prevCCL = ThreadLocal.withInitial(() -> CCL_UNSET);
 
 	/**
 	 * Register a NEW or PARENT PageContext for the current thread.
@@ -73,9 +76,17 @@ public final class ThreadLocalPageContext {
 		if (pc == null) {
 			return; // TODO happens with Gateway, but should not!
 		}
-		// TODO should i set the old one by "release"?
 		Thread t = Thread.currentThread();
-		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
+		ClassLoader target = ((ConfigPro) pc.getConfig()).getClassLoaderEnv();
+		ClassLoader current = t.getContextClassLoader();
+		// fast path: skip CCL save/swap when already on target (re-entrant register, or reused worker thread)
+		if (current != target) {
+			// first register on this thread captures the pre-Lucee CCL; nested register with a different target keeps the original save
+			if (prevCCL.get() == CCL_UNSET) {
+				prevCCL.set(current);
+			}
+			t.setContextClassLoader(target);
+		}
 		((PageContextImpl) pc).setThread(t);
 		pcThreadLocal.set(pc);
 		pcThreadLocalInheritable.set(pc);
@@ -132,7 +143,16 @@ public final class ThreadLocalPageContext {
 			return; // TODO happens with Gateway, but should not!
 		}
 		Thread t = Thread.currentThread();
-		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
+		ClassLoader target = ((ConfigPro) pc.getConfig()).getClassLoaderEnv();
+		ClassLoader current = t.getContextClassLoader();
+		// fast path: skip CCL save/swap when already on target (re-entrant register, or reused worker thread)
+		if (current != target) {
+			// first register on this thread captures the pre-Lucee CCL; nested register with a different target keeps the original save
+			if (prevCCL.get() == CCL_UNSET) {
+				prevCCL.set(current);
+			}
+			t.setContextClassLoader(target);
+		}
 		((PageContextImpl) pc).setThread(t);
 		pcThreadLocal.set(pc);
 		// Skip pcThreadLocalInheritable - child contexts don't need inheritance
@@ -188,6 +208,11 @@ public final class ThreadLocalPageContext {
 	public static void release() {
 		pcThreadLocal.set(null);
 		pcThreadLocalInheritable.set(null);
+		ClassLoader prev = prevCCL.get();
+		if (prev != CCL_UNSET) {
+			Thread.currentThread().setContextClassLoader(prev);
+			prevCCL.remove();
+		}
 	}
 
 	public static Config getConfig(PageContext pc) {

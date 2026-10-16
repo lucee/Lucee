@@ -1750,6 +1750,30 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
 			<type>string</type>
 		</return>
 	</function>
+	<!-- breakpoint -->
+	<function>
+		<name>breakpoint</name>
+		<class>lucee.runtime.functions.system.Breakpoint</class>
+		<introduced>7.1.0.45</introduced>
+		<keywords>debug,debugger</keywords>
+		<description>Programmatic breakpoint - like JavaScript's "debugger;" statement. Suspends execution when a debugger is attached, allowing inspection of variables. Returns true if breakpoint was hit, false if skipped.</description>
+		<argument>
+			<name>label</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Optional label to identify this breakpoint in the debugger UI.</description>
+		</argument>
+		<argument>
+			<name>condition</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>When true, execution suspends. Use for conditional breakpoints.</description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 	<!-- bitAnd -->
 	<function>
 		<name>bitAnd</name>
@@ -2597,6 +2621,42 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
 		</return>
 	</function>
 	
+	<!-- ConfigMerge -->
+	<function>
+	    <name>ConfigMerge</name>
+	    <class>lucee.runtime.functions.system.ConfigMerge</class>
+	    <description>
+	        Merges two Lucee configuration structs (as used in .CFConfig.json) into a new struct,
+	        following Lucee's internal merge rules. The right-hand config takes precedence over the
+	        left-hand config for scalar values, while certain collection types (such as extensions)
+	        are appended rather than replaced. Neither input struct is modified; the result is
+	        returned as a new struct.
+	    </description>
+	    <introduced>7.0.4.5</introduced>
+	    <argument>
+	        <name>left</name>
+	        <type>struct</type>
+	        <required>Yes</required>
+	        <description>
+	            The base configuration struct. Acts as the default/fallback config. This struct is
+	            not modified by the function.
+	        </description>
+	    </argument>
+	    <argument>
+	        <name>right</name>
+	        <type>struct</type>
+	        <required>Yes</required>
+	        <description>
+	            The overriding configuration struct. Scalar values in this struct overwrite
+	            corresponding values in the left struct. Collection types such as extension arrays
+	            are merged by appending to the left struct's values rather than replacing them.
+	            This struct is not modified by the function.
+	        </description>
+	    </argument>
+	    <return>
+	        <type>struct</type>
+	    </return>
+	</function>
 	
 	
 	<!-- ConfigTranslate -->
@@ -2660,7 +2720,70 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
 			<type>struct</type>
 		</return>
 	</function>
-
+	
+	<!-- compileToBytecode -->
+	<function>
+		<name>compileToBytecode</name>
+		<class>lucee.runtime.functions.system.CompileToBytecode</class>
+		<description>Compile CFML templates to bytecode and replace the source file in place. Optionally keep a dot-prefixed copy of the source and encrypt the bytecode with an RSA private key.</description>
+		<status>hidden</status>
+		<argument>
+			<name>path</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Path (relative or absolute) to a CFML file or directory to compile.</description>
+		</argument>
+		<argument>
+			<name>keepSource</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>When true, a copy of the source is stored alongside the template using a dot prefix (for example index.cfm becomes .index.cfm).</description>
+		</argument>
+		<argument>
+			<name>privateKey</name>
+			<type>string</type>
+			<required>No</required>
+			<description>RSA private key used to encrypt the bytecode. The matching public key must be configured as PUBLIC_KEY environment variable or system property on the server that executes the template.</description>
+		</argument>
+		<argument>
+			<name>recursive</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>When path is a directory, also compile CFML files in subdirectories.</description>
+		</argument>
+		<return>
+			<type>struct</type>
+			<description>Struct with keys compiled, skipped, errors and warnings.</description>
+		</return>
+	</function>
+	
+	<!-- restoreToSource -->
+	<function>
+		<name>restoreToSource</name>
+		<class>lucee.runtime.functions.system.RestoreToSource</class>
+		<status>hidden</status>
+		<description>Restore CFML source files from dot-prefixed backups created by compileToBytecode. Replaces bytecode templates with their source and deletes the backup file.</description>
+		<argument>
+			<name>path</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Path (relative or absolute) to a CFML file or directory to restore.</description>
+		</argument>
+		<argument>
+			<name>recursive</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>When path is a directory, also restore CFML files in subdirectories.</description>
+		</argument>
+		<return>
+			<type>struct</type>
+			<description>Struct with keys restored, skipped and errors.</description>
+		</return>
+	</function>
+	
 	<!-- compress -->
 	<function>
 		<name>compress</name>
@@ -3145,12 +3268,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>datasourceFlushMetaCache</name>
 		<class>lucee.runtime.functions.other.DatasourceFlushMetaCache</class>
-		<description>Flush the meta data stored for a certain datasource used for stored procedures, this is only supported for Oracle datasources</description>
+		<description>Flushes cached stored procedure metadata. Oracle datasources only. Returns true if at least one cache was cleared, false if there was nothing to clear.</description>
 		<argument>
 			<name>datasourceName</name>
 			<type>string</type>
 			<required>no</required>
-			<description>name of the datasource to flush, when not defined all caches are flushed</description>
+			<description>datasource to flush; when omitted, all datasource caches are flushed</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -5377,19 +5500,19 @@ If omitted, the file's attributes are maintained.</description>
 	<function>
 		<name>fileCopy</name>
 		<class>lucee.runtime.functions.file.FileCopy</class>
-		<description>Copies the specified on-disk or in-memory source file to the specified destination file.</description>
+		<description>Copies the specified on-disk or in-memory source file to the specified destination file. File Attributes are applied to destination file, but read and write are set to true.</description>
 		<argument>
 			<name>source</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>path to copy.</description>
-    </argument>
+			<description>Path to source file to copy.</description>
+    	</argument>
 		<argument>
 			<name>destination</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Pathname of the destination file.</description>
-    </argument>
+			<description>Path to the destination file.</description>
+    	</argument>
 		<return>
 			<type>void</type>
 		</return>
@@ -6602,7 +6725,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 	<!-- SecretProviderGet -->
 	<function>
 		<name>SecretProviderGet</name>
-		<class>lucee.runtime.functions.security.GetSecret</class>
+		<class>lucee.runtime.functions.security.SecretProviderGet</class>
 		<introduced>7.0.0.197</introduced>
 		<description>
 Returns a reference to a secret value stored in a configured Secret Provider. The function doesn't immediately return the actual value, but rather a value object that can be handled by Lucee like a simple value.
@@ -6628,12 +6751,125 @@ When used, the function automatically validates that the secret exists and throw
 		</argument>
 		<argument>
 			<name>resolve</name>
+			<introduced>7.0.2.96</introduced>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true the secret is resolved right away, if set to false, it is resolved when used.</description>
 		</argument>
 		<return>
 			<type>any</type>
+		</return>
+	</function>
+	
+	<!-- SecretProviderList -->
+	<function>
+		<name>SecretProviderList</name>
+		<class>lucee.runtime.functions.security.SecretProviderList</class>
+		<introduced>7.0.2.94</introduced>
+		<description>
+	Returns a struct containing all secrets from a configured Secret Provider. Each key in the struct corresponds to a secret name, and each value is a reference object (similar to SecretProviderGet) that resolves to the actual secret value when used.
+	
+	When no provider name is specified, the function aggregates secrets from all configured providers. If the same secret key exists in multiple providers, the first provider (in configuration order) takes precedence.
+		</description>
+		<argument>
+			<name>name</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Name of the Secret Provider to list secrets from, as configured in .CFConfig.json. If not defined, the function lists secrets from all configured providers.</description>
+		</argument>
+		<argument>
+			<name>resolve</name>
+			<introduced>7.0.2.96</introduced>
+			<type>boolean</type>
+			<required>No</required>
+			<description>If set to true, all secrets are resolved immediately. If set to false (default), secrets are resolved when used.</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+
+
+	<!-- SecretProviderListNames -->
+	<function>
+		<name>SecretProviderListNames</name>
+		<class>lucee.runtime.functions.security.SecretProviderListNames</class>
+		<introduced>7.0.2.94</introduced>
+		<description>
+	Returns an array containing the names (keys) of all secrets available in a configured Secret Provider. This function only returns the secret names, not the actual secret values.
+	
+	When no provider name is specified, the function aggregates secret names from all configured providers, returning a deduplicated and sorted list.
+		</description>
+		<argument>
+			<name>name</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Name of the Secret Provider to list secret names from, as configured in .CFConfig.json. If not defined, the function lists secret names from all configured providers.</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
+
+	<!-- SecretProviderSet -->
+	<function>
+		<name>SecretProviderSet</name>
+		<class>lucee.runtime.functions.security.SecretProviderSet</class>
+		<introduced>7.0.2.94</introduced>
+		<description>
+	Sets a secret value in a configured Secret Provider. The value type is automatically detected and stored appropriately as a string, boolean, or integer.
+
+	Note: Not all Secret Providers support writing. Providers that are read-only (such as environment variables) will throw an exception when attempting to set a value.
+		</description>
+		<argument>
+			<name>key</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Key to store the secret under (e.g., "database.password", "api.key")</description>
+		</argument>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>The secret value to store. Can be a string, boolean, or integer.</description>
+		</argument>
+		<argument>
+			<name>name</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Name of the Secret Provider to write to, as configured in .CFConfig.json.</description>
+		</argument>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+	
+	<!-- SecretProviderRemove -->
+	<function>
+		<name>SecretProviderRemove</name>
+		<class>lucee.runtime.functions.security.SecretProviderRemove</class>
+		<introduced>7.0.2.94</introduced>
+		<description>
+	Removes a secret from a configured Secret Provider.
+
+	When no provider name is specified, the function searches all configured providers and removes the secret from the first provider that contains it.
+
+	Note: Not all Secret Providers support removal. Providers that are read-only (such as environment variables) will throw an exception when attempting to remove a value.
+		</description>
+		<argument>
+			<name>key</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Key of the secret to remove (e.g., "database.password", "api.key")</description>
+		</argument>
+		<argument>
+			<name>name</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Name of the Secret Provider to remove from, as configured in .CFConfig.json. If not defined, the function searches all configured providers and removes from the first one that contains the key.</description>
+		</argument>
+		<return>
+			<type>void</type>
 		</return>
 	</function>
 	
@@ -6764,7 +7000,7 @@ When used, the function automatically validates that the secret exists and throw
 	<function>
 		<name>GetSystemMetrics</name>
 		<class>lucee.runtime.functions.system.GetSystemInfo</class>
-		<status>hidden</status>
+		<introduced>5.2.5.7</introduced>
 		<description></description>
 		<return>
 			<type>struct</type>
@@ -6972,7 +7208,7 @@ if this attribute is not provided all types are returned.</description>
 	<function>
 		<name>getPropertyString</name>
 		<class>lucee.runtime.functions.system.GetPropertyString</class>
-		<description>Sets the value of a property entry in a properties file.</description>
+		<description>Gets the value of a property entry from a properties file.</description>
 		<introduced>7.0.0.108</introduced>
 		<argument>
 			<name>filePath</name>
@@ -7397,6 +7633,23 @@ Use the GetBaseTemplatePath() function instead.</description>
 Default list of delimiters: space character, tab character, newline character; or their codes: "chr(32)", "chr(9)", chr(10).
 Default list delimiter: comma character.</description>
     </argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	<!-- GetTransactionIsolation -->
+	<function>
+		<name>getTransactionIsolation</name>
+		<class>lucee.runtime.functions.query.GetTransactionIsolation</class>
+		<introduced>7.1.0.70</introduced>
+		<keywords>query,datasource,transaction</keywords>
+		<description>Returns the isolation level of the current transaction as a string. If a datasource is provided and no explicit isolation is set, returns the datasource's default isolation level.</description>
+		<argument>
+			<name>datasource</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Datasource name. When provided and no explicit isolation is set on the transaction, returns the datasource's default isolation level.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -7854,7 +8107,11 @@ The following things are considered to be empty:
 		<member-name>int</member-name>
 		<class>lucee.runtime.functions.math.Int</class>
 		<keywords>number</keywords>
-		<description>Calculates the closest integer that is smaller than number.</description>
+		<description>
+			Returns the largest integer less than or equal to the given number (floor). 
+			For negative numbers, this rounds away from zero (e.g., int(-1.7) returns -2). 
+			The result is not limited to a 32-bit integer range and can handle large values such as epoch timestamps.
+		</description>
 		<argument>
 			<name>number</name>
 			<type>number</type>
@@ -8180,6 +8437,18 @@ The following things are considered to be empty:
 		<class>lucee.runtime.functions.decision.IsDebugMode</class>
 		<keywords>decision</keywords>
 		<description>Determines whether debugging output is enabled.</description>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+
+	<!-- isDebuggerEnabled -->
+	<function>
+		<name>isDebuggerEnabled</name>
+		<class>lucee.runtime.functions.decision.IsDebuggerEnabled</class>
+		<introduced>7.1.0.45</introduced>
+		<keywords>decision,debug,debugger</keywords>
+		<description>Returns true if DAP debugger support is enabled (via LUCEE_DAP_SECRET env var or lucee.dap.secret system property). Use with breakpoint() BIF.</description>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -10053,6 +10322,94 @@ The following things are considered to be empty:
 		</return>
 	</function>
 	
+	<!-- MavenExists -->
+	<function>
+		<name>MavenExists</name>
+		<class>lucee.runtime.functions.mvn.MavenExists</class>
+		<introduced>7.1.0.98</introduced>
+		<keywords>maven,classloading,dependencies,jars</keywords>
+		<description>Checks whether a Maven artifact is present in Lucee's local maven cache directory.
+
+This is a cheap filesystem-only predicate - it does not contact any remote repository and does not resolve transitive dependencies. 
+
+Useful as a quick check or audit, or before calling `mavenLoad` or `mavenInfo` to avoid re-resolving an artifact that is already available locally.
+
+Accepts either three separate arguments (groupId, artifactId, version) or a single gradle-style coordinate string (`"group:artifact"` or `"group:artifact:version"`). If the version is omitted, returns true when any version of the coord is cached locally.</description>
+		<argument>
+			<name>groupId</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>The Maven group identifier, or a gradle-style coordinate string `"group:artifact"` / `"group:artifact:version"` when passed as the only argument.</description>
+		</argument>
+		<argument>
+			<name>artifactId</name>
+			<type>string</type>
+			<required>No</required>
+			<description>The Maven artifact identifier. Omit when passing a gradle-style coordinate as the first argument.</description>
+		</argument>
+		<argument>
+			<name>version</name>
+			<type>string</type>
+			<required>No</required>
+			<description>The specific version to check for. If omitted, the function returns true when any cached version of the coord is present.</description>
+		</argument>
+		<return>
+			<description>Returns true if a jar for the given coord (and version, if provided) exists in the local maven cache, false otherwise.</description>
+			<type>boolean</type>
+		</return>
+	</function>
+
+	<!-- MavenExport -->
+	<function>
+		<name>MavenExport</name>
+		<class>lucee.runtime.functions.mvn.MavenExport</class>
+		<introduced>7.1.0.98</introduced>
+		<keywords>maven,classloading,dependencies,jars</keywords>
+		<description>Walks Lucee's local maven cache directory and returns a pom.xml string listing every cached artifact as a `&lt;dependency&gt;` entry.
+
+The emitted pom uses a synthetic self-identifier (`com.example.lucee:mvn-cache-export:0`) with `&lt;packaging&gt;pom&lt;/packaging&gt;` - it is a manifest of what is cached, not a buildable project. 
+
+Scope is not recorded on disk so no `&lt;scope&gt;` is emitted; classifier is derived from the jar filename when present (e.g. native libraries like `sqlite-jdbc-3.47.0.0-linux-x86_64.jar` are exported with `&lt;classifier&gt;linux-x86_64&lt;/classifier&gt;`).
+
+Pairs with `mavenImport` to snapshot and restore a cache state. Use `fileWrite( path, mavenExport() )` to persist the output.</description>
+		<return>
+			<description>Returns the pom.xml as a string.</description>
+			<type>string</type>
+		</return>
+	</function>
+
+	<!-- MavenImport -->
+	<function>
+		<name>MavenImport</name>
+		<class>lucee.runtime.functions.mvn.MavenImport</class>
+		<introduced>7.1.0.98</introduced>
+		<keywords>maven,classloading,dependencies,jars</keywords>
+		<description>Parses a `pom.xml` and resolves each declared `&lt;dependency&gt;` into Lucee's local maven cache, fetching any that are not already present.
+
+By default only the literal dependencies listed in the pom are resolved - pairs symmetrically with `mavenExport`, which writes the full cache contents as a flat list. 
+
+Pass `includeTransitive = true` to also walk the dependency tree for each entry (same behaviour as `mavenLoad`).
+
+Returns a query with the same shape as `mavenInfo`, showing what was resolved.</description>
+		<argument>
+			<name>pomPath</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Filesystem path to a pom.xml file to import.</description>
+		</argument>
+		<argument>
+			<name>includeTransitive</name>
+			<type>boolean</type>
+			<default>false</default>
+			<required>No</required>
+			<description>If false (default), only the literal `&lt;dependency&gt;` entries in the pom are resolved. If true, the full transitive dependency tree is resolved for each entry.</description>
+		</argument>
+		<return>
+			<description>Returns a query with columns `groupId, artifactId, version, scope, optional, checksum, url, path` describing the resolved artifacts.</description>
+			<type>query</type>
+		</return>
+	</function>
+
 	<!-- MavenInfo -->
 	<function>
 		<name>MavenInfo</name>
@@ -10325,7 +10682,7 @@ For exception analysis and debugging, lower temperatures (0.2-0.3) are recommend
 			<alias>aiSession</alias>
 			<type>any</type>
 			<required>yes</required>
-			<description>The AI session object returned by LuceeCreateAISession(). This session maintains the conversation history and configuration settings like temperature and system message.</description>
+			<description>The AI session object returned by createAISession(). This session maintains the conversation history and configuration settings like temperature and system message.</description>
 		</argument>
 		<argument>
 			<name>question</name>
@@ -10533,7 +10890,7 @@ Use `LoadAISession()` to restore a serialized session.
 			<alias>aiSession</alias>
 			<type>any</type>
 			<required>yes</required>
-			<description>The AI session object returned by LuceeCreateAISession(). This session maintains the conversation history and configuration settings like temperature and system message.</description>
+			<description>The AI session object returned by createAISession(). This session maintains the conversation history and configuration settings like temperature and system message.</description>
 		</argument>
 		<argument>
 			<name>maxlength</name>
@@ -10677,28 +11034,52 @@ Use `LoadAISession()` to restore a serialized session.
 		</return>
 	</function>
 	
-		<!-- LuceeExtension -->
+	<!-- LuceeExtension -->
 	<function>
-		<name>LuceeExtension</name>
-		<status>hidden</status>
-		<class>lucee.runtime.functions.system.LuceeExtension</class>
-		<description>List all Lucee extensions</description>
-		<argument>
-			<name>artifact</name>
-			<alias>artifactid</alias>
-			<type>string</type>
-			<required>No</required>
-			<description></description>
-		</argument>
-		<argument>
-			<name>version</name>
-			<type>string</type>
-			<required>No</required>
-			<description></description>
-		</argument>
-		<return>
-			<type>any</type>
-		</return>
+	    <name>LuceeExtension</name>
+	    <status>hidden</status>
+	    <class>lucee.runtime.functions.system.LuceeExtension</class>
+	    <description>Lists available Lucee extensions or retrieves details for a specific one from Maven.
+	
+	The behavior depends on which arguments are provided:
+	
+	- **No arguments** → returns an array of all extension artifact IDs for the default group (`org.lucee`)
+	- **`group` only** → returns an array of artifact IDs for that Maven group
+	- **`group` + `artifact`** → returns an array of version strings for that extension
+	- **`group` + `artifact` + `version`** → returns a struct with artifact details: `lex`, `pom`, `local`, `lastModified`
+	    </description>
+	    <argument>
+	        <name>group</name>
+	        <alias>groupid</alias>
+	        <type>string</type>
+	        <required>No</required>
+	        <default>org.lucee</default>
+	        <description>Maven group ID of the extension provider.</description>
+	    </argument>
+	    <argument>
+	        <name>artifact</name>
+	        <alias>artifactid</alias>
+	        <type>string</type>
+	        <required>No</required>
+	        <description>The extension artifact ID. If omitted, all artifact IDs for the group are returned.</description>
+	    </argument>
+	    <argument>
+	        <name>version</name>
+	        <type>string</type>
+	        <required>No</required>
+	        <description>The version to retrieve details for. If omitted, all available versions for the artifact are returned.</description>
+	    </argument>
+	    <argument>
+	        <name>download</name>
+	        <type>boolean</type>
+	        <required>No</required>
+	        <default>false</default>
+	        <description>create a local copy of the extension and at path to resulting struct with the key "local".</description>
+	    </argument>
+	    <return>
+	        <type>any</type>
+	        <description>Array of strings (artifact IDs or versions) or a struct with artifact details depending on the arguments provided.</description>
+	    </return>
 	</function>
 	
 	<!-- metaphone -->
@@ -13457,12 +13838,22 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>SessionCommit</name>
 		<introduced>6.2.1.15</introduced>
 		<class>lucee.runtime.functions.system.SessionCommit</class>
-		<description>Force saving the session to storage, useful when sessionCluster is enabled.</description>
+		<description>Force saving the session to storage immediately, useful for cross-request visibility (cluster siblings, parallel AJAX) when sessionCluster is enabled.</description>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
-	
+
+	<!-- SessionTouch -->
+	<function>
+		<name>SessionTouch</name>
+		<class>lucee.runtime.functions.system.SessionTouch</class>
+		<description>Marks the session as needing persistence; the write happens at the natural request-end store path. Deferred sibling of sessionCommit() — use when you don't need synchronous cross-request visibility.</description>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+
 	<!-- SessionStartTime -->
 	<function>
 		<name>SessionStartTime</name>
@@ -14891,7 +15282,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.struct.StructFind</class>
 		<member-name>find</member-name>
 		<keywords>struct,find</keywords>
-		<description>Determines the value associated with a key in a structure.</description>
+		<description>Determines the value associated with a key in a structure. The key may also be a callback (key, value [, struct]) that returns boolean; then the matching value is returned (LDEV-4495).</description>
 		<argument>
 			<name>struct</name>
 			<alias>structure,object</alias>
@@ -14901,9 +15292,10 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         </argument>
 		<argument>
 			<name>key</name>
-			<type>string</type>
+			<alias>object,value,closure,function,udf,callback</alias>
+			<type>any</type>
 			<required>Yes</required>
-            <description>Key whose value to return</description>
+            <description>Key whose value to return, or a callback function/closure that receives (key, value [, struct]) and returns boolean (LDEV-4495)</description>
         </argument>
 		<argument>
 			<name>defaultValue</name>
@@ -15577,6 +15969,59 @@ function(key1, key2)
 		</return>
 	</function>
 	
+	<!-- throw -->
+	<function>
+		<name>throw</name>
+		<class>lucee.runtime.functions.system.Throw</class>
+		<keywords>exception</keywords>
+		<description>Throws a developer-specified exception, which can be caught with a cfcatch tag.</description>
+		<argument>
+			<name>message</name>
+			<type>any</type>
+			<required>No</required>
+			<description>Message that describes exception event.</description>
+		</argument>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>No</required>
+			<default>application</default>
+			<description>A custom type, or Application. Do not enter another predefined type; types are not generated by CFML applications. If you specify Application, you need not specify a type for cfcatch.</description>
+		</argument>
+		<argument>
+			<name>detail</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Additional detailed description of the exception.</description>
+		</argument>
+		<argument>
+			<name>errorcode</name>
+			<type>string</type>
+			<required>No</required>
+			<description>A custom error code that you supply.</description>
+		</argument>
+		<argument>
+			<name>extendedInfo</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Extended information to the exception.</description>
+		</argument>
+		<argument>
+			<name>object</name>
+			<type>any</type>
+			<required>No</required>
+			<description>Throws a Java exception from a CFML tag. This attribute is mutually exclusive with all other arguments of this function.</description>
+		</argument>
+		<argument>
+			<name>cause</name>
+			<type>any</type>
+			<required>No</required>
+			<description>The cause of the exception created with this tag. This can be a cfcatch block or a native java exception.</description>
+		</argument>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
 	<!-- trim -->
 	<function>
 		<name>trim</name>
@@ -19317,6 +19762,7 @@ The following things are considered to be empty:
 	<function>
 		<name>CachedWithinFlush</name>
 		<class>lucee.runtime.functions.cache.CachedWithinFlush</class>
+		<introduced>7.1.0.11</introduced>
 		<description>Flushes a specific cached entry from the cache. Works with cached queries, functions, and HTTP results. 
 		This allows selective cache invalidation instead of clearing entire caches, enabling fine-grained cache control when underlying data changes.</description>
 		<argument>
@@ -19344,6 +19790,7 @@ The following things are considered to be empty:
 	<function>
 		<name>CachedWithinId</name>
 		<class>lucee.runtime.functions.cache.CachedWithinId</class>
+		<introduced>7.1.0.11</introduced>
 		<description>Returns the cache identifier (cache key) for a cached object. 
 		This ID can be used with `cacheRemove()` to manually flush the cache entry. 
 		Works with cached queries, functions, and HTTP results. 

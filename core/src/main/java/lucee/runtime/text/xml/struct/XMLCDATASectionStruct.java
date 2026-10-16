@@ -18,17 +18,13 @@
  **/
 package lucee.runtime.text.xml.struct;
 
-import java.lang.reflect.Method;
 
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
-import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.util.ArrayUtil;
 
 public final class XMLCDATASectionStruct extends XMLNodeStruct implements CDATASection {
 
@@ -90,40 +86,19 @@ public final class XMLCDATASectionStruct extends XMLNodeStruct implements CDATAS
 		section.setData(data);
 	}
 
-	// used only with java 7, do not set @Override
+	@Override
 	public String getWholeText() {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = section.getClass().getMethod("getWholeText", new Class[] {});
-			return Caster.toString(m.invoke(section, ArrayUtil.OBJECT_EMPTY));
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return section.getWholeText();
 	}
 
-	// used only with java 7, do not set @Override
+	@Override
 	public boolean isElementContentWhitespace() {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = section.getClass().getMethod("isElementContentWhitespace", new Class[] {});
-			return Caster.toBooleanValue(m.invoke(section, ArrayUtil.OBJECT_EMPTY));
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return section.isElementContentWhitespace();
 	}
 
-	// used only with java 7, do not set @Override
+	@Override
 	public Text replaceWholeText(String arg0) throws DOMException {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = section.getClass().getMethod("replaceWholeText", new Class[] { arg0.getClass() });
-			return (Text) m.invoke(section, new Object[] { arg0 });
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return section.replaceWholeText(arg0);
 	}
 
 	@Override

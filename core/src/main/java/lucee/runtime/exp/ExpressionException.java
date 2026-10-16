@@ -55,9 +55,11 @@ public class ExpressionException extends PageExceptionImpl {
 
 	@Override
 	public CatchBlock getCatchBlock(Config config) {
-		CatchBlock sct = super.getCatchBlock(config);
-		sct.setEL(ERR_NUMBER, Double.valueOf(0));
-		return sct;
+		if (catchBlock == null) {
+			CatchBlock sct = super.getCatchBlock(config);
+			sct.setEL(ERR_NUMBER, Double.valueOf(0));
+		}
+		return catchBlock;
 	}
 
 	/**

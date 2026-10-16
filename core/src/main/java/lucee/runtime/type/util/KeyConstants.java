@@ -2582,6 +2582,8 @@ public final class KeyConstants {
 	public static final Key _sessionManagement = init("sessionManagement");
 	public static final Key _sessionTimeout = init("sessionTimeout");
 	public static final Key _clientTimeout = init("clientTimeout");
+	public static final Key _sessionCommitInterval = init("sessionCommitInterval");
+	public static final Key _clientCommitInterval = init("clientCommitInterval");
 	public static final Key _requestTimeout = init("requestTimeout");
 	public static final Key _setClientCookies = init("setClientCookies");
 	public static final Key _setDomainCookies = init("setDomainCookies");
@@ -3075,7 +3077,10 @@ public final class KeyConstants {
 	public static final Key _limit = init("limit");
 	public static final Key _question = init("question");
 	public static final Key _conversationSizeLimit = init("conversationSizeLimit");
+	public static final Key _connectTimeout = init("connectTimeout");
 	public static final Key _socketTimeout = init("socketTimeout");
+	public static final Key _generationConfig = init("generationConfig");
+	public static final Key _apikey = init("apikey");
 	public static final Key _componentMappings = init("componentMappings");
 	public static final Key _operator = init("operator");
 	public static final Key _argument = init("argument");
@@ -3121,6 +3126,8 @@ public final class KeyConstants {
 	public static final Key __tick = init("_tick");
 	public static final Key __start = init("_start");
 	public static final Key _binary = init("binary");
+	public static final Key _Code = init("Code");
+	public static final Key _statusText = init("statusText");
 
 	public static Map<String, Key> getKeys() {
 		return keys;

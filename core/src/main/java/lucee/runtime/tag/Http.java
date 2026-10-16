@@ -144,6 +144,7 @@ import lucee.runtime.util.URLResolver;
  **/
 public final class Http extends BodyTagImpl {
 
+	private static final TimeSpan MAX_CONN_TIMEOUT_MS = TimeSpanImpl.fromMillis(20000L);
 	public static final String MULTIPART_RELATED = "multipart/related";
 	public static final String MULTIPART_FORM_DATA = "multipart/form-data";
 
@@ -955,8 +956,7 @@ public final class Http extends BodyTagImpl {
 				else if (type == HttpParamBean.TYPE_HEADER) {
 					if (param.getName().equalsIgnoreCase("content-type")) hasContentType = true;
 
-					if (param.getName().equalsIgnoreCase("Content-Length")) {
-					}
+					if (param.getName().equalsIgnoreCase("Content-Length")) {}
 					else if (param.getName().equalsIgnoreCase("Accept-Encoding")) {
 						acceptEncoding.append(headerValue(param.getValueAsString()));
 						acceptEncoding.append(", ");
@@ -1850,8 +1850,7 @@ public final class Http extends BodyTagImpl {
 			try {
 				is = new GZIPInputStream(is);
 			}
-			catch (IOException e) {
-			}
+			catch (IOException e) {}
 		}
 
 		try {
@@ -1863,16 +1862,14 @@ public final class Http extends BodyTagImpl {
 				try {
 					return IOUtil.toString(is, cs);
 				}
-				catch (IOException e) {
-				}
+				catch (IOException e) {}
 			}
 			// Binary
 			else {
 				try {
 					return IOUtil.toBytes(is);
 				}
-				catch (IOException e) {
-				}
+				catch (IOException e) {}
 			}
 		}
 		finally {
@@ -1921,29 +1918,27 @@ public final class Http extends BodyTagImpl {
 
 	private static void setTimeout(Http http, HttpClientBuilder builder, TimeSpan timeout, TimeSpan connectionTimeout, TimeSpan socketTimeout) {
 
-		// timeout is only of interest if we miss the others
-		if (connectionTimeout == null && timeout != null) connectionTimeout = timeout;
-		if (socketTimeout == null && timeout != null) socketTimeout = timeout;
+		// . Resolve Connection Timeout
+		if (connectionTimeout == null) connectionTimeout = timeout;
+
+		// Apply the ceiling: Use the smaller of the requested timeout or the 20s cap
+		if (connectionTimeout == null || connectionTimeout.getMillis() > MAX_CONN_TIMEOUT_MS.getMillis() || connectionTimeout.getMillis() <= 0) {
+			connectionTimeout = MAX_CONN_TIMEOUT_MS;
+		}
+
+		// 2. Resolve Socket/Read Timeout
+		if (socketTimeout == null) socketTimeout = timeout;
+
+		// Update the Http object for logging accuracy
 		if (http != null) {
 			http.timeout = timeout;
 			http.connectionTimeout = connectionTimeout;
 			http.socketTimeout = socketTimeout;
 		}
 
-		Builder b = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD);
-
-		// connection timeout
-		if ((connectionTimeout != null && connectionTimeout.getMillis() > 0)) {
-			int ms = (int) connectionTimeout.getMillis();
-			if (ms < 0) ms = Integer.MAX_VALUE;
-			b = b.setConnectionRequestTimeout(ms).setConnectTimeout(ms);
-		}
-		// socket timeout
-		if ((socketTimeout != null && socketTimeout.getMillis() > 0)) {
-			int ms = (int) socketTimeout.getMillis();
-			if (ms < 0) ms = Integer.MAX_VALUE;
-			b = b.setSocketTimeout(ms);
-		}
+		// Build the config - .getMillis() returns the int we need
+		Builder b = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setConnectTimeout((int) connectionTimeout.getMillis())
+				.setConnectionRequestTimeout((int) connectionTimeout.getMillis()).setSocketTimeout(socketTimeout != null ? (int) socketTimeout.getMillis() : 0);
 
 		builder.setDefaultRequestConfig(b.build());
 	}

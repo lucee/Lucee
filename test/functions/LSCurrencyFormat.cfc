@@ -51,8 +51,9 @@
 				German (Swiss) --->
 				setLocale("German (Swiss)");
 				if(getJavaVersion()>=9) {
-					if(getJavaVersion()>=11) assertEquals("CHF 100#chr(8217)#000.00", LSCurrencyFormat(100000,"local"));
-					else assertEquals("CHF 100'000.00", LSCurrencyFormat(100000,"local"));
+					if(getJavaVersion()>=26) assertEquals("CHF 100'000.00", LSCurrencyFormat(100000,"local")); // Java 26+ uses apostrophe
+					else if(getJavaVersion()>=11) assertEquals("CHF 100#chr(8217)#000.00", LSCurrencyFormat(100000,"local")); // Java 11-25 uses right single quotation mark
+					else assertEquals("CHF 100'000.00", LSCurrencyFormat(100000,"local")); // Older Java versions
 					assertEquals("CHF 1.00", LSCurrencyFormat(1));
 					assertEquals("CHF 1.20", LSCurrencyFormat(1.2));
 					assertEquals("CHF 1.20", LSCurrencyFormat(1.2,"local"));
@@ -64,12 +65,16 @@
 					assertEquals("SFr. 1.20", LSCurrencyFormat(1.2,"local"));
 				}
 
-				if(getJavaVersion()>=11) {
-					assertEquals("CHF100#chr(8217)#000.00", replace(LSCurrencyFormat(100000,"international"),' ',''));
+				if(getJavaVersion()>=26) {
+					assertEquals("CHF100'000.00", replace(LSCurrencyFormat(100000,"international"),' ','')); // Java 26+ uses apostrophe
+					assertEquals("100'000.00", LSCurrencyFormat(100000,"none"));
+				}
+				else if(getJavaVersion()>=11) {
+					assertEquals("CHF100#chr(8217)#000.00", replace(LSCurrencyFormat(100000,"international"),' ','')); // Java 11-25 uses right single quotation mark
 					assertEquals("100#chr(8217)#000.00", LSCurrencyFormat(100000,"none"));
 				}
- 				else {
-					assertEquals("CHF100'000.00", replace(LSCurrencyFormat(100000,"international"),' ',''));
+				else {
+					assertEquals("CHF100'000.00", replace(LSCurrencyFormat(100000,"international"),' ','')); // Older Java versions
 					assertEquals("100'000.00", LSCurrencyFormat(100000,"none"));
 				}
 

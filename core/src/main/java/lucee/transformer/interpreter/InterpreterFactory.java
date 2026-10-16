@@ -307,7 +307,7 @@ public final class InterpreterFactory extends FactoryBase {
 	}
 
 	@Override
-	public Expression opElvis(Variable left, Expression right) {
+	public Expression opElvis(Expression left, Expression right) {
 		return OpElvis.toExpr(left, right);
 	}
 

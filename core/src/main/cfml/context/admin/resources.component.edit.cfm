@@ -170,6 +170,19 @@ this.componentpaths["#mapping.virtual#"]=<cfif len(mapping.strPhysical) && !len(
 		<div class="itemintro">#stText.Mappings.archiveDesc#</div>
 		<table class="maintbl">
 			<tbody>
+				<cfset _archiveName = mid( mapping.virtual, 2, len( mapping.virtual ) )>
+				<cfif len( _archiveName )>
+					<cfset _archiveName = "cfc-archive-" & replace( _archiveName, "/", "-", "all" ) & ".lar">
+				<cfelse>
+					<cfset _archiveName = "cfc-archive-root.lar">
+				</cfif>
+				<tr>
+					<th scope="row">#stText.mappings.archivePath#</th>
+					<td>
+						<cfinputClassic type="text" name="archivePath_#mapping.id#" value="#_archiveName#" style="width:100%">
+						<div class="comment">#stText.mappings.archivePathDesc#</div>
+					</td>
+				</tr>
 				<tr>
 					<th scope="row">#stText.Mappings.addCFCFiles#</th>
 					<td>

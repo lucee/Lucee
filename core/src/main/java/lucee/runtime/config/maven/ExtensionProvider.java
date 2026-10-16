@@ -18,7 +18,6 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
 import lucee.aprint;
@@ -42,7 +41,6 @@ import lucee.runtime.extension.RHExtension;
 import lucee.runtime.mvn.MavenUtil.GAVSO;
 import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.tag.Http;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.util.ArrayUtil;
@@ -65,6 +63,7 @@ public class ExtensionProvider {
 		uuidMapping.put("DF28D0A4-6748-44B9-A2FDC12E4E2E4D38", "axis-extension");
 		uuidMapping.put("8D7FB0DF-08BB-1589-FE3975678F07DB17", "compress-extension");
 		uuidMapping.put("0F6E1F35-32A0-4B8C-B5A4BBA87EE621A8", "couchbase-extension");
+		uuidMapping.put("17AB52DE-B300-A94B-E058FC978BE4542D", "crypto-extension");
 		uuidMapping.put("1E12B23C-5B38-4764-8FF41B7FD9428468", "distrokid-extension");
 		uuidMapping.put("D46D49C3-EB85-8D97-30BEC2F38561E985", "documentation-extension");
 		uuidMapping.put("261114AC-7372-4CA8-BA7090895E01682D", "ec2-extension");
@@ -88,8 +87,10 @@ public class ExtensionProvider {
 		uuidMapping.put("D4EDFDBD-A9A3-E9AF-597322D767E0C949", "oracle-jdbc-extension");
 		uuidMapping.put("671B01B8-B3B3-42B9-AC055A356BED5281", "postgresql-jdbc-extension");
 		uuidMapping.put("337A9955-C0FA-848F-0B3F0AEBA155CA9B", "teradata-jdbc-extension");
+		uuidMapping.put("FA79A831-7D30-4D8A-B7F300DECEB00001", "debugger-extension");
 		uuidMapping.put("D46B46A9-A0E3-44E1-D972A04AC3A8DC10", "chart-extension");
 		uuidMapping.put("A03F4335-BDEF-44DE-946FB16C47802F96", "json-extension");
+		uuidMapping.put("7FA79F92-0018-47F5-8C80E6C608C573BE", "jsonata-extension");
 		uuidMapping.put("D6700FE4-E168-4512-9B95E1AE7784A3A5", "kinesis-extension");
 		uuidMapping.put("EAF0AAF1-E068-4BA7-B72FF3D8E730696C", "lsp-extension");
 		uuidMapping.put("1C9A7C34-2555-4AAA-92FBB7FC7111140C", "loganalyzer-extension");
@@ -131,7 +132,7 @@ public class ExtensionProvider {
 	}
 
 	public ExtensionProvider(String group) {
-		this.repoSnapshots = MavenUpdateProvider.getDefaultRepositorySnapshotsExtension();
+		this.repoSnapshots = MavenUpdateProvider.getDefaultRepositorySnapshots();
 		this.repoReleases = MavenUpdateProvider.getDefaultRepositoryReleases();
 		this.repoMixed = MavenUpdateProvider.getDefaultRepositoryMixed();
 		this.repos = MavenUpdateProvider.merge(repoSnapshots, repoReleases, repoMixed);
@@ -139,7 +140,7 @@ public class ExtensionProvider {
 	}
 
 	public ExtensionProvider() {
-		this.repoSnapshots = MavenUpdateProvider.getDefaultRepositorySnapshotsExtension();
+		this.repoSnapshots = MavenUpdateProvider.getDefaultRepositorySnapshots();
 		this.repoReleases = MavenUpdateProvider.getDefaultRepositoryReleases();
 		this.repoMixed = MavenUpdateProvider.getDefaultRepositoryMixed();
 		this.repos = MavenUpdateProvider.merge(repoSnapshots, repoReleases, repoMixed);
@@ -216,6 +217,11 @@ public class ExtensionProvider {
 			threads.add(thread);
 		}
 
+		// Join all threads
+		for (Thread thread: threads) {
+			thread.join();
+		}
+
 		// handle exceptions
 		if (exceptions.size() > 0) {
 			Exception e = exceptions.pop();
@@ -223,10 +229,6 @@ public class ExtensionProvider {
 			throw ExceptionUtil.toIOException(e);
 		}
 
-		// Join all threads
-		for (Thread thread: threads) {
-			thread.join();
-		}
 		return subfolders;
 	}
 
@@ -290,7 +292,7 @@ public class ExtensionProvider {
 					version = last(gavso.a);
 				}
 				else {
-					version = OSGiUtil.toVersion(gavso.v);
+					version = Version.parseVersion(gavso.v);
 				}
 
 				Resource res = getResource((ConfigPro) config, gavso.a, version);
@@ -381,13 +383,13 @@ public class ExtensionProvider {
 		Version lastRel = null;
 
 		for (Version v: list(artifact)) {
-			if (v.toString().toUpperCase().endsWith("-SNAPSHOT")) {
-				if (lastRel == null || OSGiUtil.compare(lastRel, v) < 0) {
+			if (!v.toString().toUpperCase().endsWith("-SNAPSHOT")) {
+				if (lastRel == null || Version.compare(lastRel, v) < 0) {
 					lastRel = v;
 				}
 			}
 
-			if (last == null || OSGiUtil.compare(last, v) < 0) {
+			if (last == null || Version.compare(last, v) < 0) {
 				last = v;
 			}
 
@@ -436,8 +438,7 @@ public class ExtensionProvider {
 			detail = mup.detail(version, EXTENSION_EXTENSION, false);
 			if (detail != null) return detail;
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 
 		return defaultValue;
 	}
@@ -447,12 +448,7 @@ public class ExtensionProvider {
 		if (detail != null) {
 			URL url = HTTPUtil.toURL(Caster.toString(detail.get(EXTENSION_EXTENSION), null), Http.ENCODED_NO, null);
 			if (url != null) {
-				return HTTPDownloader.get(
-					url,
-					DOWNLOAD_CONNECT_TIMEOUT,
-					DOWNLOAD_READ_TIMEOUT,
-					DOWNLOAD_USER_AGENT
-				);
+				return HTTPDownloader.get(url, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT);
 			}
 		}
 		throw new ApplicationException("there is no [" + EXTENSION_EXTENSION + "] artifact for [" + this.group + ":" + artifact + ":" + version + "]");
@@ -464,15 +460,9 @@ public class ExtensionProvider {
 			URL url = HTTPUtil.toURL(Caster.toString(detail.get(EXTENSION_EXTENSION), null), Http.ENCODED_NO, null);
 			if (url != null) {
 				try {
-					return HTTPDownloader.get(
-						url,
-						DOWNLOAD_CONNECT_TIMEOUT,
-						DOWNLOAD_READ_TIMEOUT,
-						DOWNLOAD_USER_AGENT
-					);
+					return HTTPDownloader.get(url, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT);
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 		}
 		return defaultValue;
@@ -509,8 +499,7 @@ public class ExtensionProvider {
 				zipStream.closeEntry();
 			}
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 
 		return null;
 	}
@@ -593,8 +582,19 @@ public class ExtensionProvider {
 
 		long start = System.currentTimeMillis();
 		// org.lucee:h2-jdbc-extension:2.1.214.0001L
-		aprint.e(ep.list());
-		aprint.e("list-all-extensions:" + (System.currentTimeMillis() - start));
+		// aprint.e(ep.list());
+		// aprint.e("list-all-extensions:" + (System.currentTimeMillis() - start));
+		{
+			start = System.currentTimeMillis();
+			List<Version> list = ep.list("image-extension");
+			for (Version v: list) {
+				aprint.e(ep.detail("image-extension", v));
+			}
+
+			aprint.e(list);
+			aprint.e("extension-image:" + (System.currentTimeMillis() - start));
+		}
+		if (true) return;
 
 		start = System.currentTimeMillis();
 		aprint.e(ep.list("ehcache-extension"));
@@ -606,11 +606,11 @@ public class ExtensionProvider {
 
 		{
 			start = System.currentTimeMillis();
-			Map<String, Object> detail = ep.detail("redis-extension", OSGiUtil.toVersion("3.0.0.56-SNAPSHOT"));
+			Map<String, Object> detail = ep.detail("redis-extension", Version.parseVersion("3.0.0.56-SNAPSHOT"));
 			aprint.e("detail:" + (System.currentTimeMillis() - start));
 			aprint.e(detail);
 
-			ep.get("redis-extension", OSGiUtil.toVersion("3.0.0.56-SNAPSHOT"));
+			ep.get("redis-extension", Version.parseVersion("3.0.0.56-SNAPSHOT"));
 
 		}
 		if (true) return;
@@ -645,7 +645,7 @@ public class ExtensionProvider {
 		aprint.e(versions);
 
 		start = System.currentTimeMillis();
-		Map<String, Object> detail = ep.detail("mssql-jdbc-extension", OSGiUtil.toVersion("6.5.4"));
+		Map<String, Object> detail = ep.detail("mssql-jdbc-extension", Version.parseVersion("6.5.4"));
 		aprint.e("detail:" + (System.currentTimeMillis() - start));
 		aprint.e(detail);
 

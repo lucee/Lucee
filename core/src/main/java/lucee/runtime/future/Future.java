@@ -53,7 +53,9 @@ public final class Future implements Objects {
 
 	public static Future _then(PageContext pc, UDF udf, long timeout) {
 		ExecutorService executor = Executors.newSingleThreadExecutor();
-		return new Future(executor.submit(new CallableUDF(pc, udf, ARG_NULL)), timeout);
+		java.util.concurrent.Future<Object> f = executor.submit(new CallableUDF(pc, udf, ARG_NULL));
+		executor.shutdown();
+		return new Future(f, timeout);
 	}
 
 	public Future then(PageContext pc, UDF udf, long timeout) throws PageException {
@@ -61,7 +63,9 @@ public final class Future implements Objects {
 		try {
 			Object arg = get(pc, -1);
 			ExecutorService executor = Executors.newSingleThreadExecutor();
-			return new Future(executor.submit(new CallableUDF(pc, udf, arg)), timeout);
+			java.util.concurrent.Future<Object> f = executor.submit(new CallableUDF(pc, udf, arg));
+			executor.shutdown();
+			return new Future(f, timeout);
 		}
 		catch (Exception e) {
 			return handleExecutionError(pc, e);
@@ -106,7 +110,9 @@ public final class Future implements Objects {
 
 	private Future executeErrorHandler(PageContext pc, UDF udf, long timeout, Exception e) {
 		ExecutorService executor = Executors.newSingleThreadExecutor();
-		return new Future(executor.submit(new CallableUDF(pc, udf, Caster.toPageException(e).getCatchBlock(ThreadLocalPageContext.getConfig(pc)))), timeout);
+		java.util.concurrent.Future<Object> f = executor.submit(new CallableUDF(pc, udf, Caster.toPageException(e).getCatchBlock(ThreadLocalPageContext.getConfig(pc))));
+		executor.shutdown();
+		return new Future(f, timeout);
 	}
 
 	public boolean cancel() {

@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run(testResults, testBox) {
 		describe("test LuceeExtension function", function() {
 
-			it(title='test listing all extension artifacts', body=function(currentSpec) {
+			it(title='test listing all extension artifacts n specific group defined', body=function(currentSpec) {
 				var artifacts = LuceeExtension();
 				
 				expect(isArray(artifacts)).toBeTrue();
@@ -20,8 +20,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}
 			});
 
+			it(title='test listing all extension artifacts, specific group defined', body=function(currentSpec) {
+				var artifacts = LuceeExtension("org.lucee");
+				
+				expect(isArray(artifacts)).toBeTrue();
+				expect(arrayLen(artifacts) > 20).toBeTrue("Should return more than 20 extension artifacts from org.lucee group");
+				
+				// Verify each artifact entry is a string
+				if (arrayLen(artifacts) > 0) {
+					expect(isSimpleValue(artifacts[1])).toBeTrue("Each artifact should be a string");
+					expect(len(trim(artifacts[1])) > 0).toBeTrue("Artifact names should not be empty");
+				}
+			});
+
 			it(title='test listing versions for specific extension', body=function(currentSpec) {
-				var versions = LuceeExtension("s3-extension");
+				var versions = LuceeExtension("org.lucee","s3-extension");
 				
 				expect(isArray(versions)).toBeTrue();
 				expect(arrayLen(versions) > 10).toBeTrue("Should return more than 10 versions for s3-extension");
@@ -37,7 +50,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it(title='test getting details for specific release version', body=function(currentSpec) {
-				var detail = LuceeExtension("s3-extension", "0.9.4.119-RC");
+				var detail = LuceeExtension("org.lucee","s3-extension", "0.9.4.119-RC");
 				
 				expect(isStruct(detail)).toBeTrue("Should return a struct with version details");
 				expect(structKeyExists(detail, "lex")).toBeTrue("Detail struct should contain 'lex' key");
@@ -49,7 +62,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it(title='test getting details for specific snapshot version', body=function(currentSpec) {
-				var detail = LuceeExtension("s3-extension", "2.0.2.15-SNAPSHOT");
+				var detail = LuceeExtension("org.lucee","s3-extension", "2.0.2.15-SNAPSHOT");
 				
 				expect(isStruct(detail)).toBeTrue("Should return a struct with version details");
 				expect(structKeyExists(detail, "lex")).toBeTrue("Detail struct should contain 'lex' key");
@@ -62,7 +75,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it(title='test URL validation using fileExists', body=function(currentSpec) {
-				var detail = LuceeExtension("s3-extension", "0.9.4.119-RC");
+				var detail = LuceeExtension("org.lucee","s3-extension", "0.9.4.119-RC");
 				
 				expect(isStruct(detail)).toBeTrue();
 				expect(structKeyExists(detail, "lex")).toBeTrue();
@@ -77,7 +90,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			it(title='test invalid extension name handling', body=function(currentSpec) {
 				try {
-					var versions = LuceeExtension("non-existent-extension");
+					var versions = LuceeExtension("org.lucee","non-existent-extension");
 					// If no error is thrown, should return empty array or handle gracefully
 					expect(isArray(versions)).toBeTrue();
 				} catch (any e) {
@@ -88,7 +101,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			it(title='test invalid version handling', body=function(currentSpec) {
 				try {
-					var detail = LuceeExtension("s3-extension", "999.999.999-INVALID");
+					var detail = LuceeExtension("org.lucee","s3-extension", "999.999.999-INVALID");
 					// If no error is thrown, should return empty struct or handle gracefully
 					expect(isStruct(detail)).toBeTrue();
 				} catch (any e) {
@@ -125,7 +138,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it(title='test version list contains expected versions', body=function(currentSpec) {
-				var versions = LuceeExtension("s3-extension");
+				var versions = LuceeExtension("org.lucee","s3-extension");
 				
 				expect(arrayLen(versions) > 1).toBeTrue("Should have multiple versions");
 				

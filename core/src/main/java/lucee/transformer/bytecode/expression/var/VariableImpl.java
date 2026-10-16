@@ -71,6 +71,7 @@ import lucee.transformer.expression.var.NamedArgument;
 import lucee.transformer.expression.var.NamedMember;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.interpreter.literal.LitStringImpl;
+import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.function.FunctionLibFunctionArg;
 import lucee.transformer.library.tag.TagLibTag;
@@ -127,6 +128,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 	private static final Method STATIC_GET1 = new Method("staticGet", Types.OBJECT, new Type[] { Types.OBJECT });
 	private static final Method STATIC_TOUCH1 = new Method("staticTouch", Types.OBJECT, new Type[] { Types.OBJECT });
 	private static final Method INVOKE3 = new Method("invoke", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT_ARRAY, Types.STRING });
+	private static final Method INVOKE4 = new Method("invoke", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT_ARRAY, Types.STRING, Types.STRING });
 	private static final Method INVOKE5 = new Method("invoke", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT_ARRAY, Types.STRING, Types.STRING, Types.STRING });
 
 	// GET
@@ -549,8 +551,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 			try {
 				if (clazzz.getMethods("call", true, -1).size() == 0) core = false;
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 		// load method
 		List<lucee.transformer.dynamic.meta.Method> methods = null;
@@ -559,8 +560,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 				methods = clazzz.getMethods("call", true, args.length + 1);
 				if (methods != null && methods.size() == 0) methods = null;
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 
 		if (bif.getArgType() == FunctionLibFunction.ARG_FIX && !bifCD.isBundle() && core) {
@@ -719,9 +719,14 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 				else ASMConstants.NULL(adapter);
 				if (bifCD.getVersionAsString() != null) adapter.push(bifCD.getVersionAsString());// bundle version
 				else ASMConstants.NULL(adapter);
-
 				adapter.invokeStatic(Types.FUNCTION_HANDLER_POOL, INVOKE5);
 			}
+			else if (((ClassDefinitionImpl) bifCD).isMaven()) {
+				adapter.push(((ClassDefinitionImpl) bifCD).getMavenRaw());// maven data
+
+				adapter.invokeStatic(Types.FUNCTION_HANDLER_POOL, INVOKE4);
+			}
+
 			else adapter.invokeStatic(Types.FUNCTION_HANDLER_POOL, INVOKE3);
 			rtnType = Types.OBJECT;
 		}
@@ -1120,11 +1125,11 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 		}
 		else {
 			// Build complex expression iteratively
-			buildMemberExpressionIterative(sct, members);
+			buildMemberExpressionIterative(sct, members, scope);
 		}
 	}
 
-	private static void buildMemberExpressionIterative(Struct sct, List<Member> members) {
+	private static void buildMemberExpressionIterative(Struct sct, List<Member> members, int scope) {
 		Struct current = null;
 
 		// Build from left to right
@@ -1174,6 +1179,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 				else {
 					// Member expression
 					newNode.setEL(KeyConstants._type, "MemberExpression");
+					if (scope == Scope.SCOPE_VAR) newNode.setEL(KeyConstants._origin, "var");
 					newNode.setEL(KeyConstants._computed, false);
 					newNode.setEL(KeyConstants._object, current);
 

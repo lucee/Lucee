@@ -36,8 +36,8 @@ public final class CachedWithinFlush extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 
-		CacheObject co = CachedWithinId.getCacheObject(pc, args, "CachedWithinId");
-		Collection arguments = CachedWithinId.getArguments(args, "CachedWithinId");
+		CacheObject co = CachedWithinId.getCacheObject(pc, args, "CachedWithinFlush");
+		Collection arguments = CachedWithinId.getArguments(args, "CachedWithinFlush");
 
 		try {
 			String id = co.getCacheId(arguments, null);

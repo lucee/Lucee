@@ -26,7 +26,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.op.Caster;
 
-public abstract class ExecutionLogSupport implements ExecutionLog {
+public abstract class ExecutionLogSupport implements ExecutionLogPro {
 
 	protected static final short UNIT_NANO = 1;
 	protected static final short UNIT_MICRO = 2;

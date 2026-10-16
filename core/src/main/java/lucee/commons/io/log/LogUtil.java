@@ -25,6 +25,7 @@ import lucee.aprint;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -44,6 +45,11 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 public final class LogUtil {
 
 	public static Resource ERR, OUT;
+	private static int MIN_LEVEL;
+
+	static {
+		MIN_LEVEL = LogUtil.toLevel(SystemUtil.getSystemPropOrEnvVar("lucee.system.log.level", null), Log.LEVEL_WARN);
+	}
 
 	public static int toLevel(String strLevel, int defaultValue) {
 		if (strLevel == null) return defaultValue;
@@ -254,6 +260,9 @@ public final class LogUtil {
 	}
 
 	public static void logGlobal(CFMLEngineFactory factory, int level, String type, String msg) {
+
+		if (level < MIN_LEVEL) return;
+
 		try {
 			Resource log;
 			boolean check = false;
@@ -313,16 +322,25 @@ public final class LogUtil {
 		return (log != null && log.getLogLevel() <= logLevel);
 	}
 
+	// Loader's Log.java level constants are not in standard severity order —
+	// LEVEL_INFO=1 sits below LEVEL_DEBUG=2, opposite of every other Java
+	// logger. doesDebug/doesInfo cannot be a single inequality against the
+	// raw constants and must enumerate. The other four work as <= because
+	// only DEBUG/INFO are swapped relative to standard ordering.
 	public static boolean doesTrace(Log log) {
 		return (log != null && log.getLogLevel() <= Log.LEVEL_TRACE);
 	}
 
 	public static boolean doesInfo(Log log) {
-		return (log != null && log.getLogLevel() <= Log.LEVEL_INFO);
+		if (log == null) return false;
+		int cur = log.getLogLevel();
+		return cur == Log.LEVEL_INFO || cur == Log.LEVEL_DEBUG || cur == Log.LEVEL_TRACE;
 	}
 
 	public static boolean doesDebug(Log log) {
-		return (log != null && log.getLogLevel() <= Log.LEVEL_DEBUG);
+		if (log == null) return false;
+		int cur = log.getLogLevel();
+		return cur == Log.LEVEL_DEBUG || cur == Log.LEVEL_TRACE;
 	}
 
 	public static boolean doesWarn(Log log) {
@@ -366,8 +384,7 @@ public final class LogUtil {
 			}
 			else return res.getAbsolutePath();
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 		return template;
 	}
 

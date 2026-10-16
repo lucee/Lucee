@@ -83,9 +83,9 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultClientConnectionReuseStrategy;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.cookie.BasicClientCookie;
@@ -93,6 +93,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.TemporaryStream;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -271,7 +272,8 @@ public final class HTTPEngine4Impl {
 		return new HeaderImpl(header.getName(), header.getValue());
 	}
 
-	public static HttpClientBuilder getHttpClientBuilder(boolean pooling, String clientCert, String clientCertPassword, String redirect) throws GeneralSecurityException, IOException {
+	public static HttpClientBuilder getHttpClientBuilder(boolean pooling, String clientCert, String clientCertPassword, String redirect)
+			throws GeneralSecurityException, IOException {
 		String key = clientCert + ":" + clientCertPassword;
 		Registry<ConnectionSocketFactory> reg = StringUtil.isEmpty(clientCert, true) ? createRegistry() : createRegistry(clientCert, clientCertPassword);
 
@@ -285,18 +287,20 @@ public final class HTTPEngine4Impl {
 
 		PoolingHttpClientConnectionManager cm = connectionManagers.get(key);
 		if (cm == null || isShutDown(cm, true)) {
-			cm = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
-			cm.setDefaultMaxPerRoute(POOL_MAX_CONN_PER_ROUTE);
-			cm.setMaxTotal(POOL_MAX_CONN);
-			cm.setDefaultSocketConfig(SocketConfig.copy(SocketConfig.DEFAULT).setTcpNoDelay(true).setSoReuseAddress(true).setSoLinger(0).build());
-			// cm.setValidateAfterInactivity(POOL_CONN_INACTIVITY_DURATION);
-			connectionManagers.put(key, cm);
+			synchronized (SystemUtil.createToken("PoolingHttpClientConnectionManager", key)) {
+				cm = connectionManagers.get(key);
+				if (cm == null || isShutDown(cm, true)) {
+					cm = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
+					cm.setDefaultMaxPerRoute(POOL_MAX_CONN_PER_ROUTE);
+					cm.setMaxTotal(POOL_MAX_CONN);
+					cm.setDefaultSocketConfig(SocketConfig.copy(SocketConfig.DEFAULT).setTcpNoDelay(true).setSoReuseAddress(true).setSoLinger(0).build());
+					// cm.setValidateAfterInactivity(POOL_CONN_INACTIVITY_DURATION);
+					connectionManagers.put(key, cm);
+				}
+			}
 		}
 		HttpClientBuilder builder = HttpClients.custom();
-		builder
-				.setConnectionManager(cm)
-				.setConnectionManagerShared(true)
-				.setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS)
+		builder.setConnectionManager(cm).setConnectionManagerShared(true).setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS)
 				.setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy())
 				.setRedirectStrategy("lax".equalsIgnoreCase(redirect) ? new LaxRedirectStrategy() : new DefaultRedirectStrategy())
 				.setRetryHandler(new NoHttpResponseExceptionHttpRequestRetryHandler());
@@ -310,7 +314,8 @@ public final class HTTPEngine4Impl {
 		int ms = -1;
 		if (timeout != null && timeout.getMillis() > 0) {
 			ms = (int) timeout.getMillis();
-			// if overflow occurred (value was > Integer.MAX_VALUE), use 0 which means infinite timeout in HttpClient
+			// if overflow occurred (value was > Integer.MAX_VALUE), use 0 which means infinite timeout in
+			// HttpClient
 			if (ms < 0) ms = 0;
 
 			SocketConfig sc = SocketConfig.custom().setSoTimeout(ms).build();
@@ -321,9 +326,7 @@ public final class HTTPEngine4Impl {
 		// This ensures the timeout is enforced during the actual data transfer, not just connection
 		RequestConfig.Builder rcBuilder = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD); // LDEV-2321
 		if (ms > 0) {
-			rcBuilder.setSocketTimeout(ms)
-				.setConnectTimeout(ms)
-				.setConnectionRequestTimeout(ms);
+			rcBuilder.setSocketTimeout(ms).setConnectTimeout(ms).setConnectionRequestTimeout(2000);
 		}
 		builder.setDefaultRequestConfig(rcBuilder.build());
 	}
@@ -380,6 +383,10 @@ public final class HTTPEngine4Impl {
 		return defaultValue;
 	}
 
+	public static Map<String, PoolingHttpClientConnectionManager> getConnectionManagers() {
+		return connectionManagers;
+	}
+
 	public static void closeIdleConnections() {
 		for (PoolingHttpClientConnectionManager cm: connectionManagers.values()) {
 			cm.closeIdleConnections(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
@@ -399,7 +406,8 @@ public final class HTTPEngine4Impl {
 		if (CollectionUtil.isEmpty(formfields)) setContentType(request, charset);
 		setFormFields(request, formfields, charset);
 		setUserAgent(request, useragent);
-		// Always call setTimeout to ensure RequestConfig is set properly (includes LDEV-2321 cookie spec fix)
+		// Always call setTimeout to ensure RequestConfig is set properly (includes LDEV-2321 cookie spec
+		// fix)
 		Http.setTimeout(builder, timeout > 0 ? TimeSpanImpl.fromMillis(timeout) : null);
 		HttpContext context = setCredentials(builder, hh, username, password, false);
 		setProxy(url.getHost(), builder, request, proxy);

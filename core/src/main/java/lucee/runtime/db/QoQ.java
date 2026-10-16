@@ -23,16 +23,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.function.Consumer;
-import java.util.function.IntConsumer;
-import java.util.function.IntPredicate;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -66,6 +62,7 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.QueryColumnImpl;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.comparator.QueryComparator;
@@ -77,10 +74,10 @@ import lucee.runtime.util.DBUtilImpl;
  */
 public final class QoQ {
 	final static private Collection.Key paramKey = new KeyImpl("?");
-	private static int qoqParallelism;
+	private boolean caseSensitive;
 
-	static {
-		qoqParallelism = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.parallelism", "50"), 50);
+	public void setCaseSensitive(boolean caseSensitive) {
+		this.caseSensitive = caseSensitive;
 	}
 
 	/**
@@ -178,13 +175,16 @@ public final class QoQ {
 	 * @throws PageException
 	 */
 	private static void order(PageContext pc, QueryImpl target, Expression[] columns, boolean isUnion, SQL sql) throws PageException {
-		Expression col;
-		// Build up a int[] that represents where each row needs to be in the final query
-		int[] sortedIndexes = getStream(target).boxed().sorted(new QueryComparator(pc, target, columns, isUnion, sql)).mapToInt(i -> i.intValue()).toArray();
+		// Build up a int[] that represents where each row needs to be in the final query.
+		int n = target.getRecordcount();
+		Integer[] boxed = new Integer[n];
+		for (int i = 0; i < n; i++) boxed[i] = i + 1;
+		Arrays.sort(boxed, new QueryComparator(pc, target, columns, isUnion, sql));
+		int[] sortedIndexes = new int[n];
+		for (int i = 0; i < n; i++) sortedIndexes[i] = boxed[i];
 
 		// Move the data around to match
 		target.sort(sortedIndexes);
-
 	}
 
 	/**
@@ -296,12 +296,20 @@ public final class QoQ {
 		// Queries being joined need to have the same number of columns and the data is fully
 		// realized, so just copy it over positionally. The column names may not match, but that's
 		// fine.
-		getStream(target).forEach(throwingIntConsumer(row -> {
-			int newRow = previous.addRow();
+		QueryColumn[] srcCols = new QueryColumn[targetColKeys.length];
+		QueryColumnImpl[] prevCols = new QueryColumnImpl[previousColKeys.length];
+		for (int i = 0; i < targetColKeys.length; i++) {
+			srcCols[i] = target.getColumn(targetColKeys[i]);
+			prevCols[i] = (QueryColumnImpl) previous.getColumn(previousColKeys[i]);
+		}
+		int targetSize = target.getRecordcount();
+		int previousSize = previous.getRecordcount();
+		for (int row = 1; row <= targetSize; row++) {
 			for (int col = 0; col < targetColKeys.length; col++) {
-				previous.setAt(previousColKeys[col], newRow, target.getColumn(targetColKeys[col]).get(row, null), true);
+				prevCols[col].add(srcCols[col].get(row, null));
 			}
-		}));
+		}
+		previous.setRecordcount(previousSize + targetSize);
 
 		return previous;
 	}
@@ -338,24 +346,34 @@ public final class QoQ {
 		QueryPartitions queryPartitions = new QueryPartitions(sql, selectExpressions, new Expression[0], newTarget, new HashSet<Key>(), this, false);
 
 		// Add in all the rows from our previous work
-		getStream(previous).forEach(throwingIntConsumer(row -> {
+		int previousSize = previous.getRecordcount();
+		for (int row = 1; row <= previousSize; row++) {
 			queryPartitions.addRow(pc, previous, row, true);
-		}));
+		}
 
 		// ...and all of the new rows
-		getStream(target).forEach(throwingIntConsumer(row -> {
+		int targetSize = target.getRecordcount();
+		for (int row = 1; row <= targetSize; row++) {
 			queryPartitions.addRow(pc, target, row, true);
-		}));
+		}
 
-		// Loop over the partitions and take one from each and add to our new target question for a
-		// distinct result
-		getStream(queryPartitions).forEach(throwingConsumer(sourcePartition -> {
-			int newRow = newTarget.addRow();
+		queryPartitions.finalizePartitionRecordCounts();
 
+		// One row per partition into the new target. selectColRefs index matches previousColKeys
+		// because selectExpressions was built from previousColKeys.
+		QueryColumnImpl[] newTargetCols = new QueryColumnImpl[targetColKeys.length];
+		for (int i = 0; i < targetColKeys.length; i++) {
+			newTargetCols[i] = (QueryColumnImpl) newTarget.getColumn(previousColKeys[i]);
+		}
+		int added = 0;
+		for (Map.Entry<String, QueryPartitions.Partition> sourcePartition : queryPartitions.getPartitions().entrySet()) {
+			QueryPartitions.Partition partition = sourcePartition.getValue();
 			for (int col = 0; col < targetColKeys.length; col++) {
-				newTarget.setAt(previousColKeys[col], newRow, sourcePartition.getValue().getColumn(previousColKeys[col]).get(1, null), true);
+				newTargetCols[col].add(partition.selectColRefs[col].get(1, null));
 			}
-		}));
+			added++;
+		}
+		newTarget.setRecordcount(added);
 
 		return newTarget;
 	}
@@ -397,57 +415,21 @@ public final class QoQ {
 			return;
 		}
 
-		IntStream stream = getStream(source);
-		if (where != null) {
-			stream = stream.filter(throwingFilter(row -> {
-				// The where clause is a single Operation expression that returns true or false.
-				return Caster.toBooleanValue(executeExp(pc, sql, source, where, row));
-			}));
-		}
+		// column.add() is lock-free; source-order is preserved without ORDER BY (the old parallel
+		// path returned encounter order, which was non-deterministic).
+		int sourceSize = source.getRecordcount();
+		int limit = hasAggregateSelect ? 1 : (hasMaxrow ? maxrows : Integer.MAX_VALUE);
+		int added = 0;
 
-		// If this was a non-grouped select with only aggregates like select "count(1) from
-		// table" than bail after a single row
-		if (hasAggregateSelect) {
-			stream = stream.limit(1);
-			// If we can, optimize the max rows exit strategy
-			// This won't fire if there is an ORDER BY since we can't limit the rows until we sort (later)
-		}
-		else if (hasMaxrow) {
-			stream = stream.limit(maxrows);
-		}
-
-		stream.forEach(throwingIntConsumer(row -> {
-			int newRow = target.addRow();
+		for (int row = 1; row <= sourceSize && added < limit; row++) {
+			if (where != null && !Caster.toBooleanValue(executeExp(pc, sql, source, where, row))) continue;
 			for (int cell = 0; cell < headers.length; cell++) {
-				trgColumns[cell].set(newRow, getValue(pc, sql, source, row, headers[cell], trgValues[cell], null), true);
+				trgColumns[cell].add(getValue(pc, sql, source, row, headers[cell], trgValues[cell], null));
 			}
-		}));
-	}
+			added++;
+		}
 
-	public static IntStream getStream(QueryImpl qry) {
-		if (qry.getRecordcount() > 0) {
-			IntStream qStream = IntStream.range(1, qry.getRecordcount() + 1);
-			if (qry.getRecordcount() >= qoqParallelism) {
-				return qStream.parallel();
-			}
-			return qStream;
-		}
-		else {
-			return IntStream.empty();
-		}
-	}
-
-	public static Stream<Map.Entry<String, QueryImpl>> getStream(QueryPartitions queryPartitions) {
-		if (queryPartitions.getPartitions().size() > 0) {
-			Stream<Map.Entry<String, QueryImpl>> qStream = queryPartitions.getPartitions().entrySet().stream();
-			if (queryPartitions.getPartitions().size() >= qoqParallelism) {
-				qStream = qStream.parallel();
-			}
-			return qStream;
-		}
-		else {
-			return Stream.empty();
-		}
+		target.setRecordcount(added);
 	}
 
 	/**
@@ -487,18 +469,12 @@ public final class QoQ {
 		// Initialize object to track our partitioned data
 		QueryPartitions queryPartitions = new QueryPartitions(sql, select.getSelects(), select.getGroupbys(), target, select.getAdditionalColumns(), this, hasAggregateSelect);
 
-		IntStream stream = getStream(source);
-		if (where != null) {
-			stream = stream.filter(throwingFilter(row -> {
-				// The where clause is a single Operation expression that returns true or false.
-				return Caster.toBooleanValue(executeExp(pc, sql, source, where, row));
-			}));
-		}
-
-		stream.forEach(throwingIntConsumer(row -> {
-			// ... add this row to our partitioned data
+		// Phase 1: partition source rows by group-by key
+		int sourceSize = source.getRecordcount();
+		for (int row = 1; row <= sourceSize; row++) {
+			if (where != null && !Caster.toBooleanValue(executeExp(pc, sql, source, where, row))) continue;
 			queryPartitions.addRow(pc, source, row, false);
-		}));
+		}
 
 		// For a non-grouping query with aggregates where no records matched the where clause
 		// SELECT count(1) FROM qry WHERE 1=0
@@ -507,20 +483,17 @@ public final class QoQ {
 			queryPartitions.addEmptyPartition(source, target);
 		}
 
-		// Now that all rows are partitioned, eliminate partitions we don't need via the having
-		// clause
+		queryPartitions.finalizePartitionRecordCounts();
+
+		// Phase 2: eliminate partitions that fail the HAVING clause
 		if (select.getHaving() != null) {
-
-			// Loop over the partitions and take one from each and add to our new target question for a
-			// distinct result
-			getStream(queryPartitions).forEach(throwingConsumer(sourcePartition -> {
-				// Eval the having clause on it
-				if (!Caster.toBooleanValue(executeExp(pc, sql, sourcePartition.getValue(), select.getHaving(), 1))) {
-					// Voted off the island :/
-					queryPartitions.getPartitions().remove(sourcePartition.getKey());
+			Iterator<Map.Entry<String, QueryPartitions.Partition>> iter = queryPartitions.getPartitions().entrySet().iterator();
+			while (iter.hasNext()) {
+				Map.Entry<String, QueryPartitions.Partition> sourcePartition = iter.next();
+				if (!Caster.toBooleanValue(executeExp(pc, sql, sourcePartition.getValue().query, select.getHaving(), 1))) {
+					iter.remove();
 				}
-			}));
-
+			}
 		}
 
 		// Turn off query caching for our column references
@@ -531,28 +504,32 @@ public final class QoQ {
 			}
 		}
 
-		getStream(queryPartitions).forEach(throwingConsumer(sourcePartition -> {
-			int newRow = target.addRow();
+		// Phase 3: emit one row per surviving partition into target.
+		int added = 0;
+		for (Map.Entry<String, QueryPartitions.Partition> sourcePartition : queryPartitions.getPartitions().entrySet()) {
+			QueryImpl partitionQry = sourcePartition.getValue().query;
 			for (int cell = 0; cell < headers.length; cell++) {
-
-				// If this is a column
+				Object value;
 				if (trgValues[cell] instanceof ColumnExpression) {
 					ColumnExpression ce = (ColumnExpression) trgValues[cell];
 					if (ce.getColumn().equals(paramKey)) {
-						target.setAt(headers[cell], newRow, getValue(pc, sql, sourcePartition.getValue(), 1, null, trgValues[cell], null), true);
+						value = getValue(pc, sql, partitionQry, 1, null, trgValues[cell], null);
 					}
 					else {
 						// Then make sure to use the alias now to reference it since it changed
 						// names after going into the partition
-						target.setAt(headers[cell], newRow, getValue(pc, sql, sourcePartition.getValue(), 1, ce.getColumnAlias(), null, null), true);
+						value = getValue(pc, sql, partitionQry, 1, ce.getColumnAlias(), null, null);
 					}
 				}
 				// For Operations, just execute them normally
 				else {
-					target.setAt(headers[cell], newRow, getValue(pc, sql, sourcePartition.getValue(), 1, null, trgValues[cell], null), true);
+					value = getValue(pc, sql, partitionQry, 1, null, trgValues[cell], null);
 				}
+				trgColumns[cell].add(value);
 			}
-		}));
+			added++;
+		}
+		target.setRecordcount(added);
 
 	}
 
@@ -730,6 +707,8 @@ public final class QoQ {
 				return executeMinus(pc, sql, source, op2, row);
 			case Operation.OPERATION2_PLUS:
 				return executePlus(pc, sql, source, op2, row);
+			case Operation.OPERATION2_CONCAT:
+				return executeConcat(pc, sql, source, op2, row);
 			case Operation.OPERATION2_DIVIDE:
 				return executeDivide(pc, sql, source, op2, row);
 			case Operation.OPERATION2_MULTIPLY:
@@ -896,7 +875,7 @@ public final class QoQ {
 				if (op.equals("sign")) return Double.valueOf(MathUtil.sgn(Caster.toDoubleValue(value)));
 				if (op.equals("sin")) return Double.valueOf(Math.sin(Caster.toDoubleValue(value)));
 				if (op.equals("soundex")) return StringUtil.soundex(Caster.toString(value));
-				if (op.equals("sin")) return Double.valueOf(Math.sqrt(Caster.toDoubleValue(value)));
+				if (op.equals("sqrt")) return Double.valueOf(Math.sqrt(Caster.toDoubleValue(value)));
 				if (op.equals("sum")) {
 					// If there are no non-null values, return empty
 					if (aggregateValues.length == 0) {
@@ -983,6 +962,8 @@ public final class QoQ {
 
 		if (op.equals("in")) return executeIn(pc, sql, source, opn, row, false);
 		if (op.equals("not_in")) return executeIn(pc, sql, source, opn, row, true);
+
+		if (op.equals("concat")) return executeConcat(pc, sql, source, operators, row);
 
 		if (op.equals("coalesce")) return executeCoalesce(pc, sql, source, operators, row);
 
@@ -1229,7 +1210,12 @@ public final class QoQ {
 	 */
 	private int executeCompare(PageContext pc, SQL sql, QueryImpl source, Operation2 op, int row) throws PageException {
 		// print.e(op.getLeft().getClass().getName());
-		return OpUtil.compare(pc, executeExp(pc, sql, source, op.getLeft(), row), executeExp(pc, sql, source, op.getRight(), row));
+		Object left = executeExp(pc, sql, source, op.getLeft(), row);
+		Object right = executeExp(pc, sql, source, op.getRight(), row);
+		if (caseSensitive && left instanceof String && right instanceof String) {
+			return ((String) left).compareTo((String) right);
+		}
+		return OpUtil.compare(pc, left, right);
 	}
 
 	private Object executeMod(PageContext pc, SQL sql, QueryImpl source, Operation2 expression, int row) throws PageException {
@@ -1265,7 +1251,15 @@ public final class QoQ {
 		Object left = executeExp(pc, sql, source, operators[0], row);
 
 		for (int i = 1; i < operators.length; i++) {
-			if (OpUtil.compare(pc, left, executeExp(pc, sql, source, operators[i], row)) == 0) return isNot ? Boolean.FALSE : Boolean.TRUE;
+			Object right = executeExp(pc, sql, source, operators[i], row);
+			int cmp;
+			if (caseSensitive && left instanceof String && right instanceof String) {
+				cmp = ((String) left).compareTo((String) right);
+			}
+			else {
+				cmp = OpUtil.compare(pc, left, right);
+			}
+			if (cmp == 0) return isNot ? Boolean.FALSE : Boolean.TRUE;
 		}
 		return isNot ? Boolean.TRUE : Boolean.FALSE;
 	}
@@ -1435,6 +1429,20 @@ public final class QoQ {
 		}
 	}
 
+	private Object executeConcat(PageContext pc, SQL sql, QueryImpl source, Operation2 expression, int row) throws PageException {
+		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
+		Object right = executeExp(pc, sql, source, expression.getRight(), row);
+		return Caster.toString(left) + Caster.toString(right);
+	}
+
+	private Object executeConcat(PageContext pc, SQL sql, QueryImpl source, Expression[] operands, int row) throws PageException {
+		StringBuilder sb = new StringBuilder();
+		for (Expression operand : operands) {
+			sb.append(Caster.toString(executeExp(pc, sql, source, operand, row)));
+		}
+		return sb.toString();
+	}
+
 	/**
 	 *
 	 * execute a between operation
@@ -1458,13 +1466,14 @@ public final class QoQ {
 
 	private Object executeLike(PageContext pc, SQL sql, QueryImpl source, Operation3 expression, int row) throws PageException {
 		return LikeCompare.like(sql, Caster.toString(executeExp(pc, sql, source, expression.getExp(), row)),
-				Caster.toString(executeExp(pc, sql, source, expression.getLeft(), row)), Caster.toString(executeExp(pc, sql, source, expression.getRight(), row))) ? Boolean.TRUE
+				Caster.toString(executeExp(pc, sql, source, expression.getLeft(), row)),
+				Caster.toString(executeExp(pc, sql, source, expression.getRight(), row)), caseSensitive) ? Boolean.TRUE
 						: Boolean.FALSE;
 	}
 
 	private boolean executeLike(PageContext pc, SQL sql, QueryImpl source, Operation2 expression, int row) throws PageException {
 		return LikeCompare.like(sql, Caster.toString(executeExp(pc, sql, source, expression.getLeft(), row)),
-				Caster.toString(executeExp(pc, sql, source, expression.getRight(), row)));
+				Caster.toString(executeExp(pc, sql, source, expression.getRight(), row)), caseSensitive);
 	}
 
 	/**
@@ -1482,7 +1491,7 @@ public final class QoQ {
 			return executeColumn(pc, sql, source, column, row, null);
 		}
 		try {
-			return column.getValue(pc, source, row);
+			return column.getValue(pc, source, row, null);
 		}
 		catch (DatabaseException e) {
 			// Wrap as IllegalQoQException to prevent fallback to HSQLDB
@@ -1526,79 +1535,6 @@ public final class QoQ {
 			ExceptionUtil.initCauseEL(iqe, e);
 			throw iqe;
 		}
-	}
-
-	// Helpers for exceptions in Lambdas
-	@FunctionalInterface
-	public interface ThrowingIntConsumer {
-		/**
-		 * Applies this function to the given argument.
-		 *
-		 * @param t the Consumer argument
-		 */
-		void accept(int t) throws Exception;
-	}
-
-	public static IntConsumer throwingIntConsumer(ThrowingIntConsumer throwingIntConsumer) {
-		return new IntConsumer() {
-			@Override
-			public void accept(int t) {
-				try {
-					throwingIntConsumer.accept(t);
-				}
-				catch (Exception ex) {
-					throw new RuntimeException(ex);
-				}
-			}
-		};
-	}
-
-	@FunctionalInterface
-	public interface ThrowingConsumer {
-		/**
-		 * Applies this function to the given argument.
-		 *
-		 * @param t the Consumer argument
-		 */
-		void accept(Map.Entry<String, QueryImpl> t) throws Exception;
-	}
-
-	public static Consumer<Map.Entry<String, QueryImpl>> throwingConsumer(ThrowingConsumer throwingConsumer) {
-		return new Consumer<Map.Entry<String, QueryImpl>>() {
-			@Override
-			public void accept(Map.Entry<String, QueryImpl> t) {
-				try {
-					throwingConsumer.accept(t);
-				}
-				catch (Exception ex) {
-					throw new RuntimeException(ex);
-				}
-			}
-		};
-	}
-
-	@FunctionalInterface
-	public interface ThrowingFilter {
-		/**
-		 * Applies this function to the given argument.
-		 *
-		 * @param t the Consumer argument
-		 */
-		boolean test(int t) throws Exception;
-	}
-
-	public static IntPredicate throwingFilter(ThrowingFilter throwingFilter) {
-		return new IntPredicate() {
-			@Override
-			public boolean test(int t) {
-				try {
-					return throwingFilter.test(t);
-				}
-				catch (Exception ex) {
-					throw new RuntimeException(ex);
-				}
-			}
-		};
 	}
 
 }

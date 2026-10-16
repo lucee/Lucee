@@ -86,11 +86,13 @@ public final class HSQLDBHandler {
 	private static final int BINARY = 6;
 
 	Executer executer = new Executer();
-	QoQ qoq = new QoQ();
+	// QoQ instances are created per-execution to avoid thread-safety issues with caseSensitive state
+	// QoQ qoq = new QoQ();
 	private static Object lock = new SerializableObject();
 	private static boolean hsqldbDisable;
 	private static boolean hsqldbDebug;
 	private static int hsqldbPoolSize;
+	private static boolean hsqldbNullsLastInDesc;
 	private static final Struct columnUsageCache = new StructImpl(StructImpl.TYPE_MAX, 32, 500);
 	private static BlockingQueue<Integer> dbQueue;
 	private static DataSource[] dsCache;
@@ -101,6 +103,7 @@ public final class HSQLDBHandler {
 	static {
 		hsqldbDisable = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.disable", "false"), false);
 		hsqldbDebug = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.debug", "false"), false);
+		hsqldbNullsLastInDesc = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.orderBy.nullsLastInDesc", "true"), true);
 		int defaultPoolSize = Math.min(Runtime.getRuntime().availableProcessors(), 8);
 		hsqldbPoolSize = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.poolsize", String.valueOf(defaultPoolSize)), defaultPoolSize);
 
@@ -135,15 +138,38 @@ public final class HSQLDBHandler {
 	 * @throws SQLException
 	 * @throws PageException
 	 */
-	private static String createTable(Connection conn, PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes) throws SQLException, PageException {
+	private static String createTable(Connection conn, PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes, boolean caseSensitive) throws SQLException, PageException {
+		return createTable(conn, pc, dbTableName, cfQueryName, doSimpleTypes, caseSensitive, null);
+	}
+
+	/**
+	 * Creates a table in the HSQLDB database. If usedColumns is provided, only those columns are
+	 * created (minimal table). If null, all source columns are created.
+	 */
+	private static String createTable(Connection conn, PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes, boolean caseSensitive, Struct usedColumns)
+			throws SQLException, PageException {
 
 		// Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_MILLI);
 		// stopwatch.start();
 
-		Query query = Caster.toQuery(pc.getVariable(StringUtil.removeQuotes(cfQueryName, true)));
-		Statement stat;
+		String sql = buildCreateTableSql(pc, dbTableName, cfQueryName, doSimpleTypes, caseSensitive, usedColumns);
+		Statement stat = conn.createStatement();
+		stat.execute(sql);
+		// SystemOut.print("Create Table: [" + dbTableName + "] took " + stopwatch.time());
+		return sql;
+	}
 
-		stat = conn.createStatement();
+	/**
+	 * Builds the CREATE TABLE SQL string without executing it. When usedColumns is null, all source
+	 * columns are included (used for cache keys and cache-miss table creation). When usedColumns is
+	 * provided, only those columns are included (minimal table on cache hit).
+	 */
+	private static String buildCreateTableSql(PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes, boolean caseSensitive) throws PageException {
+		return buildCreateTableSql(pc, dbTableName, cfQueryName, doSimpleTypes, caseSensitive, null);
+	}
+
+	private static String buildCreateTableSql(PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes, boolean caseSensitive, Struct usedColumns) throws PageException {
+		Query query = Caster.toQuery(pc.getVariable(StringUtil.removeQuotes(cfQueryName, true)));
 		Key[] cols = CollectionUtil.keys(query);
 		int[] types = query.getTypes();
 
@@ -152,12 +178,13 @@ public final class HSQLDBHandler {
 		// reserved words
 		String escape = "";
 
-		// Use DECLARE LOCAL TEMPORARY TABLE for session-scoped temp tables to avoid collisions
 		StringBuilder create = new StringBuilder("DECLARE LOCAL TEMPORARY TABLE ").append(escape).append(StringUtil.toUpperCase(dbTableName)).append(escape).append(" (");
 
 		for (int i = 0; i < cols.length; i++) {
 			String col = StringUtil.toUpperCase(cols[i].getString()); // quoted objects are case insensitive
-			String type = (doSimpleTypes) ? "VARCHAR_IGNORECASE" : toUsableType(types[i]);
+			// skip columns not referenced in the SQL (when we know which ones are needed)
+			if (usedColumns != null && !usedColumns.containsKey(col)) continue;
+			String type = (doSimpleTypes) ? (caseSensitive ? "VARCHAR" : "VARCHAR_IGNORECASE") : toUsableType(types[i], caseSensitive);
 			create.append(comma);
 			create.append(escape);
 			create.append(col);
@@ -167,9 +194,6 @@ public final class HSQLDBHandler {
 			comma = ",";
 		}
 		create.append(") ON COMMIT PRESERVE ROWS");
-		// SystemOut.print("SQL: " + Caster.toString(create));
-		stat.execute(create.toString());
-		// SystemOut.print("Create Table: [" + dbTableName + "] took " + stopwatch.time());
 		return create.toString();
 	}
 
@@ -192,23 +216,22 @@ public final class HSQLDBHandler {
 		Query query = Caster.toQuery(pc.getVariable(StringUtil.removeQuotes(cfQueryName, true)));
 
 		Key[] cols = CollectionUtil.keys(query);
-		ArrayList<String> targetCols = new ArrayList<String>();
+		ArrayList<QueryColumn> targetColumns = new ArrayList<QueryColumn>();
 
 		int[] srcTypes = query.getTypes();
 		int[] srcQueryTypes = toInnerTypes(srcTypes);
-		int[] targetTypes = new int[srcTypes.length]; // track the type in the target table, which maybe a subset of the columns in the source table
+		ArrayList<Integer> targetTypeList = new ArrayList<Integer>();
 		String comma = "";
 
 		StringBuilder insert = new StringBuilder("INSERT INTO  ").append(StringUtil.toUpperCase(dbTableName)).append(" (");
 		StringBuilder values = new StringBuilder("VALUES (");
-		Key colName = null;
 		// tableCols = null; // set this to avoid optimised loading of only required tables
 		for (int i = 0; i < cols.length; i++) {
 			String col = StringUtil.toUpperCase(cols[i].getString()); // quoted objects are case insensitive in HSQLDB
-			// colName = Caster.toKey(cols[i].getString());
 			if (tableCols == null || tableCols.containsKey(col)) {
-				targetCols.add(col);
-				targetTypes[targetCols.size() - 1] = srcQueryTypes[i];
+				// grab the QueryColumn directly by index — avoids O(n) name lookup via getIndexFromKey
+				targetColumns.add(query.getColumn(cols[i]));
+				targetTypeList.add(srcQueryTypes[i]);
 				insert.append(comma);
 				insert.append(col);
 
@@ -220,7 +243,7 @@ public final class HSQLDBHandler {
 		insert.append(")");
 		values.append(")");
 
-		if (tableCols != null && targetCols.size() == 0) {
+		if (tableCols != null && targetColumns.size() == 0) {
 			// SystemOut.print("Populate Table, table has no used columns: " + dbTableName);
 			return;
 		}
@@ -237,14 +260,12 @@ public final class HSQLDBHandler {
 		PreparedStatement prepStat = conn.prepareStatement(insert.toString() + values.toString());
 
 		int rows = query.getRecordcount();
-		int count = targetCols.size();
-		// String col = null;
+		int count = targetColumns.size();
 		int rowsToCommit = 0;
 
-		QueryColumn[] columns = new QueryColumn[count];
-		for (int i = 0; i < count; i++) {
-			columns[i] = query.getColumn(Caster.toKey(targetCols.get(i)));
-		}
+		QueryColumn[] columns = targetColumns.toArray(new QueryColumn[0]);
+		int[] targetTypes = new int[count];
+		for (int i = 0; i < count; i++) targetTypes[i] = targetTypeList.get(i);
 
 		// aprint.o(query);
 		// aprint.o(tableCols); aprint.o(srcTypes);
@@ -292,7 +313,6 @@ public final class HSQLDBHandler {
 		conn.commit();
 		Statement stat2 = conn.createStatement();
 		stat2.execute("SET FILES LOG TRUE");
-
 		// SystemOut.print("Populate Table: [" + dbTableName + "] with [" + rows + "] rows, [" + count + "]
 		// //columns, took " + stopwatch.time() + "ms");
 	}
@@ -315,8 +335,12 @@ public final class HSQLDBHandler {
 	}
 
 	private static String toUsableType(int type) {
-		if (type == Types.VARCHAR) return "VARCHAR_IGNORECASE";
-		if (type == Types.NVARCHAR) return "VARCHAR_IGNORECASE";
+		return toUsableType(type, false);
+	}
+
+	private static String toUsableType(int type, boolean caseSensitive) {
+		if (type == Types.VARCHAR) return caseSensitive ? "VARCHAR" : "VARCHAR_IGNORECASE";
+		if (type == Types.NVARCHAR) return caseSensitive ? "VARCHAR" : "VARCHAR_IGNORECASE";
 		if (type == Types.NCHAR) return "CHAR";
 		if (type == Types.NCLOB) return "CLOB";
 		if (type == Types.JAVA_OBJECT) return "OBJECT";
@@ -339,7 +363,9 @@ public final class HSQLDBHandler {
 
 		Key sqlKey = Caster.toKey(sql.toString() + createSql.toString());
 		Object cachedColumnUsage = columnUsageCache.get(sqlKey, null);
-		if (cachedColumnUsage != null) return (Struct) cachedColumnUsage;
+		if (cachedColumnUsage != null) {
+			return (Struct) cachedColumnUsage;
+		}
 
 		ResultSet rs = null;
 		ResultSetMetaData rsmd = null;
@@ -365,9 +391,8 @@ public final class HSQLDBHandler {
 			int tablePos = -1;
 			for (int i = 1; i <= columnCount; i++) {
 				name = rsmd.getColumnName(i);
-				if (name == "COLUMN_NAME") colPos = i;
-				else if (name == "TABLE_NAME") tablePos = i;
-				// SystemOut.print("Column : [" + name + "] at pos " + i);
+				if (name.equals("COLUMN_NAME")) colPos = i;
+				else if (name.equals("TABLE_NAME")) tablePos = i;
 			}
 
 			// load used tables and columns into a nested struct
@@ -377,15 +402,10 @@ public final class HSQLDBHandler {
 				Struct tableCols = ((Struct) tables.get(tableName));
 				tableCols.setEL(Caster.toKey(rs.getString(colPos)), null);
 			}
-			// aprint.o(rs);
-			// aprint.o(tables);
 			// don't need the view anymore, bye bye
 			stat.execute("DROP VIEW " + view);
 		}
 		catch (Exception e) {
-			// aprint.o(e.getMessage());
-			// SystemOut.print("VIEW Exception, fall back to loading all data: [" + e.toString() + "], sql [" +
-			// sql.toString() + "]");
 			tables = null; // give up trying to be smart
 		}
 		finally {
@@ -395,7 +415,6 @@ public final class HSQLDBHandler {
 				}
 			}
 			catch (SQLException e) {
-				SystemOut.print(e.toString());
 			}
 		}
 		// SystemOut.print("getUsedColumnsForQuery: took " + stopwatch.time());
@@ -414,43 +433,55 @@ public final class HSQLDBHandler {
 	 * @throws PageException
 	 */
 	public QueryImpl execute(PageContext pc, final SQL sql, int maxrows, int fetchsize, TimeSpan timeout) throws PageException {
+		return execute(pc, sql, maxrows, fetchsize, timeout, false, "auto");
+	}
+
+	public QueryImpl execute(PageContext pc, final SQL sql, int maxrows, int fetchsize, TimeSpan timeout, boolean caseSensitive, String engine) throws PageException {
 		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 		stopwatch.start();
 		String prettySQL = null;
 		Selects selects = null;
 
+		boolean useNative = "native".equals(engine) || "auto".equals(engine);
+		boolean useHsqldb = "hsqldb".equals(engine) || "auto".equals(engine);
+
 		Exception qoqException = null;
 
 		// First Chance - try native QoQ
-		try {
-			SelectParser parser = new SelectParser();
-			selects = parser.parse(sql.getSQLString());
-
-			// Try native QoQ - it returns null if it can't handle the query (e.g., joins)
-			// This avoids expensive exception-based flow control for unsupported features
-			QueryImpl q = qoq.execute(pc, sql, selects, maxrows);
-			if (q != null) {
-				q.setExecutionTime(stopwatch.time());
-				return q;
-			}
-			// else: fall through to HSQLDB (Second Chance)
-		}
-		catch (SQLParserException spe) {
-			qoqException = spe;
-			if (spe.getCause() != null && spe.getCause() instanceof IllegalQoQException) {
-				throw Caster.toPageException(spe);
-			}
-			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
+		if (useNative) {
+			QoQ qoq = new QoQ();
+			qoq.setCaseSensitive(caseSensitive);
 			try {
-				QueryImpl query = executer.execute(pc, sql, prettySQL, maxrows);
-				query.setExecutionTime(stopwatch.time());
-				return query;
+				SelectParser parser = new SelectParser();
+				selects = parser.parse(sql.getSQLString());
+
+				// Try native QoQ - it returns null if it can't handle the query (e.g., joins)
+				// This avoids expensive exception-based flow control for unsupported features
+				QueryImpl q = qoq.execute(pc, sql, selects, maxrows);
+				if (q != null) {
+					q.setExecutionTime(stopwatch.time());
+					return q;
+				}
+				// else: fall through to HSQLDB (Second Chance)
 			}
-			catch (Exception ex) {
+			catch (SQLParserException spe) {
+				qoqException = spe;
+				if (spe.getCause() != null && spe.getCause() instanceof IllegalQoQException) {
+					throw Caster.toPageException(spe);
+				}
+				prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
+				try {
+					executer.setCaseSensitive(caseSensitive);
+					QueryImpl query = executer.execute(pc, sql, prettySQL, maxrows);
+					query.setExecutionTime(stopwatch.time());
+					return query;
+				}
+				catch (Exception ex) {
+				}
 			}
-		}
-		catch (Exception e) {
-			qoqException = e;
+			catch (Exception e) {
+				qoqException = e;
+			}
 		}
 
 		// If our first pass at the QoQ failed, lets look at the exception to see what we want to do with
@@ -476,7 +507,7 @@ public final class HSQLDBHandler {
 
 			// Debugging option to completely disable HyperSQL for testing
 			// Or if it's an IllegalQoQException that means, stop trying and throw the original message.
-			if (hsqldbDisable || rootCause instanceof IllegalQoQException) {
+			if (hsqldbDisable || !useHsqldb || rootCause instanceof IllegalQoQException) {
 				// re-throw the original outer exception
 				throw Caster.toPageException(qoqException);
 			}
@@ -485,6 +516,12 @@ public final class HSQLDBHandler {
 			if (hsqldbDebug) {
 				ThreadLocalPageContext.getLog(pc, "datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
 			}
+		}
+		else if (!useHsqldb || hsqldbDisable) {
+			// Native returned null (couldn't handle the query, e.g. JOINs) with no exception, and
+			// HSQLDB fallback is blocked.
+			String which = !useHsqldb ? "engine=native" : "lucee.qoq.hsqldb.disable=true";
+			throw new DatabaseException("Native QoQ engine could not handle this query and HSQLDB fallback is disabled (" + which + ")", null, sql, null);
 		}
 
 		// SECOND Chance with hsqldb
@@ -506,7 +543,7 @@ public final class HSQLDBHandler {
 			String strSQL = StringUtil.replace(sql.getSQLString(), "[", "", false);
 			strSQL = StringUtil.replace(strSQL, "]", "", false);
 			sql.setSQLString(strSQL);
-			return _execute(pc, sql, maxrows, fetchsize, timeout, stopwatch, tables, isUnion);
+			return _execute(pc, sql, maxrows, fetchsize, timeout, stopwatch, tables, isUnion, caseSensitive);
 
 		}
 		catch (ParseException e) {
@@ -515,15 +552,15 @@ public final class HSQLDBHandler {
 
 	}
 
-	private QueryImpl _execute(PageContext pc, SQL sql, int maxrows, int fetchsize, TimeSpan timeout, Stopwatch stopwatch, Set<String> tables, boolean isUnion)
-			throws PageException {
+	private QueryImpl _execute(PageContext pc, SQL sql, int maxrows, int fetchsize, TimeSpan timeout, Stopwatch stopwatch, Set<String> tables, boolean isUnion,
+			boolean caseSensitive) throws PageException {
 		try {
-			return __execute(pc, SQLImpl.duplicate(sql), maxrows, fetchsize, timeout, stopwatch, tables, false);
+			return __execute(pc, SQLImpl.duplicate(sql), maxrows, fetchsize, timeout, stopwatch, tables, false, caseSensitive);
 		}
 		catch (PageException pe) {
 			if (isUnion || StringUtil.indexOf(pe.getMessage(), "NumberFormatException:") != -1) {
 				// SystemOut.print("HSQLDB Retry with Simple Types after: " + pe.getMessage());
-				return __execute(pc, sql, maxrows, fetchsize, timeout, stopwatch, tables, true);
+				return __execute(pc, sql, maxrows, fetchsize, timeout, stopwatch, tables, true, caseSensitive);
 			}
 			throw pe;
 		}
@@ -548,7 +585,7 @@ public final class HSQLDBHandler {
 						}
 						cd = new ClassDefinitionImpl<>("org.hsqldb.jdbcDriver", "org.lucee.hsqldb", "2.7.2.jdk11", config.getIdentification());
 						try {
-							cd.getClass();
+							cd.getClazz();
 						}
 						catch (Exception e) {
 							ApplicationException ae = new ApplicationException("Failed to load HSQLDB driver for query-of-query fallback. " + "Please install the HSQLDB extension "
@@ -584,7 +621,10 @@ public final class HSQLDBHandler {
 
 		// Create datasource with unique database name using dbNum
 		String dbName = "qoq_" + dbNum;
-		String connStr = "jdbc:hsqldb:mem:" + dbName + ";sql.regular_names=false;sql.enforce_strict_size=false;sql.enforce_types=false;";
+		// nulls_first=true + nulls_order=false makes HSQLDB treat nulls as a low
+		// value (first in ASC, last in DESC), matching native QoQ engine + ACF.
+		String nullsOrdering = hsqldbNullsLastInDesc ? "sql.nulls_first=true;sql.nulls_order=false;" : "";
+		String connStr = "jdbc:hsqldb:mem:" + dbName + ";sql.regular_names=false;sql.enforce_strict_size=false;sql.enforce_types=false;sql.concat_nulls=false;" + nullsOrdering;
 
 		// We don't use connection pooling - each query creates a fresh connection and closes it immediately.
 		// Concurrency is controlled by the BlockingQueue (dbQueue), not by connection pool limits.
@@ -599,6 +639,11 @@ public final class HSQLDBHandler {
 
 	public static QueryImpl __execute(PageContext pc, SQL sql, int maxrows, int fetchsize, TimeSpan timeout, Stopwatch stopwatch, Set<String> tables, boolean doSimpleTypes)
 			throws PageException {
+		return __execute(pc, sql, maxrows, fetchsize, timeout, stopwatch, tables, doSimpleTypes, false);
+	}
+
+	public static QueryImpl __execute(PageContext pc, SQL sql, int maxrows, int fetchsize, TimeSpan timeout, Stopwatch stopwatch, Set<String> tables, boolean doSimpleTypes,
+			boolean caseSensitive) throws PageException {
 
 		ArrayList<String> qoqTables = new ArrayList<String>();
 		QueryImpl nqr = null;
@@ -635,10 +680,12 @@ public final class HSQLDBHandler {
 					String cfQueryName = null; // name of the source cfml query variable
 					String dbTableName = null; // name of the target table in the database
 					String modSql = null;
+
+					// First pass: fix up SQL table names and build the full CREATE SQL for cache key
 					StringBuilder createSql = new StringBuilder();
-					// int len=tables.size();
+					ArrayList<String[]> tableNames = new ArrayList<String[]>(); // [cfQueryName, dbTableName] pairs
 					while (it.hasNext()) {
-						cfQueryName = it.next().toString();// tables.get(i).toString();
+						cfQueryName = it.next().toString();
 						dbTableName = cfQueryName.replace('.', '_');
 
 						if (!cfQueryName.toLowerCase().equals(dbTableName.toLowerCase())) {
@@ -647,26 +694,37 @@ public final class HSQLDBHandler {
 							sql.setSQLString(modSql);
 						}
 						if (sql.getItems() != null && sql.getItems().length > 0) sql = new SQLImpl(sql.toString());
-						// temp tables still get created will all the source columns,
-						// only populateTables is driven by the required columns calculated from the view
-						createSql.append(createTable(conn, pc, dbTableName, cfQueryName, doSimpleTypes));
-						qoqTables.add(dbTableName);
+						// build the full CREATE SQL (all columns) for a stable cache key
+						createSql.append(buildCreateTableSql(pc, dbTableName, cfQueryName, doSimpleTypes, caseSensitive));
+						tableNames.add(new String[] { cfQueryName, dbTableName });
 					}
 
-					// SystemOut.print("QoQ HSQLDB CREATED TABLES: " + sql.toString());
+					// check if we already know which columns are needed (cache-only check)
+					Key cacheKey = Caster.toKey(sql.toString() + createSql.toString());
+					Struct allTableColumns = (Struct) columnUsageCache.get(cacheKey, null);
 
-					// create the sql as a view, to find out which table columns are needed
-					Struct allTableColumns = getUsedColumnsForQuery(conn, sql, createSql);
+					if (allTableColumns != null) {
+						// Cache hit — create minimal tables with only needed columns
+						for (String[] tn : tableNames) {
+							Key tableKey = Caster.toKey(tn[1]);
+							Struct tableCols = allTableColumns.containsKey(tableKey) ? ((Struct) allTableColumns.get(tableKey)) : null;
+							createTable(conn, pc, tn[1], tn[0], doSimpleTypes, caseSensitive, tableCols);
+							qoqTables.add(tn[1]);
+						}
+					}
+					else {
+						// Cache miss — create full tables (needed for VIEW discovery), then discover used columns
+						for (String[] tn : tableNames) {
+							createTable(conn, pc, tn[1], tn[0], doSimpleTypes, caseSensitive);
+							qoqTables.add(tn[1]);
+						}
+						allTableColumns = getUsedColumnsForQuery(conn, sql, createSql);
+					}
+					// load data into tables
 					Struct tableColumns = null;
 					Key tableKey = null;
-
-					// load data into tables
-					it = tables.iterator();
-					while (it.hasNext()) {
-						cfQueryName = it.next().toString();
-						dbTableName = cfQueryName.replace('.', '_');
-
-						tableKey = Caster.toKey(dbTableName);
+					for (String[] tn : tableNames) {
+						tableKey = Caster.toKey(tn[1]);
 						if (allTableColumns != null && allTableColumns.containsKey(tableKey)) {
 							tableColumns = ((Struct) allTableColumns.get(tableKey));
 						}
@@ -676,7 +734,7 @@ public final class HSQLDBHandler {
 
 						// only populate tables with data if there are used columns, or no needed column data at all
 						if (tableColumns == null || tableColumns.size() > 0) {
-							populateTable(conn, pc, dbTableName, cfQueryName, doSimpleTypes, tableColumns);
+							populateTable(conn, pc, tn[1], tn[0], doSimpleTypes, tableColumns);
 						}
 					}
 

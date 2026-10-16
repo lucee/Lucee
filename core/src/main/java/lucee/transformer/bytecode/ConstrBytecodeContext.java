@@ -39,12 +39,32 @@ public final class ConstrBytecodeContext extends BytecodeContext {
 		super(config, ps, null, page, keys, classWriter, className, adapter, method, writeLog, suppressWSbeforeArg, output, returnValue, sourceOffset);
 	}
 
+	/**
+	 * Override to return this instance as the constructor context.
+	 * This ensures child BytecodeContexts get a reference to us via getConstructor().
+	 */
+	@Override
+	public ConstrBytecodeContext getConstructor() {
+		return this;
+	}
+
 	public void addUDFProperty(Function function, int arrayIndex, int valueIndex, int type) {
 		properties.add(new Data(function, arrayIndex, valueIndex, type));
 	}
 
 	public List<Data> getUDFProperties() {
 		return properties;
+	}
+
+	/**
+	 * Track an executable line from child BytecodeContext instances.
+	 * Called during compilation so all lines end up in the constructor context.
+	 */
+	public void trackExecutableLine(int line) {
+		// Uses the executableLines Set inherited from BytecodeContext
+		// We don't call visitLineNumber as that would emit bytecode
+		if (super.executableLines == null) super.executableLines = new java.util.TreeSet<>();
+		super.executableLines.add(line);
 	}
 
 	/*

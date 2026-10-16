@@ -1,7 +1,5 @@
 package lucee.transformer.dynamic.meta;
 
-import java.io.IOException;
-
 public interface Method extends FunctionMember {
 
 	public String getDeclaringProviderRtnClassName();
@@ -12,5 +10,5 @@ public interface Method extends FunctionMember {
 
 	public Class getDeclaringProviderRtnClassWithSameAccess();
 
-	public Object invoke(Object obj, Object... args) throws IOException;
+	public Object invoke(Object obj, Object... args) throws Exception;
 }

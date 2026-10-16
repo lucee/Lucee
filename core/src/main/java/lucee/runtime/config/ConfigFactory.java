@@ -84,7 +84,7 @@ public abstract class ConfigFactory {
 
 		// if the config got deleted, we need to make sure the required extension get installed again
 		boolean deleted = false;
-		if (readOnly && !ConfigFactoryImpl.getConfigFile(contextDir, true).exists()) {
+		if (readOnly && ConfigFactoryImpl.getConfigFile(contextDir, true, true) == null) {
 			deleted = resOldVersion.delete();
 		}
 		String strNewVersion = info.getVersion() + "-" + info.getRealeaseTime();
@@ -220,8 +220,7 @@ public abstract class ConfigFactory {
 				Resource bugFile;
 				int count = 1;
 				Resource configDir = configFile.getParentResource();
-				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {
-				}
+				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {}
 
 				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, ConfigFactory.class.getName(),
 						"The configuration file [" + configFile
@@ -422,8 +421,7 @@ public abstract class ConfigFactory {
 				try {
 					arr.insert(1, sct);
 				}
-				catch (PageException e) {
-				}
+				catch (PageException e) {}
 			}
 			rem("mapping", component);
 		}
@@ -465,8 +463,7 @@ public abstract class ConfigFactory {
 				try {
 					arr.insert(1, sct);
 				}
-				catch (PageException e) {
-				}
+				catch (PageException e) {}
 			}
 
 			rem("mapping", ct);

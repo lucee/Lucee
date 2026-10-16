@@ -26,7 +26,9 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.other.CreatePageContext;
@@ -134,8 +136,16 @@ public class InternalRequest implements Function {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
-			if (!(t instanceof Abort)) {
-				if (throwonerror) throw Caster.toPageException(t);
+			if (!Abort.isSilentAbort(t)) {
+				if (throwonerror) {
+					// wrap RequestTimeoutException so it doesn't kill the parent request
+					if (t instanceof RequestTimeoutException) {
+						ApplicationException ae = new ApplicationException(t.getMessage());
+						ae.initCause(t);
+						throw ae;
+					}
+					throw Caster.toPageException(t);
+				}
 				pe = Caster.toPageException(t);
 			}
 		}

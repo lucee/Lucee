@@ -1,27 +1,23 @@
 # Lucee Server
 
-Lucee Server is an open source CFML Server which gets deployed via a Java Servlet.
-The Lucee code base was forked from the Railo Server Project (Version 4.2) in January 2015.
-
-## Architecture
-
-- Documentation is published at `https://docs.lucee.org/`
-- Java baseline version is 11
+Open source CFML Server deployed as a Java Servlet.
 
 ## Folder Structure
 
-- `/ant`: Ant Build scripts
-- `/loader`: The Loader Interface API used by for Lucee Core and its extensions, do not modify any interfaces
+- `/ant`: Ant build scripts
+- `/loader`: The Loader Interface API for Lucee Core and its extensions, do not modify any interfaces
 - `/core`: The main source code for Lucee Server
-- `/test`: Contains the CFML Test suites
+- `/test`: CFML test suites
 
 ## Build & Commands
 
-Always from the `/loader` directory and piping the output to a file
+Always run from the `/loader` directory and pipe the output to a file.
 
-- Build and run specific test, execute `mvn test -DtestFilter="{testFilename}`
-- To just build, execute `ant fast`
-- To build and run the whole test suite, execute `mvn test`
+Maven builds automatically before testing, so do NOT run `ant fast` before `mvn test`.
+
+- Run a specific test: `mvn test -DtestFilter="{testFilename}"`
+- Run the whole test suite: `mvn test`
+- Build only (no tests, for script-runner): `ant fast`
 
 ### Development Environment
 
@@ -31,56 +27,35 @@ Always from the `/loader` directory and piping the output to a file
 
 ### Issue Tracking
 
-Lucee tickets are in the style `LDEV-xxxx`, where `xxx` is a number
+Lucee tickets are in the style `LDEV-xxxx`, where xxxx is a number.
 
-Test cases for tickets are created under `/test/tickets/LDEVxxxx.cfc`, with any additional files under a folder /`test/tickets/LDEVxxxx/`
+Test cases for tickets are created under `/test/tickets/LDEVxxxx.cfc`, with any additional files under `/test/tickets/LDEVxxxx/`.
 
-To read an issue from jira, rewrite the url `https://luceeserver.atlassian.net/browse/LDEV-5850` to read the xml version using `https://luceeserver.atlassian.net/si/jira.issueviews:issue-xml/LDEV-5850/LDEV-5850.xml`
+To read an issue from Jira, rewrite the browse URL to the XML version:
 
-## Lucee Ant Script Runner
+- `https://luceeserver.atlassian.net/browse/LDEV-5850`
+- `https://luceeserver.atlassian.net/si/jira.issueviews:issue-xml/LDEV-5850/LDEV-5850.xml`
 
-Lucee Ant Script Runner allows you to run Lucee CFML scripts headless (without a web server) from the command line or CI/CD pipelines.
+## Script Runner
 
-It is ideal for automation, testing, and running scripts with custom Lucee builds.
+Run CFML scripts headless using [script-runner](https://github.com/lucee/script-runner). Requires a local checkout (usually in the parent directory of this repo).
 
-**Requirements:**
-
-- You need a local copy of the [script-runner repository](https://github.com/lucee/script-runner) checked out.
-  If you do not have it, please clone it first.
-  > **Tip:** The script-runner directory may already exist in the parent directory of this repo.
-
-- To use a custom Lucee JAR, first build it by running:
+Build a custom JAR first with `ant fast` from `/loader`, then run:
 
 ```sh
-ant fast
+ant -buildfile "../script-runner/build.xml" -DluceeJar="/full/path/to/loader/target/lucee-{version}.jar" -Dwebroot="D:\work\yourproject" -Dexecute="test.cfm"
 ```
 
-in the `/loader` directory of this repo.
-The resulting JAR will be found in `loader/target` and its filename will include the version (e.g., `lucee-7.0.0.1.jar`).
-
-**Example usage:**
-
-```sh
-ant -buildfile "..\script-runner\build.xml" -DluceeJar="/full/pathot/loader/target/lucee-{version}.jar" -Dwebroot="D:\work\yourproject" -Dexecute="test.cfm"
-```
-
-- `-DluceeJar` being the full path to the built Lucee JAR in `loader/target`, use exact version and full path
-- `-Dwebroot` is your project directory.
-- `-Dexecute` is the script to run (relative to webroot).
-
-See [script-runner README](https://github.com/lucee/script-runner/blob/main/README.md) for full details and troubleshooting.
+See the [script-runner README](https://github.com/lucee/script-runner/blob/main/README.md) for full details.
 
 ## Contribution Workflow
 
 - Create a feature branch off the appropriate version branch. `7.0` is the active stable branch. `6.2` is the active LTS branch.
-- Create or update unit tests for your changes, TDD, repo then fix/
-- Make sure your branch is rebased with the latest changes from the upstream repo before submitting.
-- Commit messages must include the ticket number, e.g., `LDEV-007 Add support to James Bond's watch for OSGI bundles`.
+- Create or update unit tests for your changes, TDD, repro then fix.
+- Rebase with the latest upstream changes before submitting.
+- Commit messages must include the ticket number, e.g., `LDEV-007 Add support for OSGI bundles`.
 - Include a link to the JIRA ticket in your pull request description.
-
-### Documentation
-
-If your change affects a documented feature, please also submit a pull request to the Lucee docs repo.
+- If your change affects a documented feature, also submit a PR to the Lucee docs repo.
 
 ## Code Style
 
@@ -93,39 +68,21 @@ If your change affects a documented feature, please also submit a pull request t
 
 [Testing Guidelines](test/README.md)
 
-- CFML Tests are written using TestBox [TestBox](https://testbox.ortusbooks.com/)
+- CFML tests are written using [TestBox](https://testbox.ortusbooks.com/)
 - All CFML tests should extend `org.lucee.cfml.test.LuceeTestCase`
-- CFML tests should not use Java unless absolutely required, prefer CFML functionality.
-- Tests should cleanup after themselves and any temporary files should be created under the directory returned from `getTempDirectory()`
-- Test framework code, specifically files in the root of the `/test` directory should be compatible with Lucee 5.4, therefore, do not use newer cfml functionality.
-
-## Security
-
-- Use appropriate data types that limit exposure of sensitive information
-- Never commit secrets or API keys to the repository
-- Use environment variables for sensitive data
-- Validate all user inputs on both client and server
-- Follow the principle of least privilege
-
-### Reporting a Vulnerability
-
-Please send an email to security@lucee.org to report a vulnerability.
+- CFML tests should not use Java unless absolutely required, prefer CFML functionality
+- Tests should cleanup after themselves, temporary files go under `getTempDirectory()`
+- Test framework code in the root of `/test` must be compatible with Lucee 5.4 — do not use newer CFML functionality
 
 ## Configuration
 
-When adding new configuration options, update all relevant places:
+When adding new configuration options:
 
-1. Variables are always strings and should be cast to the correct type, with an appropriate default.
-2. Variables should be read once into a static variable using `getSystemPropOrEnvVar(String name, String defaultValue)`
+1. Variables are always strings, cast to the correct type with an appropriate default
+2. Read variables once into a static variable using `getSystemPropOrEnvVar(String name, String defaultValue)`
 3. Document variables in `core/src/main/java/resource/setting/sysprop-envvar.json`
 
-When updating a Java library
+When updating a Java library:
 
-1. Update both the `pom.xml` files under `/loader` and `/core`
-2. Update the corresponding entry under `Require-Bundle:` in `core/src/main/java\META-INF\MANIFEST.MF`
-
-## Getting Help
-
-- [Lucee Documentation](https://docs.lucee.org/)
-- [Lucee Mailing List / Forum](https://dev.lucee.org/)
-- [Lucee Bug Tracker](https://luceeserver.atlassian.net/)
+1. Update both `pom.xml` files under `/loader` and `/core`
+2. Update the corresponding `Require-Bundle:` entry in `core/src/main/java/META-INF/MANIFEST.MF`

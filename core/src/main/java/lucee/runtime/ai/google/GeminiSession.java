@@ -3,7 +3,9 @@ package lucee.runtime.ai.google;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -38,6 +40,7 @@ import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -117,6 +120,18 @@ public final class GeminiSession extends AISessionSupport {
 		else {
 			throw new ApplicationException("you need to define parts or a message");
 		}
+
+		// custom
+		if (geminiEngine.custom != null && !geminiEngine.custom.isEmpty()) {
+			Iterator<Entry<Key, Object>> it = geminiEngine.custom.entryIterator();
+			Entry<Key, Object> e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (!root.containsKey(e.getKey())) {
+					root.set(e.getKey(), e.getValue());
+				}
+			}
+		}
 		return root;
 	}
 
@@ -124,6 +139,13 @@ public final class GeminiSession extends AISessionSupport {
 		URL url = geminiEngine.toURL(geminiEngine.baseURL, GeminiEngine.CHAT, listener != null ? GeminiEngine.TYPE_STREAM : GeminiEngine.TYPE_REG);
 		HttpPost post = new HttpPost(url.toExternalForm());
 		post.setHeader("Content-Type", AIUtil.createJsonContentType(geminiEngine.charset));
+
+		// custom headers
+		if (geminiEngine.headers != null) {
+			for (Entry<String, String> e: geminiEngine.headers.entrySet()) {
+				post.setHeader(e.getKey(), e.getValue());
+			}
+		}
 
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, null);

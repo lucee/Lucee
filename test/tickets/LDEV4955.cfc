@@ -8,7 +8,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				var tokens = "";
 				var c = 1;
 				for ( local.key in server.system.environment ){
-					if ( len( server.system.environment[ key ] ) gt 2
+					if ( len( server.system.environment[ key ] ) lt 1
+						or len( server.system.environment[ key ] ) gt 2
 						or key contains "pass"
 						or key contains "secret"
 						or key contains "s3"
@@ -31,7 +32,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				var tokens = "";
 				var c = 1;
 				for ( local.key in server.system.properties ){
-					if ( len( server.system.properties[ key ] ) gt 2
+					if ( len( server.system.properties[ key ] ) lt 1
+						or len( server.system.properties[ key ] ) gt 2
 						or key contains "pass"
 						or key contains "secret"
 						or key contains "s3"

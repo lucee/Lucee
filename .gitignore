@@ -19,8 +19,9 @@ target/*
 *.cfc.hbm.xml
 /cache
 WEB-INF
-
-.classpath
+core/bin/
+loader/bin/
+/.classpath
 *.eml
 *.iml
 *.ipr
@@ -40,3 +41,8 @@ buildVersionNumber.txt
 
 /test-output
 /.claude
+
+# Eclipse-derived IDE files (.classpath/.project regenerate from pom.xml)
+.project
+node_modules/
+.flattened-pom.xml

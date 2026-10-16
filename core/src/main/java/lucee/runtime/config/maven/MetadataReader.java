@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -26,7 +24,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.net.http.HTTPDownloader;
 import lucee.runtime.config.maven.MavenUpdateProvider.Repository;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.function.FunctionLibEntityResolver;
@@ -83,7 +80,8 @@ public final class MetadataReader extends DefaultHandler {
 		// Use HTTPDownloader with DEBUG logging for Maven metadata lookups
 		Reader r = null;
 		try {
-			r = IOUtil.getReader( HTTPDownloader.get( url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, null, Log.LEVEL_TRACE ), (Charset) null );
+			r = IOUtil.getReader(HTTPDownloader.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, null, Log.LEVEL_TRACE),
+					(Charset) null);
 			init(new InputSource(r));
 		}
 		catch (IOException ioe) {
@@ -132,7 +130,7 @@ public final class MetadataReader extends DefaultHandler {
 					if (content.length() > 0) {
 						List<String> list = ListUtil.listToList(content, ',', true);
 						for (String v: list) {
-							versions.add(OSGiUtil.toVersion(v.trim()));
+							versions.add(Version.parseVersion(v.trim()));
 						}
 					}
 					return versions;
@@ -176,9 +174,9 @@ public final class MetadataReader extends DefaultHandler {
 		if (insideVersion) {
 			insideVersion = false;
 			try {
-				versions.add(OSGiUtil.toVersion(content.toString().trim(), false));
+				versions.add(Version.parseVersion(content.toString().trim()));
 			}
-			catch (BundleException e) {
+			catch (Exception e) {
 				LogUtil.log("MavenReader", e);
 			}
 		}

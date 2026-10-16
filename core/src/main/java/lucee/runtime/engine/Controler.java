@@ -21,6 +21,7 @@ package lucee.runtime.engine;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -39,6 +40,7 @@ import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.ParentThreasRefThread;
+import lucee.commons.lang.PhysicalClassLoaderFactory;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.CFMLFactoryImpl;
@@ -57,7 +59,6 @@ import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.timer.Stopwatch;
 import lucee.runtime.type.scope.storage.StorageScopeFile;
-import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.dynamic.DynamicInvoker;
 
 /**
@@ -414,6 +415,15 @@ public final class Controler extends ParentThreasRefThread {
 						if (log != null) log.error("controler", e);
 					}
 					checkStopWatch(config, stopwatch, "clearUnusedDBConnections");
+
+					stopwatch.start();
+					try {
+						((ConfigPro) config).cleanDatasourceConnectionPools();
+					}
+					catch (Exception e) {
+						if (log != null) log.error("controler", e);
+					}
+					checkStopWatch(config, stopwatch, "cleanDatasourceConnectionPools");
 				}
 
 				if (doit) {
@@ -500,6 +510,19 @@ public final class Controler extends ParentThreasRefThread {
 					checkStopWatch(config, stopwatch, "checkCacheFileSize");
 				}
 
+				// clear RPC
+				if (doit) {
+					stopwatch.start();
+					try {
+						checkRPC(config);
+					}
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						if (log != null) log.error("controler", t);
+					}
+					checkStopWatch(config, stopwatch, "checkRPC");
+				}
+
 				// clean up dynclasses
 				if (doit) {
 					stopwatch.start();
@@ -512,6 +535,19 @@ public final class Controler extends ParentThreasRefThread {
 						if (log != null) log.error("controler", t);
 					}
 					checkStopWatch(config, stopwatch, "cleanupDynamicInvoker");
+
+					// clean up PhysicalClassLoader
+					if (doit) {
+						stopwatch.start();
+						try {
+							PhysicalClassLoaderFactory.clean(config);
+						}
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							if (log != null) log.error("controler", t);
+						}
+						checkStopWatch(config, stopwatch, "cleanupPhysicalClassLoaderFactory");
+					}
 				}
 			}
 		}
@@ -565,49 +601,66 @@ public final class Controler extends ParentThreasRefThread {
 		checkSize(config, config.getCacheDir(), config.getCacheDirSize(), new ExtensionResourceFilter(".cache"));
 	}
 
+	private void checkRPC(ConfigWeb config) {
+		checkSize(config, config.getClassDirectory().getRealResource("RPC/"), 1024 * 1024 * 1024, null);
+	}
+
 	private void checkTempDirectorySize(ConfigWeb config) {
 		checkSize(config, config.getTempDirectory(), 1024 * 1024 * 1024, null);
-
 	}
 
 	private void checkSize(ConfigWeb config, Resource dir, long maxSize, ResourceFilter filter) {
 		if (dir == null || !dir.exists()) return;
-		Resource res = null;
-		int count = ArrayUtil.size(filter == null ? dir.list() : dir.list(filter));
-		long size = ResourceUtil.getRealSize(dir, filter);
+
+		// list once
+		Resource[] files = filter == null ? dir.listResources() : dir.listResources(filter);
+		if (files == null || files.length == 0) return;
+
+		// calculate size (recursive, matching original getRealSize behaviour)
+		int count = files.length;
+		long size = 0;
+		for (Resource f: files) {
+			size += ResourceUtil.getRealSize(f);
+		}
+
 		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_DEBUG, Controler.class.getName(),
 				"Checking size of directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "].");
 
-		int len = -1;
+		if (count <= 100000 && size <= maxSize) return;
 
-		if (count > 100000 || size > maxSize) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(),
-					"Removing files from directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "]. Number of files [" + count + "]");
+		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(),
+				"Removing files from directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "]. Number of files [" + count + "]");
+
+		// sort oldest first
+		Arrays.sort(files, (a, b) -> Long.compare(a.lastModified(), b.lastModified()));
+
+		// keep deleting the oldest files first, until under both thresholds
+		int deleted = 0;
+		int failed = 0;
+		for (Resource f: files) {
+			if (count <= 100000 && size <= maxSize) break;
+			long fSize = ResourceUtil.getRealSize(f);
+			try {
+				f.remove(true);
+				count--;
+				size -= fSize;
+				deleted++;
+				// periodically yield to avoid blocking filesystem
+				if (deleted % 100 == 0) Thread.sleep(15);
+			}
+			catch (InterruptedException ie) {
+				Thread.currentThread().interrupt();
+				break;
+			}
+			catch (Exception e) {
+				failed++;
+			}
 		}
 
-		while (count > 100000 || size > maxSize) {
-			Resource[] files = filter == null ? dir.listResources() : dir.listResources(filter);
-			if (len == files.length) break;// protect from inifinti loop
-			len = files.length;
-			for (int i = 0; i < files.length; i++) {
-				if (res == null || res.lastModified() > files[i].lastModified()) {
-					res = files[i];
-				}
-			}
-			if (res != null) {
-				size -= res.length();
-				try {
-					res.remove(true);
-					count--;
-				}
-				catch (Exception e) {
-					LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, Controler.class.getName(), "cannot remove resource [" + res.getAbsolutePath() + "]");
-					break;
-				}
-			}
-			res = null;
+		if (deleted > 0 || failed > 0) {
+			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "Cleanup of directory [" + dir + "]: removed [" + deleted
+					+ "] files, failed [" + failed + "]. Remaining size [" + size + "], remaining files [" + count + "].");
 		}
-
 	}
 
 	private void checkStopWatch(ConfigWeb config, Stopwatch stopwatch, String name) {

@@ -72,9 +72,11 @@ public final class LockException extends PageExceptionImpl {
 
 	@Override
 	public CatchBlock getCatchBlock(Config config) {
-		CatchBlock sct = super.getCatchBlock(config);
-		sct.setEL("LockName", lockName);
-		sct.setEL("LockOperation", lockOperation);
-		return sct;
+		if (catchBlock == null) {
+			CatchBlock sct = super.getCatchBlock(config);
+			sct.setEL("LockName", lockName);
+			sct.setEL("LockOperation", lockOperation);
+		}
+		return catchBlock;
 	}
 }

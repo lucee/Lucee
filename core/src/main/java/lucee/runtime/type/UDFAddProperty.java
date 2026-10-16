@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.type;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -119,18 +120,26 @@ public final class UDFAddProperty extends UDFGSProperty {
 	}
 
 	private Object _call(PageContext pageContext, Component c, Object key, Object value) throws PageException {
-
 		Object propValue = c.getComponentScope().get(propName, null);
+		if (propValue == null) {
+			synchronized (c) {
+				propValue = c.getComponentScope().get(propName, null);
+				if (propValue == null) {
+					/*
+					 * jira2049 PageContext pc = ThreadLocalPageContext.get(); ORMSession sess = ORMUtil.getSession(pc);
+					 * SessionImpl s=(SessionImpl) sess.getRawSession(); propValue=new PersistentList(s);
+					 * component.getComponentScope().setEL(propName,propValue);
+					 */
+					propValue = (this.arguments.length == 2) ? Collections.synchronizedMap(new HashMap()) : new ArrayImpl();
+					c.getComponentScope().setEL(propName, propValue);
+				}
+			}
+		}
 
 		// struct
 		if (this.arguments.length == 2) {
 			key = cast(pageContext, arguments[0], key, 1);
 			value = cast(pageContext, arguments[1], value, 2);
-			if (propValue == null) {
-				HashMap map = new HashMap();
-				c.getComponentScope().setEL(propName, map);
-				propValue = map;
-			}
 			if (propValue instanceof Struct) {
 				((Struct) propValue).set(KeyImpl.toKey(key), value);
 			}
@@ -140,21 +149,13 @@ public final class UDFAddProperty extends UDFGSProperty {
 		}
 		else {
 			value = cast(pageContext, arguments[0], value, 1);
-			if (propValue == null) {
-				/*
-				 * jira2049 PageContext pc = ThreadLocalPageContext.get(); ORMSession sess = ORMUtil.getSession(pc);
-				 * SessionImpl s=(SessionImpl) sess.getRawSession(); propValue=new PersistentList(s);
-				 * component.getComponentScope().setEL(propName,propValue);
-				 */
-				Array arr = new ArrayImpl();
-				c.getComponentScope().setEL(propName, arr);
-				propValue = arr;
-			}
 			if (propValue instanceof Array) {
 				((Array) propValue).appendEL(value);
 			}
 			else if (propValue instanceof java.util.List) {
-				((java.util.List) propValue).add(value);
+				synchronized (propValue) {
+					((java.util.List) propValue).add(value);
+				}
 			}
 		}
 		return c;

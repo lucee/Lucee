@@ -22,10 +22,18 @@ import lucee.runtime.exp.PageException;
 
 public final class LikeCompare {
 	public static boolean like(SQL sql, String haystack, String needle) throws PageException {
-		return LikeCompareJRE.like(sql, haystack, needle, null);
+		return LikeCompareJRE.like(sql, haystack, needle, null, false);
 	}
 
 	public static boolean like(SQL sql, String haystack, String needle, String escape) throws PageException {
-		return LikeCompareJRE.like(sql, haystack, needle, escape);
+		return LikeCompareJRE.like(sql, haystack, needle, escape, false);
+	}
+
+	public static boolean like(SQL sql, String haystack, String needle, boolean caseSensitive) throws PageException {
+		return LikeCompareJRE.like(sql, haystack, needle, null, caseSensitive);
+	}
+
+	public static boolean like(SQL sql, String haystack, String needle, String escape, boolean caseSensitive) throws PageException {
+		return LikeCompareJRE.like(sql, haystack, needle, escape, caseSensitive);
 	}
 }

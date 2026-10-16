@@ -21,10 +21,14 @@ package lucee.runtime.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -224,10 +228,11 @@ public final class PageContextUtil {
 	}
 
 	public static TimeSpan remainingTime(PageContext pc, boolean throwWhenAlreadyTimeout) throws RequestTimeoutException {
-		long ms = pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime());
+		// Account for debugger suspend time when calculating remaining timeout
+		long suspendedMillis = (pc instanceof PageContextImpl) ? ((PageContextImpl) pc).getDebuggerTotalSuspendedMillis() : 0;
+		long ms = pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime() - suspendedMillis);
 		if (ms > 0) {
-			if (ms < 5) {
-			}
+			if (ms < 5) {}
 			else if (ms < 10) ms = ms - 1;
 			else if (ms < 50) ms = ms - 5;
 			else if (ms < 200) ms = ms - 10;
@@ -243,7 +248,9 @@ public final class PageContextUtil {
 	}
 
 	public static void checkRequestTimeout(PageContext pc) throws RequestTimeoutException {
-		if ((pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime()) > 0) || ((PageContextImpl) pc).getTimeoutStackTrace() != null) return;
+		// Account for debugger suspend time when checking timeout
+		long suspendedMillis = (pc instanceof PageContextImpl) ? ((PageContextImpl) pc).getDebuggerTotalSuspendedMillis() : 0;
+		if ((pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime() - suspendedMillis) > 0) || ((PageContextImpl) pc).getTimeoutStackTrace() != null) return;
 		if (allowRequestTimeout(pc)) throw CFMLFactoryImpl.createRequestTimeoutException(pc);
 	}
 
@@ -312,5 +319,83 @@ public final class PageContextUtil {
 			}
 		}
 		throw new ApplicationException("unable to load inline component [" + inlineName + "] from [" + realPath + "]");
+	}
+
+	/**
+	 * Decodes a base64-encoded bitmap of executable line numbers back to an int array. Used by
+	 * generated Page classes to return executable lines without hitting bytecode limits.
+	 *
+	 * @param encoded base64-encoded bitmap where each bit represents whether that line is executable
+	 * @param maxLine the highest line number in the bitmap
+	 * @return array of executable line numbers
+	 */
+	public static int[] decodeExecutableLines(String encoded, int maxLine) {
+		byte[] bitmap = Base64.getDecoder().decode(encoded);
+		List<Integer> lines = new ArrayList<>();
+		for (int line = 1; line <= maxLine; line++) {
+			int byteIndex = (line - 1) / 8;
+			int bitIndex = (line - 1) % 8;
+			if (byteIndex < bitmap.length && (bitmap[byteIndex] & (1 << bitIndex)) != 0) {
+				lines.add(line);
+			}
+		}
+		int[] result = new int[lines.size()];
+		for (int i = 0; i < lines.size(); i++) {
+			result[i] = lines.get(i);
+		}
+		return result;
+	}
+
+	/**
+	 * Encodes an array of executable line numbers as a base64 bitmap. Used at compile time to generate
+	 * compact representation of executable lines.
+	 *
+	 * @param lines array of executable line numbers
+	 * @return base64-encoded bitmap, or null if lines is empty
+	 */
+	public static String encodeExecutableLines(int[] lines) {
+		if (lines == null || lines.length == 0) {
+			return null;
+		}
+		int maxLine = 0;
+		for (int line: lines) {
+			if (line > maxLine) maxLine = line;
+		}
+		byte[] bitmap = new byte[(maxLine + 7) / 8];
+		for (int line: lines) {
+			int byteIndex = (line - 1) / 8;
+			int bitIndex = (line - 1) % 8;
+			bitmap[byteIndex] |= (1 << bitIndex);
+		}
+		return Base64.getEncoder().encodeToString(bitmap);
+	}
+
+	/**
+	 * Gets the maximum line number from an array of line numbers. Used at compile time alongside
+	 * encodeExecutableLines.
+	 *
+	 * @param lines array of line numbers
+	 * @return the maximum line number, or 0 if empty
+	 */
+	public static int getMaxLine(int[] lines) {
+		if (lines == null || lines.length == 0) return 0;
+		int max = 0;
+		for (int line: lines) {
+			if (line > max) max = line;
+		}
+		return max;
+	}
+
+	public static PageContext createPageContext() throws PageException {
+		try {
+			return CFMLEngineFactory.getInstance().createPageContext(null, "getThreadPageContext:boolean", null, null, null, null, null, null, null, -1L, true);
+		}
+		catch (ServletException e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	public static void popBody(PageContext pc) {
+		pc.popBody();
 	}
 }

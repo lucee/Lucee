@@ -15,23 +15,22 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="guard">
+ ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi">
 
-	<cffunction name="testEncodeForCSS" localMode="modern">
-        <cfscript>
-        // Using '<a' forces the space: \3c + a -> \3c a
-        var enc = EncodeForCSS('<a');
-        assertEquals('\3c a', enc);
-        </cfscript>
-    </cffunction>
-
-    <cffunction name="testEncodeForCSSMember" localMode="modern">
-        <cfscript>
-        // Using '<1' forces the space: \3c + 1 -> \3c 1
-        var enc = '<1'.encodeForCSS();
-        assertEquals('\3c 1', enc);
-        </cfscript>
-    </cffunction>
+	<cffunction name="testEncodeForCSS">
+		<cfscript>
+		var enc=EncodeForCSS('<script>');
+		// Esapi adds a space after the hex code and owasp does not, both are valid css encodings, so we remove spaces before comparing
+		assertEquals('\3cscript\3e',replace(enc," ","","all"));
+		</cfscript>
+	</cffunction>
+	<cffunction name="testEncodeForCSSMember">
+		<cfscript>
+		var enc='<script>'.encodeForCSS();
+		// Esapi adds a space after the hex code and owasp does not, both are valid css encodings, so we remove spaces before comparing
+		assertEquals('\3cscript\3e',replace(enc," ","","all"));
+		</cfscript>
+	</cffunction>
 	
 	<cffunction access="private" name="valueEquals">
 		<cfargument name="left">

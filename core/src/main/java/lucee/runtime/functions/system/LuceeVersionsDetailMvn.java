@@ -5,11 +5,11 @@ import java.util.Map.Entry;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.config.maven.MavenUpdateProvider;
+import lucee.runtime.config.maven.Version;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
@@ -23,7 +23,7 @@ public final class LuceeVersionsDetailMvn extends BIF {
 
 		try {
 			MavenUpdateProvider mup = new MavenUpdateProvider();
-			for (Entry<String, Object> e: mup.detail(OSGiUtil.toVersion(version), "jar", true).entrySet()) {
+			for (Entry<String, Object> e: mup.detail(Version.parseVersion(version), "jar", true).entrySet()) {
 				sct.set(e.getKey(), e.getValue());
 			}
 

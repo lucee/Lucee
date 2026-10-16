@@ -61,7 +61,7 @@ the expression language of this Tag Library (required)
 <!--
 The tag defines a unique tag in this tag library. 
 -->
-<!ELEMENT tag (name, appendix?, tag-class, tte-class?, tdbt-class?, body-content?, body-rtexprvalue?, display-name?, description?, attribute-groups?, attribute-type?, attribute-min?, attribute-max?, attribute*)>
+<!ELEMENT tag (name, appendix?, tag-class,javax-tag-class?,jakarta-tag-class?, tte-class?, tdbt-class?, body-content?, body-rtexprvalue?, display-name?, description?, attribute-groups?, attribute-type?, attribute-min?, attribute-max?, attribute*)>
 <!--
 definition if name of tag has an append name
 
@@ -75,6 +75,20 @@ the request time semantics for this tag. (required)
 #PCDATA ::= fully qualified Java Like class name
 -->
 <!ELEMENT tag-class (#PCDATA)>
+<!--
+Defines the subclass for javax (legacy) servlet API environments,
+used as a fallback when the jakarta tag-class is not available.
+
+#PCDATA ::= fully qualified Java class name
+-->
+<!ELEMENT javax-tag-class (#PCDATA)>
+
+<!--
+Defines the subclass for jakarta servlet API environments.
+
+#PCDATA ::= fully qualified Java class name
+-->
+<!ELEMENT jakarta-tag-class (#PCDATA)>
 <!--
 Tag Translation Time Evaluator
 		You can check and evaluate the dom Element representation of a Tag

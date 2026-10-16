@@ -137,7 +137,7 @@ function luceeSpinner(index) {
 }
 
 <cfif LuceeAIHas('default:exception')>
-	<cfoutput>luceeCatchData=#luceeCatchToString(catch)#;</cfoutput>
+	<cfoutput>luceeCatchData=#replace( luceeCatchToString(catch), "<", "\u003c", "all" )#;</cfoutput>
 </cfif>
 </script>
 
@@ -198,7 +198,7 @@ function luceeCatchToString(caughtError) {try{
 <cfoutput>
 <table id="-lucee-err" cellpadding="4" cellspacing="1">
 	<tr>
-		<td colspan="2" class="label">Lucee #server.lucee.version# Error (#catch.type#)</td>
+		<td colspan="2" class="label">Lucee #server.lucee.version# Error (#HTMLEditFormat( catch.type )#)</td>
 	</tr>
 	<cfparam name="catch.message" default="">
 	<tr>
@@ -235,7 +235,7 @@ function luceeCatchToString(caughtError) {try{
 	<cfif structkeyexists( catch, 'errorcode' ) && len( catch.errorcode ) && catch.errorcode NEQ 0>
 		<tr>
 			<td class="label">Error Code</td>
-			<td class="mono">#catch.errorcode#</td>
+			<td class="mono">#luceeMonoBlock( catch.errorcode )#</td>
 		</tr>
 	</cfif>
 	<cfif structKeyExists( catch, 'extendedinfo' ) && len( catch.extendedinfo )>
@@ -247,9 +247,9 @@ function luceeCatchToString(caughtError) {try{
 	<cfif structKeyExists( catch, 'additional' )>
 		<cfloop collection="#catch.additional#" index="key" item="val">
 			<tr>
-				<td class="label">#key#</td>
+				<td class="label">#HTMLEditFormat( key )#</td>
 
-				<td class="mono"><cftry>#markdowntohtml( catch.additional[key])#<cfcatch>#rluceeMonoBlock( catch.additional[key] )#</cfcatch></cftry></td>
+				<td class="mono"><cftry>#markdowntohtml( catch.additional[key], true )#<cfcatch>#luceeMonoBlock( catch.additional[key] )#</cfcatch></cftry></td>
 			</tr>
 		</cfloop>
 	</cfif>
@@ -267,7 +267,7 @@ function luceeCatchToString(caughtError) {try{
 							<cfset isFirst = ( idx == 1 )>
 
 							<a class="-lucee-error-icon-#isFirst ? 'minus' : 'plus'#" id="__btn$#idx#" onclick="__LUCEE.oc( this );" style="cursor: pointer;">
-								#isFirst ? "<b>#tc.template#: line #tc.line#</b>" : "<b>called from</b> #tc.template#: line #tc.line#"#
+								#isFirst ? "<b>#HTMLEditFormat( tc.template )#: line #tc.line#</b>" : "<b>called from</b> #HTMLEditFormat( tc.template )#: line #tc.line#"#
 							</a>
 							<br>
 

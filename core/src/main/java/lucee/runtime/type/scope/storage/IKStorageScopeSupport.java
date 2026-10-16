@@ -38,6 +38,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Collection;
@@ -96,10 +97,14 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	protected String strType;
 	protected int type;
 	private long timeSpan = -1;
+	private long commitInterval = -1;
 	private String storage;
 	private Struct tokens = new StructImpl(Struct.TYPE_SYNC, 4);
 	private long lastModified;
-	private final long lastModifiedAtInit;
+	private long lastModifiedAtInit;
+	// false when the last store had to merge with a newer storage copy, local data0 is then not what is in storage
+	private boolean inSyncWithStorage = true;
+	private long lastStored;
 
 	private IKHandler handler;
 	private String appName;
@@ -129,6 +134,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 		// last modified
 		lastModifiedAtInit = this.lastModified = lastModified;
+		lastStored = lastModified;
 
 		this.hitcount = (type == SCOPE_CLIENT) ? Caster.toIntValue(data.getOrDefault(KeyConstants._hitcount, ONE), 1) : 1;
 		this.strType = strType;
@@ -151,7 +157,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 			if (existing instanceof IKStorageScopeSupport) {
 				IKStorageScopeSupport tmp = ((IKStorageScopeSupport) existing);
-				if (tmp.lastModified() >= time && name.equalsIgnoreCase(tmp.getStorage())) {
+				if (tmp.inSyncWithStorage && tmp.lastModifiedAtInit() >= time && name.equalsIgnoreCase(tmp.getStorage())) {
 
 					if (LogUtil.doesDebug(log)) {
 						ScopeContext.debug(log, "use the existing " + (Scope.SCOPE_SESSION == scope ? "session" : "client") + " scope for " + pc.getApplicationContext().getName()
@@ -267,6 +273,12 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	void setTimeSpan(PageContext pc) {
 		ApplicationContext ac = pc.getApplicationContext();
 		this.timeSpan = getType() == SCOPE_SESSION ? ac.getSessionTimeout().getMillis() : ac.getClientTimeout().getMillis();
+		TimeSpan ci = null;
+		if (ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs = (ApplicationContextSupport) ac;
+			ci = getType() == SCOPE_SESSION ? acs.getSessionCommitInterval() : acs.getClientCommitInterval();
+		}
+		this.commitInterval = (ci != null) ? ci.getMillis() : this.timeSpan / 2;
 	}
 
 	@Override
@@ -299,7 +311,6 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	@Override
 	public void touchAfterRequest(PageContext pc) {
-
 		setTimeSpan(pc);
 		data0.put(KeyConstants._lastvisit, new IKStorageScopeItem(_lastvisit, lastModifiedAtInit()));
 		data0.put(KeyConstants._timecreated, new IKStorageScopeItem(timecreated, lastModifiedAtInit()));
@@ -311,6 +322,26 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if (ac != null && (this.tokens == null || this.tokens.isEmpty()) && ac.getSessionCluster() && isSessionStorage(pc)) {
 			data0.remove(KeyConstants._csrf_token);
 		}
+		else if (ac != null && ac.getSessionCluster() && isSessionStorage(pc)) {
+			// make sure tokens generated in this request are persisted, even if the entry was removed in the meantime
+			IKStorageScopeItem csrf = data0.get(KeyConstants._csrf_token);
+			if (csrf == null || csrf.removed() || csrf.getValue() != this.tokens) {
+				hasChanges = true;
+				data0.put(KeyConstants._csrf_token, new IKStorageScopeItem(this.tokens));
+			}
+		}
+		store(pc);
+	}
+
+	// sentinel: lastStored=-1 forces isStale() true on the next store-path check (matches timeSpan/commitInterval init convention)
+	public void markStale() {
+		lastStored = -1;
+	}
+
+	// force an immediate persist mid-request — used by sessionCommit() BIF
+	public void forceStore(PageContext pc) {
+		markStale();
+		setTimeSpan(pc);
 		store(pc);
 	}
 
@@ -334,6 +365,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		Key k;
 		while (it.hasNext()) {
 			k = it.next();
+			// csrf tokens are held separately from the scope keys (like in StorageScopeImpl), clearing the scope does not drop them
+			if (KeyConstants._csrf_token.equals(k)) continue;
 			removeEL(k);
 		}
 	}
@@ -509,11 +542,17 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		unstore(ThreadLocalPageContext.get());
 	}
 
-	/**
-	 * @return the hasChanges
-	 */
 	public boolean hasChanges(PageContext pc, Log log) {
+		if (isDirty(pc, log)) return true;
+		if (isStale(pc, log)) return true;
+		if (LogUtil.doesDebug(log)) {
+			ScopeContext.debug(log, "no change detected in the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for " + pc.getApplicationContext().getName() + "/"
+					+ pc.getCFID() + ".");
+		}
+		return false;
+	}
 
+	private boolean isDirty(PageContext pc, Log log) {
 		if (hasChanges) {
 			if (LogUtil.doesDebug(log)) {
 				ScopeContext.debug(log, "detected a change in the root keys of the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
@@ -522,19 +561,54 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			return true;
 		}
 		// we have set "ignoreSimpleValues" to true, because this is already covered by "hasChanges" above
-		if (ScopeContext.hash(data0, type, true) != hash) {
+		int newHash = ScopeContext.hash(data0, type, true);
+		if (newHash != hash) {
+			hash = newHash;
 			if (LogUtil.doesDebug(log)) {
 				ScopeContext.debug(log, "detected a change in one of the values in the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
 						+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + ".");
 			}
-
 			return true;
 		}
-		if (LogUtil.doesDebug(log)) {
-			ScopeContext.debug(log, "no change detected in the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for " + pc.getApplicationContext().getName() + "/"
-					+ pc.getCFID() + ".");
-		}
 		return false;
+	}
+
+	private boolean isStale(PageContext pc, Log log) {
+		if (lastStored < 0) {
+			if (LogUtil.doesDebug(log)) {
+				ScopeContext.debug(log, "explicit refresh requested for " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
+						+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + " (markStale).");
+			}
+			return true;
+		}
+		if (commitInterval <= 0) return false;
+		long elapsed = System.currentTimeMillis() - lastStored;
+		if (elapsed <= commitInterval) return false;
+		if (LogUtil.doesDebug(log)) {
+			ScopeContext.debug(log, "periodic refresh of stored " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope expiry for "
+					+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + " — last stored " + elapsed + "ms ago, commitInterval " + commitInterval + "ms.");
+		}
+		return true;
+	}
+
+	void markStored() {
+		lastStored = System.currentTimeMillis();
+		hasChanges = false;
+	}
+
+	/**
+	 * called after the scope was written to storage; storedLastModified is the timestamp of the value now in storage.
+	 * merged=false: what is in storage is exactly our data0, so storage written by us is no longer a "foreign" change.
+	 */
+	void markStored(long storedLastModified, boolean merged) {
+		markStored();
+		if (merged) {
+			inSyncWithStorage = false;
+		}
+		else {
+			inSyncWithStorage = true;
+			lastModifiedAtInit = storedLastModified;
+		}
 	}
 
 	@Override
@@ -671,13 +745,16 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	};
 
 	@Override
-	public void setTokens(Map<Collection.Key, String> tokens) {
-		tokens.clear();
-		Iterator<Entry<Key, String>> it = tokens.entrySet().iterator();
+	public void setTokens(Map<Collection.Key, String> newTokens) {
+		this.tokens.clear();
+		Iterator<Entry<Key, String>> it = newTokens.entrySet().iterator();
 		Entry<Key, String> e;
 		while (it.hasNext()) {
 			e = it.next();
-			tokens.put(e.getKey(), e.getValue());
+			// put() handles String → Key conversion via KeyImpl.toKey; tokens
+			// reloaded from storage can come back with String keys, so setEL
+			// (which requires Collection.Key) would ClassCastException.
+			this.tokens.put(e.getKey(), e.getValue());
 		}
 	};
 

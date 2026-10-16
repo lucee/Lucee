@@ -40,6 +40,7 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.functions.BIFProxy;
 import lucee.runtime.listener.JavaSettingsImpl;
+import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
@@ -95,7 +96,12 @@ public final class ClassUtilImpl implements ClassUtil {
 				JavaSettingsImpl.getBundleDirectories(pc));
 		if (res != null) {
 			if (Reflector.isInstaneOf(res, BIF.class, false)) {
-				return (BIF) lucee.commons.lang.ClassUtil.newInstance(res);
+				try {
+					return (BIF) lucee.commons.lang.ClassUtil.newInstance(res);
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
+				}
 			}
 			return new BIFProxy(res);
 		}

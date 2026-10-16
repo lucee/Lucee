@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lucee.commons.date.DateTimeUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -57,6 +58,9 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	private static final long serialVersionUID = -2341079090783313736L;
 
 	public static final int NEVER = 946626690;
+
+	// preserve case by default, matching ACF behaviour (LDEV-970)
+	public static boolean PRESERVE_CASE_DEFAULT = Caster.toBooleanValue( SystemUtil.getSystemPropOrEnvVar( "lucee.cookie.preservecase", null ), false );
 
 	private HttpServletResponse rsp;
 	private int scriptProtected = ScriptProtected.UNDEFINED;
@@ -110,7 +114,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 			boolean httpOnly = Caster.toBooleanValue(sct.get(KeyConstants._httponly, null), false);
 			String domain = Caster.toString(sct.get(KeyConstants._domain, null), null);
 			String path = Caster.toString(sct.get(KeyConstants._path, null), null);
-			boolean preserveCase = Caster.toBooleanValue(sct.get(KeyConstants._preservecase, null), false);
+			boolean preserveCase = Caster.toBooleanValue(sct.get(KeyConstants._preservecase, null), PRESERVE_CASE_DEFAULT);
 			Boolean encode = Caster.toBoolean(sct.get(KeyConstants._encode, null), null);
 			if (encode == null) encode = Caster.toBoolean(sct.get(KeyConstants._encodevalue, Boolean.TRUE), Boolean.TRUE);
 			short samesite = SessionCookieDataImpl.toSamesite(Caster.toString(sct.get(KeyConstants._SameSite, null), ""), CookieData.SAMESITE_EMPTY);
@@ -118,7 +122,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 
 			setCookie(key, val, expires, secure, path, domain, httpOnly, preserveCase, encode.booleanValue(), samesite, partitioned);
 		}
-		else setCookie(key, value, null, false, "/", null, false, false, true, CookieData.SAMESITE_EMPTY, false);
+		else setCookie(key, value, null, false, "/", null, false, PRESERVE_CASE_DEFAULT, true, CookieData.SAMESITE_EMPTY, false);
 		return value;
 	}
 

@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
+import java.io.ObjectStreamField;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -69,6 +71,9 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 	private static final Collection.Key CLOSED = KeyConstants._closed;
 	private static final Collection.Key TRIES = KeyConstants._tries;
 	private static final Collection.Key TRIES_MAX = KeyConstants._triesmax;
+
+	// an unreadable task file younger than this may still be written, so it is skipped instead of moved aside
+	private static final long BROKEN_GRACE_PERIOD = 60000L;
 
 	private String label;
 
@@ -140,8 +145,17 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 		add++;
 		if (task.nextExecution() == 0) task.setNextExecution(System.currentTimeMillis());
 		task.setId(createId(config, task));
-		store(config, task);
-		start(config);
+		if (store(config, task)) {
+			start(config);
+		}
+		else {
+			// The task could not be persisted (e.g. it holds a non-serializable field). The spooler
+			// only ever loads tasks from disk, so a task that was never written would be silently
+			// dropped (e.g. a spooled cfmail vanishing with only an error in the log). Execute it
+			// inline instead so the work is not lost - like spooling was disabled for this one task.
+			// store() has already logged the persistence failure at ERROR.
+			execute(config, task);
+		}
 	}
 
 	// add to interface
@@ -166,13 +180,27 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 	}
 
 	public void start(ConfigWeb config) {
-		if (thread == null || !thread.isAlive()) {
+		if (thread == null || !thread.isAlive() || thread.stopped) {
 			thread = new SpoolerThread(config, this);
 			thread.setPriority(Thread.MIN_PRIORITY);
 			thread.start();
 		}
 		else if (thread.sleeping) {
 			thread.interrupt();
+		}
+	}
+
+	/**
+	 * Stops the spooler thread of this engine (LDEV-6350). The engine calls this on a reset (restart, .lco
+	 * update), otherwise the old engine's spooler thread keeps waiting for the next task and holds on to the
+	 * old engine's classes. The tasks stay in the persist directory, so the new engine picks them up. A task
+	 * that is executing right now is not interrupted. A later add() starts a new spooler thread.
+	 */
+	public void stop() {
+		SpoolerThread t = thread;
+		if (t != null && t.isAlive()) {
+			t.stopped = true;
+			t.interrupt();
 		}
 	}
 
@@ -196,31 +224,75 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 		SpoolerTask task = defaultValue;
 		try {
 			is = res.getInputStream();
-			ois = new JavaConverter.ObjectInputStreamImpl(CFMLEngineFactory.getInstance().getClass().getClassLoader(), is);
+			ois = new TaskInputStream(CFMLEngineFactory.getInstance().getClass().getClassLoader(), is);
 
 			task = (SpoolerTask) ois.readObject();
 		}
-		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			if (t instanceof VirtualMachineError) throw (VirtualMachineError) t;
 			IOUtil.closeEL(is);
 			IOUtil.closeEL(ois);
-			res.delete();
+			moveAside(res, t);
 		}
 		IOUtil.closeEL(is);
 		IOUtil.closeEL(ois);
 		return task;
 	}
 
-	private void store(ConfigWeb config, SpoolerTask task) {
+	/**
+	 * A task file that cannot be read is not deleted (that may lose a task, e.g. one that is still being
+	 * written or whose classes are not loaded yet). A recent file is skipped and read again on the next
+	 * run, an older one is moved to the "broken" directory next to "open" and "closed", so it is no longer
+	 * read on every run but can still be inspected or restored.
+	 */
+	private void moveAside(Resource res, Throwable t) {
+		if (!res.exists()) return; // removed or renamed by another thread in the meantime
+		if (res.lastModified() + BROKEN_GRACE_PERIOD > System.currentTimeMillis()) {
+			LogUtil.logx(config, Log.LEVEL_DEBUG, "remote-client", "skipping spooler task file [" + res.getAbsolutePath() + "] for now, it cannot be read yet: " + ExceptionUtil.getMessage(t, true),
+					"remoteclient", "application");
+			return;
+		}
+		Resource dir = res.getParentResource().getParentResource().getRealResource("broken");
+		Resource target = dir.getRealResource(res.getName());
+		long size = res.length();
+		try {
+			dir.mkdirs();
+			ResourceUtil.moveTo(res, target, true);
+			LogUtil.logx(config, Log.LEVEL_ERROR, "remote-client", "unable to read spooler task file [" + res.getAbsolutePath() + "] (" + size + " bytes), moved it to ["
+					+ target.getAbsolutePath() + "]: " + ExceptionUtil.getMessage(t, true), "remoteclient", "application");
+		}
+		catch (Exception ee) {
+			LogUtil.logx(config, Log.LEVEL_ERROR, "remote-client", "unable to read spooler task file [" + res.getAbsolutePath() + "]: " + ExceptionUtil.getMessage(t, true)
+					+ "; moving it to [" + target.getAbsolutePath() + "] failed: " + ExceptionUtil.getMessage(ee, true), "remoteclient", "application");
+		}
+	}
+
+	private boolean store(ConfigWeb config, SpoolerTask task) {
 		ObjectOutputStream oos = null;
 		Resource persis = getFile(config, task);
-		if (persis.exists()) persis.delete();
+		// write to a temp file (not matched by the *.tsk filter) and rename it, so the spooler thread or the
+		// admin task list never read a task file that is only partially written
+		Resource tmp = persis.getParentResource().getRealResource(persis.getName() + ".tmp");
 		try {
-			oos = new ObjectOutputStream(persis.getOutputStream());
+			if (tmp.exists()) tmp.delete();
+			oos = new ObjectOutputStream(tmp.getOutputStream());
 			oos.writeObject(task);
+			oos.close();
+			oos = null;
+			tmp.moveTo(persis);
+			return true;
 		}
 		catch (IOException e) {
-			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
+			// Report the failure at ERROR - a task that cannot be persisted would otherwise be lost
+			// without notice. Remove any partial/corrupt file so it is not half-read later.
+			LogUtil.logx(config, Log.LEVEL_ERROR, "remote-client", "unable to persist spooler task [" + task.getId() + "] of type [" + task.getType()
+					+ "]: " + ExceptionUtil.getMessage(e, true), "remoteclient", "application");
+			IOUtil.closeEL(oos);
+			oos = null;
+			if (tmp.exists()) tmp.delete();
+			if (persis.exists()) persis.delete();
+			return false;
 		}
 		finally {
 			try {
@@ -431,6 +503,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 		private SpoolerEngineImpl engine;
 		private boolean sleeping;
+		private volatile boolean stopped;
 		private final int maxThreads;
 		private ConfigWeb config;
 
@@ -459,12 +532,13 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 			TaskThread tt;
 			int adds;
 
-			while (getOpenTaskCount() > 0) {
+			while (!stopped && getOpenTaskCount() > 0) {
 				adds = engine.adds();
 				taskNames = getOpenDirectory().list(FILTER);
 				// tasks=engine.getOpenTasks();
 				nextExection = Long.MAX_VALUE;
 				for (int i = 0; i < taskNames.length; i++) {
+					if (stopped) break;
 					task = getTaskByName(getOpenDirectory(), taskNames[i]);
 					if (task == null) continue;
 
@@ -478,6 +552,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 				}
 
 				nextExection = joinTasks(runningTasks, 0, nextExection);
+				if (stopped) break;
 				if (adds != engine.adds()) continue;
 
 				if (nextExection == Long.MAX_VALUE) break;
@@ -664,6 +739,48 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 	public Resource getPersisDirectory(ConfigWeb config) {
 		return config.getRemoteClientDirectory();
+	}
+}
+
+/**
+ * Reads a persisted task. Most Lucee classes have no explicit serialVersionUID, so Java computes one from the
+ * class shape (methods, interfaces, ...), and it often changes between versions even if the serialized fields
+ * stay the same. A task written before an update (e.g. a queued mail) then fails with "local class
+ * incompatible" and is lost (LDEV-3213). When the serialized fields of the stream and the local class are the
+ * same, the local class descriptor is used instead. If the fields differ, the stream is read as before (and
+ * fails as before).
+ */
+final class TaskInputStream extends JavaConverter.ObjectInputStreamImpl {
+
+	public TaskInputStream(ClassLoader cl, InputStream in) throws IOException {
+		super(cl, in);
+	}
+
+	@Override
+	protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
+		ObjectStreamClass streamDesc = super.readClassDescriptor();
+		Class<?> local;
+		try {
+			local = resolveClass(streamDesc);
+		}
+		catch (ClassNotFoundException cnfe) {
+			return streamDesc;
+		}
+		ObjectStreamClass localDesc = ObjectStreamClass.lookup(local);
+		if (localDesc == null || localDesc.getSerialVersionUID() == streamDesc.getSerialVersionUID()) return streamDesc;
+		if (!sameFields(streamDesc.getFields(), localDesc.getFields())) return streamDesc;
+		return localDesc;
+	}
+
+	private static boolean sameFields(ObjectStreamField[] left, ObjectStreamField[] right) {
+		if (left.length != right.length) return false;
+		for (int i = 0; i < left.length; i++) {
+			if (!left[i].getName().equals(right[i].getName())) return false;
+			if (left[i].getTypeCode() != right[i].getTypeCode()) return false;
+			String l = left[i].getTypeString(), r = right[i].getTypeString();
+			if (l == null ? r != null : !l.equals(r)) return false;
+		}
+		return true;
 	}
 }
 

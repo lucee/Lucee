@@ -179,6 +179,23 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private static final RHExtension[] RHEXTENSIONS_EMPTY = new RHExtension[0];
 
+	// DAP secret - required to register a debugger listener. If not set, DAP debugger is disabled.
+	public static final String DEBUGGER_SECRET;
+	// DAP debugger active - controls bytecode instrumentation for stepping/breakpoints (default true when secret set)
+	public static final boolean DEBUGGER;
+	static {
+		String secret = SystemUtil.getSystemPropOrEnvVar("lucee.dap.secret", null);
+		if (secret != null && !secret.trim().isEmpty()) {
+			DEBUGGER_SECRET = secret.trim();
+			// Breakpoint support defaults to true, can be disabled for console-only mode
+			DEBUGGER = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.dap.breakpoint", null), true);
+		}
+		else {
+			DEBUGGER_SECRET = null;
+			DEBUGGER = false;
+		}
+	}
+
 	private Integer mode;
 	private static final double DEFAULT_VERSION = 5.0d;
 	private static final long CACHE_DIR_SIZE_DEFAULT = 1024L * 1024L * 100L;
@@ -205,10 +222,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Boolean mergeFormAndURL;
 
-	private Map<String, LoggerAndSourceData> loggers;
+	private volatile Map<String, LoggerAndSourceData> loggers;
 
 	private Integer debugLogOutput;
-	private Integer debugOptions;
+	private volatile Integer debugOptions;
 
 	private boolean suppresswhitespace = false;
 	private Boolean suppressContent;
@@ -304,6 +321,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private ResourceProvider defaultResourceProvider;
 
 	private ProxyData proxy = null;
+	private boolean initProxy = true;
 
 	private Resource clientScopeDir;
 	private Resource sessionScopeDir;
@@ -372,7 +390,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Boolean executionLogEnabled;
 	private ExecutionLogFactory executionLogFactory;
-	private final Map<String, ORMEngine> ormengines = new HashMap<String, ORMEngine>();
+	private final Map<String, ORMEngine> ormengines = new ConcurrentHashMap<String, ORMEngine>();
 	private ClassDefinition<? extends ORMEngine> cdORMEngine;
 	private ORMConfiguration ormConfig;
 
@@ -1123,8 +1141,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		try {
 			cl = getRPCClassLoader(false);
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 		if (cl != null) return cl;
 		return SystemUtil.getCoreClassLoader();
 
@@ -1402,8 +1419,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 						try {
 							scheduler = new SchedulerImpl(ConfigUtil.getEngine(this), this, new ArrayImpl());
 						}
-						catch (PageException e1) {
-						}
+						catch (PageException e1) {}
 					}
 				}
 			}
@@ -2238,7 +2254,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					ImportDefintion di = getComponentDefaultImport();
 					String pack = di == null ? null : di.getPackageAsPath();
 					if (StringUtil.isEmpty(pack, true)) pack = "";
-					else if (!pack.endsWith("/")) pack += "";
+					else if (!pack.endsWith("/")) pack += "/";
 					// name
 					String componentName = getBaseComponentTemplate();
 
@@ -2287,18 +2303,16 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 									try {
 										physical = p.getCanonicalPath() + " (" + m.getStrPhysical() + ")";
 									}
-									catch (IOException e) {
-									}
+									catch (IOException e) {}
 								}
 
 								Resource a = m.getArchive();
 								String archive = m.getStrArchive();
-								if (p != null) {
+								if (a != null) {
 									try {
 										archive = a.getCanonicalPath() + " (" + m.getStrArchive() + ")";
 									}
-									catch (IOException e) {
-									}
+									catch (IOException e) {}
 								}
 
 								detail.append(physical).append(':').append(archive);
@@ -3131,14 +3145,27 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	@Override
 	public ProxyData getProxyData() {
+		if (initProxy) {
+			synchronized (SystemUtil.createToken("ConfigImpl", "getProxyData")) {
+				if (initProxy) {
+					proxy = ConfigFactoryImpl.loadProxy(this, root);
+					initProxy = false;
+				}
+			}
+		}
 		return proxy;
 	}
 
-	/**
-	 * @param proxy the proxyPassword to set
-	 */
-	protected void setProxyData(ProxyData proxy) {
-		this.proxy = proxy;
+	public ConfigImpl resetProxyData() {
+		if (!initProxy) {
+			synchronized (SystemUtil.createToken("ConfigImpl", "getProxyData")) {
+				if (!initProxy) {
+					proxy = null;
+					initProxy = true;
+				}
+			}
+		}
+		return this;
 	}
 
 	@Override
@@ -3258,7 +3285,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	private static final Object dclt = new SerializableObject();
-	private static final long POOL_MAX_IDLE = 60000;
+	private static final long POOL_MAX_IDLE = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.pool.maxIdle", null), 60) * 1000L;
 
 	@Override
 	public PhysicalClassLoader getDirectClassLoader(boolean reload) throws IOException {
@@ -3555,7 +3582,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		String id = DatasourceConnectionFactory.createId(ds, user, pass);
 		DatasourceConnPool pool = pools.get(id);
 		if (pool == null) {
-			synchronized (id) {
+			synchronized (SystemUtil.createToken("dsPool", id)) {
 				pool = pools.get(id);
 				if (pool == null) {// TODO add config but from where?
 					DataSourcePro dsp = (DataSourcePro) ds;
@@ -3569,7 +3596,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 					// maxWaitMillis: how long to wait for a connection when pool is exhausted (30 seconds)
 					long maxWaitMillis = 30000L;
-					// minEvictableIdleTimeMillis: use idleTimeout (in minutes) for how long connection can be idle before eviction
+					// minEvictableIdleTimeMillis: use idleTimeout (in minutes) for how long connection can be idle
+					// before eviction
 					// -1 = not set (use default 10 minutes), 0 = infinite (no eviction), >0 = use that value
 					int idleTimeout = dsp.getIdleTimeout();
 					long minEvictableIdleTimeMillis;
@@ -3583,33 +3611,28 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 						minEvictableIdleTimeMillis = 10 * 60000L; // default: 10 minutes
 					}
 
-					pool = new DatasourceConnPool(this, ds, user, pass, "datasource",
-							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt, maxWaitMillis, minEvictableIdleTimeMillis, 0, 0, 0, null));
+					pool = new DatasourceConnPool(this, ds, user, pass, "datasource", DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt,
+							maxWaitMillis, minEvictableIdleTimeMillis, 0, 0, 0, null));
 					pools.put(id, pool);
-					cleanConnectionPools(id);
 				}
 			}
 		}
 		return pool;
 	}
 
-	private void cleanConnectionPools(String excludeId) {
-		DatasourceConnPool pool;
-		List<String> keysToRemove = null;
+	// mark-then-sweep across two ticks: any borrow between mark and sweep clears the mark
+	public void cleanDatasourceConnectionPools() {
+		long now = System.currentTimeMillis();
 		for (Entry<String, DatasourceConnPool> e: pools.entrySet()) {
-			if (excludeId.equals(e.getKey())) {
-				continue;
-			}
-			pool = e.getValue();
-			if ((pool.getNumActive() + pool.getNumIdle() + pool.getNumWaiters()) == 0 && (pool.getLastBorrowed() + POOL_MAX_IDLE) < System.currentTimeMillis()) {
-				if (keysToRemove == null) keysToRemove = new ArrayList<>();
-				keysToRemove.add(e.getKey());
-			}
-		}
-
-		if (keysToRemove != null) {
-			for (String k: keysToRemove) {
-				pools.remove(k);
+			DatasourceConnPool pool = e.getValue();
+			if ((pool.getNumActive() + pool.getNumIdle() + pool.getNumWaiters()) == 0 && (pool.getLastBorrowed() + POOL_MAX_IDLE) < now) {
+				if (pool.isEvictionCandidate()) {
+					pool.close();
+					pools.remove(e.getKey(), pool);
+				}
+				else {
+					pool.setEvictionCandidate(true);
+				}
 			}
 		}
 	}
@@ -3626,13 +3649,23 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public void removeDatasourceConnectionPool(DataSource ds) {
+		removeDatasourceConnectionPool(ds.getName());
+	}
+
+	@Override
+	public void removeDatasourceConnectionPool(String name) {
+		List<Entry<String, DatasourceConnPool>> matches = null;
 		for (Entry<String, DatasourceConnPool> e: pools.entrySet()) {
-			if (e.getValue().getFactory().getDatasource().getName().equalsIgnoreCase(ds.getName())) {
-				synchronized (e.getKey()) {
-					pools.remove(e.getKey());
-				}
-				e.getValue().clear();
+			if (e.getValue().getFactory().getDatasource().getName().equalsIgnoreCase(name)) {
+				if (matches == null) matches = new ArrayList<>();
+				matches.add(e);
 			}
+		}
+		if (matches == null) return;
+		// close first, then CAS-remove: if close() throws, entry stays in the map and bg sweep retries
+		for (Entry<String, DatasourceConnPool> e: matches) {
+			e.getValue().close();
+			pools.remove(e.getKey(), e.getValue()); // CAS — only remove if value unchanged
 		}
 	}
 
@@ -4410,7 +4443,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (inspectTemplate == -1) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getInspectTemplate")) {
 				if (inspectTemplate == -1) {
-					String strInspectTemplate = ConfigFactoryImpl.getAttr(this, root, "inspectTemplate");
+					String strInspectTemplate = SystemUtil.getSystemPropOrEnvVar("lucee.inspect.template", null);
+					if (StringUtil.isEmpty(strInspectTemplate, true)) strInspectTemplate = ConfigFactoryImpl.getAttr(this, root, "inspectTemplate");
 					if (!StringUtil.isEmpty(strInspectTemplate, true)) {
 						inspectTemplate = ConfigUtil.inspectTemplate(strInspectTemplate, ConfigPro.INSPECT_AUTO);
 					}
@@ -4613,6 +4647,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public boolean getExecutionLogEnabled() {
+		if (DEBUGGER) return true;
+
 		if (executionLogEnabled == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getExecutionLogEnabled")) {
 				if (executionLogEnabled == null) {
@@ -4673,34 +4709,34 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 		ORMEngine engine = ormengines.get(name);
 		if (engine == null) {
-			// try {
-			Throwable t = null;
+			synchronized (SystemUtil.createToken("ConfigImpl", "getORMEngine:" + name)) {
+				engine = ormengines.get(name);
+				if (engine == null) {
+					Throwable t = null;
 
-			try {
-				engine = (ORMEngine) ClassUtil.loadInstance(getORMEngineClassDefintion().getClazz());
-				engine.init(pc);
-			}
-			catch (ClassException ce) {
-				t = ce;
-			}
-			catch (BundleException be) {
-				t = be;
-			}
-			catch (NoClassDefFoundError ncfe) {
-				t = ncfe;
-			}
+					try {
+						engine = (ORMEngine) ClassUtil.loadInstance(getORMEngineClassDefintion().getClazz());
+						engine.init(pc);
+					}
+					catch (ClassException ce) {
+						t = ce;
+					}
+					catch (BundleException be) {
+						t = be;
+					}
+					catch (NoClassDefFoundError ncfe) {
+						t = ncfe;
+					}
 
-			if (t != null) {
-				ApplicationException ae = new ApplicationException(
-						"cannot initialize ORM Engine [" + getORMEngineClassDefintion() + "], make sure you have added all the required jar files");
-				ExceptionUtil.initCauseEL(ae, t);
-				throw ae;
-
+					if (t != null) {
+						ApplicationException ae = new ApplicationException(
+								"cannot initialize ORM Engine [" + getORMEngineClassDefintion() + "], make sure you have added all the required jar files");
+						ExceptionUtil.initCauseEL(ae, t);
+						throw ae;
+					}
+					ormengines.put(name, engine);
+				}
 			}
-			ormengines.put(name, engine);
-			/*
-			 * } catch (PageException pe) { throw pe; }
-			 */
 		}
 
 		return engine;
@@ -4778,7 +4814,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
 		if (applicationPathCache == null) return null;
-		String id = (path + ":" + filename + ":" + mode).toLowerCase();
+		String id = path + ":" + filename + ":" + mode;
 
 		SoftReference<CacheElement> tmp = getApplicationPathCacheTimeout() <= 0 ? null : applicationPathCache.get(id);
 		if (tmp != null) {
@@ -4797,7 +4833,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
 		if (getApplicationPathCacheTimeout() <= 0) return;
 		if (applicationPathCache == null) applicationPathCache = new ConcurrentHashMap<String, SoftReference<CacheElement>>();// MUSTMUST new
-		String id = (path + ":" + filename + ":" + mode).toLowerCase();
+		String id = path + ":" + filename + ":" + mode;
 		applicationPathCache.put(id, new SoftReference<CacheElement>(new CacheElement(ps, isCFC)));
 	}
 
@@ -5486,8 +5522,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 				}
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 
 			if (list == null) loggers.clear();
 			else {
@@ -6290,6 +6325,17 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return javaSettings;
 	}
 
+	public ConfigImpl resetJavaSettings() {
+		if (javaSettings != null) {
+			synchronized (javaSettingsInstances) {
+				if (javaSettings != null) {
+					javaSettings = null;
+				}
+			}
+		}
+		return this;
+	}
+
 	@Override
 	public Resource getExtensionDirectory() {
 		return getExtensionInstalledDir();
@@ -6360,11 +6406,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		baseComponentPageSource = null;
 	}
 
-	public void resetAll() throws IOException {
+	public void resetAll() throws Exception {
 		resetAll(null);
 	}
 
-	public void resetAll(ResetFilter filter) throws IOException {
+	public void resetAll(ResetFilter filter) throws Exception {
 		List<Method> methods = Reflector.getMethods(this.getClass());
 		if (filter == null) {
 			for (Method method: methods) {

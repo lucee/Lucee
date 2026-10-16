@@ -555,8 +555,7 @@ public final class Directory extends TagImpl {
 			sct.setEL("directoryCreated", new DateTimeImpl(attr.creationTime().toMillis()));
 			sct.setEL(KeyConstants._dateLastModified, new DateTimeImpl(attr.lastModifiedTime().toMillis()));
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 
 		return sct;
 	}
@@ -716,11 +715,10 @@ public final class Directory extends TagImpl {
 		if (createPath && mode != -1 && !directory.getParentResource().exists()) {
 			// need to create paths and apply mode to them
 			Resource tmp = directory.getParentResource();
-			while (!tmp.exists()){
+			while (!tmp.exists()) {
 				newDirectories.add(tmp);
 				tmp = tmp.getParentResource();
 			}
-			lucee.aprint.o(newDirectories);
 		}
 
 		try {
@@ -739,7 +737,7 @@ public final class Directory extends TagImpl {
 		if (mode != -1) {
 			try {
 				directory.setMode(mode);
-				for (Resource newDir: newDirectories){
+				for (Resource newDir: newDirectories) {
 					newDir.setMode(mode);
 				}
 				// FileUtil.setMode(directory,mode);
@@ -828,9 +826,10 @@ public final class Directory extends TagImpl {
 
 		// check directory is empty
 		Resource[] dirList = dir.listResources();
-		if (dirList != null && dirList.length > 0 && forceDelete == false)
-			throw new ApplicationException("Directory [" + dir.toString() + "] is not empty", "Set recurse=true to delete sub-directories and files");
-
+		if (dirList != null && dirList.length > 0) {
+			if (!forceDelete) throw new ApplicationException("Directory [" + dir.toString() + "] is not empty", "Set recurse=true to delete sub-directories and files");
+			ResourceUtil.deleteContent(dir, null);
+		}
 		// delete directory
 		try {
 			dir.remove(forceDelete);
@@ -947,7 +946,8 @@ public final class Directory extends TagImpl {
 	}
 
 	public static String getFileAttribute(Resource file) {
-		// Windows-only attributes (R=ReadOnly, H=Hidden). On Unix, return empty string to avoid unnecessary syscalls.
+		// Windows-only attributes (R=ReadOnly, H=Hidden). On Unix, return empty string to avoid unnecessary
+		// syscalls.
 		if (!IS_WINDOWS) return "";
 
 		// Optimized: fetch both attributes in a single syscall for FileResource on Windows
@@ -970,7 +970,8 @@ public final class Directory extends TagImpl {
 	}
 
 	public static String getFileAttribute(Path path) {
-		// Windows-only attributes (R=ReadOnly, H=Hidden). On Unix, return empty string to avoid unnecessary syscalls.
+		// Windows-only attributes (R=ReadOnly, H=Hidden). On Unix, return empty string to avoid unnecessary
+		// syscalls.
 		if (!IS_WINDOWS) return "";
 
 		String hidden;

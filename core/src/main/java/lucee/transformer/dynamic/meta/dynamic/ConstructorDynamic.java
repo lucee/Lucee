@@ -1,20 +1,22 @@
 package lucee.transformer.dynamic.meta.dynamic;
 
-import java.io.IOException;
+import java.util.function.BiFunction;
 
 import org.objectweb.asm.Type;
 
-import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.reflection.Reflector;
-import lucee.runtime.reflection.pairs.ConstructorInstance;
+import lucee.runtime.op.Caster;
 import lucee.transformer.bytecode.util.ASMUtil;
+import lucee.transformer.dynamic.DynamicInvoker;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.Constructor;
 
 class ConstructorDynamic extends FunctionMemberDynamic implements Constructor {
 
 	private static final long serialVersionUID = 1788921105081153549L;
+	private java.lang.reflect.Constructor constructor;
+	public static boolean USE_DYN_CLASS_CREATION = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.dynamic.invocation", null), false);
 
 	public ConstructorDynamic() {
 		super("<init>");
@@ -68,13 +70,19 @@ class ConstructorDynamic extends FunctionMemberDynamic implements Constructor {
 	}
 
 	@Override
-	public Object newInstance(Object... args) throws IOException {
-		ConstructorInstance ci = Reflector.getConstructorInstance(getDeclaringClass(), args, false);
-		try {
-			return ci.invoke();
+	public Object newInstance(Object... args) throws Exception {
+		if (USE_DYN_CLASS_CREATION) {
+			DynamicInvoker di = DynamicInvoker.getExistingInstance();
+			Clazz clazzz = di.toClazz(getDeclaringClass());
+			return ((BiFunction<Object, Object[], Object>) di.getInstance(clazzz, this, args)).apply(null, args);
+
 		}
-		catch (Exception e) {
-			throw ExceptionUtil.toIOException(e);
+
+		if (constructor == null) {
+			constructor = getDeclaringClass().getConstructor(getArgumentClasses());
 		}
+		return constructor.newInstance(args);
+
 	}
+
 }

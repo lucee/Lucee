@@ -19,6 +19,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -44,6 +45,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.op.Caster;
@@ -220,7 +222,8 @@ public final class MavenUtil {
 				// v = resolvePlaceholders(pdm, v, pdm.getProperties());
 			}
 			if (v == null) {
-				throw new IOException("could not find version for dependency [" + g + ":" + a + "] in [" + current + "]");
+				throw new IOException("No version defined for dependency [" + g + ":" + a + "] in POM [" + current + "]. "
+						+ "Specify a version directly or ensure it is declared in <dependencyManagement>.");
 			}
 		}
 
@@ -436,7 +439,9 @@ public final class MavenUtil {
 					pom = getDependency(localDirectory, rd, current, properties, true, log);
 				}
 				catch (IOException ioe) {
-					LogUtil.log((Config) null, "mvn", ioe, Log.LEVEL_WARN, "application");
+					// LDEV-6321: benign upstream-POM pattern (e.g. Google's dangling ${jackson-core-asl.version}).
+					// Apache Maven core does the same (MNG-5982): warn and skip. Resolution continues without this entry.
+					if (log != null) log.trace("mvn", "Dropping <dependencyManagement> entry: " + ioe.getMessage());
 				}
 				if (pom == null) continue;
 
@@ -503,7 +508,7 @@ public final class MavenUtil {
 			if (!modifed) break;
 		}
 		if (value != null && value.indexOf("${") != -1) {
-			throw new IOException("Cannot resolve [" + value + "] for [" + pom + "], available properties are [" + ListUtil.toList(properties.keySet(), ", ") + "]");
+			throw new IOException("Cannot resolve [" + value + "] in POM [" + pom + "]");
 		}
 		return value;
 	}
@@ -517,8 +522,7 @@ public final class MavenUtil {
 			try {
 				download(pom, repositories, type, log);
 			}
-			catch (IOException e) {
-			}
+			catch (IOException e) {}
 		}, true).start();
 	}
 
@@ -527,7 +531,7 @@ public final class MavenUtil {
 
 		// file is empty or does not exist
 		if (!res.isFile()) {
-			// print.ds("--->" + pom.toString());
+
 			synchronized (SystemUtil.createToken("mvn", res.getAbsolutePath())) {
 				// file is empty or does not exist
 				if (!res.isFile()) {
@@ -553,29 +557,59 @@ public final class MavenUtil {
 							download(pom, repositories, type, log);
 							return res;
 						}
-						throw new IOException("Failed to download [" + pom + "] ");
+
+						throw new IOException("Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] "
+								+ "is not available. A previous download attempt failed and is cached for " + (ARTIFACT_UNAVAILABLE_CACHE_DURATION / 60000) + " minutes. "
+								+ "Delete the '.lastUpdated' file in the local cache to retry immediately.");
 					}
 
 					String scriptName = pom.getGroupId().replace('.', '/') + "/" + pom.getArtifactId() + "/" + pom.getVersion() + "/" + pom.getArtifactId() + "-" + pom.getVersion()
 							+ "." + type;
 					StringBuilder info = null;
+					StringBuilder failureSummary = null;
+					Exception lastException = null;
 					try {
 						if (repositories == null || repositories.isEmpty()) repositories = pom.getRepositories();
 
 						if (repositories == null || repositories.size() == 0) {
-							IOException ioe = new IOException("Failed to download java artifact [" + pom.toString() + "] for type [" + type + "]");
-							// "Failed to download java artifact [" + pom.toString() + "] for type [" + type + "], attempted
-							// endpoint(s): [" + sb + "]");
-							// if (cause != null) ExceptionUtil.initCauseEL(ioe, cause);
-							throw ioe;
+							throw new IOException("Failed to download Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] " + "(type: "
+									+ type + "). No repositories are configured. " + "Ensure at least one repository is defined in the POM or Lucee configuration.");
 						}
 						// url = pom.getArtifact(type, repositories);
 						//////// if (log != null) log.info("maven", "download [" + url + "]");
 						URL url;
 						CloseableHttpClient httpClient;
+						int policy = CFMLEngineImpl.getActiveDownloadPolicy();
+
+						boolean isSnapshot = pom.getVersion().endsWith("-SNAPSHOT");
+						int eligibleRepoCount = 0;
+						for (Repository r: repositories) {
+							if (isSnapshot ? r.isSnapshotsEnabled() : r.isReleasesEnabled()) eligibleRepoCount++;
+						}
+						if (eligibleRepoCount == 0) {
+							throw new IOException("Failed to download Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] " + "(type: "
+									+ type + "). No " + (isSnapshot ? "snapshot-capable" : "release-capable") + " repository is configured among the " + repositories.size()
+									+ " available. " + "Configure a repository that serves " + (isSnapshot ? "snapshot" : "release") + " artifacts.");
+						}
+
 						for (Repository r: sort(repositories)) {
+							if (isSnapshot && !r.isSnapshotsEnabled()) continue;
+							if (!isSnapshot && !r.isReleasesEnabled()) continue;
 							url = null;
 							httpClient = null;
+							if (policy == CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_ERROR) {
+								throw new IOException("Lucee is unable to resolve the Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion()
+										+ "] " + "(type: " + type + ") because Maven downloads are blocked by policy. "
+										+ "To allow downloads, set the system property or environment variable " + "'lucee.maven.download.policy' to 'warn' or 'ignore'. ");
+							}
+							else if (policy == CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_WARN) {
+								LogUtil.log(CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_LOG_LEVEL, "maven",
+										"Downloading Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] " + "(type: " + type
+												+ "). Maven download policy is set to 'warn'. "
+												+ "Set the system property or environment variable 'lucee.maven.download.policy' to "
+												+ "'error' to block downloads or 'ignore' to suppress this warning.");
+							}
+
 							try {
 								url = new URL(r.getUrl() + scriptName);
 								httpClient = HttpClients.createDefault();
@@ -601,6 +635,7 @@ public final class MavenUtil {
 										finally {
 											IOUtil.closeEL(is);
 											HTTPUtil.validateDownload(url, response, tmp, pom.getChecksum(), true, ex);
+											res.getParentResource().mkdirs();
 											tmp.moveTo(res);
 										}
 										deleteLastUpdated(res);
@@ -614,18 +649,40 @@ public final class MavenUtil {
 									}
 								}
 								else {
+									String retryAfter = null;
+									if (sc == 429 || sc == 503) {
+										Header h = response.getFirstHeader("Retry-After");
+										if (h != null) retryAfter = h.getValue();
+									}
 									if (info == null) info = createInfo();
-									info.append(r).append(".error=").append('\n');
+									// match Apache Maven Resolver convention: empty .error= for 404 (NOT_FOUND), status code otherwise
+									info.append(r).append(".error=").append(sc == 404 ? "" : String.valueOf(sc)).append('\n');
 									info.append(r).append(".lastUpdated=").append(System.currentTimeMillis()).append('\n');
 									EntityUtils.consume(entity); // Ensure the response entity is fully consumed
-									// throw new IOException("Failed to download: " + url + " for [" + pom + "] - " +
-									// response.getStatusLine().getStatusCode());
+									String detail = String.valueOf(sc) + (retryAfter != null ? " (Retry-After: " + retryAfter + ")" : "");
+									failureSummary = appendFailure(failureSummary, repoLabel(r), detail);
+									if (log != null) {
+										// 404 is "not on this repo" — expected during fallback flows, demote to INFO
+										// other status codes (429 rate-limit, 5xx, 4xx-non-404) are actionable failures
+										String logMsg = "download failed for [" + pom + ":" + type + "] from [" + url + "] - HTTP " + sc
+												+ (retryAfter != null ? ", Retry-After: " + retryAfter : "");
+										if (sc == 404) log.info("maven", logMsg);
+										else log.error("maven", logMsg);
+									}
 								}
 							}
 							catch (Exception e) {
+								String safeMsg = e.getMessage() == null ? "" : e.getMessage().replace('\n', ' ').replace('\r', ' ');
+								String exSummary = e.getClass().getSimpleName() + (safeMsg.isEmpty() ? "" : ": " + safeMsg);
 								if (info == null) info = createInfo();
-								info.append(r).append(".error=").append('\n');
+								info.append(r).append(".error=").append(exSummary).append('\n');
 								info.append(r).append(".lastUpdated=").append(System.currentTimeMillis()).append('\n');
+								lastException = e;
+								failureSummary = appendFailure(failureSummary, repoLabel(r), exSummary);
+								if (log != null) {
+									log.error("maven", "download failed for [" + pom + ":" + type + "] from [" + (url != null ? url : r.getUrl()) + "] - "
+											+ e.getClass().getName() + ": " + safeMsg);
+								}
 							}
 							finally {
 								if (httpClient != null) httpClient.close();
@@ -633,14 +690,24 @@ public final class MavenUtil {
 						}
 					}
 					catch (IOException ioe) {
-						createLastUpdated(res, info);
-						IOException ex = new IOException("Failed to download [ " + pom + ":" + type + "]");
-						ExceptionUtil.initCauseEL(ex, ioe);
+						if (info != null) createLastUpdated(res, info);
+						if (failureSummary == null && lastException == null) throw ioe;
+						StringBuilder m = new StringBuilder("Failed to download Maven artifact [").append(pom.getGroupId()).append(":").append(pom.getArtifactId()).append(":")
+								.append(pom.getVersion()).append("] (type: ").append(type).append("). Check network connectivity and repository availability.");
+						if (failureSummary != null) m.append(" - ").append(failureSummary);
+						IOException ex = new IOException(m.toString());
+						ExceptionUtil.initCauseEL(ex, lastException != null ? lastException : ioe);
 						// MUST add again ResourceUtil.deleteEmptyFoldersInside(pom.getLocalDirectory());
 						throw ex;
 					}
 					createLastUpdated(res, info);
-					throw new IOException("Failed to download [" + pom + ":" + type + "] from " + repositories.size() + " repositories");
+					StringBuilder m = new StringBuilder("Failed to download Maven artifact [").append(pom.getGroupId()).append(":").append(pom.getArtifactId()).append(":")
+							.append(pom.getVersion()).append("] (type: ").append(type).append(") after trying all ").append(repositories.size())
+							.append(" configured repositories. Verify the artifact coordinates are correct and the repositories are accessible.");
+					if (failureSummary != null) m.append(" - ").append(failureSummary);
+					IOException ex = new IOException(m.toString());
+					if (lastException != null) ExceptionUtil.initCauseEL(ex, lastException);
+					throw ex;
 				}
 			}
 		}
@@ -652,8 +719,24 @@ public final class MavenUtil {
 				.append(ZonedDateTime.now().format(MAVEN_DATE_FORMATTER)).append('\n');
 	}
 
+	private static StringBuilder appendFailure(StringBuilder sb, String label, String detail) {
+		if (sb == null) sb = new StringBuilder();
+		else sb.append("; ");
+		sb.append(label).append(": ").append(detail);
+		return sb;
+	}
+
+	private static String repoLabel(Repository r) {
+		String name = r.getName();
+		if (!StringUtil.isEmpty(name)) return name;
+		String id = r.getId();
+		if (!StringUtil.isEmpty(id)) return id;
+		return r.getUrl();
+	}
+
 	private static void createLastUpdated(Resource res, StringBuilder info) throws IOException {
 		Resource lastUpdated = res.getParentResource().getRealResource(res.getName() + ".lastUpdated");
+		lastUpdated.getParentResource().mkdirs();
 		// print.e(lastUpdated);
 		// print.e(info);
 		IOUtil.write(lastUpdated, info.toString(), CharsetUtil.UTF8, false);
@@ -703,17 +786,20 @@ public final class MavenUtil {
 	}
 
 	public static int toScopes(String scopes) throws IOException {
-		if (StringUtil.isEmpty(scopes, true)) throw new IOException("there is no scope defined");
+		if (StringUtil.isEmpty(scopes, true))
+			throw new IOException("No Maven dependency scope defined. " + "Specify at least one scope from: compile, test, provided, runtime, system, import.");
 		return toScopes(ListUtil.listToStringArray(scopes, ','));
 	}
 
 	public static int toScopes(String[] scopes) throws IOException {
-		if (scopes.length == 0) throw new IOException("there is no scope defined");
+		if (scopes.length == 0) throw new IOException("No Maven dependency scope defined. " + "Specify at least one scope from: compile, test, provided, runtime, system, import.");
 
 		int rtn = 0, tmp;
 		for (String scope: scopes) {
 			tmp = toScope(scope, 0);
-			if (tmp == 0) throw new IOException("scope [" + scope + "] is not a supported scope, valid scope names are [compile,test,provided,runtime,system,import]");
+			if (tmp == 0) {
+				throw new IOException("Invalid Maven scope [" + scope.trim() + "]. " + "Supported values are: compile, test, provided, runtime, system, import.");
+			}
 			rtn += tmp;
 		}
 		return rtn;
@@ -822,6 +908,8 @@ public final class MavenUtil {
 	}
 
 	public static GAVSO toGAVSO(Object obj, GAVSO defaultValue) {
+		if (obj instanceof GAVSO) return (GAVSO) obj;
+
 		Struct el = Caster.toStruct(obj, null, false);
 		if (el != null) {
 			String g = Caster.toString(el.get(KeyConstants._groupId, null), null);
@@ -833,7 +921,6 @@ public final class MavenUtil {
 				String v = Caster.toString(el.get(KeyConstants._version, null), null);
 				if (StringUtil.isEmpty(v)) v = Caster.toString(el.get(KeyConstants._v, null), null);
 
-				if (!MavenUtil.isValidVersion(v)) return defaultValue;
 				return new GAVSO(g, a,
 
 						v,
@@ -857,7 +944,6 @@ public final class MavenUtil {
 		if (!StringUtil.isEmpty(str)) {
 			String[] arr = ListUtil.listToStringArray(str, ':');
 			if (arr.length > 1 && arr.length < 7) {
-				if (arr.length > 2 && !MavenUtil.isValidVersion(arr[2].trim())) return defaultValue;
 				return new GAVSO(
 
 						arr[0].trim(), // group
@@ -894,8 +980,6 @@ public final class MavenUtil {
 			if (StringUtil.isEmpty(v)) v = Caster.toString(el.get(KeyConstants._v, null), null);
 			if (StringUtil.isEmpty(v)) throw new ApplicationException("Missing required field: version. Ensure that the 'version' key is present and not empty.");
 
-			if (!MavenUtil.isValidVersion(v)) throw new ApplicationException("maven version [" + v + "]is invalid");
-
 			return new GAVSO(g, a, v,
 
 					Caster.toString(el.get(KeyConstants._scope, null), null),
@@ -912,7 +996,6 @@ public final class MavenUtil {
 		if (!StringUtil.isEmpty(str)) {
 			String[] arr = ListUtil.listToStringArray(str, ':');
 			if (arr.length > 1 && arr.length < 7) {
-				if (arr.length > 2 && !MavenUtil.isValidVersion(arr[2].trim())) throw new ApplicationException("maven version [" + arr[2].trim() + "]is invalid");
 				return new GAVSO(
 
 						arr[0].trim(), // group
@@ -937,19 +1020,13 @@ public final class MavenUtil {
 
 	}
 
-	public static String toString(GAVSO[] gavsos) {
-		StringBuilder sb = new StringBuilder();
-		for (GAVSO g: gavsos) {
-			if (sb.length() > 0) sb.append(',');
-			sb.append(g.toString());
-		}
-		return sb.toString();
-	}
-
+	// LDEV-6250: not called — Maven does not restrict version format (see
+	// maven.apache.org/pom.html#version-order-specification).
+	// Versions like "v4-rev20260213-2.0.0" are valid. Downstream code (POM constructor, download)
+	// already handles null/bad versions.
 	public static boolean isValidVersion(String version) {
 		if (StringUtil.isEmpty(version)) return false;
 
-		// Basic version pattern
 		String versionPattern = "^(\\d+)" + // Major (required)
 				"(?:\\.(\\d+))?" + // Minor (optional)
 				"(?:\\.(\\d+))?" + // Micro (optional)
@@ -958,6 +1035,15 @@ public final class MavenUtil {
 				"$";
 
 		return version.matches(versionPattern);
+	}
+
+	public static String toString(GAVSO[] gavsos) {
+		StringBuilder sb = new StringBuilder();
+		for (GAVSO g: gavsos) {
+			if (sb.length() > 0) sb.append(',');
+			sb.append(g.toString());
+		}
+		return sb.toString();
 	}
 
 	public static Resource getLocalRepository() {
@@ -1018,8 +1104,7 @@ public final class MavenUtil {
 								data.setEL(KeyConstants._location, res.getAbsolutePath());
 								return data;
 							}
-							catch (Exception e) {
-							}
+							catch (Exception e) {}
 						}
 					}
 				}

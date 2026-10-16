@@ -1424,8 +1424,8 @@ public final class SystemUtil {
 		suspendEL(thread);
 		try {
 			if (isInLucee(thread)) {
-				if (!force) thread.interrupt();
-				else thread.stop();
+				// Thread.stop() was removed in Java 26, use interrupt() instead
+				thread.interrupt();
 			}
 			else {
 				if (log != null) {
@@ -1875,15 +1875,26 @@ class Ref {
 class StopThread extends Thread {
 
 	private final PageContext pc;
-	// private final Log log;
+	private final Thread target;
+	private final int requestId;
 
 	public StopThread(PageContext pc) {
 		this.pc = pc;
+		this.target = pc.getThread();
+		this.requestId = ((PageContextImpl) pc).getRequestId();
 	}
 
 	@Override
 	public void run() {
-		SystemUtil.stop(pc, pc.getThread());
+		// LDEV-6155: if the PageContext has been recycled for a new request, bail out.
+		// Without this check, we'd poison the new request by setting timeoutStackTrace
+		// and interrupting its thread.
+		if (((PageContextImpl) pc).getRequestId() != requestId) {
+			Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
+			if (log != null) log.info("StopThread", "skipping stop, PageContext was recycled (original request " + requestId + " already completed)");
+			return;
+		}
+		SystemUtil.stop(pc, target);
 	}
 }
 

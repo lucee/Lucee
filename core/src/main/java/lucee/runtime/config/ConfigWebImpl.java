@@ -1599,6 +1599,21 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public ConfigWebHelper.ResolvedMapping resolveApplicationMappingPath(Resource source, String rawPath) {
+		return helper.resolveApplicationMappingPath(source, rawPath);
+	}
+
+	@Override
+	public void clearResolvedMappingPaths() {
+		helper.clearResolvedMappingPaths();
+	}
+
+	@Override
+	public void revalidateNegativeMappingPaths() {
+		helper.revalidateNegativeMappingPaths();
+	}
+
+	@Override
 	public CIPage getBaseComponentPage(PageContext pc) throws PageException {
 		return helper.getBaseComponentPage(pc);
 	}
@@ -1851,6 +1866,16 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	@Override
 	public void removeDatasourceConnectionPool(DataSource ds) {
 		cs.removeDatasourceConnectionPool(ds);
+	}
+
+	@Override
+	public void removeDatasourceConnectionPool(String name) {
+		cs.removeDatasourceConnectionPool(name);
+	}
+
+	@Override
+	public void cleanDatasourceConnectionPools() {
+		cs.cleanDatasourceConnectionPools();
 	}
 
 	@Override

@@ -1,4 +1,61 @@
 <cfscript>
+    function printClassLoaderUsage() {
+        var config = getPageContext().getConfig();
+        var instr = lucee.runtime.instrumentation.InstrumentationFactory::getInstrumentation(config);
+        var data={};
+        for(var clazz in instr.getAllLoadedClasses()) {
+			var cl=clazz.getClassLoader();
+			var clName=isNull(cl)?"system":cl&"";
+            var classes=data[clName] ?: (data[clName]={});
+			var size=0;
+			if(clName!="system") {
+				var filename=replace(clazz.name,".","/","all");
+                if(left(filename,2)=="[L" && right(filename,1)==";") {
+                    filename=mid(filename,3,len(filename)-3);
+                }
+                else if(left(filename,3)=="[[L" && right(filename,1)==";") {
+                    filename=mid(filename,4,len(filename)-4);
+                }
+                filename=filename&".class";
+                var stream=cl.getResourceAsStream(filename);
+				//[Llucee.runtime.config.ConfigWeb;
+                if(!isNull(stream)) {
+					var barr=stream.readAllBytes();
+					size=len(barr);
+				}
+			}
+			classes[clazz.name]=size;
+        }
+
+		var sizes=queryNew("clName,size,kb,mb","varchar,integer,integer,integer");
+		loop struct=data key="clName" item="classes" {
+			var s=0;
+			loop struct=classes key="className" item="size" {
+				s+=size;
+			}
+			if(s>0) {
+                var row=queryAddRow(sizes);
+                querySetCell(sizes,"clName",clName,row);
+                querySetCell(sizes,"size",s,row);
+                querySetCell(sizes,"kb",int(s/1024),row);
+                querySetCell(sizes,"mb",decimalFormat(s/1024/1024),row);
+            }
+		}
+        querySort(sizes,"size","desc");
+		//dump(sizes);
+        systemOutput("--- ClassLoader Size ----",1,1);
+        loop query=sizes maxrows=10 {
+            systemOutput("#sizes.mb#mb - #sizes.clName#",1,1);
+        }
+
+        loop query=sizes maxrows=10 {
+            //dump(label:sizes.clName,var:data[sizes.clName],expand:false);
+        }
+
+
+    }
+
+
 
 request._start = getTickCount();
 if (execute) {
@@ -7,7 +64,10 @@ request.basedir = basedir;
 request.srcall = srcall;
 request.testFolder = test;
 
-request.SERVERADMINPASSWORD = "webweb";
+// the admin password can be defined via env var LUCEE_ADMIN_PASSWORD (system property lucee.admin.password),
+// which takes precedence over the config file and cannot be changed via updatePassword; use it as-is when defined
+envAdminPW = server.system.environment.LUCEE_ADMIN_PASSWORD ?: ( server.system.properties[ "lucee.admin.password" ] ?: "" );
+request.SERVERADMINPASSWORD = len( envAdminPW ) ? envAdminPW : "webweb";
 server.SERVERADMINPASSWORD = request.SERVERADMINPASSWORD;
 
 NL = "
@@ -21,7 +81,7 @@ for (el in ["bundleId", "debugBuffer", "endTime", "error", "failMessage", "failO
 	fixCase[ucase(el)] = el;
 }
 
-systemOutput("Running tests with Java: #server.java.version# (Compiler: #server.java.javaCompilerVersion?:'unknown'#)", true);
+systemOutput("Running tests with Lucee #server.lucee.version# and Java: #server.java.version# (Compiler: #server.java.javaCompilerVersion?:'unknown'#)", true);
 
 try {
 
@@ -116,14 +176,18 @@ try {
 	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
 	setupTestServices = new test._setupTestServices().setup();
 
-	try {
-		admin
-			action="updatePassword"
-			type="server"
-			oldPassword=""
-			newPassword="#request.SERVERADMINPASSWORD#";
+	// set a password for the admin - but only when it is not already defined via env var / system property
+	// (LUCEE_ADMIN_PASSWORD / lucee.admin.password), which takes precedence and cannot be changed here
+	if ( len( envAdminPW ) EQ 0 ) {
+		try {
+			admin
+				action="updatePassword"
+				type="server"
+				oldPassword=""
+				newPassword="#request.SERVERADMINPASSWORD#";
+		}
+		catch(e){}	// may exist from previous execution
 	}
-	catch(e){}	// may exist from previous execution
 
 	systemOutput( "set admin password #dateTimeFormat(now())#", true );
 
@@ -145,7 +209,7 @@ try {
 		else
 			request.testFilter="";
 	}
-	request.testFilter = ListToArray( trim( request.testFilter ) );
+	request.testFilter = ListToArray( trim( request.testFilter ), ",|" );
 	if ( Arraylen( request.testFilter ) gt 0 )
 		systemOutput( NL & "Filtering only tests with filenames containing: " & request.testFilter.toJson() & NL, true );
 	else
@@ -498,4 +562,6 @@ try {
 }
 
 } // if (execute)
+
+try{printClassLoaderUsage();}catch(ex) {}
 </cfscript>

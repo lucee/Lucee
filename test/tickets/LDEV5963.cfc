@@ -12,8 +12,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-5963 - Pool eviction", function() {
-			// skip: test passes but is slow (~65s) - waits for idleTimeout to expire
-			it( title="evicts idle connections after idleTimeout using DBPoolClear force=false", skip=true, body=function() {
+			it( title="evicts idle connections after idleTimeout using DBPoolClear force=false", skip=isMySqlNotSupported(), body=function() {
 				// Get MySQL datasource credentials
 				var creds = server.getDatasource( "mysql" );
 				var dsName = "LDEV5963_ds";
@@ -38,8 +37,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 					// Connection should be idle now
 					expect( getIdleConnections( dsName ) ).toBeGTE( 1, "Should have at least 1 idle connection" );
 
-					// Wait for idleTimeout to expire (1 minute + buffer)
-					sleep( 65000 );
+					// Shortcut the 1-minute idleTimeout via the pool's public setter
+					// so the test runs in milliseconds rather than minutes.
+					shortenMinIdleEvictable( dsName, 100 );
+					sleep( 200 ); // > minEvictableIdleTimeMillis
 
 					// Evict expired idle connections (force=false uses pool.evict())
 					DBPoolClear( dsName, false );
@@ -54,6 +55,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 				}
 			});
 		});
+	}
+
+	private boolean function isMySqlNotSupported() {
+		return structIsEmpty( server.getDatasource( service="mysql" ) );
+	}
+
+	private void function shortenMinIdleEvictable( required string dsName, required numeric millis ) {
+		var iter = getPageContext().getConfig().getDatasourceConnectionPools().iterator();
+		while ( iter.hasNext() ) {
+			var p = iter.next();
+			if ( p.getFactory().getDatasource().getName() == arguments.dsName ) {
+				p.setMinEvictableIdleTimeMillis( javaCast( "long", arguments.millis ) );
+			}
+		}
 	}
 
 }

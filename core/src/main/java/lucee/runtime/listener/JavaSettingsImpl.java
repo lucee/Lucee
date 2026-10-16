@@ -25,13 +25,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.BundleException;
 
+import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -58,6 +61,7 @@ import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -84,14 +88,13 @@ public final class JavaSettingsImpl implements JavaSettings {
 	private boolean hasBundlesTranslated;
 	private Config config;
 
-	private String id;
+	private Id _id;
 	private static Map<String, Reference<JavaSettings>> settings = new ConcurrentHashMap<>();
 
-	private JavaSettingsImpl(String id, Config config, Collection<POM> poms, Collection<BD> osgis, Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath,
+	private JavaSettingsImpl(Id id, Config config, Collection<POM> poms, Collection<BD> osgis, Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath,
 			boolean reloadOnChange, int watchInterval, String[] watchedExtensions) {
-
 		this.config = config == null ? ThreadLocalPageContext.getConfig() : config;
-		this.id = id;
+		this._id = id;
 		this.poms = poms;
 		this.osgis = osgis;
 		this.resources = resources == null ? new Resource[0] : resources;
@@ -111,32 +114,24 @@ public final class JavaSettingsImpl implements JavaSettings {
 		JavaSettingsImpl li = (JavaSettingsImpl) l;
 		JavaSettingsImpl ri = (JavaSettingsImpl) r;
 
-		String fid = HashUtil.create64BitHashAsString(li.id + ":" + ri.id);
+		Id id = merge(li._id, ri._id);
 
-		JavaSettings js = ((ConfigPro) config).getJavaSettings(fid);
+		JavaSettings js = ((ConfigPro) config).getJavaSettings(id.key);
 		if (js != null) {
 			return js;
 		}
-		List<String> names = new ArrayList<>();
 
-		boolean lEmpty = true;
-		boolean rEmpty = true;
 		// poms
 		Map<String, POM> mapPOMs = new HashMap<>();
 		if (ri.getPoms() != null) {
 			for (POM pom: ri.getPoms()) {
 				mapPOMs.put(pom.id(), pom);
-				rEmpty = false;
 			}
 		}
 		if (li.getPoms() != null) {
 			for (POM pom: li.getPoms()) {
 				mapPOMs.put(pom.id(), pom);
-				lEmpty = false;
 			}
-		}
-		for (POM pom: mapPOMs.values()) {
-			names.add("maven:" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion());
 		}
 
 		// osgis
@@ -144,45 +139,30 @@ public final class JavaSettingsImpl implements JavaSettings {
 		if (ri.osgis != null) {
 			for (BD bd: ri.osgis) {
 				mapOSGIs.put(bd.toString(), bd);
-				rEmpty = false;
 			}
 		}
 		if (li.osgis != null) {
 			for (BD bd: li.osgis) {
 				mapOSGIs.put(bd.toString(), bd);
-				lEmpty = false;
 			}
-		}
-		for (BD bd: mapOSGIs.values()) {
-			names.add("osgi:" + bd.name + ":" + bd.version);
 		}
 
 		// resources
 		Map<String, Resource> mapResources = new HashMap<>();
 		for (Resource res: ri.getResources()) {
 			mapResources.put(res.getAbsolutePath(), res);
-			rEmpty = false;
 		}
 		for (Resource res: li.getResources()) {
 			mapResources.put(res.getAbsolutePath(), res);
-			lEmpty = false;
-		}
-		for (Resource res: mapResources.values()) {
-			names.add("paths:" + res.getAbsolutePath());
 		}
 
 		// bundles
 		Map<String, Resource> mapBundles = new HashMap<>();
 		for (Resource res: ri.getBundles()) {
 			mapBundles.put(res.getAbsolutePath(), res);
-			rEmpty = false;
 		}
 		for (Resource res: li.getBundles()) {
 			mapBundles.put(res.getAbsolutePath(), res);
-			lEmpty = false;
-		}
-		for (Resource res: mapBundles.values()) {
-			names.add("bundles:" + res.getAbsolutePath());
 		}
 
 		// watched extensions
@@ -197,37 +177,29 @@ public final class JavaSettingsImpl implements JavaSettings {
 				mapWatched.put(str, "");
 			}
 		}
-		for (String ext: mapWatched.keySet()) {
-			names.add("ext:" + ext);
-		}
 
-		if (lEmpty) {
-			((ConfigPro) config).setJavaSettings(fid, r);
-			return r;
-		}
-		if (rEmpty) {
-			((ConfigPro) config).setJavaSettings(fid, l);
-			return l;
-		}
-
-		names.add("loadCFMLClassPath:" + ri.loadCFMLClassPath);
-		names.add("reloadOnChange:" + ri.reloadOnChange);
-		names.add("watchInterval:" + ri.watchInterval);
-
-		Collections.sort(names);
-		String id = HashUtil.create64BitHashAsString(names.toString());
-
-		js = ((ConfigPro) config).getJavaSettings(id);
-		if (js != null) {
-			return js;
-		}
 		js = new JavaSettingsImpl(id, config, mapPOMs.values(), mapOSGIs.values(), mapResources.values().toArray(new Resource[mapResources.size()]),
 				mapBundles.values().toArray(new Resource[mapBundles.size()]), ri.loadCFMLClassPath, ri.reloadOnChange, ri.watchInterval,
 				mapWatched.keySet().toArray(new String[mapWatched.size()]));
 
-		((ConfigPro) config).setJavaSettings(fid, js);
-		((ConfigPro) config).setJavaSettings(id, js);
+		((ConfigPro) config).setJavaSettings(id.key, js);
 		return js;
+	}
+
+	private static Id merge(Id left, Id right) {
+		Set<String> set = new HashSet<>();
+		for (String s: left.data) {
+			set.add(s);
+		}
+		for (String s: right.data) {
+			set.add(s);
+		}
+		List<String> list = new ArrayList<>();
+		for (String s: set) {
+			list.add(s);
+		}
+		Collections.sort(list);
+		return new Id(HashUtil.create64BitHashAsString(list.toString()), list);
 	}
 
 	public boolean hasPoms() {
@@ -235,7 +207,7 @@ public final class JavaSettingsImpl implements JavaSettings {
 	}
 
 	public String id() {
-		return id;
+		return _id.key;
 	}
 
 	public Collection<POM> getPoms() {
@@ -313,10 +285,16 @@ public final class JavaSettingsImpl implements JavaSettings {
 	public Resource[] getResourcesTranslated() {
 		if (resourcesTranslated == null) {
 			List<Resource> list = new ArrayList<Resource>();
-			_getResourcesTranslated(list, resources, true);
+			_getResourcesTranslated(list, resources, true, true, false);
 			resourcesTranslated = list.toArray(new Resource[list.size()]);
 		}
 		return resourcesTranslated;
+	}
+
+	private static List<Resource> getResourcesTranslatedForChecksum(Resource[] resources) {
+		List<Resource> list = new ArrayList<Resource>();
+		_getResourcesTranslated(list, resources, true, false, true);
+		return list;
 	}
 
 	@Override
@@ -342,15 +320,17 @@ public final class JavaSettingsImpl implements JavaSettings {
 		return bundlesTranslated;
 	}
 
-	public static void _getResourcesTranslated(List<Resource> list, Resource[] resources, boolean deep) {
+	private static void _getResourcesTranslated(List<Resource> list, Resource[] resources, boolean deep, boolean includeDirectories, boolean includeClasses) {
 		if (ArrayUtil.isEmpty(resources)) return;
 		for (Resource resource: resources) {
 			if (resource.isFile()) {
-				if (ResourceUtil.getExtension(resource, "").equalsIgnoreCase("jar")) list.add(resource);
+				if (ResourceUtil.getExtension(resource, "").equalsIgnoreCase("jar") || (includeClasses && ResourceUtil.getExtension(resource, "").equalsIgnoreCase("class"))) {
+					list.add(resource);
+				}
 			}
 			else if (deep && resource.isDirectory()) {
-				list.add(resource); // add as possible classes dir
-				_getResourcesTranslated(list, resource.listResources(ExtensionResourceFilter.EXTENSION_JAR_NO_DIR), false);
+				if (includeDirectories) list.add(resource); // add as possible classes dir
+				_getResourcesTranslated(list, resource.listResources(ExtensionResourceFilter.EXTENSION_JAR_NO_DIR), false, includeDirectories, includeClasses);
 			}
 		}
 	}
@@ -390,48 +370,21 @@ public final class JavaSettingsImpl implements JavaSettings {
 	}
 
 	public static JavaSettings getInstance(Config config, GAVSO... gavsoArr) {
+		Struct sct = new StructImpl();
+		sct.setEL(KeyConstants._maven, new ArrayImpl(gavsoArr));
+		return getInstance(config, sct, null);
+	}
 
-		List<String> names = new ArrayList<>();
+	public static boolean doMerge(Struct data, boolean defaultValue) {
+		if (data == null) return defaultValue;
+		String strMode = Caster.toString(data.get(KeyConstants._mode, null), null);
+		if (StringUtil.isEmpty(strMode)) return defaultValue;
+		strMode = strMode.trim();
+		if ("replace".equalsIgnoreCase(strMode)) return false;
+		if ("extend".equalsIgnoreCase(strMode)) return true;
+		if ("inherit".equalsIgnoreCase(strMode)) return true;
 
-		// maven
-		Collection<POM> poms = null;
-		{
-
-			if (gavsoArr != null) {
-				Map<String, POM> mapPoms = new HashMap<>();
-				Resource dir = ((ConfigPro) config).getMavenDir();
-				dir.mkdirs();
-				Log log = LogUtil.getLog(config, "mvn", "application");
-				for (GAVSO gavso: gavsoArr) {
-					if (gavso != null) {
-						POM tmp = POM.getInstance(dir, gavso.g, gavso.a, gavso.v, MavenUtil.toScopes(gavso.s, POM.SCOPES_FOR_RUNTIME), log);
-						mapPoms.put("maven:" + tmp.getGroupId() + ":" + tmp.getArtifactId() + ":" + tmp.getVersion(), tmp);
-					}
-				}
-
-				for (String k: mapPoms.keySet()) {
-					names.add(k);
-				}
-				poms = mapPoms.values();
-			}
-		}
-
-		names.add("loadCFMLClassPath:false");
-		names.add("reloadOnChange:false");
-		names.add("watchInterval:" + DEFAULT_WATCH_INTERVAL);
-
-		Collections.sort(names);
-		String id = HashUtil.create64BitHashAsString(names.toString());
-
-		JavaSettings js = ((ConfigPro) config).getJavaSettings(id);
-		if (js != null) {
-			return js;
-		}
-
-		js = new JavaSettingsImpl(id, config, poms, null, RESOURCE_EMPTY, RESOURCE_EMPTY, false, false, DEFAULT_WATCH_INTERVAL, STRING_EMPTY);
-
-		((ConfigPro) config).setJavaSettings(id, js);
-		return js;
+		return defaultValue;
 	}
 
 	public static JavaSettings getInstance(Config config, Struct data, Object addionalResources) {
@@ -550,9 +503,11 @@ public final class JavaSettingsImpl implements JavaSettings {
 			}
 		}
 		Collection<Resource> paths = null;
+		List<String> pathNames = null;
 		if (mapPath != null) {
+			pathNames = new ArrayList<>();
 			for (String k: mapPath.keySet()) {
-				names.add(k);
+				pathNames.add(k);
 			}
 			paths = mapPath.values();
 		}
@@ -586,19 +541,12 @@ public final class JavaSettingsImpl implements JavaSettings {
 		}
 		loadCFMLClassPath = Boolean.TRUE.equals(loadCFMLClassPath);
 		names.add("loadCFMLClassPath:" + loadCFMLClassPath);
-		//// if (loadCFMLClassPath == null) loadCFMLClassPath = base.loadCFMLClassPath();
 
 		// reloadOnChange
-		//// boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyConstants._reloadOnChange, null),
-		// base.reloadOnChange());
 		boolean reloadOnChange = Caster.toBooleanValue(data == null ? null : data.get(KeyConstants._reloadOnChange, null), false);
-		names.add("reloadOnChange:" + reloadOnChange);
 
 		// watchInterval
-		//// int watchInterval = Caster.toIntValue(sct.get(KeyConstants._watchInterval, null),
-		// base.watchInterval());
 		int watchInterval = Caster.toIntValue(data == null ? null : data.get(KeyConstants._watchInterval, null), DEFAULT_WATCH_INTERVAL);
-		names.add("watchInterval:" + watchInterval);
 
 		// watchExtensions
 		Object obj = data == null ? null : data.get(KeyConstants._watchExtensions, null);
@@ -629,10 +577,9 @@ public final class JavaSettingsImpl implements JavaSettings {
 			}
 		}
 
-		Collections.sort(names);
-		String id = HashUtil.create64BitHashAsString(names.toString());
+		Id id = createId(config, names, paths, pathNames, reloadOnChange ? watchInterval : 0);
 
-		JavaSettings js = ((ConfigPro) config).getJavaSettings(id);
+		JavaSettings js = ((ConfigPro) config).getJavaSettings(id.key);
 		if (js != null) {
 			return js;
 		}
@@ -649,8 +596,70 @@ public final class JavaSettingsImpl implements JavaSettings {
 
 		);
 
-		((ConfigPro) config).setJavaSettings(id, js);
+		((ConfigPro) config).setJavaSettings(id.key, js);
 		return js;
+	}
+
+	private static final Map<String, Id> quickMapping = new ConcurrentHashMap<>();
+
+	private static Id createId(Config config, List<String> names, Collection<Resource> paths, List<String> pathNames, int watchInterval) {
+		Collections.sort(names);
+		String base = names.toString();
+		log(config, "createId (watchInterval=" + watchInterval + "s) base: " + base);
+
+		if (paths == null || paths.size() == 0) {
+			String id = HashUtil.create64BitHashAsString(base);
+			log(config, "no paths, returning base hash: " + id);
+			return new Id(id, names);
+		}
+
+		Collections.sort(pathNames);
+		String quick = HashUtil.create64BitHashAsString(base + ":" + pathNames.toString());
+		log(config, "quick hash: " + quick + " from paths: " + pathNames);
+
+		Id cached = quickMapping.get(quick);
+		if (cached != null) {
+			if (watchInterval <= 0) {
+				log(config, "cache hit (no expiry), returning: " + cached.key);
+				return cached;
+			}
+			long ageSeconds = (System.currentTimeMillis() - cached.created) / 1000;
+			if (ageSeconds < watchInterval) {
+				log(config, "cache hit (age=" + ageSeconds + "s < watchInterval=" + watchInterval + "s), returning: " + cached.key);
+				return cached;
+			}
+			log(config, "cache expired (age=" + ageSeconds + "s >= watchInterval=" + watchInterval + "s), recomputing");
+			quickMapping.remove(quick);
+		}
+		else {
+			log(config, "cache miss, computing slow hash");
+		}
+
+		String slow;
+		try {
+			String md5;
+			for (Resource res: JavaSettingsImpl.getResourcesTranslatedForChecksum(paths.toArray(new Resource[paths.size()]))) {
+				md5 = Hash.md5(res, 1024);
+				names.add("checksum:" + md5 + ":" + res.getCanonicalPath());
+			}
+			Collections.sort(names);
+			slow = HashUtil.create64BitHashAsString(names.toString());
+			log(config, "slow hash: " + slow);
+		}
+		catch (IOException e) {
+			LogUtil.log(config, Log.LEVEL_ERROR, "page-source", "IOException computing checksums, falling back to quick hash: " + e.getMessage());
+			slow = quick;
+		}
+		Id id = new Id(slow, names);
+		quickMapping.put(quick, id);
+		log(config, "cached and returning: " + slow);
+		return id;
+	}
+
+	private static void log(Config config, String msg) {
+		if (config != null && LogUtil.doesTrace(config.getLog("application"))) {
+			config.getLog("application").trace("page-source", msg);
+		}
 	}
 
 	public static JavaSettings readJavaSettings(PageContext pc, Struct meta) throws IOException {
@@ -742,6 +751,18 @@ public final class JavaSettingsImpl implements JavaSettings {
 			return name + ":" + version;
 		}
 
+	}
+
+	public static class Id {
+		final private long created = System.currentTimeMillis();
+		final private String key;
+		final private List<String> data;
+
+		public Id(String key, List<String> data) {
+
+			this.key = key;
+			this.data = data;
+		}
 	}
 
 }

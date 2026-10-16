@@ -10,7 +10,7 @@ function createOutput() {
     
     // create session
 	if(!structKeyExists(session, "exceptionAISession") || (session.exceptionAISession.id?:"") != url.id) {
-        ais=LuceeCreateAISession(
+        ais=createAISession(
             name:'id:#url.id#', 
             conversationHistoryLimit:3,
             systemMessage:"You are a Lucee expert specializing in debugging CFML applications. You will analyze exceptions that occur during Lucee (CFML) code execution.

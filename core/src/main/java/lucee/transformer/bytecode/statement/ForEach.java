@@ -84,6 +84,8 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		begin = new Label(); // LDEV-5922 fresh labels per emission, a finally body is written more than once
+		end = new Label();
 		GeneratorAdapter adapter = bc.getAdapter();
 		final int it = adapter.newLocal(Types.ITERATOR);
 		final int item = adapter.newLocal(Types.REFERENCE);

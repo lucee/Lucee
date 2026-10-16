@@ -48,7 +48,7 @@
 						<div id="header">
 							<a id="logo" href="index.cfm"></a>
 						</div>
-						<div class="version-number">#server.lucee.version#</div>
+						<cfif hasNavigation><div class="version-number">#server.lucee.version#</div></cfif>
 					</td>
 				</tr>
 				<tr>

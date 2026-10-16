@@ -213,6 +213,19 @@ this.mappings["#mapping.virtual#"]=<cfif len(mapping.strPhysical) && !len(mappin
 		<div class="itemintro">#stText.Mappings.archiveDesc#</div>
 		<table class="maintbl">
 			<tbody>
+				<cfset _archiveName = mid( mapping.virtual, 2, len( mapping.virtual ) )>
+				<cfif len( _archiveName )>
+					<cfset _archiveName = "archive-" & replace( _archiveName, "/", "-", "all" ) & ".lar">
+				<cfelse>
+					<cfset _archiveName = "archive-root.lar">
+				</cfif>
+				<tr>
+					<th scope="row">#stText.mappings.archivePath#</th>
+					<td nowrap>
+						<cfinputClassic type="text" name="archivePath_#mapping.id#" value="#_archiveName#" style="width:100%">
+						<div class="comment">#stText.mappings.archivePathDesc#</div>
+					</td>
+				</tr>
 				<tr>
 					<th scope="row">#stText.mappings.addCFMLFiles#</th>
 					<td nowrap>

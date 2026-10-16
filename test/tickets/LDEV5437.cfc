@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function beforeAll() {
 		variables.testDir = getTempDirectory() & "LDEV5437" & server.separator.file;
