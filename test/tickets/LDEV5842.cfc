@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="date" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="datetime" {
 
 	function run( testResults, testBox ) {
 		describe( "Test case for LDEV-5842: Handle malformed HTTP date headers with single-digit hours", function() {
