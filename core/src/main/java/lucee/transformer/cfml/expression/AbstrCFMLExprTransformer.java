@@ -381,9 +381,10 @@ public abstract class AbstrCFMLExprTransformer {
 
 				if (expr instanceof ExprBoolean) return expr;
 
-				if (!(expr instanceof Variable)) throw new TemplateException(data.srcCode, "left operand of the Elvis operator has to be a variable or a function call");
+				// LDEV-2672: any expression can be the left operand, a literal (other than null) is never null
+				if (expr instanceof Literal && !data.factory.isNull(expr)) return expr;
 
-				Variable left = (Variable) expr;
+				Expression left = expr;
 				/// LDEV-1201
 				/*
 				 * List<Member> members = left.getMembers(); Member last=null; for(Member m:members) { last=m;
