@@ -1983,6 +1983,30 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			rtn.append("[]");
 		}
 
+		// LDEV-69: associative array syntax URL["number"] / form['x']
+		while (data.srcCode.forwardIfCurrent('[')) {
+			data.srcCode.removeSpace();
+			String key = null;
+			if (data.srcCode.isCurrent('"') || data.srcCode.isCurrent('\'')) {
+				char quote = data.srcCode.getCurrent();
+				data.srcCode.next();
+				int start = data.srcCode.getPos();
+				while (data.srcCode.isValidIndex() && !data.srcCode.isCurrent(quote)) {
+					data.srcCode.next();
+				}
+				key = data.srcCode.substring(start, data.srcCode.getPos() - start);
+				if (!data.srcCode.forwardIfCurrent(quote)) return null;
+			}
+			else {
+				key = identifier(data, true);
+				if (key == null) return null;
+			}
+			data.srcCode.removeSpace();
+			if (!data.srcCode.forwardIfCurrent(']')) return null;
+			rtn.append("[\"").append(key).append("\"]");
+			data.srcCode.removeSpace();
+		}
+
 		data.srcCode.revertRemoveSpace();
 
 		return rtn.toString();
