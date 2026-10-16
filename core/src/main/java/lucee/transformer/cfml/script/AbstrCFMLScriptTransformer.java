@@ -1863,6 +1863,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private Tag _paramStatement(Data data, Body parent) throws TemplateException {
 		if (!data.srcCode.forwardIfCurrent("param ")) return null;
 		Position line = data.srcCode.getPosition();
+		// LDEV-3619 skip additional white space (and comments) before the name/type, "param  a.b=1;"
+		comments(data);
 
 		TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode, "param", data.config.getIdentification());
 		TagParam param = new TagParam(data.factory, line, null);
@@ -1901,7 +1903,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						if (attr == null) {
 							param.addAttribute(new Attribute(false, "name", data.factory.createLitString(tmp2), "string"));
 							param.addAttribute(new Attribute(false, "type", data.factory.createLitString(tmp), "string"));
+							comments(data);
 							if (data.srcCode.forwardIfCurrent('=')) {
+								comments(data);
 								Expression v = attributeValue(data, true);
 								param.addAttribute(new Attribute(false, "default", v, "string"));
 							}
