@@ -529,10 +529,16 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		return defaultValue;
 	}
 
+	private boolean isCaptured(Collection.Key key) {
+		return variable instanceof ClosureScope && ((ClosureScope) variable).containsCapturedKey(key);
+	}
+
 	@Override
 	public Object setEL(Collection.Key key, Object value) {
 		if (checkArguments) {
-			if (localAlways || local.containsKey(key)) return local.setEL(key, value);
+			if (local.containsKey(key)) return local.setEL(key, value);
+			// LDEV-2213: in a closure, update a variable of the enclosing function instead of creating a new local
+			if (localAlways) return isCaptured(key) ? variable.setEL(key, value) : local.setEL(key, value);
 			if (argument.containsFunctionArgumentKey(key)) {
 				if (debug) debugCascadedAccess(pc, argument.getTypeAsString(), key);
 				return argument.setEL(key, value);
@@ -550,7 +556,9 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 	@Override
 	public Object set(Collection.Key key, Object value) throws PageException {
 		if (checkArguments) {
-			if (localAlways || local.containsKey(key)) return local.set(key, value);
+			if (local.containsKey(key)) return local.set(key, value);
+			// LDEV-2213: in a closure, update a variable of the enclosing function instead of creating a new local
+			if (localAlways) return isCaptured(key) ? variable.set(key, value) : local.set(key, value);
 			if (argument.containsFunctionArgumentKey(key)) {
 				if (debug) debugCascadedAccess(pc, argument.getTypeAsString(), key);
 				return argument.set(key, value);
