@@ -226,6 +226,7 @@ public final class BundleProvider {
 		put(mappingsFallback, "org.apache.commons.net", new Info("commons-net", "commons-net"));
 		put(mappingsFallback, "org.apache.commons.pool", new Info("commons-pool", "commons-pool"));
 		put(mappingsFallback, "org.apache.commons.pool2", new Info("org.apache.commons", "commons-pool2"));
+		put(mappingsFallback, "org.apache.commons.text", new Info("org.apache.commons", "commons-text"));
 		put(mappingsFallback, "org.apache.felix.framework", new Info("org.apache.felix", "org.apache.felix.framework"));
 		put(mappingsFallback, "org.apache.fop", new Info[0]);
 		put(mappingsFallback, "org.apache.hadoop.zookeeper", new Info[0]);

@@ -117,7 +117,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="extensions" {
 	}
 
 	private array function getCoreRequiredBundles() {
-		var mfPath = expandPath( "../core/src/main/java/META-INF/MANIFEST.MF" );
+		var mfPath = expandPath( "../../core/src/main/java/META-INF/MANIFEST.MF" ) // LDEV-5841: relative to test/tickets/;
 		var manifest = manifestRead( mfPath );
 		var bundles = manifest.main[ "Require-Bundle" ];
 		var bundleList = listToArray( bundles );

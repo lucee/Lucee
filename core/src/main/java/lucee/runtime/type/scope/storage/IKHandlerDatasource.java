@@ -162,10 +162,11 @@ public final class IKHandlerDatasource implements IKHandler {
 			IKStorageValue existingVal = loadData(pc, appName, name, storageScope.getTypeAsString(), storageScope.getType(), log, dc, false);
 
 			if (storageScope.hasContent()) {
-				IKStorageValue sv = new IKStorageValue(
-						IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(), storageScope.lastModifiedAtInit(), log, type));
+				Map<Collection.Key, IKStorageScopeItem> toStore = IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(),
+						storageScope.lastModifiedAtInit(), log, type);
+				IKStorageValue sv = new IKStorageValue(toStore);
 				executor.update(ci, pc.getCFID(), appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(), log);
-				storageScope.markStored();
+				storageScope.markStored(sv.lastModified(), toStore != data);
 				ScopeContext.trace(log, "Store scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in datasource [" + name + "]");
 			}
 			else if (existingVal != null) {

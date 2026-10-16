@@ -156,7 +156,8 @@ public final class Every extends BIF implements ClosureFunc {
 		Iterator it = (arr instanceof ArrayPro ? ((ArrayPro) arr).entryArrayIterator() : arr.entryIterator());
 		Entry e;
 
-		if (!it.hasNext()) return false; // array is empty or has only null values
+		// LDEV-3873 an empty array returns true (like an empty struct, query or list), an array with only null values stays false (LDEV-1271)
+		if (!it.hasNext()) return arr.size() == 0;
 
 		boolean async = es != null;
 		Object res;

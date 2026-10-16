@@ -227,6 +227,14 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 		return ct.content.get(pc, key, defaultValue);
 	}
 
+	/**
+	 * the values set by the code inside the thread, without the metadata of the thread (LDEV-2773)
+	 */
+	public final Object getContent(PageContext pc, Key key, Object defaultValue) {
+		if (uncoupled != null) return uncoupled.get(pc, key, defaultValue);
+		return ct.content.get(pc, key, defaultValue);
+	}
+
 	@Override
 	public final Object get(Key key) throws PageException {
 		return get((PageContext) null, key);

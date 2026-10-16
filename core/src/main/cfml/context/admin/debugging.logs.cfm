@@ -40,28 +40,24 @@
 <cfparam name="url.action2" default="list">
 <cfparam name="form.mainAction" default="none">
 <cfparam name="form.subAction" default="none">
-<cfset isWeb = request.admintype EQ "web" OR getApplicationSettings().singleContext>
 
-<cfadmin 
+<cfadmin
 	action="securityManager"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="access"
 	secType="debugging">
-    
-<cfif isWeb>
-	<cfadmin 
-		action="getLoggedDebugData"
-		type="#request.adminType#"
-		password="#session["password"&request.adminType]#"
-		returnVariable="logs">
-	<cfadmin 
-		action="getDebugEntry"
-		type="#request.adminType#"
-		password="#session["password"&request.adminType]#"
-		returnVariable="entries">
-</cfif>    
-<cfadmin 
+<cfadmin
+	action="getLoggedDebugData"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="logs">
+<cfadmin
+	action="getDebugEntry"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="entries">
+<cfadmin
 	action="getDebugSetting"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
@@ -121,7 +117,8 @@
             <cfif isNumeric(trim(form.query))><cfset session.debugFilter.query=form.query><cfelse><cfset session.debugFilter.query=""></cfif>
             <cfif isNumeric(trim(form.app))><cfset session.debugFilter.app=form.app><cfelse><cfset session.debugFilter.app=""></cfif>
             <cfif isNumeric(trim(form.total))><cfset session.debugFilter.total=form.total><cfelse><cfset session.debugFilter.total=""></cfif>
-            <cfif isNumeric(trim(form.scope))><cfset session.debugFilter.scope=form.scope><cfelse><cfset session.debugFilter.scope=""></cfif>
+            <!--- the scope filter field is no longer part of the filter form --->
+            <cfif isNumeric(trim(form.scope ?: ""))><cfset session.debugFilter.scope=form.scope><cfelse><cfset session.debugFilter.scope=""></cfif>
 		</cfcase>
         
         #stText.Debug.filter#

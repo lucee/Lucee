@@ -213,7 +213,7 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 
 	@Override
 	public void resetBuffer() {
-		commited = true;
+		// nothing is buffered here, so a reset must not mark the response as committed (LDEV-5952)
 	}
 
 	@Override
@@ -223,7 +223,7 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 
 	@Override
 	public void reset() {
-		commited = true;
+		// nothing is buffered here, so a reset must not mark the response as committed (LDEV-5952)
 	}
 
 	@Override

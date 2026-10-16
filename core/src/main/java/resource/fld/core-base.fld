@@ -15392,7 +15392,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.struct.StructFind</class>
 		<member-name>find</member-name>
 		<keywords>struct,find</keywords>
-		<description>Determines the value associated with a key in a structure.</description>
+		<description>Determines the value associated with a key in a structure. The key may also be a callback (key, value [, struct]) that returns boolean; then the matching value is returned (LDEV-4495).</description>
 		<argument>
 			<name>struct</name>
 			<alias>structure,object</alias>
@@ -15402,9 +15402,10 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         </argument>
 		<argument>
 			<name>key</name>
-			<type>string</type>
+			<alias>object,value,closure,function,udf,callback</alias>
+			<type>any</type>
 			<required>Yes</required>
-            <description>Key whose value to return</description>
+            <description>Key whose value to return, or a callback function/closure that receives (key, value [, struct]) and returns boolean (LDEV-4495)</description>
         </argument>
 		<argument>
 			<name>defaultValue</name>

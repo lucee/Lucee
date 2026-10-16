@@ -55,7 +55,10 @@ public final class ArraySlice extends BIF {
 
 			return get(pc, ArrayUtil.toArrayPro(arr, null), off, to);
 		}
-		return call(pc, arr, arrLen + off, len);
+		// LDEV-2970: a negative offset counts from the end of the array, -1 is the last element
+		if (off == 0 || -off > arrLen) throw new FunctionException(pc, "arraySlice", 2, "offset",
+				"Offset [" + off + "] is invalid, it must be between 1 and " + arrLen + " or between -1 and -" + arrLen + " (counted from the end of the array)");
+		return call(pc, arr, arrLen + off + 1, len);
 	}
 
 	@Override

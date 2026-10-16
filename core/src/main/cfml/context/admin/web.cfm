@@ -444,9 +444,8 @@
 		}
 		else {
 			idName = toIDField(stNavi.label);
-			isCollapsed = !hasActiveItem && application.adminfunctions.getdata('collapsed_' & idName) == 1;
-			strNav = strNav & '<li id="#idName#"#isCollapsed ? ' class="collapsed"':''#><a href="##">' &
-				 stNavi.label & '</a><ul#isCollapsed ? ' style="display:none"':''#>'&subNav& "</ul></li>";
+			// the collapsed state is restored in the browser by initMenu() (admin.js)
+			strNav = strNav & '<li id="#idName#"><a href="##">' & stNavi.label & '</a><ul>'&subNav& "</ul></li>";
 		}
 	}
 	strNav ='<ul id="menu">'& strNav&'</ul>' ;
