@@ -2535,18 +2535,47 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if (oAllowExpression instanceof String) allowExpression = ((String) oAllowExpression).equalsIgnoreCase(nameLC);
 
 		Expression value = null;
+		boolean hasValue = false;
 
 		comments(data);
 
-		// value
-		boolean hasValue = data.srcCode.forwardIfCurrent('=') || (allowColonSeparator && data.srcCode.forwardIfCurrent(':'));
-		if (hasValue) {
+		// LDEV-3963: function metadata (tlt==null): "secured:api" is a compound attribute name
+		// (not name=value). Known attrs still use colon as '='.
+		if (allowColonSeparator && tlt == null && data.srcCode.isCurrent(':') && !isKnownFunctionAttribute(nameLC)) {
+			int peekPos = data.srcCode.getPos();
+			data.srcCode.next();
 			comments(data);
-			value = attributeValue(data, allowExpression);
-
+			String idPart = CFMLTransformer.identifier(data.srcCode, false, false);
+			if (idPart != null) {
+				data.srcCode.removeSpace();
+				if (!data.srcCode.isCurrent('=') && !data.srcCode.isCurrent(':')) {
+					args.remove(args.size() - 1);
+					name = name + ":" + idPart;
+					nameLC = name.toLowerCase();
+					args.add(nameLC);
+					value = defaultValue;
+					hasValue = false;
+				}
+				else {
+					data.srcCode.setPos(peekPos);
+				}
+			}
+			else {
+				data.srcCode.setPos(peekPos);
+			}
 		}
-		else {
-			value = defaultValue;
+
+		if (value == null) {
+			hasValue = data.srcCode.forwardIfCurrent('=') || (allowColonSeparator && data.srcCode.forwardIfCurrent(':'));
+			if (hasValue) {
+				comments(data);
+				value = attributeValue(data, allowExpression);
+				// LDEV-3963: coerce bare identifier to a string literal (access=remote)
+				if (tlt == null) value = asLiteralIdentifier(data, value);
+			}
+			else {
+				value = defaultValue;
+			}
 		}
 		comments(data);
 
@@ -2605,6 +2634,49 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final Expression attributeValue(Data data, boolean allowExpression) throws TemplateException {
 		return allowExpression ? super.expression(data) : transformAsString(data, new String[] { " ", ";", "{" });
+	}
+
+
+	/** LDEV-3963: attributes that keep colon as name=value on function declarations */
+	private static boolean isKnownFunctionAttribute(String nameLC) {
+		if (nameLC == null) return false;
+		switch (nameLC) {
+		case "access":
+		case "output":
+		case "returntype":
+		case "returnformat":
+		case "roles":
+		case "securejson":
+		case "verifyclient":
+		case "restpath":
+		case "httpmethod":
+		case "producer":
+		case "consumes":
+		case "description":
+		case "displayname":
+		case "hint":
+		case "modifier":
+		case "localmode":
+		case "bufferedoutput":
+		case "bufferoutput":
+		case "cachedwithin":
+		case "type":
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	/** LDEV-3963: turn a single-member Variable into a LitString so access=remote works */
+	private Expression asLiteralIdentifier(Data data, Expression value) {
+		if (!(value instanceof lucee.transformer.expression.var.Variable)) return value;
+		lucee.transformer.expression.var.Variable var = (lucee.transformer.expression.var.Variable) value;
+		java.util.List<lucee.transformer.expression.var.Member> members = var.getMembers();
+		if (members != null && members.size() == 1 && members.get(0) instanceof lucee.transformer.expression.var.DataMember) {
+			lucee.transformer.expression.var.DataMember dm = (lucee.transformer.expression.var.DataMember) members.get(0);
+			if (dm.getName() instanceof LitString) return dm.getName();
+		}
+		return value;
 	}
 
 	public static interface EndCondition {
