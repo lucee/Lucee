@@ -1,10 +1,10 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 
-	// LDEV-XXXX: with cache-backed session storage and sessionCluster=true, a CSRF token
+	// LDEV-6594: with cache-backed session storage and sessionCluster=true, a CSRF token
 	// generated after structClear( session ) was not persisted
 
 	function run( testResults, testBox ) {
-		describe( "LDEV-XXXX: CSRF token after structClear( session ) with cache session storage", function() {
+		describe( "LDEV-6594: CSRF token after structClear( session ) with cache session storage", function() {
 
 			it( "token generated in a new session (onSessionStart clears session) verifies, sessionCluster=true", function() {
 				expect( countLost( "cluster", false ) ).toBe( 0 );
@@ -22,7 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 	}
 
 	private numeric function countLost( required string app, required boolean clearInRequest, numeric rounds = 20 ) {
-		var uri = createURI( "LDEVXXXX/" & arguments.app );
+		var uri = createURI( "LDEV6594/" & arguments.app );
 		var lost = 0;
 		for ( var i = 1; i <= arguments.rounds; i++ ) {
 			var cookies = {};
@@ -35,7 +35,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 			var r2 = _InternalRequest( template: "#uri#/index.cfm", url: "verify=" & urlEncodedFormat( data.token ), cookies: { cfid: data.cfid, cftoken: data.cftoken } );
 			if ( r2.filecontent.trim() != "valid" ) lost++;
 		}
-		systemOutput( "LDEV-XXXX #arguments.app# clear=#arguments.clearInRequest#: lost #lost#/#arguments.rounds#", true );
+		systemOutput( "LDEV-6594 #arguments.app# clear=#arguments.clearInRequest#: lost #lost#/#arguments.rounds#", true );
 		return lost;
 	}
 
