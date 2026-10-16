@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function beforeAll(){
 		variables.uri = createuri("LDEV2213");
 		fileWrite(uri&'/Application.cfc',"component {#chr(10)##chr(9)#this.localmode = 'modern';#chr(10)#}");
