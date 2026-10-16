@@ -33,23 +33,23 @@
 		assertEquals("myProperty1,myProperty2,myProperty3,myProperty4",names);
 
 		// property 1
-		assertTrue(propByName.myProperty1.count() >= 2); // access added
+		assertEquals(2,propByName.myProperty1.count());
 		assertEquals("myProperty1",propByName.myProperty1.name);
 		assertEquals("any",propByName.myProperty1.type);
  
 		// property 2
-		assertTrue(propByName.myProperty2.count() >= 2); // access added
+		assertEquals(2,propByName.myProperty2.count());
 		assertEquals("myProperty2",propByName.myProperty2.name);
 		assertEquals("string",propByName.myProperty2.type);
 
 		// property 3
-		assertTrue(propByName.myProperty3.count() >= 3); // access added
+		assertEquals(3,propByName.myProperty3.count());
 		assertEquals("myProperty3",propByName.myProperty3.name);
 		assertEquals("any",propByName.myProperty3.type);
 		assertEquals("",propByName.myProperty3.inject);
 
 		// property 4
-		assertTrue(propByName.myProperty4.count() >= 3); // access added
+		assertEquals(3,propByName.myProperty4.count());
 		assertEquals("myProperty4",propByName.myProperty4.name);
 		assertEquals("any",propByName.myProperty4.type);
 		assertEquals("myService",propByName.myProperty4.inject);
