@@ -38,6 +38,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Collection;
@@ -96,10 +97,12 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	protected String strType;
 	protected int type;
 	private long timeSpan = -1;
+	private long commitInterval = -1;
 	private String storage;
 	private Struct tokens = new StructImpl(Struct.TYPE_SYNC, 4);
 	private long lastModified;
 	private final long lastModifiedAtInit;
+	private long lastStored;
 
 	private IKHandler handler;
 	private String appName;
@@ -110,11 +113,10 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	public IKStorageScopeSupport(PageContext pc, IKHandler handler, String appName, String name, String strType, int type, Map<Collection.Key, IKStorageScopeItem> data,
 			long lastModified, long timeSpan) {
 		// !!! do not store the pagecontext or config object, this object is Serializable !!!
-		Config config = ThreadLocalPageContext.getConfig(pc);
 		this.data0 = data;
 
-		timecreated = doNowIfNull(config, Caster.toDate(data.getOrDefault(KeyConstants._timecreated, null), false, pc.getTimeZone(), null));
-		_lastvisit = doNowIfNull(config, Caster.toDate(data.getOrDefault(KeyConstants._lastvisit, null), false, pc.getTimeZone(), null));
+		timecreated = doNowIfNull(Caster.toDate(data.getOrDefault(KeyConstants._timecreated, null), false, pc.getTimeZone(), null));
+		_lastvisit = doNowIfNull(Caster.toDate(data.getOrDefault(KeyConstants._lastvisit, null), false, pc.getTimeZone(), null));
 
 		if (_lastvisit == null) _lastvisit = timecreated;
 		lastvisit = _lastvisit == null ? 0L : _lastvisit.getTime();
@@ -129,6 +131,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 		// last modified
 		lastModifiedAtInit = this.lastModified = lastModified;
+		lastStored = lastModified;
 
 		this.hitcount = (type == SCOPE_CLIENT) ? Caster.toIntValue(data.getOrDefault(KeyConstants._hitcount, ONE), 1) : 1;
 		this.strType = strType;
@@ -267,6 +270,12 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	void setTimeSpan(PageContext pc) {
 		ApplicationContext ac = pc.getApplicationContext();
 		this.timeSpan = getType() == SCOPE_SESSION ? ac.getSessionTimeout().getMillis() : ac.getClientTimeout().getMillis();
+		TimeSpan ci = null;
+		if (ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs = (ApplicationContextSupport) ac;
+			ci = getType() == SCOPE_SESSION ? acs.getSessionCommitInterval() : acs.getClientCommitInterval();
+		}
+		this.commitInterval = (ci != null) ? ci.getMillis() : this.timeSpan / 2;
 	}
 
 	@Override
@@ -299,7 +308,6 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	@Override
 	public void touchAfterRequest(PageContext pc) {
-
 		setTimeSpan(pc);
 		data0.put(KeyConstants._lastvisit, new IKStorageScopeItem(_lastvisit, lastModifiedAtInit()));
 		data0.put(KeyConstants._timecreated, new IKStorageScopeItem(timecreated, lastModifiedAtInit()));
@@ -311,6 +319,18 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if (ac != null && (this.tokens == null || this.tokens.isEmpty()) && ac.getSessionCluster() && isSessionStorage(pc)) {
 			data0.remove(KeyConstants._csrf_token);
 		}
+		store(pc);
+	}
+
+	// sentinel: lastStored=-1 forces isStale() true on the next store-path check (matches timeSpan/commitInterval init convention)
+	public void markStale() {
+		lastStored = -1;
+	}
+
+	// force an immediate persist mid-request — used by sessionCommit() BIF
+	public void forceStore(PageContext pc) {
+		markStale();
+		setTimeSpan(pc);
 		store(pc);
 	}
 
@@ -509,11 +529,17 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		unstore(ThreadLocalPageContext.get());
 	}
 
-	/**
-	 * @return the hasChanges
-	 */
 	public boolean hasChanges(PageContext pc, Log log) {
+		if (isDirty(pc, log)) return true;
+		if (isStale(pc, log)) return true;
+		if (LogUtil.doesDebug(log)) {
+			ScopeContext.debug(log, "no change detected in the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for " + pc.getApplicationContext().getName() + "/"
+					+ pc.getCFID() + ".");
+		}
+		return false;
+	}
 
+	private boolean isDirty(PageContext pc, Log log) {
 		if (hasChanges) {
 			if (LogUtil.doesDebug(log)) {
 				ScopeContext.debug(log, "detected a change in the root keys of the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
@@ -522,19 +548,39 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			return true;
 		}
 		// we have set "ignoreSimpleValues" to true, because this is already covered by "hasChanges" above
-		if (ScopeContext.hash(data0, type, true) != hash) {
+		int newHash = ScopeContext.hash(data0, type, true);
+		if (newHash != hash) {
+			hash = newHash;
 			if (LogUtil.doesDebug(log)) {
 				ScopeContext.debug(log, "detected a change in one of the values in the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
 						+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + ".");
 			}
-
 			return true;
 		}
-		if (LogUtil.doesDebug(log)) {
-			ScopeContext.debug(log, "no change detected in the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for " + pc.getApplicationContext().getName() + "/"
-					+ pc.getCFID() + ".");
-		}
 		return false;
+	}
+
+	private boolean isStale(PageContext pc, Log log) {
+		if (lastStored < 0) {
+			if (LogUtil.doesDebug(log)) {
+				ScopeContext.debug(log, "explicit refresh requested for " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
+						+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + " (markStale).");
+			}
+			return true;
+		}
+		if (commitInterval <= 0) return false;
+		long elapsed = System.currentTimeMillis() - lastStored;
+		if (elapsed <= commitInterval) return false;
+		if (LogUtil.doesDebug(log)) {
+			ScopeContext.debug(log, "periodic refresh of stored " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope expiry for "
+					+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + " — last stored " + elapsed + "ms ago, commitInterval " + commitInterval + "ms.");
+		}
+		return true;
+	}
+
+	void markStored() {
+		lastStored = System.currentTimeMillis();
+		hasChanges = false;
 	}
 
 	@Override
@@ -671,13 +717,16 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	};
 
 	@Override
-	public void setTokens(Map<Collection.Key, String> tokens) {
-		tokens.clear();
-		Iterator<Entry<Key, String>> it = tokens.entrySet().iterator();
+	public void setTokens(Map<Collection.Key, String> newTokens) {
+		this.tokens.clear();
+		Iterator<Entry<Key, String>> it = newTokens.entrySet().iterator();
 		Entry<Key, String> e;
 		while (it.hasNext()) {
 			e = it.next();
-			tokens.put(e.getKey(), e.getValue());
+			// put() handles String → Key conversion via KeyImpl.toKey; tokens
+			// reloaded from storage can come back with String keys, so setEL
+			// (which requires Collection.Key) would ClassCastException.
+			this.tokens.put(e.getKey(), e.getValue());
 		}
 	};
 
@@ -788,7 +837,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		return handler.getType();
 	}
 
-	protected static DateTime doNowIfNull(Config config, DateTime dt) {
+	protected static DateTime doNowIfNull(DateTime dt) {
 		if (dt == null) return new DateTimeImpl();
 		return dt;
 	}

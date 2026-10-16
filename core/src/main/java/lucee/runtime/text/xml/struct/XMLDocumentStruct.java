@@ -18,7 +18,6 @@
  */
 package lucee.runtime.text.xml.struct;
 
-import java.lang.reflect.Method;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
@@ -37,10 +36,7 @@ import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
 
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.util.ArrayUtil;
 
 public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 
@@ -143,189 +139,74 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 		return doc.createProcessingInstruction(target, data);
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public Node adoptNode(Node arg0) throws DOMException {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("adoptNode", new Class[] { arg0.getClass() });
-			return Caster.toNode(m.invoke(doc, new Object[] { arg0 }));
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return doc.adoptNode(arg0);
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public String getDocumentURI() {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("getDocumentURI", new Class[] {});
-			return Caster.toString(m.invoke(doc, ArrayUtil.OBJECT_EMPTY));
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return doc.getDocumentURI();
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public DOMConfiguration getDomConfig() {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("getDomConfig", new Class[] {});
-			return (DOMConfiguration) m.invoke(doc, ArrayUtil.OBJECT_EMPTY);
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return doc.getDomConfig();
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public String getInputEncoding() {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("getInputEncoding", new Class[] {});
-			return Caster.toString(m.invoke(doc, ArrayUtil.OBJECT_EMPTY));
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return doc.getInputEncoding();
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public boolean getStrictErrorChecking() {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("getStrictErrorChecking", new Class[] {});
-			return Caster.toBooleanValue(m.invoke(doc, ArrayUtil.OBJECT_EMPTY));
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return doc.getStrictErrorChecking();
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public String getXmlEncoding() {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("getXmlEncoding", new Class[] {});
-			return Caster.toString(m.invoke(doc, ArrayUtil.OBJECT_EMPTY));
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return doc.getXmlEncoding();
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public boolean getXmlStandalone() {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("getXmlStandalone", new Class[] {});
-			return Caster.toBooleanValue(m.invoke(doc, ArrayUtil.OBJECT_EMPTY));
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return doc.getXmlStandalone();
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public String getXmlVersion() {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("getXmlVersion", new Class[] {});
-			return Caster.toString(m.invoke(doc, ArrayUtil.OBJECT_EMPTY));
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return doc.getXmlVersion();
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public void normalizeDocument() {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("normalizeDocument", new Class[] {});
-			m.invoke(doc, ArrayUtil.OBJECT_EMPTY);
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		doc.normalizeDocument();
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public Node renameNode(Node arg0, String arg1, String arg2) throws DOMException {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("renameNode", new Class[] { arg0.getClass(), arg1.getClass(), arg2.getClass() });
-			return Caster.toNode(m.invoke(doc, new Object[] { arg0, arg1, arg2 }));
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return doc.renameNode(arg0, arg1, arg2);
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public void setDocumentURI(String arg0) {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("setDocumentURI", new Class[] { arg0.getClass() });
-			m.invoke(doc, new Object[] { arg0 });
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
-
+		doc.setDocumentURI(arg0);
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public void setStrictErrorChecking(boolean arg0) {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("setStrictErrorChecking", new Class[] { boolean.class });
-			m.invoke(doc, new Object[] { Caster.toBoolean(arg0) });
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
-
+		doc.setStrictErrorChecking(arg0);
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public void setXmlStandalone(boolean arg0) throws DOMException {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("setXmlStandalone", new Class[] { boolean.class });
-			m.invoke(doc, new Object[] { Caster.toBoolean(arg0) });
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
-
+		doc.setXmlStandalone(arg0);
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public void setXmlVersion(String arg0) throws DOMException {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = doc.getClass().getMethod("setXmlVersion", new Class[] { arg0.getClass() });
-			m.invoke(doc, new Object[] { arg0 });
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		doc.setXmlVersion(arg0);
 	}
 
 	@Override

@@ -41,7 +41,8 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.compiler.CFMLCompilerImpl.Result;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.config.ConfigServerImpl;
+import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -89,21 +90,33 @@ public final class PageSourceImpl implements PageSource {
 	private long lastAccess;
 	private RefIntegerSync accessCount = new RefIntegerSync();
 	private boolean flush = false;
+	// Negative-lookup cache for NEVER mappings. When loadPhysical confirms the underlying file is
+	// missing (srcLastModified == 0), this flag short-circuits future calls so repeated lookups of
+	// the same non-existent path skip the lastModified() syscall. Cleared by resetLoaded() and
+	// clear() so inspectTemplates() / PagePoolClear / classloader-clear all invalidate it.
+	private volatile boolean notFound;
 
 	private static class PageAndClassName {
-		private Page page;
-		private String className;
+		private Page _page;
+		private String _className;
 
 		public void reset() {
-			this.page = null;
-			this.className = null;
+			this._page = null;
+			this._className = null;
 		}
 
 		public void set(Page page) {
-			this.page = page;
-			if (page != null) className = page.getClass().getName();
+			this._page = page;
+			if (page != null) _className = page.getClass().getName();
 		}
 
+		public Page getPage() {
+			return _page;
+		}
+
+		public String getClassName() {
+			return _className;
+		}
 	}
 
 	PageSourceImpl(MappingImpl mapping, String relPath, boolean isOutSide) {
@@ -119,7 +132,7 @@ public final class PageSourceImpl implements PageSource {
 	 * @return
 	 */
 	public Page getPage() {
-		return pcn.page;
+		return pcn.getPage();
 	}
 
 	public PageSource getParent() {
@@ -152,7 +165,7 @@ public final class PageSourceImpl implements PageSource {
 	public Page loadPage(PageContext pc, boolean forceReload) throws PageException {
 		if (forceReload) pcn.reset();
 
-		Page page = pcn.page;
+		Page page = pcn.getPage();
 		if (mapping.isPhysicalFirst()) {
 			page = loadPhysical(pc, page);
 			if (page == null) page = loadArchive(page);
@@ -171,7 +184,7 @@ public final class PageSourceImpl implements PageSource {
 	public Page loadPageThrowTemplateException(PageContext pc, boolean forceReload, Page defaultValue) throws PageException {
 		if (forceReload) pcn.reset();
 
-		Page page = pcn.page;
+		Page page = pcn.getPage();
 		if (mapping.isPhysicalFirst()) {
 			page = loadPhysical(pc, page);
 			if (page == null) page = loadArchive(page);
@@ -189,7 +202,7 @@ public final class PageSourceImpl implements PageSource {
 	public Page loadPage(PageContext pc, boolean forceReload, Page defaultValue) {
 		if (forceReload) pcn.reset();
 
-		Page page = pcn.page;
+		Page page = pcn.getPage();
 		if (mapping.isPhysicalFirst()) {
 			try {
 				page = loadPhysical(pc, page);
@@ -206,8 +219,7 @@ public final class PageSourceImpl implements PageSource {
 				try {
 					page = loadPhysical(pc, page);
 				}
-				catch (TemplateException e) {
-				}
+				catch (TemplateException e) {}
 			}
 			if (page != null) return page;
 		}
@@ -278,13 +290,18 @@ public final class PageSourceImpl implements PageSource {
 			config = ThreadLocalPageContext.getConfig();
 		}
 
+		if (notFound && mapping.getInspectTemplate() == Config.INSPECT_NEVER) return null;
+
 		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO || (pci != null && pci.isTrusted(page)))
 				&& isLoad(LOAD_PHYSICAL))
 			return page;
 		Resource srcFile = getPhyscalFile();
 
 		long srcLastModified = srcFile.lastModified();
-		if (srcLastModified == 0L) return null;
+		if (srcLastModified == 0L) {
+			if (mapping.getInspectTemplate() == Config.INSPECT_NEVER) notFound = true;
+			return null;
+		}
 		// Page exists
 		if (page != null) {
 			// if(page!=null && !recompileAlways) {
@@ -298,14 +315,14 @@ public final class PageSourceImpl implements PageSource {
 							try {
 								same = page.getHash() == PageSourceCode.toString(this, config.getTemplateCharset()).hashCode();
 							}
-							catch (IOException e) {
-							}
+							catch (IOException e) {}
 
 						}
 						if (!same) {
 							LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because loaded page has changed");
 							pcn.set(page = compile(config, mapping.getClassRootDirectory(), page, false, pci != null && pci.ignoreScopes()));
 							page.setPageSource(this);
+							signalRecompileToInspectTicker();
 						}
 					}
 				}
@@ -323,7 +340,7 @@ public final class PageSourceImpl implements PageSource {
 			// synchronized (SystemUtil.createToken("PageSource", getRealpathWithVirtual())) {
 			// new class
 			if (flush || !classFile.exists()) {
-				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "compile [" + getDisplayPath() + "] no previous class file or flush");
+				LogUtil.log(config, Log.LEVEL_TRACE, "compile", "compile [" + getDisplayPath() + "] no previous class file or flush");
 
 				pcn.set(page = compile(config, classRootDir, null, false, pci != null && pci.ignoreScopes()));
 				flush = false;
@@ -332,7 +349,7 @@ public final class PageSourceImpl implements PageSource {
 			// load page
 			else {
 				try {
-					String cn = pcn.className;
+					String cn = pcn.getClassName();
 					boolean done = false;
 					if (cn != null) {
 						try {
@@ -341,7 +358,20 @@ public final class PageSourceImpl implements PageSource {
 							done = true;
 						}
 						catch (ClassNotFoundException cnfe) {
-							LogUtil.log(config, "compile", cnfe);
+							LogUtil.log(config, "compile", cnfe, Log.LEVEL_DEBUG, "application");
+						}
+					}
+					// when classFile is at least as fresh as source, try loading by name first;
+					// avoids the defineClass rename storm when pcn.className was reset (e.g. by clear())
+					// but the underlying class is still loaded in the PhysicalClassLoader.
+					if (!done && classFile.exists() && classFile.lastModified() >= srcLastModified) {
+						try {
+							LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader (class file is current) [" + getDisplayPath() + "]");
+							pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName())));
+							done = true;
+						}
+						catch (ClassNotFoundException cnfe) {
+							LogUtil.log(config, "compile", cnfe, Log.LEVEL_DEBUG, "application");
 						}
 					}
 					if (!done) {
@@ -368,10 +398,13 @@ public final class PageSourceImpl implements PageSource {
 				}
 			}
 
-			// check if version changed or lasMod
-			if (!isNew && (srcLastModified != page.getSourceLastModified() || page.getVersion() != ConfigUtil.getCFMLEngine(config).getInfo().getFullVersionInfo())) {
+			// check if source mtime changed (real source edit during runtime).
+			// version-hash check removed — version drift between boot & current engine is
+			// handled eagerly at engine init via the cfclasses marker (LDEV-NNNN); checking
+			// here per-page-reload only triggered phantom-rename storms.
+			if (!isNew && srcLastModified != page.getSourceLastModified()) {
 				isNew = true;
-				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because unloaded page has changed");
+				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] due to source template timestamp change");
 				pcn.set(page = compile(config, classRootDir, page, false, pci != null && pci.ignoreScopes()));
 			}
 			page.setPageSource(this);
@@ -383,7 +416,7 @@ public final class PageSourceImpl implements PageSource {
 
 	public boolean releaseWhenOutdatted() {
 		if (!mapping.hasPhysical() || !isLoad(LOAD_PHYSICAL)) return false;
-		Page page = pcn.page;
+		Page page = pcn.getPage();
 		Resource srcFile = getPhyscalFile();
 		long srcLastModified = srcFile.lastModified();
 		// Page exists
@@ -391,7 +424,7 @@ public final class PageSourceImpl implements PageSource {
 			if (srcLastModified == 0 || srcLastModified != page.getSourceLastModified()) {
 				synchronized (this) {
 					if (srcLastModified == 0 || srcLastModified != page.getSourceLastModified()) {
-						if (LogUtil.doesDebug(mapping.getLog())) mapping.getLog().debug("page-source", "release [" + getDisplayPath() + "] from page source pool");
+						if (LogUtil.doesTrace(mapping.getLog())) mapping.getLog().trace("page-source", "release [" + getDisplayPath() + "] from page source pool");
 						resetLoaded();
 						flush();
 						return true;
@@ -403,13 +436,13 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public void flush() {
-		if (LogUtil.doesDebug(mapping.getLog())) mapping.getLog().debug("page-source", "flush [" + getDisplayPath() + "]");
-		pcn.page = null;
+		if (LogUtil.doesTrace(mapping.getLog())) mapping.getLog().trace("page-source", "flush [" + getDisplayPath() + "]");
+		pcn.reset();
 		flush = true;
 	}
 
 	private boolean isLoad(byte load) {
-		Page page = pcn.page;
+		Page page = pcn.getPage();
 		return page != null && load == page.getLoadType();
 	}
 
@@ -501,14 +534,20 @@ public final class PageSourceImpl implements PageSource {
 	public String getDisplayPath() {
 		if (dspPath != null) return dspPath;
 
+		Resource physical;
 		if (!mapping.hasArchive()) {
-			return dspPath = StringUtil.toString(getPhyscalFile(), null);
+			physical = getPhyscalFile();
+			if (physical == null) return getUnresolvedDisplayPath();
+			return dspPath = physical.toString();
 		}
 		else if (isLoad(LOAD_PHYSICAL)) {
-			return dspPath = StringUtil.toString(getPhyscalFile(), null);
+			physical = getPhyscalFile();
+			String result = physical != null ? physical.toString() : getArchiveSourcePath();
+			return dspPath = result != null ? result : relPath;
 		}
 		else if (isLoad(LOAD_ARCHIVE)) {
-			return dspPath = StringUtil.toString(getArchiveSourcePath(), null);
+			String result = StringUtil.toString(getArchiveSourcePath(), null);
+			return dspPath = result != null ? result : relPath;
 		}
 		else {
 			boolean pse = physcalExists();
@@ -517,12 +556,27 @@ public final class PageSourceImpl implements PageSource {
 			if (mapping.isPhysicalFirst()) {
 				if (pse) return dspPath = getPhyscalFile().toString();
 				else if (ase) return dspPath = getArchiveSourcePath();
-				return dspPath = getPhyscalFile().toString();
+				physical = getPhyscalFile();
+				if (physical != null) return dspPath = physical.toString();
+				String result = getArchiveSourcePath();
+				return dspPath = result != null ? result : relPath;
 			}
 			if (ase) return dspPath = getArchiveSourcePath();
 			else if (pse) return dspPath = getPhyscalFile().toString();
-			return dspPath = getArchiveSourcePath();
+			return dspPath = relPath;
 		}
+	}
+
+	// the mapping has neither a resolvable physical nor an archive (e.g. missing drive or archive, unknown resource provider),
+	// so show the configured location; not cached, the mapping can still resolve later
+	private String getUnresolvedDisplayPath() {
+		String strPhysical = mapping.getStrPhysical();
+		if (StringUtil.isEmpty(strPhysical, true)) return getRealpathWithVirtual();
+		strPhysical = strPhysical.trim();
+		while (strPhysical.endsWith("/") || strPhysical.endsWith("\\")) {
+			strPhysical = strPhysical.substring(0, strPhysical.length() - 1);
+		}
+		return strPhysical + relPath;
 	}
 
 	public boolean isComponent() {
@@ -599,7 +653,7 @@ public final class PageSourceImpl implements PageSource {
 				// synchronized (SystemUtil.createToken("PageSource", getRealpathWithVirtual())) {
 				if (archiveSource == null) {
 					String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + relPath;
-					archiveSource = ThreadLocalPageContext.getConfig().getResource(path);
+					archiveSource = ThreadLocalPageContext.getConfigServer().getResource(path);
 				}
 			}
 		}
@@ -614,7 +668,7 @@ public final class PageSourceImpl implements PageSource {
 				// synchronized (SystemUtil.createToken("PageSource", getRealpathWithVirtual())) {
 				if (archiveClass == null) {
 					String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + getJavaName() + ".class";
-					archiveClass = ThreadLocalPageContext.getConfig().getResource(path);
+					archiveClass = ThreadLocalPageContext.getConfigServer().getResource(path);
 				}
 			}
 		}
@@ -895,25 +949,46 @@ public final class PageSourceImpl implements PageSource {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj instanceof PageSourceImpl) return _getClassName().equals(((PageSourceImpl) obj)._getClassName());
-		if (obj instanceof PageSource) return _getClassName().equals(ClassUtil.extractName(((PageSource) obj).getClassName()));
-		return false;
 
+		if (this == obj) return true;
+		if (!(obj instanceof PageSource)) return false;
+
+		/*
+		 * if (LogUtil.does(getMapping().getConfig().getLog("application"), Log.LEVEL_DEBUG)) { PageSource
+		 * ps = ((PageSource) obj); LogUtil.log(Log.LEVEL_DEBUG, "page-source", "compare [" +
+		 * getDisplayPath() + "]\n"
+		 * 
+		 * + "- class-name(" + getClassName().equals(ps.getClassName()) + "): " + getClassName() + ":" +
+		 * ps.getClassName() + "- mapping-virtual(" + (getMapping() == ps.getMapping()) + "): " +
+		 * getMapping().getVirtual() + ":" + ps.getMapping().getVirtual()
+		 * 
+		 * ); }
+		 */
+
+		return getDisplayPath().equals(((PageSource) obj).getDisplayPath());
 	}
 
 	/**
 	 * is given object equal to this
-	 * 
+	 *
 	 * @param ps
 	 * @return is same
 	 */
 	public boolean equals(PageSource ps) {
 		if (this == ps) return true;
+		if (ps == null) return false;
 
-		if (ps instanceof PageSourceImpl) return _getClassName().equals(((PageSourceImpl) ps)._getClassName());
-		return _getClassName().equals(ClassUtil.extractName(ps.getClassName()));
-
+		/*
+		 * if (LogUtil.does(getMapping().getConfig().getLog("application"), Log.LEVEL_DEBUG)) {
+		 * LogUtil.log(Log.LEVEL_DEBUG, "page-source", "compare [" + getDisplayPath() + "]\n"
+		 * 
+		 * + "- class-name(" + getClassName().equals(ps.getClassName()) + "): " + getClassName() + ":" +
+		 * ps.getClassName() + "- mapping-virtual(" + (getMapping() == ps.getMapping()) + "): " +
+		 * getMapping().getVirtual() + ":" + ps.getMapping().getVirtual()
+		 * 
+		 * ); }
+		 */
+		return getDisplayPath().equals(ps.getDisplayPath());
 	}
 
 	@Override
@@ -925,14 +1000,23 @@ public final class PageSourceImpl implements PageSource {
 	// FUTURE add to interface
 	public PageSource getRealPageSource(PageContext pc, String realPath) {
 		RefBoolean _isOutSide = new RefBooleanImpl(isOutSide);
-
 		String realResolved = resolveReal(realPath, _isOutSide);
 
-		// in case we step outside the mapping we meed to open up to all mappings
+		// in case we step outside the mapping we need to open up to all mappings
 		if (realResolved.startsWith(".")) {
-			// add virtual
-			realResolved = mergeRealPathes(mapping.getVirtualLowerCaseWithSlash(), realResolved, null);
+			// First try to resolve using the physical path of the mapping
+			if (mapping.hasPhysical()) {
+				Resource targetResource = mapping.getPhysical().getRealResource(realResolved);
+				if (targetResource.exists()) {
+					PageSource ps = ThreadLocalPageContext.get(pc).toPageSource(targetResource, null);
+					if (ps != null) {
+						return ps;
+					}
+				}
+			}
 
+			// Fall back to virtual path resolution for archives or when physical resolution fails
+			realResolved = mergeRealPathes(mapping.getVirtualLowerCaseWithSlash(), realResolved, null);
 			PageContextImpl pci = (PageContextImpl) ThreadLocalPageContext.get(pc);
 			return pci.getPageSource(realResolved);
 		}
@@ -1008,31 +1092,35 @@ public final class PageSourceImpl implements PageSource {
 			String path = getDisplayPath();
 			if (path != null) {
 				if (path.startsWith("ra://")) path = "zip://" + path.substring(5);
-				res = ResourceUtil.toResourceNotExisting(pc, path, false, false);
+				res = ResourceUtil.toResourceNotExisting(pc, null, path, false, false);
 			}
 		}
 		return res;
 	}
 
 	public void clear() {
-		mapping.clear(pcn.className);
-		pcn.page = null;
+		mapping.clear(pcn.getClassName());
+		pcn.reset();
+		notFound = false;
 	}
 
 	/**
 	 * clear page, but only when page use the same classloader as provided
-	 * 
+	 *
 	 * @param cl
 	 */
-	public void clear(ClassLoader cl) {
-		Page page = pcn.page;
+	public boolean clear(ClassLoader cl) {
+		Page page = pcn.getPage();
 		if (page != null && page.getClass().getClassLoader().equals(cl)) {
-			pcn.page = null;
+			pcn.reset();
+			notFound = false;
+			return true;
 		}
+		return false;
 	}
 
 	public boolean isLoad() {
-		return pcn.page != null;//// load!=LOAD_NONE;
+		return pcn.getPage() != null;//// load!=LOAD_NONE;
 	}
 
 	@Override
@@ -1113,13 +1201,24 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public void resetLoaded() {
-		if (LogUtil.doesDebug(mapping.getLog())) mapping.getLog().debug("page-source", "reset loaded [" + getDisplayPath() + "]");
-		Page p = pcn.page;
+		if (LogUtil.doesTrace(mapping.getLog())) mapping.getLog().trace("page-source", "reset loaded [" + getDisplayPath() + "]");
+		Page p = pcn.getPage();
 		if (p != null) p.setLoadType((byte) 0);
+		notFound = false;
+	}
+
+	private void signalRecompileToInspectTicker() {
+		if (mapping.getInspectTemplate() != ConfigPro.INSPECT_AUTO) return;
+		Config cfg = mapping.getConfig();
+		ConfigServerImpl cs;
+		if (cfg instanceof ConfigServerImpl) cs = (ConfigServerImpl) cfg;
+		else if (cfg instanceof ConfigWebImpl) cs = ((ConfigWebImpl) cfg).getConfigServerImpl();
+		else return;
+		cs.requestFastTick();
 	}
 
 	@Override
 	public final int hashCode() {
-		return getDisplayPath().hashCode();
+		return getMapping().getVirtual().hashCode() + getClassName().hashCode();
 	}
 }

@@ -25,8 +25,8 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.PasswordImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -47,8 +47,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 	private Resource rootDirectory;
 	private Resource[] customFileAccess = EMPTY_RESOURCE_ARRAY;
 
-	private SecurityManagerImpl() {
-	}
+	private SecurityManagerImpl() {}
 
 	/**
 	 * create a new Accessor
@@ -103,6 +102,13 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 		accesses[TYPE_ACCESS_WRITE] = accessWrite;
 		accesses[TYPE_REMOTE] = remote;
 
+	}
+
+	public SecurityManagerImpl duplicate() {
+		return new SecurityManagerImpl(getAccess(TYPE_SETTING), getAccess(TYPE_FILE), getAccess(TYPE_DIRECT_JAVA_ACCESS), getAccess(TYPE_MAIL), getAccess(TYPE_DATASOURCE),
+				getAccess(TYPE_MAPPING), getAccess(TYPE_REMOTE), getAccess(TYPE_CUSTOM_TAG), getAccess(TYPE_CFX_SETTING), getAccess(TYPE_CFX_USAGE), getAccess(TYPE_DEBUGGING),
+				getAccess(TYPE_SEARCH), getAccess(TYPE_SCHEDULED_TASK), getAccess(TYPE_TAG_EXECUTE), getAccess(TYPE_TAG_IMPORT), getAccess(TYPE_TAG_OBJECT),
+				getAccess(TYPE_TAG_REGISTRY), getAccess(TYPE_CACHE), getAccess(TYPE_GATEWAY), getAccess(TYPE_ORM), getAccess(TYPE_ACCESS_READ), getAccess(TYPE_ACCESS_WRITE));
 	}
 
 	/**
@@ -318,14 +324,33 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 
 	}
 
-	@Override
-	public void checkFileLocation(Resource res) throws SecurityException, RequestTimeoutException {
-		checkFileLocation(null, res, null);
+	public static void checkFileLocation(PageContext pc, Resource res) throws PageException {
+		checkFileLocation(pc, res, null);
+	}
+
+	public static void checkFileLocation(PageContext pc, Resource res, String strServerPassword) throws PageException {
+		SecurityManager sm = pc.getConfig().getSecurityManager();
+		if (sm instanceof SecurityManagerImpl) {
+			((SecurityManagerImpl) sm).checkFileLocation(pc, null, res, strServerPassword);
+		}
+		else {
+			sm.checkFileLocation(pc.getConfig(), res, strServerPassword);
+		}
 	}
 
 	@Override
+	public void checkFileLocation(Resource res) throws SecurityException, RequestTimeoutException {
+		checkFileLocation(null, null, res, null);
+	}
+
+	@Override
+
 	public void checkFileLocation(ConfigWeb cw, Resource res, String strServerPassword) throws SecurityException, RequestTimeoutException {
-		PageContext pc = ThreadLocalPageContext.get();
+		checkFileLocation(null, cw, res, strServerPassword);
+	}
+
+	private void checkFileLocation(PageContext pc, ConfigWeb cw, Resource res, String strServerPassword) throws SecurityException, RequestTimeoutException {
+		pc = ThreadLocalPageContext.get(pc);
 		if (pc != null) {
 			PageContextUtil.checkRequestTimeout(pc);
 		}
@@ -336,7 +361,8 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 		// All
 		if (getAccess(TYPE_FILE) == VALUE_ALL) return;
 
-		cw = (ConfigWeb) ThreadLocalPageContext.getConfig(cw);
+		if (cw == null) cw = ThreadLocalPageContext.getConfigWeb(pc);
+
 		Password serverPassword = PasswordImpl.passwordToCompare(cw, true, strServerPassword);
 
 		// Local
@@ -455,8 +481,9 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 		this.customFileAccess = merge(this.customFileAccess, fileAccess);
 	}
 
-	public void setRootDirectory(Resource rootDirectory) {
+	public SecurityManager setRootDirectory(Resource rootDirectory) {
 		this.rootDirectory = rootDirectory;
+		return this;
 	}
 
 	private static Resource[] merge(Resource[] first, Resource[] second) {
@@ -472,4 +499,5 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 		}
 		return tmp;
 	}
+
 }

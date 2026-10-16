@@ -20,6 +20,7 @@ component {
 		this.name=getCurrentTemplatePath();
 		this.cache.susi={
 			class="org.lucee.extension.cache.eh.EHCache"
+			,maven="org.lucee:ehcache:" & server.getExtensionVersion( 'EHCache' )
 			,storage=false
 			,custom={timeToLiveSeconds:86400
 					,maxelementsondisk:10000000

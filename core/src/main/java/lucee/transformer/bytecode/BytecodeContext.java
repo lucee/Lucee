@@ -20,7 +20,9 @@ package lucee.transformer.bytecode;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.objectweb.asm.ClassWriter;
@@ -31,7 +33,8 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.compiler.JavaFunction;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
 import lucee.transformer.Page;
@@ -59,6 +62,8 @@ public class BytecodeContext implements Context {
 	private int line;
 	private BytecodeContext root;
 	private boolean writeLog;
+	private Boolean isLineBased; // cached value, null = not yet calculated
+	protected Set<Integer> executableLines; // lazy init
 	private int rtn = -1;
 	private final boolean returnValue;
 
@@ -74,6 +79,7 @@ public class BytecodeContext implements Context {
 	}
 
 	private String id = id();
+	private String lineKey;
 	private Config config;
 	private PageImpl page;
 	protected PageSource ps;
@@ -82,7 +88,7 @@ public class BytecodeContext implements Context {
 
 	public BytecodeContext(Config config, PageSource ps, ConstrBytecodeContext constr, PageImpl page, Map<LitString, Integer> keys, ClassWriter classWriter, String className,
 			GeneratorAdapter adapter, Method method, boolean writeLog, boolean suppressWSbeforeArg, boolean output, boolean returnValue, int sourceOffset) {
-		this.config = ThreadLocalPageContext.getConfig(config);
+		this.config = config;
 		this.classWriter = classWriter;
 		this.className = className;
 		this.writeLog = writeLog;
@@ -123,6 +129,7 @@ public class BytecodeContext implements Context {
 		this.returnValue = bc.returnValue;
 		this.output = bc.output;
 		this.ps = bc.ps;
+		this.config = bc.config;
 		this.expressionUtil = bc.expressionUtil;
 	}
 
@@ -136,6 +143,11 @@ public class BytecodeContext implements Context {
 	 */
 	public String getId() {
 		return id;
+	}
+
+	public String getLineKey() {
+		if (lineKey == null) lineKey = className + ":" + id;
+		return lineKey;
 	}
 
 	/**
@@ -198,8 +210,7 @@ public class BytecodeContext implements Context {
 		this.className = className;
 	}
 
-	public synchronized int registerKey(LitString lit) {
-		// synchronized (keys) {
+	public int registerKey(LitString lit) {
 		Integer index = keys.get(lit);
 		if (index != null) return index;// calls the toString method of litString
 
@@ -207,7 +218,6 @@ public class BytecodeContext implements Context {
 		keys.put(lit, newIndex);
 
 		return newIndex;
-		// }
 	}
 
 	public void registerJavaFunction(JavaFunction jbc) {
@@ -276,11 +286,22 @@ public class BytecodeContext implements Context {
 
 	public void visitLineNumber(int line) {
 		this.line = line;
+		if (executableLines == null) executableLines = new TreeSet<>();
+		executableLines.add(line);
+		// Also track in constructor context so getExecutableLines() gets all lines
+		if (constr != null) {
+			constr.trackExecutableLine(line);
+		}
 		getAdapter().visitLineNumber(line, getAdapter().mark());
 	}
 
 	public int getLine() {
 		return line;
+	}
+
+	public int[] getExecutableLines() {
+		if (executableLines == null) return new int[0];
+		return executableLines.stream().mapToInt(Integer::intValue).toArray();
 	}
 
 	public BytecodeContext getRoot() {
@@ -293,6 +314,30 @@ public class BytecodeContext implements Context {
 
 	public boolean writeLog() {
 		return this.writeLog;
+	}
+
+	/**
+	 * Check if the configured ExecutionLog is line-based.
+	 * Line-based logs receive line numbers, char-based logs receive character offsets.
+	 * Result is cached for performance.
+	 */
+	public boolean isLineBased() {
+		if (isLineBased == null) {
+			isLineBased = Boolean.FALSE;
+			try {
+				Config cfg = getConfig();
+				if (cfg instanceof ConfigPro) {
+					ExecutionLogFactory factory = ((ConfigPro) cfg).getExecutionLogFactory();
+					if (factory != null) {
+						isLineBased = factory.isLineBased();
+					}
+				}
+			}
+			catch (Throwable t) {
+				// ignore - default to false
+			}
+		}
+		return isLineBased;
 	}
 
 	public Page getPage() {
@@ -309,9 +354,6 @@ public class BytecodeContext implements Context {
 
 	public Config getConfig() {
 		if (ps != null) return ps.getMapping().getConfig();
-		if (config == null) {
-			config = ThreadLocalPageContext.getConfig();
-		}
 		return config;
 	}
 

@@ -22,6 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 	function beforeAll() {
 		// Skip httpbin tests if service is not available
 		variables.hasHttpbin = structCount(variables.httpbin) > 0;
+		variables.hasHttpsProvider = left( variables.updateProvider, 8 ) == "https://";
 	}
 
 	function testConnectionTimeout() {
@@ -52,13 +53,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 	}
 
 	public function testHTTP() localmode="true"{
-		http url="http://www.google.com";
+		if ( variables.hasHttpsProvider ) return;
+		http url="#variables.updateProvider#/rest/update/provider/echoGet";
 		expect( cfhttp.error ).toBe(  false );
 		expect( cfhttp.status_code ).toBe( 200 );
 	}
 
 	public function testHTTPs() localmode="true"{
-		http url="https://www.google.com";
+		if ( !variables.hasHttpsProvider ) return;
+		http url="#variables.updateProvider#/rest/update/provider/echoGet";
 		expect( cfhttp.status_code ).toBe( 200 );
 		expect( cfhttp.error ).toBe( false);
 	}
@@ -122,14 +125,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 		}
 		var res=deserializeJSON(res.filecontent);
 		assertEquals(data,res.httpRequestData.content);
-	}
-
-	public void function testCheckTLSVersion(){
-		http url="https://www.howsmyssl.com/a/check" result="local.res";
-		expect(isJson(res.filecontent)).toBeTrue();
-		var tlsReport = DeserializeJson(res.filecontent);
-		// SystemOutput("", true);
-		// SystemOutput("CFHTTP is using [#tlsReport.tls_version#] (jvm default)", true);
 	}
 	
 	public void function testCachedHttpRequest(){

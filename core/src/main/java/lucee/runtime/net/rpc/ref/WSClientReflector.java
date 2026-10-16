@@ -14,6 +14,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.client.WSClient;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Iteratorable;
@@ -21,7 +22,7 @@ import lucee.runtime.type.Objects;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
 
-public final class WSClientReflector implements WSClient {
+public final class WSClientReflector implements WSClient, CastablePro {
 
 	private final Object obj;
 	private final Objects objects;
@@ -115,6 +116,18 @@ public final class WSClientReflector implements WSClient {
 
 	@Override
 	public String castToString(String arg0) {
+		return objects.castToString(arg0);
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws PageException {
+		if (objects instanceof CastablePro) return ((CastablePro) objects).castToString(pc);
+		return objects.castToString();
+	}
+
+	@Override
+	public String castToString(PageContext pc, String arg0) {
+		if (objects instanceof CastablePro) return ((CastablePro) objects).castToString(pc, arg0);
 		return objects.castToString(arg0);
 	}
 

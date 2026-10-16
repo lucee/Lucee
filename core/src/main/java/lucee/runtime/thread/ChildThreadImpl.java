@@ -33,6 +33,7 @@ import lucee.commons.lang.Pair;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
@@ -49,7 +50,6 @@ import lucee.runtime.net.http.HttpUtil;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -65,8 +65,6 @@ import lucee.runtime.util.PageContextUtil;
 public final class ChildThreadImpl extends ChildThread implements Serializable {
 
 	private static final long serialVersionUID = -8902836175312356628L;
-
-	private static final Collection.Key KEY_ATTRIBUTES = KeyConstants._attributes;
 
 	// private static final Set EMPTY = new HashSet();
 
@@ -107,9 +105,14 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 
 	String contentEncoding;
 
+	// when virtual=true the body runs on this (virtual) carrier thread instead of this ChildThread
+	// itself
+	private volatile Thread carrier;
+	private boolean virtual;
+
 	private Object threadScope;
 
-	private ParentException parentException;
+	private final PageSource parentPageSource;
 
 	private final boolean separateScopes;
 
@@ -124,7 +127,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 		this.serializable = serializable;
 		this.tagName = tagName;
 		this.threadIndex = threadIndex;
-		this.parentException = new ParentException();
+		this.parentPageSource = parent != null ? parent.getCurrentPageSource() : null;
 		this.separateScopes = separateScopes;
 		start = System.currentTimeMillis();
 		if (attrs == null) this.attrs = new StructImpl();
@@ -144,7 +147,8 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 				this.pc.addParentTag(parent.getTagName());
 				if (!separateScopes) {
 					this.pc.undefinedScope().setMode(((UndefinedImpl) parent.undefinedScope()).getMode());
-					this.pc.setFunctionScopes(parent.localScope(), parent.argumentsScope());
+					// shared with this thread: bind, so they're synchronized and not recycled when the caller returns
+					this.pc.setFunctionScopes(parent.localScope(true), parent.argumentsScope(true));
 				}
 			}
 		}
@@ -166,6 +170,60 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 	@Override
 	public void run() {
 		execute(null);
+	}
+
+	public void setVirtual(boolean virtual) {
+		this.virtual = virtual;
+	}
+
+	public boolean isVirtualThread() {
+		return virtual;
+	}
+
+	/**
+	 * Starts the thread body. When {@link #isVirtualThread()} is true the body is executed on a Java
+	 * virtual thread (carrier), otherwise this ChildThread is started as a regular platform thread.
+	 */
+	public void startThread(int priority) {
+		if (virtual) {
+			carrier = ThreadUtil.getThread(this, true);
+			carrier.setName(getName());
+			carrier.start();
+		}
+		else {
+			setPriority(priority);
+			setDaemon(false);
+			start();
+		}
+	}
+
+	/**
+	 * @return the thread that actually executes the body: the virtual carrier when virtual, otherwise
+	 *         this
+	 */
+	public Thread getExecutionThread() {
+		Thread c = carrier;
+		return c != null ? c : this;
+	}
+
+	public boolean isThreadAlive() {
+		return getExecutionThread().isAlive();
+	}
+
+	public void joinThread() throws InterruptedException {
+		getExecutionThread().join();
+	}
+
+	public void joinThread(long millis) throws InterruptedException {
+		getExecutionThread().join(millis);
+	}
+
+	public Thread.State getExecutionState() {
+		return getExecutionThread().getState();
+	}
+
+	public StackTraceElement[] threadStackTrace() {
+		return getExecutionThread().getStackTrace();
 	}
 
 	public PageException execute(Config config) {
@@ -231,7 +289,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 				// local
 				newLocal = pc.getScopeFactory().getLocalInstance();
 				oldLocal = pc.localScope();
-				newLocal.setEL(KEY_ATTRIBUTES, newArgs);
+				newLocal.setEL(KeyConstants._attributes, newArgs);
 
 				oldMode = undefined.setMode(Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS);
 				pc.setFunctionScopes(newLocal, newArgs);
@@ -244,14 +302,13 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 				ExceptionUtil.rethrowIfNecessary(t);
 				if (!Abort.isSilentAbort(t)) {
 					ConfigWeb c = pc.getConfig();
-					ExceptionUtil.initCauseEL(t, parentException);
+					ExceptionUtil.initCauseEL(t, new ParentException(parentPageSource, tagName));
 					Log log = ThreadLocalPageContext.getLog(c, "thread");
 					if (log != null) {
 						try {
 							log.log(Log.LEVEL_ERROR, this.getName(), t);
 						}
-						catch (Exception ex) {
-						}
+						catch (Exception ex) {}
 					}
 
 					PageException pe = Caster.toPageException(t);
@@ -333,12 +390,16 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 	@Override
 	public void interrupt() {
 		interrupted = true;
-		super.interrupt();
+		Thread c = carrier;
+		if (c != null) c.interrupt();
+		else super.interrupt();
 	}
 
 	@Override
 	public boolean isInterrupted() {
-		return interrupted || super.isInterrupted();
+		if (interrupted) return true;
+		Thread c = carrier;
+		return c != null ? c.isInterrupted() : super.isInterrupted();
 	}
 
 	/**

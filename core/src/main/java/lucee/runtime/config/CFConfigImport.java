@@ -1,7 +1,10 @@
 package lucee.runtime.config;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.commons.io.SystemUtil;
@@ -11,11 +14,11 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
+import lucee.runtime.config.ConfigServerImpl.ConfigFile;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.util.Cast;
 
@@ -31,63 +34,41 @@ public final class CFConfigImport {
 	private static Key NAME;
 	private static Key DATABASE;
 
-	private Resource file;
-	private Charset charset;
 	private String password;
 	// private Tag tag;
 	// private DynamicAttributes dynAttr;
-	private String type = "server";
 	private CFMLEngine engine;
-	private final ConfigPro config;
+	private final ConfigServerPro config;
 	private Struct placeHolderData;
 	private Struct data;
-	private boolean pwCheckedServer = false;
-	private boolean pwCheckedWeb = false;
+	private boolean pwChecked = false;
 	private final boolean setPasswordIfNecessary;
 	private final boolean validatePassword;
 	private final boolean flushExistingData;
 	private PageException exd = null;
 
-	public CFConfigImport(Config config, Resource file, Charset charset, String password, String type, Struct placeHolderData, boolean setPasswordIfNecessary,
-			boolean validatePassword, boolean flushExistingData) throws PageException {
-
-		this.file = file;
-		this.charset = charset;
-		this.password = password;
-		this.type = type;
-		this.placeHolderData = placeHolderData;
-		this.setPasswordIfNecessary = setPasswordIfNecessary;
-		this.validatePassword = validatePassword;
-		this.flushExistingData = flushExistingData;
-		this.engine = CFMLEngineFactory.getInstance();
-		if ("web".equalsIgnoreCase(type) && !(config instanceof ConfigWeb))
-			throw engine.getExceptionUtil().createApplicationException("cannot manipulate a web context when you pass in a server config to the constructor!");
-
-		if ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb) {
-			setPasswordIfNecessary((ConfigPro) config);
-			this.config = (ConfigPro) config.getConfigServer(password);
-		}
-		else this.config = (ConfigPro) config;
+	public CFConfigImport(Config config, Resource file, Charset charset, String password, Struct placeHolderData, boolean setPasswordIfNecessary, boolean validatePassword,
+			boolean flushExistingData) throws PageException, IOException {
+		this(config, ConfigFile.read(file, charset), password, placeHolderData, setPasswordIfNecessary, validatePassword, flushExistingData);
 	}
 
-	public CFConfigImport(Config config, Struct data, Charset charset, String password, String type, Struct placeHolderData, boolean setPasswordIfNecessary,
-			boolean validatePassword, boolean flushExistingData) throws PageException {
+	public CFConfigImport(Config config, Struct data, String password, Struct placeHolderData, boolean setPasswordIfNecessary, boolean validatePassword, boolean flushExistingData)
+			throws PageException {
 		this.data = data;
-		this.charset = charset;
 		this.password = password;
 		this.validatePassword = validatePassword;
-		this.type = type;
 		this.placeHolderData = placeHolderData;
 		this.flushExistingData = flushExistingData;
 		this.engine = CFMLEngineFactory.getInstance();
 		this.setPasswordIfNecessary = setPasswordIfNecessary;
-		if ("web".equalsIgnoreCase(type) && !(config instanceof ConfigWeb))
-			throw engine.getExceptionUtil().createApplicationException("cannot manipulate a web context when you pass in a server config to the constructor!");
-		if ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb) {
-			setPasswordIfNecessary((ConfigPro) config);
-			this.config = (ConfigPro) config.getConfigServer(password);
+
+		if (config instanceof ConfigWeb) {
+			setPasswordIfNecessary(ConfigUtil.getConfigServerImpl(config));
+			this.config = (ConfigServerPro) config.getConfigServer(password);
 		}
-		else this.config = (ConfigPro) config;
+		else {
+			this.config = ConfigUtil.getConfigServerImpl(config);
+		}
 	}
 
 	public Struct execute(boolean throwException) throws PageException {
@@ -95,7 +76,7 @@ public final class CFConfigImport {
 
 		try {
 			if (validatePassword && Util.isEmpty(password)) {
-				String sysprop = "lucee." + type.toUpperCase() + ".admin.password";
+				String sysprop = "lucee.admin.password";
 				String envVarName = sysprop.replace('.', '_').toUpperCase();
 				password = SystemUtil.getSystemPropOrEnvVar(sysprop, null);
 				if (password == null) throw engine.getExceptionUtil()
@@ -118,27 +99,22 @@ public final class CFConfigImport {
 				json = data;
 			}
 			else {
-				json = ConfigFile.read(file, charset);
+
+				ConfigServerPro cs = ConfigUtil.getConfigServerImpl(config);
+				json = cs.getRawData();
 			}
 
-			replacePlaceHolder(json, placeHolderData);
+			replacePlaceHolder(json, toMap(placeHolderData));
 
 			// dynAttr = (DynamicAttributes) tag;
-			boolean isServer = "server".equalsIgnoreCase(type);
 			String strPW = ConfigUtil.decrypt(password);
-			Password pw; // hash password if
-			if (isServer && config instanceof ConfigWebPro) {
-				pw = ConfigUtil.getConfigServerImpl(config).isPasswordEqual(strPW);
-			}
-			else {
-				pw = config.isPasswordEqual(strPW);
-			}
+			Password pw = ConfigUtil.getConfigServerImpl(config).isPasswordEqual(strPW);
 
 			boolean updated = setPasswordIfNecessary(config);
 			ConfigAdmin admin = ConfigAdmin.newInstance(config, pw, updated || !validatePassword);
 
 			admin.updateConfig(json, flushExistingData);
-			admin.storeAndReload();
+			admin.store();
 			ConfigUtil.getConfigServerImpl(config).resetAll(null);
 		}
 		catch (Throwable t) {
@@ -153,7 +129,18 @@ public final class CFConfigImport {
 
 	}
 
-	private static void replacePlaceHolder(Collection coll, Struct placeHolderData) {
+	private Map<Key, String> toMap(Struct placeHolderData) {
+		if (placeHolderData == null) return null;
+		Map<Key, String> map = new HashMap<>();
+		Iterator<Entry<Key, Object>> it = placeHolderData.entryIterator();
+		while (it.hasNext()) {
+			Entry<Key, Object> e = it.next();
+			map.put(e.getKey(), Caster.toString(e.getValue(), ""));
+		}
+		return map;
+	}
+
+	private void replacePlaceHolder(Collection coll, Map<Key, String> placeHolderData) {
 		// ${MAILSERVER_HOST:smtp.sendgrid.net}
 		Iterator<Entry<Key, Object>> it = coll.entryIterator();
 		Entry<Key, Object> e;
@@ -161,65 +148,32 @@ public final class CFConfigImport {
 		while (it.hasNext()) {
 			e = it.next();
 			obj = e.getValue();
-			if (obj instanceof String) replacePlaceHolder(e, placeHolderData);
+			if (obj instanceof String) {
+
+				String str = (String) e.getValue();
+				String resolved = config.replacePlaceHolder(str, placeHolderData);
+				if (!str.equals(resolved)) e.setValue(resolved);
+			}
 			if (obj instanceof Collection) replacePlaceHolder((Collection) obj, placeHolderData);
 		}
 	}
 
-	private static void replacePlaceHolder(Entry<Key, Object> e, Struct placeHolderData) {
-		String str = (String) e.getValue();
-		String res;
-		boolean modified = false;
-		int startIndex = -1;
-		while (true) {
-			startIndex = str.indexOf("${", startIndex + 1);
-			if (startIndex == -1) break;
-			int endIndex = str.indexOf("}", startIndex + 1);
-			if (endIndex == -1) break;
-			modified = true;
-			String content = str.substring(startIndex + 2, endIndex);
-			String envVarName, defaultValue = "";
-			int index = content.indexOf(':');
-			if (index == -1) {
-				envVarName = content;
-			}
-			else {
-				envVarName = content.substring(0, index);
-				defaultValue = content.substring(index + 1);
-			}
-
-			Object val = null;
-			if (placeHolderData != null) val = placeHolderData.get(KeyImpl.init(envVarName), null);
-			if (val == null) val = SystemUtil.getSystemPropOrEnvVar(envVarName, null);
-
-			if (val != null) res = Caster.toString(val, "");
-			else res = defaultValue;
-
-			str = str.substring(0, startIndex) + res + str.substring(endIndex + 1);
-		}
-		if (modified) e.setValue(str);
-	}
-
-	private boolean setPasswordIfNecessary(ConfigPro config) throws PageException {
+	private boolean setPasswordIfNecessary(ConfigServerPro config) throws PageException {
 		if (!setPasswordIfNecessary) return false;
-		boolean isServer = "server".equalsIgnoreCase(type);
-		if ((isServer && !pwCheckedServer) || (!isServer && !pwCheckedWeb)) {
-			boolean hasPassword = isServer ? config.hasServerPassword() : config.hasPassword();
+		if ((!pwChecked)) {
+			boolean hasPassword = config.hasPassword();
 			if (!hasPassword) {
 				// create password
 				try {
-					if (config instanceof ConfigWebPro && isServer) ((ConfigWebPro) config).updatePassword(isServer, null, password);
-					else {
-						PasswordImpl.updatePassword(config, null, password);
-					}
+					PasswordImpl.updatePassword(config, null, password);
+
 					return true;
 				}
 				catch (Exception e) {
 					throw Caster.toPageException(e);
 				}
 			}
-			if (isServer) pwCheckedServer = true;
-			else pwCheckedWeb = true;
+			pwChecked = true;
 		}
 		return false;
 	}

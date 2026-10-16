@@ -33,6 +33,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.MappingImpl.SerMapping;
 import lucee.runtime.Page;
+import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
@@ -50,26 +51,31 @@ import lucee.runtime.type.util.UDFUtil;
 public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	private static final long serialVersionUID = 8679484452640746605L; // do not change
 
+	// Reference fields (8 bytes each) - group together to minimize padding
 	public String functionName;
-	public int returnType;
 	public String strReturnType;
-	public boolean output;
-	public Boolean bufferOutput;
 	public String hint;
 	public String displayName;
-	public int index;
+	public String description;
+	public String strReturnFormat;
 	public FunctionArgument[] arguments;
 	public Struct meta;
-	public String description;
+	public Set<Collection.Key> argumentsSet;
+	public Object cachedWithin;
+	public Boolean bufferOutput;
 	public Boolean secureJson;
 	public Boolean verifyClient;
-	public String strReturnFormat;
-	public int returnFormat;
-	public Set<Collection.Key> argumentsSet;
-	public int access;
-	public Object cachedWithin;
 	public Integer localMode;
+
+	// int fields (4 bytes each) - group together
+	public int returnType;
+	public int index;
+	public int returnFormat;
+	public int access;
 	public int modifier;
+
+	// boolean field (1 byte) - at end to minimize padding
+	public boolean output;
 
 	/**
 	 * NEVER USE THIS CONSTRUCTOR, this constructor is only for deserialize this object from stream
@@ -121,6 +127,8 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		this.meta = meta;
 		this.output = output;
 		this.bufferOutput = bufferOutput;
+
+		this.canUseFastPath = calculateCanUseFastPath( arguments );
 
 		this.strReturnType = strReturnType;
 		this.returnType = returnType;
@@ -207,6 +215,7 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		cachedWithin = StringUtil.emptyAsNull(ExternalizableUtil.readString(in), true);
 		int tmp = in.readInt();
 		localMode = tmp == -1 ? null : tmp;
+		canUseFastPath = calculateCanUseFastPath( arguments );
 
 		if (arguments != null && arguments.length > 0) {
 			this.argumentsSet = new HashSet<Collection.Key>();
@@ -254,6 +263,16 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		out.writeInt(localMode == null ? -1 : localMode.intValue());
 	}
 
+	private static boolean calculateCanUseFastPath( FunctionArgument[] arguments ) {
+		if (arguments == null) return true;
+		for (FunctionArgument arg : arguments) {
+			if (arg.getType() != CFTypes.TYPE_ANY || arg.getDefaultType() != FunctionArgument.DEFAULT_TYPE_NULL || arg.isRequired() || !arg.isPassByReference()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	@Override
 	public String getFunctionName() {
 		return functionName;
@@ -285,12 +304,12 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	}
 
 	@Override
-	public int getReturnFormat() {
+	public int getReturnFormat(PageContext pc) {
 		return returnFormat;
 	}
 
 	@Override
-	public String getReturnFormatAsString() {
+	public String getReturnFormatAsString(PageContext pc) {
 		return strReturnFormat;
 	}
 

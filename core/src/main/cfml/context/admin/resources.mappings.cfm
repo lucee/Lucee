@@ -78,13 +78,15 @@ Defaults --->
 						
 						
 						<cfif not doDownload>
-							<cfset target=expandPath("#cgi.context_path#/lucee/archives/"&filename)>
-							<cfset count=0>
-							<cfwhile fileExists(target)>
-								<cfset count=count+1>
-								<cfset target="#cgi.context_path#/lucee/archives/"&filename>
-								<cfset target=replace(target,'.'&ext,count&'.'&ext)>
-								<cfset target=expandPath(target)>
+							<cfset data.archivePaths = toArrayFromForm( "archivePath" )>
+							<cfif arrayIndexExists( data.archivePaths, idx ) and len( trim( data.archivePaths[ idx ] ) )>
+								<cfset filename = trim( data.archivePaths[ idx ] )>
+							</cfif>
+							<cfset target = expandPath( "{lucee-config}/context/archives/" & filename )>
+							<cfset count = 0>
+							<cfwhile fileExists( target )>
+								<cfset count = count + 1>
+								<cfset target = expandPath( "{lucee-config}/context/archives/" & replace( filename, '.' & ext, count & '.' & ext ) )>
 							</cfwhile>
 						</cfif>
 						<cfadmin

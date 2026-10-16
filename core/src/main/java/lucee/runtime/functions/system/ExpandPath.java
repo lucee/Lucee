@@ -25,7 +25,7 @@ import java.io.IOException;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
+import lucee.commons.io.res.ResourcesImpl.InnerResourceProviderFactory;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
@@ -116,18 +116,12 @@ public final class ExpandPath implements Function {
 	}
 
 	public static Mapping[] mergeMappings(Mapping[] l, Mapping[] r) {
-		Mapping[] arr = new Mapping[(l == null ? 0 : l.length) + (r == null ? 0 : r.length)];
-		int index = 0;
-		if (l != null) {
-			for (Mapping m: l) {
-				arr[index++] = m;
-			}
-		}
-		if (r != null) {
-			for (Mapping m: r) {
-				arr[index++] = m;
-			}
-		}
+		// callers only read the result, so avoid allocating when one side is empty
+		if (r == null || r.length == 0) return l;
+		if (l == null || l.length == 0) return r;
+		Mapping[] arr = new Mapping[l.length + r.length];
+		System.arraycopy(l, 0, arr, 0, l.length);
+		System.arraycopy(r, 0, arr, l.length, r.length);
 		return arr;
 	}
 
@@ -160,7 +154,7 @@ public final class ExpandPath implements Function {
 		if (path == null) return null;
 
 		// UNC Path
-		if (path.startsWith("\\\\") && IS_WINDOWS) {
+		if (IS_WINDOWS && path.startsWith("\\\\")) {
 			path = path.substring(2);
 			path = path.replace('\\', '/');
 			return "//" + StringUtil.replace(path, "//", "/", false);
@@ -171,7 +165,7 @@ public final class ExpandPath implements Function {
 		// virtual file system path
 		int index = path.indexOf("://");
 		if (index != -1) {
-			ResourceProviderFactory[] factories = ((ConfigPro) pc.getConfig()).getResourceProviderFactories();
+			InnerResourceProviderFactory[] factories = ((ConfigPro) pc.getConfig()).getResourceProviderFactories();
 			String scheme = path.substring(0, index).toLowerCase().trim();
 			for (int i = 0; i < factories.length; i++) {
 				if (scheme.equalsIgnoreCase(factories[i].getScheme())) return scheme + "://" + StringUtil.replace(path.substring(index + 3), "//", "/", false);

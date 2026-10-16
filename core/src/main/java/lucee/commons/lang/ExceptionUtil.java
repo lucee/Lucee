@@ -95,24 +95,31 @@ public final class ExceptionUtil {
 	}
 
 	public static String getTagContextLine(Throwable t) {
-		Throwable cause;
-		if (t == null) {
-			t = new Throwable();
-		}
-		else {
-			cause = t.getCause();
+		if (t != null) {
+			Throwable cause = t.getCause();
 			if (cause != null) return getTagContextLine(cause);
+			return formatTagContextLine(t.getStackTrace());
 		}
+		// t == null: walk the live stack via StackWalker — no Throwable allocation,
+		// no full-stack materialisation into StackTraceElement[].
+		StringBuilder sb = new StringBuilder();
+		StackWalker.getInstance().forEach(f -> {
+			int line = f.getLineNumber();
+			String tpl = f.getFileName();
+			if (line > 0 && tpl != null && !"java".equals(ResourceUtil.getExtension(tpl, ""))) {
+				sb.append(tpl).append(':').append(line).append(';');
+			}
+		});
+		return sb.toString();
+	}
 
-		StackTraceElement[] traces = t.getStackTrace();
-		String template;
-		int line;
+	private static String formatTagContextLine(StackTraceElement[] traces) {
 		StringBuilder sb = new StringBuilder();
 		for (StackTraceElement trace: traces) {
-			template = trace.getFileName();
-			line = trace.getLineNumber();
+			String template = trace.getFileName();
+			int line = trace.getLineNumber();
 			if (line <= 0 || template == null || ResourceUtil.getExtension(template, "").equals("java")) continue;
-			sb.append(template).append(':').append(trace.getLineNumber()).append(';');
+			sb.append(template).append(':').append(line).append(';');
 		}
 		return sb.toString();
 	}

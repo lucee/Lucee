@@ -1,4 +1,10 @@
 import { S3Client, ListObjectsV2Command, CopyObjectCommand, DeleteObjectCommand, PutObjectCommand, GetObjectCommand, HeadObjectCommand, GetBucketLocationCommand } from '@aws-sdk/client-s3';
+import {
+  generateAndUploadDirectoryListing,
+  generateAndUploadGroupMetadata,
+  sortVersions,
+  findLatestRelease
+} from './maven-group-metadata.js';
 
 // Helper function to log with timestamp
 function log(message, level = 'INFO') {
@@ -29,6 +35,8 @@ async function run() {
     const targetArtifactId = process.env.INPUT_TARGET_ARTIFACT_ID;
     const versionsInput = process.env.INPUT_VERSIONS;
     const pomUrl = process.env.INPUT_POM_URL;
+    const extensionId = process.env.INPUT_EXTENSION_ID;
+    const logoUrl = process.env.INPUT_LOGO_URL;
     const operation = process.env.INPUT_OPERATION || 'move';
     const dryRun = process.env.INPUT_DRY_RUN === 'true';
     const accessKeyId = process.env.INPUT_S3_ACCESS_KEY;
@@ -169,7 +177,7 @@ async function run() {
       log(`${'='.repeat(60)}`);
 
       try {
-        const versionStats = await processExtensionVersion(sourceS3Client, targetS3Client, sourceBucket, targetBucket, sourceExtension, targetArtifactId, version, operation, dryRun, pomUrl);
+        const versionStats = await processExtensionVersion(sourceS3Client, targetS3Client, sourceBucket, targetBucket, sourceExtension, targetArtifactId, version, operation, dryRun, pomUrl, extensionId, logoUrl);
         totalProcessed += versionStats.processed;
         totalMissing += versionStats.missing;
         totalSkipped += versionStats.skipped;
@@ -187,17 +195,25 @@ async function run() {
       }
     }
 
-    // Generate directory listing HTML if any files were processed
+    // Regenerate org/lucee index and group metadata when files were processed
     if (!dryRun && totalProcessed > 0) {
       try {
-        await generateDirectoryListing(targetS3Client, targetBucket);
-        log('✓ Generated HTML directory listing for org/lucee');
+        const listing = await generateAndUploadDirectoryListing(targetS3Client, targetBucket);
+        log(`✓ Generated HTML directory listing for org/lucee (${listing.length} entries)`);
       } catch (error) {
         totalErrors++;
         logError(`✗ Failed to generate directory listing: ${error.message}`);
       }
+
+      try {
+        const group = await generateAndUploadGroupMetadata(targetS3Client, targetBucket);
+        log(`✓ Generated group maven-metadata.xml for org/lucee (${group.artifacts.length} extensions)`);
+      } catch (error) {
+        totalErrors++;
+        logError(`✗ Failed to generate group metadata: ${error.message}`);
+      }
     } else if (dryRun) {
-      log('[DRY RUN] Would generate HTML directory listing for org/lucee');
+      log('[DRY RUN] Would generate org/lucee/index.html and org/lucee/maven-metadata.xml');
     }
 
     // Overall summary
@@ -227,7 +243,7 @@ async function run() {
   }
 }
 
-async function processExtensionVersion(sourceS3Client, targetS3Client, sourceBucket, targetBucket, sourceExtension, targetArtifactId, version, operation, dryRun, pomUrl) {
+async function processExtensionVersion(sourceS3Client, targetS3Client, sourceBucket, targetBucket, sourceExtension, targetArtifactId, version, operation, dryRun, pomUrl, extensionId, logoUrl) {
   log(`Starting processing for extension: ${sourceExtension}, version: ${version}`);
 
   // Define the source and target paths for the extension
@@ -301,7 +317,7 @@ async function processExtensionVersion(sourceS3Client, targetS3Client, sourceBuc
           // Generate and upload POM file if URL is provided
           if (pomUrl && pomUrl.trim() !== '') {
             try {
-              await generateAndUploadPom(targetS3Client, targetBucket, targetArtifactId, version, pomUrl);
+              await generateAndUploadPom(targetS3Client, targetBucket, targetArtifactId, version, pomUrl, extensionId, logoUrl);
               log(`  ✓ Generated and uploaded POM file for ${targetArtifactId} ${version}`);
             } catch (pomError) {
               errorCount++;
@@ -325,6 +341,22 @@ async function processExtensionVersion(sourceS3Client, targetS3Client, sourceBuc
       } else {
         skippedCount++;
         logWarning(`  ⚠ Skipped: ${sourceKey} (${result.reason})`);
+
+        // The artifact already exists, but always refresh the POM when a URL is provided
+        // so newly-added properties (id/image) land on previously organized versions.
+        if (pomUrl && pomUrl.trim() !== '') {
+          if (!dryRun) {
+            try {
+              await generateAndUploadPom(targetS3Client, targetBucket, targetArtifactId, version, pomUrl, extensionId, logoUrl);
+              log(`  ✓ Refreshed POM file for ${targetArtifactId} ${version}`);
+            } catch (pomError) {
+              errorCount++;
+              logError(`  ✗ Failed to refresh POM file: ${pomError.message}`);
+            }
+          } else {
+            log(`  [DRY RUN] Would refresh POM file from ${pomUrl}`);
+          }
+        }
       }
     }
   } catch (error) {
@@ -494,22 +526,22 @@ async function updateExtensionParentMetadata(s3Client, bucket, artifactId, newVe
   await uploadMetadata(s3Client, bucket, metadataKey, updatedMetadata);
 }
 
-async function generateAndUploadPom(s3Client, bucket, artifactId, version, pomUrl) {
+async function generateAndUploadPom(s3Client, bucket, artifactId, version, pomUrl, extensionId, logoUrl) {
   log(`Fetching POM from ${pomUrl}`);
-  
+
   // Fetch the POM content from the URL
   const response = await fetch(pomUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch POM from ${pomUrl}: ${response.status} ${response.statusText}`);
   }
-  
+
   let pomContent = await response.text();
-  
+
   // Update the version in the POM content
   // Replace the version tag in the root project element
   const versionRegex = /<project[^>]*>[\s\S]*?<version>([^<]+)<\/version>/;
   const match = pomContent.match(versionRegex);
-  
+
   if (match) {
     const currentVersion = match[1];
     log(`Updating POM version from ${currentVersion} to ${version}`);
@@ -520,7 +552,11 @@ async function generateAndUploadPom(s3Client, bucket, artifactId, version, pomUr
   } else {
     logWarning('Could not find version tag in POM, uploading as-is');
   }
-  
+
+  // Ensure the POM carries <properties> with <id> and <image>.
+  // Prefer values already present in the source POM; fall back to workflow inputs.
+  pomContent = ensurePomProperties(pomContent, artifactId, extensionId, logoUrl);
+
   // Upload the POM file
   const pomKey = `org/lucee/${artifactId}/${version}/${artifactId}-${version}.pom`;
   
@@ -532,6 +568,42 @@ async function generateAndUploadPom(s3Client, bucket, artifactId, version, pomUr
   }));
   
   log(`Uploaded POM to ${pomKey}`);
+}
+
+// Ensure the POM has a <properties> block containing a valid <id> and <image>.
+// Values found in the source POM win; otherwise the workflow-provided inputs are used.
+// Throws when no valid id can be determined, since the id is required for the extension.
+function ensurePomProperties(pomContent, artifactId, extensionId, logoUrl) {
+  const inputId = (extensionId || '').trim();
+  const inputImage = (logoUrl || '').trim();
+
+  // Read any existing values from the source POM
+  const existingIdMatch = pomContent.match(/<id>([^<]*)<\/id>/);
+  const existingImageMatch = pomContent.match(/<image>([^<]*)<\/image>/);
+  const existingId = existingIdMatch ? existingIdMatch[1].trim() : '';
+  const existingImage = existingImageMatch ? existingImageMatch[1].trim() : '';
+
+  const finalId = existingId || inputId;
+  const finalImage = existingImage || inputImage;
+
+  if (!finalId) {
+    throw new Error(`No <id> found in POM for ${artifactId} and no extension_id input provided. Provide the extension_id workflow input.`);
+  }
+  if (!finalImage) {
+    logWarning(`No <image> found in POM for ${artifactId} and no logo_url input provided; <image> will be empty.`);
+  }
+
+  log(`POM properties for ${artifactId}: id=${finalId}${existingId ? ' (from pom)' : ' (from input)'}, image=${finalImage || '(none)'}${finalImage && existingImage ? ' (from pom)' : finalImage ? ' (from input)' : ''}`);
+
+  const propertiesBlock = `\t<properties>\n\t\t<id>${finalId}</id>\n\t\t<image>${finalImage}</image>\n\t</properties>`;
+
+  if (/<properties>[\s\S]*?<\/properties>/.test(pomContent)) {
+    // Replace the existing properties block (and normalize id/image inside it)
+    return pomContent.replace(/[ \t]*<properties>[\s\S]*?<\/properties>/, propertiesBlock);
+  }
+
+  // No properties block yet - insert one before the closing </project> tag
+  return pomContent.replace(/<\/project>/, `${propertiesBlock}\n</project>`);
 }
 
 function addVersionToExtensionMetadata(existingXml, newVersion, timestamp) {
@@ -548,27 +620,18 @@ function addVersionToExtensionMetadata(existingXml, newVersion, timestamp) {
   if (!existingVersions.includes(newVersion)) {
     existingVersions.push(newVersion);
   }
-  
-  // Sort versions (simple string sort, which works reasonably well for semantic versions)
-  existingVersions.sort();
-  
+
+  const sortedVersions = sortVersions(existingVersions);
+
   // Determine latest and release versions
-  const latest = newVersion; // Always set the new version as latest
-  let release = '';
-  
-  // Find the latest non-SNAPSHOT version for release
-  for (let i = existingVersions.length - 1; i >= 0; i--) {
-    if (!existingVersions[i].includes('SNAPSHOT')) {
-      release = existingVersions[i];
-      break;
-    }
-  }
+  const latest = newVersion;
+  const release = findLatestRelease(sortedVersions);
   
   // Generate properly formatted XML - extract artifact ID from existing metadata
   const artifactIdMatch = existingXml.match(/<artifactId>([^<]+)<\/artifactId>/);
   const artifactId = artifactIdMatch ? artifactIdMatch[1] : 'unknown-extension';
   
-  const versionsXml = existingVersions.map(v => `      <version>${v}</version>`).join('\n');
+  const versionsXml = sortedVersions.map(v => `      <version>${v}</version>`).join('\n');
   
   return `<?xml version="1.0" encoding="UTF-8"?>
 <metadata>
@@ -583,110 +646,6 @@ ${versionsXml}
     <lastUpdated>${timestamp}</lastUpdated>
   </versioning>
 </metadata>`;
-}
-
-async function generateDirectoryListing(s3Client, bucket) {
-  const orgLuceePrefix = 'org/lucee/';
-  
-  // Get all directories under org/lucee/
-  const listResponse = await s3Client.send(new ListObjectsV2Command({
-    Bucket: bucket,
-    Prefix: orgLuceePrefix,
-    Delimiter: '/'
-  }));
-  
-  if (!listResponse.CommonPrefixes || listResponse.CommonPrefixes.length === 0) {
-    log('No artifacts found under org/lucee/, skipping directory listing generation');
-    return;
-  }
-  
-  // Extract artifact names and their last modified dates
-  const artifacts = [];
-  
-  for (const prefix of listResponse.CommonPrefixes) {
-    const artifactName = prefix.Prefix.replace(orgLuceePrefix, '').replace('/', '');
-    
-    // Get the latest file in this artifact directory to determine last modified date
-    const artifactListResponse = await s3Client.send(new ListObjectsV2Command({
-      Bucket: bucket,
-      Prefix: prefix.Prefix,
-      MaxKeys: 1000
-    }));
-    
-    let latestDate = new Date(0); // Start with epoch
-    
-    if (artifactListResponse.Contents && artifactListResponse.Contents.length > 0) {
-      for (const obj of artifactListResponse.Contents) {
-        if (obj.LastModified && obj.LastModified > latestDate) {
-          latestDate = obj.LastModified;
-        }
-      }
-    }
-    
-    artifacts.push({
-      name: artifactName,
-      lastModified: latestDate
-    });
-  }
-  
-  // Sort artifacts alphabetically
-  artifacts.sort((a, b) => a.name.localeCompare(b.name));
-  
-  // Generate HTML content
-  const html = generateDirectoryListingHtml(artifacts);
-  
-  // Upload the HTML file
-  await s3Client.send(new PutObjectCommand({
-    Bucket: bucket,
-    Key: 'org/lucee/index.html',
-    Body: html,
-    ContentType: 'text/html'
-  }));
-  
-  log(`Generated directory listing with ${artifacts.length} artifacts`);
-}
-
-function generateDirectoryListingHtml(artifacts) {
-  const formatDate = (date) => {
-    if (date.getTime() === 0) return '                   -';
-    return date.toISOString().slice(0, 16).replace('T', ' ');
-  };
-  
-  const artifactLinks = artifacts.map(artifact => {
-    const paddedName = (artifact.name + '/').padEnd(50);
-    const formattedDate = formatDate(artifact.lastModified);
-    
-    return `<a href="${artifact.name}/" title="${artifact.name}/">${paddedName}</a>                     ${formattedDate}         -      `;
-  }).join('\n');
-  
-  return `<!DOCTYPE html>
-<html>
-
-<head>
-  <title>Central Repository: org/lucee</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-body {
-  background: #fff;
-}
-  </style>
-</head>
-
-<body>
-  <header>
-    <h1>org/lucee</h1>
-  </header>
-  <hr/>
-  <main>
-    <pre id="contents">
-<a href="../">../</a>
-${artifactLinks}
-    </pre>
-  </main>
-  <hr/>
-</body>
-
-</html>`;
 }
 
 // Run the script

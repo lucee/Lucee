@@ -126,7 +126,7 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 					}
 				}
 				Struct s = (Struct) evaluator.interpret(pc, str);
-				ScopeContext.debug(log, "load existing file storage [" + res + "]");
+				ScopeContext.trace(log, "Load existing file storage [" + res + "]");
 				return s;
 			}
 			catch (Throwable t) {
@@ -134,7 +134,7 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 				ScopeContext.error(log, t);
 			}
 		}
-		ScopeContext.debug(log, "create new file storage [" + res + "]");
+		ScopeContext.debug(log, "Create new file storage [" + res + "]");
 		return null;
 	}
 

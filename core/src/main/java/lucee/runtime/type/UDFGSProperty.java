@@ -29,6 +29,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.MemberSupport;
+import lucee.runtime.component.Property;
+import lucee.runtime.component.PropertyImpl;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -51,18 +53,19 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	private static final long serialVersionUID = 285652503901488683L;
 
-	private static final Collection.Key MIN_LENGTH = KeyConstants._minLength;
-	private static final Collection.Key MAX_LENGTH = KeyConstants._maxLength;
-
 	protected final FunctionArgument[] arguments;
 	protected final String name;
 	protected Component srcComponent;
+	protected Property prop; // Property reference for flyweight UDFs
 	private UDFPropertiesBase properties;
 	private String id;
 
 	public UDFGSProperty(Component component, String name, FunctionArgument[] arguments, short rtnType) {
 		super(Component.ACCESS_PUBLIC);
-		properties = UDFProperties(null, component.getPageSource(), arguments, name, rtnType);
+		// LDEV-3335: Support null component for stateless flyweight UDFs (bytecode-generated static
+		// accessors)
+		// For backwards compatibility with older bytecode, we still support non-null component
+		properties = UDFProperties(null, component != null ? component.getPageSource() : null, arguments, name, rtnType);
 		this.name = name;
 		this.arguments = arguments;
 		this.srcComponent = component;
@@ -70,11 +73,6 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	private static UDFPropertiesBase UDFProperties(Page page, PageSource pageSource, FunctionArgument[] arguments, String functionName, short returnType) {
 		return new UDFPropertiesLight(page, pageSource, arguments, functionName, returnType);
-	}
-
-	@Override
-	protected final int hash() {
-		return java.util.Objects.hash(name, getPageSource());
 	}
 
 	@Override
@@ -98,20 +96,34 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	}
 
 	@Override
+	protected int hash() {
+		return java.util.Objects.hash(getFunctionName(), getPageSource());
+	}
+
+	@Override
 	public String getSource() {
-		PageSource ps = srcComponent.getPageSource();
-		if (ps != null) return ps.getDisplayPath();
+		// LDEV-3335: Handle null srcComponent for stateless flyweight UDFs
+		if (srcComponent != null) {
+			PageSource ps = srcComponent.getPageSource();
+			if (ps != null) return ps.getDisplayPath();
+		}
+		// Fall back to properties PageSource if available
+		if (properties != null && properties.getPageSource() != null) {
+			return properties.getPageSource().getDisplayPath();
+		}
 		return "";
 	}
 
 	@Override
 	public String id() {
 		if (id == null) {
+			// LDEV-3335: Handle null srcComponent for stateless flyweight UDFs
+			String componentId = srcComponent != null ? srcComponent.id() : "static";
 			try {
-				id = Hash.md5(srcComponent.id() + ":" + getFunctionName());
+				id = Hash.md5(componentId + ":" + getFunctionName());
 			}
 			catch (NoSuchAlgorithmException e) {
-				id = srcComponent.id() + ":" + getFunctionName();
+				id = componentId + ":" + getFunctionName();
 			}
 		}
 		return id;
@@ -214,7 +226,9 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	@Override
 	public Struct getMetaData(PageContext pc) throws PageException {
-		return ComponentUtil.getMetaData(pc, properties, null);
+		// LDEV-3335: Pass 'this' UDF instance so ComponentUtil can call getPageSource() with proper
+		// fallback
+		return ComponentUtil.getMetaData(pc, this, properties, null);
 	}
 
 	final Object cast(PageContext pc, FunctionArgument arg, Object value, int index) throws PageException {
@@ -222,11 +236,11 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 		throw new UDFCasterException(this, arg, value, index);
 	}
 
-	final static void validate(String validate, Struct validateParams, Object obj) throws PageException {
+	final static void validate(PageContext pc, String validate, Struct validateParams, Object obj) throws PageException {
 		if (StringUtil.isEmpty(validate, true)) return;
 		validate = validate.trim().toLowerCase();
 
-		if (!validate.equals("regex") && !Decision.isValid(validate, obj)) throw new ExpressionException(createMessage(validate, obj));
+		if (!validate.equals("regex") && !Decision.isValid(pc, validate, obj)) throw new ExpressionException(createMessage(validate, obj));
 
 		// range
 		if (validateParams == null) return;
@@ -241,8 +255,8 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 				throw new ExpressionException(validate + " [" + Caster.toString(d) + "] is out of range, value must be less than or equal to [" + max + "]");
 		}
 		else if (validate.equals("string")) {
-			double min = Caster.toDoubleValue(validateParams.get(MIN_LENGTH, null), false, Double.NaN);
-			double max = Caster.toDoubleValue(validateParams.get(MAX_LENGTH, null), false, Double.NaN);
+			double min = Caster.toDoubleValue(validateParams.get(KeyConstants._minLength, null), false, Double.NaN);
+			double max = Caster.toDoubleValue(validateParams.get(KeyConstants._maxLength, null), false, Double.NaN);
 			String str = Caster.toString(obj);
 			int l = str.length();
 			if (!Double.isNaN(min) && l < ((int) min))
@@ -327,13 +341,26 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	@Override
 	public PageSource getPageSource() {
-		return srcComponent.getPageSource();
-		// return this.properties.getPageSource();
+		// LDEV-3335: Handle null srcComponent for stateless flyweight UDFs
+		if (srcComponent != null) {
+			return srcComponent.getPageSource();
+		}
+		// For flyweight UDFs, get PageSource from the property's owner
+		if (prop != null && prop instanceof PropertyImpl) {
+			PageSource ps = ((PropertyImpl) prop).getOwnerPageSource();
+			if (ps != null) return ps;
+		}
+		// Fall back to properties PageSource
+		return this.properties.getPageSource();
 	}
 
 	@Override
 	public boolean getBufferOutput(PageContext pc) {
 		return pc.getApplicationContext().getBufferOutput();
+	}
+
+	public Property getProperty() {
+		return prop;
 	}
 
 	public Component getComponent(PageContext pc) {

@@ -25,12 +25,13 @@ import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class FileSetAccessMode {
 
 	public static String call(PageContext pc, Object oSrc, String strMode) throws PageException {
 		Resource src = Caster.toResource(pc, oSrc, false);
-		pc.getConfig().getSecurityManager().checkFileLocation(src);
+		SecurityManagerImpl.checkFileLocation(pc, src);
 		try {
 			src.setMode(ModeUtil.toOctalMode(strMode));
 		}

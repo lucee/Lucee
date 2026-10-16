@@ -28,6 +28,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -48,7 +49,6 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.ccil.cowan.tagsoup.Parser;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.CharacterData;
@@ -65,7 +65,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -76,7 +75,6 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -85,6 +83,7 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.EnvClassLoader;
+import lucee.runtime.text.xml.html.Parser;
 import lucee.runtime.text.xml.struct.XMLMultiElementStruct;
 import lucee.runtime.text.xml.struct.XMLStruct;
 import lucee.runtime.text.xml.struct.XMLStructFactory;
@@ -122,6 +121,9 @@ public final class XMLUtil {
 	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyConstants._externalGeneralEntities;
 	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF = KeyConstants._allowExternalEntities;
 
+	// Sentinel for "name not found" path; must never escape this class.
+	private static final Object NOT_FOUND = new Object();
+
 	// public final static String
 	// DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
 
@@ -139,6 +141,11 @@ public final class XMLUtil {
 	// private static DocumentBuilderFactory documentBuilderFactory;
 
 	private static SAXParserFactory saxParserFactory;
+
+	// Cached pre-configured factory for the common non-validating, default-features case.
+	// Thread-safe: factory is fully configured before caching and never mutated after.
+	// newDocumentBuilder() on the JDK's DocumentBuilderFactoryImpl is a pure read→create operation.
+	private static volatile DocumentBuilderFactory cachedDefaultFactory;
 
 	private static URL transformerFactoryResource;
 
@@ -270,7 +277,7 @@ public final class XMLUtil {
 			synchronized (SystemUtil.createToken("XMLUtil", "newDocumentBuilderFactoryClass")) {
 				if (!initTf) {
 
-					Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
+					Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance(ThreadLocalPageContext.getConfigServer()));
 					Class<TransformerFactory> clazz = null;
 					Log log = ThreadLocalPageContext.getLog("application");
 
@@ -308,8 +315,18 @@ public final class XMLUtil {
 		return tf;
 	}
 
+	// used in extensions
 	public static final Document parse(InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException {
-		return parse(xml, validator, new XMLEntityResolverDefaultHandler(validator), isHtml);
+		return parse((PageContext) null, xml, validator, new XMLEntityResolverDefaultHandler(validator), isHtml);
+	}
+
+	public static final Document parse(PageContext pc, InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException {
+		return parse(pc, xml, validator, new XMLEntityResolverDefaultHandler(validator), isHtml);
+	}
+
+	// used in extensions
+	public static final Document parse(InputSource xml, Object validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
+		return parse((PageContext) null, xml, validator, entRes, isHtml);
 	}
 
 	/**
@@ -323,11 +340,11 @@ public final class XMLUtil {
 	 * @throws SAXException
 	 * @throws IOException
 	 */
-	public static final Document parse(InputSource xml, Object validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
+	public static final Document parse(PageContext pc, InputSource xml, Object validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
 
 		if (!isHtml) {
-			DocumentBuilderFactory factory = (validator instanceof InputSource) ? newDocumentBuilderFactory((InputSource) validator, null)
-					: newDocumentBuilderFactory(null, (Struct) validator);
+			DocumentBuilderFactory factory = (validator instanceof InputSource) ? newDocumentBuilderFactory(pc, (InputSource) validator, null, false)
+					: newDocumentBuilderFactory(pc, null, (Struct) validator, false);
 
 			try {
 				DocumentBuilder builder = factory.newDocumentBuilder();
@@ -356,11 +373,34 @@ public final class XMLUtil {
 		}
 	}
 
-	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator) {
-		return newDocumentBuilderFactory(validator, null);
+	private static DocumentBuilderFactory newDocumentBuilderFactory(PageContext pc, InputSource validator) {
+		return newDocumentBuilderFactory(pc, validator, null, false);
 	}
 
-	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator, Struct xmlFeatures) {
+	/**
+	 * @param validator InputSource for schema validation, or null
+	 * @param xmlFeatures per-application feature overrides, or null
+	 * @param uncached force a fresh factory instance — use when the caller needs to mutate the factory
+	 */
+	private static DocumentBuilderFactory newDocumentBuilderFactory(PageContext pc, InputSource validator, Struct xmlFeatures, boolean uncached) {
+		// Fast path: non-validating, no custom features — return cached factory
+		if (!uncached && validator == null && xmlFeatures == null) {
+			pc = ThreadLocalPageContext.get(pc);
+			Struct appFeatures = null;
+			if (pc != null) {
+				ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
+				appFeatures = ac == null ? null : ac.getXmlFeatures();
+			}
+			if (appFeatures == null) {
+				DocumentBuilderFactory cached = cachedDefaultFactory;
+				if (cached != null) return cached;
+				cached = createDefaultFactory();
+				cachedDefaultFactory = cached;
+				return cached;
+			}
+		}
+
+		// Slow path: validating, custom features, or explicitly uncached
 		DocumentBuilderFactory factory;
 		if (validator != null) {
 			factory = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
@@ -384,7 +424,7 @@ public final class XMLUtil {
 		Struct features = null;
 
 		// can be overriden per application
-		PageContext pc = ThreadLocalPageContext.get();
+		pc = ThreadLocalPageContext.get(pc);
 		if (pc != null || xmlFeatures != null) {
 			if (xmlFeatures != null) {
 				features = xmlFeatures;
@@ -429,7 +469,35 @@ public final class XMLUtil {
 			}
 		}
 
-		try { // set built in feature aliases
+		setSecurityFeatures(factory, featureSecure, disallowDocType, externalGeneralEntities);
+		// pass thru any additional feature directives
+		// https://xerces.apache.org/xerces2-j/features.html#disallow-doctype-decl
+		if (features != null) {
+			features.forEach((k, v) -> {
+				try {
+					factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
+				}
+				catch (PageException | ParserConfigurationException ex) {
+					throw new RuntimeException(ex);
+				}
+			});
+		}
+		return factory;
+	}
+
+	// Creates the default non-validating, secure factory — called once then cached
+	private static DocumentBuilderFactory createDefaultFactory() {
+		DocumentBuilderFactory factory = _newDocumentBuilderFactory();
+		setAttributeEL(factory, XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
+		setAttributeEL(factory, XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
+		factory.setNamespaceAware(true);
+		factory.setValidating(false);
+		setSecurityFeatures(factory, true, true, false);
+		return factory;
+	}
+
+	private static void setSecurityFeatures(DocumentBuilderFactory factory, boolean featureSecure, boolean disallowDocType, boolean externalGeneralEntities) {
+		try {
 			if (featureSecure) {
 				// set features per
 				// https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
@@ -449,19 +517,6 @@ public final class XMLUtil {
 		catch (ParserConfigurationException ex) {
 			throw new RuntimeException(ex);
 		}
-		// pass thru any additional feature directives
-		// https://xerces.apache.org/xerces2-j/features.html#disallow-doctype-decl
-		if (features != null) {
-			features.forEach((k, v) -> {
-				try {
-					factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
-				}
-				catch (PageException | ParserConfigurationException ex) {
-					throw new RuntimeException(ex);
-				}
-			});
-		}
-		return factory;
 	}
 
 	public static String getXMLParserConfigurationName() {
@@ -507,7 +562,7 @@ public final class XMLUtil {
 			synchronized (SystemUtil.createToken("XMLUtil", "newDocumentBuilderFactoryClass")) {
 				if (!initDbf) {
 
-					Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
+					Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance(ThreadLocalPageContext.getConfigServer()));
 					Class<DocumentBuilderFactory> clazz = null;
 					Log log = ThreadLocalPageContext.getLog("application");
 
@@ -547,7 +602,7 @@ public final class XMLUtil {
 
 	private static SAXParserFactory newSAXParserFactory() {
 		if (saxParserFactory == null) {
-			Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
+			Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance(ThreadLocalPageContext.getConfigServer()));
 			saxParserFactory = SAXParserFactory.newInstance();
 		}
 		return saxParserFactory;
@@ -568,7 +623,7 @@ public final class XMLUtil {
 	}
 
 	public static XMLReader createXMLReader() throws SAXException {
-		Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
+		Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance(ThreadLocalPageContext.getConfigServer()));
 		Log log = ThreadLocalPageContext.getLog("application");
 		try {
 			return XMLReaderFactory.createXMLReader("com.sun.org.apache.xerces.internal.parsers.SAXParser");
@@ -793,7 +848,8 @@ public final class XMLUtil {
 	 */
 	public static Object getProperty(Node node, Collection.Key k, boolean caseSensitive, Object defaultValue) {
 		try {
-			return getProperty(node, k, caseSensitive);
+			Object o = getPropertyOrSentinel(node, k, caseSensitive);
+			return o == NOT_FOUND ? defaultValue : o;
 		}
 		catch (SAXException e) {
 			return defaultValue;
@@ -814,6 +870,14 @@ public final class XMLUtil {
 	 * @throws SAXException
 	 */
 	public static Object getProperty(Node node, Collection.Key k, boolean caseSensitive) throws SAXException {
+		Object o = getPropertyOrSentinel(node, k, caseSensitive);
+		if (o == NOT_FOUND) throw new SAXException("Attribute [" + k.getString() + "] not found");
+		return o;
+	}
+
+	// Non-throwing core: returns NOT_FOUND for "name not found" so defaultValue callers avoid the
+	// throw.
+	private static Object getPropertyOrSentinel(Node node, Collection.Key k, boolean caseSensitive) throws SAXException {
 		// String lcKey=StringUtil.toLowerCase(key);
 		if (k.getLowerString().startsWith("xml")) {
 			// Comment
@@ -974,12 +1038,11 @@ public final class XMLUtil {
 				try {
 					return new XMLMultiElementStruct(array, false);
 				}
-				catch (PageException e) {
-				}
+				catch (PageException e) {}
 			}
 			if (first != null) return first;
 		}
-		throw new SAXException("Attribute [" + k.getString() + "] not found");
+		return NOT_FOUND;
 	}
 
 	private static SAXException undefined(Key key, Node node) {
@@ -1086,8 +1149,7 @@ public final class XMLUtil {
 			try {
 				return new XMLMultiElementStruct(array, false);
 			}
-			catch (PageException e) {
-			}
+			catch (PageException e) {}
 		}
 		return null;
 	}
@@ -1124,9 +1186,14 @@ public final class XMLUtil {
 	 * @throws ParserConfigurationException
 	 * @throws FactoryConfigurationError
 	 */
+
 	public static Document newDocument() throws ParserConfigurationException, FactoryConfigurationError {
+		return newDocument(null);
+	}
+
+	public static Document newDocument(PageContext pc) throws ParserConfigurationException, FactoryConfigurationError {
 		if (docBuilder == null) {
-			docBuilder = newDocumentBuilderFactory(null).newDocumentBuilder();
+			docBuilder = newDocumentBuilderFactory(pc, null).newDocumentBuilder();
 		}
 		return docBuilder.newDocument();
 	}
@@ -1341,8 +1408,8 @@ public final class XMLUtil {
 	 * @throws SAXException
 	 * @throws IOException
 	 */
-	public static String transform(InputSource xml, InputSource xsl) throws TransformerException, SAXException, IOException {
-		return transform(parse(xml, null, false), xsl, null);
+	public static String transform(PageContext pc, InputSource xml, InputSource xsl) throws TransformerException, SAXException, IOException {
+		return transform(parse(pc, xml, null, false), xsl, null);
 	}
 
 	/**
@@ -1356,8 +1423,8 @@ public final class XMLUtil {
 	 * @throws SAXException
 	 * @throws IOException
 	 */
-	public static String transform(InputSource xml, InputSource xsl, Map<String, Object> parameters) throws TransformerException, SAXException, IOException {
-		return transform(parse(xml, null, false), xsl, parameters);
+	public static String transform(PageContext pc, InputSource xml, InputSource xsl, Map<String, Object> parameters) throws TransformerException, SAXException, IOException {
+		return transform(parse(pc, xml, null, false), xsl, parameters);
 	}
 
 	/**
@@ -1550,16 +1617,16 @@ public final class XMLUtil {
 		else parent.appendChild(node);
 	}
 
-	public static Document createDocument(Resource res, boolean isHTML) throws IOException, XMLException {
+	public static Document createDocument(PageContext pc, Resource res, boolean isHTML) throws IOException, XMLException {
 		InputStream is = null;
 		try {
-			return parse(toInputSource(res, null), null, isHTML);
+			return parse(pc, toInputSource(res, null), null, isHTML);
 		}
 		catch (SAXException saxe) {
 			final String msg = saxe.getMessage();
 			if (msg != null || StringUtil.indexOfIgnoreCase(msg, "Premature end of file.") != -1) {
 
-				String content = IOUtil.toString(res, CharsetUtil.UTF8);
+				String content = IOUtil.toString(res, StandardCharsets.UTF_8);
 				String str;
 				if (content.isEmpty()) str = "XML File [" + res.getAbsolutePath() + "] is empty;" + saxe.getMessage();
 				else if (content.length() > content.trim().length())
@@ -1580,12 +1647,12 @@ public final class XMLUtil {
 		}
 	}
 
-	public static Document createDocument(String xml, boolean isHTML) throws SAXException, IOException {
-		return parse(toInputSource(xml), null, isHTML);
+	public static Document createDocument(PageContext pc, String xml, boolean isHTML) throws SAXException, IOException {
+		return parse(pc, toInputSource(xml), null, isHTML);
 	}
 
-	public static Document createDocument(InputStream is, boolean isHTML) throws SAXException, IOException {
-		return parse(new InputSource(is), null, isHTML);
+	public static Document createDocument(PageContext pc, InputStream is, boolean isHTML) throws SAXException, IOException {
+		return parse(pc, new InputSource(is), null, isHTML);
 	}
 
 	public static InputSource toInputSource(Object value) throws IOException {

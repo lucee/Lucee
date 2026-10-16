@@ -18,20 +18,12 @@
  **/
 package lucee.runtime.reflection.pairs;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.function.BiFunction;
-
-import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.transformer.dynamic.DynamicInvoker;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.Constructor;
-import lucee.transformer.dynamic.meta.LegacyConstuctor;
-import lucee.transformer.dynamic.meta.dynamic.ClazzDynamic;
 
 /**
  * class holds a Constructor and the parameter to call it
@@ -40,8 +32,8 @@ public final class ConstructorInstance {
 
 	private Class clazz;
 	private Object[] args;
-	private Constructor fm;
-	private Object instance;
+	private Constructor constr;
+	private boolean initConstr = true;
 
 	private boolean convertComparsion;
 
@@ -57,31 +49,10 @@ public final class ConstructorInstance {
 		this.convertComparsion = convertComparsion;
 	}
 
-	public Object invoke()
-			throws PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public Object invoke() throws Exception {
+		getConstructor();
+		return constr.newInstance(args);
 
-		try {
-			return ((BiFunction<Object, Object, Object>) getInstance()).apply(null, args);
-		}
-		catch (IncompatibleClassChangeError | ClassFormatError | IllegalStateException e) {
-			if (!Clazz.allowReflection()) throw e;
-
-			// fallback to reflection
-			boolean failed = false;
-			try {
-				DynamicInvoker di = DynamicInvoker.getExistingInstance();
-				lucee.transformer.dynamic.meta.Constructor constr = di.getClazz(clazz, true).getConstructor(args, true, convertComparsion);
-				return ((LegacyConstuctor) constr).getConstructor().newInstance(args);
-			}
-			catch (IncompatibleClassChangeError | ClassFormatError | IllegalStateException ex) {
-				failed = true;
-				throw e;
-			}
-			finally {
-				// we only log the exception from direct invocation, in case reflection does not fail
-				if (!failed) LogUtil.log(Log.LEVEL_DEBUG, "direct", ExceptionUtil.getStacktrace(e, true));
-			}
-		}
 	}
 
 	/**
@@ -92,38 +63,37 @@ public final class ConstructorInstance {
 	}
 
 	public Constructor getConstructor(Constructor defaultValue) {
-		try {
-			return getConstructor();
-		}
-		catch (Exception e) {
-			return defaultValue;
-		}
-	}
-
-	private Constructor getConstructor() throws PageException {
-		getInstance();
-		return fm;
-	}
-
-	private Object getInstance() throws PageException {
-		if (instance == null) {
+		if (constr == null && initConstr) {
 			try {
 				DynamicInvoker di = DynamicInvoker.getExistingInstance();
 				Clazz clazzz = di.toClazz(clazz);
-				if (fm == null) {
-					fm = clazzz.getConstructor(args, true, convertComparsion);
-				}
-				instance = di.getInstance(clazzz, fm, args);
+				constr = clazzz.getConstructor(args, true, convertComparsion);
 			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				throw Caster.toPageException(t);
+			catch (Exception ex) {
+				return defaultValue;
+			}
+			finally {
+				initConstr = false;
 			}
 		}
-		return instance;
+		return constr == null ? defaultValue : constr;
 	}
 
-	public lucee.transformer.dynamic.meta.FunctionMember getConstructor(ClazzDynamic clazzz, Object[] arguments, boolean convertComparsion) throws NoSuchMethodException {
-		return clazzz.getConstructor(arguments, true, convertComparsion);
+	private Constructor getConstructor() throws PageException {
+		if (constr == null && initConstr) {
+			try {
+				DynamicInvoker di = DynamicInvoker.getExistingInstance();
+				Clazz clazzz = di.toClazz(clazz);
+				constr = clazzz.getConstructor(args, true, convertComparsion);
+			}
+			catch (Exception ex) {
+				throw Caster.toPageException(ex);
+			}
+			finally {
+				initConstr = false;
+			}
+		}
+		return constr;
 	}
+
 }

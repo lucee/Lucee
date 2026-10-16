@@ -18,14 +18,12 @@
  **/
 package lucee.runtime.monitor;
 
-import java.io.IOException;
-
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 
 public interface ActionMonitorCollector {
-	public void addMonitor(ConfigServer cs, ActionMonitor monitor, String name, boolean log) throws IOException;
+	public void addMonitor(ConfigServer cs, ActionMonitor monitor, String name, boolean log);
 
 	public void log(PageContext pc, String type, String label, long executionTime, Object data);
 

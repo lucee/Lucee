@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.objectweb.asm.MethodTooLargeException;
+
 import lucee.commons.digest.RSA;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -37,6 +39,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
@@ -180,6 +183,20 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
 	private Result _compile(ConfigPro config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib fld, Resource classRootDir, boolean returnValue,
 			boolean ignoreScopes) throws TemplateException, IOException {
+		// compilation must not depend on the request that happens to trigger it (the resulting bytecode is
+		// cached and shared across applications/requests); disable the ambient PageContext fallback so any
+		// indirect lookup resolves deterministic config/server defaults instead of inheriting request state
+		boolean prevFallback = ThreadLocalPageContext.fallback(false);
+		try {
+			return _compile0(config, ps, sc, className, tld, fld, classRootDir, returnValue, ignoreScopes);
+		}
+		finally {
+			ThreadLocalPageContext.fallback(prevFallback);
+		}
+	}
+
+	private Result _compile0(ConfigPro config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib fld, Resource classRootDir, boolean returnValue,
+			boolean ignoreScopes) throws TemplateException, IOException {
 
 		String javaName;
 		if (className == null) {
@@ -207,6 +224,14 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 			try {
 				byte[] barr = page.execute(className);
 				result = new Result(page, barr, page.getJavaFunctions());
+			}
+			catch (MethodTooLargeException mtle) {
+				String source = ps != null ? ps.getDisplayPath() : className;
+				String methodName = mtle.getMethodName();
+				int codeSize = mtle.getCodeSize();
+				throw new RuntimeException(
+					"Bytecode too large compiling [" + source + "]: method [" + methodName + "] generated " + codeSize + " bytes (limit 65535)",
+					mtle);
 			}
 			catch (RuntimeException re) {
 				/*
@@ -270,7 +295,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 			return result;
 		}
 		catch (AlreadyClassException ace) {
-			if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.compiler.block.bytecode", null), true)) throw new TemplateException(
+			if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.compiler.block.bytecode", null), false)) throw new TemplateException(
 					"Bytecode execution is disabled by environment configuration. Lucee is configured to prevent the execution of precompiled bytecode files (.cfm|.cfc|.cfs) directly. "
 							+ "To enable bytecode execution, set the system property `-Dlucee.compiler.block.bytecode=false` or the environment variable `LUCEE_COMPILER_BLOCK_BYTECODE=false`.");
 

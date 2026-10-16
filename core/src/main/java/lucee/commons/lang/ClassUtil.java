@@ -18,6 +18,8 @@
  */
 package lucee.commons.lang;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,7 +43,6 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 import lucee.commons.collection.MapFactory;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -50,7 +51,7 @@ import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -192,7 +193,7 @@ public final class ClassUtil {
 		}
 		catch (ClassNotFoundException outer) {
 			try {
-				if (OSGiUtil.resolveBundleLoadingIssues(null, ThreadLocalPageContext.getConfig(), outer)) {
+				if (OSGiUtil.resolveBundleLoadingIssues(null, ThreadLocalPageContext.getConfigServer(), outer)) {
 					if (relatedBundles != null) {
 						for (BundleDefinition rb: relatedBundles) {
 							rb.getBundle(id, addional, true, false);
@@ -882,7 +883,7 @@ public final class ClassUtil {
 		try {
 
 			String result = clazz.getProtectionDomain().getCodeSource().getLocation().getPath();
-			result = URLDecoder.decode(result, CharsetUtil.UTF8.name());
+			result = URLDecoder.decode(result, StandardCharsets.UTF_8.name());
 			result = SystemUtil.fixWindowsPath(result);
 			return result;
 		}
@@ -1085,15 +1086,11 @@ public final class ClassUtil {
 		if (pc instanceof PageContextImpl) {
 			return ((PageContextImpl) pc).getRPCClassLoader();
 		}
-		Config config = ThreadLocalPageContext.getConfig();
-		if (config instanceof ConfigPro) {
-			return ((ConfigPro) config).getRPCClassLoader(false, null);
-		}
-		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
+		ConfigServerPro config = ThreadLocalPageContext.getConfigServer();
+		return config.getRPCClassLoader(false, null);
 	}
 
-	public static Object newInstance(Class clazz)
-			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, PageException {
+	public static Object newInstance(Class clazz) throws Exception {
 		return Reflector.getConstructorInstance(clazz, EMPTY_OBJ, false).invoke();
 	}
 

@@ -42,7 +42,7 @@
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
 					
-					maxThreads="#form.maxThreads#"
+					maxThreads="#form.remoteClients_maxThreads#"
 					remoteClients="#request.getRemoteClients()#">
 		</cfcase>
 		<cfcase value="#stText.Buttons.resetServerAdmin#">
@@ -331,14 +331,17 @@
 				<tr>
 					<th scope="row">#stText.remote.settings.maxThreads#</th>
 					<td>
-						<cfif hasAccess>
-							<cfinputClassic type="text" name="maxThreads" 
+						<cfmodule template="systemSetting.cfm" 
+							name="remoteClients_maxThreads" 
+							value="#settings.maxThreads#"
+							access="#hasAccess#"
+							description="#stText.remote.settings.maxThreadsDesc#"
+							br=false
+							sp=false
+							descOnTop=false>
+							<cfinputClassic type="text" name="remoteClients_maxThreads" 
 									value="#settings.maxThreads#" validate="integer" class="number" required="no">
-						<cfelse>
-							<b>#settings.maxThreads#</b><br>
-						</cfif>
-						
-						<div class="comment">#stText.remote.settings.maxThreadsDesc#</div>
+						</cfmodule>
 					</td>
 				</tr>
 				

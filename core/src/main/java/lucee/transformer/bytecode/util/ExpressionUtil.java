@@ -90,15 +90,11 @@ public final class ExpressionUtil {
 	private void visitLine(BytecodeContext bc, int line) {
 		if (line > 0) {
 			String lineStr = lineToString(line);
-			String key = bc.getClassName() + ":" + bc.getId();
+			String key = bc.getLineKey();
 			if (!lineStr.equals(last.get(key))) {
-				synchronized (SystemUtil.createToken("ExpressionUtil", bc.getClassName())) {
-					if (!lineStr.equals(last.get(key))) {
-						bc.visitLineNumber(line);
-						last.put(key, lineStr);
-						last.put(bc.getClassName(), lineStr);
-					}
-				}
+				bc.visitLineNumber(line);
+				last.put(key, lineStr);
+				last.put(bc.getClassName(), lineStr);
 			}
 		}
 	}
@@ -170,9 +166,18 @@ public final class ExpressionUtil {
 		try {
 			GeneratorAdapter adapter = bc.getAdapter();
 			adapter.loadArg(0);
-			// adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
-			int off = bc.getSourceOffset();
-			adapter.push(pos.pos - off);
+
+			// Check if execution log is line-based (cached in BytecodeContext)
+			if (bc.isLineBased()) {
+				// Push line number for line-based execution logs (e.g. debugger)
+				adapter.push(pos.line);
+			}
+			else {
+				// Push character position for char-based execution logs (e.g. console)
+				int off = bc.getSourceOffset();
+				adapter.push(pos.pos - off);
+			}
+
 			adapter.push(id);
 			adapter.invokeVirtual(Types.PAGE_CONTEXT, method);
 		}

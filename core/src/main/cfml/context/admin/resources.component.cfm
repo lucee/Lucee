@@ -83,13 +83,15 @@ Defaults --->
 					
 					
 					<cfif not doDownload>
-						<cfset target=expandPath("#cgi.context_path#/lucee/archives/"&filename)>
-						<cfset count=0>
-						<cfwhile fileExists(target)>
-							<cfset count=count+1>
-							<cfset target="#cgi.context_path#/lucee/archives/"&filename>
-							<cfset target=replace(target,'.'&ext,count&'.'&ext)>
-							<cfset target=expandPath(target)>
+						<cfset data.archivePaths = toArrayFromForm( "archivePath" )>
+						<cfif arrayIndexExists( data.archivePaths, idx ) and len( trim( data.archivePaths[ idx ] ) )>
+							<cfset filename = trim( data.archivePaths[ idx ] )>
+						</cfif>
+						<cfset target = expandPath( "{lucee-config}/context/archives/" & filename )>
+						<cfset count = 0>
+						<cfwhile fileExists( target )>
+							<cfset count = count + 1>
+							<cfset target = expandPath( "{lucee-config}/context/archives/" & replace( filename, '.' & ext, count & '.' & ext ) )>
 						</cfwhile>
 					</cfif>
 					<cfadmin 
@@ -203,13 +205,13 @@ Defaults --->
                     password="#session["password"&request.adminType]#"
                     
                     componentDumpTemplate="#form.componentDumpTemplate#"
-                    componentDataMemberDefaultAccess="#form.componentDataMemberDefaultAccess#"
+                    componentDataMemberDefaultAccess="#form.componentDataMemberAccess#"
                     triggerDataMember="#isDefined('form.triggerDataMember')#"
-                    useShadow="#isDefined('form.useShadow')#"
-                    componentDefaultImport="#form.componentDefaultImport#"
+                    useShadow="#isDefined('form.componentUseVariablesScope')#"
+                    componentDefaultImport="#form.componentAutoImport#"
                     componentLocalSearch="#isDefined('form.componentLocalSearch')#"
-                    componentPathCache="#isDefined('form.componentPathCache')#"
-                    deepSearch="#isDefined('form.componentDeepSearchDesc') and form.componentDeepSearchDesc EQ true#"
+                    componentPathCache="#isDefined('form.componentUseCachePath')#"
+                    componentDeepSearch="#isDefined('form.componentDeepSearch') and form.componentDeepSearch EQ true#"
 					returnformat="#form.returnformat?:"wddx"#"
 						
                     

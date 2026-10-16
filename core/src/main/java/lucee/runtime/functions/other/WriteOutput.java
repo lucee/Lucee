@@ -45,7 +45,7 @@ public final class WriteOutput extends BIF {
 
 	public static boolean call(PageContext pc, String string, String encodeFor) throws PageException {
 		try {
-			if (!StringUtil.isEmpty(string)) pc.forceWrite(ESAPIUtil.esapiEncode(pc, encodeFor, string));
+			if (!StringUtil.isEmpty(encodeFor, true)) pc.forceWrite(ESAPIUtil.esapiEncode(pc, encodeFor, string));
 			else pc.forceWrite(string);
 		}
 		catch (IOException e) {

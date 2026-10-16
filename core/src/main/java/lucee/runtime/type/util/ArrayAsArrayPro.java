@@ -18,7 +18,7 @@ import lucee.runtime.type.it.EntryArrayIterator;
 
 public final class ArrayAsArrayPro implements ArrayPro {
 
-	private Array array;
+	private final Array array;
 
 	public ArrayAsArrayPro(Array array) {
 		this.array = array;
@@ -86,12 +86,22 @@ public final class ArrayAsArrayPro implements ArrayPro {
 	}
 
 	@Override
+	public Object get(PageContext pc, int arg0, Object arg1) {
+		return array.get(arg0, arg1);
+	}
+
+	@Override
 	public int getDimension() {
 		return array.getDimension();
 	}
 
 	@Override
 	public Object getE(int arg0) throws PageException {
+		return array.getE(arg0);
+	}
+
+	@Override
+	public Object getE(PageContext pc, int arg0) throws PageException {
 		return array.getE(arg0);
 	}
 
@@ -127,6 +137,11 @@ public final class ArrayAsArrayPro implements ArrayPro {
 
 	@Override
 	public Object setE(int arg0, Object arg1) throws PageException {
+		return array.setE(arg0, arg1);
+	}
+
+	@Override
+	public Object setE(PageContext pc, int arg0, Object arg1) throws PageException {
 		return array.setE(arg0, arg1);
 	}
 

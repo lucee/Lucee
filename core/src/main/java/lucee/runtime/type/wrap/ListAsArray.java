@@ -48,6 +48,9 @@ import lucee.runtime.type.util.ListIteratorImpl;
 
 public class ListAsArray extends ArraySupport implements Array, List {
 
+	// LDEV-6475 pinned to the value the JVM computed on 6.2/7.0/7.1, keeps arrays serialized by other versions readable
+	private static final long serialVersionUID = -2946571425825745801L;
+
 	protected List list;
 
 	protected ListAsArray(List list) {
@@ -83,6 +86,7 @@ public class ListAsArray extends ArraySupport implements Array, List {
 		return get(null, key, defaultValue);
 	}
 
+	@Override
 	public final Object get(PageContext pc, int key, Object defaultValue) {
 		if (key <= 0) return defaultValue;
 		if (key > list.size()) return defaultValue;
@@ -107,6 +111,7 @@ public class ListAsArray extends ArraySupport implements Array, List {
 		return getE(null, key);
 	}
 
+	@Override
 	public final Object getE(PageContext pc, int key) throws PageException {
 		if (key <= 0) {
 			Integer idx = list.size() + key < 0 ? -1 : list.size() + key;
@@ -258,6 +263,11 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public Object setE(int key, Object value) throws PageException {
+		return setE(null, key, value);
+	}
+
+	@Override
+	public Object setE(PageContext pc, int key, Object value) throws PageException {
 		if (key <= size()) {
 			try {
 				list.set(key - 1, value);
@@ -266,7 +276,6 @@ public class ListAsArray extends ArraySupport implements Array, List {
 				ExceptionUtil.rethrowIfNecessary(t);
 				throw new ExpressionException("can not set Element at position [" + key + "]", t.getMessage());
 			}
-
 		}
 		else {
 			while (size() < key - 1)
@@ -364,7 +373,7 @@ public class ListAsArray extends ArraySupport implements Array, List {
 	public final Object get(PageContext pc, String key, Object defaultValue) {
 		double index = Caster.toIntValue(key, Integer.MIN_VALUE);
 		if (index == Integer.MIN_VALUE) return defaultValue;
-		return get((int) index, defaultValue);
+		return get(pc, (int) index, defaultValue);
 	}
 
 	@Override

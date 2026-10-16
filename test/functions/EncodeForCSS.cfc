@@ -17,16 +17,18 @@
  * 
  ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi">
 
-	<cffunction name="testEncodeForCSS" localMode="modern">
+	<cffunction name="testEncodeForCSS">
 		<cfscript>
-		enc=EncodeForCSS('<script>');
-		assertEquals('\3c script\3e ',enc);
+		var enc=EncodeForCSS('<script>');
+		// Esapi adds a space after the hex code and owasp does not, both are valid css encodings, so we remove spaces before comparing
+		assertEquals('\3cscript\3e',replace(enc," ","","all"));
 		</cfscript>
 	</cffunction>
-	<cffunction name="testEncodeForCSSMember" localMode="modern">
+	<cffunction name="testEncodeForCSSMember">
 		<cfscript>
-		enc='<script>'.encodeForCSS();
-		assertEquals('\3c script\3e ',enc);
+		var enc='<script>'.encodeForCSS();
+		// Esapi adds a space after the hex code and owasp does not, both are valid css encodings, so we remove spaces before comparing
+		assertEquals('\3cscript\3e',replace(enc," ","","all"));
 		</cfscript>
 	</cffunction>
 	

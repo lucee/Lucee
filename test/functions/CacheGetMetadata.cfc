@@ -50,6 +50,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 			password="#request.webadminpassword#"
 			name="#cacheName#"
 			class="org.lucee.extension.cache.eh.EHCache"
+			maven="org.lucee:ehcache:#server.getExtensionVersion( 'EHCache' )#"
 			storage="false"
 			default="object"
 			custom="#{timeToLiveSeconds:86400

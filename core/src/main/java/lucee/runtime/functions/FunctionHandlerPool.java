@@ -27,6 +27,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
+import lucee.transformer.library.ClassDefinitionImpl;
 
 // TODO kann man nicht auf context ebene
 
@@ -38,6 +39,10 @@ public final class FunctionHandlerPool {
 
 	public static Object invoke(PageContext pc, Object[] args, String className, String bundleName, String bundleVersion) throws PageException {
 		return use(pc, className, bundleName, bundleVersion).invoke(pc, args);
+	}
+
+	public static Object invoke(PageContext pc, Object[] args, String className, String maven) throws PageException {
+		return use(pc, className, maven).invoke(pc, args);
 	}
 
 	public static Object invoke(PageContext pc, Object[] args, String className) throws PageException {
@@ -66,6 +71,32 @@ public final class FunctionHandlerPool {
 				clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc), true);
 			// JAR
 			else clazz = ClassUtil.loadClass(pc, className);
+
+			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) ClassUtil.newInstance(clazz);
+			else bif = new BIFProxy(clazz);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+		map.put(id, bif);
+		return bif;
+	}
+
+	public static BIF use(PageContext pc, String className, String maven) throws PageException {
+		String id = toId(className, maven, null);
+		BIF bif = map.get(id);
+		if (bif != null) return bif;
+
+		try {
+			Class<?> clazz;
+			// Maven
+			if (!StringUtil.isEmpty(maven)) {
+				clazz = new ClassDefinitionImpl(className, maven).getClazz();
+			}
+			// JAR
+			else {
+				clazz = ClassUtil.loadClass(pc, className);
+			}
 
 			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) ClassUtil.newInstance(clazz);
 			else bif = new BIFProxy(clazz);

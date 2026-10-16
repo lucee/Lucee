@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -80,11 +81,15 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
 public final class ConfigUtil {
+
+	private static final Resource[] EMPTY_RESOURCES = new Resource[0];
+	private static final PageSource[] EMPTY_PAGE_SOURCES = new PageSource[0];
 
 	private static String enckey;
 
@@ -145,7 +150,7 @@ public final class ConfigUtil {
 		}
 		catch (IOException ioe) {
 			if (throwError) throw ioe;
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs), ConfigUtil.class.getName(), ioe);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(cs), ConfigUtil.class.getName(), ioe);
 		}
 	}
 
@@ -167,7 +172,7 @@ public final class ConfigUtil {
 		}
 		catch (IOException ioe) {
 			if (throwError) throw ioe;
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs != null ? cs : cw), ConfigAdmin.class.getName(), ioe);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(cs != null ? cs : cw), ConfigAdmin.class.getName(), ioe);
 		}
 	}
 
@@ -186,7 +191,7 @@ public final class ConfigUtil {
 			if (_src.isFile()) {
 				if (_src.length() != _trg.length()) {
 					_src.copyTo(_trg, false);
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cw), Log.LEVEL_DEBUG, ConfigUtil.class.getName(), "write file:" + _trg);
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(cw), Log.LEVEL_DEBUG, ConfigUtil.class.getName(), "write file:" + _trg);
 
 				}
 			}
@@ -207,7 +212,8 @@ public final class ConfigUtil {
 
 		Resource rel = directory.getRealResource(path);
 		Resource abs = config.getResource(path);
-		boolean isChildOf = abs.getParentResource().getParentResource() != null && ResourceUtil.isChildOf(abs, directory);
+		Resource absParent = abs.getParentResource();
+		boolean isChildOf = absParent != null && absParent.getParentResource() != null && ResourceUtil.isChildOf(abs, directory);
 
 		for (short level: new short[] { ResourceUtil.LEVEL_PARENT_FILE, ResourceUtil.LEVEL_GRAND_PARENT_FILE, ResourceUtil.LEVEL_ALL }) {
 			if (!StringUtil.isEmpty(path, true)) {
@@ -496,8 +502,7 @@ public final class ConfigUtil {
 
 	public static void checkGeneralReadAccess(ConfigPro config, Password password) throws SecurityException {
 		SecurityManager sm = config.getSecurityManager();
-		short access = sm.getAccess(SecurityManager.TYPE_ACCESS_READ);
-		if (config instanceof ConfigServer) access = SecurityManager.ACCESS_PROTECTED;
+		short access = toGeneralAccess(config, sm.getAccess(SecurityManager.TYPE_ACCESS_READ));
 		if (access == SecurityManager.ACCESS_PROTECTED) {
 			checkPassword(config, "read", password);
 		}
@@ -509,9 +514,7 @@ public final class ConfigUtil {
 	public static void checkGeneralWriteAccess(ConfigPro config, Password password) throws SecurityException {
 		SecurityManager sm = config.getSecurityManager();
 		if (sm == null) return;
-		short access = sm.getAccess(SecurityManager.TYPE_ACCESS_WRITE);
-
-		if (config instanceof ConfigServer) access = SecurityManager.ACCESS_PROTECTED;
+		short access = toGeneralAccess(config, sm.getAccess(SecurityManager.TYPE_ACCESS_WRITE));
 		if (access == SecurityManager.ACCESS_PROTECTED) {
 			checkPassword(config, "write", password);
 		}
@@ -520,10 +523,14 @@ public final class ConfigUtil {
 		}
 	}
 
+	private static short toGeneralAccess(ConfigPro config, short access) {
+		// there is no higher context left that could reopen a closed server context, so "closed" falls back to "password protected" there
+		if (config instanceof ConfigServer && access == SecurityManager.ACCESS_CLOSE) return SecurityManager.ACCESS_PROTECTED;
+		return access;
+	}
+
 	public static void checkPassword(ConfigPro config, String type, Password password) throws SecurityException {
-		if (!config.hasPassword()) throw new SecurityException("can't access password protected information from the configuration, no password is defined for "
-				+ (config instanceof ConfigServer ? "the server context" : "this web context")); // TODO make the message more clear for someone using the admin indirectly in
-		// source code by using ACF specific interfaces
+		if (!config.hasPassword()) throw new SecurityException("can't access password protected information from the configuration, no password is defined");
 		if (!config.passwordEqual(password)) {
 			if (StringUtil.isEmpty(password)) {
 				if (type == null) throw new SecurityException("Access is protected",
@@ -674,6 +681,22 @@ public final class ConfigUtil {
 		return CFMLEngineFactory.getInstance();
 	}
 
+	public static CFMLEngine getCFMLEngine() {
+		if (ConfigServerImpl.instance != null) return ConfigServerImpl.instance.getEngine();
+		return CFMLEngineFactory.getInstance();
+	}
+
+	public static CFMLEngineFactory getCFMLEngineFactory() {
+		try {
+			if (ConfigServerImpl.instance != null) return ConfigServerImpl.instance.getEngine().getCFMLEngineFactory();
+			return CFMLEngineFactory.getInstance().getCFMLEngineFactory();
+		}
+		catch (RuntimeException e) {
+			if (CFMLEngineImpl.FACTORY() != null) return CFMLEngineImpl.FACTORY();
+			throw e;
+		}
+	}
+
 	public static CFMLEngineFactory getCFMLEngineFactory(Config config) {
 		try {
 			if (config instanceof ConfigWeb) return ((ConfigWeb) config).getFactory().getEngine().getCFMLEngineFactory();
@@ -687,10 +710,9 @@ public final class ConfigUtil {
 	}
 
 	public static Resource getConfigServerDirectory(Config config) {
-		if (config == null) config = ThreadLocalPageContext.getConfig();
-		if (config instanceof ConfigWeb) return ((ConfigWeb) config).getConfigServerDir();
-		if (config == null) return null;
-		return (config).getConfigDir();
+		ConfigServerPro cs = ThreadLocalPageContext.getConfigServer(config);
+		if (cs == null) return null;
+		return cs.getConfigDir();
 	}
 
 	public static Mapping[] getAllMappings(PageContext pc) {
@@ -774,44 +796,48 @@ public final class ConfigUtil {
 		return rst;
 	}
 
-	public static Object replaceConfigPlaceHolders(Config config, Object obj) {
+	private static Object _replacePlaceHolders(Config config, Object obj) {
 		if (obj == null) return obj;
 
 		// handle simple value
 		if (Decision.isSimpleValue(obj)) {
-			if (obj instanceof CharSequence) return replaceConfigPlaceHolder(config, obj.toString());
+			if (obj instanceof CharSequence) return ((ConfigPro) config).replacePlaceHolder(obj.toString());
 			return obj;
 		}
 
 		// handle collection
 		if (obj instanceof lucee.runtime.type.Collection) {
-			return replaceConfigPlaceHolders(config, (lucee.runtime.type.Collection) obj);
+			return replacePlaceHolders(config, (lucee.runtime.type.Collection) obj);
 		}
 
 		return obj;
 	}
 
-	public static lucee.runtime.type.Collection replaceConfigPlaceHolders(Config config, lucee.runtime.type.Collection data) {
+	public static lucee.runtime.type.Collection replacePlaceHolders(Config config, lucee.runtime.type.Collection data) {
 		if (data == null) return data;
 
 		lucee.runtime.type.Collection repl;
-		if (data instanceof Struct) repl = new StructImpl();
+		if (data instanceof Struct) repl = new StructImpl(Struct.TYPE_LINKED);
 		else if (data instanceof Array) repl = new ArrayImpl();
 		else return data;
 		Iterator<Entry<Key, Object>> it = data.entryIterator();
 		Entry<Key, Object> e;
 		while (it.hasNext()) {
 			e = it.next();
-			repl.setEL(e.getKey(), replaceConfigPlaceHolders(config, e.getValue()));
+			repl.setEL(e.getKey(), _replacePlaceHolders(config, e.getValue()));
 		}
 		return repl;
 	}
 
-	public static String replaceConfigPlaceHolderX(String v) {
-		return replaceConfigPlaceHolder(null, v);
+	public static Map<Key, String> merge(Map<Key, String> left, Map<Key, String> right) {
+		if (left == null) return right;
+		if (right == null) return left;
+		Map<Key, String> merged = new HashMap<>(left);
+		merged.putAll(right);
+		return merged;
 	}
 
-	public final static String replaceConfigPlaceHolder(Config config, String v) {
+	public final static String replacePlaceHolder(Config config, String v, Map<Key, String> placeHolderData) {
 		if (StringUtil.isEmpty(v) || v.indexOf('{') == -1) return v;
 
 		int s = -1, e = -1, d = -1, sec = -1;
@@ -850,17 +876,16 @@ public final class ConfigUtil {
 			end = v.indexOf('}', start);
 			if (end > prefixLen) {
 				_name = v.substring(start + prefixLen, end);
-				// print.edate(_name);
-				if (isSecret) {
 
+				if (isSecret) {
 					String[] _parts = _name.split(":");
 					try {
 						if (config == null) throw new ApplicationException("cannot use secret in this context");
 						if (_parts.length == 1) {
-							_prop = SecretProviderFactory.getSecret(ThreadLocalPageContext.getConfig(config), null, _parts[0], true);
+							_prop = SecretProviderFactory.getSecret(ThreadLocalPageContext.getConfigServer(config), null, _parts[0], true);
 						}
 						else {
-							_prop = SecretProviderFactory.getSecret(ThreadLocalPageContext.getConfig(config), _parts[0], _parts[1], true);
+							_prop = SecretProviderFactory.getSecret(ThreadLocalPageContext.getConfigServer(config), _parts[0], _parts[1], true);
 						}
 					}
 					catch (PageException pe) {
@@ -869,7 +894,17 @@ public final class ConfigUtil {
 				}
 				else if (isDollar) {
 					String[] _parts = _name.split(":");
-					_prop = SystemUtil.getSystemPropOrEnvVar(_parts[0], (_parts.length > 1) ? _parts[1] : null);
+					String envVarName = _parts[0];
+					String defaultValue = (_parts.length > 1) ? _parts[1] : null;
+
+					// try placeHolderData first
+					_prop = null;
+					if (placeHolderData != null) {
+						Object val = placeHolderData.get(KeyImpl.init(envVarName));
+						if (val != null) _prop = Caster.toString(val, "");
+					}
+					// fall back to system prop or env var
+					if (_prop == null) _prop = SystemUtil.getSystemPropOrEnvVar(envVarName, defaultValue);
 				}
 				else {
 					_prop = isSystem ? System.getProperty(_name) : System.getenv(_name);
@@ -881,10 +916,10 @@ public final class ConfigUtil {
 				}
 				else start = end;
 			}
-			else start = end; // set start to end for the next round
+			else start = end;
 			s = -1;
-			e = -1; // reset index
-			d = -1; // I don't think we need this?
+			e = -1;
+			d = -1;
 		}
 		return v;
 	}
@@ -910,7 +945,7 @@ public final class ConfigUtil {
 			input.put(names[0], arr);
 			return arr;
 		}
-		return replacePlaceholders ? (Array) replaceConfigPlaceHolders(config, arr) : arr;
+		return replacePlaceholders ? (Array) replacePlaceHolders(config, arr) : arr;
 	}
 
 	public static Struct getAsStruct(Config config, Struct input, boolean allowCSSString, String... names) {
@@ -920,8 +955,27 @@ public final class ConfigUtil {
 		Object obj;
 		for (String name: names) {
 			obj = input.get(name, null);
-			if (obj instanceof Struct && !(sct = (Struct) obj).isEmpty()) {
-				break;
+			if (obj != null) {
+				// already a struct
+				if (obj instanceof Struct && !(sct = (Struct) obj).isEmpty()) {
+					break;
+				}
+				// an array
+				if (obj instanceof Array && ((Array) obj).size() > 0) {
+					Array tmpArr = (Array) obj;
+					Struct tmpSct = new StructImpl(Struct.TYPE_LINKED), record;
+					String tmpName;
+					Iterator<?> it = tmpArr.getIterator();
+					while (it.hasNext()) {
+						record = Caster.toStruct(it.next(), null);
+						if (record == null) continue;
+						tmpName = Caster.toString(record.get(KeyConstants._name, null), null);
+						if (StringUtil.isEmpty(tmpName, true)) continue;
+						tmpSct.setEL(tmpName, tmpArr);
+					}
+					sct = tmpSct;
+					break;
+				}
 			}
 		}
 
@@ -941,7 +995,7 @@ public final class ConfigUtil {
 			input.put(names[0], sct);
 			return sct;
 		}
-		return (Struct) replaceConfigPlaceHolders(config, sct);
+		return (Struct) replacePlaceHolders(config, sct);
 	}
 
 	public static Struct toStruct(Config config, String str) {
@@ -952,12 +1006,11 @@ public final class ConfigUtil {
 			String[] item;
 			for (int i = 0; i < arr.length; i++) {
 				item = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(arr[i], '='));
-				if (item.length == 2) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), replaceConfigPlaceHolder(config, URLDecoder.decode(item[1], true)));
+				if (item.length == 2) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), ((ConfigPro) config).replacePlaceHolder(URLDecoder.decode(item[1], true)));
 				else if (item.length == 1) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), "");
 			}
 		}
-		catch (PageException ee) {
-		}
+		catch (PageException ee) {}
 
 		return sct;
 	}
@@ -974,7 +1027,8 @@ public final class ConfigUtil {
 			sct.put(name, tmp);
 			return tmp;
 		}
-		return (Struct) obj;
+		if (obj instanceof Struct) return (Struct) obj;
+		return new StructImpl(Struct.TYPE_LINKED);
 	}
 
 	// TODO
@@ -1069,7 +1123,7 @@ public final class ConfigUtil {
 			return arr;
 		}
 
-		if (replacePlaceHolder) return (Array) replaceConfigPlaceHolders(config, arr);
+		if (replacePlaceHolder) return (Array) replacePlaceHolders(config, arr);
 
 		return arr;
 	}
@@ -1123,7 +1177,7 @@ public final class ConfigUtil {
 		Mapping rootApp = null;
 		PageSource ps;
 		Resource res;
-		List list = asPageSource ? new ArrayList<PageSource>() : new ArrayList<Resource>();
+		List list = onlyFirstMatch ? null : (asPageSource ? new ArrayList<PageSource>() : new ArrayList<Resource>());
 
 		if (mappings != null) {
 			for (int i = 0; i < mappings.length; i++) {
@@ -1251,6 +1305,30 @@ public final class ConfigUtil {
 			}
 		}
 
+		// virtual directory mappings from x-vdirs header (mod_cfml)
+		if (pc != null && config instanceof ConfigWebImpl) {
+			Mapping[] vdirMappings = ((ConfigWebImpl) config).getVirtualDirectoryMappings( pc );
+			if (vdirMappings != null) {
+				for (int i = 0; i < vdirMappings.length; i++) {
+					mapping = vdirMappings[i];
+					if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
+						if (asPageSource) {
+							ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+							if (onlyFirstMatch) return new PageSource[] { ps };
+							else list.add(ps);
+						}
+						else {
+							if (mapping instanceof MappingImpl) res = ((MappingImpl) mapping).getResource(realPath.substring(mapping.getVirtual().length()));
+							else res = mapping.getPageSource(realPath.substring(mapping.getVirtual().length())).getResource();
+
+							if (onlyFirstMatch) return new Resource[] { res };
+							else list.add(res);
+						}
+					}
+				}
+			}
+		}
+
 		if (useDefaultMapping) {
 			if (rootApp != null) mapping = rootApp;
 			else mapping = thisMappings[thisMappings.length - 1];
@@ -1266,6 +1344,7 @@ public final class ConfigUtil {
 				else list.add(res);
 			}
 		}
+		if (list == null || list.isEmpty()) return asPageSource ? EMPTY_PAGE_SOURCES : EMPTY_RESOURCES;
 		if (asPageSource) return list.toArray(new PageSource[list.size()]);
 		else return list.toArray(new Resource[list.size()]);
 	}
@@ -1347,10 +1426,17 @@ public final class ConfigUtil {
 			}
 		}
 		Mapping[] thisMappings = config.getMappings();
+		// LDEV-6483 the root mapping is the one with virtual "/", not the last one. The server config has no "/" mapping
+		// and its mappings have no defined order, so the last mapping (e.g. /lucee-server) was never checked
+		Mapping rootMapping = rootApp;
 
 		// config mappings
-		for (int i = 0; i < thisMappings.length - 1; i++) {
+		for (int i = 0; i < thisMappings.length; i++) {
 			mapping = thisMappings[i];
+			if ("/".equals(mapping.getVirtual())) {
+				if (rootMapping == null) rootMapping = mapping;
+				continue;
+			}
 			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
 				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
 				if (onlyPhysicalExisting) {
@@ -1360,9 +1446,25 @@ public final class ConfigUtil {
 			}
 		}
 
-		if (useDefaultMapping) {
-			if (rootApp != null) mapping = rootApp;
-			else mapping = thisMappings[thisMappings.length - 1];
+		// virtual directory mappings from x-vdirs header (mod_cfml)
+		if (pc != null && config instanceof ConfigWebImpl) {
+			Mapping[] vdirMappings = ((ConfigWebImpl) config).getVirtualDirectoryMappings( pc );
+			if (vdirMappings != null) {
+				for (int i = 0; i < vdirMappings.length; i++) {
+					mapping = vdirMappings[i];
+					if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
+						ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+						if (onlyPhysicalExisting) {
+							if (ps.physcalExists()) return ps;
+						}
+						else if (ps.exists()) return ps;
+					}
+				}
+			}
+		}
+
+		if (useDefaultMapping && (rootMapping != null || thisMappings.length > 0)) {
+			mapping = rootMapping != null ? rootMapping : thisMappings[thisMappings.length - 1];
 
 			ps = mapping.getPageSource(realPath);
 			if (onlyPhysicalExisting) {
@@ -1617,11 +1719,20 @@ public final class ConfigUtil {
 
 	}
 
+	public static ConfigServerImpl getConfigServerImpl() {
+		if (ConfigServerImpl.instance != null) return ConfigServerImpl.instance;
+
+		throw new RuntimeException("ConfigServerImpl not defined");
+	}
+
 	public static ConfigServerImpl getConfigServerImpl(Config config) {
 		if (config instanceof ConfigServerImpl) return (ConfigServerImpl) config;
 		if (config instanceof ConfigWebImpl) return ((ConfigWebImpl) config).getConfigServerImpl();
-		// MUST remove
-		throw new RuntimeException("getConfigServerImpl: " + config.getClass().getName());
+		return getConfigServerImpl();
+	}
+
+	public static ConfigServerImpl getConfigServerImpl(PageContext pc) {
+		return ((ConfigWebImpl) pc.getConfig()).getConfigServerImpl();
 	}
 
 	/**
@@ -1636,5 +1747,22 @@ public final class ConfigUtil {
 		if (c instanceof ConfigWebImpl) return ((ConfigWebImpl) c);
 
 		return getConfigServerImpl(config);
+	}
+
+	public static int getMavenDownloadPolicy() {
+		// print.ds();
+		try {
+			CFMLEngine eng = CFMLEngineFactory.getInstance();
+			if (eng != null && eng.uptime() > 0) {
+				return ConfigUtil.getConfigServerImpl().getMavenDownloadPolicyRuntime();
+			}
+		}
+		catch (Exception e) {
+			// engine not registered yet = still starting up
+		}
+		Config config = ThreadLocalPageContext.getConfig();
+		if (config == null) return ConfigPro.MAVEN_DOWNLOAD_POLICY_IGNORE;
+
+		return ConfigUtil.getConfigServerImpl(config).getMavenDownloadPolicyStartup();
 	}
 }

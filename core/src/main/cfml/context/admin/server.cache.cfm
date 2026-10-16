@@ -233,7 +233,12 @@ Create Datasource --->
 				<tr>
 					<th scope="row">#stText.setting.inspectTemplate#</th>
 					<td>
-						
+						<cfmodule template="systemSetting.cfm" 
+							name="inspectTemplate" 
+							value="#settings.inspectTemplate?:"auto"#"
+							sp=false
+							descOnTop=true>
+
 						<cfif hasAccess>
 							<table>
 							<cfloop list="auto,never,once,always" item="item">
@@ -247,7 +252,10 @@ Create Datasource --->
 											<div class="comment">#stText.setting.inspectTemplateIntervalDesc#</div>
 
 											<input type="text" name="inspectTemplateIntervalSlow" value="#settings.inspectTemplateIntervalSlow?:"10000"#" size="6"> #stText.setting.inspectTemplateIntervalSlow#<br>
+											<cfset renderSettings( "inspectTemplateIntervalSlow",settings.inspectTemplateIntervalSlow?:"10000")>
 											<input type="text" name="inspectTemplateIntervalFast" value="#settings.inspectTemplateIntervalFast?:"100"#" size="6"> #stText.setting.inspectTemplateIntervalFast#<br>
+											<cfset renderSettings( "inspectTemplateIntervalFast",settings.inspectTemplateIntervalFast?:"100")>
+											
 										</cfif>
 									</td>
 								</tr>
@@ -263,7 +271,8 @@ Create Datasource --->
 								<div class="comment">#stText.setting["inspectTemplate#settings.inspectTemplate#Desc"]#</div>
 							</cfif>
 						</cfif>
-						<cfset renderSysPropEnvVar( "lucee.inspect.template",settings.inspectTemplate?:"auto")>
+						
+						</cfmodule>
 					</td>
 				</tr>
 				
@@ -272,12 +281,15 @@ Create Datasource --->
 				<tr>
 					<th scope="row">#stText.setting.typeChecking#</th>
 					<td class="fieldPadded">
+						<cfmodule template="systemSetting.cfm" 
+							name="typeChecking" 
+							value="#settings.typeChecking#"
+							description="#stText.setting.typeCheckingDesc#">
 						<label>
 							<input class="checkbox" type="checkbox" name="typeChecking" value="true"<cfif settings.typeChecking EQ true> checked="checked"</cfif>>
 						</label>
-						<div class="comment">#stText.setting.typeCheckingDesc#</div>
-						<cfset renderCodingTip( "this.typeChecking = "&settings.typeChecking&";" )>
-						<cfset renderSysPropEnvVar( "lucee.type.checking",settings.typeChecking)>
+						</cfmodule>
+						
 					</td>
 				</tr>
 
@@ -286,6 +298,12 @@ Create Datasource --->
 				<tr>
 					<th scope="row">#stText.setting.cachedAfter#</th>
 					<td>
+					<cfmodule template="systemSetting.cfm" 
+						name="cachedAfter" 
+						value="#settings.cachedAfter#"
+						description="#stText.setting.cachedAfterDesc#"
+						access="#hasAccess#">
+						
 						<cfset timeout=settings.cachedAfter>
 						<table class="maintbl" style="width:auto">
 							<thead>
@@ -314,17 +332,7 @@ Create Datasource --->
 								</cfif>
 							</tbody>
 						</table>
-						<div class="comment">#stText.setting.cachedAfterDesc#</div>
-
-						<cfsavecontent variable="codeSample">
-							this.query.cachedAfter = createTimeSpan(#settings.cachedAfter_day#,#settings.cachedAfter_hour#,#settings.cachedAfter_minute#,#settings.cachedAfter_second#);
-						</cfsavecontent>
-						<cfset renderCodingTip( codeSample )>
-						<!---
-						<cfsavecontent variable="codeSample">
-							this.applicationTimeout = createTimeSpan( #settings.cachedAfter_day#, #settings.cachedAfter_hour#, #settings.cachedAfter_minute#, #settings.cachedAfter_second# );
-						</cfsavecontent>
-						<cfset renderCodingTip( codeSample )>--->
+					</cfmodule>
 					</td>
 				</tr>
 				</cfif>

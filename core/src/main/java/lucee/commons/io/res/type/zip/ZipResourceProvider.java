@@ -29,8 +29,6 @@ import lucee.commons.io.res.util.ResourceLockImpl;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
 public class ZipResourceProvider implements ResourceProviderPro {
@@ -105,11 +103,8 @@ public class ZipResourceProvider implements ResourceProviderPro {
 	}
 
 	private Resource toResource(String path) {
-		PageContext pc = ThreadLocalPageContext.get();
-		if (pc != null) {
-			return ResourceUtil.toResourceNotExisting(pc, path, true, false);
-		}
-		return resources.getResource(path);
+		return ResourceUtil.toResourceNotExisting(null, null, path, true, false);
+		// return resources.getResource(path);
 	}
 
 	@Override

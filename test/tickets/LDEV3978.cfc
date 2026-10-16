@@ -5,6 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="logs" skip=false {
 		variables.uuid = createUUID();
 	}
 
+	
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-3978", function( currentSpec ) {
 			it(title="Writing logs in files using cflog", skip=areLogsSentToConsole(), body=function( currentSpec )  {
@@ -24,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="logs" skip=false {
 				expect(findNoCase("testthree_second_#uuid#", testLogFile_3)).toBeGT(0);
 			});
 			it(title="cflog without file attribute", skip=areLogsSentToConsole(), body=function( currentSpec )  {
-				var appLog = fileRead("#filePath#/application.log");
+				var appLog = fileRead("#filePath#/exception.log");
 				
 				expect(findNoCase("test_application_without_file_first_#uuid#", appLog)).toBeGT(0, "cflog without file attribute failed");
 				expect(findNoCase("test_application_without_file_second_#uuid#", appLog)).toBeGT(0, "cflog without file attribute failed");

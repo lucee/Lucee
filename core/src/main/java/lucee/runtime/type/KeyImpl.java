@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.type;
 
@@ -29,7 +29,6 @@ import java.util.Map;
 import lucee.commons.digest.WangJenkins;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Castable;
@@ -49,36 +48,30 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 
 	private static final int MAX = Caster.toInteger(SystemUtil.getSystemPropOrEnvVar("lucee.cache.variableKeys", null), 50000);
 
-	// private boolean intern;
+	// Reference fields (8 bytes each) - group together to minimize padding
 	private String key;
 	private transient String lcKey;
 	private transient String ucKey;
-	private transient int wjh;
-	private transient int sfm = -1;
+
+	// long field (8 bytes)
 	private transient long h64;
-	private transient int hash;
+
+	// int field (4 bytes)
+	private transient int wjh;
+
+	// static field
 	private static Map<String, Key> keys = new HashMap<String, Key>();
-	// private static Map<String, RefInteger> keysx = new HashMap<>();
 
 	public KeyImpl() {
 		// DO NOT USE, JUST FOR UNSERIALIZE
+
 	}
 
 	public KeyImpl(String key) {
 		this.key = key;
 		this.ucKey = key.toUpperCase();
 		h64 = createHash64(ucKey);
-		hash = ucKey.hashCode();
-
-		/*
-		 * RefInteger ref = keysx.get(key); if (ref == null) { keysx.put(key, new RefIntegerImpl(0)); } else
-		 * { ref.plus(1); if (ref.toInt() > 10000 && ref.toInt() % 1000 == 0) { if
-		 * (key.equals("aroundEach")) { print.e(keys.containsKey(key));
-		 * print.e(KeyConstants.getKeys().containsKey(key)); print.ds(); System.exit(0); }
-		 * 
-		 * if (!key.startsWith("test")) print.e("KeyImpl: " + key + ":" + ref.toInt() + ":" + keys.size());
-		 * } }
-		 */
+		// print.e(key + ":" + (++count) + ":" + keys.size());
 	}
 
 	public static Map<String, Key> getKeys() {
@@ -126,16 +119,6 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 		return wjh;
 	}
 
-	public int slotForMap() {
-		if (sfm == -1) {
-			int h = 0;
-			h ^= hashCode();
-			h ^= (h >>> 20) ^ (h >>> 12);
-			sfm = h ^ (h >>> 7) ^ (h >>> 4);
-		}
-		return sfm;
-	}
-
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		out.writeObject(key);
@@ -146,16 +129,15 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 		key = (String) in.readObject();
 		ucKey = key.toUpperCase();
 		h64 = createHash64(ucKey);
-		hash = ucKey.hashCode();
 	}
 
 	/**
 	 * only used in KeyConstants
-	 * 
+	 *
 	 * @param key
 	 * @return
 	 */
-	public final static Collection.Key _const(Map<String, Key> keys, String key) {
+	public static Collection.Key _const(Map<String, Key> keys, String key) {
 		Key k = new KeyImpl(key);
 		keys.put(key, k);
 		return k;
@@ -163,25 +145,25 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 
 	/**
 	 * literal values set in source code
-	 * 
+	 *
 	 * @param key
 	 * @return
 	 */
-	public final static Collection.Key getInstance(String key) {
+	public static Collection.Key getInstance(String key) {
 		return initKeys(key);
 	}
 
 	// this method is only used by old lucee archives byte code loading their keys via this method
-	public final static Collection.Key intern(String key) {
+	public static Collection.Key intern(String key) {
 		// log(key);
 		return new KeyImpl(key);
 	}
 
 	/**
-	 * 
+	 *
 	 * used to create the keys for the method initKeys()
 	 */
-	public final static Collection.Key initKeys(String key) {
+	public static Collection.Key initKeys(String key) {
 		Key k = keys.get(key);
 		if (k == null) {
 			keys.put(key, k = new KeyImpl(key));
@@ -191,25 +173,23 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 
 	/**
 	 * for dynamic loading of key objects
-	 * 
+	 *
 	 * @param string
 	 * @return
 	 */
-	public final static Collection.Key init(String key) {
+	public static Collection.Key init(String key) {
 		return source(key);
 	}
 
 	/**
-	 * 
+	 *
 	 * used to inside the rest of the source created, can be dynamic values, so a lot
 	 */
-	public final static Collection.Key source(String key) {
+	public static Collection.Key source(String key) {
 		if (MAX == 0) return new KeyImpl(key);
 		Key k = keys.get(key);
 		if (k == null) {
-			if (keys.size() > MAX) {
-				return new KeyImpl(key);
-			}
+			if (keys.size() > MAX) return new KeyImpl(key);
 			keys.put(key, k = new KeyImpl(key));
 		}
 		return k;
@@ -276,14 +256,9 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 		return ucKey.equalsIgnoreCase(other.getLowerString());
 	}
 
-	// private static int hh = 0;
-
 	@Override
 	public int hashCode() {
-		/*
-		 * hh++; if (hh % 50000 == 0) { print.e("instances: " + hh); }
-		 */
-		return hash;
+		return ucKey.hashCode();
 	}
 
 	@Override
@@ -333,28 +308,28 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), key, b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, key, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), key, (Date) dt);
+		return OpUtil.compare(null, key, (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), key, Double.valueOf(d));
+		return OpUtil.compare(null, key, Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), key, str);
+		return OpUtil.compare(null, key, str);
 	}
 
 	@Override
 	public int compareTo(Object o) {
 		try {
-			return OpUtil.compare(ThreadLocalPageContext.get(), key, o);
+			return OpUtil.compare(null, key, o);
 		}
 		catch (PageException e) {
 			ClassCastException cce = new ClassCastException(e.getMessage());
@@ -488,29 +463,29 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 
 	/*
 	 * public static void main(String[] args) throws Exception { // KeyConstants._percentage
-	 * 
+	 *
 	 * modify(ResourcesImpl.getFileResourceProvider().getResource(
 	 * "/Users/mic/Projects/Lucee/Lucee6/core/src/main/java/lucee"));
-	 * 
+	 *
 	 * }
-	 * 
+	 *
 	 * private static void modify(Resource resource) throws IOException { boolean stop = false; for
 	 * (Resource r: resource.listResources()) { if (r.isDirectory()) modify(r); if
 	 * (r.getAbsolutePath().endsWith(".java")) {
-	 * 
+	 *
 	 * String content = IOUtil.toString(r, "UTF-8"); String result = null; int start = -1, end; while
 	 * ((start = content.indexOf("KeyImpl.getInstance(\"", start + 1)) != -1) { end =
 	 * content.indexOf("\")", start + 22); if (end > start) { String k = content.substring(start + 21,
 	 * end); if (KeyConstants.getFieldName(k) == null) print.e("public static final Key _" + k +
 	 * " = KeyImpl._const(\"" + k + "\");"); result = content = content.substring(0, start) +
 	 * "KeyConstants._" + k + content.substring(end + 2);
-	 * 
+	 *
 	 * stop = true;
-	 * 
+	 *
 	 * // print.e(content);
-	 * 
+	 *
 	 * start = end; } else break;
-	 * 
+	 *
 	 * } if (result != null) IOUtil.write(r, result, "UTF-8", false); // if (stop) throw new
 	 * IOException("www"); } } }
 	 */

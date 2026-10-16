@@ -216,10 +216,10 @@ public final class TagGroupUtil {
 				adapter.loadLocal(tag.getQuery());
 				adapter.loadLocal(startAt);
 
-				adapter.loadLocal(tag.getPID());
-				// adapter.loadArg(0);
-				// adapter.invokeVirtual(Types.PAGE_CONTEXT, TagLoop.GET_ID);
-				adapter.invokeInterface(Types.QUERY, TagLoop.GO);
+				// adapter.loadLocal(tag.getPID());
+				adapter.loadArg(0);
+				adapter.invokeVirtual(Types.PAGE_CONTEXT, TagLoop.GET_ID);
+				adapter.invokeInterface(Types.QUERY, TagLoop.GOe);
 				adapter.pop();
 
 				// pc.us().removeQuery();
@@ -251,8 +251,10 @@ public final class TagGroupUtil {
 		adapter.loadLocal(tag.getNumberIterator());
 		adapter.invokeVirtual(NUMBER_ITERATOR, CURRENT);
 
-		adapter.loadLocal(tag.getPID());
-		adapter.invokeInterface(Types.QUERY, TagLoop.GO);
+		// adapter.loadLocal(tag.getPID());
+		adapter.loadArg(0);
+		adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_ID);
+		adapter.invokeInterface(Types.QUERY, TagLoop.GOe);
 
 		NotVisitor.visitNot(bc);
 		Label _if = new Label();
@@ -374,7 +376,7 @@ public final class TagGroupUtil {
 
 		adapter.loadArg(0);
 		adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_ID);
-		adapter.invokeInterface(Types.QUERY, TagLoop.GO);
+		adapter.invokeInterface(Types.QUERY, TagLoop.GOe);
 
 		NotVisitor.visitNot(bc);
 		Label _if = new Label();
@@ -474,7 +476,7 @@ public final class TagGroupUtil {
 
 		adapter.loadArg(0);
 		adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_ID);
-		adapter.invokeInterface(Types.QUERY, TagLoop.GO);
+		adapter.invokeInterface(Types.QUERY, TagLoop.GOe);
 
 		/*
 		 * OLD adapter.invokeInterface(Types.QUERY, TagLoop.GO_1);
@@ -549,8 +551,10 @@ public final class TagGroupUtil {
 		adapter.loadLocal(tag.getNumberIterator());
 		adapter.invokeVirtual(NUMBER_ITERATOR, CURRENT);
 
-		adapter.loadLocal(tag.getPID());
-		adapter.invokeInterface(Types.QUERY, TagLoop.GO);
+		// adapter.loadLocal(tag.getPID());
+		adapter.loadArg(0);
+		adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_ID);
+		adapter.invokeInterface(Types.QUERY, TagLoop.GOe);
 
 		NotVisitor.visitNot(bc);
 		Label _if = new Label();
@@ -581,10 +585,10 @@ public final class TagGroupUtil {
 		adapter.loadLocal(tag.getQuery());
 		adapter.loadLocal(current);
 
-		adapter.loadLocal(tag.getPID());
-		// adapter.loadArg(0);
-		// adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_ID);
-		adapter.invokeInterface(Types.QUERY, TagLoop.GO);
+		// adapter.loadLocal(tag.getPID());
+		adapter.loadArg(0);
+		adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_ID);
+		adapter.invokeInterface(Types.QUERY, TagLoop.GOe);
 		adapter.pop();
 		// adapter.pop();
 	}
@@ -604,7 +608,7 @@ public final class TagGroupUtil {
 		adapter.loadLocal(current);
 		adapter.loadArg(0);
 		adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_ID);
-		adapter.invokeInterface(Types.QUERY, TagLoop.GO);
+		adapter.invokeInterface(Types.QUERY, TagLoop.GOe);
 
 		/*
 		 * OLD adapter.invokeInterface(Types.QUERY, TagLoop.GO_1);

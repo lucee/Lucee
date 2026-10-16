@@ -70,23 +70,34 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 
 	protected Component ownerComponent;
 	public UDFPropertiesBase properties;
+	private final boolean canUseFastPath;
 
 	/**
 	 * DO NOT USE THIS CONSTRUCTOR! this constructor is only for deserialize process
 	 */
 	public UDFImpl() {
 		super(0);
+		this.canUseFastPath = false;
+	}
+
+	public UDFImpl(PageContext pc, UDFProperties properties) {
+		super(properties.getAccess(), properties.getModifier());
+		this.properties = (UDFPropertiesBase) properties;
+		this.canUseFastPath = ((UDFPropertiesBase) properties).canUseFastPath;
 	}
 
 	public UDFImpl(UDFProperties properties) {
 		super(properties.getAccess(), properties.getModifier());
 
 		this.properties = (UDFPropertiesBase) properties;
+		this.canUseFastPath = ((UDFPropertiesBase) properties).canUseFastPath;
 	}
 
 	public UDFImpl(UDFProperties properties, Component owner) {
 		super(properties.getAccess(), properties.getModifier());
 		this.properties = (UDFPropertiesBase) properties;
+		this.canUseFastPath = ((UDFPropertiesBase) properties).canUseFastPath;
+
 		setOwnerComponent(owner);
 	}
 
@@ -130,6 +141,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 		throw new UDFCasterException(this, arg, value, index);
 	}
 
+	// with full null support, a null passed in (explicitly or forwarded via argumentCollection) falls back
+	// to the default value if there is one (ACF compatible), it still counts as passed for required
+	private Object nullOrDefault(PageContext pc, FunctionArgument arg, int index, Object _null) throws PageException {
+		Object d = getDefaultValue(pc, index, _null);
+		if (d == _null || d == null) return null;
+		return castTo(pc, arg, d, index + 1);
+	}
+
 	private void defineArguments(PageContextImpl pc, FunctionArgument[] funcArgs, Object[] args, Argument newArgs) throws PageException {
 		// define argument scope
 		boolean fns = pc.getFullNullSupport();
@@ -138,7 +157,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 		for (int i = 0; i < funcArgs.length; i++) {
 			// argument defined
 			if (args.length > i && (args[i] != null || fns)) {
-				newArgs.setEL(funcArgs[i].getName(), castToAndClone(pc, funcArgs[i], args[i], i + 1, fns));
+				newArgs.setEL(funcArgs[i].getName(), args[i] == null ? nullOrDefault(pc, funcArgs[i], i, _null) : castToAndClone(pc, funcArgs[i], args[i], i + 1, fns));
 			}
 			// argument not defined
 			else {
@@ -147,12 +166,24 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 					if (funcArgs[i].isRequired()) {
 						throw new ExpressionException("The parameter [" + funcArgs[i].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 					}
-					if (!fns) newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
+					newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
 				}
 				else {
 					newArgs.setEL(funcArgs[i].getName(), castTo(pc, funcArgs[i], d, i + 1));
 				}
 			}
+		}
+		for (int i = funcArgs.length; i < args.length; i++) {
+			newArgs.setEL(ArgumentIntKey.init(i + 1), args[i]);
+		}
+	}
+
+	private void defineArgumentsFast(PageContextImpl pc, FunctionArgument[] funcArgs, Object[] args, Argument newArgs) {
+		// same result as defineArguments() for arguments without type, default or required flag
+		boolean fns = pc.getFullNullSupport();
+		for (int i = 0; i < funcArgs.length; i++) {
+			if (args.length > i && (args[i] != null || fns)) newArgs.setEL(funcArgs[i].getName(), args[i]);
+			else newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
 		}
 		for (int i = funcArgs.length; i < args.length; i++) {
 			newArgs.setEL(ArgumentIntKey.init(i + 1), args[i]);
@@ -173,12 +204,12 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 			name = funcArgs[i].getName();
 			value = values.remove(name, _null);
 			if (value != _null) {
-				newArgs.set(name, castToAndClone(pc, funcArgs[i], value, i + 1, fns));
+				newArgs.set(name, value == null ? nullOrDefault(pc, funcArgs[i], i, _null) : castToAndClone(pc, funcArgs[i], value, i + 1, fns));
 				continue;
 			}
 			value = values.remove(ArgumentIntKey.init(i + 1), _null);
 			if (value != _null) {
-				newArgs.set(name, castToAndClone(pc, funcArgs[i], value, i + 1, fns));
+				newArgs.set(name, value == null ? nullOrDefault(pc, funcArgs[i], i, _null) : castToAndClone(pc, funcArgs[i], value, i + 1, fns));
 				continue;
 			}
 
@@ -188,7 +219,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 				if (funcArgs[i].isRequired()) {
 					throw new ExpressionException("The parameter [" + funcArgs[i].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 				}
-				if (!fns) newArgs.set(name, Argument.NULL);
+				newArgs.set(name, Argument.NULL);
 			}
 			else newArgs.set(name, castTo(pc, funcArgs[i], defaultValue, i + 1));
 		}
@@ -249,7 +280,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 
 		Object cachedWithin = getCachedWithin(pc);
 		String cacheId = CacheHandlerCollectionImpl.createId(this, null, newArgs);
-		CacheHandler cacheHandler = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null).getInstanceMatchingObject(getCachedWithin(pc), null);
+		CacheHandler cacheHandler = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null).getInstanceMatchingObject(cachedWithin, null);
 
 		if (cacheHandler instanceof CacheHandlerPro) {
 			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pc, cacheId, cachedWithin);
@@ -305,6 +336,20 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 		}
 	}
 
+	private void populateArguments(PageContextImpl pci, FunctionArgument[] funcArgs, Object[] args, Struct values, Argument newArgs) throws PageException {
+		if (args != null) {
+			if (canUseFastPath && values == null) {
+				defineArgumentsFast(pci, funcArgs, args, newArgs);
+			}
+			else {
+				defineArguments(pci, funcArgs, args, newArgs);
+			}
+		}
+		else {
+			defineArguments(pci, funcArgs, values, newArgs);
+		}
+	}
+
 	private Object _call(PageContext pc, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath, Argument newArgs) throws PageException {
 		PageContextImpl pci = (PageContextImpl) pc;
 		boolean existingNewArgs = newArgs != null;
@@ -342,7 +387,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 			BodyContent bc = null;
 			Boolean wasSilent = null;
 			boolean bufferOutput = getBufferOutput(pci);
-			if (!getOutput()) {
+			boolean output = getOutput();
+			if (!output) {
 				if (bufferOutput) bc = pci.pushBody();
 				else wasSilent = pc.setSilent() ? Boolean.TRUE : Boolean.FALSE;
 			}
@@ -356,23 +402,32 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 
 			try {
 				if (!existingNewArgs) {
-					if (args != null) defineArguments(pci, getFunctionArguments(), args, newArgs);
-					else defineArguments(pci, getFunctionArguments(), values, newArgs);
+					populateArguments(pci, getFunctionArguments(), args, values, newArgs);
 				}
+
+				// Debugger frame support - capture scopes for external debuggers
+				// Must be AFTER defineArguments so function arguments are accessible for conditional breakpoints
+				if (((PageContextImpl) pc).getExecutionLogEnabled()) {
+					pci.pushDebuggerFrame(newLocal, newArgs, pc.variablesScope(), ps, getFunctionName(), properties.getStartLine());
+				}
+
 				returnValue = implementation(pci);
 				if (ownerComponent != null) pci.setActiveUDF(parent);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
 				if (ownerComponent != null) pci.setActiveUDF(parent);
-				if (!getOutput()) {
+				if (!output) {
 					if (bufferOutput) BodyContentUtil.flushAndPop(pc, bc);
 					else if (!wasSilent) pc.unsetSilent();
 				}
 				// BodyContentUtil.flushAndPop(pc,bc);
-				throw Caster.toPageException(t);
+				// LDEV-6282: notify before finally pops the UDF frame; marker dedups nested catches.
+				PageException pe = Caster.toPageException(t);
+				if (pci.getExecutionLogEnabled()) pci.debuggerNotifyThrow(pe);
+				throw pe;
 			}
-			if (!getOutput()) {
+			if (!output) {
 				if (bufferOutput) BodyContentUtil.clearAndPop(pc, bc);
 				else if (!wasSilent) pc.unsetSilent();
 			}
@@ -380,8 +435,10 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 
 			if (returnValue == null && pci.getFullNullSupport()) return returnValue;
 			if (properties.getReturnType() == CFTypes.TYPE_ANY || !pci.getTypeChecking()) return returnValue;
-			if (Decision.isCastableTo(properties.getReturnTypeAsString(), returnValue, false, false, -1)) return returnValue;
-			throw new UDFCasterException(this, properties.getReturnTypeAsString(), returnValue);
+			if (Decision.isCastableTo(pc, properties.getReturnTypeAsString(), returnValue, false, false, -1)) return returnValue;
+			UDFCasterException uce = new UDFCasterException(this, properties.getReturnTypeAsString(), returnValue);
+			if (pci.getExecutionLogEnabled()) pci.debuggerNotifyThrow(uce);
+			throw uce;
 
 			// REALCAST return Caster.castTo(pageContext,returnType,returnValue,false);
 			//////////////////////////////////////////
@@ -389,6 +446,10 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 		}
 		finally {
 			if (ps != null) pc.removeLastPageSource(psInc != null);
+			// Debugger frame support - pop before removeUDF to maintain consistency
+			if (pci.getExecutionLogEnabled()) {
+				pci.popDebuggerFrame();
+			}
 			pci.removeUDF();
 			pci.setFunctionScopes(oldLocal, oldArgs);
 			pci.setActiveUDFCalledName(oldCalledName);
@@ -542,7 +603,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 
 	@Override
 	public int getReturnFormat() {
-		if (properties.getReturnFormat() < 0) {
+		int format = properties.getReturnFormat(null);
+		if (format < 0) {
 			PageContext pc = ThreadLocalPageContext.get();
 			if (pc != null) {
 				ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
@@ -550,13 +612,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 			}
 			return UDF.RETURN_FORMAT_WDDX;
 		}
-		return properties.getReturnFormat();
+		return format;
 	}
 
 	@Override
 	public int getReturnFormat(int defaultValue) {
-		if (properties.getReturnFormat() < 0) return defaultValue;
-		return properties.getReturnFormat();
+		int format = properties.getReturnFormat(null);
+		if (format < 0) return defaultValue;
+		return format;
 	}
 
 	public final String getReturnFormatAsString() {
@@ -628,6 +691,29 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 
 	@Override
 	public String getCacheId(Collection arguments, String defaultValue) {
+		// build the id from the same argument scope a cached call uses, otherwise cachedWithinFlush/cachedWithinId miss
+		PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
+		if (pc != null) {
+			Argument newArgs = pc.getScopeFactory().getArgumentInstance();
+			try {
+				if (arguments instanceof Struct) {
+					defineArguments(pc, getFunctionArguments(), (Struct) Duplicator.duplicate(arguments, false), newArgs);
+					return CacheHandlerCollectionImpl.createId(this, null, newArgs);
+				}
+				if (Decision.isCastableToArray(arguments)) {
+					Object[] arr = Caster.toNativeArray(arguments, null);
+					if (arr != null) {
+						defineArguments(pc, getFunctionArguments(), arr, newArgs);
+						return CacheHandlerCollectionImpl.createId(this, null, newArgs);
+					}
+				}
+			}
+			catch (PageException pe) {
+			}
+			finally {
+				pc.getScopeFactory().recycle(pc, newArgs);
+			}
+		}
 		if (arguments instanceof Struct) {
 			return CacheHandlerCollectionImpl.createId(this, null, (Struct) arguments);
 		}

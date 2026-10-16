@@ -19,6 +19,7 @@
 package lucee.runtime.tag;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +28,7 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.io.retirement.RetireOutputStream;
-import lucee.commons.lang.CharSet;
+import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -68,7 +69,7 @@ public final class Log extends TagImpl {
 	 * Specifies whether to log the application name if one has been specified in an application tag.
 	 */
 	private boolean application = true;
-	private CharSet charset = null;
+	private CharsetX charset = null;
 
 	private boolean async;
 
@@ -267,7 +268,7 @@ public final class Log extends TagImpl {
 		return SKIP_BODY;
 	}
 
-	private static lucee.commons.io.log.Log getFileLog(PageContext pc, String file, CharSet charset, boolean async) throws PageException {
+	private static lucee.commons.io.log.Log getFileLog(PageContext pc, String file, CharsetX charset, boolean async) throws PageException {
 
 		ConfigPro config = (ConfigPro) pc.getConfig();
 		Resource logDir = config.getLogDirectory();
@@ -289,7 +290,7 @@ public final class Log extends TagImpl {
 				log.setLogLevel(lucee.commons.io.log.Log.LEVEL_TRACE);
 				return log;
 			}
-			if (charset == null) charset = CharsetUtil.toCharSet(((PageContextImpl) pc).getResourceCharset());
+			if (charset == null) charset = CharsetUtil.toCharsetX(((PageContextImpl) pc).getResourceCharset());
 
 			log = config.getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),
 					lucee.commons.io.log.Log.LEVEL_TRACE, 5, new Listener(FileLogPool.instance, res, charset), async);
@@ -304,7 +305,7 @@ public final class Log extends TagImpl {
 	 */
 	public void setCharset(String charset) {
 		if (StringUtil.isEmpty(charset, true)) return;
-		this.charset = CharsetUtil.toCharSet(charset);
+		this.charset = CharsetUtil.toCharsetX(charset);
 	}
 
 	private static class FileLogPool {
@@ -327,7 +328,7 @@ public final class Log extends TagImpl {
 		}
 
 		public static String toKey(String file, Charset charset) {
-			if (charset == null) charset = CharsetUtil.UTF8;
+			if (charset == null) charset = StandardCharsets.UTF_8;
 			return StringUtil.toVariableName(file) + "." + StringUtil.toVariableName(charset.name());
 		}
 	}
@@ -336,9 +337,9 @@ public final class Log extends TagImpl {
 
 		private FileLogPool pool;
 		private Resource res;
-		private CharSet charset;
+		private CharsetX charset;
 
-		public Listener(FileLogPool pool, Resource res, CharSet charset) {
+		public Listener(FileLogPool pool, Resource res, CharsetX charset) {
 			this.pool = pool;
 			this.res = res;
 			this.charset = charset;

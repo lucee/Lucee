@@ -30,6 +30,7 @@ import lucee.runtime.reflection.pairs.MethodInstance;
 import lucee.runtime.search.SearchCollection;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.search.SearchException;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.type.KeyImpl;
 
 /**
@@ -119,8 +120,7 @@ public final class Collection extends TagImpl {
 		if (strPath == null) return;
 		this.path = ResourceUtil.toResourceNotExisting(pageContext, strPath.trim());
 
-		pageContext.getConfig().getSecurityManager().checkFileLocation(this.path);
-
+		SecurityManagerImpl.checkFileLocation(pageContext, this.path);
 		if (!this.path.exists()) {
 			Resource parent = this.path.getParentResource();
 			if (parent != null && parent.exists()) this.path.mkdirs();
@@ -278,7 +278,12 @@ public final class Collection extends TagImpl {
 			MethodInstance mi = Reflector.getMethodInstance(engine.getClass(), KeyImpl.init("createCollection"),
 					new Object[] { collection, path, language, mode, embedding, ratio, SearchEngine.DENY_OVERWRITE }, true, true);
 			if (mi.hasMethod()) {
-				mi.invoke(engine);
+				try {
+					mi.invoke(engine);
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
+				}
 				return;
 			}
 		}

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -15,7 +14,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
 
-import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -25,9 +23,8 @@ import org.xml.sax.helpers.DefaultHandler;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.net.http.HTTPDownloader;
+import lucee.commons.net.http.HTTPEngine;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.dt.DateTime;
@@ -52,7 +49,7 @@ public final class RepoReader extends DefaultHandler {
 	private Map<String, Map<String, Object>> artifacts = new HashMap<>();
 	private String base;
 
-	RepoReader(String repo, String group, String artifact, Version version) {
+	public RepoReader(String repo, String group, String artifact, Version version) {
 		this.repo = repo;
 		this.group = group;
 		this.artifact = artifact;
@@ -60,7 +57,15 @@ public final class RepoReader extends DefaultHandler {
 		this.key = repo + ":" + group + ":" + artifact + ":" + version;
 	}
 
-	public Map<String, Object> read(String requiredArtifactExtension) throws IOException, GeneralSecurityException, SAXException {
+	public Map<String, Object> read(String requiredArtifactExtension) throws IOException, SAXException {
+		return read(requiredArtifactExtension, null);
+	}
+
+	/**
+	 * @param requiredClassifier classifier of the required artifact, when empty only an entry without
+	 *            classifier matches (a classified entry is never used as fallback)
+	 */
+	public Map<String, Object> read(String requiredArtifactExtension, String requiredClassifier) throws IOException, SAXException {
 		if (requiredArtifactExtension == null) requiredArtifactExtension = "jar";
 		else requiredArtifactExtension = requiredArtifactExtension.toLowerCase();
 
@@ -75,7 +80,7 @@ public final class RepoReader extends DefaultHandler {
 		// Use HTTPDownloader with DEBUG logging for Maven repo metadata lookups
 		Reader r = null;
 		try {
-			r = IOUtil.getReader( HTTPDownloader.get( url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, null, Log.LEVEL_TRACE ), (Charset) null );
+			r = IOUtil.getReader(HTTPEngine.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, null, null, true), (Charset) null);
 			init(new InputSource(r));
 		}
 		catch (IOException ioe) {
@@ -85,13 +90,31 @@ public final class RepoReader extends DefaultHandler {
 		finally {
 			IOUtil.close(r);
 		}
+		if (!StringUtil.isEmpty(requiredClassifier, true)) {
+			requiredClassifier = requiredClassifier.trim();
+			for (Map<String, Object> e: artifacts.values()) {
+				if (requiredClassifier.equals(Caster.toString(e.get("classifier"), null)) && requiredArtifactExtension.equalsIgnoreCase(Caster.toString(e.get("extension"), null))) {
+					Map<String, Object> res = new LinkedHashMap<>();
+					res.put(requiredArtifactExtension, e.get("url"));
+					if (e.get("lastModified") != null) res.put("lastModified", e.get("lastModified"));
+					return res;
+				}
+			}
+			return null;
+		}
+
 		Map<String, Object> res = new LinkedHashMap<>();
 		String key;
 		Object lastModified = null;
 		for (Entry<String, Map<String, Object>> e: artifacts.entrySet()) {
-			key = Caster.toString(e.getValue().get("classifier"), null);
-			if (StringUtil.isEmpty(key, true)) key = Caster.toString(e.getValue().get("extension"), null);
-			if (StringUtil.isEmpty(key, true)) key = e.getKey();
+			String classifier = Caster.toString(e.getValue().get("classifier"), null);
+			String extension = Caster.toString(e.getValue().get("extension"), null);
+			if (!StringUtil.isEmpty(classifier, true)) {
+				key = classifier;
+				if (!StringUtil.isEmpty(extension, true) && extension.endsWith(".asc")) key = classifier + ".asc";
+			}
+			else if (!StringUtil.isEmpty(extension, true)) key = extension;
+			else key = e.getKey();
 			res.put(key, e.getValue().get("url"));
 			if (lastModified == null) {
 				Object tmp = e.getValue().get("lastModified");

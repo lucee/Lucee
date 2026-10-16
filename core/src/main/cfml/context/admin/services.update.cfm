@@ -49,82 +49,20 @@
 
 	stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{version}',server.lucee.version);
 
-		version = "lucee";
-		
-		versionsStr = {};
-		versionsStr.snapShot = {};
-		versionsStr.pre_Release= {};
-		versionsStr.release = {};
-		versionsStr.alpha = {};
-		if(version eq 'custom'){
-			versionsStr.custom = {};
-		}
-		for(type in versionsStr){
-			versionsStr[type].upgrade = [];
-			versionsStr[type].downgrade = [];
-		}
-		if(version eq 'custom' &&  Len(otherVersions)){
-			for(versions in otherVersions){
-				if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
-					arrayPrepend(versionsStr.custom.downgrade, versions);
-				}
-				else{
-					arrayPrepend(versionsStr.custom.upgrade, versions);
-				}
-				hasOptions=true;
-			}
-		}
-		
-		minVs = toVersionSortable(minVersion);
-		try {
-			otherVersions=LuceeVersionsList();
-		}
-		catch(e) {
-			otherVersions=[];
-		}
-			latest=len(otherVersions)?otherVersions[len(otherVersions)]:server.lucee.version;
-		if(!isNull(otherVersions) && len(otherVersions)){
+	try {
+		otherVersions = LuceeVersionsList();
+	}
+	catch(e) {
+		otherVersions = [];
+	}
 
-			for(versions in otherVersions ){
-				if(versions EQ server.lucee.version) cfcontinue;
-				vs=toVersionSortable(versions);
-				if ( !hasLoader7 && listFirst(vs, "." ) gt 6 ) cfcontinue;
-				if(FindNoCase("SNAPSHOT", versions)){
-					if(vs LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.SNAPSHOT.downgrade, versions);
-					}
-					else{
-						arrayPrepend(versionsStr.SNAPSHOT.upgrade, versions);
-					}
-					hasOptions=true;
-				}
-				else if(FindNoCase("ALPHA", versions)){
-					if(vs LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.ALPHA.downgrade, versions);
-					}
-					else{
-						arrayPrepend(versionsStr.ALPHA.upgrade, versions);
-					}
-					hasOptions=true;
-				}
-				else if(FindNoCase("BETA", versions) || FindNoCase("RC", versions)){
-					if(vs LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.pre_Release.downgrade, versions);
-					} else{
-						arrayPrepend(versionsStr.pre_Release.upgrade, versions);
-					}
-					hasOptions=true;
-				}
-				else{
-					if(vs LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.release.downgrade, versions);
-					} else{
-						arrayPrepend(versionsStr.release.upgrade, versions);
-					}
-					hasOptions=true;
-				}
-			}
-		}
+	latest = len( otherVersions ) ? otherVersions[ len( otherVersions ) ] : server.lucee.version;
+
+	versionsStr = categorizeVersions( otherVersions, server.lucee.version, hasLoader7 );
+	hasOptions = arrayLen( versionsStr.snapShot.upgrade ) || arrayLen( versionsStr.snapShot.downgrade )
+		|| arrayLen( versionsStr.pre_Release.upgrade ) || arrayLen( versionsStr.pre_Release.downgrade )
+		|| arrayLen( versionsStr.release.upgrade ) || arrayLen( versionsStr.release.downgrade )
+		|| arrayLen( versionsStr.alpha.upgrade ) || arrayLen( versionsStr.alpha.downgrade );
 	printError(error);
 
 	currMajor=listFirst(server.lucee.version,".");

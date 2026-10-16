@@ -172,13 +172,17 @@ component {
 			"HTTPBIN_SERVER": "localhost"
 			//"HTTPBIN_PORT": 8081
 
+			,"AIMOCK_SERVER": "localhost"
+			//"AIMOCK_PORT": 6556
+			//"AIMOCK_MULTI_PORT": 4010
+
 		};
 	}
 
 	public void function loadServiceConfig() localmode=true {
 		systemOutput( "", true) ;
 		systemOutput("-------------- Test Services ------------", true );
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,s3,s3_custom,s3_google,s3_backblaze,ftp,sftp,memcached,redis,ldap,httpbin,smtp,pop,imap");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,s3_backblaze,ftp,sftp,memcached,redis,ldap,httpbin,aimock,orm");
 		// can take a while, so we check them them in parallel
 
 		services.each( function( service ) localmode=true {
@@ -249,6 +253,12 @@ component {
 							break;
 						case "httpbin":
 							verify = verifyHttpbin(cfg);
+							break;
+						case "aimock":
+							verify = verifyAimock(cfg);
+							break;
+						case "orm":
+							verify = "ORM engine: " & ( cfg.class ?: "installed" );
 							break;
 						default:
 							verify = verifyDatasource(cfg);
@@ -342,7 +352,8 @@ component {
 
 	public function verifySMTP ( smtp, service ) localmode=true {
 		try {
-			getTagData("cf", "mail"); // with throw if mail not installed / available
+			// sometimes we run the 7 suite with 7.1
+			getTagData("cf", "mail"); // with throw if mail ext with 7.1 not installed
 			// call service cfc to test, to avoid compile error, due to tag syntax
 			services.cfmail::testMail( smtp );
 		} catch (e) {
@@ -369,8 +380,7 @@ component {
 		if ( !cfftp.succeeded )
 			throw cfftp.errorText;
 		sig = cfftp.returnValue.trim(); // stash, close changes cfftp
-		cfftp(action = "close"
-			,connection = "checkConn");
+		cfftp(action = "close", connection = "checkConn");
 		
 		return sig & ", #arguments.ftp.username#@#arguments.ftp.server#:#arguments.ftp.port#";
 	}
@@ -404,13 +414,14 @@ component {
 				throw "MemCached port closed #memcached.server#:#memcached.port#"; // otherwise the cache keeps trying and logging
 			try {
 				testCacheName = "testMemcached";
-				application 
-					action="update" 
+				bundleVersion = server.getDefaultBundleVersion( 'org.lucee.memcached.extension', '4.0.0.14' );
+				application
+					action="update"
 					caches="#{
 						testMemcached: {
 							class: 'org.lucee.extension.cache.mc.MemcachedCache'
-							, bundleName: 'memcached.extension'
-							, bundleVersion: '4.0.0.10-SNAPSHOT'
+							, bundleName: 'org.lucee.memcached.extension'
+							, bundleVersion: bundleVersion
 							, storage: false
 							, custom: {
 								"socket_timeout": "3",
@@ -438,7 +449,7 @@ component {
 				if ( !valid ) {
 					throw "MemCached configured, but not available";
 				} else {
-					return "MemCached connection verified";
+					return "MemCached connection verified, extension bundle [#bundleVersion#]";
 				}
 			} catch (e){
 				application action="update" caches="#{}#";
@@ -456,19 +467,16 @@ component {
 	}
 
 	public function verifyImap ( imap ) localmode=true{
-		/*
-		imap
-			action="open" 
-			server = imap.SERVER
-			username = imap.USERNAME
-			port = imap.PORT_INSECURE
-			secure="no"
-			password = imap.PASSWORD
-			connection = "testImap";
-		imap
-			action = "close",
-			connection="testImap";
-		*/	
+		cfimap(action="open",
+			server = imap.SERVER,
+			username = imap.USERNAME,
+			port = imap.PORT_INSECURE,
+			secure="no",
+			password = imap.PASSWORD,
+			connection = "testImap");
+		cfimap(action = "close",
+			connection="testImap");
+			
 		return "configured";
 	}
 
@@ -497,9 +505,103 @@ component {
 			cfhttp(url="#baseUrl#/status/200", method="GET", timeout="2", throwOnError=true);			// Test JSON response with /json endpoint
 			cfhttp(url="#baseUrl#/json", method="GET", timeout="2", throwOnError=true);
 
-			return "HTTPBin service verified at #baseUrl#";
+			return "HTTPBin service verified at #baseUrl# (embedded mock)";
 		}
 		throw "not configured";
+	}
+
+	public function verifyAimock ( aimock ) localmode=true {
+		if ( !structKeyExists( aimock, "server" ) || !structKeyExists( aimock, "port" ) ){
+			throw "not configured";
+		}
+
+		var multiPort = aimock.multiPort ?: 4010;
+		var openaiUrl = "http://#aimock.server#:#aimock.port#";
+		var multiUrl = "http://#aimock.server#:#multiPort#";
+		var connections = aimock.connections ?: {};
+
+		cfhttp( url="#openaiUrl#/health", method="GET", timeout="2", throwOnError=true );
+
+		cfhttp( url="#openaiUrl#/v1/chat/completions", method="POST", timeout="5", throwOnError=true ) {
+			cfhttpparam( type="header", name="Content-Type", value="application/json" );
+			cfhttpparam( type="body", value='{"model":"gpt-4","messages":[{"role":"user","content":"ping"}]}' );
+		}
+
+		admin
+			action="updateAIConnection"
+			type="server"
+			password="#server.SERVERADMINPASSWORD#"
+			name="#connections.openai ?: 'aimock-openai'#"
+			class="lucee.runtime.ai.openai.OpenAIEngine"
+			custom="#{
+				type: "other",
+				url: "#openaiUrl#/v1/",
+				secretKey: "mock",
+				message: "You are a test assistant",
+				model: "gpt-4",
+				connectTimeout: 2000,
+				socketTimeout: 20000,
+				conversationSizeLimit: 100,
+				temperature: 0.7
+			}#";
+
+		cfhttp( url="#multiUrl#/v1/messages", method="POST", timeout="5", throwOnError=true ) {
+			cfhttpparam( type="header", name="Content-Type", value="application/json" );
+			cfhttpparam( type="header", name="x-api-key", value="mock" );
+			cfhttpparam( type="header", name="anthropic-version", value="2023-06-01" );
+			cfhttpparam( type="body", value='{"model":"claude-3-sonnet-20240229","max_tokens":256,"messages":[{"role":"user","content":"ping"}]}' );
+		}
+
+		var claudeConnection = connections.claude ?: "aimock-claude";
+		var geminiConnection = connections.gemini ?: "aimock-gemini";
+
+		admin
+			action="updateAIConnection"
+			type="server"
+			password="#server.SERVERADMINPASSWORD#"
+			name="#claudeConnection#"
+			class="lucee.runtime.ai.anthropic.ClaudeEngine"
+			custom="#{
+				type: "other",
+				url: "#multiUrl#/v1/",
+				apiKey: "mock",
+				message: "You are a test assistant",
+				model: "claude-3-sonnet-20240229",
+				connectTimeout: 2000,
+				socketTimeout: 20000,
+				conversationSizeLimit: 100,
+				temperature: 0.7
+			}#";
+
+		admin
+			action="updateAIConnection"
+			type="server"
+			password="#server.SERVERADMINPASSWORD#"
+			name="#geminiConnection#"
+			class="lucee.runtime.ai.google.GeminiEngine"
+			custom="#{
+				type: "other",
+				url: "#multiUrl#/v1beta/",
+				apikey: "mock",
+				message: "You are a test assistant",
+				model: "gemini-1.5-flash",
+				connectTimeout: 2000,
+				socketTimeout: 20000,
+				conversationSizeLimit: 100,
+				temperature: 0.7
+			}#";
+
+		var claudeAis = createAISession( name=claudeConnection );
+		if ( inquiryAISession( claudeAis, "ping" ) != "ping" ) {
+			throw "Claude mock verification failed";
+		}
+
+		var geminiAis = createAISession( name=geminiConnection );
+		if ( inquiryAISession( geminiAis, "ping" ) != "ping" ) {
+			throw "Gemini mock verification failed";
+		}
+
+		return "Mock AI services verified at #openaiUrl# (OpenAI) and #multiUrl# (Claude/Gemini)";
 	}
 
 	public function addSupportFunctions() {
@@ -548,9 +650,12 @@ component {
 		server.getDatasource = getTestService;
 		server.getTestService = getTestService;
 		// TODO hmmmf closures and this scope!
-		server.getDefaultBundleVersion = getDefaultBundleVersion;  
+		server.getDefaultBundleVersion = getDefaultBundleVersion;
+		server.getExtensionVersion = getExtensionVersion;
 		server.getBundleVersions = getBundleVersions;
 		server.checkVersionGTE = checkVersionGTE;
+		server.doesJDBCSupportMaven = doesJDBCSupportMaven;
+		server.getMssqlJdbcDriverDefinition = getMssqlJdbcDriverDefinition;
 	}
 	public struct function getTestService( required string service, 
 			string dbFile="", 
@@ -570,23 +675,6 @@ component {
 		}
 
 		switch ( arguments.service ){
-			case "orm":
-				// check if ORM engine is available
-				try {
-					admin
-						action="getORMEngine"
-						type="server"
-						password="#server.SERVERADMINPASSWORD#"
-						returnVariable="local.ormEngine";
-					if ( isStruct( local.ormEngine )
-							&& len( local.ormEngine.class ?: "" )
-							&& local.ormEngine.class neq "lucee.runtime.orm.DummyORMEngine" ){
-						return { available: true };
-					}
-				} catch ( any e ){
-					// ORM engine not available
-				}
-				return {};
 			case "updateProvider":
 				updateProvider = server._getSystemPropOrEnvVars( "URL", "UPDATE_PROVIDER_" );
 				if ( structCount( updateProvider ) eq 1 ){
@@ -599,14 +687,26 @@ component {
 				if ( structCount( msSql ) gt 0){
 					if ( arguments.onlyConfig )
 						return msSql;
-					return {
-						class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
-						, bundleName: 'org.lucee.mssql'
-						, bundleVersion: server.getDefaultBundleVersion('org.lucee.mssql', '12.2.0.jre8')
+					var jdbc = server.getMssqlJdbcDriverDefinition();
+					var ds = {
+						class: jdbc.class
 						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct;trustServerCertificate=true'
 						, username: msSQL.username
 						, password: msSQL.password
-					}.append( arguments.options );
+					};
+					if ( server.doesJDBCSupportMaven() && len( jdbc.maven ) ) {
+						ds.maven = jdbc.maven;
+					} else {
+						ds.bundleName = jdbc.bundleName;
+						ds.bundleVersion = jdbc.bundleVersion;
+					}
+					systemOutput( "MSSQL test datasource JDBC resolution: #serializeJSON( {
+						luceeVersion: server.lucee.version,
+						luceeSupportsMavenJdbc: server.doesJDBCSupportMaven(),
+						mode: structKeyExists( ds, "maven" ) ? "maven" : "bundle",
+						jdbc: jdbc
+					} )#", true );
+					return ds.append( arguments.options );
 				}
 				break;
 			case "mysql":
@@ -617,7 +717,7 @@ component {
 					return {
 						class: 'com.mysql.cj.jdbc.Driver'
 						, bundleName: 'com.mysql.cj'
-						, bundleVersion: server.getDefaultBundleVersion( 'com.mysql.cj', '9.3.0' )
+						, bundleVersion: server.getDefaultBundleVersion( 'com.mysql.cj', '9.6.0' )
 						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false&allowPublicKeyRetrieval=true' & arguments.connectionString
 						, username: mySQL.username
 						, password: mySQL.password
@@ -632,7 +732,7 @@ component {
 					return {
 						class: 'org.postgresql.Driver'
 						, bundleName: 'org.postgresql.jdbc'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc', '42.7.7' )
+						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc', '42.7.9' )
 						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#' & arguments.connectionString
 						, username: pgsql.username
 						, password: pgsql.password
@@ -751,13 +851,43 @@ component {
 			case "httpbin":
 				httpbin = server._getSystemPropOrEnvVars( "SERVER, PORT", "HTTPBIN_" );
 				if ( httpbin.count() eq 2 ){
-					return httpbin;
-				} else {
 					return {
-						server: "httpbin.org",
-						port: 80
+						server: httpbin.SERVER,
+						port: httpbin.PORT
 					};
 				}
+				if ( !structKeyExists( application, "__luceeHttpbinMock" ) ) {
+					lock name="luceeHttpbinMockInit" type="exclusive" timeout="5" {
+						if ( !structKeyExists( application, "__luceeHttpbinMock" ) ) {
+							application.__luceeHttpbinMock = new test._HttpbinMock();
+						}
+					}
+				}
+				return application.__luceeHttpbinMock.start();
+				break;
+			case "aimock":
+				aimock = server._getSystemPropOrEnvVars( "SERVER, PORT", "AIMOCK_" );
+				if ( aimock.count() eq 2 ){
+					multiPortCfg = server._getSystemPropOrEnvVars( "MULTI_PORT", "AIMOCK_" );
+					aimock.multiPort = structKeyExists( multiPortCfg, "MULTI_PORT" ) ? multiPortCfg.MULTI_PORT : 4010;
+					aimock.connections = {
+						openai: "aimock-openai",
+						claude: "aimock-claude",
+						gemini: "aimock-gemini"
+					};
+					return aimock;
+				}
+				break;
+			case "orm":
+				try {
+					admin
+						action="getORMEngine"
+						type="server"
+						password="#server.SERVERADMINPASSWORD#"
+						returnVariable="local.ormEngine";
+					if ( structKeyExists( ormEngine, "class" ) && len( trim( ormEngine.class ) ) && ormEngine.class neq "lucee.runtime.orm.DummyORMEngine" )
+						return ormEngine;
+				} catch (e) {}
 				break;
 			default:
 				break;
@@ -777,6 +907,16 @@ component {
 			//systemOutput( "getDefaultBundleVersion: [" & arguments.bundleName & "] FALLLING BACK TO DEFAULT [" & arguments.fallbackVersion & "]", true );
 			return arguments.fallbackVersion ;
 		}
+	}
+
+	// version of the installed extension, so tests run against the build under test, not a hardwired version
+	function getExtensionVersion( extensionName ) cachedWithin="request" {
+		var q = extensionList();
+		loop query=q {
+			if ( findNoCase( arguments.extensionName, q.name ) )
+				return q.version;
+		}
+		throw( message="extension [#arguments.extensionName#] is not installed" );
 	}
 
 	function getBundleVersions() cachedWithin="#createTimeSpan( 1, 0, 0, 0 )#"{
@@ -824,29 +964,114 @@ component {
 		used to filter out tests which have a specific fix version 
 		when running against older versions of lucee, i.e with extension ci
 	*/
+	public boolean function doesJDBCSupportMaven() {
+		// JDBC extension maven coordinates supported from 7.1.0.184-SNAPSHOT
+		var version = trim( server.lucee.version );
+		if ( find( "-", version ) ) {
+			version = listFirst( version, "-" );
+		}
+		return server.checkVersionGTE( version, 7, 1, 0, 184 );
+	}
+
+	private struct function getMssqlJdbcDriverDefinition() {
+		var driver = {
+			class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
+			, bundleName: 'org.lucee.mssql'
+			, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.mssql', '12.2.0.jre8' )
+			, maven: ''
+		};
+
+		try {
+			var config = getPageContext().getConfig();
+			var jdbcDriver = config.getJDBCDriverById( 'mssql', nullValue() );
+			if ( isNull( jdbcDriver ) ) {
+				jdbcDriver = config.getJDBCDriverByClassName( driver.class, nullValue() );
+			}
+			if ( !isNull( jdbcDriver ) ) {
+				var cd = jdbcDriver.cd;
+				driver.class = cd.getClassName();
+				if ( cd.isBundle() ) {
+					driver.bundleName = cd.getName();
+					driver.bundleVersion = cd.getVersionAsString();
+					driver.maven = '';
+				}
+				try {
+					if ( cd.isMaven() ) {
+						driver.maven = cd.getMavenRaw();
+						driver.bundleName = '';
+						driver.bundleVersion = '';
+					}
+				} catch ( any e ) {}
+			}
+		} catch ( any e ) {}
+
+		// Inlined here because this function is assigned to server scope and cannot call other component methods.
+		try {
+			var extensions = getPageContext().getConfig().getAllRHExtensions();
+			loop collection=extensions.iterator() item="ext" {
+				var md = ext.getMetadata();
+				var jdbcs = md.getJdbcs();
+				if ( isNull( jdbcs ) ) {
+					continue;
+				}
+
+				loop collection=jdbcs.iterator() item="jdbc" {
+					if ( jdbc.get( "id" ) != "mssql" ) {
+						continue;
+					}
+
+					var maven = trim( toString( jdbc.get( "maven" ) ?: "" ) );
+					var bundleName = trim( toString( jdbc.get( "bundleName" ) ?: "" ) );
+					var bundleVersion = trim( toString( jdbc.get( "bundleVersion" ) ?: "" ) );
+
+					if ( len( maven ) ) {
+						driver.maven = maven;
+						// Manifest bundle fields are a fallback for older Lucee; omit when Maven is active.
+						if ( !server.doesJDBCSupportMaven() ) {
+							if ( len( bundleName ) ) {
+								driver.bundleName = bundleName;
+							}
+							if ( len( bundleVersion ) ) {
+								driver.bundleVersion = bundleVersion;
+							}
+						}
+					} else if ( !len( driver.maven ) ) {
+						if ( len( bundleName ) ) {
+							driver.bundleName = bundleName;
+						}
+						if ( len( bundleVersion ) ) {
+							driver.bundleVersion = bundleVersion;
+						}
+					}
+				}
+			}
+		} catch ( any e ) {}
+
+		if ( len( driver.maven ) && server.doesJDBCSupportMaven() ) {
+			driver.bundleName = '';
+			driver.bundleVersion = '';
+		}
+
+		return driver;
+	}
+
 	public function checkVersionGTE(version, major, minor="", patch="", build="") {
 		var v = listToArray(arguments.version, ".");
 		while (v.len() < 4) v.append(0); // Normalize to 4 components
-		/*
-		var args = [];
-		for (var i=2; i < len(arguments); i++)
-			arrayAppend(args, arguments[i]);
-		dump("version " & v.toJson());
-		dump("minimum " & args.toJson());
-		*/
-		if (v[1] > arguments.major) return false //"fail major gt";
-		if (v[1] < arguments.major) return false //"fail major lt";
-	
-		if (len(arguments.minor) == 0) return true;//"true no minor";
-		if (v[2] < arguments.minor) return false;//"fail minor lt";
-		if (v[2] > arguments.minor) return false;//"fail minor gt";
-	
-		if (len(arguments.patch) == 0) return true;//"true no patch";
-		if (v[3] > arguments.patch) return false;//"fail patch #v[3]# < #patch#";
-		if (v[3] < arguments.patch) return false;//"fail patch #v[3]# < #patch#";
-	
-		if (len(arguments.build) == 0) return true;//"true no build";
-		return (v[4] <= arguments.build);// & " build";
+
+		if (v[1] > arguments.major) return true;
+		if (v[1] < arguments.major) return false;
+
+		if (len(arguments.minor) == 0) return true;
+		if (v[2] > arguments.minor) return true;
+		if (v[2] < arguments.minor) return false;
+
+		if (len(arguments.patch) == 0) return true;
+		if (v[3] > arguments.patch) return true;
+		if (v[3] < arguments.patch) return false;
+
+		if (len(arguments.build) == 0) return true;
+		return (v[4] >= arguments.build);
 	}
 
 }

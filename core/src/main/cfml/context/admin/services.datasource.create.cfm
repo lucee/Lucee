@@ -70,6 +70,8 @@
 			connectionLimit="#form.connectionLimit#"
 			connectionTimeout="#form.connectionTimeout#"
 			liveTimeout="#form.LiveTimeout?:''#"
+			minIdle="#getForm('minIdle',-1)#"
+			maxIdle="#getForm('maxIdle',-1)#"
 			
 			metaCacheTimeout="#form.metaCacheTimeout#"
 			blob="#getForm('blob',false)#"
@@ -146,13 +148,13 @@
 			<cfset dbdriver = getDbDriverType( datasource.classname, datasource.dsn )>
 		</cfif>
 
-		<cfset driver = createObject("component",drivernames[ dbdriver ])>
+		<cfset driver = createObject("component",drivernames[ dbdriver ]?:drivernames[ "other" ])>
 		<cfif dbdriver == "Other">
 			<cfset driver.className = datasource.className>
 		</cfif>
 	</cfif>
 
-	<cfset driver = createObject("component",drivernames[ dbdriver ])>
+	<cfset driver = createObject("component",drivernames[ dbdriver ]?:drivernames[ "other" ])>
 
 	<cfif isInsert>
 
@@ -351,6 +353,31 @@
 							<cfloop index="idx" from="200" to="1000" step="100"><option  <cfif datasource.ConnectionLimit EQ idx>selected</cfif>>#idx#</option></cfloop>
 						</select>
 						<div class="comment">#stText.Settings.dbConnLimitDesc#</div>
+					</td>
+				</tr>
+				<!--- Max Idle Connections --->
+				<tr>
+					<th scope="row">#stText.Settings.dbMaxIdle#</th>
+					<td>
+						<select name="maxIdle" class="select small">
+							<option value="-1" <cfif !isDefined('datasource.maxIdle') or datasource.maxIdle LT 1>selected</cfif>>- default (connectionLimit) -</option>
+							<cfloop index="idx" from="1" to="10"><option <cfif isDefined('datasource.maxIdle') and datasource.maxIdle EQ idx>selected</cfif>>#idx#</option></cfloop>
+							<cfloop index="idx" from="20" to="100" step="10"><option <cfif isDefined('datasource.maxIdle') and datasource.maxIdle EQ idx>selected</cfif>>#idx#</option></cfloop>
+							<cfloop index="idx" from="200" to="1000" step="100"><option <cfif isDefined('datasource.maxIdle') and datasource.maxIdle EQ idx>selected</cfif>>#idx#</option></cfloop>
+						</select>
+						<div class="comment">#stText.Settings.dbMaxIdleDesc#</div>
+					</td>
+				</tr>
+				<!--- Min Idle Connections --->
+				<tr>
+					<th scope="row">#stText.Settings.dbMinIdle#</th>
+					<td>
+						<select name="minIdle" class="select small">
+							<option value="-1" <cfif !isDefined('datasource.minIdle') or datasource.minIdle LT 1>selected</cfif>>- default (0) -</option>
+							<cfloop index="idx" from="0" to="10"><option <cfif isDefined('datasource.minIdle') and datasource.minIdle EQ idx>selected</cfif>>#idx#</option></cfloop>
+							<cfloop index="idx" from="20" to="100" step="10"><option <cfif isDefined('datasource.minIdle') and datasource.minIdle EQ idx>selected</cfif>>#idx#</option></cfloop>
+						</select>
+						<div class="comment">#stText.Settings.dbMinIdleDesc#</div>
 					</td>
 				</tr>
 				<!--- Idle Timeout --->
@@ -596,6 +623,8 @@ optional=[];
 if(datasource.blob) optional.append('blob:#datasource.blob# // default: false');
 if(datasource.clob) optional.append('clob:#datasource.clob# // default: false');
 if(isNumeric(datasource.connectionLimit))optional.append('connectionLimit:#datasource.connectionLimit# // default:-1');
+if(isDefined('datasource.maxIdle') && isNumeric(datasource.maxIdle) && datasource.maxIdle>0)optional.append('maxIdle:#datasource.maxIdle# // default: connectionLimit');
+if(isDefined('datasource.minIdle') && isNumeric(datasource.minIdle) && datasource.minIdle>0)optional.append('minIdle:#datasource.minIdle# // default: 0');
 if(datasource.connectionTimeout NEQ 10 && isNumeric(datasource.connectionTimeout))optional.append('connectionTimeout:#datasource.connectionTimeout# // default: 10; unit: minutes');
 if(isNumeric(datasource.liveTimeout) && datasource.liveTimeout>0)optional.append('liveTimeout:#datasource.liveTimeout# // default: -1; unit: minutes');
 if(datasource.metaCacheTimeout NEQ 60000 && isNumeric(datasource.metaCacheTimeout))optional.append(',metaCacheTimeout:#datasource.metaCacheTimeout# // default: 60000; unit: milliseconds');

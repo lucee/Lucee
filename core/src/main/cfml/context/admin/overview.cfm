@@ -1,13 +1,30 @@
-<cfset current.label = "Lucee " & server.lucee.version & " - " & current.label>
-<cfset error.message="">
-<cfset error.detail="">
-<cfparam name="form.mainAction" default="none">
-<!--- load asynchron all extension providers  --->
-<cfif isNull(application[request.admintype].preloadedExtensionProviders)><cfset application[request.admintype].preloadedExtensionProviders=false></cfif>
-<cfif !application[request.admintype].preloadedExtensionProviders>
-	<cfinclude template="ext.functions.cfm">
-	<cfset application[request.admintype].preloadedExtensionProviders=true>
-</cfif>
+<cfscript>
+	current.label = "Lucee " & server.lucee.version & " - " & current.label;
+	error.message="";
+	error.detail="";
+	if(isNull(form.mainAction)) form.mainAction="none";
+
+	stText.Overview.aiFeatures = "AI features"
+	stText.Overview.updates = "Updates"
+
+	stText.Overview.skill = "AI Skill"
+	stText.Overview.skillDescShort = "Machine-readable skill file for AI assistants (Claude, etc.) — always up to date with the latest Lucee documentation."
+	stText.Overview.skillUrl = "https://docs.lucee.org/lucee.skill"
+
+	stText.Overview.mcp = "Lucee MCP Server"
+	stText.Overview.mcpDescShort = "Model Context Protocol (MCP) server for Lucee — connect AI assistants (Claude, Cursor, etc.) to Lucee documentation and tools."
+	stText.Overview.mcpUrl = "https://mcp.lucee.org"
+
+	stText.Overview.skillDesc = "A machine-readable skill file for AI assistants (Claude, ChatGPT, etc.) that gives them 
+            deep knowledge of Lucee. It includes a full recipe index covering configuration, caching, 
+            datasources, threading, Docker, ORM, extensions, AI integration, and more — plus direct 
+            links to technical specs for APIs, class names, and function signatures. 
+            Automatically updated whenever new documentation is added.
+            Copy the URL into your AI assistant's custom instructions or system prompt 
+            to get accurate, Lucee-specific answers.";
+
+
+</cfscript>
 
 <cftry>
 	<cfswitch expression="#form.mainAction#">
@@ -246,6 +263,18 @@ Error Output --->
 	<div class="pageintro">
 		#stText.Overview.introdesc[request.adminType]#
 	</div>
+	<cfinclude template="adminAINavigation.cfm">
+	<cfset overviewHasRemoteClientUsage = structKeyExists(request, "hasRemoteClientUsage") ? request.hasRemoteClientUsage : false>
+	<cfset overviewNavIndex = adminAIBuildNavigationIndex(
+		navigation,
+		stText,
+		request,
+		isRestricted,
+		hasScheduler,
+		overviewHasRemoteClientUsage,
+		isLuceneInstalled()
+	)>
+	<cfset request.adminAINavIndex = overviewNavIndex>
 	
 
 
@@ -335,19 +364,39 @@ Error Output --->
 			<cfset flds=listToArray(valueList(flds.displayname))>
 		</cfif>
 	</cfif>
-
+	<div class="okay collapsible-banner-box" tabindex="0">
+		<div class="collapsible-banner-panel">
+			<div class="collapsible-banner-summary">#stText.Overview.aiFeatures#</div>
+			<div class="collapsible-banner-body">
+				<h4>#stText.Overview.skill#</h4>
+				<div class="comment">#stText.Overview.skillDescShort#</div>
+				<a href="#stText.Overview.skillUrl#" target="_blank" rel="noopener" class="longwords" style="text-decoration:underline">#stText.Overview.skillUrl#</a>
+				<h4 style="margin-top:1em">#stText.Overview.mcp#</h4>
+				<div class="comment">#stText.Overview.mcpDescShort#</div>
+				<a href="#stText.Overview.mcpUrl#" target="_blank" rel="noopener" class="longwords" style="text-decoration:underline">#stText.Overview.mcpUrl#</a>
+			</div>
+		</div>
+	</div>
+	<div id="updateInfoBox" class="error collapsible-banner-box" tabindex="0" style="display:none">
+		<div class="collapsible-banner-panel">
+			<div class="collapsible-banner-summary">#stText.Overview.updates#</div>
+			<div class="collapsible-banner-body">
+				<div id="updateInfoDesc"></div>
+			</div>
+		</div>
+	</div>
+	<cfhtmlbody>
+		<script type="text/javascript">
+			$( function() {
+				$('##updateInfoDesc').load('?action=update&adminType=#request.admintype#', function(response) {
+					if ($.trim(response) !== '') {
+						$('##updateInfoBox').show();
+					}
+				});
+			} );
+		</script>
+	</cfhtmlbody>
 	<table style="width:100%">
-		<tr>
-			<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
-			<cfhtmlbody>
-				<script type="text/javascript">
-					$( function() {
-						$('##updateInfoDesc').load('?action=update&adminType=#request.admintype#');
-					} );
-				</script>
-			</cfhtmlbody>
-		</tr>
-
 		<tr>
 			<td valign="top" colspan="3">
 				<h2>#stText.setting.info#</h2>
@@ -677,6 +726,13 @@ Error Output --->
 				<h2>#stText.Overview.resources#</h2>--->
 				<table class="maintbl">
 					<tbody>
+						<!--- Lucee AI Skill --->
+						<tr>
+							<td>
+								<a href="https://docs.lucee.org/lucee.skill" target="_blank">#stText.Overview.skill#</a>
+								<div class="comment">#stText.Overview.skillDesc#</div>
+							</td>
+						</tr>
 						<!--- Prof Support --->
 						<tr>
 							<td>
@@ -724,10 +780,10 @@ Error Output --->
 								<div class="comment">#stText.Overview.blogDesc#</div>
 							</td>
 						</tr>
-						<!--- Twitter --->
+						<!--- X (formerly Twitter) --->
 						<tr>
 							<td>
-								<a href="https://twitter.com/##!/lucee_server" target="_blank">#stText.Overview.twitter#</a>
+								<a href="https://x.com/lucee_server" target="_blank">#stText.Overview.twitter#</a>
 								<div class="comment">#stText.Overview.twitterDesc#</div>
 							</td>
 						</tr>

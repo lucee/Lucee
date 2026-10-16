@@ -29,13 +29,33 @@ import lucee.runtime.type.StructImpl;
 
 public final class ExecutionLogFactory {
 
-	private Class clazz;
-	private Map<String, String> arguments;
-	// private ExecutionLog executionLog;
+	private final Class<? extends ExecutionLog> clazz;
+	private final Map<String, String> arguments;
+	private final boolean lineBased;
 
-	public ExecutionLogFactory(Class clazz, Map<String, String> arguments) {
+	public ExecutionLogFactory(Class<? extends ExecutionLog> clazz, Map<String, String> arguments) {
 		this.clazz = clazz;
 		this.arguments = arguments;
+		this.lineBased = ExecutionLogPro.class.isAssignableFrom(clazz) && isLineBasedClass(clazz);
+	}
+
+	/**
+	 * Check isLineBased() on a class without keeping the instance around.
+	 */
+	private static boolean isLineBasedClass(Class<? extends ExecutionLog> clazz) {
+		try {
+			return ((ExecutionLogPro) ClassUtil.newInstance(clazz)).isLineBased();
+		}
+		catch (Exception e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Whether this ExecutionLog expects line numbers (true) or char offsets (false).
+	 */
+	public boolean isLineBased() {
+		return lineBased;
 	}
 
 	public ExecutionLog getInstance(PageContext pc) {
@@ -55,7 +75,7 @@ public final class ExecutionLogFactory {
 		return super.toString() + ":" + clazz.getName();
 	}
 
-	public Class getClazz() {
+	public Class<? extends ExecutionLog> getClazz() {
 		return clazz;
 	}
 

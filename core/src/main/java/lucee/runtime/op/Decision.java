@@ -21,6 +21,7 @@ package lucee.runtime.op;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.net.IDN;
 import java.net.URI;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -82,6 +83,15 @@ public final class Decision {
 	private static final String STRING_DEFAULT_VALUE = "this is a unique string";
 
 	private static Pattern ssnPattern;
+	// RFC 5322 atext, plus any non-ASCII character except control, format and space characters (RFC 6531 SMTPUTF8)
+	private static final String EMAIL_ATEXT = "[-A-Za-z0-9!#$%&'*+/=?^_`{|}~[\\P{ASCII}&&[^\\p{C}\\p{Z}]]]";
+	private static final Pattern EMAIL_LOCAL_PATTERN = Pattern.compile(EMAIL_ATEXT + "+(\\." + EMAIL_ATEXT + "+)*");
+	private static final Pattern EMAIL_DOMAIN_LABEL_PATTERN = Pattern.compile("[\\p{L}\\p{M}\\p{N}]([\\p{L}\\p{M}\\p{N}-]*[\\p{L}\\p{M}\\p{N}])?");
+	private static final Pattern EMAIL_TLD_PATTERN = Pattern.compile("[\\p{L}\\p{M}]{2,}|(?i:xn--[a-z0-9-]+)");
+	// RFC 5321 Quoted-string: qtextSMTP (printable ASCII and space, except " and \), quoted-pairSMTP (\ + printable ASCII or space)
+	private static final Pattern EMAIL_QUOTED_LOCAL_PATTERN = Pattern
+			.compile("\"(?:[\\x20\\x21\\x23-\\x5B\\x5D-\\x7E[\\P{ASCII}&&[^\\p{C}\\p{Z}]]]|\\\\[\\x20-\\x7E])*\"");
+	private static final Pattern EMAIL_IPV4_PATTERN = Pattern.compile("(?:(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)");
 	private static Pattern phonePattern;
 	private static Pattern zipPattern;
 
@@ -643,7 +653,7 @@ public final class Decision {
 	 * @param o Object to check
 	 * @return boolean
 	 */
-	public static boolean isWddx(Object o) {
+	public static boolean isWddx(PageContext pc, Object o) {
 		if (!(o instanceof String)) return false;
 		String str = o.toString();
 		if (!(str.indexOf("wddxPacket") > 0)) return false;
@@ -651,7 +661,7 @@ public final class Decision {
 		// wrong timezone but this isent importend because date will not be used
 		WDDXConverter converter = new WDDXConverter(TimeZone.getDefault(), false, true);
 		try {
-			converter.deserialize(Caster.toString(o), true);
+			converter.deserialize(pc, Caster.toString(o), true);
 		}
 		catch (Exception e) {
 			return false;
@@ -665,13 +675,13 @@ public final class Decision {
 	 * @param o Object to check
 	 * @return boolean
 	 */
-	public static boolean isXML(Object o) {
+	public static boolean isXML(PageContext pc, Object o) {
 		if (o instanceof Node || o instanceof NodeList) return true;
 		if (o instanceof ObjectWrap) {
-			return isXML(((ObjectWrap) o).getEmbededObject(null));
+			return isXML(pc, ((ObjectWrap) o).getEmbededObject(null));
 		}
 		try {
-			XMLCaster.toXMLStruct(XMLUtil.parse(XMLUtil.toInputSource(null, o), null, false), false);
+			XMLCaster.toXMLStruct(XMLUtil.parse(pc, XMLUtil.toInputSource(null, o), null, false), false);
 			return true;
 		}
 		catch (Exception outer) {
@@ -820,7 +830,7 @@ public final class Decision {
 	 */
 	public static boolean isObject(Object o) {
 		if (o == null) return false;
-		return isComponent(o) || (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
+		return isComponent(o) || (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(null, o));
 	}
 
 	/**
@@ -873,12 +883,78 @@ public final class Decision {
 	 * @return
 	 */
 	public static boolean isEmail(Object value) {
-
-		// TODO Mail functionality removed - basic email validation only call return
-		// MailUtil.isValidEmail(value); if mail extension is installed
+		// core email check (RFC 5321 Mailbox / RFC 5322 addr-spec), no mail extension needed:
+		// local part: dot-atom or quoted string (max 64), domain: LDH labels (max 63) with an alpha or xn-- TLD, or an IPv4 / IPv6
+		// address literal. A display name, comments, surrounding whitespace or list separators make the value invalid.
 		String str = Caster.toString(value, null);
 		if (str == null) return false;
-		return str.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+		// a quoted local part may contain @, so split at the last one
+		int pos = str.lastIndexOf('@');
+		if (pos < 1 || pos == str.length() - 1) return false;
+		String local = str.substring(0, pos);
+		String domain = str.substring(pos + 1);
+		// local part may only be 64 characters, domain only 255
+		if (local.length() > 64 || domain.length() > 255) return false;
+		// dot-atom (no leading, trailing or consecutive dots) or a quoted string ("john..doe")
+		if (!EMAIL_LOCAL_PATTERN.matcher(local).matches() && !EMAIL_QUOTED_LOCAL_PATTERN.matcher(local).matches()) return false;
+		// address literal (user@[192.168.0.1], user@[IPv6:2001:db8::1])
+		if (domain.charAt(0) == '[') return domain.charAt(domain.length() - 1) == ']' && isEmailAddressLiteral(domain.substring(1, domain.length() - 1));
+		String[] labels = domain.split("\\.", -1);
+		if (labels.length < 2) return false;
+		// each domain label may only be 63 characters
+		for (String label: labels) {
+			if (label.length() > 63 || !EMAIL_DOMAIN_LABEL_PATTERN.matcher(label).matches()) return false;
+		}
+		if (!EMAIL_TLD_PATTERN.matcher(labels[labels.length - 1]).matches()) return false;
+		// as in 6.2/7.0 the length limits apply to the ASCII (punycode) form of an internationalized domain
+		if (!StringUtil.isAscii(domain)) {
+			try {
+				// throws if a label is longer than 63 characters once converted
+				if (IDN.toASCII(domain).length() > 255) return false;
+			}
+			catch (IllegalArgumentException e) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * RFC 5321 address literal without the brackets: an IPv4 address or "IPv6:" followed by an IPv6 address (full or with "::",
+	 * optionally ending with an IPv4 address)
+	 */
+	private static boolean isEmailAddressLiteral(String literal) {
+		if (EMAIL_IPV4_PATTERN.matcher(literal).matches()) return true;
+		if (!literal.regionMatches(true, 0, "IPv6:", 0, 5)) return false;
+		String addr = literal.substring(5);
+		int groups = 0;
+		int lastColon = addr.lastIndexOf(':');
+		if (lastColon == -1) return false;
+		// a trailing IPv4 address counts as two groups
+		if (addr.indexOf('.', lastColon) != -1) {
+			if (!EMAIL_IPV4_PATTERN.matcher(addr.substring(lastColon + 1)).matches()) return false;
+			groups = 2;
+			addr = addr.substring(0, lastColon + 1);
+			// "::" directly before the IPv4 address
+			if (!addr.endsWith("::")) addr = addr.substring(0, lastColon);
+		}
+		int compressed = addr.indexOf("::");
+		if (compressed != -1 && addr.indexOf("::", compressed + 1) != -1) return false;
+		String head = compressed == -1 ? addr : addr.substring(0, compressed);
+		String tail = compressed == -1 ? "" : addr.substring(compressed + 2);
+		for (String part: new String[] { head, tail }) {
+			if (part.isEmpty()) continue;
+			for (String group: part.split(":", -1)) {
+				if (group.isEmpty() || group.length() > 4) return false;
+				for (int i = 0; i < group.length(); i++) {
+					char c = group.charAt(i);
+					if ((c < '0' || c > '9') && (c < 'a' || c > 'f') && (c < 'A' || c > 'F')) return false;
+				}
+				groups++;
+			}
+		}
+		// RFC 5321: 8 groups, or at most 6 next to "::"
+		return compressed == -1 ? groups == 8 : groups <= 6;
 	}
 
 	/**
@@ -997,8 +1073,8 @@ public final class Decision {
 		return isString(o);
 	}
 
-	public static boolean isValid(String type, Object value) throws ExpressionException {
-		PageContext pc = ThreadLocalPageContext.get();
+	public static boolean isValid(PageContext pc, String type, Object value) throws ExpressionException {
+		pc = ThreadLocalPageContext.get(pc);
 		type = StringUtil.toLowerCase(type.trim());
 		char first = type.charAt(0);
 		switch (first) {
@@ -1047,7 +1123,7 @@ public final class Decision {
 		case 'n':
 			if ("numeric".equals(type)) return isCastableToNumeric(value);
 			if ("number".equals(type)) return isCastableToNumeric(value);
-			if ("node".equals(type)) return isXML(value);
+			if ("node".equals(type)) return isXML(pc, value);
 			break;
 		case 'o':
 			if ("object".equals(type)) return isObject(value);
@@ -1078,7 +1154,7 @@ public final class Decision {
 			if ("variablename".equals(type)) return isVariableName(Caster.toString(value, ""));
 			break;
 		case 'x':
-			if ("xml".equals(type)) return isXML(value); // DIFF 23
+			if ("xml".equals(type)) return isXML(pc, value); // DIFF 23
 			break;
 		case 'z':
 			if ("zip".equals(type)) return isZipCode(value);
@@ -1099,7 +1175,7 @@ public final class Decision {
 	 * @param maxlength only used for email,url, string, ignored otherwise
 	 * @return
 	 */
-	public static boolean isCastableTo(String type, Object o, boolean alsoAlias, boolean alsoPattern, int maxlength) {
+	public static boolean isCastableTo(PageContext pc, String type, Object o, boolean alsoAlias, boolean alsoPattern, int maxlength) {
 
 		type = StringUtil.toLowerCase(type).trim();
 		if (type.length() > 2) {
@@ -1199,7 +1275,7 @@ public final class Decision {
 				}
 
 				if (alsoAlias) {
-					if (type.equals("node")) return isXML(o);
+					if (type.equals("node")) return isXML(pc, o);
 					else if (type.equals("nvarchar") || type.equals("nchar")) {
 						if (maxlength > -1) {
 							String str = Caster.toString(o, null);
@@ -1315,7 +1391,7 @@ public final class Decision {
 				break;
 			case 'x':
 				if (type.equals("xml")) {
-					return isXML(o);
+					return isXML(pc, o);
 				}
 				break;
 			case 'z':
@@ -1395,7 +1471,7 @@ public final class Decision {
 		case CFTypes.TYPE_IMAGE:
 			return ImageUtil.isCastableToImage(pc, o);
 		case CFTypes.TYPE_XML:
-			return isXML(o);
+			return isXML(pc, o);
 		}
 
 		return _isCastableTo(pc, strType, o);

@@ -52,8 +52,6 @@ public final class DeserializeJSON extends BIF implements Function {
 	static {
 		allowEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.deserializejson.allowempty", null), false);
 	}
-	private static final Key ROWCOUNT = KeyConstants._ROWCOUNT;
-
 	public static Object call(PageContext pc, String JSONVar) throws PageException {
 		return _call(pc, JSONVar, true, JSONExpressionInterpreter.FORMAT_JSON5); // for backward compatibility we need to allow json5 (most comments are allowed in Lucee 5)
 	}
@@ -77,7 +75,7 @@ public final class DeserializeJSON extends BIF implements Function {
 			throw new FunctionException(pc, "DeserializeJSON", 1, "JSONVar", "input value cannot be empty string.", "Must be the valid JSON string");
 		}
 		Object result = new JSONExpressionInterpreter(false, format).interpret(pc, JSONVar);
-		if (!strictMapping) return toQuery(result);
+		if (!strictMapping) return toQuery(pc, result);
 		return result;
 	}
 
@@ -91,10 +89,10 @@ public final class DeserializeJSON extends BIF implements Function {
 
 	// {"COLUMNS":["AAA","BBB"],"DATA":[["a","b"],["c","d"]]}
 	// {"ROWCOUNT":2,"COLUMNS":["AAA","BBB"],"DATA":{"aaa":["a","c"],"bbb":["b","d"]}}
-	private static Object toQuery(Object obj) throws PageException {
+	private static Object toQuery(PageContext pc, Object obj) throws PageException {
 		if (obj instanceof Struct) {
 			Struct sct = (Struct) obj;
-			Key[] keys = CollectionUtil.keys(sct);
+			Key[] keys = CollectionUtil.keys(pc, sct);
 
 			// Columns
 			Key[] columns = null;
@@ -103,33 +101,33 @@ public final class DeserializeJSON extends BIF implements Function {
 
 			// rowcount
 			int rowcount = -1;
-			if (contains(keys, ROWCOUNT)) rowcount = toRowCount(sct.get(ROWCOUNT, null));
+			if (contains(keys, KeyConstants._ROWCOUNT)) rowcount = toRowCount(sct.get(KeyConstants._ROWCOUNT, null));
 			else if (contains(keys, KeyConstants._RECORDCOUNT)) rowcount = toRowCount(sct.get(KeyConstants._RECORDCOUNT, null));
 
 			if (columns != null) {
 				if (keys.length == 2 && contains(keys, KeyConstants._DATA)) {
 
-					Array[] data = toData(sct.get(KeyConstants._DATA, null), columns);
+					Array[] data = toData(pc, sct.get(KeyConstants._DATA, null), columns);
 					if (data != null) {
 						return new QueryImpl(columns, data, "query");
 					}
 				}
 
 				else if (keys.length == 3 && rowcount != -1 && contains(keys, KeyConstants._DATA)) {
-					Array[] data = toData(sct.get(KeyConstants._DATA, null), columns, rowcount);
+					Array[] data = toData(pc, sct.get(KeyConstants._DATA, null), columns, rowcount);
 					if (data != null) {
 						return new QueryImpl(columns, data, "query");
 					}
 				}
 			}
-			return toQuery(sct, keys);
+			return toQuery(pc, sct, keys);
 		}
 		/*
 		 * else if(obj instanceof Query) { return toQuery((Query) obj); }
 		 */
 		else if (obj instanceof Collection) {
 			Collection coll = (Collection) obj;
-			return toQuery(coll, CollectionUtil.keys(coll));
+			return toQuery(pc, coll, CollectionUtil.keys(pc, coll));
 		}
 
 		return obj;
@@ -144,10 +142,10 @@ public final class DeserializeJSON extends BIF implements Function {
 	 * trg); } } return qry; }
 	 */
 
-	private static Collection toQuery(Collection coll, Key[] keys) throws PageException {
+	private static Collection toQuery(PageContext pc, Collection coll, Key[] keys) throws PageException {
 		Object src, trg;
 		for (int i = 0; i < keys.length; i++) {
-			trg = toQuery(src = coll.get(keys[i], null));
+			trg = toQuery(pc, src = coll.get(keys[i], null));
 			if (src != trg) coll.setEL(keys[i], trg);
 		}
 		return coll;
@@ -157,7 +155,7 @@ public final class DeserializeJSON extends BIF implements Function {
 		return Caster.toIntValue(obj, -1);
 	}
 
-	private static Array[] toData(Object obj, Key[] columns, int rowcount) throws PageException {
+	private static Array[] toData(PageContext pc, Object obj, Key[] columns, int rowcount) throws PageException {
 		if (columns == null || rowcount == -1) return null;
 
 		Struct sct = Caster.toStruct(obj, null, false);
@@ -168,7 +166,7 @@ public final class DeserializeJSON extends BIF implements Function {
 			for (int i = 0; i < columns.length; i++) {
 				col = Caster.toArray(sct.get(columns[i], null), null);
 				if (col == null || colLen != -1 && colLen != col.size()) return null;
-				datas[i] = (Array) toQuery(col, CollectionUtil.keys(col));
+				datas[i] = (Array) toQuery(pc, col, CollectionUtil.keys(pc, col));
 				colLen = col.size();
 			}
 			return datas;
@@ -176,7 +174,7 @@ public final class DeserializeJSON extends BIF implements Function {
 		return null;
 	}
 
-	private static Array[] toData(Object obj, Key[] columns) throws PageException {
+	private static Array[] toData(PageContext pc, Object obj, Key[] columns) throws PageException {
 		if (columns == null) return null;
 
 		Array arr = Caster.toArray(obj, null);
@@ -192,7 +190,7 @@ public final class DeserializeJSON extends BIF implements Function {
 				data = Caster.toArray(it.next(), null);
 				if (data == null || data.size() != datas.length) return null;
 				for (int i = 0; i < datas.length; i++) {
-					datas[i].appendEL(toQuery(data.get(i + 1, null)));
+					datas[i].appendEL(toQuery(pc, data.get(i + 1, null)));
 				}
 			}
 			return datas;

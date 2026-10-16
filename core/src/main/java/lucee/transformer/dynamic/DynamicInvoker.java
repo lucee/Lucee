@@ -7,6 +7,7 @@ import java.lang.instrument.UnmodifiableClassException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
@@ -30,7 +31,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -61,14 +61,13 @@ import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.FunctionMember;
-import lucee.transformer.dynamic.meta.LegacyMethod;
 import lucee.transformer.dynamic.meta.Method;
 
 public final class DynamicInvoker {
 
 	private static final long MAX_AGE = 30 * 60 * 60 * 1000;
 	private static DynamicInvoker engine;
-	private Map<Integer, DynamicClassLoader> loaders = new ConcurrentHashMap<>();
+	private Map<Integer, SoftReference<DynamicClassLoader>> loaders = new ConcurrentHashMap<>();
 	private Resource root;
 	private Log _log;
 	private static final Object token = new SerializableObject();
@@ -135,18 +134,11 @@ public final class DynamicInvoker {
 	 * 
 	 */
 	private Object invoke(Object objMaybeNull, Class<?> objClass, Key methodName, Object[] arguments, boolean nameCaseSensitive, boolean convertComparsion) throws Exception {
-		try {
-			if (objClass.isArray()) objClass = Object.class;
-			Clazz clazzz = toClazz(objClass);
-			return ((BiFunction<Object, Object[], Object>) getInstance(clazzz, getFunctionMember(clazzz, methodName, arguments, nameCaseSensitive, convertComparsion), arguments))
-					.apply(objMaybeNull, arguments);
+		Clazz clazzz = toClazz(objClass);
+		if (methodName == null) {
+			return clazzz.getConstructor(arguments, true, convertComparsion).newInstance(arguments);
 		}
-		catch (IncompatibleClassChangeError | IllegalStateException e) {
-			if (getLog() != null) getLog().error("dynamic", e);
-			if (!Clazz.allowReflection()) throw e;
-			lucee.transformer.dynamic.meta.Method method = getClazz(objClass, true).getMethod(methodName.getString(), arguments, nameCaseSensitive, true, convertComparsion);
-			return ((LegacyMethod) method).getMethod().invoke(objClass, arguments);
-		}
+		return clazzz.getMethod(methodName.getString(), arguments, nameCaseSensitive, true, convertComparsion).invoke(objMaybeNull, arguments);
 	}
 
 	public Clazz getClazz(Class<?> clazz) {
@@ -381,12 +373,15 @@ public final class DynamicInvoker {
 	public DynamicClassLoader getCL(Class<?> clazz) {
 		ClassLoader parent = clazz.getClassLoader();
 		if (parent == null) parent = SystemUtil.getCoreClassLoader();
-		DynamicClassLoader cl = loaders.get(parent.hashCode());
+		int hash = System.identityHashCode(parent);
+		SoftReference<DynamicClassLoader> ref = loaders.get(hash);
+		DynamicClassLoader cl = ref == null ? null : ref.get();
 		if (cl == null) {
 			synchronized (token) {
-				cl = loaders.get(parent.hashCode());
+				ref = loaders.get(hash);
+				cl = ref == null ? null : ref.get();
 				if (cl == null) {
-					loaders.put(parent.hashCode(), cl = new DynamicClassLoader(parent, root, getLog()));
+					loaders.put(parent.hashCode(), new SoftReference<>(cl = new DynamicClassLoader(parent, root, getLog())));
 				}
 			}
 		}
@@ -395,13 +390,16 @@ public final class DynamicInvoker {
 
 	public int remove(ClassLoader parent) {
 		int count = 0;
-		DynamicClassLoader cl = loaders.get(parent.hashCode());
+		int hash = System.identityHashCode(parent);
+		SoftReference<DynamicClassLoader> ref = loaders.get(hash);
+		DynamicClassLoader cl = ref == null ? null : ref.get();
 		if (cl != null) {
 			synchronized (token) {
-				cl = loaders.get(parent.hashCode());
+				ref = loaders.get(hash);
+				cl = ref == null ? null : ref.get();
 				if (cl != null) {
 					count++;
-					loaders.remove(parent.hashCode());
+					loaders.remove(hash);
 				}
 			}
 		}
@@ -410,7 +408,10 @@ public final class DynamicInvoker {
 
 	public void cleanup() {
 		Set<Resource> set = new java.util.HashSet<>();
-		for (DynamicClassLoader cl: loaders.values()) {
+		DynamicClassLoader cl;
+		for (SoftReference<DynamicClassLoader> ref: loaders.values()) {
+			cl = ref.get();
+			if (cl == null) continue;
 			Resource directory = cl.getRootDirectory();
 			if (!set.contains(directory) && directory.isDirectory()) {
 				set.add(directory);
@@ -421,8 +422,7 @@ public final class DynamicInvoker {
 				try {
 					ResourceUtil.deleteEmptyFolders(directory);
 				}
-				catch (IOException e) {
-				}
+				catch (IOException e) {}
 			}
 		}
 	}
@@ -682,10 +682,6 @@ public final class DynamicInvoker {
 
 			// methods = Reflector.getMethods(lucee.runtime.config.ConfigServerImpl.class);
 			methods = Reflector.getMethods(lucee.runtime.config.ConfigServerImpl.class);
-			// methods = Reflector.getMethods(lucee.runtime.config.ConfigImpl.class);
-			// methods = Reflector.getMethods(lucee.runtime.config.ConfigWebPro.class);
-
-			// methods = Reflector.getMethods(lucee.runtime.config.ConfigServerImpl.class);
 
 			// int max = 500;
 			aprint.e("xxxxxxxxxxxxxxxx ConfigServerImpl  xxxxxxxxxxxxxxxxx");

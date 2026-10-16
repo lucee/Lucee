@@ -37,6 +37,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.function.Function;
@@ -126,7 +127,7 @@ public final class JavaProxy implements Function {
 			return loadClassByPath(pc, className, arrPaths);
 		}
 		else if (Decision.isStruct(pathOrName)) {
-			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), Caster.toStruct(pathOrName), null);
+			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(ConfigUtil.getConfigServerImpl(pc.getConfig()), Caster.toStruct(pathOrName), null);
 			try {
 				return ClassUtil.loadClass(((PageContextImpl) pc).getRPCClassLoader(js), className);
 			}
@@ -172,7 +173,7 @@ public final class JavaProxy implements Function {
 		try {
 			JavaSettingsImpl js = null;
 			if (resources != null && !resources.isEmpty()) {
-				js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), null, resources);
+				js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(ConfigUtil.getConfigServerImpl(pc.getConfig()), null, resources);
 			}
 			ClassLoader cl = pci.getRPCClassLoader(js);
 

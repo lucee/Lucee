@@ -78,4 +78,102 @@ component extends="AI" {
 	public string function getDescription() {
 		return "Connect to Anthropic's Claude AI models (https://claude.ai/) through their official API.";
 	}
+
+	public array function getPassthroughShortcuts() {
+		var mcpName = getLuceeMcpServerName();
+		var adminMcpName = getLuceeAdminMcpServerName();
+		return [
+			{
+				label: "Insert Lucee MCP Server",
+				json: {
+					"headers": {
+						"anthropic-beta": "mcp-client-2025-11-20"
+					},
+					"mcp_servers": [
+						{
+							"type": "url",
+							"url": getLuceeMcpServerUrl(),
+							"name": mcpName
+						}
+					],
+					"tools": [
+						{
+							"type": "mcp_toolset",
+							"mcp_server_name": mcpName
+						}
+					]
+				}
+			},
+			{
+				label: "Insert Lucee Admin MCP Server",
+				description: "Template for the Lucee Server Administrator configuration MCP endpoint. Replace ${LUCEE_ADMIN_MCP_URL} with your public HTTPS base URL (for example https://your-server.example.com) and ${LUCEE_ADMIN_PASSWORD} with the server admin password. Requires LUCEE_ADMIN_MCP_ACCESS=read or write. Remote MCP connectors (Claude API) cannot use localhost.",
+				json: {
+					"headers": {
+						"anthropic-beta": "mcp-client-2025-11-20"
+					},
+					"mcp_servers": [
+						{
+							"type": "url",
+							"url": getLuceeAdminMcpServerUrl(),
+							"name": adminMcpName,
+							"authorization_token": "${LUCEE_ADMIN_PASSWORD}"
+						}
+					],
+					"tools": [
+						{
+							"type": "mcp_toolset",
+							"mcp_server_name": adminMcpName
+						}
+					]
+				}
+			},
+			{
+				label: "Insert custom MCP server",
+				description: "Template for a private MCP server. Replace the URL and authorization token before saving.",
+				json: {
+					"headers": {
+						"anthropic-beta": "mcp-client-2025-11-20"
+					},
+					"mcp_servers": [
+						{
+							"type": "url",
+							"url": "https://example.com/mcp",
+							"name": "my-tools",
+							"authorization_token": "${MCP_TOKEN}"
+						}
+					],
+					"tools": [
+						{
+							"type": "mcp_toolset",
+							"mcp_server_name": "my-tools"
+						}
+					]
+				}
+			},
+			{
+				label: "Insert Anthropic skill",
+				description: "Anthropic pre-built Agent Skill (example: pptx). Requires a model that supports code execution and skills.",
+				json: {
+					"headers": {
+						"anthropic-beta": "code-execution-2025-08-25,skills-2025-10-02,files-api-2025-04-14"
+					},
+					"container": {
+						"skills": [
+							{
+								"type": "anthropic",
+								"skill_id": "pptx",
+								"version": "latest"
+							}
+						]
+					},
+					"tools": [
+						{
+							"type": "code_execution_20250825",
+							"name": "code_execution"
+						}
+					]
+				}
+			}
+		];
+	}
 }

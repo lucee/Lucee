@@ -32,7 +32,9 @@ import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.DeprecatedException;
@@ -63,6 +65,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	}
 
 	public long getOpenConnections(PageContext pc, DataSource ds, String user, String pass) {
+
 		return config.getDatasourceConnectionPool(ds, user, pass).getBorrowedCount();
 	}
 
@@ -95,7 +98,13 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 					if (existingDC == null) {
 						DatasourceConnection newDC = config.getDatasourceConnectionPool().getDatasourceConnection(config, ds, user, pass);
 						if (!autoCommit) {
-							newDC.setAutoCommit(false);
+							try {
+								newDC.setAutoCommit(false);
+							}
+							catch (SQLException e) {
+								invalidate(newDC);
+								throw e;
+							}
 							if (isolation != Connection.TRANSACTION_NONE) DBUtil.setTransactionIsolationEL(newDC.getConnection(), isolation);
 						}
 						newDC.setManaged(true);
@@ -163,7 +172,6 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		try {
 			existingDC = transConnsORM.get(ds);
 			if (existingDC == null) {
-				if (isolation == Connection.TRANSACTION_NONE) isolation = Connection.TRANSACTION_SERIALIZABLE;
 				ORMDatasourceConnection newDC = new ORMDatasourceConnection(pc, session, ds, isolation);
 				transConnsORM.put(ds, newDC);
 				return;
@@ -188,12 +196,34 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	}
 
 	private void releaseConnection(PageContext pc, DatasourceConnection dc, boolean ignoreRequestExclusive) {
-		if (!dc.isManaged() && autoCommit && (ignoreRequestExclusive || !dc.getDatasource().isRequestExclusive())) {
-			// Always return connection to pool - don't close directly on timeout
-			// Closing directly (IOUtil.closeEL) breaks pool accounting - pool thinks
-			// connection is still borrowed when it's actually closed, causing phantom connections
-			dc.release();
+		if (!dc.isManaged() && (ignoreRequestExclusive || !dc.getDatasource().isRequestExclusive())) {
+			// LDEV-6503 a request timeout or an interrupt/stop can abort the driver in the middle of reading a
+			// response, so the connection may still hold unread data and the next borrower would get another
+			// query's result. never return it to the pool, invalidate it, that keeps the pool accounting (LDEV-5966)
+			if (isAborted(pc)) invalidate(dc);
+			else dc.release();
 		}
+	}
+
+	private static boolean isAborted(PageContext pc) {
+		if (Thread.currentThread().isInterrupted()) return true;
+		pc = ThreadLocalPageContext.get(pc);
+		return pc instanceof PageContextImpl && ((PageContextImpl) pc).getTimeoutStackTrace() != null;
+	}
+
+	private static void invalidate(DatasourceConnection dc) {
+		dc.setManaged(false);
+		if (dc instanceof DatasourceConnectionImpl) {
+			DatasourceConnPool pool = ((DatasourceConnectionImpl) dc).getPool();
+			if (pool != null) {
+				try {
+					pool.invalidateObject(dc);
+					return;
+				}
+				catch (Exception e) {}
+			}
+		}
+		dc.release();
 	}
 
 	@Override
@@ -382,6 +412,10 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		return autoCommit;
 	}
 
+	public int getIsolation() {
+		return isolation;
+	}
+
 	@Override
 	public void remove(DataSource datasource) {
 		config.removeDatasourceConnectionPool(datasource);
@@ -447,7 +481,14 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 					if (dc.isManaged()) {
 						dc.setManaged(false);
-						dc.setAutoCommit(true);
+						try {
+							dc.setAutoCommit(true);
+						}
+						catch (Exception e) {
+							// LDEV-6129 the connection is in an unknown state, never return it to the pool, but also never drop it
+							invalidate(dc);
+							throw e;
+						}
 						DBUtil.setTransactionIsolationEL(dc.getConnection(), dc.getDefaultTransactionIsolation());
 						releaseConnection(null, dc, true);
 					}

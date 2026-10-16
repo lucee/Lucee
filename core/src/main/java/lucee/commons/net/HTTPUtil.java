@@ -54,12 +54,10 @@ import lucee.commons.net.header.HeadersHttpResponseApache;
 import lucee.commons.net.header.HeadersHttpURLConnection;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
-import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
-import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageServletException;
@@ -577,10 +575,8 @@ public final class HTTPUtil {
 	 * @throws GeneralSecurityException
 	 */
 	public static long length(URL url) throws IOException, GeneralSecurityException {
-		HTTPResponse http = HTTPEngine4Impl.head(url, null, null, -1, true, null, Constants.NAME, null, null);
-		long len = http.getContentLength();
-		HTTPEngine.closeEL(http);
-		return len;
+		return HTTPEngine.head(url).getContentLength();
+
 	}
 
 	/*

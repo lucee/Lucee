@@ -32,6 +32,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Null;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.util.ListUtil;
@@ -139,9 +140,8 @@ public final class RequestLinked extends StructSupport implements RequestPro {
 
 	@Override
 	public Object remove(Key key) throws PageException {
-		Object _null = NullSupportHelper.NULL();
-		Object value = remove(key, _null);
-		if (value != _null) return value;
+		Object value = remove(key, Null.NULL);
+		if (!NullSupportHelper.isNull(value)) return value;
 		throw new ExpressionException("can't remove key [" + key + "] from struct, key doesn't exist");
 	}
 
@@ -157,9 +157,9 @@ public final class RequestLinked extends StructSupport implements RequestPro {
 
 	@Override
 	public final Object get(Key key) throws PageException {
-		Object _null = NullSupportHelper.NULL();
-		Object value = get(key, _null);
-		if (value == _null) throw invalidKey(null, this, key, "request scope");
+		// Object _null = NullSupportHelper.NULL();
+		Object value = get(key, Null.NULL);
+		if (NullSupportHelper.isNull(value)) throw invalidKey(null, this, key, "request scope");
 		return value;
 	}
 
@@ -241,14 +241,12 @@ public final class RequestLinked extends StructSupport implements RequestPro {
 
 	@Override
 	public final boolean containsKey(Key key) {
-		Object _null = NullSupportHelper.NULL();
-		return get(key, _null) != _null;
+		return !NullSupportHelper.isNull(get(key, Null.NULL));
 	}
 
 	@Override
 	public final boolean containsKey(PageContext pc, Key key) {
-		Object _null = NullSupportHelper.NULL(pc);
-		return get(pc, key, _null) != _null;
+		return !NullSupportHelper.isNull(pc, get(pc, key, Null.NULL));
 	}
 
 	@Override

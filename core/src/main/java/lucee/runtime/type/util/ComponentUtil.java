@@ -65,6 +65,7 @@ import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -80,7 +81,7 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.net.rpc.server.WSServer;
 import lucee.runtime.net.rpc.server.WSUtil;
-import lucee.runtime.op.Castable;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.Array;
@@ -94,6 +95,7 @@ import lucee.runtime.type.SimpleValue;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.UDFGSProperty;
 import lucee.runtime.type.UDFPropertiesBase;
 import lucee.runtime.type.dt.DateTime;
 import lucee.transformer.bytecode.BytecodeContext;
@@ -177,7 +179,7 @@ public final class ComponentUtil {
 		// null);
 		// fv.visitEnd();
 
-		LinkedHashMap<LitString, Integer> _keys = new LinkedHashMap<LitString, Integer>();
+		Map<LitString, Integer> _keys = new LinkedHashMap<LitString, Integer>();
 
 		// remote methods
 		Collection.Key[] keys = component.keys(Component.ACCESS_REMOTE);
@@ -578,7 +580,7 @@ public final class ComponentUtil {
 		return cl.loadClass(className);
 	}
 
-	private static int createMethod(PageContext pc, ConstrBytecodeContext constr, LinkedHashMap<LitString, Integer> keys, ClassWriter cw, String className, Object member, int max,
+	private static int createMethod(PageContext pc, ConstrBytecodeContext constr, Map<LitString, Integer> keys, ClassWriter cw, String className, Object member, int max,
 			boolean writeLog, boolean suppressWSbeforeArg, boolean output, boolean returnValue) throws PageException {
 
 		boolean hasOptionalArgs = false;
@@ -642,7 +644,8 @@ public final class ComponentUtil {
 		catch (ClassException e) {
 			throw Caster.toPageException(e);
 		}
-		if (axistype) clazz = ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
+
+		if (axistype) clazz = ThreadLocalPageContext.getConfigWeb().getWSHandler().toWSTypeClass(clazz);
 		return Type.getType(clazz);
 
 	}
@@ -911,7 +914,28 @@ public final class ComponentUtil {
 
 		if (udfProps.getLocalMode() != null) func.set("localMode", AppListenerUtil.toLocalMode(udfProps.getLocalMode().intValue(), ""));
 
-		if (udfProps.getPageSource() != null) func.set(KeyConstants._owner, udfProps.getPageSource().getDisplayPath());
+		if (udf instanceof UDFGSProperty) {
+			UDFGSProperty gsProp = (UDFGSProperty) udf;
+			PageSource ps = null;
+
+			// LDEV-3335: For inherited accessors, use the property's original owner
+			Property prop = gsProp.getProperty();
+			if (prop instanceof PropertyImpl) {
+				ps = ((PropertyImpl) prop).getOwnerPageSource();
+			}
+
+			// Fallback to the UDF's PageSource if property owner not available
+			if (ps == null) {
+				ps = gsProp.getPageSource();
+			}
+
+			if (ps != null) {
+				func.set(KeyConstants._owner, ps.getDisplayPath());
+			}
+		}
+		else if (udfProps.getPageSource() != null) {
+			func.set(KeyConstants._owner, udfProps.getPageSource().getDisplayPath());
+		}
 
 		if (udfProps.getStartLine() > 0 && udfProps.getEndLine() > 0) {
 			Struct pos = new StructImpl();
@@ -920,7 +944,7 @@ public final class ComponentUtil {
 			func.setEL(KeyConstants._position, pos);
 		}
 
-		int format = udfProps.getReturnFormat();
+		int format = udfProps.getReturnFormat(pc);
 		if (format == UDF.RETURN_FORMAT_JSON) func.set(KeyConstants._returnFormat, "json");
 		else if (format == UDF.RETURN_FORMAT_PLAIN) func.set(KeyConstants._returnFormat, "plain");
 		else if (format == UDF.RETURN_FORMAT_WDDX) func.set(KeyConstants._returnFormat, "wddx");
@@ -1001,7 +1025,12 @@ public final class ComponentUtil {
 		return list;
 	}
 
-	private static class ReturnFormatValue implements Castable, SimpleValue, CharSequence, Dumpable {
+	private static class ReturnFormatValue implements CastablePro, SimpleValue, CharSequence, Dumpable {
+
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 1L;
 
 		@Override
 		public Boolean castToBoolean(Boolean defaultValue) {
@@ -1045,12 +1074,22 @@ public final class ComponentUtil {
 
 		@Override
 		public String castToString() throws PageException {
-			return getReturnFormat(ThreadLocalPageContext.get());
+			return castToString((PageContext) null);
 		}
 
 		@Override
 		public String castToString(String defaultValue) {
-			return getReturnFormat(ThreadLocalPageContext.get());
+			return castToString((PageContext) null, defaultValue);
+		}
+
+		@Override
+		public String castToString(PageContext pc) throws PageException {
+			return getReturnFormat(ThreadLocalPageContext.get(pc));
+		}
+
+		@Override
+		public String castToString(PageContext pc, String defaultValue) {
+			return getReturnFormat(ThreadLocalPageContext.get(pc));
 		}
 
 		@Override
@@ -1091,12 +1130,9 @@ public final class ComponentUtil {
 					return UDFUtil.toReturnFormat(ac.getReturnFormat(), "wddx");
 				}
 			}
-			Config c = ThreadLocalPageContext.getConfig();
-			if (c instanceof ConfigPro) {
-				return UDFUtil.toReturnFormat(((ConfigPro) c).getReturnFormat(), "wddx");
-			}
 
-			return "wddx";
+			ConfigServerPro c = ThreadLocalPageContext.getConfigServer();
+			return UDFUtil.toReturnFormat(c.getReturnFormat(), "wddx");
 		}
 
 		@Override
@@ -1177,8 +1213,14 @@ public final class ComponentUtil {
 				StructUtil.copy(dynamicAttributes, property.getDynamicAttributes(), true);
 			}
 
+			// LDEV-3335: Set owner BEFORE setProperty() so inherited properties have the correct owner
+			// Only set owner for properties defined in this component, not inherited ones
+			// If already set (inherited from parent), don't overwrite
+			if (property.getOwnerPageSource() == null) {
+				property.setOwnerName(comp.getAbsName(), comp.getPageSource());
+			}
+
 			comp.setProperty(property);
-			property.setOwnerName(comp.getAbsName());
 		}
 	}
 

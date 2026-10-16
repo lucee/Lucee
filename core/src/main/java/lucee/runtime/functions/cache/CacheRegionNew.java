@@ -80,7 +80,7 @@ public final class CacheRegionNew extends BIF {
 			ConfigAdmin adminConfig = ConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);// TODO why we have here EHCache?
 			adminConfig.updateCacheConnection(cacheName, new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache", null, null, pc.getConfig().getIdentification()),
 					Config.CACHE_TYPE_NONE, properties, false, false);
-			adminConfig.storeAndReload();
+			adminConfig.store();
 			ConfigUtil.getConfigServerImpl(pc.getConfig()).resetCacheAll();
 		}
 		catch (Exception e) {

@@ -14,15 +14,10 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfsetting showdebugoutput="false">
+<cfparam name="url.json" default="false" type="boolean">
 <cftry>
-<cfparam name="session.alwaysNew" default="true" type="boolean">
-<cfinclude template="services.update.functions.cfm">
-
-
-
-
-
-
+	<cfparam name="session.alwaysNew" default="true" type="boolean">
+	<cfinclude template="services.update.functions.cfm">
 	<cfset adminType=url.adminType>
 	<cfset request.adminType=url.adminType>
 	<cfset password=session["password"&adminType]>
@@ -40,80 +35,29 @@
 		<!--- <cfset self = adminType & ".cfm"> --->
 		<cfset stText.services.update.update="There is a Lucee update <b>( {available} )</b> available for your current version <b>( {current} )</b>.">
 
-	<!--- Core --->
+		<!--- Core --->
 		<cfif adminType == "server">
-			<cfset filterMajor = true>
-			<cfset hasUpdate = false>
-
-			<cfset curr=server.lucee.version>
-			<cfset curr=listFirst(server.lucee.version,".")>
-			
-			<cfset updateInfo=getAvailableVersion()>
-			<cfif not structKeyExists(updateInfo, "available")>
-				<!--- no update available --->
-			<cfelseif server.lucee.state EQ "stable">
-				<cfset get_stable = []>
-				<cfif NOT isArray( updateInfo.otherVersions )>
-					<cfset updateInfo.otherVersions = []>
-				</cfif>
-				<cfloop index="stableList" array="#updateInfo.otherVersions#">
-					<cfif findNoCase("-SNAPSHOT", stableList) 
-						OR findNoCase("-ALPHA", stableList) 
-						OR findNoCase("-BETA", stableList) 
-						OR findNoCase("-RC", stableList)>
-						<!--- skip non-stable --->
-					<cfelse>
-						<cfset arrayAppend(get_stable,stableList)>
-					</cfif>
-				</cfloop>
-				<cfif arrayLen( get_stable )>
-					<cfset available = ArrayLast( get_stable )>
-					<cfset hasUpdate = server.lucee.version LT available>
-				</cfif>
-			<cfelse>
-				<!--- for non-stable: find latest version for current major, excluding ALPHA --->
-				<cfset curr=listFirst(server.lucee.version,".")>
-				<cfset available = getUpdateForMajorVersion(updateInfo.otherVersions, curr )>
-				<cfset ava_ver = listfirst(available,"-")>
-				<cfif len(available) eq 0 or server.lucee.version eq available>
-					<cfset hasUpdate = false>
-				<cfelse>
-					<cfset cur_ver = listfirst(curr,"-")>
-					<cfloop from="1" to="#listlen(cur_ver,".")#" index="i">
-						<cfif len(listgetat(ava_ver,i,".")) eq 1>
-							<cfset last = 0&listgetat(ava_ver,i,".")>
-							<cfset ava_ver = listsetat(ava_ver,i,last,".")>
-						</cfif>
-						<cfif len(listgetat(cur_ver,i,".")) eq 1>
-							<cfset last = 0&listgetat(cur_ver,i,".")>
-							<cfset cur_ver = listsetat(cur_ver,i,last,".")>
-						</cfif>
-					</cfloop>
-						<cfset ava_ver = ava_ver&"-"&listlast(available,"-")>
-					<cfset cur_ver = cur_ver&"-"&listlast(curr,"-")>
-					<cfset hasUpdate = structKeyExists(updateInfo,"available") && ava_ver gt cur_ver>
-				</cfif>
-			</cfif>
+			<cfset updateInfo = getAvailableVersion()>
+			<cfset updateResult = hasNewerVersion( server.lucee.version, updateInfo )>
+			<cfset hasUpdate = updateResult.hasUpdate>
+			<cfset available = updateResult.availableVersion>
 		</cfif>
 
-	<!--- Extensions --->
+		<!--- Extensions --->
 		<cfparam name="err" default="#struct(message:"",detail:"")#">
 		<cfinclude template="ext.functions.cfm">
 		<cfadmin 
-			action="getRHExtensions"
+			action="getExtensions"
 			type="#adminType#"
 			password="#password#"
 			returnVariable="extensions"><!--- #session["password"&url.adminType]# --->
-		<cfif extensions.recordcount GT 0>
-			<cfadmin 
-				action="getRHExtensionProviders"
-				type="#adminType#"
-				password="#password#"
-				returnVariable="providers">
 		
+		<cfif extensions.recordcount GT 0>
+			
+			
 			<cfset request.adminType=url.adminType>
-			<cfset external=getAllExternalData()>
-
+			<cfset external=getLuceeExtensions(getExtensionGroups())>
+			<cfset extUpdates = []>
 			<cfsavecontent variable="ext" trim="true">
 				<cfloop query="extensions">
 					<cfscript>
@@ -121,13 +65,15 @@
 						loop list="#extensions.columnlist()#" item="key" {
 							sct[ key ]=extensions[ key ];
 						}
-						updateVersion= updateAvailable( sct, external );
-						if (updateVersion eq "false")
+						updateVersion = updateAvailable( sct, external );
+						if ( updateVersion eq "false" )
 							continue;
-						uid=extensions.id
-						link="";
-						dn="";
-						link="?action=ext.applications&action2=detail&id=#uid#";
+						link = "?action=ext.applications&action2=detail&id=#extensions.id#&groupId=#extensions.groupId#&artifactId=#extensions.artifactId#";
+						arrayAppend( extUpdates, {
+							"name": extensions.name,
+							"current": sct.version,
+							"available": updateVersion
+						} );
 					</cfscript>
 					<cfoutput>
 						<a href="#link#">- #extensions.name# - <b>#updateVersion#</b> ( #sct.version# ) </a><br>
@@ -136,76 +82,21 @@
 			</cfsavecontent>
 		</cfif>
 
-	<!--- Promotion  disabled for the moment
-		<cfset existingExtensions={}>
-		<cfloop query="#extensions#">
-			<cfset existingExtensions[extensions.id]=extensions.id>
-		</cfloop>
-		<cfset promotion={level:0}>
-		
-		<cfset request.adminType=url.adminType>
-		<cfinclude template="extension.functions.cfm">
-		<cfset data=loadAllProvidersData(50000,false)>
-						
-		<cfloop collection="#data#" item="provider" index="providerURL">
-			<cfif not isSimpleValue(provider)>
-				<cfset qry=provider.listApplications>
-				<cfloop query="#provider.listApplications#">
-					<cfset uid=qry.id>
-					<cfif	(qry.type EQ request.admintype or  qry.type EQ "all") and
-							!structKeyExists(existingExtensions,uid) and
-							isDefined('qry.promotionLevel') and 
-							isNumeric(qry.promotionLevel) and
-							qry.promotionLevel GT promotion.level>
-						<cfset promotion.txt=qry.promotionText>
-						<cfset promotion.uri="server.cfm?action=extension.applications&action2=detail&uid=#uid#">
-						<cfset promotion.uid=uid>
-						<cfset promotion.level=qry.promotionLevel>
-						<cfset promotion.label=qry.label>
-						<cfset promotion.price=qry.price>
-						<cfif len(qry.image)><cfset promotion.img=getDumpNail(qry.image,230,100)><cfelse><cfset promotion.img=""></cfif>
-					</cfif>
-				</cfloop>
-			</cfif>
-		</cfloop>
---->
-
-
-
 		<cfsavecontent variable="content" trim="true">
 			<cfoutput>
-				
-				<!--- Core --->
-				<cfif adminType == "server" and hasUpdate>
-					<div class="error">
-						<a href="?action=services.update">
+				<cfif ( adminType == "server" and hasUpdate ) or ( extensions.recordcount and len( ext ) )>
+					<cfif adminType == "server" and hasUpdate>
+						<p><a href="?action=services.update">
 							#replace( stText.services.update.update, { '{available}': available, '{current}': server.lucee.version } )#
-						</a>
-					</div>
-				</cfif>
-				
-				<!--- Extension --->
-				<cfif extensions.recordcount and len(ext)>
-				<div class="error">
-					<a href="?action=ext.applications">
-						There are updates available for your installed Extension(s).<br>
-						#ext#
-					</a>
-				</div>
-				</cfif>
-				
-				<!--- Promotion<div class="normal"></div> disabled for the moment
-				<cfif promotion.level GT 0>
-					
-					<h3><a href="#promotion.uri#">#promotion.label#</a></h3>
-					<cfif len(promotion.img)>
-						<img src="#promotion.img#"  /><br>
+						</a></p>
 					</cfif>
-					<span class="comment">#promotion.txt#</span>
-					
+					<cfif extensions.recordcount and len( ext )>
+						<p><a href="?action=ext.applications">
+							There are updates available for your installed Extension(s).<br>
+							#ext#
+						</a></p>
+					</cfif>
 				</cfif>
-				 --->
-				
 			</cfoutput>
 		</cfsavecontent>
 		<cfset session[id].content=content>
@@ -213,16 +104,23 @@
 	<cfelse>
 		<cfset content=session[id].content>
 	</cfif>
-
+<cfscript>
+if(url.json?:false) {
+	result = {
+		"currentVersion": server.lucee.version,
+		"hasUpdate": adminType == "server" && ( hasUpdate ?: false ),
+		"availableVersion": available ?: "",
+		"extensionUpdates": extUpdates ?: []
+	};
+	cfsetting(showdebugoutput=false);
+	cfcontent(reset=true, type="application/json");
+	echo(serializeJson( result ));
+	abort;
+}
+</cfscript>
 	<cfoutput>#content#</cfoutput>
-	
 	<cfcatch>
-		<cfoutput>
-			<!--- <div class="error">
-				Failed to retrieve update information<br>
-				<span class="comment">#cfcatch.message# #cfcatch.detail#</span>
-			</div> --->
-		</cfoutput>
+		<cfset systemOutput(cfcatch,true)>
 	</cfcatch>
 </cftry>
 <cfabort>

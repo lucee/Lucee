@@ -52,7 +52,7 @@ public final class WildCardFilter implements CacheKeyFilter {
 			else sb.append(c);
 		}
 		pattern = Pattern.compile(ignoreCase ? sb.toString().toLowerCase() : sb.toString());
-		// pattern=new Perl5Compiler().compile(ignoreCase?sb.toString().toLowerCase():sb.toString());
+
 	}
 
 	@Override

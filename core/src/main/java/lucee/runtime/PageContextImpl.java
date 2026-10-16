@@ -21,6 +21,7 @@ package lucee.runtime;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
@@ -32,11 +33,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import jakarta.el.ELContext;
@@ -58,7 +58,6 @@ import jakarta.servlet.jsp.tagext.Tag;
 import jakarta.servlet.jsp.tagext.TryCatchFinally;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.exp.CacheException;
@@ -109,8 +108,11 @@ import lucee.runtime.debug.DebugCFMLWriter;
 import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.debug.Debugger;
 import lucee.runtime.debug.DebuggerImpl;
+import lucee.runtime.debug.DebuggerListener;
+import lucee.runtime.debug.DebuggerRegistry;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.DumpWriter;
+import lucee.runtime.engine.DebuggerExecutionLog;
 import lucee.runtime.engine.ExecutionLog;
 import lucee.runtime.err.ErrorPage;
 import lucee.runtime.err.ErrorPageImpl;
@@ -126,6 +128,7 @@ import lucee.runtime.exp.MissingIncludeException;
 import lucee.runtime.exp.NoLongerSupported;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
+import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.PageServletException;
 import lucee.runtime.exp.RequestTimeoutException;
@@ -225,6 +228,7 @@ import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.runtime.writer.CFMLWriter;
 import lucee.runtime.writer.DevNullBodyContent;
+import lucee.runtime.writer.WriterPool;
 import lucee.transformer.util.SourceCode;
 
 /**
@@ -242,9 +246,9 @@ public final class PageContextImpl extends PageContext {
 	/**
 	 * Field <code>pathList</code>
 	 */
-	private final LinkedList<UDF> udfs = new LinkedList<UDF>();
-	private final LinkedList<PageSource> pathList = new LinkedList<PageSource>();
-	private final LinkedList<PageSource> includePathList = new LinkedList<PageSource>();
+	private final ArrayList<UDF> udfs = new ArrayList<UDF>();
+	private final ArrayList<PageSource> pathList = new ArrayList<PageSource>();
+	private final ArrayList<PageSource> includePathList = new ArrayList<PageSource>();
 	private final Set<PageSource> includeOnce = new HashSet<PageSource>();
 
 	/**
@@ -255,11 +259,14 @@ public final class PageContextImpl extends PageContext {
 	private HTTPServletRequestWrap req;
 	private HttpServletResponse rsp;
 	private HttpServlet servlet;
+	private String remoteAddr;
 
 	private JspWriter writer;
 	private JspWriter forceWriter;
 	private BodyContentStack bodyContentStack;
 	private DevNullBodyContent devNull;
+	// intentionally not nulled in release() — survives borrow/release cycles for reuse
+	private final WriterPool writerPool = new WriterPool();
 
 	private ConfigWebPro config;
 	// private DataSourceManager manager;
@@ -292,7 +299,7 @@ public final class PageContextImpl extends PageContext {
 	private Application application;
 
 	private final DebuggerImpl debugger = new DebuggerImpl();
-	private long requestTimeout = -1;
+	private volatile long requestTimeout = -1;
 	private short enablecfoutputonly = 0;
 	private int outputState;
 	private String cfid;
@@ -304,6 +311,9 @@ public final class PageContextImpl extends PageContext {
 	private Boolean _psq;
 	private Locale locale;
 	private TimeZone timeZone;
+	// cached preciseMath flag, valid as long as preciseMathAC is the current application context
+	private ApplicationContextSupport preciseMathAC;
+	private boolean preciseMath;
 
 	// Pools
 	private final ErrorPagePool errorPagePool = new ErrorPagePool();
@@ -328,8 +338,8 @@ public final class PageContextImpl extends PageContext {
 
 	private Tag parentTag = null;
 	private Tag currentTag = null;
-	private Thread thread;
-	private long startTime;
+	private volatile Thread thread;
+	private volatile long startTime;
 	private long startTimeNS;
 	private long endTimeNS;
 
@@ -338,12 +348,11 @@ public final class PageContextImpl extends PageContext {
 	private Map<Key, Threads> allThreads;
 	private boolean hasFamily = false;
 	private PageContextImpl parent = null;
-	private PageSource caller = null;
-	private PageSource callerTemplate = null;
 	private PageContextImpl root = null;
 
 	private List<String> parentTags;
-	private Queue<PageContext> children = null;
+	private Set<PageContext> children = null;
+	private lucee.runtime.concurrency.PageContextPool parallelPool = null;
 	private List<Statement> lazyStats;
 	private boolean fdEnabled;
 	private ExecutionLog execLog;
@@ -354,6 +363,7 @@ public final class PageContextImpl extends PageContext {
 	private boolean gatewayContext;
 	private boolean listenerContext;
 	private Password serverPassword;
+	private LinkedList<DebuggerFrame> debuggerFrames;
 
 	private PageException pe;
 	// private Throwable requestTimeoutException;
@@ -433,6 +443,12 @@ public final class PageContextImpl extends PageContext {
 		this.timeoutStacktrace = thread.getStackTrace();
 	}
 
+	public final boolean getExecutionLogEnabled() {
+		// we use this because we do not wanna change our mind in mid request when the underlaying config
+		// setting may change.
+		return debuggerFrames != null;
+	}
+
 	@Override
 	public void initialize(Servlet servlet, ServletRequest req, ServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize, boolean autoFlush)
 			throws IOException, IllegalStateException, IllegalArgumentException {
@@ -455,9 +471,8 @@ public final class PageContextImpl extends PageContext {
 			boolean autoFlush, boolean isChild, boolean ignoreScopes, PageContextImpl tmplPC) {
 		applicationContext = initApplicationContext;
 		parent = null;
-		caller = null;
-		callerTemplate = null;
 		root = null;
+		debuggerFrames = config.getExecutionLogEnabled() ? new LinkedList<DebuggerFrame>() : null;
 
 		boolean clone = tmplPC != null;
 		requestId = counter++;
@@ -485,22 +500,22 @@ public final class PageContextImpl extends PageContext {
 
 		if (req instanceof HTTPServletRequestWrap) this.req = (HTTPServletRequestWrap) req;
 		else this.req = new HTTPServletRequestWrap(req);
+		this.remoteAddr = (CFMLFactoryImpl.THROTTLE_ENABLED && !isChild) ? req.getRemoteAddr() : null;
 
 		this.rsp = rsp;
 		this.servlet = servlet;
 
 		// Writers
 		{
-			PageContext tmp = clone ? tmplPC : this;
 			if (config.debugLogOutput()) {
-				CFMLWriter w = config.getCFMLWriter(tmp, req, rsp);
+				CFMLWriter w = config.getCFMLWriter(this, req, rsp);
 				w.setAllowCompression(false);
 				DebugCFMLWriter dcw = new DebugCFMLWriter(w);
 				bodyContentStack.init(dcw);
 				debugger.setOutputLog(dcw);
 			}
 			else {
-				bodyContentStack.init(config.getCFMLWriter(tmp, req, rsp));
+				bodyContentStack.init(config.getCFMLWriter(this, req, rsp));
 			}
 		}
 
@@ -567,7 +582,7 @@ public final class PageContextImpl extends PageContext {
 			_psq = null;
 		}
 		fdEnabled = !config.allowRequestTimeout();
-		if (config.getExecutionLogEnabled()) this.execLog = config.getExecutionLogFactory().getInstance(this);
+		if (debuggerFrames != null) this.execLog = config.getExecutionLogFactory().getInstance(this);
 		if (debugger != null) debugger.init(config);
 		if (clone) {
 			((UndefinedImpl) undefined).initialize(this, tmplPC.getScopeCascadingType(), tmplPC.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS));
@@ -592,8 +607,6 @@ public final class PageContextImpl extends PageContext {
 			tmplPC.hasFamily = true;
 
 			this.parent = tmplPC;
-			this.caller = tmplPC.getCurrentPageSource();
-			this.callerTemplate = tmplPC.getCurrentTemplatePageSource();
 			this.root = tmplPC.root == null ? tmplPC : tmplPC.root;
 			this.tagName = tmplPC.tagName;
 			this.parentTags = tmplPC.parentTags == null ? null : (List) ((ArrayList) tmplPC.parentTags).clone();
@@ -601,7 +614,7 @@ public final class PageContextImpl extends PageContext {
 			if (tmplPC.children == null) {
 				synchronized (tmplPC) {
 					if (tmplPC.children == null) {
-						tmplPC.children = new ConcurrentLinkedQueue<PageContext>();
+						tmplPC.children = ConcurrentHashMap.newKeySet();
 					}
 				}
 			}
@@ -614,7 +627,7 @@ public final class PageContextImpl extends PageContext {
 			while (it.hasNext()) {
 				this.includePathList.add(it.next());
 			}
-			it = pathList.iterator();
+			it = tmplPC.pathList.iterator();
 			while (it.hasNext()) {
 				this.pathList.add(it.next());
 			}
@@ -625,11 +638,31 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void release() {
-		config.releaseCacheHandlers(this);
+		// safety net: a parallel iteration normally closes its pool itself, this releases any leftover
+		// clones should the operation have been aborted before reaching its cleanup
+		if (parallelPool != null) {
+			parallelPool.close();
+			parallelPool = null;
+		}
+		if (getExecutionLogEnabled()) {
+			DebuggerListener listener = DebuggerRegistry.getListener();
+			if (listener != null) {
+				try {
+					listener.onRequestEnd(this);
+				}
+				catch (Throwable t) {
+					LogUtil.log(this, "application", "debugger", t, Log.LEVEL_WARN);
+				}
+			}
+		}
 
-		if (config.getExecutionLogEnabled() && execLog != null) {
-			execLog.release();
-			execLog = null;
+		config.releaseCacheHandlers(this);
+		if (debuggerFrames != null) {
+			debuggerFrames = null;
+			if (execLog != null) {
+				execLog.release();
+				execLog = null;
+			}
 		}
 
 		if (PageContextUtil.debug(this)) {
@@ -641,11 +674,9 @@ public final class PageContextImpl extends PageContext {
 		else debugger.resetTraces(); // traces can alo be used when debugging is off
 
 		this.serverPassword = null;
+		this.remoteAddr = null;
 
-		// boolean isChild=parent!=null; // isChild is defined in the class outside this method
 		parent = null;
-		caller = null;
-		callerTemplate = null;
 		root = null;
 		// ORM
 		// if(ormSession!=null)releaseORM();
@@ -679,11 +710,15 @@ public final class PageContextImpl extends PageContext {
 			variables = null;
 			variablesRoot = null;
 			// if(threads!=null && threads.size()>0) threads.clear();
-			threads = null;
-			allThreads = null;
+			// nulled under the same lock that synchronises setAllThreadScope / read accessors so
+			// a long-running daemon or orphan-VT can't race teardown.
+			synchronized (this) {
+				threads = null;
+				allThreads = null;
+			}
 			currentThread = null;
-			cgiR = new CGIImplReadOnly();
-			cgiRW = new CGIImpl();
+			cgiR = null;
+			cgiRW = null;
 			if (lastStanding) cookie.release(this);
 		}
 		else {
@@ -746,12 +781,10 @@ public final class PageContextImpl extends PageContext {
 			lazyStats = null;
 		}
 
-		if (!hasFamily) {
-			pathList.clear();
-			includePathList.clear();
-			// Only clear UDF stack if empty - active UDFs will clean themselves up
-			if (udfs.isEmpty()) udfs.clear();
-		}
+		pathList.clear();
+		includePathList.clear();
+		// Only clear UDF stack if empty - active UDFs will clean themselves up
+		if (udfs.isEmpty()) udfs.clear();
 		executionTime = 0;
 
 		bodyContentStack.release();
@@ -782,7 +815,12 @@ public final class PageContextImpl extends PageContext {
 		gatewayContext = false;
 		listenerContext = false;
 
-		manager.release();
+		try {
+			manager.release();
+		}
+		catch (Exception e) {
+			LogUtil.log(this, "datasource", PageContextImpl.class.getName(), e);
+		}
 		includeOnce.clear();
 		pe = null;
 		this.literalTimestampWithTSOffset = false;
@@ -797,8 +835,7 @@ public final class PageContextImpl extends PageContext {
 			try {
 				releaseORM();
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 		startTime = 0L;
 	}
@@ -806,7 +843,7 @@ public final class PageContextImpl extends PageContext {
 	private boolean lastStanding() {
 		if (!hasFamily()) return true;
 		// active childern?
-		Queue<PageContext> tmp = this.children;
+		Set<PageContext> tmp = this.children;
 		if (tmp != null) {
 			for (PageContext p: tmp) {
 				if (p.getStartTime() > 0) return false;
@@ -829,11 +866,15 @@ public final class PageContextImpl extends PageContext {
 			if (config == null || (config.flushAtRequestEnd() && config.autoManageSession())) {
 				ormSession.flushAll(this);
 			}
-			ormSession.closeAll(this);
-			manager.releaseORM();
 		}
 		finally {
-			ormSession = null;
+			try {
+				ormSession.closeAll(this);
+				manager.releaseORM();
+			}
+			finally {
+				ormSession = null;
+			}
 		}
 	}
 
@@ -881,8 +922,7 @@ public final class PageContextImpl extends PageContext {
 		try {
 			getOut().flush();
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 	}
 
 	@Override
@@ -894,13 +934,13 @@ public final class PageContextImpl extends PageContext {
 		LogUtil.log(this, Log.LEVEL_INFO, PageContextImpl.class.getName(), "method getRelativePageSource is deprecated");
 		if (StringUtil.startsWith(realPath, '/')) return PageSourceImpl.best(getPageSources(realPath));
 		if (pathList.size() == 0) return null;
-		return ((PageSourceImpl) pathList.getLast()).getRealPageSource(this, realPath);
+		return ((PageSourceImpl) pathList.get(pathList.size() - 1)).getRealPageSource(this, realPath);
 	}
 
 	public PageSource getRelativePageSourceExisting(String realPath) {
 		if (StringUtil.startsWith(realPath, '/')) return getPageSourceExisting(realPath);
 		if (pathList.size() == 0) return null;
-		PageSource ps = ((PageSourceImpl) pathList.getLast()).getRealPageSource(this, realPath);
+		PageSource ps = ((PageSourceImpl) pathList.get(pathList.size() - 1)).getRealPageSource(this, realPath);
 		if (PageSourceImpl.pageExist(ps)) return ps;
 		return null;
 	}
@@ -918,7 +958,7 @@ public final class PageContextImpl extends PageContext {
 		PageSource ps = null, tmp = null;
 		if (previous) {
 			boolean valid = false;
-			ps = pathList.getLast();
+			ps = pathList.get(pathList.size() - 1);
 			for (int i = pathList.size() - 2; i >= 0; i--) {
 				tmp = pathList.get(i);
 				if (tmp != ps) {
@@ -929,7 +969,7 @@ public final class PageContextImpl extends PageContext {
 			}
 			if (!valid) return null;
 		}
-		else ps = pathList.getLast();
+		else ps = pathList.get(pathList.size() - 1);
 
 		ps = ((PageSourceImpl) ps).getRealPageSource(this, realPath);
 		if (PageSourceImpl.pageExist(ps)) return ps;
@@ -938,10 +978,8 @@ public final class PageContextImpl extends PageContext {
 
 	public PageSource[] getRelativePageSources(String realPath) {
 		if (StringUtil.startsWith(realPath, '/')) return getPageSources(realPath);
-
-		PageSource ps = getCurrentPageSource(null);
+		PageSource ps = pathList.isEmpty() ? null : pathList.get(pathList.size() - 1);
 		if (ps == null) return null;
-
 		return new PageSource[] { ((PageSourceImpl) ps).getRealPageSource(this, realPath) };
 	}
 
@@ -1075,6 +1113,9 @@ public final class PageContextImpl extends PageContext {
 			DebugEntryTemplate debugEntry = debugger.getEntry(this, currentPage.getPageSource());
 			try {
 				addPageSource(currentPage.getPageSource(), true);
+				if (getExecutionLogEnabled()) {
+					debuggerFrames.add(new DebuggerFrame(getTopmostDebuggerFrame(), currentPage.getPageSource(), variablesScope()));
+				}
 				debugEntry.updateFileLoadTime((System.nanoTime() - time));
 				exeTime = System.nanoTime();
 				currentPage.call(this);
@@ -1090,6 +1131,8 @@ public final class PageContextImpl extends PageContext {
 						FDSignal.signal(pe, false);
 					}
 					pe.addContext(currentPage.getPageSource(), -187, -187, null);// TODO was soll das 187
+					if (getExecutionLogEnabled() && !debuggerFrames.isEmpty()) debuggerNotifyThrow(pe);
+
 					throw pe;
 				}
 			}
@@ -1098,6 +1141,9 @@ public final class PageContextImpl extends PageContext {
 				long diff = ((System.nanoTime() - exeTime) - (executionTime - currTime));
 				executionTime += (System.nanoTime() - time);
 				debugEntry.updateExeTime(diff);
+				if (getExecutionLogEnabled() && !debuggerFrames.isEmpty()) {
+					debuggerFrames.removeLast();
+				}
 				removeLastPageSource(true);
 			}
 		}
@@ -1107,6 +1153,9 @@ public final class PageContextImpl extends PageContext {
 			if (runOnce && includeOnce.contains(currentPage.getPageSource())) return;
 			try {
 				addPageSource(currentPage.getPageSource(), true);
+				if (getExecutionLogEnabled()) {
+					debuggerFrames.add(new DebuggerFrame(getTopmostDebuggerFrame(), currentPage.getPageSource(), variablesScope()));
+				}
 				currentPage.call(this);
 			}
 			catch (Throwable t) {
@@ -1117,11 +1166,15 @@ public final class PageContextImpl extends PageContext {
 				}
 				else {
 					pe.addContext(currentPage.getPageSource(), -187, -187, null);
+					if (getExecutionLogEnabled() && !debuggerFrames.isEmpty()) debuggerNotifyThrow(pe);
 					throw pe;
 				}
 			}
 			finally {
 				includeOnce.add(currentPage.getPageSource());
+				if (getExecutionLogEnabled() && !debuggerFrames.isEmpty()) {
+					debuggerFrames.removeLast();
+				}
 				removeLastPageSource(true);
 			}
 		}
@@ -1162,26 +1215,13 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public PageSource getCurrentPageSource() {
-		PageSource ps = pathList.peekLast();
-		if (ps != null) return ps;
-
-		if (parent != null && parent != this && parent.isInitialized()) { // second comparision should not be necesary, just in case ...
-			return parent.getCurrentPageSource();
-		}
-		else if (caller != null) return caller;
-		return null;
+		return pathList.isEmpty() ? null : pathList.get(pathList.size() - 1);
 	}
 
 	@Override
 	public PageSource getCurrentPageSource(PageSource defaultvalue) {
-		PageSource ps = pathList.peekLast();
-		if (ps != null) return ps;
-
-		if (parent != null && parent != this && parent.isInitialized()) { // second comparision should not be necesary, just in case ...
-			return parent.getCurrentPageSource(defaultvalue);
-		}
-		else if (caller != null) return caller;
-		return defaultvalue;
+		PageSource ps = pathList.isEmpty() ? null : pathList.get(pathList.size() - 1);
+		return ps != null ? ps : defaultvalue;
 	}
 
 	/**
@@ -1189,14 +1229,7 @@ public final class PageContextImpl extends PageContext {
 	 */
 	@Override
 	public PageSource getCurrentTemplatePageSource() {
-		if (includePathList.isEmpty()) {
-			if (parent != null && parent != this && parent.isInitialized()) { // second comparision should not be necesary, just in case ...
-				return parent.getCurrentTemplatePageSource();
-			}
-			else if (callerTemplate != null) return callerTemplate;
-			return null;
-		}
-		return includePathList.getLast();
+		return includePathList.isEmpty() ? null : includePathList.get(includePathList.size() - 1);
 	}
 
 	/**
@@ -1387,58 +1420,58 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public Object vs(Collection.Key key) throws PageException {
-		return variables.get(key);
+		return variables.get(this, key);
 	}
 
 	public Object vs(Collection.Key key1, Collection.Key key2) throws PageException {
-		return variableUtil.get(this, variables.get(key1), key2);
+		return variableUtil.get(this, variables.get(this, key1), key2);
 	}
 
 	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
-		return variableUtil.get(this, variableUtil.getCollection(this, variables.get(key1), key2), key3);
+		return variableUtil.get(this, variableUtil.getCollection(this, variables.get(this, key1), key2), key3);
 	}
 
 	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
-		return variableUtil.get(this, variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(key1), key2), key3), key4);
+		return variableUtil.get(this, variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(this, key1), key2), key3), key4);
 	}
 
 	public Object vsc(Collection.Key key1, Collection.Key key2) throws PageException {
-		return variableUtil.getCollection(this, variables.get(key1), key2);
+		return variableUtil.getCollection(this, variables.get(this, key1), key2);
 	}
 
 	public Object vsc(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
-		return variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(key1), key2), key3);
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(this, key1), key2), key3);
 	}
 
 	public Object vsc(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
-		return variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(key1), key2), key3), key4);
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(this, key1), key2), key3), key4);
 	}
 
 	public Object vs(Collection.Key key, Object value) throws PageException {
-		variables.set(key, value);
+		variables.set(this, key, value);
 		return value;
 	}
 
 	public Object vs(Collection.Key key1, Collection.Key key2, Object value) throws PageException {
-		Object o = variables.get(key1, null);
+		Object o = variables.get(this, key1, null);
 		if (o == null) {
-			o = variables.set(key1, new StructImpl());
+			o = variables.set(this, key1, new StructImpl());
 		}
 		return set(o, key2, value);
 	}
 
 	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3, Object value) throws PageException {
-		Object o = variables.get(key1, null);
+		Object o = variables.get(this, key1, null);
 		if (o == null) {
-			o = variables.set(key1, new StructImpl());
+			o = variables.set(this, key1, new StructImpl());
 		}
 		return set(touch(o, key2), key3, value);
 	}
 
 	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4, Object value) throws PageException {
-		Object o = variables.get(key1, null);
+		Object o = variables.get(this, key1, null);
 		if (o == null) {
-			o = variables.set(key1, new StructImpl());
+			o = variables.set(this, key1, new StructImpl());
 		}
 		return set(touch(touch(o, key2), key3), key4, value);
 	}
@@ -1941,7 +1974,7 @@ public final class PageContextImpl extends PageContext {
 				setVariable(name, value);
 			}
 			else {
-				if (!Decision.isCastableTo(type, value, true, true, maxLength)) {
+				if (!Decision.isCastableTo(null, type, value, true, true, maxLength)) {
 					if (maxLength > -1 && ("email".equalsIgnoreCase(type) || "url".equalsIgnoreCase(type) || "string".equalsIgnoreCase(type))) {
 						StringBuilder msg = new StringBuilder(CasterException.createMessage(value, type));
 						msg.append(" with a maximum length of " + maxLength + " characters");
@@ -1977,59 +2010,6 @@ public final class PageContextImpl extends PageContext {
 		subparam(type, name, value, min, max, strPattern, maxLength, isNew);
 
 	}
-
-	/*
-	 * private void paramX(String type, String name, Object defaultValue, double min,double max, String
-	 * strPattern, int maxLength) throws PageException {
-	 * 
-	 * // check attributes type if(type==null)type="any"; else type=type.trim().toLowerCase();
-	 * 
-	 * // check attributes name if(StringUtil.isEmpty(name)) throw new
-	 * ExpressionException("The attribute name is required");
-	 * 
-	 * Object value=null; boolean isNew=false;
-	 * 
-	 * // get value value=VariableInterpreter.getVariableEL(this,name,NullSupportHelper.NULL(this));
-	 * if(NullSupportHelper.NULL(this)==value) { if(defaultValue==null) throw new
-	 * ExpressionException("The required parameter ["+name+"] was not provided."); value=defaultValue;
-	 * isNew=true; }
-	 * 
-	 * // cast and set value if(!"any".equals(type)) { // range if("range".equals(type)) { boolean
-	 * hasMin=Decision.isValid(min); boolean hasMax=Decision.isValid(max); double number =
-	 * Caster.toDoubleValue(value);
-	 * 
-	 * if(!hasMin && !hasMax) throw new
-	 * ExpressionException("you need to define one of the following attributes [min,max], when type is set to [range]"
-	 * );
-	 * 
-	 * if(hasMin && number<min) throw new ExpressionException("The number ["+Caster.toString(number)
-	 * +"] is to small, the number must be at least ["+Caster.toString(min)+"]");
-	 * 
-	 * if(hasMax && number>max) throw new ExpressionException("The number ["+Caster.toString(number)
-	 * +"] is to big, the number cannot be bigger than ["+Caster.toString(max)+"]");
-	 * 
-	 * setVariable(name,Caster.toDouble(number)); } // regex else if("regex".equals(type) ||
-	 * "regular_expression".equals(type)) { String str=Caster.toString(value);
-	 * 
-	 * if(strPattern==null) throw new ExpressionException("Missing attribute [pattern]");
-	 * 
-	 * if(!Perl5Util.matches(strPattern, str)) throw new
-	 * ExpressionException("The value ["+str+"] doesn't match the provided pattern ["+strPattern+"]");
-	 * setVariable(name,str); } else if ( type.equals( "int" ) || type.equals( "integer" ) ) {
-	 * 
-	 * if ( !Decision.isInteger( value ) ) throw new ExpressionException( "The value [" + value +
-	 * "] is not a valid integer" );
-	 * 
-	 * setVariable( name, value ); } else { if(!Decision.isCastableTo(type,value,true,true,maxLength)) {
-	 * if(maxLength>-1 && ("email".equalsIgnoreCase(type) || "url".equalsIgnoreCase(type) ||
-	 * "string".equalsIgnoreCase(type))) { StringBuilder msg=new
-	 * StringBuilder(CasterException.createMessage(value, type));
-	 * msg.append(" with a maximum length of "+maxLength+" characters"); throw new
-	 * CasterException(msg.toString()); } throw new CasterException(value,type); }
-	 * 
-	 * setVariable(name,value); //REALCAST setVariable(name,Caster.castTo(this,type,value,true)); } }
-	 * else if(isNew) setVariable(name,value); }
-	 */
 
 	@Override
 	public Object removeVariable(String var) throws PageException {
@@ -2141,8 +2121,7 @@ public final class PageContextImpl extends PageContext {
 			if (value == null) removeVariable(name);
 			else setVariable(name, value);
 		}
-		catch (PageException e) {
-		}
+		catch (PageException e) {}
 	}
 
 	@Override
@@ -2259,6 +2238,14 @@ public final class PageContextImpl extends PageContext {
 		return forceWriter;
 	}
 
+	public WriterPool getWriterPool() {
+		return writerPool;
+	}
+
+	public boolean isChild() {
+		return isChild;
+	}
+
 	@Override
 	public HttpSession getSession() {
 		return getHttpServletRequest().getSession();
@@ -2277,6 +2264,22 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public HttpServletRequest getHttpServletRequest() {
 		return req;
+	}
+
+	/**
+	 * Returns the remote address captured at request initialization. Read by
+	 * the request-throttle iteration over runningPcs in CFMLFactoryImpl, which
+	 * counts same-IP concurrent requests. Stashing it on the PageContext
+	 * avoids the recycled-request race when iterating from another thread
+	 * (Tomcat may recycle a finished request's facade mid-iteration).
+	 * <p>
+	 * Only populated when the throttle is enabled (CFMLFactoryImpl.THROTTLE_ENABLED)
+	 * and the PageContext is not a child. Returns null otherwise — the iteration's
+	 * null-check then skips this PageContext naturally. Cleared in release() so
+	 * pooled PageContexts can't leak stale addresses.
+	 */
+	public String getRemoteAddr() {
+		return remoteAddr;
 	}
 
 	@Override
@@ -2336,6 +2339,8 @@ public final class PageContextImpl extends PageContext {
 
 	public void handlePageException(final PageException pe, boolean setHeader) {
 		if (!Abort.isSilentAbort(pe)) {
+			// Note: Debugger exception notification now happens in _setCatch() where frames are still intact
+
 			// if(requestTimeoutException!=null)
 			// pe=Caster.toPageException(requestTimeoutException);
 
@@ -2417,6 +2422,7 @@ public final class PageContextImpl extends PageContext {
 						Struct catchBlock = pe.getCatchBlock(getConfig());
 						variablesScope().setEL(KeyConstants._cfcatch, catchBlock);
 						variablesScope().setEL(KeyConstants._catch, catchBlock);
+						variablesScope().setEL(KeyConstants._error, pe.getErrorBlock(this, new ErrorPageImpl()));
 						doInclude(template, false);
 						return;
 					}
@@ -2427,12 +2433,11 @@ public final class PageContextImpl extends PageContext {
 				if (!Abort.isSilentAbort(pe)) {
 					forceWrite(getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(this, pe.toDumpData(this, 9999, DumpUtil.toDumpProperties()), true));
 					if (errorTemplateExp != null) {
-						LogUtil.log("errortemplate", errorTemplateExp);
+						LogUtil.log(Log.LEVEL_INFO, "errortemplate", "error template failed to render, original exception is exposed directly " + errorTemplateExp.getMessage());
 					}
 				}
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 	}
 
@@ -2808,8 +2813,7 @@ public final class PageContextImpl extends PageContext {
 					releaseORM();
 					removeLastPageSource(true);
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 			PageException pe;
 			if (ExceptionUtil.isThreadDeath(t) && getTimeoutStackTrace() != null) {
@@ -2822,6 +2826,12 @@ public final class PageContextImpl extends PageContext {
 				log(true);
 				if (fdEnabled) {
 					FDSignal.signal(pe, false);
+				}
+				// External debugger extension - uncaught exception.
+				// Skip if no live CFML frame (top-level 404/compile error); throw-site hooks dedup the rest.
+				if (getExecutionLogEnabled() && !debuggerFrames.isEmpty()) {
+					DebuggerListener debugListener = DebuggerRegistry.getListener();
+					debuggerNotifyException(debugListener, pe, false);
 				}
 				listener.onError(this, pe); // call Application.onError()
 			}
@@ -2952,8 +2962,7 @@ public final class PageContextImpl extends PageContext {
 			// print.o(getOut().getClass().getName());
 			getOut().clear();
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 	}
 
 	@Override
@@ -3042,7 +3051,7 @@ public final class PageContextImpl extends PageContext {
 					// Convert to JSON string
 					String jsonMessage;
 					try {
-						JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true);
+						JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, true);
 						jsonMessage = json.serialize(null, logData, SerializationSettings.SERIALIZE_AS_COLUMN, null);
 					}
 					catch (Exception e) {
@@ -3215,7 +3224,7 @@ public final class PageContextImpl extends PageContext {
 
 		Charset charEnc = ReqRspUtil.getCharacterEncoding(this, rsp);
 		rsp.setLocale(locale);
-		if (charEnc.equals(CharsetUtil.UTF8)) {
+		if (charEnc.equals(StandardCharsets.UTF_8)) {
 			ReqRspUtil.setContentType(rsp, "text/html; charset=UTF-8");
 		}
 		else if (!charEnc.equals(ReqRspUtil.getCharacterEncoding(this, rsp))) {
@@ -3378,8 +3387,7 @@ public final class PageContextImpl extends PageContext {
 		try {
 			sessionScope().removeEL(KeyImpl.init(name));
 		}
-		catch (PageException e) {
-		}
+		catch (PageException e) {}
 
 	}
 
@@ -3421,8 +3429,16 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public void _setCatch(PageException pe, String name, boolean caught, boolean store, boolean signal) {
-		if (signal && fdEnabled) {
-			FDSignal.signal(pe, caught);
+		if (signal && pe != null) {
+			// FusionDebug support
+			if (fdEnabled) {
+				FDSignal.signal(pe, caught);
+			}
+			// External debugger extension - frames are still intact at this point
+			if (debuggerFrames != null) {
+				DebuggerListener listener = DebuggerRegistry.getListener();
+				debuggerNotifyException(listener, pe, caught);
+			}
 		}
 		// boolean outer = exception != null && exception == pe;
 		exception = pe;
@@ -3475,8 +3491,8 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void removeLastPageSource(boolean alsoInclude) {
-		if (!pathList.isEmpty()) pathList.removeLast();
-		if (alsoInclude && !includePathList.isEmpty()) includePathList.removeLast();
+		if (!pathList.isEmpty()) pathList.remove(pathList.size() - 1);
+		if (alsoInclude && !includePathList.isEmpty()) includePathList.remove(includePathList.size() - 1);
 	}
 
 	public UDF[] getUDFs() {
@@ -3488,8 +3504,294 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public void removeUDF() {
-		if (!udfs.isEmpty()) udfs.removeLast();
+		if (!udfs.isEmpty()) udfs.remove(udfs.size() - 1);
 	}
+
+	// ==================== Debugger Stack Frame Support ====================
+
+	/**
+	 * Represents a captured CFML stack frame for external debugger inspection. Stores references to
+	 * scopes at the time of function entry so debuggers can inspect variables in any frame, not just
+	 * the current one.
+	 */
+	public static final class DebuggerFrame {
+		public enum Kind {
+			UDF, INCLUDE
+		}
+
+		public final Kind kind;
+		public final Local local;
+		public final Argument arguments;
+		public final Variables variables;
+		public final PageSource pageSource;
+		public final String functionName;
+		private volatile int line;
+
+		DebuggerFrame(Local local, Argument arguments, Variables variables, PageSource pageSource, String functionName) {
+			this.kind = Kind.UDF;
+			this.local = local;
+			this.arguments = arguments;
+			this.variables = variables;
+			this.pageSource = pageSource;
+			this.functionName = functionName;
+			this.line = 0;
+		}
+
+		DebuggerFrame(DebuggerFrame enclosing, PageSource pageSource, Variables currentVariables) {
+			this.kind = Kind.INCLUDE;
+			this.local = enclosing != null ? enclosing.local : null;
+			this.arguments = enclosing != null ? enclosing.arguments : null;
+			// not inherited: cfmodule/customtag swaps in a fresh variables scope
+			this.variables = currentVariables;
+			this.pageSource = pageSource;
+			this.functionName = null;
+			this.line = 0;
+		}
+
+		public Kind getKind() {
+			return kind;
+		}
+
+		public int getLine() {
+			return line;
+		}
+
+		public void setLine(int line) {
+			this.line = line;
+		}
+
+		public String getFile() {
+			return pageSource != null ? pageSource.getDisplayPath() : null;
+		}
+
+	}
+
+	/**
+	 * Push a new debugger frame onto the stack. Called on UDF entry when DEBUGGER is enabled.
+	 */
+	public void pushDebuggerFrame(Local local, Argument arguments, Variables variables, PageSource pageSource, String functionName, int startLine) {
+		if (debuggerFrames != null) {
+			debuggerFrames.add(new DebuggerFrame(local, arguments, variables, pageSource, functionName));
+
+			// Notify debugger listener of function entry (for function breakpoints)
+			DebuggerListener listener = DebuggerRegistry.getListener();
+			if (listener != null && listener.isClientConnected()) {
+				String file = pageSource != null ? pageSource.getDisplayPath() : null;
+				String componentName = (variables instanceof ComponentScope) ? ((ComponentScope) variables).getComponent().getName() : null;
+				if (listener.onFunctionEntry(this, functionName, componentName, file, startLine)) {
+					debuggerSuspend(file, startLine, "function breakpoint: " + functionName);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Pop the topmost debugger frame. Called on UDF exit when DEBUGGER is enabled.
+	 */
+	public void popDebuggerFrame() {
+		if (debuggerFrames != null && !debuggerFrames.isEmpty()) {
+			debuggerFrames.removeLast();
+		}
+	}
+
+	/**
+	 * Get all debugger frames for the current call stack. Returns null if debugger is not enabled.
+	 * Called via reflection by the debugger extension.
+	 */
+	public DebuggerFrame[] getDebuggerFrames() {
+		if (debuggerFrames == null) return null;
+		return debuggerFrames.toArray(new DebuggerFrame[0]);
+	}
+
+	/**
+	 * Get the topmost debugger frame, or null if none.
+	 */
+	public DebuggerFrame getTopmostDebuggerFrame() {
+		if (debuggerFrames == null || debuggerFrames.isEmpty()) return null;
+		return debuggerFrames.getLast();
+	}
+
+	/**
+	 * Notify the debugger listener of an exception and suspend if requested.
+	 */
+	private void debuggerNotifyException(DebuggerListener listener, PageException pe, boolean caught) {
+		// LDEV-6282: skip uncaught path if throw-site already notified; caught path always fires.
+		if (!caught && pe instanceof PageExceptionImpl && !((PageExceptionImpl) pe).markDebuggerNotified()) return;
+		if (listener == null || !listener.isClientConnected() || !listener.onException(this, pe, caught)) return;
+		String file = null;
+		int line = 0;
+		if (pe instanceof PageExceptionImpl) {
+			PageExceptionImpl pei = (PageExceptionImpl) pe;
+			file = pei.getFile(getConfig());
+			try {
+				String lineStr = pei.getLine(getConfig());
+				if (lineStr != null && !lineStr.isEmpty()) {
+					line = Integer.parseInt(lineStr);
+				}
+			}
+			catch (NumberFormatException ignored) {}
+		}
+		String label = caught ? "Caught exception: " : "Uncaught exception: ";
+		debuggerSuspend(file, line, label + pe.getClass().getSimpleName());
+	}
+
+	// LDEV-6282: notify at throw site while frames are still live; marker dedups later notify paths.
+	public void debuggerNotifyThrow(PageException pe) {
+		if (!getExecutionLogEnabled()) return;
+		DebuggerListener listener = DebuggerRegistry.getListener();
+		if (listener == null || !listener.isClientConnected()) return;
+		if (pe instanceof PageExceptionImpl && !((PageExceptionImpl) pe).markDebuggerNotified()) return;
+		if (!listener.onException(this, pe, false)) return;
+		String file = null;
+		int line = 0;
+		if (pe instanceof PageExceptionImpl) {
+			PageExceptionImpl pei = (PageExceptionImpl) pe;
+			file = pei.getFile(getConfig());
+			try {
+				String lineStr = pei.getLine(getConfig());
+				if (lineStr != null && !lineStr.isEmpty()) {
+					line = Integer.parseInt(lineStr);
+				}
+			}
+			catch (NumberFormatException ignored) {}
+		}
+		debuggerSuspend(file, line, "Uncaught exception: " + pe.getClass().getSimpleName());
+	}
+
+	// Debugger suspension support
+	private volatile boolean debuggerSuspended = false;
+	private volatile String debuggerSuspendLabel = null;
+	private final Object debuggerSuspendLock = new Object();
+	private long debuggerSuspendStartNano = 0;
+	private long debuggerTotalSuspendedNanos = 0;
+
+	/**
+	 * Suspend execution for debugger. Call from breakpoint() BIF or when hitting a breakpoint. Thread
+	 * will wait until debuggerResume() is called.
+	 * 
+	 * @param label Optional label to identify the breakpoint in debugger UI
+	 */
+	public void debuggerSuspend(String label) {
+		if (debuggerFrames == null) return;
+
+		// Get current file/line for listener callback
+		DebuggerFrame frame = getTopmostDebuggerFrame();
+		String file = null;
+		int line = 0;
+		if (frame != null) {
+			file = frame.getFile();
+			line = frame.getLine();
+		}
+		else {
+			// Top-level code (outside functions) - try ExecutionLog's thread-local first
+			file = DebuggerExecutionLog.getCurrentFile();
+			line = DebuggerExecutionLog.getCurrentLine();
+
+			// Fall back to page source for file if thread-local not set
+			if (file == null) {
+				PageSource ps = getCurrentPageSource(null);
+				if (ps != null) {
+					Resource res = ps.getPhyscalFile();
+					if (res != null) {
+						file = res.getAbsolutePath();
+					}
+				}
+			}
+		}
+
+		debuggerSuspendImpl(file, line, label);
+	}
+
+	/**
+	 * Suspend execution for debugger with explicit file and line. Used by DebuggerExecutionLog which
+	 * already knows the current location.
+	 * 
+	 * @param file Source file path
+	 * @param line Line number
+	 * @param label Optional label to identify the breakpoint in debugger UI
+	 */
+	public void debuggerSuspend(String file, int line, String label) {
+		if (debuggerFrames == null) return;
+		debuggerSuspendImpl(file, line, label);
+	}
+
+	private void debuggerSuspendImpl(String file, int line, String label) {
+		debuggerSuspendLabel = label;
+		debuggerSuspended = true;
+		debuggerSuspendStartNano = System.nanoTime();
+
+		// Notify listener before blocking
+		DebuggerListener listener = DebuggerRegistry.getListener();
+		if (listener != null) {
+			listener.onSuspend(this, file, line, label);
+		}
+
+		synchronized (debuggerSuspendLock) {
+			while (debuggerSuspended) {
+				try {
+					debuggerSuspendLock.wait(5000);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					LogUtil.log(this, "application", "debugger", e, Log.LEVEL_WARN);
+					break;
+				}
+				// Auto-resume if debugger disconnected while suspended
+				if (debuggerSuspended && !DebuggerRegistry.isClientConnected()) {
+					LogUtil.log(Log.LEVEL_WARN, "application", "Debugger disconnected while thread suspended - auto-resuming");
+					debuggerSuspended = false;
+				}
+			}
+		}
+		debuggerTotalSuspendedNanos += System.nanoTime() - debuggerSuspendStartNano;
+		debuggerSuspendLabel = null;
+
+		// Notify listener after resuming
+		if (listener != null) {
+			listener.onResume(this);
+		}
+	}
+
+	/**
+	 * Resume execution after debugger suspension. Called via reflection by the debugger extension.
+	 */
+	public void debuggerResume() {
+		debuggerSuspended = false;
+		synchronized (debuggerSuspendLock) {
+			debuggerSuspendLock.notify();
+		}
+	}
+
+	/**
+	 * Check if this PageContext is currently suspended. Available for debugger extensions via
+	 * reflection.
+	 */
+	public boolean isDebuggerSuspended() {
+		return debuggerSuspended;
+	}
+
+	/**
+	 * Get the label of the current suspension point, or null. Available for debugger extensions via
+	 * reflection.
+	 */
+	public String getDebuggerSuspendLabel() {
+		return debuggerSuspendLabel;
+	}
+
+	/**
+	 * Get total time spent suspended in milliseconds, including current suspend if active. Used for
+	 * adjusting request timeout calculations.
+	 */
+	public long getDebuggerTotalSuspendedMillis() {
+		long total = debuggerTotalSuspendedNanos;
+		// If currently suspended, add the time since suspend started
+		if (debuggerSuspended && debuggerSuspendStartNano > 0) {
+			total += System.nanoTime() - debuggerSuspendStartNano;
+		}
+		return total / 1_000_000; // Convert nanos to millis
+	}
+
+	// ==================== End Debugger Stack Frame Support ====================
 
 	/*
 	 * *
@@ -3509,6 +3811,29 @@ public final class PageContextImpl extends PageContext {
 		return applicationContext;
 	}
 
+	/**
+	 * Returns the preciseMath setting of the current application context. The value is cached on the
+	 * PageContext and refreshed whenever the application context instance changes or
+	 * {@link #resetPreciseMath()} is called.
+	 */
+	public boolean getPreciseMath() {
+		ApplicationContextSupport ac = applicationContext;
+		if (ac == null) ac = getApplicationContext();
+		if (ac != preciseMathAC) {
+			preciseMath = ac.getPreciseMath();
+			preciseMathAC = ac;
+		}
+		return preciseMath;
+	}
+
+	/**
+	 * invalidates the cached preciseMath flag, call this when the preciseMath setting of the current
+	 * application context (or the server default) changed
+	 */
+	public void resetPreciseMath() {
+		preciseMathAC = null;
+	}
+
 	public ApplicationContextSupport getApplicationContext(boolean createIfNecessary) {
 		if (createIfNecessary && applicationContext == null) {
 			synchronized (scopeFactory) {
@@ -3526,6 +3851,7 @@ public final class PageContextImpl extends PageContext {
 		session = null;
 		application = null;
 		client = null;
+		preciseMathAC = null;
 
 		if (ac != null) this.applicationContext = (ApplicationContextSupport) ac;
 		else return;
@@ -3664,6 +3990,18 @@ public final class PageContextImpl extends PageContext {
 		this.thread = thread;
 	}
 
+	/**
+	 * @return the pool of reusable PageContext clones for the parallel iteration currently running on
+	 *         this context, or null when no parallel iteration is active
+	 */
+	public lucee.runtime.concurrency.PageContextPool getParallelPool() {
+		return parallelPool;
+	}
+
+	public void setParallelPool(lucee.runtime.concurrency.PageContextPool parallelPool) {
+		this.parallelPool = parallelPool;
+	}
+
 	@Override
 	public long getExecutionTime() {
 		return executionTime;
@@ -3791,7 +4129,7 @@ public final class PageContextImpl extends PageContext {
 		return root;
 	}
 
-	public Queue<PageContext> getChildPageContexts() {
+	public Set<PageContext> getChildPageContexts() {
 		return children;
 	}
 
@@ -3859,21 +4197,40 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	/**
-	 * 
-	 * @param name
-	 * @param ct
+	 * Parallel iteration closures (arrayMap/each/filter with parallel=true) spawn cfthread
+	 * from concurrent worker PCs that all share this.root, so writes here must be synchronised
+	 * against the new safe-read accessors below.
 	 */
 	public void setAllThreadScope(Collection.Key name, Threads ct) {
 		hasFamily = true;
-		if (allThreads == null) allThreads = new LinkedHashMap<Collection.Key, Threads>();
-		else if (allThreads.size() >= CFThread.getThreadLimit()) {
-			CFThread.removeOldest(allThreads);
+		synchronized (this) {
+			if (allThreads == null) allThreads = new LinkedHashMap<Collection.Key, Threads>();
+			else if (allThreads.size() >= CFThread.getThreadLimit()) {
+				CFThread.removeOldest(allThreads);
+			}
+			allThreads.put(name, ct);
 		}
-		allThreads.put(name, ct);
 	}
 
+	public Threads getAllThreadScope(Collection.Key name) {
+		synchronized (this) {
+			return allThreads == null ? null : allThreads.get(name);
+		}
+	}
+
+	public Map<Collection.Key, Threads> snapshotAllThreadScope() {
+		synchronized (this) {
+			return allThreads == null ? null : new LinkedHashMap<Collection.Key, Threads>(allThreads);
+		}
+	}
+
+	/**
+	 * Returns a defensive snapshot so external callers can iterate without racing
+	 * concurrent cfthread spawns from parallel iteration. Use the (Key) overload
+	 * for single-name lookups to avoid the copy.
+	 */
 	public Map<Collection.Key, Threads> getAllThreadScope() {
-		return allThreads;
+		return snapshotAllThreadScope();
 	}
 
 	@Override
@@ -3993,7 +4350,7 @@ public final class PageContextImpl extends PageContext {
 		}
 
 		if (customJS != null) {
-			js = JavaSettingsImpl.merge(config, customJS, js);
+			js = JavaSettingsImpl.merge(ConfigUtil.getConfigServerImpl(config), customJS, js);
 			cl = config.getRPCClassLoader(reload, js);
 		}
 		return cl;

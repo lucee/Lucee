@@ -28,6 +28,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArraySlice extends BIF {
@@ -52,7 +53,7 @@ public final class ArraySlice extends BIF {
 			else if (len < 0) to = arrLen + len;
 			if (arrLen < to) throw new FunctionException(pc, "arraySlice", 3, "length", "Offset+length cannot be greater than size of the array");
 
-			return get(arr, off, to);
+			return get(pc, ArrayUtil.toArrayPro(arr, null), off, to);
 		}
 		return call(pc, arr, arrLen + off, len);
 	}
@@ -64,7 +65,7 @@ public final class ArraySlice extends BIF {
 		else throw new FunctionException(pc, "ArraySlice", 2, 3, args.length);
 	}
 
-	public static Array get(Array arr, int from, int to) throws PageException {
+	public static Array get(PageContext pc, ArrayPro arr, int from, int to) throws PageException {
 		int dimension = arr.getDimension();
 		Array rtn = ArrayUtil.getInstance(dimension);
 
@@ -79,7 +80,7 @@ public final class ArraySlice extends BIF {
 				int key = keys[i];
 				if (key < from) continue;
 				if (to > 0 && key > to) break;
-				rtn.append(arr.getE(key));
+				rtn.append(arr.getE(pc, key));
 			}
 		}
 

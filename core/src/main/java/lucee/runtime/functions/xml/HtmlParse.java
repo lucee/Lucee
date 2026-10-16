@@ -39,7 +39,7 @@ public final class HtmlParse implements Function {
 	public static Node call(PageContext pc, String strHTML, boolean caseSensitive) throws PageException {
 		try {
 			InputSource xml = XMLUtil.toInputSource(pc, strHTML, false);
-			return XMLCaster.toXMLStruct(XMLUtil.parse(xml, null, true), caseSensitive);
+			return XMLCaster.toXMLStruct(XMLUtil.parse(pc, xml, null, true), caseSensitive);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

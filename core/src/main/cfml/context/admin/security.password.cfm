@@ -20,9 +20,9 @@
 					action="updateLoginSettings"
 					type="#request.adminType#"
 					password="#session["password" & request.adminType]#"
-					rememberme="#structKeyExists(form,"remembermeEnable") and form.remembermeEnable#"
-					captcha="#structKeyExists(form,"captcha") and form.captcha#"
-					delay="#form.delay#">
+					loginRememberme="#structKeyExists(form,"loginRememberme") and form.loginRememberme#"
+					loginCaptcha="#structKeyExists(form,"loginCaptcha") and form.loginCaptcha#"
+					loginDelay="#form.loginDelay#">
 
 		</cfcase>
 	<!--- CHANGE --->
@@ -40,26 +40,6 @@
 				<cfset session["password" & request.adminType]=form._new_password>
 			</cfif>
 
-		</cfcase>
-	<!--- UPDATE Default Password --->
-		<cfcase value="#stText.Buttons.Update#">
-			<cfif len(form._new_password) LT 6>
-				<cfset error.message="#stText.Login.NewTooShort#">
-			<cfelse>
-				<cfadmin
-					action="updateDefaultPassword"
-					type="#request.adminType#"
-					password="#session["password" & request.adminType]#"
-					newPassword="#form._new_password#">
-			</cfif>
-		</cfcase>
-
-        <cfcase value="#stText.Buttons.delete#">
-
-				<cfadmin
-					action="removeDefaultPassword"
-					type="#request.adminType#"
-					password="#session["password" & request.adminType]#">
 		</cfcase>
 
 	<!--- reset individual password --->
@@ -109,25 +89,50 @@ Error Output --->
 					<tr>
 						<th scope="row">#stText.Login.useCaptcha#</th>
 						<td>
-							<cfinputClassic type="checkbox" class="checkbox" name="captcha" checked="#settings.captcha#" value="true">
-							<div class="comment">#stText.Login.useCaptchaDesc#</div>
+							<cfmodule template="systemSetting.cfm" 
+								name="loginCaptcha" 
+								value="#settings.loginCaptcha#"
+								access="true"
+								description="#stText.Login.useCaptchaDesc#"
+								br=false
+								sp=false
+								descOnTop=false>
+								<cfinputClassic type="checkbox" class="checkbox" name="loginCaptcha" checked="#settings.loginCaptcha#" value="true">
+							</cfmodule>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">#stText.Login.delay#</th>
 						<td>
-							<select name="delay"><cfset hasDelay=false>
-								<cfloop list="0,1,5,10,30,60" index="i"><option <cfif settings.delay EQ i><cfset hasDelay=true>selected="selected"</cfif>>#i#</option></cfloop>
-								<cfif not hasDelay><option selected="selected">#settings.delay#</option></cfif>
-							</select> #stText.Login.seconds#
+							<cfmodule template="systemSetting.cfm" 
+								name="loginDelay" 
+								value="#settings.loginDelay#"
+								access="true"
+								description="#stText.Login.delayDesc#"
+								br=false
+								sp=false
+								descOnTop=false>
+							<select name="loginDelay"><cfset hasDelay=false>
+								<cfloop list="0,1,5,10,30,60" index="i"><option  value="#i#" <cfif settings.loginDelay EQ i><cfset hasDelay=true>selected="selected"</cfif>>#i#  #stText.Login.seconds#</option></cfloop>
+								<cfif not hasDelay><option value="#settings.loginDelay#" selected="selected">#settings.loginDelay# #stText.Login.seconds#</option></cfif>
+							</select> 
+							</cfmodule>
 							<div class="comment">#stText.Login.delayDesc#</div>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">#stText.Login.rememberMeEnable#</th>
 						<td>
-							<cfinputClassic type="checkbox" class="checkbox" name="remembermeEnable" checked="#settings.rememberme#" value="true">
-							<div class="comment">#stText.Login.rememberMeEnableDesc#</div>
+							<cfmodule template="systemSetting.cfm" 
+								name="loginRememberme" 
+								value="#settings.loginRememberme#" 
+								access="true"
+								description="#stText.Login.rememberMeEnableDesc#"
+								br=false
+								sp=false
+								descOnTop=false>
+								<cfinputClassic type="checkbox" class="checkbox" name="loginRememberme" checked="#settings.loginRememberme#" value="true">
+							</cfmodule>
 						</td>
 					</tr>
 				</tbody>
@@ -187,99 +192,3 @@ Error Output --->
 		</table>
 	</cfformClassic>
 </cfoutput>
-
-<cfif request.adminType EQ "server">
-	<cftry>
-		<cfset hasDefaultPW=!request.singlemode>
-		<cfadmin
-			action="getDefaultPassword"
-			type="#request.adminType#"
-			password="#session["password" & request.adminType]#"
-			returnVariable="defaultPassword">
-		<cfcatch type="any">
-			<cfset hasDefaultPW=false>
-		</cfcatch>
-	</cftry>
-	<!--- Set default password --->
-	<cfif hasDefaultPW>
-		<cfoutput>
-			<h2>#stText.Login.DefaultPassword#</h2>
-			<div class="itemintro">#stText.Login.DefaultPasswordDescription#</div>
-			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-				<table class="maintbl">
-					<tbody>
-						<tr>
-							<th scope="row">#stText.Login.Password#</th>
-							<td>
-								<cfinputClassic type="password" id="passEmpty" name="_new_password" value="#defaultPassword#"
-								class="medium" required="no" message="#stText.Login.NewPasswordMissing#">
-								<div id="messagePass" class="commentError"></div>
-								<div class="comment">#stText.Login.NewPasswordDescription#</div>
-							</td>
-						</tr>
-					</tbody>
-					<tfoot>
-						<tr>
-							<td colspan="2">
-								<input type="submit" class="bl button submit" onclick="return validatePass()" name="mainAction" value="#stText.Buttons.Update#">
-								<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.delete#">
-								<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							</td>
-						</tr>
-					</tfoot>
-				</table>
-			</cfformClassic>
-		</cfoutput>
-	</cfif>
-
-	<cfset hasContextes = !request.singlemode>
-	<cftry>
-		<cfadmin
-			action="getContextes"
-			type="#request.adminType#"
-			password="#session["password" & request.adminType]#"
-			returnVariable="contextes">
-		<cfcatch type="application">
-			<cfset hasContextes=false>
-		</cfcatch>
-	</cftry>
-	<cfif hasContextes>
-		<!--- Reset Password --->
-		<cfoutput>
-			<h2>#stText.Login.resetWebPW#</h2>
-			<div class="itemintro">#stText.Login.resetWebPWDescription#</div>
-			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-				<table class="maintbl">
-					<tbody>
-						<tr>
-							<th scope="row">#stText.Login.web#</th>
-							<td>
-								<cfsilent>
-								<cfset size=0>
-								<cfset QueryAddColumn(contextes,"text",array())>
-								<cfloop query="contextes">
-										<cfif len(contextes.label)><cfset path=contextes.label&" ("&contextes.path&")"><cfelse><cfset path=contextes.path></cfif>
-										<cfset contextes.text=path>
-										<cfif size LT len(path)><cfset size=len(path)></cfif>
-								</cfloop>
-								</cfsilent>
-								<select name="contextPath">
-										<option value="">#stText.Login.chooseWebContext#</option>
-									<cfloop query="contextes"><option value="#contextes.path#">#contextes.text#</option></cfloop>
-								</select>
-							</td>
-						</tr>
-					</tbody>
-					<tfoot>
-						<tr>
-							<td colspan="2">
-								<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Reset#">
-								<input type="reset" class="br reset" name="cancel" value="#stText.Buttons.Cancel#">
-							</td>
-						</tr>
-					</tfoot>
-				</table>
-			</cfformClassic>
-		</cfoutput>
-	</cfif>
-</cfif>

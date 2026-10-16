@@ -23,6 +23,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -46,7 +47,6 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -520,7 +520,7 @@ public final class XMLCaster {
 	}
 
 	public static void writeTo(Node node, Resource file, Charset charset) throws PageException {
-		if (charset == null) charset = CharsetUtil.UTF8;
+		if (charset == null) charset = StandardCharsets.UTF_8;
 		Writer w = null;
 		try {
 			// os = IOUtil.toBufferedOutputStream(file.getOutputStream());
@@ -776,7 +776,7 @@ public final class XMLCaster {
 		return XMLStructFactory.newInstance(node, caseSensitive);
 	}
 
-	public static Element toRawElement(Object value, Element defaultValue) {
+	public static Element toRawElement(PageContext pc, Object value, Element defaultValue) {
 		if (value instanceof Node) {
 			Node node = XMLCaster.toRawNode((Node) value);
 			if (node instanceof Document) return ((Document) node).getDocumentElement();
@@ -784,7 +784,7 @@ public final class XMLCaster {
 			return defaultValue;
 		}
 		try {
-			return XMLUtil.parse(new InputSource(new StringReader(Caster.toString(value))), null, false).getDocumentElement();
+			return XMLUtil.parse(pc, new InputSource(new StringReader(Caster.toString(value))), null, false).getDocumentElement();
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

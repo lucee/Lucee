@@ -13,11 +13,11 @@ public final class ArrayPop extends BIF {
 	private static final long serialVersionUID = -5628212614796853287L;
 
 	public static Object call(PageContext pc, Array array) throws PageException {
-		return ArrayUtil.toArrayPro(array).pop();
+		return ArrayUtil.toArrayPro(array, null).pop();
 	}
 
 	public static Object call(PageContext pc, Array array, Object defaultValue) {
-		return ArrayUtil.toArrayPro(array).pop(defaultValue);
+		return ArrayUtil.toArrayPro(array, null).pop(defaultValue);
 	}
 
 	@Override

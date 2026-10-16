@@ -47,7 +47,7 @@ public final class CacheRegionRemove extends BIF {
 		try {
 			ConfigAdmin adminConfig = ConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);
 			adminConfig.removeCacheConnection(cacheName);
-			adminConfig.storeAndReload();
+			adminConfig.store();
 			ConfigUtil.getConfigServerImpl(pc.getConfig()).resetCacheAll();
 		}
 		catch (Exception e) {

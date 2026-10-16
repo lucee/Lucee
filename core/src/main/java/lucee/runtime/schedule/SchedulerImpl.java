@@ -117,25 +117,33 @@ public final class SchedulerImpl implements Scheduler {
 		}
 	}
 
-	public void refresh(Array tasks) throws PageException, ScheduleException {
-		Queue<TaskRef> newTasks = readInAllTasks(tasks);
+	public void refresh(Array tasks) throws PageException {
+		synchronized (sync) {
+			Queue<TaskRef> newTasks = readInAllTasks(tasks);
 
-		// changed,new
-		for (TaskRef ref: newTasks) {
-			addTask(ref.task);
-		}
+			// changed,new
+			for (TaskRef ref: newTasks) {
+				addTask(ref.task);
+			}
 
-		// delete
-		try {
+			// delete
 			for (TaskRef ref: this.tasks) {
 				if (!hasScheduleTask(newTasks, ref.task.getTask())) {
-					removeScheduleTask(ref.task.getTask(), false);
+					removeTaskOnly(ref.task.getTask());
 				}
 			}
 		}
-		catch (IOException ioe) {
-			throw Caster.toPageException(ioe);
-		}
+	}
+
+	private void removeTaskOnly(String name) {
+		tasks.removeIf(ref -> {
+			if (ref.task.getTask().equalsIgnoreCase(name)) {
+				ref.task.log(Log.LEVEL_INFO, "task gets removed");
+				ref.task.setValid(false);
+				return true;
+			}
+			return false;
+		});
 	}
 
 	/**
@@ -189,7 +197,7 @@ public final class SchedulerImpl implements Scheduler {
 			return st;
 		}
 		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(config), SchedulerImpl.class.getName(), e);
+			LogUtil.log(ThreadLocalPageContext.getConfigServer(config), SchedulerImpl.class.getName(), e);
 			throw Caster.toPageException(e);
 		}
 	}
@@ -236,27 +244,31 @@ public final class SchedulerImpl implements Scheduler {
 
 	@Override
 	public void addScheduleTask(ScheduleTask task, boolean allowOverwrite) throws ScheduleException, IOException {
-		try {
-			addTask((ScheduleTaskImpl) task);
-			ConfigAdmin.updateScheduledTask((ConfigPro) config, task, true);
-		}
-		catch (Exception e) {
-			throw ExceptionUtil.toIOException(e);
+		synchronized (sync) {
+			try {
+				ConfigAdmin.updateScheduledTask((ConfigPro) config, task, true);
+				addTask((ScheduleTaskImpl) task);
+			}
+			catch (Exception e) {
+				throw ExceptionUtil.toIOException(e);
+			}
 		}
 	}
 
 	@Override
 	public void pauseScheduleTask(String name, boolean pause, boolean throwWhenNotExist) throws ScheduleException, IOException {
-		try {
-			ConfigAdmin.pauseScheduledTask((ConfigPro) config, name, pause, throwWhenNotExist, true);
-		}
-		catch (Exception e) {
-			throw ExceptionUtil.toIOException(e);
-		}
+		synchronized (sync) {
+			try {
+				ConfigAdmin.pauseScheduledTask((ConfigPro) config, name, pause, throwWhenNotExist, true);
+			}
+			catch (Exception e) {
+				throw ExceptionUtil.toIOException(e);
+			}
 
-		for (TaskRef ref: tasks) {
-			if (ref.task.getTask().equalsIgnoreCase(name)) {
-				ref.task.setPaused(pause);
+			for (TaskRef ref: tasks) {
+				if (ref.task.getTask().equalsIgnoreCase(name)) {
+					ref.task.setPaused(pause);
+				}
 			}
 		}
 	}
@@ -274,23 +286,24 @@ public final class SchedulerImpl implements Scheduler {
 
 	@Override
 	public void removeScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException {
+		synchronized (sync) {
 
-		tasks.removeIf(ref -> {
-			if (ref.task.getTask().equalsIgnoreCase(name)) {
-				ref.task.log(Log.LEVEL_INFO, "task gets removed");
-				ref.task.setValid(false);
-				return true;
+			tasks.removeIf(ref -> {
+				if (ref.task.getTask().equalsIgnoreCase(name)) {
+					ref.task.log(Log.LEVEL_INFO, "task gets removed");
+					ref.task.setValid(false);
+					return true;
+				}
+				return false;
+			});
+
+			try {
+				ConfigAdmin.removeScheduledTask((ConfigPro) config, name, true);
 			}
-			return false;
-		});
-
-		try {
-			ConfigAdmin.removeScheduledTask((ConfigPro) config, name, true);
+			catch (Exception e) {
+				throw ExceptionUtil.toIOException(e);
+			}
 		}
-		catch (Exception e) {
-			throw ExceptionUtil.toIOException(e);
-		}
-
 	}
 
 	public void removeIfNoLonerValid(ScheduleTask task) throws IOException {
@@ -304,8 +317,7 @@ public final class SchedulerImpl implements Scheduler {
 			try {
 				removeScheduleTask(task.getTask(), false);
 			}
-			catch (ScheduleException e) {
-			}
+			catch (ScheduleException e) {}
 		}
 	}
 

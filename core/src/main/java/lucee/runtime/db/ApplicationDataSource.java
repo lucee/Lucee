@@ -23,7 +23,6 @@ import java.util.TimeZone;
 import lucee.commons.io.log.Log;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigUtil;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.tag.listener.TagListener;
@@ -33,12 +32,11 @@ public final class ApplicationDataSource extends DataSourceSupport {
 
 	private String connStr;
 
-	private ApplicationDataSource(Config config, String name, ClassDefinition cd, String connStr, String username, String password, TagListener listener, boolean blob,
-			boolean clob, int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, TimeZone timezone, int allow,
-			boolean storage, boolean readOnly, boolean validate, boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
-		super(config, name, cd, username, ConfigUtil.decrypt(password), listener, blob, clob, connectionLimit, idleTimeout, liveTimeout, minIdle, maxIdle, maxTotal,
-				metaCacheTimeout, timezone, allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, requestExclusive, alwaysResetConnections, literalTimestampWithTSOffset,
-				log);
+	private ApplicationDataSource(String name, ClassDefinition cd, String connStr, String username, String password, TagListener listener, boolean blob, boolean clob,
+			int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage,
+			boolean readOnly, boolean validate, boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
+		super(name, cd, username, ConfigUtil.decrypt(password), listener, blob, clob, connectionLimit, idleTimeout, liveTimeout, minIdle, maxIdle, maxTotal, metaCacheTimeout,
+				timezone, allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, requestExclusive, alwaysResetConnections, literalTimestampWithTSOffset, log);
 
 		this.connStr = connStr;
 	}
@@ -47,7 +45,7 @@ public final class ApplicationDataSource extends DataSourceSupport {
 			boolean clob, int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, TimeZone timezone, int allow,
 			boolean storage, boolean readOnly, boolean validate, boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
 
-		return new ApplicationDataSource(config, name, cd, connStr, username, password, listener, blob, clob, connectionLimit, idleTimeout, liveTimeout, minIdle, maxIdle, maxTotal,
+		return new ApplicationDataSource(name, cd, connStr, username, password, listener, blob, clob, connectionLimit, idleTimeout, liveTimeout, minIdle, maxIdle, maxTotal,
 				metaCacheTimeout, timezone, allow, storage, readOnly, validate, requestExclusive, alwaysResetConnections, literalTimestampWithTSOffset, log);
 	}
 
@@ -89,9 +87,9 @@ public final class ApplicationDataSource extends DataSourceSupport {
 	@Override
 	public DataSource cloneReadOnly() {
 		try {
-			return new ApplicationDataSource(ThreadLocalPageContext.getConfig(), getName(), getClassDefinition(), connStr, getUsername(), getPassword(), getListener(), isBlob(),
-					isClob(), getConnectionLimit(), getIdleTimeout(), getLiveTimeout(), getMinIdle(), getMaxIdle(), getMaxTotal(), getMetaCacheTimeout(), getTimeZone(), allow,
-					isStorage(), isReadOnly(), validate(), isRequestExclusive(), isAlwaysResetConnections(), getLiteralTimestampWithTSOffset(), getLog());
+			return new ApplicationDataSource(getName(), getClassDefinition(), connStr, getUsername(), getPassword(), getListener(), isBlob(), isClob(), getConnectionLimit(),
+					getIdleTimeout(), getLiveTimeout(), getMinIdle(), getMaxIdle(), getMaxTotal(), getMetaCacheTimeout(), getTimeZone(), allow, isStorage(), isReadOnly(),
+					validate(), isRequestExclusive(), isAlwaysResetConnections(), getLiteralTimestampWithTSOffset(), getLog());
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);// this should never happens, because the class was already loaded in this object

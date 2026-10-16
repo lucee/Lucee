@@ -22,29 +22,36 @@ import java.io.Serializable;
 import java.util.Map;
 
 import lucee.runtime.component.Property;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
+/**
+ * Shared across all duplicates of a prototype (LDEV-6298). Treat as immutable post-init.
+ * Any new post-init mutation will silently leak across every duplicate of the same prototype.
+ */
 public final class ComponentProperties implements Serializable {
 
-	private static final Collection.Key WSDL_FILE = KeyConstants._wsdlfile;
+	// Reference fields (8 bytes each) - group together to minimize padding
 	final String dspName;
 	final String extend;
 	final String hint;
-	final Boolean output;
 	final String callPath;
-	final boolean realPath;
-	final boolean _synchronized;
+	final String implement;
+	final String subName;
+	final String name;
+	final Boolean output;
 	Class javaAccessClass;
 	Map<String, Property> properties;
 	Struct meta;
-	final String implement;
+
+	// int field (4 bytes)
+	final int modifier;
+
+	// Boolean fields (1 byte each) - group at end to minimize padding
+	final boolean realPath;
+	final boolean _synchronized;
 	final boolean persistent;
 	final boolean accessors;
-	final int modifier;
-	final String subName;
-	final String name;
 	public boolean inline;
 
 	public ComponentProperties(String name, String dspName, String extend, String implement, String hint, Boolean output, String callPath, boolean realPath, String subName,
@@ -81,6 +88,6 @@ public final class ComponentProperties implements Serializable {
 	 */
 	public String getWsdlFile() {
 		if (meta == null) return null;
-		return (String) meta.get(WSDL_FILE, null);
+		return (String) meta.get(KeyConstants._wsdlfile, null);
 	}
 }

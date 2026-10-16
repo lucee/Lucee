@@ -110,12 +110,20 @@ class LikeCompareJRE {
 	}
 
 	public static boolean like(SQL sql, String haystack, String needle) throws PageException {
-		return like(sql, haystack, needle, null);
+		return like(sql, haystack, needle, null, false);
 	}
 
 	public static boolean like(SQL sql, String haystack, String needle, String escape) throws PageException {
-		haystack = StringUtil.toLowerCase(haystack);
-		Pattern p = createPattern(sql, StringUtil.toLowerCase(needle), escape == null ? null : StringUtil.toLowerCase(escape));
+		return like(sql, haystack, needle, escape, false);
+	}
+
+	public static boolean like(SQL sql, String haystack, String needle, String escape, boolean caseSensitive) throws PageException {
+		if (!caseSensitive) {
+			haystack = StringUtil.toLowerCase(haystack);
+			needle = StringUtil.toLowerCase(needle);
+			if (escape != null) escape = StringUtil.toLowerCase(escape);
+		}
+		Pattern p = createPattern(sql, needle, escape);
 		return p.matcher(haystack).matches();
 	}
 

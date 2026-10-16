@@ -59,11 +59,11 @@ public class NativeException extends PageExceptionImpl {
 		 */
 	}
 
-	public static NativeException newInstance(Throwable t) {
-		return newInstance(t, true);
+	public static NativeException getInstance(Throwable t) {
+		return getInstance(t, true);
 	}
 
-	public static NativeException newInstance(Throwable t, boolean rethrowIfNecessary) {
+	public static NativeException getInstance(Throwable t, boolean rethrowIfNecessary) {
 		if (rethrowIfNecessary) ExceptionUtil.rethrowIfNecessary(t);
 		return new NativeException(wrapIfNeeded(t));
 	}

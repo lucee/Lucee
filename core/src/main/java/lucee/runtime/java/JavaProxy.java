@@ -24,10 +24,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
@@ -50,6 +52,14 @@ import lucee.runtime.type.util.ArrayUtil;
 public final class JavaProxy {
 
 	public static Object call(ConfigWeb config, Component cfc, String methodName, Object... arguments) {
+		return call(config, cfc, methodName, (Class<?>) null, arguments);
+	}
+
+	/**
+	 * called by the generated proxy for reference return types, converts the result to the declared
+	 * return type while the PageContext is still alive
+	 */
+	public static Object call(ConfigWeb config, Component cfc, String methodName, Class<?> rtn, Object[] arguments) {
 		boolean unregister = false;
 		PageContext pc = null;
 		try {
@@ -60,7 +70,9 @@ public final class JavaProxy {
 				unregister = true;
 				pc.addPageSource(cfc.getPageSource(), true);
 			}
-			return cfc.call(pc, methodName, arguments);
+			Object value = cfc.call(pc, methodName, arguments);
+			if (rtn == null) return value;
+			return toReturnType(pc, value, rtn, "function [" + methodName + "] of component [" + cfc.getAbsName() + "]", methodName);
 		}
 		catch (PageException pe) {
 			throw new PageRuntimeException(pe);
@@ -71,6 +83,10 @@ public final class JavaProxy {
 	}
 
 	public static Object call(ConfigWeb config, UDF udf, String methodName, Object[] arguments) {
+		return call(config, udf, methodName, null, arguments);
+	}
+
+	public static Object call(ConfigWeb config, UDF udf, String methodName, Class<?> rtn, Object[] arguments) {
 		boolean unregister = false;
 		PageContext pc = null;
 		try {
@@ -81,7 +97,9 @@ public final class JavaProxy {
 				unregister = true;
 				// pc.addPageSource(udf.getPageSource(), true);
 			}
-			return udf.call(pc, KeyImpl.init(methodName), arguments, true);
+			Object value = udf.call(pc, KeyImpl.init(methodName), arguments, true);
+			if (rtn == null) return value;
+			return toReturnType(pc, value, rtn, "function [" + udf.getFunctionName() + "] used as Java method [" + methodName + "]", methodName);
 		}
 		catch (PageException pe) {
 			throw new PageRuntimeException(pe);
@@ -89,6 +107,49 @@ public final class JavaProxy {
 		finally {
 			if (unregister) config.getFactory().releaseLuceePageContext(pc, true);
 		}
+	}
+
+	private static Object toReturnType(PageContext pc, Object value, Class<?> rtn, String source, String methodName) throws PageException {
+		if (value == null || rtn.isInstance(value)) return value;
+		try {
+			return _toReturnType(pc, value, rtn);
+		}
+		catch (PageException | IllegalArgumentException e) {
+			ExpressionException ee = new ExpressionException(source + " returned [" + describe(value) + "], but the Java method [" + methodName + "] declares return type ["
+					+ Caster.toClassName(rtn) + "]" + hint(value, rtn), e.getMessage());
+			ee.initCause(e);
+			throw ee;
+		}
+	}
+
+	private static Object _toReturnType(PageContext pc, Object value, Class<?> rtn) throws PageException {
+		if (value == null || rtn.isInstance(value)) return value;
+		// byte[] is binary, castTo() converts it (base64 and others) with toBinary()
+		if (rtn.isArray() && rtn != byte[].class) {
+			Class<?> componentType = rtn.getComponentType();
+			Array src = Caster.toArray(value);
+			int len = src.size();
+			Object trg = java.lang.reflect.Array.newInstance(componentType, len);
+			for (int i = 0; i < len; i++) {
+				java.lang.reflect.Array.set(trg, i, _toReturnType(pc, src.get(i + 1, null), componentType));
+			}
+			return trg;
+		}
+		return Caster.castTo(pc, rtn, value);
+	}
+
+	private static String describe(Object value) {
+		if (value instanceof Component) return "component " + ((Component) value).getAbsName();
+		if (Decision.isSimpleValue(value)) return Caster.toTypeName(value) + " " + StringUtil.max(Caster.toString(value, ""), 100);
+		return Caster.toTypeName(value);
+	}
+
+	// only a component has a known working alternative, for any other value the message stops at what came back
+	private static String hint(Object value, Class<?> rtn) {
+		if (value instanceof Component && rtn.isInterface()) {
+			return "; wrap component [" + ((Component) value).getAbsName() + "] yourself before returning it: createDynamicProxy( component, [ \"" + rtn.getName() + "\" ] )";
+		}
+		return "";
 	}
 
 	public static boolean toBoolean(Object obj) {

@@ -21,7 +21,7 @@ package lucee.transformer.cfml.evaluator.impl;
 import java.nio.charset.Charset;
 
 import lucee.commons.io.CharsetUtil;
-import lucee.commons.lang.CharSet;
+import lucee.commons.lang.CharsetX;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.Position;
 import lucee.transformer.util.PageSourceCode;
@@ -31,7 +31,7 @@ public final class ProcessingDirectiveException extends TemplateException {
 
 	private static final long serialVersionUID = 9006344831997426192L;
 
-	private CharSet charset;
+	private CharsetX charset;
 	private Boolean writeLog;
 	private Boolean dotNotationUpperCase;
 
@@ -42,7 +42,7 @@ public final class ProcessingDirectiveException extends TemplateException {
 		super(cfml, createMessage(cfml, charset, writeLog));
 		this.start = start;
 		this.end = end;
-		this.charset = CharsetUtil.toCharSet(charset);
+		this.charset = CharsetUtil.toCharsetX(charset);
 		this.writeLog = writeLog;
 		this.dotNotationUpperCase = dotNotationUpperCase;
 	}

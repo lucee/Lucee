@@ -1,11 +1,11 @@
 package lucee.runtime.config;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.util.ListUtil;
 
 public class ResetFilter {
 
@@ -21,7 +21,7 @@ public class ResetFilter {
 		return names.contains(name);
 	}
 
-	public void reset(Config config) throws IOException {
+	public void reset(Config config) throws Exception {
 		ConfigUtil.getConfigServerImpl(config).resetAll(this);
 	}
 
@@ -29,9 +29,14 @@ public class ResetFilter {
 		try {
 			ConfigUtil.getConfigServerImpl(config).resetAll(this);
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	@Override
+	public String toString() {
+		return ListUtil.toList(names, ", ");
 	}
 
 }

@@ -23,19 +23,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.jacob.com.Dispatch;
-import com.jacob.com.LibraryLoader;
-import com.jacob.com.Variant;
-
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.jacob.com.Dispatch;
+import lucee.commons.jacob.com.LibraryLoader;
+import lucee.commons.jacob.com.Variant;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigFactoryImpl;
+import lucee.runtime.config.ConfigServer;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.SimpleDumpData;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
@@ -57,7 +57,7 @@ public final class COMObject implements Objects, Iteratorable {
 	private Dispatch dispatch;
 	private Variant parent;
 
-	public static void setupWindowsDLL(Config config) {
+	public static void setupWindowsDLL(ConfigServer config) {
 		if (IS_WINDOWS) {
 			Resource binDir = config.getConfigDir().getRealResource("bin");
 			if (binDir != null) {
@@ -80,7 +80,7 @@ public final class COMObject implements Objects, Iteratorable {
 	 * 
 	 * @param dispatch
 	 */
-	public COMObject(Config config, String dispatch) {
+	public COMObject(ConfigServer config, String dispatch) {
 		this(config, null, null, dispatch);
 	}
 
@@ -91,7 +91,7 @@ public final class COMObject implements Objects, Iteratorable {
 	 * @param dispatch
 	 * @param name
 	 */
-	COMObject(Config config, Variant parent, Dispatch dispatch, String name) {
+	COMObject(ConfigServer config, Variant parent, Dispatch dispatch, String name) {
 		this.parent = parent;
 		this.name = name;
 
@@ -113,7 +113,7 @@ public final class COMObject implements Objects, Iteratorable {
 
 	@Override
 	public Object get(PageContext pc, Collection.Key key) throws PageException {
-		return COMUtil.toObject(pc.getConfig(), this, Dispatch.call(dispatch, key.getString()), key.getString());
+		return COMUtil.toObject(ThreadLocalPageContext.getConfigServer(pc), this, Dispatch.call(dispatch, key.getString()), key.getString());
 	}
 
 	/*
@@ -123,7 +123,7 @@ public final class COMObject implements Objects, Iteratorable {
 
 	@Override
 	public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
-		return COMUtil.toObject(pc.getConfig(), this, Dispatch.call(dispatch, key.getString()), key.getString(), defaultValue);
+		return COMUtil.toObject(ThreadLocalPageContext.getConfigServer(pc), this, Dispatch.call(dispatch, key.getString()), key.getString(), defaultValue);
 	}
 
 	/*
@@ -163,7 +163,7 @@ public final class COMObject implements Objects, Iteratorable {
 			if (args[i] instanceof COMObject) arr[i] = ((COMObject) args[i]).dispatch;
 			else arr[i] = args[i];
 		}
-		return COMUtil.toObject(pc.getConfig(), this, Dispatch.callN(dispatch, methodName, arr), methodName);
+		return COMUtil.toObject(ThreadLocalPageContext.getConfigServer(pc), this, Dispatch.callN(dispatch, methodName, arr), methodName);
 	}
 
 	/*

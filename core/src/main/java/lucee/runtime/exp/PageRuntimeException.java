@@ -93,7 +93,7 @@ public class PageRuntimeException extends RuntimeException implements IPageExcep
 
 	public Struct getCatchBlock() {
 		// TLPC
-		return pe.getCatchBlock(ThreadLocalPageContext.getConfig());
+		return pe.getCatchBlock(ThreadLocalPageContext.getConfigServer());
 	}
 
 	@Override

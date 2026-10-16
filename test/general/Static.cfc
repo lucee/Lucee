@@ -162,7 +162,104 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		debug(instance);
 		expect( instance.test()).toBeTrue();
 	}
-} 
+
+	function run( testResults, testBox ){
+
+		describe( "static scope shared per class across siblings", function(){
+			// `_static` is class-level, not per-instance — siblings of the same class
+			// share the same static counter via the LDEV-3335 infrastructure.
+			it( title="static counter is shared across direct static calls", body=function( currentSpec ){
+				static.StaticHolder::reset();
+				static.StaticHolder::bump();
+				static.StaticHolder::bump();
+				expect( static.StaticHolder::read() ).toBe( 2 );
+				static.StaticHolder::bump();
+				expect( static.StaticHolder::read() ).toBe( 3 );
+			});
+			it( title="static counter survives instantiation — instance creation doesn't reset it", body=function( currentSpec ){
+				static.StaticHolder::reset();
+				static.StaticHolder::bump();
+				var a = new static.StaticHolder();
+				var b = new static.StaticHolder();
+				static.StaticHolder::bump();
+				expect( static.StaticHolder::read() ).toBe( 2 );
+			});
+			it( title="static counter survives duplicate — duplicates share class-level static state", body=function( currentSpec ){
+				static.StaticHolder::reset();
+				var orig = new static.StaticHolder();
+				static.StaticHolder::bump();
+				var dup = duplicate( orig );
+				static.StaticHolder::bump();
+				expect( static.StaticHolder::read() ).toBe( 2 );
+			});
+		});
+
+		describe( "static scope inheritance", function(){
+			// `_static` chain head is class-level via LDEV-3335. Static methods on the
+			// base class must be reachable via the child's scope ref (the bcp-null bug
+			// from the LDEV-3335 implementation work).
+			it( title="access static method on base component", body=function( currentSpec ){
+				var result = static.BaseComponent::baseStaticMethod();
+				expect(result).toBe("base static method");
+			});
+			it( title="access static method on child component", body=function( currentSpec ){
+				var result = static.ChildComponent::childStaticMethod();
+				expect(result).toBe("child static method");
+			});
+			it( title="access base static method through child (bcp null issue)", body=function( currentSpec ){
+				var result = static.ChildComponent::baseStaticMethod();
+				expect(result).toBe("base static method");
+			});
+			it( title="access static method via variable reference (benchmark pattern)", body=function( currentSpec ){
+				// must instantiate first so static.args is initialized
+				var cfc = new static.StaticComponent();
+				loop times=10 {
+					static.StaticComponent::toSQL();
+				}
+				expect( serializeJson( static.StaticComponent::toSQL() ) ).toBe( '{"table":true,"name":true}' );
+			});
+		});
+
+		describe( "static function instance overlay", function(){
+			// Per lucee-docs/recipes/static-mocking.md — assigning a function to an
+			// instance whose name matches a static function on the class overlays only
+			// that instance. The class-level `Comp::fn()` call still returns the original.
+			it( title="instance overlay returns mock; class-level call still returns original", body=function( currentSpec ){
+				static.StaticHolder::reset();
+				static.StaticHolder::bump();
+				static.StaticHolder::bump();
+				expect( static.StaticHolder::read() ).toBe( 2 );
+				var inst = new static.StaticHolder();
+				expect( inst.read() ).toBe( 2 );
+				inst.read = function() { return -999; };
+				expect( inst.read() ).toBe( -999 );
+				expect( static.StaticHolder::read() ).toBe( 2 );
+			});
+			it( title="overlay on instance A is invisible to instance B", body=function( currentSpec ){
+				static.StaticHolder::reset();
+				static.StaticHolder::bump();
+				var a = new static.StaticHolder();
+				var b = new static.StaticHolder();
+				a.read = function() { return -1; };
+				expect( a.read() ).toBe( -1 );
+				expect( b.read() ).toBe( 1 );
+				expect( static.StaticHolder::read() ).toBe( 1 );
+			});
+			it( title="overlay invisible to getMetaData (matches runtime-injection contract)", body=function( currentSpec ){
+				var inst = new static.StaticHolder();
+				inst.read = function() { return -1; };
+				var meta = getMetaData( inst );
+				var fnNames = [];
+				if ( structKeyExists( meta, "functions" ) ) {
+					for ( var f in meta.functions ) arrayAppend( fnNames, f.name );
+				}
+				var fresh = new static.StaticHolder();
+				expect( serializeJSON( meta ) ).toBe( serializeJSON( getMetaData( fresh ) ) );
+			});
+		});
+
+	}
+}
 
 
 

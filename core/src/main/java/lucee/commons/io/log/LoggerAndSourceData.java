@@ -39,16 +39,18 @@ public final class LoggerAndSourceData {
 	private Log _log;
 	private final ClassDefinition cdAppender;
 	private Object _appender;
-	private final Map<String, String> appenderArgs;
+	public final Map<String, String> appenderArgs;
 	private final ClassDefinition cdLayout;
 	private Object layout;
-	private final Map<String, String> layoutArgs;
+	public final Map<String, String> layoutArgs;
 	private final int level;
 	private final String name;
 	private Config config;
 	private final boolean readOnly;
 	private final String id;
 	private boolean dyn;
+
+	private short source;
 
 	public LoggerAndSourceData(Config config, String id, String name, ClassDefinition appender, Map<String, String> appenderArgs, ClassDefinition layout,
 			Map<String, String> layoutArgs, int level, boolean readOnly, boolean dyn) {
@@ -69,9 +71,9 @@ public final class LoggerAndSourceData {
 		return id;
 	}
 
-	private void init() {
+	public LoggerAndSourceData init() {
 		if (_log == null) {
-			config = ThreadLocalPageContext.getConfig(config);
+			config = ThreadLocalPageContext.getConfigServer(config);
 			try {
 				layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
 				_appender = eng().getAppender(config, layout, name, cdAppender, appenderArgs);
@@ -81,6 +83,7 @@ public final class LoggerAndSourceData {
 				ExceptionUtil.rethrowIfNecessary(t);
 			}
 		}
+		return this;
 	}
 
 	public String getName() {
@@ -116,6 +119,10 @@ public final class LoggerAndSourceData {
 		return appenderArgs;
 	}
 
+	protected Map<String, String> getAppenderArgsRaw() {
+		return appenderArgs;
+	}
+
 	/*
 	 * public Object getLayout() { getLog();// initialize if necessary return layout; }
 	 */
@@ -139,7 +146,7 @@ public final class LoggerAndSourceData {
 
 	public Log getLog(boolean catchException) throws PageException {
 		if (_log == null) {
-			config = ThreadLocalPageContext.getConfig(config);
+			config = ThreadLocalPageContext.getConfigServer(config);
 			try {
 				layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
 				_appender = eng().getAppender(config, layout, name, cdAppender, appenderArgs);
@@ -177,6 +184,15 @@ public final class LoggerAndSourceData {
 			e = it.next();
 			sb.append(e.getKey()).append(':').append(e.getValue()).append('|');
 		}
+	}
+
+	public LoggerAndSourceData setSource(short source) {
+		this.source = source;
+		return this;
+	}
+
+	public short getSource() {
+		return source;
 	}
 
 }

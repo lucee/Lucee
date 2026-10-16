@@ -67,7 +67,8 @@ public final class FunctionImpl extends Function {
 			}
 			else {
 				loadUDFProperties(bc, index, TYPE_UDF);
-				adapter.invokeVirtual(Types.COMPONENT_IMPL, "staticConstructor".equals(bc.getMethod().getName()) ? REG_STATIC_UDF_KEY : REG_UDF_KEY);
+				adapter.loadArg(0);
+				adapter.invokeVirtual(Types.COMPONENT_IMPL, "staticConstructor".equals(bc.getMethod().getName()) ? REG_STATIC_UDF_KEY3 : REG_UDF_KEY3);
 			}
 		}
 		else if (pageType == PAGE_TYPE_INTERFACE) {
@@ -78,7 +79,7 @@ public final class FunctionImpl extends Function {
 			}
 			else {
 				loadUDFProperties(bc, index, TYPE_UDF);
-				adapter.invokeVirtual(Types.INTERFACE_IMPL, "staticConstructor".equals(bc.getMethod().getName()) ? REG_STATIC_UDF_KEY : REG_UDF_KEY);
+				adapter.invokeVirtual(Types.INTERFACE_IMPL, "staticConstructor".equals(bc.getMethod().getName()) ? REG_STATIC_UDF_KEY2 : REG_UDF_KEY2);
 			}
 		}
 		else {
@@ -93,8 +94,9 @@ public final class FunctionImpl extends Function {
 			else {
 				adapter.newInstance(Types.UDF_IMPL);
 				adapter.dup();
+				adapter.loadArg(0);
 				loadUDFProperties(bc, index, TYPE_UDF);
-				adapter.invokeConstructor(Types.UDF_IMPL, INIT_UDF_IMPL_PROP);
+				adapter.invokeConstructor(Types.UDF_IMPL, INIT_UDF_IMPL_PROP2);
 			}
 			// loadUDF(bc, index);
 			adapter.invokeInterface(Types.VARIABLES, SET_KEY);

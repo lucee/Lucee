@@ -37,11 +37,11 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentImpl;
 import lucee.runtime.ComponentSpecificAccess;
+import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ComponentLoader;
-import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -74,10 +74,12 @@ public final class TagUtil {
 	public static final short UPPER_CASE = 1;
 	public static final short LOWER_CASE = 2;
 
-	// private static final String "invalid call of the function ["+tlt.getName()+", you can not mix
-	// named on regular arguments]" = "invalid argument for
-	// function, only named arguments are allowed like struct(name:\"value\",name2:\"value2\")";
+	// used by compiled cfml code
+	public static void setAttributeCollection(PageContext pc, Object tag, MissingAttribute[] missingAttrs, Struct _attrs, int attrType) throws PageException {
+		setAttributeCollection(pc, (Tag) tag, missingAttrs, _attrs, attrType);
+	}
 
+	// used by compiled cfml code
 	public static void setAttributeCollection(PageContext pc, Tag tag, MissingAttribute[] missingAttrs, Struct _attrs, int attrType) throws PageException {
 
 		TagLibTag tlt = null;
@@ -246,9 +248,9 @@ public final class TagUtil {
 	 * @param cw
 	 * @param log
 	 */
-	public static void addTagMetaData(ConfigWebPro cw) {
-
-		PageContextImpl pc = null;
+	public static void addTagMetaData(PageContext pc) {
+		PageContext orgPC = pc;
+		ConfigWebPro cw = (ConfigWebPro) pc.getConfig();
 		try {
 			pc = ThreadUtil.createPageContext(cw, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", SerializableCookie.COOKIES0, new Pair[0], null, new Pair[0],
 					new StructImpl(), false, -1, null, null);
@@ -258,7 +260,7 @@ public final class TagUtil {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return;
 		}
-		PageContext orgPC = ThreadLocalPageContext.get();
+
 		try {
 			ThreadLocalPageContext.register(pc);
 
@@ -305,7 +307,9 @@ public final class TagUtil {
 		if (pc == null) return;
 		try {
 			ConfigWebPro config = (ConfigWebPro) pc.getConfig();
-			PageSource ps = config.getTagMapping(mappingName).getPageSource(filename);
+			Mapping mapping = config.getTagMapping(mappingName);
+			if (mapping == null) return;
+			PageSource ps = mapping.getPageSource(filename);
 
 			// Page p = ps.loadPage(pc);
 			ComponentImpl c = ComponentLoader.loadComponent(pc, ps, filename, true, true);
@@ -372,7 +376,7 @@ public final class TagUtil {
 		Reflector.callMethod(tag, "hasBody", new Object[] { hasBody });
 	}
 
-	public static TagLibTag getTagLibTag(ConfigPro config, String nameSpace, String strTagName) {
+	public static TagLibTag getTagLibTag(ConfigServerPro config, String nameSpace, String strTagName) {
 		TagLib[] tlds;
 		tlds = config.getTLDs();
 

@@ -6,7 +6,6 @@ import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -27,11 +26,10 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
-import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.net.http.HTTPDownloader;
+import lucee.commons.net.http.HTTPEngine;
 import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
@@ -54,10 +52,9 @@ public final class S3UpdateProvider extends DefaultHandler {
 	static {
 		try {
 			DEFAULT_PROVIDER_LIST = new URL("https://lucee-downloads.s3.amazonaws.com/");
-			DEFAULT_PROVIDER_DETAIL = new URL("https://cdn.lucee.org/");
+			DEFAULT_PROVIDER_DETAIL = new URL("https://maven.lucee-services.com/");
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 	}
 
 	public static URL getDefaultProviderList() {
@@ -67,8 +64,7 @@ public final class S3UpdateProvider extends DefaultHandler {
 				try {
 					defaultProviderList = new URL(str.trim());
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 			if (defaultProviderList == null) defaultProviderList = DEFAULT_PROVIDER_LIST;
 		}
@@ -82,8 +78,7 @@ public final class S3UpdateProvider extends DefaultHandler {
 				try {
 					defaultProviderDetail = new URL(str.trim());
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 			if (defaultProviderDetail == null) defaultProviderDetail = DEFAULT_PROVIDER_DETAIL;
 		}
@@ -132,14 +127,14 @@ public final class S3UpdateProvider extends DefaultHandler {
 		return new StringBuilder().append(list.toExternalForm()).append(';').append(detail.toExternalForm()).toString();
 	}
 
-	public InputStream getCore(Version version) throws MalformedURLException, IOException, GeneralSecurityException, SAXException {
+	public InputStream getCore(Version version) throws MalformedURLException, IOException, SAXException {
 		for (Element e: read()) {
 			if (version.equals(e.getVersion())) {
 				Artifact art = e.getLCO();
 				if (art != null) {
 					try {
 						// Use HTTPDownloader with DEBUG logging for S3 downloads
-						return HTTPDownloader.get( art.getURL(), null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.CONNECTION_TIMEOUT, null, Log.LEVEL_TRACE );
+						return HTTPEngine.get(art.getURL(), null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.CONNECTION_TIMEOUT, null, null, true);
 					}
 					catch (IOException ioe) {
 						// Try JAR fallback
@@ -148,14 +143,15 @@ public final class S3UpdateProvider extends DefaultHandler {
 
 				art = e.getJAR();
 				if (art != null) {
-					return MavenUpdateProvider.getFileStreamFromZipStream( HTTPDownloader.get( art.getURL(), null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.CONNECTION_TIMEOUT, null, Log.LEVEL_TRACE ) );
+					return MavenUpdateProvider.getFileStreamFromZipStream(
+							HTTPEngine.get(art.getURL(), null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.CONNECTION_TIMEOUT, null, null, true));
 				}
 			}
 		}
 		throw new IOException("no core file found for version [" + version + "]");
 	}
 
-	public List<Element> read() throws IOException, GeneralSecurityException, SAXException {
+	public List<Element> read() throws IOException, SAXException {
 		int count = 100;
 		URL url = null;
 
@@ -167,7 +163,7 @@ public final class S3UpdateProvider extends DefaultHandler {
 			// Use HTTPDownloader with DEBUG logging for S3 update provider list reads
 			Reader r = null;
 			try {
-				r = IOUtil.getReader( HTTPDownloader.get( url, null, null, S3UpdateProvider.CONNECTION_TIMEOUT, S3UpdateProvider.CONNECTION_TIMEOUT, null, Log.LEVEL_TRACE ), (Charset) null );
+				r = IOUtil.getReader(HTTPEngine.get(url, null, null, S3UpdateProvider.CONNECTION_TIMEOUT, S3UpdateProvider.CONNECTION_TIMEOUT, null, null, true), (Charset) null);
 				init(new InputSource(r));
 			}
 			finally {
@@ -273,8 +269,7 @@ public final class S3UpdateProvider extends DefaultHandler {
 		private List<Artifact> artifacts = new ArrayList<>();
 		private Version version;
 
-		public Element() {
-		}
+		public Element() {}
 
 		public void add(Artifact artifact) {
 			artifacts.add(artifact);

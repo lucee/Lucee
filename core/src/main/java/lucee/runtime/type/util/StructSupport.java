@@ -41,6 +41,8 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.KeyAsStringIterator;
+import lucee.runtime.type.scope.Scope;
+import lucee.runtime.type.scope.ScopeFactory;
 import lucee.runtime.util.PageContextUtil;
 
 public abstract class StructSupport implements Map, Struct {
@@ -62,10 +64,9 @@ public abstract class StructSupport implements Map, Struct {
 			k = it.next();
 			if (k.equals(key)) return new ExpressionException("the value from key [" + key.getString() + "] " + appendix + " is NULL, which is the same as not existing in CFML");
 		}
-		config = ThreadLocalPageContext.getConfig(config);
 		String msg = ExceptionUtil.similarKeyMessage(sct, key.getString(), "key", "keys", in, true);
 		String detail = ExceptionUtil.similarKeyMessage(sct, key.getString(), "keys", in, true);
-		if (config != null && PageContextUtil.debug(ThreadLocalPageContext.get(config))) return new ExpressionException(msg, detail);
+		if (PageContextUtil.debug(ThreadLocalPageContext.get(config))) return new ExpressionException(msg, detail);
 
 		return new ExpressionException("key [" + key.getString() + "] doesn't exist" + appendix);
 	}
@@ -170,7 +171,7 @@ public abstract class StructSupport implements Map, Struct {
 
 	@Override
 	public boolean castToBooleanValue() throws PageException {
-		throw new ExpressionException("can't cast Complex Object Type Struct to a boolean value");
+		throw new ExpressionException(getScopeAwareMessage("can't cast Complex Object Type Struct to a boolean value"));
 	}
 
 	@Override
@@ -180,7 +181,7 @@ public abstract class StructSupport implements Map, Struct {
 
 	@Override
 	public double castToDoubleValue() throws PageException {
-		throw new ExpressionException("can't cast Complex Object Type Struct to a number value");
+		throw new ExpressionException(getScopeAwareMessage("can't cast Complex Object Type Struct to a number value"));
 	}
 
 	@Override
@@ -190,7 +191,7 @@ public abstract class StructSupport implements Map, Struct {
 
 	@Override
 	public DateTime castToDateTime() throws PageException {
-		throw new ExpressionException("can't cast Complex Object Type Struct to a Date");
+		throw new ExpressionException(getScopeAwareMessage("can't cast Complex Object Type Struct to a Date"));
 	}
 
 	@Override
@@ -200,7 +201,8 @@ public abstract class StructSupport implements Map, Struct {
 
 	@Override
 	public String castToString() throws PageException {
-		throw new ExpressionException("Can't cast Complex Object Type Struct to String", "Use Built-In-Function \"serialize(Struct):String\" to create a String from Struct");
+		throw new ExpressionException(getScopeAwareMessage("Can't cast Complex Object Type Struct to String"),
+				getScopeAwareDetail("Use Built-In-Function \"serialize(Struct):String\" to create a String from Struct"));
 	}
 
 	@Override
@@ -299,5 +301,39 @@ public abstract class StructSupport implements Map, Struct {
 	}
 
 	public abstract int getType();
+
+	/**
+	 * Helper method to enhance error messages with scope information
+	 *
+	 * @param baseMessage the base error message
+	 * @return enhanced message with scope name if this is a scope, otherwise the base message
+	 */
+	private String getScopeAwareMessage(String baseMessage) {
+		if (this instanceof Scope) {
+			String scopeName = ScopeFactory.toStringScope(((Scope) this).getType(), null);
+			if (scopeName != null) {
+				return baseMessage.replace("Complex Object Type Struct", "Complex Object Type [" + scopeName.toUpperCase() + " scope]");
+			}
+		}
+		// Format as [Struct] for non-scope structs
+		return baseMessage.replace("Complex Object Type Struct", "Complex Object Type [Struct]");
+	}
+
+	/**
+	 * Helper method to get scope-aware detail message
+	 *
+	 * @param baseDetail the base detail message
+	 * @return enhanced detail with scope advice if this is a scope, otherwise the base detail
+	 */
+	private String getScopeAwareDetail(String baseDetail) {
+		if (this instanceof Scope) {
+			String scopeName = ScopeFactory.toStringScope(((Scope) this).getType(), null);
+			if (scopeName != null) {
+				return "Variable name conflicts with [" + scopeName.toUpperCase() + " scope]. Use [variables." + scopeName.toLowerCase()
+						+ "] to access your variable, or rename it.";
+			}
+		}
+		return baseDetail;
+	}
 
 }

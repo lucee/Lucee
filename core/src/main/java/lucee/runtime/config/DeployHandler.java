@@ -18,17 +18,12 @@
  */
 package lucee.runtime.config;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.osgi.framework.Version;
-
-import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -40,35 +35,24 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
-import lucee.commons.net.HTTPUtil;
-import lucee.commons.net.http.HTTPEngine;
-import lucee.commons.net.http.HTTPResponse;
-import lucee.commons.net.http.Header;
-import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
-import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.runtime.config.ConfigAdmin.AlreadyInstalledExtension;
 import lucee.runtime.config.maven.ExtensionProvider;
+import lucee.runtime.config.maven.Version;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
-import lucee.runtime.extension.RHExtensionProvider;
-import lucee.runtime.functions.conversion.DeserializeJSON;
-import lucee.runtime.functions.system.IsZipFile;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
-import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 public final class DeployHandler {
 
 	private static final ResourceFilter ALL_EXT = new ExtensionResourceFilter(new String[] { ".lex", ".lar", ".lco", ".json" });
-	private static final boolean USE_MAVEN_EXTENSION_PROVIDER = true;
 
 	/**
 	 * deploys all files found
@@ -106,7 +90,7 @@ public final class DeployHandler {
 							// Lucee Extensions
 							else if ("lex".equalsIgnoreCase(ext)) {
 								ResetFilter filter = new ResetFilter();
-								ConfigAdmin._updateRHExtension((ConfigPro) config, child, filter, true, force, RHExtension.ACTION_MOVE);
+								ConfigAdmin._updateRHExtension((ConfigPro) config, RHExtension.getInstance(config, child, log), filter, true, force, RHExtension.ACTION_MOVE, log);
 								filter.reset(config);
 							}
 
@@ -119,7 +103,7 @@ public final class DeployHandler {
 								try {
 									if (ConfigFactoryImpl.isConfigFileName(child.getName())) {
 										log.log(Log.LEVEL_INFO, "deploy handler", "Importing config file [" + child.getName() + "]");
-										CFConfigImport ci = new CFConfigImport(config, child, config.getResourceCharset(), null, "server", null, false, false, false);
+										CFConfigImport ci = new CFConfigImport(config, child, config.getResourceCharset(), null, null, false, false, false);
 										ci.execute(true);
 										child.delete();
 									}
@@ -197,7 +181,7 @@ public final class DeployHandler {
 		return true;
 	}
 
-	public static void moveToFailedFolder(Resource deployDirectory, Resource res) {
+	public static Resource moveToFailedFolder(Resource deployDirectory, Resource res) {
 		Resource dir = deployDirectory.getRealResource("failed-to-deploy");
 		Resource dst = dir.getRealResource(res.getName());
 		dir.mkdirs();
@@ -209,9 +193,7 @@ public final class DeployHandler {
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
-
-		// TODO Auto-generated method stub
-
+		return dst;
 	}
 
 	public static Map<ExtensionDefintion, Boolean> deployExtensions(Config config, ExtensionDefintion[] eds, final Log log, boolean force, boolean throwOnError)
@@ -244,9 +226,11 @@ public final class DeployHandler {
 			}
 			finally {
 				try {
+					ConfigUtil.getConfigServerImpl(config).resetExtensionDefinitions().resetRHExtensions();
+					filter.add("resetExtensionDefinitions", "resetRHExtensions");
 					filter.reset(config);
 				}
-				catch (IOException e) {
+				catch (Exception e) {
 					if (throwOnError) throw Caster.toPageException(e);
 
 					if (log != null) log.error("deploy-extension", e);
@@ -288,7 +272,7 @@ public final class DeployHandler {
 				try {
 					filter.reset(config);
 				}
-				catch (IOException e) {
+				catch (Exception e) {
 					if (throwOnError) throw Caster.toPageException(e);
 
 					if (log != null) log.error("deploy-extension", e);
@@ -314,205 +298,42 @@ public final class DeployHandler {
 	 */
 	public static RHExtension deployExtension(Config config, ExtensionDefintion ed, ResetFilter filter, Log log, boolean reload, boolean force, boolean throwOnError,
 			RefBoolean installDone) throws PageException {
-		ConfigPro ci = (ConfigPro) config;
-		String coreVersion = ConfigUtil.getCFMLEngine(config).getInfo().getVersion().toString();
-		// is the extension already installed
-		try {
-			RHExtension installed = ConfigAdmin.hasRHExtensionInstalled(ci, ed);
-			if (installed != null) {
-				installDone.setValue(false);
-				return installed;
-			}
-		}
-		catch (Exception e) {
-			if (throwOnError) throw Caster.toPageException(e);
-			if (log != null) log.error("extension", e);
-			else LogUtil.log("extension", e);
-		}
 
-		// we do have a local copy
-		Resource local = ed.getSource(null);
-		if (local != null) {
-			if (log != null) log.info("extension", "Installing extension [" + ed + "] from provided file");
-
-			RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, local, filter, reload, force, RHExtension.ACTION_COPY);
-			installDone.setValue(true);
-			return _ext;
-		}
-
-		// check if a local extension is matching our id
-		Iterator<ExtensionDefintion> it = getLocalExtensions(config, false).iterator();
-		ExtensionDefintion ext = null, tmp;
-
-		if (log != null) {
-			log.info("extension", "installing the extension " + ed);
-		}
-		while (it.hasNext()) {
-			tmp = it.next();
-			if (ed.equals(tmp)) {
-				ext = tmp;
-				break;
-			}
-		}
-
-		// if we have one and also the defined version matches, there is no need to check online
-		do {
-			if (ext != null && ed.getVersion() != null) {
-				Resource res = null;
-				try {
-					if (log != null) log.info("extension", "Installing extension [" + ed + "] from local provider");
-					res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
-					ResourceUtil.touch(res);
-					IOUtil.copy(ext.getSource(), res);
-					RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, filter, reload, force, RHExtension.ACTION_MOVE);
-					installDone.setValue(true);
-					return _ext;
-				}
-				catch (Exception e) {
-					if (log != null) log.error("extension", e);
-					// check if the zip is valid
-					if (res instanceof File) {
-						if (!IsZipFile.invoke((File) res)) {
-							CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigUtil.getEngine(config));
-							engine.deployBundledExtension(true);
-							if (IsZipFile.invoke((File) res)) {
-								continue; // we start over that part
-							}
-						}
-					}
-
-					ext = null;
-					LogUtil.log((config), DeployHandler.class.getName(), e);
-				}
-			}
-			break;
-		}
-		while (true);
-		Identification id = config.getIdentification();
-		String apiKey = id == null ? null : id.getApiKey();
-		RHExtensionProvider[] providers = ci.getRHExtensionProviders();
-		URL url;
-		// if we have a local version, we look if there is a newer remote version
-		if (ext != null) {
-			String content;
-			for (int i = 0; i < providers.length; i++) {
-				HTTPResponse rsp = null;
-				try {
-					url = providers[i].getURL();
-					StringBuilder qs = new StringBuilder();
-					qs.append("?withLogo=false");
-					if (ed.getVersion() != null) qs.append("&version=").append(ed.getVersion());
-					else qs.append("&coreVersion=").append(coreVersion);
-					if (apiKey != null) qs.append("&ioid=").append(apiKey);
-
-					url = new URL(url, "/rest/extension/provider/info/" + ed.getId() + qs);
-					if (log != null) log.info("extension", "Check for a newer version at [" + url + "]");
-					rsp = HTTPEngine4Impl.get(url, null, null, 5000, false, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/json") });
-
-					if (rsp.getStatusCode() != 200) continue;
-
-					content = rsp.getContentAsString();
-					Struct sct = Caster.toStruct(DeserializeJSON.call(null, content));
-					String remoteVersion = Caster.toString(sct.get(KeyConstants._version));
-
-					// the local version is as good as the remote
-					if (remoteVersion != null && remoteVersion.compareTo(ext.getVersion()) <= 0) {
-						if (log != null) log.info("extension", "Installing extension [" + ed + "] from local provider");
-
-						// avoid that the exzension from provider get removed
-						Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
-						ResourceUtil.touch(res);
-
-						IOUtil.copy(ext.getSource(), res);
-						RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, filter, reload, force, RHExtension.ACTION_MOVE);
-						installDone.setValue(true);
-						return _ext;
-					}
-				}
-				catch (Exception e) {
-					if (log != null) log.error("extension", e);
-				}
-				finally {
-					HTTPEngine.closeEL(rsp);
-				}
-			}
-		}
-
-		// if we have an ext at this stage this mean the remote providers was not acessible or have not this
-		// extension
-		if (ext != null) {
-			try {
-				if (log != null) log.info("extension", "Installing extension [" + ed + "] from local provider");
-				Resource res = SystemUtil.getTempDirectory().getRealResource(ext.getSource().getName());
-				ResourceUtil.touch(res);
-
-				IOUtil.copy(ext.getSource(), res);
-				RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, filter, reload, force, RHExtension.ACTION_MOVE);
-				installDone.setValue(true);
-				return _ext;
-			}
-			catch (Exception e) {
-				if (log != null) log.error("extension", e);
-			}
-		}
-
-		// if not we try to download it
-		if (log != null) log.info("extension", "Installing extension [" + ed + "] from remote extension provider");
-		Resource res = downloadExtension(ci, ed, log, throwOnError);
-		if (res != null) {
-			try {
-				RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, filter, reload, force, RHExtension.ACTION_MOVE);
-				installDone.setValue(true);
-				return _ext;
-			}
-			catch (Exception e) {
-				if (log != null) log.error("extension", e);
-				else throw Caster.toPageException(e);
-			}
-		}
-		return null;
-	}
-
-	private static Resource downloadExtensionFromMaven(Config config, ExtensionDefintion ed, boolean investigate, boolean throwOnError, Log log) throws PageException {
-		try {
-			// get extension from Maven
-			ExtensionProvider ep = new ExtensionProvider();
-
-			String artifact = ed.getArtifactId();
-
-			// translate UUID to artifact
-			if (StringUtil.isEmpty(artifact, true)) {
-				artifact = ep.toArtifact(ed.getId(), investigate);
-				if (LogUtil.doesDebug(log) && artifact != null) {
-					log.debug("main", "resolved extension id [" + ed.getId() + "] to artifact [" + artifact + "]");
-				}
-			}
-			if (artifact == null) return null;
-
-			Version version;
-			// get latest version when no version is defined
-			if (StringUtil.isEmpty(ed.getVersion(), true)) {
-				// find out the last version still needs some investigated effort, maybe we will improve on that in
-				// the future.
-				version = ep.last(artifact);
-				if (LogUtil.doesDebug(log) && version != null) {
-					log.debug("main", "get latest version[" + version + "] for artifact [" + artifact + "]");
-				}
+		RHExtension rhe = ed.toRHExtension(config);
+		if (rhe.installed()) {
+			if (force) {
+				// MUST uninstall
 			}
 			else {
-				version = OSGiUtil.toVersion(ed.getVersion(), false);
-				if (LogUtil.doesDebug(log) && version != null) {
-					log.debug("main", "use defined [" + version + "] for artifact [" + artifact + "]");
-				}
+				if (installDone != null) installDone.setValue(false);
+				return rhe;
 			}
-			if (version == null) return null;
+		}
+		return ConfigAdmin._updateRHExtension((ConfigPro) config, rhe, filter, reload, force, RHExtension.ACTION_COPY, log);
+	}
 
-			return ep.getResource((ConfigPro) config, artifact, version);
-			// Resource res = SystemUtil.getTempDirectory().getRealResource(ep.getGroup() + "-" + artifact + "-"
-			// + version + ".lex");
-			// ResourceUtil.touch(res);
-			// IOUtil.copy(ep.get(artifact, version), res, true);
-			// return res;
+	private static Version getLatestVersionFor(ConfigPro config, ExtensionDefintion ed, boolean investigate, boolean throwOnError, Log log) throws PageException {
+		try {
+			// get extension from Maven
+			MavenCoordinate coordinate = getGavById(config, ed, investigate, log);
+			ExtensionProvider ep = ExtensionProvider.getInstance(config, coordinate.groupId);
+
+			Version version = StringUtil.isEmpty(ed.getVersion(), true) ? null : Version.parseVersion(ed.getVersion(), null);
+			// get latest version when no version is defined
+			if (version == null) {
+				// find out the last version still needs some investigated effort, maybe we will improve on that in
+				// the future.
+				version = ep.last(coordinate.artifactId);
+				if (LogUtil.doesDebug(log) && version != null) {
+					log.debug("main", "got latest version[" + version + "] for artifact [" + coordinate.artifactId + "]");
+				}
+				return version;
+			}
+
+			if (LogUtil.doesDebug(log)) {
+				log.debug("main", "use defined [" + version + "] for artifact [" + coordinate.artifactId + "]");
+			}
+			return version;
 		}
 		catch (Exception e) {
 			if (throwOnError) throw Caster.toPageException(e);
@@ -523,69 +344,70 @@ public final class DeployHandler {
 		}
 	}
 
-	public static Resource downloadExtension(Config config, ExtensionDefintion ed, Log log, boolean throwOnError) throws ApplicationException {
-		// get extension from Maven
-		// TODO set investigate to true and log as warning if it fallback to old behaviour
-		if (USE_MAVEN_EXTENSION_PROVIDER) {
-			try {
-				Resource res = downloadExtensionFromMaven(config, ed, false, false, log);
-				if (res != null) return res;
-			}
-			catch (PageException e) {
-				// should not happen
-				log.error("main", e);
-			}
+	public static Version getLatestVersionFor(ConfigPro config, ExtensionDefintion ed, Log log, boolean throwOnError) throws PageException {
+		return getLatestVersionFor(config, ed, false, false, log);
+
+	}
+
+	private static MavenCoordinate getGavById(ConfigPro config, ExtensionDefintion ed, boolean investigate, Log log) throws ApplicationException {
+		String groupId = ed.getGroupId();
+		String artifactId = ed.getArtifactId();
+
+		if (!StringUtil.isEmpty(groupId, true) && !StringUtil.isEmpty(artifactId, true)) {
+			return new MavenCoordinate(groupId, artifactId, null);
 		}
 
-		// classic extension provider via Rest service
-		String coreVersion = ConfigUtil.getCFMLEngine(config).getInfo().getVersion().toString();
-		Identification id = config.getIdentification();
-		String apiKey = id == null ? null : id.getApiKey();
-		URL url;
-		RHExtensionProvider[] providers = ((ConfigPro) config).getRHExtensionProviders();
-		ApplicationException exp = null;
-		for (int i = 0; i < providers.length; i++) {
-			HTTPResponse rsp = null;
-			try {
-				url = providers[i].getURL();
-				StringBuilder qs = new StringBuilder();
-				if (apiKey != null) addQueryParam(qs, "ioid", apiKey);
-				if (ed.getVersion() != null) addQueryParam(qs, "version", ed.getVersion());
-				else addQueryParam(qs, "coreVersion", coreVersion);
+		// translate UUID to artifact
+		MavenCoordinate coordinate = ExtensionProvider.toCoordinate(config, ed.getId(), investigate, null);
+		if (coordinate != null) {
+			if (LogUtil.doesDebug(log) && artifactId != null) {
+				log.debug("main", "resolved extension id [" + ed.getId() + "] to maven endpoint [" + coordinate.groupId + ":" + coordinate.artifactId + "]");
+			}
+			return coordinate;
+		}
 
-				url = new URL(url, "/rest/extension/provider/full/" + ed.getId() + qs);
-				if (log != null) log.info("main", "Check for extension at [" + url + "]");
-				rsp = HTTPEngine4Impl.get(url, null, null, 5000, true, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/cfml") });
+		throw new ApplicationException("could not link the exension with the id [" + ed.getId() + "] to any maven endpoint.");
+	}
 
-				// If status code indicates success
-				if (rsp.getStatusCode() >= 200 && rsp.getStatusCode() < 300) {
-
-					// copy it locally
-					Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
-					ResourceUtil.touch(res);
-					IOUtil.copy(rsp.getContentAsStream(), res, true);
-
-					HTTPUtil.validateDownload(url, rsp, res, null, true, null);
-
-					if (log != null) log.info("main", "Downloaded extension [" + ed + "] to [" + res + "]");
-					return res;
-
+	public static Resource downloadExtensionFromMaven(ConfigPro config, ExtensionDefintion ed, boolean investigate, boolean throwOnError, Log log) throws PageException {
+		try {
+			MavenCoordinate coordinate = getGavById(config, ed, investigate, log);
+			ExtensionProvider ep = ExtensionProvider.getInstance(config, coordinate.groupId);
+			Version version;
+			// get latest version when no version is defined
+			if (StringUtil.isEmpty(ed.getVersion(), true)) {
+				// find out the last version still needs some investigated effort, maybe we will improve on that in
+				// the future.
+				version = ep.last(coordinate.artifactId);
+				if (LogUtil.doesDebug(log) && version != null) {
+					log.debug("main", "get latest version[" + version + "] for artifact [" + coordinate.artifactId + "]");
 				}
-				// we want the first
-				if (throwOnError && exp == null) exp = new ApplicationException("Failed (" + rsp.getStatusCode() + ") to load extension: [" + ed + "] from [" + url + "]");
-				if (log != null) log.warn("main", "Failed (" + rsp.getStatusCode() + ") to load extension: [" + ed + "] from [" + url + "]");
 			}
-			catch (Exception e) {
-				if (log != null) log.error("extension", e);
+			else {
+				version = Version.parseVersion(ed.getVersion());
+				if (LogUtil.doesDebug(log) && version != null) {
+					log.debug("main", "use defined [" + version + "] for artifact [" + coordinate.artifactId + "]");
+				}
 			}
-			finally {
-				HTTPEngine.closeEL(rsp);
-			}
-		}
-		if (exp != null) {
-			throw exp;
-		}
+			if (version == null) return null;
 
+			return ep.getLEXResource(config, coordinate.artifactId, version);
+		}
+		catch (Exception e) {
+			if (throwOnError) throw Caster.toPageException(e);
+			else if (LogUtil.doesWarn(log)) {
+				log.log(Log.LEVEL_WARN, "main", e);
+			}
+			return null;
+		}
+	}
+
+	public static Resource downloadExtension(ConfigPro config, ExtensionDefintion ed, Log log, boolean throwOnError) throws PageException {
+		Resource res = downloadExtensionFromMaven(config, ed, false, false, log);
+		if (res != null) return res;
+
+		if (throwOnError) throw new ApplicationException("Failed  to load extension: [" + ed + "]");
+		if (log != null) log.warn("main", "Failed to load extension: [" + ed + "] ");
 		return null;
 	}
 
@@ -594,58 +416,27 @@ public final class DeployHandler {
 		qs.append(qs.length() == 0 ? "?" : "&").append(name).append("=").append(value);
 	}
 
-	public static Resource getExtension(Config config, ExtensionDefintion ed, Log log) {
-		// local
-		ExtensionDefintion ext = getLocalExtension(config, ed, null);
-		if (ext != null) {
-			try {
-				Resource src = ext.getSource();
-				if (src.exists()) {
-					Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
-					ResourceUtil.touch(res);
-					IOUtil.copy(ext.getSource(), res);
-					return res;
-				}
-			}
-			catch (Exception e) {
-			}
-		}
-		// remote
-		try {
-			return downloadExtension(config, ed, log, false);
-		}
-		catch (ApplicationException e) {
-			return null;
-		}
-	}
-
-	public static ExtensionDefintion getLocalExtension(Config config, ExtensionDefintion ed, ExtensionDefintion defaultValue) {
-		Iterator<ExtensionDefintion> it = getLocalExtensions(config, false).iterator();
-		ExtensionDefintion ext;
-		while (it.hasNext()) {
-			ext = it.next();
-			if (ed.equals(ext)) {
-				return ext;
-			}
-		}
-		return defaultValue;
-	}
-
 	public static List<ExtensionDefintion> getLocalExtensions(Config config, boolean validate) {
 		return ((ConfigPro) config).loadLocalExtensions(validate);
 	}
 
-	public static RHExtension deployExtension(ConfigPro config, Resource ext, boolean reload, boolean force, short action) throws PageException {
+	public static RHExtension deployExtension(ConfigPro config, Resource ext, boolean reload, boolean force, short action, Log log) throws PageException {
 		ResetFilter filter = new ResetFilter();
 		try {
-			return ConfigAdmin._updateRHExtension(config, ext, filter, reload, force, action);
+			return ConfigAdmin._updateRHExtension(config, RHExtension.getInstance(config, ext, config.getLog("deploy")), filter, reload, force, action, log);
 		}
 		finally {
 			filter.resetThrowPageException(config);
 		}
 	}
 
-	public static void deployExtension(ConfigPro config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force) throws PageException {
-		ConfigAdmin._updateRHExtension(config, rhext, filter, reload, force);
+	public static void deployExtension(ConfigPro config, RHExtension rhext, boolean reload, boolean force, Log log) throws PageException {
+		ResetFilter filter = new ResetFilter();
+		try {
+			ConfigAdmin._updateRHExtension(config, rhext, filter, reload, force, RHExtension.ACTION_COPY, log);
+		}
+		finally {
+			filter.resetThrowPageException(config);
+		}
 	}
 }

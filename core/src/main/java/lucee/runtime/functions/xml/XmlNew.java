@@ -37,7 +37,7 @@ public final class XmlNew implements Function {
 
 	public static Node call(PageContext pc, boolean caseSensitive) throws PageException {
 		try {
-			return XMLCaster.toXMLStruct(XMLUtil.newDocument(), caseSensitive);
+			return XMLCaster.toXMLStruct(XMLUtil.newDocument(pc), caseSensitive);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

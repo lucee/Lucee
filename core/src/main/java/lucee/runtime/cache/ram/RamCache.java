@@ -27,22 +27,24 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.map.ReferenceMap;
+import lucee.commons.collection.RefMap;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.CacheEntry;
+import lucee.commons.io.cache.CacheEntryFilter;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ParentThreasRefThread;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.cache.CacheSupport;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.ram.ref.HardRef;
 import lucee.runtime.cache.ram.ref.Ref;
 import lucee.runtime.cache.ram.ref.SoftRef;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.engine.CFMLEngineImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
 import lucee.runtime.op.Duplicator;
@@ -73,14 +75,12 @@ public final class RamCache extends CacheSupport {
 
 	// this is used by the config by reflection
 	public RamCache() {
-		Config config = ThreadLocalPageContext.getConfig();
-		if (config != null) {
-			CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigUtil.getEngine(config), null);
-			if (engine != null) {
-				controller = new Controler(engine, this);
-				controller.setName("RamCacheCleaner");
-				controller.start();
-			}
+		CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(CFMLEngineFactory.getInstance(), null);
+		if (engine != null) {
+			controller = new Controler(engine, this);
+			controller.setName("RamCacheCleaner");
+			controller.setDaemon(true);
+			controller.start();
 		}
 	}
 
@@ -92,6 +92,7 @@ public final class RamCache extends CacheSupport {
 			CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigUtil.getEngine(config), null);
 			if (engine != null) {
 				controller = new Controler(engine, this);
+				controller.setDaemon(true);
 				controller.start();
 			}
 		}
@@ -197,12 +198,23 @@ public final class RamCache extends CacheSupport {
 
 	@Override
 	public void put(String key, Object value, Long idleTime, Long until) {
+		put(key, value, idleTime, until, false);
+	}
 
+	/**
+	 * Store an entry that is pinned with a hard reference, preventing it from being garbage collected.
+	 * Use this for structural entries (like directory metadata) that must survive memory pressure.
+	 */
+	public void putPinned(String key, Object value, Long idleTime, Long until) {
+		put(key, value, idleTime, until, true);
+	}
+
+	private void put(String key, Object value, Long idleTime, Long until, boolean pinned) {
 		Ref<RamCacheEntry> tmp = entries.get(key);
 		RamCacheEntry entry = tmp == null ? null : tmp.get();
 		if (entry == null) {
 			RamCacheEntry e = new RamCacheEntry(key, decouple(value), idleTime == null ? this.idleTime : idleTime.longValue(), until == null ? this.until : until.longValue());
-			entries.put(key, outOfMemory ? new HardRef<RamCacheEntry>(e) : new SoftRef<RamCacheEntry>(e));
+			entries.put(key, (pinned || outOfMemory) ? new HardRef<RamCacheEntry>(e) : new SoftRef<RamCacheEntry>(e));
 		}
 		else entry.update(value);
 	}
@@ -216,6 +228,32 @@ public final class RamCache extends CacheSupport {
 		}
 		return valid(entry);
 
+	}
+
+	@Override
+	public int remove(CacheEntryFilter filter) throws IOException {
+		if (CacheUtil.allowAll(filter)) return clear();
+
+		int count = 0;
+		Iterator<Entry<String, Ref<RamCacheEntry>>> it = entries.entrySet().iterator();
+		Entry<String, Ref<RamCacheEntry>> e;
+		Ref<RamCacheEntry> ref;
+		RamCacheEntry entry;
+		while (it.hasNext()) {
+			e = it.next();
+			ref = e.getValue();
+			entry = ref == null ? null : ref.get();
+			// cleared soft reference or expired entry: drop it, it is not a match
+			if (!valid(entry)) {
+				entries.remove(e.getKey(), ref);
+				continue;
+			}
+			// raw entry on purpose: filters only read the entry, so no decouple copy is needed
+			if (filter.accept(entry)) {
+				if (entries.remove(e.getKey(), ref)) count++;
+			}
+		}
+		return count;
 	}
 
 	@Override
@@ -291,7 +329,7 @@ public final class RamCache extends CacheSupport {
 	@Override
 	public Struct getCustomInfo() {
 		Struct info = super.getCustomInfo();
-		info.setEL("outOfMemoryHandling", entries instanceof ReferenceMap);
+		info.setEL("outOfMemoryHandling", entries instanceof RefMap);
 		return info;
 	}
 

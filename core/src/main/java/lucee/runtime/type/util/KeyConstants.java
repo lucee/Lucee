@@ -670,6 +670,7 @@ public final class KeyConstants {
 	public static final Key _transfer = init("transfer");
 	public static final Key _tree = init("tree");
 	public static final Key _type = init("type");
+	public static final Key _items = init("items");
 	public static final Key _uid = init("uid");
 	public static final Key _updated = init("updated");
 	public static final Key _uri = init("uri");
@@ -956,6 +957,7 @@ public final class KeyConstants {
 	public static final Key _scale = init("scale");
 	public static final Key _include = init("include");
 	public static final Key _compression = init("compression");
+	public static final Key _allowCompression = init("allowCompression");
 	public static final Key _invoke = init("invoke");
 	public static final Key _static = init("static");
 	public static final Key _STATIC = init("STATIC");
@@ -978,6 +980,8 @@ public final class KeyConstants {
 	public static final Key _system = init("system");
 	public static final Key _filecontent = init("filecontent");
 	public static final Key _checksum = init("checksum");
+	public static final Key _classifier = init("classifier");
+	public static final Key _extension = init("extension");
 	public static final Key _tries = init("tries");
 	public static final Key _interval = init("interval");
 	public static final Key _intervall = init("intervall");
@@ -1800,7 +1804,6 @@ public final class KeyConstants {
 	public static final Key _INDENT = init("INDENT");
 	public static final Key _LOCALE = init("LOCALE");
 	public static final Key _SIMPLE = init("SIMPLE");
-	public static final Key _GETPROVIDERINFO = init("GETPROVIDERINFO");
 	public static final Key _SORTED = init("SORTED");
 	public static final Key _BROWSER = init("BROWSER");
 	public static final Key _alpha = init("alpha");
@@ -1917,7 +1920,6 @@ public final class KeyConstants {
 	public static final Key _onBindError = init("onBindError");
 	public static final Key _NAMEFILTER = init("NAMEFILTER");
 	public static final Key _INCLUDE = init("INCLUDE");
-	public static final Key _GETPROVIDERINFOASYNC = init("GETPROVIDERINFOASYNC");
 	public static final Key _rc = init("rc");
 	public static final Key _DATAS = init("DATAS");
 	public static final Key _NORMALCOLOR = init("NORMALCOLOR");
@@ -1943,7 +1945,6 @@ public final class KeyConstants {
 	public static final Key _TITLECREATE = init("TITLECREATE");
 	public static final Key _TDCLASS = init("TDCLASS");
 	public static final Key _COLORKEYS = init("COLORKEYS");
-	public static final Key _DOWNLOADTRIAL = init("DOWNLOADTRIAL");
 	public static final Key _ARCHIVES = init("ARCHIVES");
 	public static final Key _TMPDIR = init("TMPDIR");
 	public static final Key _CURRPACK = init("CURRPACK");
@@ -2560,6 +2561,7 @@ public final class KeyConstants {
 	public static final Key _loaderPath = init("loaderPath");
 	public static final Key _additionalinformation = init("additionalinformation");
 	public static final Key _buildnumber = init("buildnumber");
+	public static final Key _buildDate = init("buildDate");
 	public static final Key _vendor = init("vendor");
 	public static final Key _freeMemory = init("freeMemory");
 	public static final Key _maxMemory = init("maxMemory");
@@ -2579,11 +2581,16 @@ public final class KeyConstants {
 	public static final Key _wssetting = init("wssetting");
 	public static final Key _triggerDataMember = init("triggerDataMember");
 	public static final Key _InvokeImplicitAccessor = init("InvokeImplicitAccessor");
+	public static final Key _componentImplicitNotation = init("componentImplicitNotation");
 	public static final Key _sessionManagement = init("sessionManagement");
 	public static final Key _sessionTimeout = init("sessionTimeout");
 	public static final Key _clientTimeout = init("clientTimeout");
+	public static final Key _sessionCommitInterval = init("sessionCommitInterval");
+	public static final Key _clientCommitInterval = init("clientCommitInterval");
 	public static final Key _requestTimeout = init("requestTimeout");
+	public static final Key _clientCookies = init("clientCookies");
 	public static final Key _setClientCookies = init("setClientCookies");
+	public static final Key _domainCookies = init("domainCookies");
 	public static final Key _setDomainCookies = init("setDomainCookies");
 	public static final Key _scriptProtect = init("scriptProtect");
 	public static final Key _customtagpaths = init("customtagpaths");
@@ -2592,7 +2599,9 @@ public final class KeyConstants {
 	public static final Key _secureJsonPrefix = init("secureJsonPrefix");
 	public static final Key _secureJson = init("secureJson");
 	public static final Key _localMode = init("localMode");
+	public static final Key _localScopeMode = init("localScopeMode");
 	public static final Key _bufferOutput = init("bufferOutput");
+	public static final Key _bufferTagBodyOutput = init("bufferTagBodyOutput");
 	public static final Key _sessionCluster = init("sessionCluster");
 	public static final Key _clientCluster = init("clientCluster");
 	public static final Key _defaultdatasource = init("defaultdatasource");
@@ -2606,7 +2615,9 @@ public final class KeyConstants {
 	public static final Key _searchImplicitScopes = init("searchImplicitScopes");
 	public static final Key _typeChecking = init("typeChecking");
 	public static final Key _CGIReadOnly = init("CGIReadOnly");
+	public static final Key _cgiScopeReadOnly = init("cgiScopeReadOnly");
 	public static final Key _suppressRemoteComponentContent = init("suppressRemoteComponentContent");
+	public static final Key _suppressContent = init("suppressContent");
 	public static final Key _sessioncookie = init("sessioncookie");
 	public static final Key _authcookie = init("authcookie");
 	public static final Key _enableNULLSupport = init("enableNULLSupport");
@@ -2622,8 +2633,10 @@ public final class KeyConstants {
 	public static final Key _xmlFeatures = init("xmlFeatures");
 	public static final Key _searchQueries = init("searchQueries");
 	public static final Key _searchResults = init("searchResults");
+	public static final Key _cascadeToResultset = init("cascadeToResultset");
 	public static final Key _limitEvaluation = init("limitEvaluation");
 	public static final Key _regex = init("regex");
+	public static final Key _regexType = init("regexType");
 	public static final Key _engine = init("engine");
 	public static final Key _useJavaAsRegexEngine = init("useJavaAsRegexEngine");
 	public static final Key _applicationname = init("applicationname");
@@ -2659,6 +2672,7 @@ public final class KeyConstants {
 	public static final Key _GENERATED_KEYS = init("GENERATED_KEYS");
 	public static final Key _GENERATEDKEYS = init("GENERATEDKEYS");
 	public static final Key _statusCode = init("statusCode");
+	public static final Key _statusText = init("statusText");
 	public static final Key _contentType = init("contentType");
 	public static final Key _starttime = init("starttime");
 	public static final Key _securityKey = init("securityKey");
@@ -3075,7 +3089,10 @@ public final class KeyConstants {
 	public static final Key _limit = init("limit");
 	public static final Key _question = init("question");
 	public static final Key _conversationSizeLimit = init("conversationSizeLimit");
+	public static final Key _connectTimeout = init("connectTimeout");
 	public static final Key _socketTimeout = init("socketTimeout");
+	public static final Key _generationConfig = init("generationConfig");
+	public static final Key _apikey = init("apikey");
 	public static final Key _componentMappings = init("componentMappings");
 	public static final Key _operator = init("operator");
 	public static final Key _argument = init("argument");
@@ -3121,6 +3138,10 @@ public final class KeyConstants {
 	public static final Key __tick = init("_tick");
 	public static final Key __start = init("_start");
 	public static final Key _binary = init("binary");
+	public static final Key _enum = init("enum");
+	public static final Key _deprecated = init("deprecated");
+	public static final Key _const = init("const");
+	public static final Key _temp = init("temp");
 
 	public static Map<String, Key> getKeys() {
 		return keys;

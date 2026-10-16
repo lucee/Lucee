@@ -18,10 +18,8 @@
  */
 package lucee.runtime.config;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -40,11 +38,11 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.config.ConfigServerImpl.ConfigFile;
 import lucee.runtime.config.XMLConfigReader.NameRule;
 import lucee.runtime.config.XMLConfigReader.ReadRule;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.engine.InfoImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -84,7 +82,7 @@ public abstract class ConfigFactory {
 
 		// if the config got deleted, we need to make sure the required extension get installed again
 		boolean deleted = false;
-		if (readOnly && !ConfigFactoryImpl.getConfigFile(contextDir, true).exists()) {
+		if (readOnly && ConfigFactoryImpl.getConfigFile(contextDir, true, true) == null) {
 			deleted = resOldVersion.delete();
 		}
 		String strNewVersion = info.getVersion() + "-" + info.getRealeaseTime();
@@ -190,53 +188,6 @@ public abstract class ConfigFactory {
 		return false;
 	}
 
-	/**
-	 * load XML Document from XML File
-	 * 
-	 * @param xmlFile XML File to read
-	 * @return returns the Document
-	 * @throws SAXException
-	 * @throws IOException
-	 * @throws PageException
-	 * @throws NoSuchAlgorithmException
-	 */
-	static Struct loadDocument(Config config, Resource file) throws IOException, PageException {
-		InputStream is = null;
-		try {
-			return _loadDocument(config, file);
-		}
-		finally {
-			IOUtil.close(is);
-		}
-	}
-
-	static Struct loadDocumentCreateIfFails(Config config, Resource configFile, String type) throws IOException, PageException {
-		try {
-			return _loadDocument(config, configFile);
-		}
-		catch (Exception e) {
-			// rename buggy config files
-			if (configFile.exists()) {
-				Resource bugFile;
-				int count = 1;
-				Resource configDir = configFile.getParentResource();
-				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {
-				}
-
-				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, ConfigFactory.class.getName(),
-						"The configuration file [" + configFile
-								+ "] contained syntax errors and could not be read. A new configuration file has been created, and the invalid file has been renamed to [" + bugFile
-								+ "].");
-				LogUtil.log(ThreadLocalPageContext.get(), ConfigFactory.class.getName(), e);
-
-				IOUtil.copy(configFile, bugFile);
-				configFile.delete();
-			}
-			ConfigFile.createConfigFile(type, configFile);
-			return loadDocument(config, configFile);
-		}
-	}
-
 	public static Struct translateConfigFile(ConfigPro config, Object old, Resource configFileNew, String defaultMode, Boolean isServer)
 			throws ConverterException, IOException, SAXException {
 		// read the old config (XML)
@@ -305,8 +256,6 @@ public abstract class ConfigFactory {
 			move("classicDateParsing", application, root);
 			move("cacheDirectory", application, root);
 			move("cacheDirectoryMaxSize", application, root);
-			move("adminSynchronisation", "adminSync", application, root);
-			move("adminSync", application, root);
 
 			rem("application", root);
 		}
@@ -422,8 +371,7 @@ public abstract class ConfigFactory {
 				try {
 					arr.insert(1, sct);
 				}
-				catch (PageException e) {
-				}
+				catch (PageException e) {}
 			}
 			rem("mapping", component);
 		}
@@ -465,8 +413,7 @@ public abstract class ConfigFactory {
 				try {
 					arr.insert(1, sct);
 				}
-				catch (PageException e) {
-				}
+				catch (PageException e) {}
 			}
 
 			rem("mapping", ct);
@@ -898,7 +845,7 @@ public abstract class ConfigFactory {
 		root = sort(root);
 
 		if (configFileNew != null) {
-			ConfigFile.write(configFileNew, root);
+			ConfigFile.write(configFileNew, root, null);
 		}
 		return root;
 	}
@@ -981,35 +928,6 @@ public abstract class ConfigFactory {
 		return "/" + MD5.getDigestAsString(physical + ":" + archive, "");
 	}
 
-	private static Struct _loadDocument(Config config, Resource res) throws IOException, PageException {
-		String name = res.getName();
-		// That step is not necessary anymore TODO remove
-		if (StringUtil.endsWithIgnoreCase(name, ".xml.cfm") || StringUtil.endsWithIgnoreCase(name, ".xml")) {
-			try {
-				return ConfigUtil.getAsStruct(config, new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData(), false, "cfLuceeConfiguration", "luceeConfiguration",
-						"lucee-configuration");
-			}
-			catch (SAXException e) {
-				throw Caster.toPageException(e);
-			}
-		}
-		try {
-			return ConfigFile.read(res);
-			// data.set(KeyConstants._md5, Hash.md5(content));
-		}
-		catch (FileNotFoundException fnfe) {
-			Resource dir = res.getParentResource();
-			Resource ls = dir.getRealResource("lucee-server.xml");
-			Resource lw = dir.getRealResource("lucee-web.xml.cfm");
-			if (ls.isFile()) return _loadDocument(config, ls);
-			else if (lw.isFile()) return _loadDocument(config, lw);
-			else throw fnfe;
-		}
-		/*
-		 * catch (NoSuchAlgorithmException e) { throw ExceptionUtil.toIOException(e); }
-		 */
-	}
-
 	/**
 	 * creates a File and his content from a resource, ignores if it is no able to create the resource,
 	 * it logs if the file exists, but cannot be copy to the target, no logging when not exist as a
@@ -1027,10 +945,10 @@ public abstract class ConfigFactory {
 			try {
 				file.createNewFile();
 				IOUtil.copy(is, file, true);
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Written file: [" + file + "]");
+				LogUtil.logGlobal(Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Written file: [" + file + "]");
 			}
 			catch (Exception e) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigFactory.class.getName(), e);
+				LogUtil.logGlobal(ConfigFactory.class.getName(), e);
 			}
 		}
 	}
@@ -1073,7 +991,7 @@ public abstract class ConfigFactory {
 	static void delete(Resource dbDir, String name) {
 		Resource f = dbDir.getRealResource(name);
 		if (f.exists()) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactory.class.getName(), "Delete file: [" + f + "]");
+			LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactory.class.getName(), "Delete file: [" + f + "]");
 
 			f.delete();
 		}

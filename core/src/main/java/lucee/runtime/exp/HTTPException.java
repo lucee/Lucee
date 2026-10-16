@@ -70,10 +70,12 @@ public final class HTTPException extends ApplicationException {
 
 	@Override
 	public CatchBlock getCatchBlock(Config config) {
-		CatchBlock sct = super.getCatchBlock(config);
-		sct.setEL("statusCode", statusCode + "");
-		sct.setEL("statusText", statusText);
-		if (url != null) sct.setEL("url", url.toExternalForm());
-		return sct;
+		if (catchBlock == null) {
+			CatchBlock sct = super.getCatchBlock(config);
+			sct.setEL(KeyConstants._statusCode, statusCode + "");
+			sct.setEL(KeyConstants._statusText, statusText);
+			if (url != null) sct.setEL("url", url.toExternalForm());
+		}
+		return catchBlock;
 	}
 }

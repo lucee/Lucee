@@ -6,7 +6,9 @@ import java.io.Serializable;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -27,16 +29,13 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
-import lucee.commons.io.log.LogReference;
 import lucee.commons.io.log.LogUtil;
-import lucee.commons.io.log.log4j2.LogAdapter;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
-import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
+import lucee.commons.io.res.ResourcesImpl.InnerResourceProviderFactory;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.CharSet;
-import lucee.commons.lang.ClassException;
+import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lock.KeyLock;
@@ -59,6 +58,7 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.config.gateway.GatewayMap;
+import lucee.runtime.config.maven.MavenUpdateProvider.Repository;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -79,7 +79,6 @@ import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
-import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.gateway.GatewayEngine;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.JavaSettings;
@@ -103,10 +102,10 @@ import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecretProvider;
 import lucee.runtime.security.SecurityManager;
-import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.spooler.SpoolerEngine;
 import lucee.runtime.tag.TagHandlerPool;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
@@ -115,7 +114,7 @@ import lucee.runtime.writer.CFMLWriter;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
-public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
+public final class ConfigWebImpl implements ConfigWebPro {
 
 	private ConfigServerImpl cs;
 	private ConfigWebHelper helper;
@@ -125,10 +124,15 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	private String _id;
 	private Resource rootDir;
 
+	private Map<Key, String> placeHolderdata;
+	private boolean insidePlaceHolder;
 	private Mapping[] mappings;
 	private ComponentPathCache componentPathCache = new ComponentPathCache();
 	private Map<String, Log> logs = new ConcurrentHashMap<>();
 	private lucee.runtime.rest.Mapping[] restMappings;
+	private VirtualDirectoryManager virtualDirectoryManager;
+
+	private Map<String, Mapping> existing = MapFactory.<String, Mapping>getConcurrentMap();
 
 	public ConfigWebImpl(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config) {
 		setInstance(factory, cs, config, false);
@@ -140,6 +144,7 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 		this.cs = cs;
 		this.config = config;
 		helper = new ConfigWebHelper(cs, this);
+		this.virtualDirectoryManager = new VirtualDirectoryManager(this);
 
 		if (reload) reload();
 		return this;
@@ -154,8 +159,482 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 		}
 	}
 
+	private Map<Key, String> getPlaceHolderData() {
+		if (placeHolderdata == null) {
+			synchronized (SystemUtil.createToken("configweb", "placeHolderdata")) {
+				if (placeHolderdata == null) {
+					if (insidePlaceHolder) return new HashMap<>();
+					insidePlaceHolder = true;
+					try {
+						Map<Key, String> data = new HashMap<>(cs.getPlaceHolderData());
+
+						data.put(KeyImpl.init("web-root"), getRootDirectory().getAbsolutePath());
+						data.put(KeyImpl.init("web-root-dir"), getRootDirectory().getAbsolutePath());
+						data.put(KeyImpl.init("web-root-directory"), getRootDirectory().getAbsolutePath());
+						data.put(KeyImpl.init("lucee-server"), this.getConfigServerDir().getAbsolutePath());
+						data.put(KeyImpl.init("lucee-server-dir"), this.getConfigServerDir().getAbsolutePath());
+						data.put(KeyImpl.init("lucee-server-directory"), this.getConfigServerDir().getAbsolutePath());
+
+						placeHolderdata = Collections.unmodifiableMap(data);
+					}
+					finally {
+						insidePlaceHolder = false;
+					}
+				}
+			}
+		}
+		return placeHolderdata;
+	}
+
+	@Override
+	public String replacePlaceHolder(String str) {
+		return ConfigUtil.replacePlaceHolder(this, str, getPlaceHolderData());
+	}
+
+	@Override
+	public String replacePlaceHolder(String str, Map<Key, String> customPlaceHolderData) {
+		return ConfigUtil.replacePlaceHolder(this, str, customPlaceHolderData != null ? ConfigUtil.merge(getPlaceHolderData(), customPlaceHolderData) : getPlaceHolderData());
+	}
+
+	@Override
+	public PageSource getPageSource(Mapping[] mappings, String realPath, boolean onlyTopLevel) {
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
+	}
+
+	@Override
+	public PageSource getPageSourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean onlyPhysicalExisting) {
+		return ConfigUtil.getPageSourceExisting(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyPhysicalExisting);
+	}
+
+	@Override
+	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
+		return ConfigUtil.getPageSources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, false, cs.getOnlyFirstMatch());
+	}
+
+	@Override
+	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean useComponentMappings) {
+		return ConfigUtil.getPageSources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, cs.getOnlyFirstMatch());
+	}
+
+	@Override
+	public Resource getRootDirectory() {
+		if (rootDir == null) {
+			synchronized (SystemUtil.createToken("ConfigWebImpl", "getRootDirectory")) {
+				if (rootDir == null) {
+					ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
+					this.rootDir = frp.getResource(ReqRspUtil.getRootPath(config.getServletContext()));
+
+					// Fix for tomcat
+					if (this.rootDir.getName().equals(".") || this.rootDir.getName().equals("..")) this.rootDir = this.rootDir.getParentResource();
+				}
+			}
+		}
+		return rootDir;
+	}
+
+	@Override
+	public SecurityManager getSecurityManager() {
+		return cs.getSecurityManager(getRootDirectory());
+	}
+
+	@Override
+	public void reset() {
+		helper.reset();
+		cs.reset();
+	}
+
+	// FYI used by Extensions, do not remove
+	public Mapping getApplicationMapping(String virtual, String physical) {
+		return getApplicationMapping("application", virtual, physical, null, true, false);
+	}
+
+	public void reload() {
+		synchronized (this) {
+			if (mappings != null) {
+				// MUST 7 is that needed?
+				ConfigFactoryImpl.flushPageSourcePool(mappings);
+				// resetMappings(false);// MUST 7 is that needed?
+			}
+		}
+	}
+
+	@Override
+	public Mapping[] getMappings() {
+		if (mappings == null) {
+			synchronized (SystemUtil.createToken("ConfigWebImpl", "getMappings")) {
+				if (mappings == null) {
+					Mapping[] serverMappings = cs.getMappings();
+					// Mapping
+					Map<String, Mapping> mappings = MapFactory.<String, Mapping>getConcurrentMap(serverMappings.length + 1);
+					boolean finished = false;
+					String str;
+					boolean cloneIt;
+					Mapping ex;
+					for (Mapping m: serverMappings) {
+						if ("/".equals(m.getVirtual())) finished = true;
+						cloneIt = false;
+						str = m.getStrPhysical();
+						if (str != null && str.indexOf('{') != -1) cloneIt = true;
+						if (!cloneIt) {
+							str = m.getStrArchive();
+							if (str != null && str.indexOf('{') != -1) cloneIt = true;
+						}
+						m = cloneIt ? ((MappingImpl) m).cloneReadOnly(this) : m;
+
+						ex = this.existing.get(m.getVirtualLowerCase());
+						if (ex != null && ex.equals(m)) {
+							mappings.put(ex.getVirtualLowerCase(), ex);
+						}
+						else {
+							mappings.put(m.getVirtualLowerCase(), m);
+							this.existing.put(m.getVirtualLowerCase(), m);
+						}
+					}
+					if (!finished) {
+						Mapping m;
+						if (ResourceUtil.isUNCPath(getRootDirectory().getPath())) {
+							m = new MappingImpl(this, "/", getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
+									ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
+						}
+						else {
+							m = new MappingImpl(this, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true,
+									true, true, true, false, false, null, -1, -1);
+						}
+
+						ex = this.existing.get("/");
+						if (ex != null && ex.equals(m)) {
+							mappings.put("/", ex);
+						}
+						else {
+							mappings.put("/", m);
+							this.existing.put(m.getVirtualLowerCase(), m);
+						}
+					}
+					this.mappings = ConfigUtil.sort(mappings.values().toArray(new Mapping[mappings.size()]));
+				}
+			}
+		}
+		return mappings;
+	}
+
+	@Override
+	public ConfigWebImpl resetMappings() {
+		if (mappings != null) {
+			synchronized (SystemUtil.createToken("ConfigWebImpl", "getMappings")) {
+				if (mappings != null) {
+					ConfigFactoryImpl.flushPageSourcePool(mappings);
+					mappings = null;
+					cs.resetMappings();
+				}
+			}
+		}
+		return this;
+	}
+
+	@Override
+	public lucee.runtime.rest.Mapping[] getRestMappings() {
+		if (restMappings == null) {
+			synchronized (SystemUtil.createToken("ConfigWebImpl", "getRestMappings")) {
+				if (restMappings == null) createRestMapping();
+			}
+		}
+		return restMappings;
+	}
+
+	@Override
+	public ConfigWebImpl resetRestMappings() {
+		if (restMappings != null) {
+			synchronized (SystemUtil.createToken("ConfigWebImpl", "getRestMappings")) {
+				if (restMappings != null) {
+					restMappings = null;
+					cs.resetRestMappings();
+				}
+			}
+		}
+		return this;
+	}
+
+	private void createRestMapping() {
+		Map<String, lucee.runtime.rest.Mapping> mappings = MapFactory.<String, lucee.runtime.rest.Mapping>getConcurrentMap();
+		lucee.runtime.rest.Mapping[] sm = cs.getRestMappings();
+		lucee.runtime.rest.Mapping tmp;
+		if (sm != null) {
+			for (int i = 0; i < sm.length; i++) {
+				try {
+					// if (!sm[i].isHidden()) {
+					tmp = sm[i].duplicate(this, Boolean.TRUE);
+					mappings.put(tmp.getVirtual(), tmp);
+					// }
+				}
+				catch (Exception e) {
+
+				}
+			}
+		}
+		this.restMappings = mappings.values().toArray(new lucee.runtime.rest.Mapping[mappings.size()]);
+	}
+
+	@Override
+	public String getId() {
+		if (_id == null) {
+			URL url = getFactory().getURL();
+			String tmp = HashUtil.create64BitHashAsString(url + ":" + Caster.toString(getRootDirectory().getAbsolutePath()), Character.MAX_RADIX);
+			if (url == null) return tmp;
+			_id = tmp;
+		}
+		return _id;
+	}
+	/////////////// methods defined in ServletConfig
+
+	@Override
+	public String getInitParameter(String name) {
+		return config.getInitParameter(name);
+	}
+
+	@Override
+	public Enumeration<String> getInitParameterNames() {
+		return config.getInitParameterNames();
+	}
+
+	@Override
+	public ServletContext getServletContext() {
+		return config.getServletContext();
+	}
+
+	@Override
+	public String getServletName() {
+		return config.getServletName();
+	}
+	/////////////// methods defined in ConfigWeb[Pro]
+
+	@Override
+	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean useComponentMappings, boolean onlyFirstMatch) {
+		return ConfigUtil.getResources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
+	}
+
+	@Override
+	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue) {
+		return ConfigUtil.toPageSource(this, mappings, res, defaultValue);
+	}
+
+	@Override
+	public CIPage getComponentPathCache(PageContext pc, String pathWithCFC) throws PageException {
+		return componentPathCache.getPage(pc, pathWithCFC);
+	}
+
+	@Override
+	public void putComponentPathCache(String pathWithCFC, PageSource ps) {
+		componentPathCache.put(pathWithCFC, ps);
+	}
+
+	@Override
+	public Struct listComponentPathCache() {
+		return componentPathCache.list();
+	}
+
+	@Override
+	public void clearComponentPathCache() {
+		componentPathCache.clear();
+	}
+
+	@Override
+	public AMFEngine getAMFEngine() {
+		return helper.getAMFEngine();
+	}
+
+	@Override
+	public ConfigServer getConfigServer(Password password) throws PageException {
+		cs.checkAccess(password);
+		return cs;
+	}
+
+	@Override
+	public CFMLFactory getFactory() {
+		return factory;
+	}
+
+	@Override
+	public String getLabel() {
+		return helper.getLabel();
+	}
+
+	@Override
+	public LockManager getLockManager() {
+		return helper.getLockManager();
+	}
+
+	@Override
+	public SearchEngine getSearchEngine(PageContext pc) throws PageException {
+		return helper.getSearchEngine(pc);
+	}
+
+	@Override
+	public CFMLWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
+		return getCFMLWriter(pc, req, rsp);
+	}
+
+	@Override
+	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual) {
+		return getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual, true, true);
+	}
+
+	@Override
+	public GatewayEngine getGatewayEngine() throws PageException {
+		return helper.getGatewayEngineImpl(getGatewayEntries());
+	}
+
+	@Override
+	public WSHandler getWSHandler() throws PageException {
+		return helper.getWSHandler();
+	}
+
+	@Override
+	public CFMLCompilerImpl getCompiler() {
+		return helper.getCompiler();
+	}
+
+	@Override
+	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual,
+			boolean checkPhysicalFromWebroot, boolean checkArchiveFromWebroot) {
+		return helper.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual, checkPhysicalFromWebroot, checkArchiveFromWebroot);
+	}
+
+	@Override
+	public Mapping[] getApplicationMappings() {
+		return helper.getApplicationMappings();
+	}
+
+	@Override
+	public boolean isApplicationMapping(Mapping mapping) {
+		return helper.isApplicationMapping(mapping);
+	}
+
+	@Override
+	public CIPage getBaseComponentPage(PageContext pc) throws PageException {
+		return helper.getBaseComponentPage(pc);
+	}
+
+	@Override
+	public ComponentImpl getBaseComponentInstance(PageContext pc, ComponentPageImpl exclude, boolean executeConstr) throws PageException {
+		return helper.getBaseComponentInstance(pc, exclude, executeConstr);
+	}
+
+	@Override
+	public void resetBaseComponentPage() {
+		helper.resetBaseComponentPage();
+	}
+
+	@Override
+	public KeyLock<String> getContextLock() {
+		return helper.getContextLock();
+	}
+
+	@Override
+	public CacheHandlerCollection getCacheHandlerCollection(int type, CacheHandlerCollection defaultValue) {
+		return helper.getCacheHandlerCollection(type, defaultValue);
+
+	}
+
+	@Override
+	public void releaseCacheHandlers(PageContext pc) {
+		helper.releaseCacheHandlers(pc);
+	}
+
+	@Override
+	public DebuggerPool getDebuggerPool() {
+		return helper.getDebuggerPool();
+	}
+
+	@Override
+	public CFMLWriter getCFMLWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
+		return helper.getCFMLWriter(pc, req, rsp);
+	}
+
+	@Override
+	public TagHandlerPool getTagHandlerPool() {
+		return helper.getTagHandlerPool();
+	}
+
+	@Override
+	public String getHash() {
+		return SystemUtil.hash(getServletContext());
+	}
+
+	@Override
+	public Password updatePasswordIfNecessary(boolean server, String passwordRaw) {
+		return PasswordImpl.updatePasswordIfNecessary(cs, cs.hspw, passwordRaw);
+	}
+
+	@Override
+	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException {
+		try {
+			PasswordImpl.updatePassword(cs, passwordOld, passwordNew);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public ServletConfig getServletConfig() {
+		return config;
+	}
+	////////////// simply returns null
+
+	@Override
+	public String getUpdateType() {
+		return null;
+	}
+
+	@Override
+	public URL getUpdateLocation() {
+		return null;
+	}
+
+	////////////// delegate to server config with custom name
+
+	@Override
+	public Log getLog(String name) {
+		return cs.getLog(name);
+	}
+
+	@Override
+	public Log getLog(String name, boolean createIfNecessary) throws PageException {
+		return cs.getLog(name, createIfNecessary);
+	}
+
+	public String getServerSalt() {
+		return cs.getSalt();
+	}
+
+	public Resource getServerConfigDir() {
+		return cs.getConfigDir();
+	}
+
 	public ConfigServerImpl getConfigServerImpl() {
 		return cs;
+	}
+
+	////////////// simply delegate to server config
+	@Override
+	public IdentificationWeb getIdentification() {
+		if (id == null) {
+			synchronized (SystemUtil.createToken("ConfigWebImpl", "getIdentification")) {
+				if (id == null) {
+					id = new SCCWIdentificationWeb(cs.getIdentification());
+				}
+			}
+		}
+		return id;
+	}
+
+	@Override
+	public void setIdentification(IdentificationWeb arg0) {
+		// ignore it, should not happen
+		LogUtil.log(Log.LEVEL_FATAL, "loading", "setting a web id for single context");
 	}
 
 	@Override
@@ -175,8 +654,8 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public long lastModified() {
-		return cs.lastModified();
+	public long configLastModified() {
+		return cs.configLastModified();
 	}
 
 	@Override
@@ -391,39 +870,6 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public PageSource getPageSource(Mapping[] mappings, String realPath, boolean onlyTopLevel) {
-		throw new PageRuntimeException(new DeprecatedException("method not supported"));
-	}
-
-	@Override
-	public PageSource getPageSourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
-			boolean onlyPhysicalExisting) {
-		return ConfigUtil.getPageSourceExisting(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyPhysicalExisting);
-	}
-
-	@Override
-	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
-		return ConfigUtil.getPageSources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, false, onlyFirstMatch);
-	}
-
-	@Override
-	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
-			boolean useComponentMappings) {
-		return ConfigUtil.getPageSources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
-	}
-
-	@Override
-	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
-			boolean useComponentMappings, boolean onlyFirstMatch) {
-		return ConfigUtil.getResources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
-	}
-
-	@Override
-	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue) {
-		return ConfigUtil.toPageSource(this, mappings, res, defaultValue);
-	}
-
-	@Override
 	public Resource getConfigDir() {
 		return cs.getConfigDir();
 	}
@@ -514,16 +960,6 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public String getUpdateType() {
-		return null;
-	}
-
-	@Override
-	public URL getUpdateLocation() {
-		return null;
-	}
-
-	@Override
 	public Resource getClassDirectory() {
 		return cs.getClassDirectory();
 	}
@@ -541,22 +977,6 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	@Override
 	public Resource getClassesDirectory() {
 		return cs.getClassesDirectory();
-	}
-
-	@Override
-	public Resource getRootDirectory() {
-		if (rootDir == null) {
-			synchronized (SystemUtil.createToken("ConfigWebImpl", "getRootDirectory")) {
-				if (rootDir == null) {
-					ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
-					this.rootDir = frp.getResource(ReqRspUtil.getRootPath(config.getServletContext()));
-
-					// Fix for tomcat
-					if (this.rootDir.getName().equals(".") || this.rootDir.getName().equals("..")) this.rootDir = this.rootDir.getParentResource();
-				}
-			}
-		}
-		return rootDir;
 	}
 
 	@Override
@@ -585,8 +1005,8 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public CharSet getWebCharSet() {
-		return cs.getWebCharSet();
+	public CharsetX getWebCharsetX() {
+		return cs.getWebCharsetX();
 	}
 
 	@Override
@@ -595,18 +1015,8 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public CharSet getResourceCharSet() {
-		return cs.getResourceCharSet();
-	}
-
-	@Override
-	public SecurityManager getSecurityManager() {
-		SecurityManager sm = cs.getSecurityManager();
-		// Set the root directory for local file access checks
-		if (sm instanceof SecurityManagerImpl) {
-			((SecurityManagerImpl) sm).setRootDirectory(getRootDirectory());
-		}
-		return sm;
+	public CharsetX getResourceCharsetX() {
+		return cs.getResourceCharsetX();
 	}
 
 	@Override
@@ -634,8 +1044,8 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 		return cs.getMailDefaultCharset();
 	}
 
-	public CharSet getMailDefaultCharSet() {
-		return cs.getMailDefaultCharSet();
+	public CharsetX getMailDefaultCharsetX() {
+		return cs.getMailDefaultCharsetX();
 	}
 
 	@Override
@@ -654,7 +1064,7 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public ResourceProviderFactory[] getResourceProviderFactories() {
+	public InnerResourceProviderFactory[] getResourceProviderFactories() {
 		return cs.getResourceProviderFactories();
 	}
 
@@ -879,11 +1289,6 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public RHExtensionProvider[] getRHExtensionProviders() {
-		return cs.getRHExtensionProviders();
-	}
-
-	@Override
 	public Extension[] getExtensions() {
 		return cs.getExtensions();
 	}
@@ -916,11 +1321,6 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	@Override
 	public Class<AdminSync> getAdminSyncClass() {
 		return cs.getAdminSyncClass();
-	}
-
-	@Override
-	public AdminSync getAdminSync() throws ClassException {
-		return cs.getAdminSync();
 	}
 
 	@Override
@@ -1029,16 +1429,6 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws PageException {
-		return componentPathCache.getPage(pc, pathWithCFC);
-	}
-
-	@Override
-	public void putCachedPageSource(String pathWithCFC, PageSource ps) {
-		componentPathCache.put(pathWithCFC, ps);
-	}
-
-	@Override
 	public InitFile getCTInitFile(PageContext pc, String key) {
 		return cs.getCTInitFile(pc, key);
 	}
@@ -1071,16 +1461,6 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	@Override
 	public void putToFunctionCache(String key, UDF udf) {
 		cs.putToFunctionCache(key, udf);
-	}
-
-	@Override
-	public Struct listComponentCache() {
-		return componentPathCache.list();
-	}
-
-	@Override
-	public void clearComponentCache() {
-		componentPathCache.clear();
 	}
 
 	@Override
@@ -1186,27 +1566,6 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	@Override
 	public int getExternalizeStringGTE() {
 		return cs.getExternalizeStringGTE();
-	}
-
-	@Override
-	public Log getLog(String name) {
-		try {
-			return getLog(name, true);
-		}
-		catch (PageException e) {
-			throw new PageRuntimeException(e);
-		}
-	}
-
-	@Override
-	public Log getLog(String name, boolean createIfNecessary) throws PageException {
-		Log log = logs.get(name);
-		if (log == null) {
-			LogAdapter tmp = (LogAdapter) cs.getLog(name, createIfNecessary);
-			if (tmp == null) return null;
-			logs.put(name, log = new LogReference(this, tmp));
-		}
-		return log;
 	}
 
 	@Override
@@ -1345,11 +1704,6 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public RHExtension[] getServerRHExtensions() {
-		return cs.getRHExtensions();
-	}
-
-	@Override
 	public Cluster createClusterScope() throws PageException {
 		return cs.createClusterScope();
 	}
@@ -1420,18 +1774,6 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public IdentificationWeb getIdentification() {
-		if (id == null) {
-			synchronized (SystemUtil.createToken("ConfigWebImpl", "getIdentification")) {
-				if (id == null) {
-					id = new SCCWIdentificationWeb(cs.getIdentification());
-				}
-			}
-		}
-		return id;
-	}
-
-	@Override
 	public IntervallMonitor getIntervallMonitor(String arg0) throws PageException {
 		return cs.getIntervallMonitor(arg0);
 	}
@@ -1492,59 +1834,19 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public AMFEngine getAMFEngine() {
-		return helper.getAMFEngine();
-	}
-
-	@Override
-	public ConfigServer getConfigServer(Password password) throws PageException {
-		cs.checkAccess(password);
-		return cs;
-	}
-
-	@Override
 	public Resource getConfigServerDir() {
 		return cs.getConfigDir();
 	}
 
-	@Override
-	public CFMLFactory getFactory() {
-		return factory;
-	}
-
-	@Override
-	public String getLabel() {
-		return helper.getLabel();
-	}
-
-	@Override
-	public LockManager getLockManager() {
-		return helper.getLockManager();
-	}
-
-	@Override
-	public SearchEngine getSearchEngine(PageContext pc) throws PageException {
-		return helper.getSearchEngine(pc);
-	}
-
-	@Override
-	public CFMLWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
-		return getCFMLWriter(pc, req, rsp);
-	}
-
-	@Override
-	public String getInitParameter(String name) {
-		return config.getInitParameter(name);
-	}
-
-	@Override
-	public Enumeration<String> getInitParameterNames() {
-		return config.getInitParameterNames();
-	}
-
-	@Override
-	public ServletContext getServletContext() {
-		return config.getServletContext();
+	/**
+	 * Gets virtual directory mappings for the current request from x-vdirs header.
+	 * Returns null if feature is disabled or no virtual directories in request.
+	 *
+	 * @param pc PageContext for current request
+	 * @return Array of virtual directory Mapping objects, or null
+	 */
+	public Mapping[] getVirtualDirectoryMappings( PageContext pc ) {
+		return virtualDirectoryManager != null ? virtualDirectoryManager.getVirtualDirectoryMappings( pc ) : null;
 	}
 
 	@Override
@@ -1553,64 +1855,18 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public String getServletName() {
-		return config.getServletName();
-	}
-
-	// FYI used by Extensions, do not remove
-	public Mapping getApplicationMapping(String virtual, String physical) {
-		return getApplicationMapping("application", virtual, physical, null, true, false);
+	public ConfigWebHelper.ResolvedMapping resolveApplicationMappingPath(Resource source, String rawPath) {
+		return helper.resolveApplicationMappingPath(source, rawPath);
 	}
 
 	@Override
-	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual) {
-		return getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual, true, true);
+	public void clearResolvedMappingPaths() {
+		helper.clearResolvedMappingPaths();
 	}
 
 	@Override
-	public GatewayEngine getGatewayEngine() throws PageException {
-		return helper.getGatewayEngineImpl(getGatewayEntries());
-	}
-
-	@Override
-	public WSHandler getWSHandler() throws PageException {
-		return helper.getWSHandler();
-	}
-
-	@Override
-	public CFMLCompilerImpl getCompiler() {
-		return helper.getCompiler();
-	}
-
-	@Override
-	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual,
-			boolean checkPhysicalFromWebroot, boolean checkArchiveFromWebroot) {
-		return helper.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual, checkPhysicalFromWebroot, checkArchiveFromWebroot);
-	}
-
-	@Override
-	public Mapping[] getApplicationMappings() {
-		return helper.getApplicationMappings();
-	}
-
-	@Override
-	public boolean isApplicationMapping(Mapping mapping) {
-		return helper.isApplicationMapping(mapping);
-	}
-
-	@Override
-	public CIPage getBaseComponentPage(PageContext pc) throws PageException {
-		return helper.getBaseComponentPage(pc);
-	}
-
-	@Override
-	public ComponentImpl getBaseComponentInstance(PageContext pc, ComponentPageImpl exclude, boolean executeConstr) throws PageException {
-		return helper.getBaseComponentInstance(pc, exclude, executeConstr);
-	}
-
-	@Override
-	public void resetBaseComponentPage() {
-		helper.resetBaseComponentPage();
+	public void revalidateNegativeMappingPaths() {
+		helper.revalidateNegativeMappingPaths();
 	}
 
 	@Override
@@ -1619,238 +1875,23 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public KeyLock<String> getContextLock() {
-		return helper.getContextLock();
-	}
-
-	@Override
-	public CacheHandlerCollection getCacheHandlerCollection(int type, CacheHandlerCollection defaultValue) {
-		return helper.getCacheHandlerCollection(type, defaultValue);
-
-	}
-
-	@Override
-	public void releaseCacheHandlers(PageContext pc) {
-		helper.releaseCacheHandlers(pc);
-	}
-
-	@Override
-	public DebuggerPool getDebuggerPool() {
-		return helper.getDebuggerPool();
-	}
-
-	@Override
-	public CFMLWriter getCFMLWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
-		return helper.getCFMLWriter(pc, req, rsp);
-	}
-
-	@Override
-	public TagHandlerPool getTagHandlerPool() {
-		return helper.getTagHandlerPool();
-	}
-
-	@Override
-	public String getHash() {
-		return SystemUtil.hash(getServletContext());
-	}
-
-	@Override
-	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException {
-		try {
-			PasswordImpl.updatePassword(cs, passwordOld, passwordNew);
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
-	}
-
-	@Override
-	public Password updatePasswordIfNecessary(boolean server, String passwordRaw) {
-		return PasswordImpl.updatePasswordIfNecessary(cs, cs.password, passwordRaw);
-	}
-
-	@Override
-	public void reset() {
-		helper.reset();
-	}
-
-	@Override
 	public void setPassword(Password pw) {
 		cs.setPassword(pw);
-	}
-
-	private static class SCCWIdentificationWeb implements IdentificationWeb, Serializable {
-
-		private static final long serialVersionUID = -9020697769127921035L;
-
-		private IdentificationServer id;
-
-		public SCCWIdentificationWeb(IdentificationServer id) {
-			this.id = id;
-		}
-
-		@Override
-		public String getApiKey() {
-			return id.getApiKey();
-		}
-
-		@Override
-		public String getId() {
-			return id.getId();
-		}
-
-		@Override
-		public String getSecurityKey() {
-			return id.getSecurityKey();
-		}
-
-		@Override
-		public String getSecurityToken() {
-			return id.getSecurityToken();
-		}
-
-		@Override
-		public String toQueryString() {
-			return id.toQueryString();
-		}
-
-		@Override
-		public IdentificationServer getServerIdentification() {
-			return id;
-		}
-	}
-
-	public void reload() {
-		synchronized (this) {
-			if (mappings != null) {
-				// MUST 7 is that needed?
-				ConfigFactoryImpl.flushPageSourcePool(mappings);
-				// resetMappings(false);// MUST 7 is that needed?
-			}
-		}
-	}
-
-	private Map<String, Mapping> existing = MapFactory.<String, Mapping>getConcurrentMap();
-
-	@Override
-	public Mapping[] getMappings() {
-		if (mappings == null) {
-			synchronized (SystemUtil.createToken("ConfigWebImpl", "getMappings")) {
-				if (mappings == null) {
-					Mapping[] serverMappings = cs.getMappings();
-					// Mapping
-					Map<String, Mapping> mappings = MapFactory.<String, Mapping>getConcurrentMap(serverMappings.length + 1);
-					boolean finished = false;
-					String str;
-					boolean cloneIt;
-					Mapping ex;
-					for (Mapping m: serverMappings) {
-						if ("/".equals(m.getVirtual())) finished = true;
-						cloneIt = false;
-						str = m.getStrPhysical();
-						if (str != null && str.indexOf('{') != -1) cloneIt = true;
-						if (!cloneIt) {
-							str = m.getStrArchive();
-							if (str != null && str.indexOf('{') != -1) cloneIt = true;
-						}
-						m = cloneIt ? ((MappingImpl) m).cloneReadOnly(this) : m;
-
-						ex = this.existing.get(m.getVirtualLowerCase());
-						if (ex != null && ex.equals(m)) {
-							mappings.put(ex.getVirtualLowerCase(), ex);
-						}
-						else {
-							mappings.put(m.getVirtualLowerCase(), m);
-							this.existing.put(m.getVirtualLowerCase(), m);
-						}
-					}
-					if (!finished) {
-						Mapping m;
-						if (ResourceUtil.isUNCPath(getRootDirectory().getPath())) {
-							m = new MappingImpl(this, "/", getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
-									ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
-						}
-						else {
-							m = new MappingImpl(this, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true,
-									true, true, true, false, false, null, -1, -1);
-						}
-
-						ex = this.existing.get("/");
-						if (ex != null && ex.equals(m)) {
-							mappings.put("/", ex);
-						}
-						else {
-							mappings.put("/", m);
-							this.existing.put(m.getVirtualLowerCase(), m);
-						}
-					}
-					this.mappings = ConfigUtil.sort(mappings.values().toArray(new Mapping[mappings.size()]));
-				}
-			}
-		}
-		return mappings;
-	}
-
-	@Override
-	public ConfigWebImpl resetMappings() {
-		if (mappings != null) {
-			synchronized (SystemUtil.createToken("ConfigWebImpl", "getMappings")) {
-				if (mappings != null) {
-					ConfigFactoryImpl.flushPageSourcePool(mappings);
-					mappings = null;
-					cs.resetMappings();
-				}
-			}
-		}
-		return this;
-	}
-
-	@Override
-	public lucee.runtime.rest.Mapping[] getRestMappings() {
-		if (restMappings == null) {
-			synchronized (SystemUtil.createToken("ConfigWebImpl", "getRestMappings")) {
-				if (restMappings == null) createRestMapping();
-			}
-		}
-		return restMappings;
-	}
-
-	@Override
-	public ConfigWebImpl resetRestMappings() {
-		if (restMappings != null) {
-			synchronized (SystemUtil.createToken("ConfigWebImpl", "getRestMappings")) {
-				if (restMappings != null) {
-					restMappings = null;
-					cs.resetRestMappings();
-				}
-			}
-		}
-		return this;
-	}
-
-	private void createRestMapping() {
-		Map<String, lucee.runtime.rest.Mapping> mappings = MapFactory.<String, lucee.runtime.rest.Mapping>getConcurrentMap();
-		lucee.runtime.rest.Mapping[] sm = cs.getRestMappings();
-		lucee.runtime.rest.Mapping tmp;
-		if (sm != null) {
-			for (int i = 0; i < sm.length; i++) {
-				try {
-					// if (!sm[i].isHidden()) {
-					tmp = sm[i].duplicate(this, Boolean.TRUE);
-					mappings.put(tmp.getVirtual(), tmp);
-					// }
-				}
-				catch (Exception e) {
-
-				}
-			}
-		}
-		this.restMappings = mappings.values().toArray(new lucee.runtime.rest.Mapping[mappings.size()]);
 	}
 
 	@Override
 	public void removeDatasourceConnectionPool(DataSource ds) {
 		cs.removeDatasourceConnectionPool(ds);
+	}
+
+	@Override
+	public void removeDatasourceConnectionPool(String name) {
+		cs.removeDatasourceConnectionPool(name);
+	}
+
+	@Override
+	public void cleanDatasourceConnectionPools() {
+		cs.cleanDatasourceConnectionPools();
 	}
 
 	@Override
@@ -1863,22 +1904,8 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 		return cs.getPreciseMath();
 	}
 
-	@Override
-	public ServletConfig getServletConfig() {
-		return config;
-	}
-
-	@Override
-	public void setLastModified() {
-		cs.setLastModified();
-	}
-
 	public Object[] getConsoleLayouts() throws PageException {
 		return cs.getConsoleLayouts();
-	}
-
-	public String getServerSalt() {
-		return cs.getSalt();
 	}
 
 	public int getDebugOptions() {
@@ -1909,16 +1936,8 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 		cs.clearComponentMetadata();
 	}
 
-	public void flushComponentPathCache() {
-		componentPathCache.flush();
-	}
-
 	public String createSecurityToken() {
 		return cs.createSecurityToken();
-	}
-
-	public Resource getServerConfigDir() {
-		return cs.getConfigDir();
 	}
 
 	public ComponentMetaData getComponentMetadata(String arg0) {
@@ -1941,8 +1960,8 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 		cs.createTag(arg0, arg1, arg2);
 	}
 
-	public CharSet getTemplateCharSet() {
-		return cs.getTemplateCharSet();
+	public CharsetX getTemplateCharsetX() {
+		return cs.getTemplateCharsetX();
 	}
 
 	public void flushCTPathCache() {
@@ -1976,12 +1995,6 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 
 	public Password getPassword() {
 		return cs.getPassword();
-	}
-
-	@Override
-	public void setIdentification(IdentificationWeb arg0) {
-		// ignore it, should not happen
-		LogUtil.log(Log.LEVEL_FATAL, "loading", "setting a web id for single context");
 	}
 
 	@Override
@@ -2085,13 +2098,83 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public String getId() {
-		if (_id == null) {
-			URL url = getFactory().getURL();
-			String tmp = HashUtil.create64BitHashAsString(url + ":" + Caster.toString(getRootDirectory().getAbsolutePath()), Character.MAX_RADIX);
-			if (url == null) return tmp;
-			_id = tmp;
+	public Repository[] getMavenRepository() {
+		return cs.getMavenRepository();
+	}
+
+	@Override
+	public Repository[] getMavenSnapshotRepository() {
+		return cs.getMavenSnapshotRepository();
+	}
+
+	@Override
+	public String getDapSecret() {
+		return cs.getDapSecret();
+	}
+
+	@Override
+	public boolean getDapBreakpoint() {
+		return cs.getDapBreakpoint();
+	}
+
+	@Override
+	public List<String> getExtensionProvidersGroupIds() {
+		return cs.getExtensionProvidersGroupIds();
+	}
+
+	@Override
+	public int getRequestTimeoutConcurrentRequestThreshold() {
+		return cs.getRequestTimeoutConcurrentRequestThreshold();
+	}
+
+	@Override
+	public float getRequestTimeoutCPUThreshold() {
+		return cs.getRequestTimeoutCPUThreshold();
+	}
+
+	@Override
+	public float getRequestTimeoutMemoryThreshold() {
+		return cs.getRequestTimeoutMemoryThreshold();
+	}
+
+	private static class SCCWIdentificationWeb implements IdentificationWeb, Serializable {
+
+		private static final long serialVersionUID = -9020697769127921035L;
+
+		private IdentificationServer id;
+
+		public SCCWIdentificationWeb(IdentificationServer id) {
+			this.id = id;
 		}
-		return _id;
+
+		@Override
+		public String getApiKey() {
+			return id.getApiKey();
+		}
+
+		@Override
+		public String getId() {
+			return id.getId();
+		}
+
+		@Override
+		public String getSecurityKey() {
+			return id.getSecurityKey();
+		}
+
+		@Override
+		public String getSecurityToken() {
+			return id.getSecurityToken();
+		}
+
+		@Override
+		public String toQueryString() {
+			return id.toQueryString();
+		}
+
+		@Override
+		public IdentificationServer getServerIdentification() {
+			return id;
+		}
 	}
 }

@@ -24,8 +24,8 @@ import java.util.Iterator;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.OpUtil;
@@ -36,7 +36,7 @@ import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.ref.Reference;
 import lucee.runtime.type.util.StructSupport;
 
-public final class SVStruct extends StructSupport implements Reference, Struct {
+public final class SVStruct extends StructSupport implements Reference, Struct, CastablePro {
 
 	private Collection.Key key;
 	private StructImpl parent = new StructImpl();
@@ -187,35 +187,45 @@ public final class SVStruct extends StructSupport implements Reference, Struct {
 
 	@Override
 	public String castToString() throws PageException {
-		return Caster.toString(get(key));
+		return castToString((PageContext) null);
 	}
 
 	@Override
 	public String castToString(String defaultValue) {
-		Object value = get(key, null);
+		return castToString((PageContext) null, defaultValue);
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws PageException {
+		return Caster.toString(pc, get(pc, key));
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		Object value = get(pc, key, null);
 		if (value == null) return defaultValue;
 
-		return Caster.toString(value, defaultValue);
+		return Caster.toString(pc, value, defaultValue);
 	}
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) dt);
+		return OpUtil.compare(null, (Date) castToDateTime(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
+		return OpUtil.compare(null, castToString(), str);
 	}
 
 	@Override

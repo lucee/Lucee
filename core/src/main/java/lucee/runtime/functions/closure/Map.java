@@ -31,6 +31,8 @@ import java.util.concurrent.Future;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.concurrency.Data;
+import lucee.runtime.concurrency.PageContextPool;
+import lucee.runtime.concurrency.ParallelUtil;
 import lucee.runtime.concurrency.UDFCaller2;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.FunctionException;
@@ -62,34 +64,36 @@ public final class Map extends BIF implements ClosureFunc {
 	private static final long serialVersionUID = -1435100019820996876L;
 
 	public static Object call(PageContext pc, Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false, Each.DEFAULT_MAX_THREAD, null, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, "false", 0, null, TYPE_UNDEFINED);
 	}
 
-	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, Each.DEFAULT_MAX_THREAD, null, TYPE_UNDEFINED);
+	public static Object call(PageContext pc, Object obj, UDF udf, String parallel) throws PageException {
+		return _call(pc, obj, udf, parallel, 0, null, TYPE_UNDEFINED);
 	}
 
-	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+	public static Object call(PageContext pc, Object obj, UDF udf, String parallel, Number maxThreads) throws PageException {
 		return _call(pc, obj, udf, parallel, Caster.toIntValue(maxThreads), null, TYPE_UNDEFINED);
 	}
 
-	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry, short type) throws PageException {
+	public static Object call(PageContext pc, Object obj, UDF udf, String parallel, int maxThreads, Query resQry, short type) throws PageException {
 		return _call(pc, obj, udf, parallel, maxThreads, resQry, type);
 	}
 
-	private static Collection _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry, short type) throws PageException {
+	private static Collection _call(PageContext pc, Object obj, UDF udf, String parallel, int maxThreads, Query resQry, short type) throws PageException {
 
 		Thread thread = null;
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;
-		// 0 or less == default
-		if (maxThreads < 1) maxThreads = Each.DEFAULT_MAX_THREAD;
-		// 1 == not parallel
-		else if (maxThreads == 1) parallel = false;
-		if (parallel) {
-			execute = ThreadUtil.createExecutorService(maxThreads);
+		short pm = ParallelUtil.toParallel(parallel);
+		// a concurrency of 1 means one at a time, i.e. not parallel
+		if (maxThreads == 1) pm = ParallelUtil.PARALLEL_NONE;
+		// platform threads need a concrete pool size; virtual threads stay unbounded when no limit is given
+		else if (pm == ParallelUtil.PARALLEL_THREAD && maxThreads < 1) maxThreads = Each.DEFAULT_MAX_THREAD;
+		if (pm != ParallelUtil.PARALLEL_NONE) {
+			execute = ThreadUtil.createExecutorService(maxThreads, pm == ParallelUtil.PARALLEL_VIRTUAL);
 			futures = new ArrayList<Future<Data<Object>>>();
 			thread = ((PageContextImpl) pc).getThread();
+			((PageContextImpl) pc).setParallelPool(new PageContextPool(pc));
 		}
 
 		Collection coll;
@@ -145,7 +149,7 @@ public final class Map extends BIF implements ClosureFunc {
 		}
 		else throw new FunctionException(pc, "Map", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
 
-		if (parallel) afterCall(pc, coll, futures, execute, thread);
+		if (execute != null) afterCall(pc, coll, futures, execute, thread);
 
 		return coll;
 	}
@@ -158,7 +162,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), es, futures);
@@ -173,7 +177,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), es, futures);
@@ -189,7 +193,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Object res, v;
 		int index;
 		ArgumentIntKey k;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			index = it.nextIndex();
 			k = ArgumentIntKey.init(index);
@@ -206,7 +210,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue(), sct }, e.getKey(), es, futures);
@@ -216,15 +220,13 @@ public final class Map extends BIF implements ClosureFunc {
 	}
 
 	private static Query invoke(PageContext pc, Query qry, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures, Query template) throws PageException {
-		Key[] colNames = qry.getColumnNames();
-
 		QueryImpl rtn;
 
 		if (template == null) {
-			rtn = new QueryImpl(colNames, 0, qry.getName());
+			rtn = QueryImpl.newInstanceWithSameColumns(qry, 0, qry.getName());
 		}
 		else {
-			rtn = new QueryImpl(template.getColumnNames(), 0, template.getName());
+			rtn = QueryImpl.newInstanceWithSameColumns(template, 0, template.getName());
 			/*
 			 * // check if we have the necessary columns for(Key colName:colNames) {
 			 * if(rtn.getColumn(colName,null)==null) { rtn.addColumn(colName,new ArrayImpl()); } }
@@ -235,7 +237,7 @@ public final class Map extends BIF implements ClosureFunc {
 		int rowNbr;
 		Object row, res;
 
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		boolean async = es != null;
 		while (it.hasNext()) {
 			row = it.next();
@@ -265,7 +267,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey(), e.getValue(), map }, e.getKey(), es, futures);
@@ -283,7 +285,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue() }, e.getKey(), es, futures);
@@ -300,7 +302,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Object res;
 		int count = 0;
 		ArgumentIntKey k;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			v = it.next();
 			k = ArgumentIntKey.init(++count);
@@ -318,7 +320,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Object res;
 		int count = 0;
 		ArgumentIntKey k;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (e.hasMoreElements()) {
 			v = e.nextElement();
 			k = ArgumentIntKey.init(++count);
@@ -339,30 +341,33 @@ public final class Map extends BIF implements ClosureFunc {
 
 	public static void afterCall(PageContext pc, Collection coll, List<Future<Data<Object>>> futures, ExecutorService es, Thread thread) throws PageException {
 		boolean isQuery = coll instanceof Query;
+		Exception first = null;
 		try {
 			Iterator<Future<Data<Object>>> it = futures.iterator();
 			Data<Object> d;
 			while (it.hasNext()) {
-				d = it.next().get();
-				if (isQuery) addRow(Caster.toStruct(d.result), (Query) coll);
-				else coll.set(KeyImpl.toKey(d.passed), d.result);
-				pc.write(d.output);
+				try {
+					d = it.next().get();
+					if (isQuery) addRow(Caster.toStruct(d.result), (Query) coll);
+					else coll.set(KeyImpl.toKey(d.passed), d.result);
+					pc.write(d.output);
+				}
+				catch (Exception e) {
+					if (first == null) first = e;
+				}
 			}
 		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
 		finally {
-			((PageContextImpl) pc).setThread(thread);
-			if (es != null) es.shutdown();
+			Each.finishParallelCall(pc, es, thread);
 		}
+		if (first != null) throw Caster.toPageException(first);
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, (args[0]), Caster.toFunction(args[1]));
-		if (args.length == 3) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]));
-		if (args.length == 4) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toNumber(pc, args[3]));
+		if (args.length == 3) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toNumber(pc, args[3]));
 
 		throw new FunctionException(pc, "Map", 2, 4, args.length);
 	}

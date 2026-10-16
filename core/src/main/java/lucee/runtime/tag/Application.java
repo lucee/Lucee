@@ -29,9 +29,10 @@ import jakarta.servlet.jsp.tagext.DynamicAttributes;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.CharSet;
+import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
@@ -93,6 +94,8 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private TimeSpan applicationTimeout;
 	private TimeSpan sessionTimeout;
 	private TimeSpan clientTimeout;
+	private TimeSpan sessionCommitInterval;
+	private TimeSpan clientCommitInterval;
 	private TimeSpan requestTimeout;
 	private Mapping[] mappings;
 	private Mapping[] customTagMappings;
@@ -121,8 +124,8 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private int queryVarUsage;
 	private TimeSpan queryCachedAfter;
 
-	private CharSet webCharset;
-	private CharSet resourceCharset;
+	private CharsetX webCharset;
+	private CharsetX resourceCharset;
 	private short sessionType = -1;
 	private short wsType = -1;
 	private Boolean sessionCluster;
@@ -193,6 +196,8 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		setClientManagement = null;
 		sessionTimeout = null;
 		clientTimeout = null;
+		sessionCommitInterval = null;
+		clientCommitInterval = null;
 		requestTimeout = null;
 		applicationTimeout = null;
 		mappings = null;
@@ -439,13 +444,13 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 	public void setWebcharset(String charset) {
 		if (StringUtil.isEmpty(charset)) return;
-		webCharset = CharsetUtil.toCharSet(charset);
+		webCharset = CharsetUtil.toCharsetX(charset);
 
 	}
 
 	public void setResourcecharset(String charset) {
 		if (StringUtil.isEmpty(charset)) return;
-		resourceCharset = CharsetUtil.toCharSet(charset);
+		resourceCharset = CharsetUtil.toCharsetX(charset);
 
 	}
 
@@ -506,6 +511,14 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 	public void setClienttimeout(TimeSpan clientTimeout) {
 		this.clientTimeout = clientTimeout;
+	}
+
+	public void setSessioncommitinterval(TimeSpan sessionCommitInterval) {
+		this.sessionCommitInterval = sessionCommitInterval;
+	}
+
+	public void setClientcommitinterval(TimeSpan clientCommitInterval) {
+		this.clientCommitInterval = clientCommitInterval;
 	}
 
 	public void setRequesttimeout(TimeSpan requestTimeout) {
@@ -840,6 +853,11 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (applicationTimeout != null) ac.setApplicationTimeout(applicationTimeout);
 		if (sessionTimeout != null) ac.setSessionTimeout(sessionTimeout);
 		if (clientTimeout != null) ac.setClientTimeout(clientTimeout);
+		if (ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs = (ApplicationContextSupport) ac;
+			if (sessionCommitInterval != null) acs.setSessionCommitInterval(sessionCommitInterval);
+			if (clientCommitInterval != null) acs.setClientCommitInterval(clientCommitInterval);
+		}
 		if (requestTimeout != null) ac.setRequestTimeout(requestTimeout);
 		if (clientstorage != null) {
 			ac.setClientstorage(clientstorage);
@@ -969,7 +987,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (clientCluster != null) ac.setClientCluster(clientCluster.booleanValue());
 		if (sessionCluster != null) ac.setSessionCluster(sessionCluster.booleanValue());
 		if (cgiReadOnly != null) ac.setCGIScopeReadonly(cgiReadOnly.booleanValue());
-		if (preciseMath != null) ac.setPreciseMath(preciseMath.booleanValue());
+		if (preciseMath != null) {
+			ac.setPreciseMath(preciseMath.booleanValue());
+			if (pageContext instanceof PageContextImpl) ((PageContextImpl) pageContext).resetPreciseMath();
+		}
 		if (returnFormat != null) ac.setReturnFormat(returnFormat.intValue());
 		if (s3 != null) ac.setS3(AppListenerUtil.toS3(s3));
 		if (ftp != null) ac.setFTP(AppListenerUtil.toFTP(ftp));
@@ -985,7 +1006,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (ac instanceof ApplicationContextSupport) {
 			ApplicationContextSupport appContextSup = ((ApplicationContextSupport) ac);
 
-			if (javaSettings != null) appContextSup.setJavaSettings(JavaSettingsImpl.getInstance(pageContext.getConfig(), javaSettings, null));
+			if (javaSettings != null) appContextSup.setJavaSettings(JavaSettingsImpl.getInstance(ThreadLocalPageContext.getConfigServer(pageContext), javaSettings, null));
 			if (xmlFeatures != null) appContextSup.setXmlFeatures(xmlFeatures);
 			if (searchQueries != null) appContextSup.setAllowImplicidQueryCall(searchQueries.booleanValue());
 			if (regex != null) appContextSup.setRegex(regex);

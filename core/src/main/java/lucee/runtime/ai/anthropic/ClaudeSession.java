@@ -1,8 +1,12 @@
 package lucee.runtime.ai.anthropic;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -14,7 +18,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
@@ -36,6 +39,7 @@ import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -108,6 +112,20 @@ public final class ClaudeSession extends AISessionSupport {
 		}
 
 		requestBody.set("messages", messages);
+
+		// custom
+		if (engine.custom != null && !engine.custom.isEmpty()) {
+			Iterator<Entry<Key, Object>> it = engine.custom.entryIterator();
+			Entry<Key, Object> e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (!requestBody.containsKey(e.getKey())) {
+					requestBody.set(e.getKey(), e.getValue());
+					LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "add custom value [" + e.getKey() + "]", "ai", "application");
+				}
+			}
+		}
+
 		return requestBody;
 	}
 
@@ -173,9 +191,16 @@ public final class ClaudeSession extends AISessionSupport {
 		post.setHeader("x-api-key", engine.getApiKey());
 		post.setHeader("anthropic-version", engine.getVersion());
 
+		// custom headers
+		if (engine.headers != null) {
+			for (Entry<String, String> e: engine.headers.entrySet()) {
+				post.setHeader(e.getKey(), e.getValue());
+			}
+		}
+
 		// Convert request body to JSON
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
-		String str = json.serialize(null, requestBody, SerializationSettings.SERIALIZE_AS_COLUMN, null);
+		JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, false);
+		String str = json.serialize(null, requestBody, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
 
 		LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "request message send by [" + engine.getLabel() + "]: " + str, "ai", "application");
 

@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -18,61 +19,20 @@ import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.SerializableObject;
-import lucee.commons.lang.StringUtil;
-import lucee.commons.net.http.HTTPDownloader;
+import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.tree.TreeNode;
+import lucee.runtime.config.maven.MavenUpdateProvider;
+import lucee.runtime.config.maven.MavenUpdateProvider.Repository;
+import lucee.runtime.config.maven.Version;
 import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.op.Caster;
 import lucee.runtime.thread.ThreadUtil;
-import lucee.runtime.type.util.ListUtil;
 
 public final class POM {
-
-	public static final List<Repository> REPOSITORIES = new ArrayList<>();
-
-	public static final Repository REPOSITORY_MAVEN_CENTRAL = new Repository("maven-central", "Maven Central", "https://repo1.maven.org/maven2/");
-	public static final Repository REPOSITORY_SONATYPE = new Repository("sonatype", "Sonatype", "https://oss.sonatype.org/content/repositories/releases/");
-	public static final Repository REPOSITORY_JCENTER = new Repository("jcenter", "JCenter", "https://jcenter.bintray.com/");
-
-	// only google specific stuff
-	public static final Repository REPOSITORY_GOOGLE = new Repository("google", "Google Maven", "https://maven.google.com/");
-	// only apache specific stuff
-	public static final Repository REPOSITORY_APACHE = new Repository("apache", "Apache Repository", "https://repository.apache.org/content/repositories/releases/");
-	// only spring specific stuff
-	public static final Repository REPOSITORY_SPRING = new Repository("spring", "Spring Repository", "https://repo.spring.io/release/");
-	// currently not supported
-	// public static final Repository REPOSITORY_ALIYUN = new Repository("aliyun", "Aliyun Maven
-	// Mirror", "https://maven.aliyun.com/repository/public");
-
-	// public static final Repository DEFAULT_REPOSITORY;
-
-	static {
-		String strRep = SystemUtil.getSystemPropOrEnvVar("lucee.maven.default.repositories", null);
-		if (!StringUtil.isEmpty(strRep, true)) {
-
-			for (String strURL: ListUtil.listToStringArray(strRep, ',')) {
-
-				if (!StringUtil.isEmpty(strURL, true)) {
-					strURL = strURL.trim();
-					REPOSITORIES.add(new Repository(strURL));
-				}
-			}
-		}
-
-		REPOSITORIES.add(REPOSITORY_MAVEN_CENTRAL);
-		REPOSITORIES.add(REPOSITORY_SONATYPE);
-		// REPOSITORIES.add(REPOSITORY_JCENTER);
-		// REPOSITORIES.add(REPOSITORY_APACHE);
-		// REPOSITORIES.add(REPOSITORY_GOOGLE);
-		// REPOSITORIES.add(REPOSITORY_SPRING);
-		// REPOSITORIES.add(REPOSITORY_ALIYUN);
-
-		// set default repository
-
-	}
 
 	public static final int CONNECTION_TIMEOUT = 5000;
 	public static final int READ_TIMEOUT_HEAD = 5000;
@@ -95,6 +55,8 @@ public final class POM {
 	private final String groupId;
 	private final String artifactId;
 	private final String version;
+	private final String classifier;
+	private final String extension;
 	private final String scope;
 	private final String optional;
 	private final int dependencyScope;
@@ -114,7 +76,7 @@ public final class POM {
 	private boolean isInitDependencies = false;
 	private boolean isInitDependencyManagement = false;
 	private boolean isInitXML = false;
-	public static final Map<String, POM> cache = new HashMap<>();
+	public static final Map<String, POM> cache = new ConcurrentHashMap<>();
 
 	private String packaging;
 	private String name;
@@ -133,6 +95,18 @@ public final class POM {
 		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, null, SCOPES_FOR_RUNTIME, SCOPES_FOR_MANAGEMENT, true, log);
 	}
 
+	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, String classifier, int dependencyScope, Log log) {
+		return getInstance(localDirectory, groupId, artifactId, version, classifier, null, dependencyScope, log);
+	}
+
+	/**
+	 * @param extension overrides the artifact extension that is otherwise taken from the packaging of
+	 *            the POM, null for default
+	 */
+	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, String classifier, String extension, int dependencyScope, Log log) {
+		return getInstance(localDirectory, null, groupId, artifactId, version, classifier, extension, null, null, null, dependencyScope, SCOPES_FOR_MANAGEMENT, true, log);
+	}
+
 	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, int dependencyScope, Log log) {
 		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, null, dependencyScope, SCOPES_FOR_MANAGEMENT, true, log);
 	}
@@ -144,50 +118,68 @@ public final class POM {
 
 	static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String scope, String optional,
 			String checksum, int dependencyScope, int dependencyScopeManagement, boolean triggeerLoad, Log log) {
+		return getInstance(localDirectory, repositories, groupId, artifactId, version, null, null, scope, optional, checksum, dependencyScope, dependencyScopeManagement,
+				triggeerLoad, log);
+	}
+
+	static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String classifier, String extension,
+			String scope, String optional, String checksum, int dependencyScope, int dependencyScopeManagement, boolean triggeerLoad, Log log) {
 		triggeerLoad = false;
-		String id = toId(localDirectory, groupId, artifactId, version, scope, optional, dependencyScope, dependencyScopeManagement);
-		POM pom = cache.get(id);
-		if (pom != null) {
-			return pom;
-		}
-
-		pom = new POM(localDirectory, repositories, groupId, artifactId, version, scope, optional, checksum, dependencyScope, dependencyScopeManagement, triggeerLoad, log);
-		cache.put(id, pom);
-		return pom;
+		String id = toId(localDirectory, groupId, artifactId, version, classifier, extension, scope, optional, dependencyScope, dependencyScopeManagement);
+		final boolean load = triggeerLoad;
+		return cache.computeIfAbsent(id, k -> new POM(localDirectory, repositories, groupId, artifactId, version, classifier, extension, scope, optional, checksum, dependencyScope,
+				dependencyScopeManagement, load, log));
 	}
 
-	private static String toId(Resource localDirectory, String groupId, String artifactId, String version, String scope, String optional, int dependencyScope,
-			int dependencyScopeManagement) {
-		// TODO Auto-generated method stub
-		return localDirectory + ":" + groupId + ":" + artifactId + ":" + version + ":" + scope + ":" + optional + ":" + dependencyScope + ":" + dependencyScopeManagement;
+	private static String toId(Resource localDirectory, String groupId, String artifactId, String version, String classifier, String extension, String scope, String optional,
+			int dependencyScope, int dependencyScopeManagement) {
+		return localDirectory + ":" + groupId + ":" + artifactId + ":" + version + (StringUtil.isEmpty(classifier, true) ? "" : ":" + classifier.trim())
+				+ (StringUtil.isEmpty(extension, true) ? "" : "@" + extension.trim()) + ":" + scope + ":" + optional + ":" + dependencyScope + ":" + dependencyScopeManagement;
 	}
 
-	private POM(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String scope, String optional, String checksum,
-			int dependencyScope, int dependencyScopeManagement, boolean triggeerLoad, Log log) {
+	private POM(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String classifier, String extension, String scope,
+			String optional, String checksum, int dependencyScope, int dependencyScopeManagement, boolean triggeerLoad, Log list) {
 
 		if (groupId == null) throw new IllegalArgumentException("groupId cannot be null");
 		if (artifactId == null) throw new IllegalArgumentException("artifactId cannot be null");
-		if (version == null) throw new IllegalArgumentException("version cannot be null");
+
+		// treat a blank version the same as null, so the latest release is resolved below
+		if (version != null && version.trim().isEmpty()) version = null;
+
+		if (repositories == null) {
+			// only include snapshot repos when we actually need a snapshot
+			boolean needsSnapshots = version != null && version.toUpperCase().contains("SNAPSHOT");
+			this.initRepositories = needsSnapshots ? MavenUpdateProvider.getRepositories(null)
+					: MavenUpdateProvider.getReleaseRepositories(null);
+		}
+		else this.initRepositories = repositories;
+
+		if (version == null) {
+			try {
+				Version v = MavenUpdateProvider.last(initRepositories, groupId, artifactId, MavenUpdateProvider.TYPE_RELEASE);
+				version = v.toString();
+			}
+			catch (Exception e) {
+				IllegalArgumentException iae = new IllegalArgumentException(
+						"version cannot be null for [" + groupId + ":" + artifactId + "] " + "and fetching the latest release version also failed: " + e.getMessage());
+				ExceptionUtil.initCauseEL(iae, e);
+				throw iae;
+			}
+		}
 
 		this.localDirectory = localDirectory;
 		this.checksum = checksum;
-		if (repositories == null) {
-			this.initRepositories = new ArrayList<>();
-			for (Repository r: REPOSITORIES) {
-				this.initRepositories.add(r);
-			}
-		}
-		else this.initRepositories = repositories;
 		this.groupId = groupId.trim();
 		this.artifactId = artifactId.trim();
 		this.version = version == null ? null : version.trim();
+		this.classifier = StringUtil.isEmpty(classifier, true) ? null : classifier.trim();
+		this.extension = StringUtil.isEmpty(extension, true) ? null : extension.trim().toLowerCase();
 		this.scope = scope == null ? null : scope.trim();
 		this.optional = optional == null ? null : optional.trim();
 		this.dependencyScopeManagement = dependencyScopeManagement;
 		this.dependencyScope = dependencyScope;
 		this.log = log;
 		if (triggeerLoad) initXMLAsync();
-		cache.put(id(), this);
 
 	}
 
@@ -197,8 +189,7 @@ public final class POM {
 				try {
 					initXML();
 				}
-				catch (IOException e) {
-				}
+				catch (IOException e) {}
 			}
 		}, true).start();
 	}
@@ -223,6 +214,10 @@ public final class POM {
 					if (artifactExtension == null || "bundle".equalsIgnoreCase(artifactExtension)) {
 						custom = false;
 						this.artifactExtension = "jar";
+					}
+					if (extension != null) {
+						this.artifactExtension = extension;
+						custom = false;
 					}
 
 					this.name = reader.getName();
@@ -327,6 +322,13 @@ public final class POM {
 
 	public String getVersion() {
 		return version;
+	}
+
+	/**
+	 * @return the classifier of the artifact or null; the POM itself never has a classifier
+	 */
+	public String getClassifier() {
+		return classifier;
 	}
 
 	public String getPackaging() throws IOException {
@@ -466,7 +468,8 @@ public final class POM {
 	}
 
 	public String id() {
-		return groupId + ":" + artifactId + ":" + version;
+		String id = classifier == null ? groupId + ":" + artifactId + ":" + version : groupId + ":" + artifactId + ":" + version + ":" + classifier;
+		return extension == null ? id : id + "@" + extension;
 	}
 
 	public boolean isOptional() {
@@ -478,13 +481,42 @@ public final class POM {
 	}
 
 	Resource local(Resource dir, String extension) {
-		return local(dir, groupId, artifactId, version, extension);
+		return local(dir, groupId, artifactId, version, "pom".equalsIgnoreCase(extension) ? null : classifier, extension);
 	}
 
 	public static Resource local(Resource dir, String groupId, String artifactId, String version, String extension) {
-		Resource parent = dir.getRealResource(groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/");
+		return local(dir, groupId, artifactId, version, null, extension);
+	}
+
+	public static Resource local(Resource dir, String groupId, String artifactId, String version, String classifier, String extension) {
+		Resource parent = localDir(dir, groupId, artifactId, version);
 		if (!parent.isDirectory()) parent.mkdirs();
-		return parent.getRealResource(artifactId + "-" + version + "." + extension);
+		return parent.getRealResource(toFileName(artifactId, version, classifier, extension));
+	}
+
+	/**
+	 * artifactId-version[-classifier].extension
+	 */
+	public static String toFileName(String artifactId, String version, String classifier, String extension) {
+		return artifactId + "-" + version + (StringUtil.isEmpty(classifier, true) ? "" : "-" + classifier.trim()) + "." + extension;
+	}
+
+	/**
+	 * path of the artifact relative to the repository root, the POM never has a classifier
+	 */
+	public String toScriptName(String extension) {
+		return groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/"
+				+ toFileName(artifactId, version, "pom".equalsIgnoreCase(extension) ? null : classifier, extension);
+	}
+
+	/** Pure path resolution for the {@code {mvnDir}/{group}/{artifact}/{version}/} directory. No side effects. */
+	public static Resource localDir(Resource dir, String groupId, String artifactId, String version) {
+		return dir.getRealResource(groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/");
+	}
+
+	/** Pure path resolution for the {@code {mvnDir}/{group}/{artifact}/} directory. No side effects. */
+	public static Resource localArtifactDir(Resource dir, String groupId, String artifactId) {
+		return dir.getRealResource(groupId.replace('.', '/') + "/" + artifactId);
 	}
 
 	public URL getArtifactAsURL(String type, Collection<Repository> repositories, boolean validate) throws IOException {
@@ -493,7 +525,7 @@ public final class POM {
 		Repository[] repos = MavenUtil.sort(repositories);
 
 		StringBuilder sb = null;
-		String scriptName = groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/" + artifactId + "-" + version + "." + type;
+		String scriptName = toScriptName(type);
 
 		// without validation, we simply use the first repo from the array
 		if (!validate) {
@@ -507,7 +539,7 @@ public final class POM {
 			try {
 				url = new URL(r.getUrl() + scriptName);
 
-				if (HTTPDownloader.exists(url, CONNECTION_TIMEOUT, READ_TIMEOUT_HEAD)) {
+				if (HTTPEngine.exists(url, CONNECTION_TIMEOUT, READ_TIMEOUT_HEAD, true)) {
 					return url;
 				}
 
@@ -595,7 +627,8 @@ public final class POM {
 		try {
 			List<POM> deps = pom.getDependencies();
 			if (deps != null && deps.size() > 0) {
-				executor = ThreadUtil.createExecutorService(deps.size(), false);
+				// LDEV-6320: single-threaded to avoid triggering 429 from Maven Central
+				executor = ThreadUtil.createExecutorService(1, false);
 				List<Future<Pair<IOException, POM>>> futures = new ArrayList<>();
 				for (POM p: deps) {
 

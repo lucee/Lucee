@@ -21,36 +21,46 @@ package lucee.runtime.config;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.type.Null;
 
 public final class NullSupportHelper {
 
-	public static boolean full(PageContext pc) {
+	public final static boolean full(PageContext pc) {
 
 		if (pc == null) {
+			// we know
+			if (!ModernApplicationContext.hasCustomNullSupportSetting) {
+				return false;
+			}
+
 			pc = ThreadLocalPageContext.get();
 			if (pc == null) return false;
 		}
 		return ((PageContextImpl) pc).getFullNullSupport();
 	}
 
-	public static boolean full() {
-		return full(ThreadLocalPageContext.get());
+	public final static boolean full() {
+		return full((PageContext) null);
 	}
 
-	public static Object NULL(boolean fns) {
+	public final static boolean isNull(PageContext pc, Object val) {
+		return val == Null.NULL || (val == null && !full(pc));
+	}
+
+	public final static boolean isNull(Object val) {
+		return val == Null.NULL || (val == null && !full());
+	}
+
+	public final static Object NULL(boolean fns) {
 		return fns ? Null.NULL : null;
 	}
 
-	public static Object NULL(PageContext pc) {
+	public final static Object NULL(PageContext pc) {
 		return full(pc) ? Null.NULL : null;
 	}
 
-	public static Object NULL() {
-		return full() ? Null.NULL : null;
-	}
-
-	public static Object empty(PageContext pc) {
+	public final static Object empty(PageContext pc) {
 		return full(pc) ? null : "";
 	}
 }

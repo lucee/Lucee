@@ -1,5 +1,7 @@
 package lucee.runtime.mvn;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -19,6 +21,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -28,7 +31,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import lucee.commons.digest.Hash;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -44,6 +46,11 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.config.maven.MavenUpdateProvider;
+import lucee.runtime.config.maven.MavenUpdateProvider.Repository;
+import lucee.runtime.config.maven.RepoReader;
+import lucee.runtime.config.maven.Version;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.op.Caster;
@@ -147,11 +154,15 @@ public final class MavenUtil {
 			for (POMReader.Repository rep: rawRepositories) {
 				Repository r = new Repository(
 
-						resolvePlaceholders(current, rep.id, properties),
-
 						resolvePlaceholders(current, rep.name, properties),
 
-						resolvePlaceholders(current, rep.url, properties)
+						resolvePlaceholders(current, rep.url, properties),
+
+						MavenUpdateProvider.TYPE_ALL,
+
+						Repository.TIMEOUT_1HOUR,
+
+						Repository.TIMEOUT_NEVER
 
 				);
 				repositories.put(r.getUrl(), r);
@@ -220,7 +231,8 @@ public final class MavenUtil {
 				// v = resolvePlaceholders(pdm, v, pdm.getProperties());
 			}
 			if (v == null) {
-				throw new IOException("could not find version for dependency [" + g + ":" + a + "] in [" + current + "]");
+				throw new IOException("No version defined for dependency [" + g + ":" + a + "] in POM [" + current + "]. "
+						+ "Specify a version directly or ensure it is declared in <dependencyManagement>.");
 			}
 		}
 
@@ -235,40 +247,72 @@ public final class MavenUtil {
 			o = resolvePlaceholders(current, o, properties);
 		}
 
-		return POM.getInstance(localDirectory, current.getRepositories(), g, a, v, s, o, null, current.getDependencyScope(), current.getDependencyScopeManagement(), false, log);
+		String classifier = rd.classifier;
+		if (classifier != null) {
+			classifier = resolvePlaceholders(current, classifier, properties);
+		}
+
+		// type: test-jar is the jar with the classifier "tests", pom/zip/... have an extension of their own
+		String extension = null;
+		String type = rd.type == null ? null : resolvePlaceholders(current, rd.type, properties);
+		if (!StringUtil.isEmpty(type, true)) {
+			type = type.trim().toLowerCase();
+			if ("test-jar".equals(type)) {
+				if (StringUtil.isEmpty(classifier, true)) classifier = "tests";
+			}
+			else if ("javadoc".equals(type)) {
+				if (StringUtil.isEmpty(classifier, true)) classifier = "javadoc";
+			}
+			else if ("java-source".equals(type)) {
+				if (StringUtil.isEmpty(classifier, true)) classifier = "sources";
+			}
+			else if (!"jar".equals(type) && !"bundle".equals(type) && !"maven-plugin".equals(type) && !"ejb".equals(type) && !"ejb-client".equals(type)) {
+				extension = type;
+			}
+		}
+
+		return POM.getInstance(localDirectory, current.getRepositories(), g, a, v, classifier, extension, s, o, null, current.getDependencyScope(),
+				current.getDependencyScopeManagement(), false, log);
 	}
 
-	public static class GAVSO implements Serializable {
+	public static class MavenCoordinate implements Serializable {
 
 		public static int ORIGIN_DEPENDENCY = 1;
 
-		public final String g;// groupId
-		public final String a;// artifactId
-		public final String v;// version
-		public final String s;// scope
-		public final String o;// optional
-		public final String c;// checksum
+		public final String groupId;// groupId
+		public final String artifactId;// artifactId
+		public final String version;// version
+		public final String classifier;
+		public final String extension;// packaging, null when implied by the context
+		public final String scope;// scope
+		public final String optional;// optional
+		public final String checksum;
 		private int d;// dependency
 
-		public GAVSO(String g, String a, String v) {
-			this.g = g;
-			this.a = a;
-			this.v = v;
-			this.s = null;
-			this.o = null;
-			this.c = null;
+		public MavenCoordinate(String groupId, String artifactId, String version) {
+			this(groupId, artifactId, version, null, null, null, null, null);
 		}
 
-		public GAVSO(String g, String a, String v, String s, String o, String c) {
-			this.g = g;
-			this.a = a;
-			this.v = v;
-			this.s = s;
-			this.o = o;
-			this.c = c;
+		public MavenCoordinate(String groupId, String artifactId, String version, String classifier) {
+			this(groupId, artifactId, version, classifier, null, null, null, null);
 		}
 
-		public GAVSO setDependency(int d) {
+		public MavenCoordinate(String groupId, String artifactId, String version, String scope, String optional, String checksum) {
+			this(groupId, artifactId, version, null, null, scope, optional, checksum);
+		}
+
+		public MavenCoordinate(String groupId, String artifactId, String version, String classifier, String extension, String scope, String optional, String checksum) {
+			this.groupId = groupId;
+			this.artifactId = artifactId;
+			this.version = version;
+			this.classifier = StringUtil.isEmpty(classifier, true) ? null : classifier.trim();
+			this.extension = StringUtil.isEmpty(extension, true) ? null : extension.trim();
+			this.scope = scope;
+			this.optional = optional;
+			this.checksum = checksum;
+		}
+
+		public MavenCoordinate setDependency(int d) {
 			this.d = d;
 			return this;
 		}
@@ -277,60 +321,64 @@ public final class MavenUtil {
 			return d;
 		}
 
+		/**
+		 * Gradle style: g:a:v[:classifier][@extension]
+		 */
 		@Override
 		public String toString() {
+			StringBuilder sb = new StringBuilder(toGAVC());
+			if (extension != null) sb.append('@').append(extension);
+			return sb.toString();
+		}
+
+		/**
+		 * g:a:v, the classifier is not part of it (a classified artifact shares the POM of the main
+		 * artifact)
+		 */
+		public String toGAV() {
 			StringBuilder sb = new StringBuilder();
 
-			if (!StringUtil.isEmpty(g, true)) sb.append(g);
-			if (!StringUtil.isEmpty(a, true)) {
+			if (!StringUtil.isEmpty(groupId, true)) sb.append(groupId);
+			if (!StringUtil.isEmpty(artifactId, true)) {
 				if (sb.length() > 0) sb.append(':');
-				sb.append(a);
+				sb.append(artifactId);
 			}
-			if (!StringUtil.isEmpty(v, true)) {
+			if (!StringUtil.isEmpty(version, true)) {
 				if (sb.length() > 0) sb.append(':');
-				sb.append(v);
-			}
-			if (!StringUtil.isEmpty(s, true)) {
-				if (sb.length() > 0) sb.append(':');
-				sb.append(s);
-			}
-			if (!StringUtil.isEmpty(o, true)) {
-				if (sb.length() > 0) sb.append(':');
-				sb.append(o);
+				sb.append(version);
 			}
 			return sb.toString();
 		}
 
-		private String toGAV() {
-			StringBuilder sb = new StringBuilder();
-
-			if (!StringUtil.isEmpty(g, true)) sb.append(g);
-			if (!StringUtil.isEmpty(a, true)) {
-				if (sb.length() > 0) sb.append(':');
-				sb.append(a);
-			}
-			if (!StringUtil.isEmpty(v, true)) {
-				if (sb.length() > 0) sb.append(':');
-				sb.append(v);
-			}
-			return sb.toString();
+		/**
+		 * g:a:v[:classifier]
+		 */
+		public String toGAVC() {
+			String gav = toGAV();
+			if (classifier == null) return gav;
+			return gav + ":" + classifier;
 		}
 
 		private String toGA() {
 			StringBuilder sb = new StringBuilder();
 
-			if (!StringUtil.isEmpty(g, true)) sb.append(g);
-			if (!StringUtil.isEmpty(a, true)) {
+			if (!StringUtil.isEmpty(groupId, true)) sb.append(groupId);
+			if (!StringUtil.isEmpty(artifactId, true)) {
 				if (sb.length() > 0) sb.append(':');
-				sb.append(a);
+				sb.append(artifactId);
 			}
 			return sb.toString();
 		}
 
 		@Override
 		public boolean equals(Object other) {
-			if (!(other instanceof GAVSO)) return false;
-			return toGAV().equals(((GAVSO) other).toGAV());
+			if (!(other instanceof MavenCoordinate)) return false;
+			return toGAVC().equals(((MavenCoordinate) other).toGAVC());
+		}
+
+		@Override
+		public int hashCode() {
+			return toGAVC().hashCode();
 		}
 
 		/**
@@ -339,29 +387,40 @@ public final class MavenUtil {
 		 * @param other
 		 * @return
 		 */
-		public boolean same(GAVSO other) {
+		public boolean same(MavenCoordinate other) {
 			return toGA().equals(other.toGA());
 		}
 
 		public Struct populate(Struct sct) {
-			if (!StringUtil.isEmpty(g, true)) sct.setEL(KeyConstants._groupId, g);
-			if (!StringUtil.isEmpty(a, true)) sct.setEL(KeyConstants._artifactId, a);
-			if (!StringUtil.isEmpty(v, true)) sct.setEL(KeyConstants._version, v);
-			if (!StringUtil.isEmpty(s, true)) sct.setEL(KeyConstants._scope, s);
-			if (!StringUtil.isEmpty(o, true)) sct.setEL(KeyConstants._optional, o);
-			if (!StringUtil.isEmpty(c, true)) sct.setEL(KeyConstants._checksum, c);
+			if (!StringUtil.isEmpty(groupId, true)) sct.setEL(KeyConstants._groupId, groupId);
+			if (!StringUtil.isEmpty(artifactId, true)) sct.setEL(KeyConstants._artifactId, artifactId);
+			if (!StringUtil.isEmpty(version, true)) sct.setEL(KeyConstants._version, version);
+			if (classifier != null) sct.setEL(KeyConstants._classifier, classifier);
+			if (extension != null) sct.setEL(KeyConstants._extension, extension);
+			if (!StringUtil.isEmpty(scope, true)) sct.setEL(KeyConstants._scope, scope);
+			if (!StringUtil.isEmpty(optional, true)) sct.setEL(KeyConstants._optional, optional);
+			if (!StringUtil.isEmpty(checksum, true)) sct.setEL(KeyConstants._checksum, checksum);
 			return sct;
 		}
 
-		public static Struct toStruct(GAVSO gavso) {
-			return gavso.populate(new StructImpl(Struct.TYPE_LINKED));
+		public static Struct toStruct(MavenCoordinate coordinate) {
+			return coordinate.populate(new StructImpl(Struct.TYPE_LINKED));
 		}
 
-		public static Array toArray(List<GAVSO> list) {
+		public static Array toArray(List<MavenCoordinate> list) {
 			ArrayImpl arr = new ArrayImpl();
 			if (list == null || list.isEmpty()) return arr;
-			for (GAVSO gavso: list) {
-				arr.appendEL(gavso.populate(new StructImpl(Struct.TYPE_LINKED)));
+			for (MavenCoordinate coordinate: list) {
+				arr.appendEL(coordinate.populate(new StructImpl(Struct.TYPE_LINKED)));
+			}
+			return arr;
+		}
+
+		public static Array toArray(MavenCoordinate[] list) {
+			ArrayImpl arr = new ArrayImpl();
+			if (list == null || list.length == 0) return arr;
+			for (MavenCoordinate coordinate: list) {
+				arr.appendEL(coordinate.populate(new StructImpl(Struct.TYPE_LINKED)));
 			}
 			return arr;
 		}
@@ -369,18 +428,22 @@ public final class MavenUtil {
 		/**
 		 * same group and artifact id, but version MAY differ
 		 * 
-		 * @param gavso
+		 * @param coordinate
 		 * @return
 		 */
-		public boolean equalID(GAVSO other) {
-			if (!g.equalsIgnoreCase(other.g)) return false;
-			if (!a.equalsIgnoreCase(other.a)) return false;
+		public boolean equalID(MavenCoordinate other) {
+			if (!groupId.equalsIgnoreCase(other.groupId)) return false;
+			if (!artifactId.equalsIgnoreCase(other.artifactId)) return false;
 			return true;
 		}
 
-		public boolean equalIDAndVersion(GAVSO other) {
-			if (!v.equalsIgnoreCase(other.v)) return false;
+		public boolean equalIDAndVersion(MavenCoordinate other) {
+			if (!version.equalsIgnoreCase(other.version)) return false;
 			return equalID(other);
+		}
+
+		public boolean isValid() {
+			return (!StringUtil.isEmpty(groupId, true) && !StringUtil.isEmpty(artifactId, true) && !StringUtil.isEmpty(version, true));
 		}
 	}
 
@@ -436,7 +499,9 @@ public final class MavenUtil {
 					pom = getDependency(localDirectory, rd, current, properties, true, log);
 				}
 				catch (IOException ioe) {
-					LogUtil.log((Config) null, "mvn", ioe, Log.LEVEL_WARN, "application");
+					// LDEV-6321: benign upstream-POM pattern (e.g. Google's dangling ${jackson-core-asl.version}).
+					// Apache Maven core does the same (MNG-5982): warn and skip. Resolution continues without this entry.
+					if (log != null) log.trace("mvn", "Dropping <dependencyManagement> entry: " + ioe.getMessage());
 				}
 				if (pom == null) continue;
 
@@ -503,7 +568,7 @@ public final class MavenUtil {
 			if (!modifed) break;
 		}
 		if (value != null && value.indexOf("${") != -1) {
-			throw new IOException("Cannot resolve [" + value + "] for [" + pom + "], available properties are [" + ListUtil.toList(properties.keySet(), ", ") + "]");
+			throw new IOException("Cannot resolve [" + value + "] in POM [" + pom + "]");
 		}
 		return value;
 	}
@@ -517,8 +582,7 @@ public final class MavenUtil {
 			try {
 				download(pom, repositories, type, log);
 			}
-			catch (IOException e) {
-			}
+			catch (IOException e) {}
 		}, true).start();
 	}
 
@@ -527,7 +591,7 @@ public final class MavenUtil {
 
 		// file is empty or does not exist
 		if (!res.isFile()) {
-			// print.ds("--->" + pom.toString());
+
 			synchronized (SystemUtil.createToken("mvn", res.getAbsolutePath())) {
 				// file is empty or does not exist
 				if (!res.isFile()) {
@@ -553,31 +617,78 @@ public final class MavenUtil {
 							download(pom, repositories, type, log);
 							return res;
 						}
-						throw new IOException("Failed to download [" + pom + "] ");
+
+						throw new IOException("Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] "
+								+ "is not available. A previous download attempt failed and is cached for " + (ARTIFACT_UNAVAILABLE_CACHE_DURATION / 60000) + " minutes. "
+								+ "Delete the '.lastUpdated' file in the local cache to retry immediately.");
 					}
 
-					String scriptName = pom.getGroupId().replace('.', '/') + "/" + pom.getArtifactId() + "/" + pom.getVersion() + "/" + pom.getArtifactId() + "-" + pom.getVersion()
-							+ "." + type;
+					int policy = ConfigUtil.getMavenDownloadPolicy();
+					if (policy != ConfigPro.MAVEN_DOWNLOAD_POLICY_IGNORE) {
+						LogUtil.log(ConfigUtil.getConfigServerImpl().getMavenDownloadPolicyLogLevel(), "maven",
+								"Downloading Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] " + "(type: " + type
+										+ "). Maven download policy is set to '" + (policy == ConfigPro.MAVEN_DOWNLOAD_POLICY_ERROR ? "error" : "warn") + "'. "
+										+ "To change this behavior, update your .CFConfig.json: "
+										+ "{\"maven\":{\"downloadPolicyStartup\":\"ignore\",\"downloadPolicyRuntime\":\"ignore\"}} "
+										+ "or set the system properties 'lucee.maven.download.policy.startup' / 'lucee.maven.download.policy.runtime' "
+										+ "(environment variables: LUCEE_MAVEN_DOWNLOAD_POLICY_STARTUP / LUCEE_MAVEN_DOWNLOAD_POLICY_RUNTIME) to "
+										+ "'error' to block downloads or 'ignore' to suppress this message.");
+					}
+					if (policy == ConfigPro.MAVEN_DOWNLOAD_POLICY_ERROR) {
+						throw new IOException("Maven download is blocked by policy. " + "Attempted to download [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":"
+								+ pom.getVersion() + "] " + "(type: " + type + "). " + "To allow downloads, update your .CFConfig.json: "
+								+ "{\"maven\":{\"downloadPolicyStartup\":\"warn\",\"downloadPolicyRuntime\":\"warn\"}} "
+								+ "or set the system properties 'lucee.maven.download.policy.startup' / 'lucee.maven.download.policy.runtime' "
+								+ "(environment variables: LUCEE_MAVEN_DOWNLOAD_POLICY_STARTUP / LUCEE_MAVEN_DOWNLOAD_POLICY_RUNTIME) to 'warn' or 'ignore'.");
+					}
+
+					String scriptName = pom.toScriptName(type);
 					StringBuilder info = null;
+					StringBuilder failureSummary = null;
+					Exception lastException = null;
 					try {
 						if (repositories == null || repositories.isEmpty()) repositories = pom.getRepositories();
 
 						if (repositories == null || repositories.size() == 0) {
-							IOException ioe = new IOException("Failed to download java artifact [" + pom.toString() + "] for type [" + type + "]");
-							// "Failed to download java artifact [" + pom.toString() + "] for type [" + type + "], attempted
-							// endpoint(s): [" + sb + "]");
-							// if (cause != null) ExceptionUtil.initCauseEL(ioe, cause);
-							throw ioe;
+							throw new IOException("Failed to download Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] " + "(type: "
+									+ type + "). No repositories are configured. " + "Ensure at least one repository is defined in the POM or Lucee configuration.");
 						}
 						// url = pom.getArtifact(type, repositories);
 						//////// if (log != null) log.info("maven", "download [" + url + "]");
 						URL url;
 						CloseableHttpClient httpClient;
+						Version version = Version.parseVersion(pom.getVersion());
+						boolean isSnap = version.is(Version.SNAPSHOT);
+
+						// LDEV-6322: snapshots are only resolved against snapshot-capable repositories (and releases
+						// against release-capable ones). If none of the configured repositories can serve this version
+						// type, fail fast with a clear, actionable message instead of pointlessly probing every repo.
+						int eligibleRepoCount = 0;
+						for (Repository r: repositories) {
+							if (r.handle(version)) eligibleRepoCount++;
+						}
+						if (eligibleRepoCount == 0) {
+							throw new IOException("Failed to download Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] " + "(type: "
+									+ type + "). No " + (isSnap ? "snapshot-capable" : "release-capable") + " repository is configured among the " + repositories.size()
+									+ " available. " + "Configure a repository that serves " + (isSnap ? "snapshot" : "release") + " artifacts.");
+						}
+
 						for (Repository r: sort(repositories)) {
+							if (!r.handle(version)) continue;
 							url = null;
 							httpClient = null;
+
 							try {
-								url = new URL(r.getUrl() + scriptName);
+								if (isSnap) {
+									RepoReader repoReader = new RepoReader(r.url, pom.getGroupId(), pom.getArtifactId(), version);
+									Map<String, Object> result = repoReader.read(type, "pom".equalsIgnoreCase(type) ? null : pom.getClassifier());
+									// result is null when the repo has no snapshot metadata for this artifact (404/not found);
+									// leave url null so we fall through to the direct artifact URL (yielding a clean 404, not an NPE)
+									String strUrl = result == null ? null : Caster.toString(result.get(type));
+									if (!StringUtil.isEmpty(strUrl)) url = new URL(strUrl);
+								}
+
+								if (url == null) url = new URL(r.getUrl() + scriptName);
 								httpClient = HttpClients.createDefault();
 
 								HttpGet request = new HttpGet(url.toExternalForm());
@@ -601,6 +712,7 @@ public final class MavenUtil {
 										finally {
 											IOUtil.closeEL(is);
 											HTTPUtil.validateDownload(url, response, tmp, pom.getChecksum(), true, ex);
+											res.getParentResource().mkdirs();
 											tmp.moveTo(res);
 										}
 										deleteLastUpdated(res);
@@ -614,18 +726,40 @@ public final class MavenUtil {
 									}
 								}
 								else {
+									String retryAfter = null;
+									if (sc == 429 || sc == 503) {
+										Header h = response.getFirstHeader("Retry-After");
+										if (h != null) retryAfter = h.getValue();
+									}
 									if (info == null) info = createInfo();
-									info.append(r).append(".error=").append('\n');
+									// match Apache Maven Resolver convention: empty .error= for 404 (NOT_FOUND), status code otherwise
+									info.append(r).append(".error=").append(sc == 404 ? "" : String.valueOf(sc)).append('\n');
 									info.append(r).append(".lastUpdated=").append(System.currentTimeMillis()).append('\n');
 									EntityUtils.consume(entity); // Ensure the response entity is fully consumed
-									// throw new IOException("Failed to download: " + url + " for [" + pom + "] - " +
-									// response.getStatusLine().getStatusCode());
+									String detail = String.valueOf(sc) + (retryAfter != null ? " (Retry-After: " + retryAfter + ")" : "");
+									failureSummary = appendFailure(failureSummary, repoLabel(r), detail);
+									if (log != null) {
+										// 404 is "not on this repo" — expected during fallback flows, demote to INFO
+										// other status codes (429 rate-limit, 5xx, 4xx-non-404) are actionable failures
+										String logMsg = "download failed for [" + pom + ":" + type + "] from [" + url + "] - HTTP " + sc
+												+ (retryAfter != null ? ", Retry-After: " + retryAfter : "");
+										if (sc == 404) log.info("maven", logMsg);
+										else log.error("maven", logMsg);
+									}
 								}
 							}
 							catch (Exception e) {
+								String safeMsg = e.getMessage() == null ? "" : e.getMessage().replace('\n', ' ').replace('\r', ' ');
+								String exSummary = e.getClass().getSimpleName() + (safeMsg.isEmpty() ? "" : ": " + safeMsg);
 								if (info == null) info = createInfo();
-								info.append(r).append(".error=").append('\n');
+								info.append(r).append(".error=").append(exSummary).append('\n');
 								info.append(r).append(".lastUpdated=").append(System.currentTimeMillis()).append('\n');
+								lastException = e;
+								failureSummary = appendFailure(failureSummary, repoLabel(r), exSummary);
+								if (log != null) {
+									log.error("maven", "download failed for [" + pom + ":" + type + "] from [" + (url != null ? url : r.getUrl()) + "] - "
+											+ e.getClass().getName() + ": " + safeMsg);
+								}
 							}
 							finally {
 								if (httpClient != null) httpClient.close();
@@ -633,14 +767,24 @@ public final class MavenUtil {
 						}
 					}
 					catch (IOException ioe) {
-						createLastUpdated(res, info);
-						IOException ex = new IOException("Failed to download [ " + pom + ":" + type + "]");
-						ExceptionUtil.initCauseEL(ex, ioe);
+						if (info != null) createLastUpdated(res, info);
+						if (failureSummary == null && lastException == null) throw ioe;
+						StringBuilder m = new StringBuilder("Failed to download Maven artifact [").append(pom.getGroupId()).append(":").append(pom.getArtifactId()).append(":")
+								.append(pom.getVersion()).append("] (type: ").append(type).append("). Check network connectivity and repository availability.");
+						if (failureSummary != null) m.append(" - ").append(failureSummary);
+						IOException ex = new IOException(m.toString());
+						ExceptionUtil.initCauseEL(ex, lastException != null ? lastException : ioe);
 						// MUST add again ResourceUtil.deleteEmptyFoldersInside(pom.getLocalDirectory());
 						throw ex;
 					}
 					createLastUpdated(res, info);
-					throw new IOException("Failed to download [" + pom + ":" + type + "] from " + repositories.size() + " repositories");
+					StringBuilder m = new StringBuilder("Failed to download Maven artifact [").append(pom.getGroupId()).append(":").append(pom.getArtifactId()).append(":")
+							.append(pom.getVersion()).append("] (type: ").append(type).append(") after checking all ").append(repositories.size())
+							.append(" configured repositories. Verify the artifact coordinates are correct and the repositories are accessible.");
+					if (failureSummary != null) m.append(" - ").append(failureSummary);
+					IOException ex = new IOException(m.toString());
+					if (lastException != null) ExceptionUtil.initCauseEL(ex, lastException);
+					throw ex;
 				}
 			}
 		}
@@ -652,11 +796,24 @@ public final class MavenUtil {
 				.append(ZonedDateTime.now().format(MAVEN_DATE_FORMATTER)).append('\n');
 	}
 
+	private static StringBuilder appendFailure(StringBuilder sb, String label, String detail) {
+		if (sb == null) sb = new StringBuilder();
+		else sb.append("; ");
+		sb.append(label).append(": ").append(detail);
+		return sb;
+	}
+
+	private static String repoLabel(Repository r) {
+		if (!StringUtil.isEmpty(r.label)) return r.label;
+		return r.getUrl();
+	}
+
 	private static void createLastUpdated(Resource res, StringBuilder info) throws IOException {
 		Resource lastUpdated = res.getParentResource().getRealResource(res.getName() + ".lastUpdated");
+		lastUpdated.getParentResource().mkdirs();
 		// print.e(lastUpdated);
 		// print.e(info);
-		IOUtil.write(lastUpdated, info.toString(), CharsetUtil.UTF8, false);
+		IOUtil.write(lastUpdated, info.toString(), StandardCharsets.UTF_8, false);
 	}
 
 	private static void deleteLastUpdated(Resource res) {
@@ -703,17 +860,20 @@ public final class MavenUtil {
 	}
 
 	public static int toScopes(String scopes) throws IOException {
-		if (StringUtil.isEmpty(scopes, true)) throw new IOException("there is no scope defined");
+		if (StringUtil.isEmpty(scopes, true))
+			throw new IOException("No Maven dependency scope defined. " + "Specify at least one scope from: compile, test, provided, runtime, system, import.");
 		return toScopes(ListUtil.listToStringArray(scopes, ','));
 	}
 
 	public static int toScopes(String[] scopes) throws IOException {
-		if (scopes.length == 0) throw new IOException("there is no scope defined");
+		if (scopes.length == 0) throw new IOException("No Maven dependency scope defined. " + "Specify at least one scope from: compile, test, provided, runtime, system, import.");
 
 		int rtn = 0, tmp;
 		for (String scope: scopes) {
 			tmp = toScope(scope, 0);
-			if (tmp == 0) throw new IOException("scope [" + scope + "] is not a supported scope, valid scope names are [compile,test,provided,runtime,system,import]");
+			if (tmp == 0) {
+				throw new IOException("Invalid Maven scope [" + scope.trim() + "]. " + "Supported values are: compile, test, provided, runtime, system, import.");
+			}
 			rtn += tmp;
 		}
 		return rtn;
@@ -760,14 +920,14 @@ public final class MavenUtil {
 		}
 	}
 
-	public static List<GAVSO> toGAVSOs(Object obj, List<GAVSO> defaultValue) {
+	public static List<MavenCoordinate> toCoordinates(Object obj, List<MavenCoordinate> defaultValue) {
 		// array
-		List<GAVSO> list = new ArrayList<>();
+		List<MavenCoordinate> list = new ArrayList<>();
 		Object[] arr = Caster.toNativeArray(obj, null);
 		if (arr != null) {
-			GAVSO tmp;
+			MavenCoordinate tmp;
 			for (Object o: arr) {
-				tmp = toGAVSO(o, null);
+				tmp = toCoordinate(o, null);
 				if (tmp != null) list.add(tmp);
 			}
 			return list;
@@ -775,7 +935,7 @@ public final class MavenUtil {
 		// struct
 		Struct el = Caster.toStruct(obj, null);
 		if (el != null) {
-			GAVSO tmp = toGAVSO(el, null);
+			MavenCoordinate tmp = toCoordinate(el, null);
 			if (tmp != null) list.add(tmp);
 			return list;
 		}
@@ -783,9 +943,9 @@ public final class MavenUtil {
 		// gradle style?
 		String str = Caster.toString(obj, null);
 		if (!StringUtil.isEmpty(str)) {
-			GAVSO tmp;
+			MavenCoordinate tmp;
 			for (String s: ListUtil.listToStringArray(str, ',')) {
-				tmp = toGAVSO(s, null);
+				tmp = toCoordinate(s, null);
 				if (tmp != null) list.add(tmp);
 			}
 			return list;
@@ -793,20 +953,20 @@ public final class MavenUtil {
 		return list;
 	}
 
-	public static List<GAVSO> toGAVSOs(Object obj) throws ApplicationException {
+	public static List<MavenCoordinate> toCoordinates(Object obj) throws ApplicationException {
 		// array
-		List<GAVSO> list = new ArrayList<>();
+		List<MavenCoordinate> list = new ArrayList<>();
 		Object[] arr = Caster.toNativeArray(obj, null);
 		if (arr != null) {
 			for (Object o: arr) {
-				list.add(toGAVSO(o));
+				list.add(toCoordinate(o));
 			}
 			return list;
 		}
 		// struct
 		Struct el = Caster.toStruct(obj, null);
 		if (el != null) {
-			list.add(toGAVSO(el));
+			list.add(toCoordinate(el));
 			return list;
 		}
 
@@ -814,14 +974,37 @@ public final class MavenUtil {
 		String str = Caster.toString(obj, null);
 		if (!StringUtil.isEmpty(str)) {
 			for (String s: ListUtil.listToStringArray(str, ',')) {
-				list.add(toGAVSO(s));
+				list.add(toCoordinate(s));
 			}
 			return list;
 		}
 		return list;
 	}
 
-	public static GAVSO toGAVSO(Object obj, GAVSO defaultValue) {
+	public static MavenCoordinate toCoordinate(Object obj, MavenCoordinate defaultValue) {
+		try {
+			MavenCoordinate coordinate = parseCoordinate(obj, false);
+			return coordinate == null ? defaultValue : coordinate;
+		}
+		catch (ApplicationException ae) {
+			return defaultValue;
+		}
+	}
+
+	public static MavenCoordinate toCoordinate(Object obj) throws ApplicationException {
+		return parseCoordinate(obj, true);
+	}
+
+	/**
+	 * String format (Gradle style): groupId:artifactId[:version[:classifier]][@extension]. A known
+	 * scope (compile, provided, runtime, test, system, import) in 4th position is the legacy form
+	 * groupId:artifactId:version:scope[:optional[:checksum]], otherwise the 4th part is the classifier
+	 * and further parts are scope[:optional[:checksum]]. A classifier that equals a scope name (for
+	 * example "test") cannot be expressed in the string form, use the struct form for that.
+	 */
+	private static MavenCoordinate parseCoordinate(Object obj, boolean strict) throws ApplicationException {
+		if (obj instanceof MavenCoordinate) return (MavenCoordinate) obj;
+
 		Struct el = Caster.toStruct(obj, null, false);
 		if (el != null) {
 			String g = Caster.toString(el.get(KeyConstants._groupId, null), null);
@@ -831,89 +1014,41 @@ public final class MavenUtil {
 
 			if (!StringUtil.isEmpty(g) && !StringUtil.isEmpty(a)) {
 				String v = Caster.toString(el.get(KeyConstants._version, null), null);
-				if (StringUtil.isEmpty(v)) v = Caster.toString(el.get(KeyConstants._v, null), null);
+				if (StringUtil.isEmpty(v, true)) v = Caster.toString(el.get(KeyConstants._v, null), null);
+				if (StringUtil.isEmpty(v, true)) v = null;
 
-				if (!MavenUtil.isValidVersion(v)) return defaultValue;
-				return new GAVSO(g, a,
-
-						v,
-
-						Caster.toString(el.get(KeyConstants._scope, null), null),
-
-						Caster.toString(el.get(KeyConstants._optional, null), null),
-
+				return new MavenCoordinate(g, a, v, Caster.toString(el.get(KeyConstants._classifier, null), null), Caster.toString(el.get(KeyConstants._extension, null), null),
+						Caster.toString(el.get(KeyConstants._scope, null), null), Caster.toString(el.get(KeyConstants._optional, null), null),
 						Caster.toString(el.get(KeyConstants._checksum, null), null));
 			}
 
 			// single entry with gradle style?
 			String m = Caster.toString(el.get(KeyConstants._maven, null), null);
-			if (!StringUtil.isEmpty(m, true)) {
-				return toGAVSO(m, defaultValue);
-			}
-			return defaultValue;
-		}
-		// gradle style?
-		String str = Caster.toString(obj, null);
-		if (!StringUtil.isEmpty(str)) {
-			String[] arr = ListUtil.listToStringArray(str, ':');
-			if (arr.length > 1 && arr.length < 7) {
-				if (arr.length > 2 && !MavenUtil.isValidVersion(arr[2].trim())) return defaultValue;
-				return new GAVSO(
+			if (!StringUtil.isEmpty(m, true)) return parseCoordinate(m, strict);
 
-						arr[0].trim(), // group
-
-						arr[1].trim(), // artifact
-
-						arr.length > 2 ? arr[2].trim() : null, // version
-
-						arr.length > 3 ? arr[3].trim() : null, // scope
-
-						arr.length > 4 ? arr[4].trim() : null, // optional
-
-						arr.length > 5 ? arr[5].trim() : null // checksum
-
-				);
-			}
-		}
-
-		return defaultValue;
-	}
-
-	public static GAVSO toGAVSO(Object obj) throws ApplicationException {
-		Struct el = Caster.toStruct(obj, null);
-		if (el != null) {
-			String g = Caster.toString(el.get(KeyConstants._groupId, null), null);
-			if (StringUtil.isEmpty(g)) g = Caster.toString(el.get(KeyConstants._g, null), null);
+			if (!strict) return null;
 			if (StringUtil.isEmpty(g)) throw new ApplicationException("Missing required field: groupId. Ensure that the 'groupId' key is present and not empty.");
-
-			String a = Caster.toString(el.get(KeyConstants._artifactId, null), null);
-			if (StringUtil.isEmpty(a)) a = Caster.toString(el.get(KeyConstants._a, null), null);
-			if (StringUtil.isEmpty(a)) throw new ApplicationException("Missing required field: artifactId. Ensure that the 'artifactId' key is present and not empty.");
-
-			String v = Caster.toString(el.get(KeyConstants._version, null), null);
-			if (StringUtil.isEmpty(v)) v = Caster.toString(el.get(KeyConstants._v, null), null);
-			if (StringUtil.isEmpty(v)) throw new ApplicationException("Missing required field: version. Ensure that the 'version' key is present and not empty.");
-
-			if (!MavenUtil.isValidVersion(v)) throw new ApplicationException("maven version [" + v + "]is invalid");
-
-			return new GAVSO(g, a, v,
-
-					Caster.toString(el.get(KeyConstants._scope, null), null),
-
-					Caster.toString(el.get(KeyConstants._optional, null), null),
-
-					Caster.toString(el.get(KeyConstants._checksum, null), null)
-
-			);
-
+			throw new ApplicationException("Missing required field: artifactId. Ensure that the 'artifactId' key is present and not empty.");
 		}
+
 		// gradle style?
 		String str = Caster.toString(obj, null);
 		if (!StringUtil.isEmpty(str)) {
+			str = str.trim();
+			String extension = null;
+			int at = str.lastIndexOf('@');
+			if (at != -1) {
+				extension = str.substring(at + 1).trim();
+				str = str.substring(0, at);
+			}
 			String[] arr = ListUtil.listToStringArray(str, ':');
-			if (arr.length > 1 && arr.length < 7) {
-				if (arr.length > 2 && !MavenUtil.isValidVersion(arr[2].trim())) throw new ApplicationException("maven version [" + arr[2].trim() + "]is invalid");
-				return new GAVSO(
+			int index = 3;
+			String classifier = null;
+			// a known scope in 4th position keeps its legacy meaning (scope[:optional[:checksum]]), anything else is the classifier
+			if (arr.length > index && toScope(arr[index].trim(), -1) == -1) classifier = arr[index++].trim();
+			boolean validScope = arr.length <= index || toScope(arr[index].trim(), -1) != -1;
+			if (arr.length > 1 && arr.length < 8 && validScope) {
+				return new MavenCoordinate(
 
 						arr[0].trim(), // group
 
@@ -921,35 +1056,34 @@ public final class MavenUtil {
 
 						arr.length > 2 ? arr[2].trim() : null, // version
 
-						arr.length > 3 ? arr[3].trim() : null, // scope
+						classifier,
 
-						arr.length > 4 ? arr[4].trim() : null, // optional
+						extension,
 
-						arr.length > 5 ? arr[5].trim() : null // checksum
+						arr.length > index ? arr[index].trim() : null, // scope
+
+						arr.length > index + 1 ? arr[index + 1].trim() : null, // optional
+
+						arr.length > index + 2 ? arr[index + 2].trim() : null // checksum
 
 				);
 			}
-			throw new ApplicationException("Invalid Maven data in string [" + str + "]. " + "Expected format: '<group>:<artifact>:<version>[:<scope>[:<optional>]]'.");
+			if (!strict) return null;
+			throw new ApplicationException("Invalid Maven data in string [" + str + "]. Expected format: '<group>:<artifact>:<version>[:<classifier>][@<extension>]'.");
 		}
-		throw new ApplicationException("Unable to parse Maven data from the provided input of type [" + Caster.toTypeName(obj) + "]. " + "Supported formats are: "
-				+ "1) A Struct with keys 'groupId', 'artifactId', and 'version' (optionally 'scope' and 'optional'), or "
-				+ "2) A String in the format 'group:artifact:version[:scope[:optional]]'. " + "Ensure the input conforms to one of these formats.");
-
+		if (!strict) return null;
+		throw new ApplicationException("Unable to parse Maven data from the provided input of type [" + Caster.toTypeName(obj) + "]. Supported formats are: "
+				+ "1) A Struct with keys 'groupId', 'artifactId', and 'version' (optionally 'classifier', 'extension', 'scope', 'optional' and 'checksum'), or "
+				+ "2) A String in the format 'group:artifact:version[:classifier][@extension]'. Ensure the input conforms to one of these formats.");
 	}
 
-	public static String toString(GAVSO[] gavsos) {
-		StringBuilder sb = new StringBuilder();
-		for (GAVSO g: gavsos) {
-			if (sb.length() > 0) sb.append(',');
-			sb.append(g.toString());
-		}
-		return sb.toString();
-	}
-
+	// LDEV-6250: not called — Maven does not restrict version format (see
+	// maven.apache.org/pom.html#version-order-specification).
+	// Versions like "v4-rev20260213-2.0.0" are valid. Downstream code (POM constructor, download)
+	// already handles null/bad versions.
 	public static boolean isValidVersion(String version) {
 		if (StringUtil.isEmpty(version)) return false;
 
-		// Basic version pattern
 		String versionPattern = "^(\\d+)" + // Major (required)
 				"(?:\\.(\\d+))?" + // Minor (optional)
 				"(?:\\.(\\d+))?" + // Micro (optional)
@@ -958,6 +1092,15 @@ public final class MavenUtil {
 				"$";
 
 		return version.matches(versionPattern);
+	}
+
+	public static String toString(MavenCoordinate[] coordinates) {
+		StringBuilder sb = new StringBuilder();
+		for (MavenCoordinate g: coordinates) {
+			if (sb.length() > 0) sb.append(',');
+			sb.append(g.toString());
+		}
+		return sb.toString();
 	}
 
 	public static Resource getLocalRepository() {
@@ -1018,8 +1161,7 @@ public final class MavenUtil {
 								data.setEL(KeyConstants._location, res.getAbsolutePath());
 								return data;
 							}
-							catch (Exception e) {
-							}
+							catch (Exception e) {}
 						}
 					}
 				}

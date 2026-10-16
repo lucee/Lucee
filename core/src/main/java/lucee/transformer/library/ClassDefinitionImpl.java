@@ -39,15 +39,14 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
@@ -72,7 +71,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	private String maven;
 
 	private transient Class<T> clazz;
-	private transient GAVSO[] gavsos;
+	private transient MavenCoordinate[] coordinates;
 
 	public ClassDefinitionImpl(String className, String name, String version, Identification id) {
 		this.className = className == null ? null : className.trim();
@@ -116,17 +115,17 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 
 		String cl = toClassName(sct, prefix);
 
+		// Maven?
+		String maven = toMaven(sct, prefix);
+		if (!StringUtil.isEmpty(maven, true)) {
+			return new ClassDefinitionImpl(cl, maven);
+		}
+
 		// OSGi?
 		String bn = toBundleName(sct, prefix, strict);
 		String bv = toBundleVersion(sct, prefix, strict);
 		if (!StringUtil.isEmpty(bn)) {
 			return new ClassDefinitionImpl(cl, bn, bv, id);
-		}
-
-		// Maven?
-		String maven = toMaven(sct, prefix);
-		if (!StringUtil.isEmpty(maven, true)) {
-			return new ClassDefinitionImpl(cl, maven);
 		}
 
 		// Component?
@@ -140,39 +139,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		return new ClassDefinitionImpl(cl, null, null, id);
 	}
 
-	public static ClassDefinition toClassDefinition(String className, Identification id, Map<String, String> attributes) {
-		if (StringUtil.isEmpty(className, true)) return null;
-
-		if (attributes != null) {
-
-			// OSGi?
-			String bn = attributes.get("name");
-			if (StringUtil.isEmpty(bn)) bn = attributes.get("bundle-name");
-			String bv = attributes.get("version");
-			if (StringUtil.isEmpty(bv)) bv = attributes.get("bundle-version");
-			if (!StringUtil.isEmpty(bn)) {
-				return new ClassDefinitionImpl(className, bn, bv, id);
-			}
-
-			// Maven?
-			String mvn = attributes.get("maven");
-			if (!StringUtil.isEmpty(mvn, true)) {
-				return new ClassDefinitionImpl(className, mvn);
-			}
-
-			// Component?
-			String cfcName = attributes.get("component");
-			if (!StringUtil.isEmpty(cfcName, true)) {
-				Class<? extends Object> proxyClass = cfmlToClass(cfcName, null);
-				if (proxyClass != null) {
-					return new ClassDefinitionImpl(proxyClass);
-				}
-			}
-		}
-		return new ClassDefinitionImpl(className, null, null, id);
-	}
-
-	public static ClassDefinitionImpl toClassDefinition(Map<String, ?> map, boolean strict, Identification id) {
+	public static ClassDefinition toClassDefinition(Map<String, ?> map, boolean strict, Identification id) {
 		return toClassDefinitionImpl(MapAsStruct.toStruct(map, false), null, strict, id);
 	}
 
@@ -225,8 +192,8 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		PageContext pc = ThreadLocalPageContext.get(true);
 		try {
 			if (pc == null) {
-				pc = ThreadUtil.createPageContext(ConfigUtil.toConfigWeb(ThreadLocalPageContext.getConfig()), DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "",
-						null, new Pair[0], null, new Pair[0], new StructImpl(), false, -1, null, null);
+				pc = ThreadUtil.createPageContext(ThreadLocalPageContext.getConfigWeb(), DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", null, new Pair[0], null,
+						new Pair[0], new StructImpl(), false, -1, null, null);
 			}
 			Object obj = Reflector.componentToClass(pc, pc.loadComponent(cfcName));
 			return obj.getClass();
@@ -263,8 +230,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	/**
 	 * only used by deserializer!
 	 */
-	public ClassDefinitionImpl() {
-	}
+	public ClassDefinitionImpl() {}
 
 	public ClassDefinitionImpl<T> setVersionOnlyMattersWhenDownloading(boolean versionOnlyMattersWhenDownloading) {
 		this.versionOnlyMattersWhenDownloading = versionOnlyMattersWhenDownloading;
@@ -305,12 +271,12 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 
 		// Maven
 		if (maven != null) {
-			ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig();
+			ConfigServerPro cs = ThreadLocalPageContext.getConfigServer();
 			try {
-				return clazz = (Class<T>) config.getRPCClassLoader(false, JavaSettingsImpl.getInstance(config, getMaven())).loadClass(className);
+				return clazz = (Class<T>) cs.getRPCClassLoader(false, JavaSettingsImpl.getInstance(cs, getMaven())).loadClass(className);
 			}
 			catch (Exception e) {
-				ClassException ce = new ClassException("Failes to load class [" + className + "]");
+				ClassException ce = new ClassException("Failed to load class [" + className + "]");
 				ExceptionUtil.initCauseEL(ce, e);
 				throw ce;
 			}
@@ -353,12 +319,12 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		return maven != null;
 	}
 
-	public GAVSO[] getMaven() throws ApplicationException {
-		if (gavsos == null) {
-			List<GAVSO> gavsos = MavenUtil.toGAVSOs(maven);
-			if (gavsos != null && gavsos.size() > 0) this.gavsos = gavsos.toArray(new GAVSO[gavsos.size()]);
+	public MavenCoordinate[] getMaven() throws ApplicationException {
+		if (coordinates == null) {
+			List<MavenCoordinate> coordinates = MavenUtil.toCoordinates(maven);
+			if (coordinates != null && coordinates.size() > 0) this.coordinates = coordinates.toArray(new MavenCoordinate[coordinates.size()]);
 		}
-		return gavsos;
+		return coordinates;
 	}
 
 	public String getMavenRaw() {
@@ -399,8 +365,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 			try {
 				maven = MavenUtil.toString(getMaven());
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 			sb.append("class:").append(className).append(";maven:").append(maven).append(";");
 		}
 		else {
@@ -412,6 +377,41 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	@Override
 	public int hashCode() {
 		return toString().hashCode();
+	}
+
+	public static ClassDefinition toClassDefinition(String className, Identification id, Map<String, String> attributes) {
+		if (StringUtil.isEmpty(className, true)) return null;
+
+		if (attributes != null) {
+
+			// Maven?
+			String mvn = attributes.get("maven");
+			if (StringUtil.isEmpty(mvn, true)) {
+				mvn = attributes.get("mvn");
+			}
+			if (!StringUtil.isEmpty(mvn, true)) {
+				return new ClassDefinitionImpl(className, mvn);
+			}
+
+			// OSGi?
+			String bn = attributes.get("name");
+			if (StringUtil.isEmpty(bn)) bn = attributes.get("bundle-name");
+			String bv = attributes.get("version");
+			if (StringUtil.isEmpty(bv)) bv = attributes.get("bundle-version");
+			if (!StringUtil.isEmpty(bn)) {
+				return new ClassDefinitionImpl(className, bn, bv, id);
+			}
+
+			// Component?
+			String cfcName = attributes.get("component");
+			if (!StringUtil.isEmpty(cfcName, true)) {
+				Class<? extends Object> proxyClass = cfmlToClass(cfcName, null);
+				if (proxyClass != null) {
+					return new ClassDefinitionImpl(proxyClass);
+				}
+			}
+		}
+		return new ClassDefinitionImpl(className, null, null, id);
 	}
 
 	@Override

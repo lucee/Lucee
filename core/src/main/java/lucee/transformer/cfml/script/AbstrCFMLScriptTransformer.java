@@ -159,7 +159,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		public ComponentTemplateException(TemplateException te) {
 			super(te.getPageSource(), te.getLine(), 0, te.getMessage());
 			this.te = te;
-
+			ExceptionUtil.initCauseEL(this, te);
 		}
 
 		/**
@@ -241,15 +241,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if ((child = returnStatement(data)) != null) parent.addStatement(child);
 		else if ((child = switchStatement(data)) != null) parent.addStatement(child);
 		else if ((child = tryStatement(data)) != null) parent.addStatement(child);
-		else if (islandStatement(data, parent)) {
-		}
+		else if (islandStatement(data, parent)) {}
 		// else if(staticStatement(data,parent)) ; // do nothing, happen already inside the method
 		else if ((child = staticStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = componentStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = tagStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = cftagStatement(data, parent)) != null) parent.addStatement(child);
-		else if (block(data, parent)) {
-		}
+		else if (block(data, parent)) {}
 
 		else parent.addStatement(expressionStatement(data, parent));
 		data.docComment = null;
@@ -304,7 +302,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	 */
 	private final boolean elseifStatement(Data data, Condition cont) throws TemplateException {
 		int pos = data.srcCode.getPos();
-		if (!data.srcCode.forwardIfCurrent("else")) return false;
+		if (!data.srcCode.forwardIfCurrentKeyword("else")) return false;
 
 		comments(data);
 		if (!data.srcCode.forwardIfCurrent("if", '(')) {
@@ -725,7 +723,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			return new For(data.factory, left, cont, update, body, line, data.srcCode.getPosition(), id);
 		}
 		// middle foreach
-		else if (data.srcCode.forwardIfCurrent("in")) {
+		else if (data.srcCode.forwardIfCurrentKeyword("in")) {
 			// condition
 			comments(data);
 			Expression value = expression(data);
@@ -1270,7 +1268,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			String id = data.page.registerJavaFunctionName(functionName);
 			lucee.commons.lang.compiler.SourceCode _sc = fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
 					description, returnFormat, secureJson, verifyClient, localMode);
-			JavaFunction jf = new JavaFunction(ps, _sc, CompilerFactory.getInstance().compile((ConfigPro) data.config, _sc));
+			JavaFunction jf = new JavaFunction(ps, _sc, CompilerFactory.getInstance((ConfigPro) data.config).compile((ConfigPro) data.config, _sc));
 
 			return jf;
 		}
@@ -2051,7 +2049,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private final Statement __singleAttrStatement(Body parent, Data data, TagLibTag tlt, boolean allowTwiceAttr) throws TemplateException {
 		String tagName = tlt.getName();
 		if (data.srcCode.forwardIfCurrent(tagName)) {
-			if (!data.srcCode.isCurrent(' ') && !data.srcCode.isCurrent(';')) {
+			// the name has to be followed by a space, a line feed, a semicolon or the end of the block
+			if (!data.srcCode.isAfterLast() && !Character.isWhitespace(data.srcCode.getCurrent()) && !data.srcCode.isCurrent(';') && !data.srcCode.isCurrent('}')) {
 				data.srcCode.setPos(data.srcCode.getPos() - tagName.length());
 				return null;
 			}
@@ -2077,7 +2076,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if (attr != null) {
 			attrType = attr.getScriptSupport();
 			char c = data.srcCode.getCurrent();
-			if (ATTR_TYPE_REQUIRED == attrType || (!data.srcCode.isCurrent(';') && ATTR_TYPE_OPTIONAL == attrType)) {
+			// an optional attribute has to be on the same line, a line feed or the end of the block ends the statement (like with return)
+			boolean end = data.srcCode.isCurrent(';') || data.srcCode.isCurrent('}') || data.srcCode.isAfterLast() || data.srcCode.getPosition().line != line.line;
+			if (ATTR_TYPE_REQUIRED == attrType || (!end && ATTR_TYPE_OPTIONAL == attrType)) {
 				if (data.srcCode.isCurrent('{')) {// this can be only a json string
 					int p = data.srcCode.getPos();
 					try {

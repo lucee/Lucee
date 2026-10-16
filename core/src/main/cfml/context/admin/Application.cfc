@@ -26,7 +26,7 @@ this.sessiontimeout="#createTimeSpan(0,0,30,0)#";
 this.setclientcookies="yes";
 this.setdomaincookies="no"; 
 this.applicationtimeout="#createTimeSpan(1,0,0,0)#";
-this.localmode="update";
+this.localmode=false;
 this.web.charset="utf-8";
 this.sessionCookie.httpOnly = true; // prevent access to session cookies from javascript
 this.sessionCookie.sameSite = "strict";
@@ -41,6 +41,7 @@ this.monitoring.showDebug=false;
 this.monitoring.showDoc=false;
 this.monitoring.showMetric=false;
 this.monitoring.showTest=false;
+this.nullSupport=false;
 
 this.xmlFeatures = {
 	externalGeneralEntities: false,
@@ -49,10 +50,10 @@ this.xmlFeatures = {
 };
 
 request.singleMode=getApplicationSettings().singleContext;
-if(request.singleMode) request.adminType="server";
+request.adminType="server";
 public function onRequestStart() {
 	// if not logged in, we only allow access to admin|web|server[.cfm]
-	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
+	if(!structKeyExists(session, "passwordServer")){
 		var path=cgi.request_url;
 		var index=find("?", path);
 		if(index > 0) {
@@ -68,7 +69,7 @@ public function onRequestStart() {
 		}
 		
 		var fileName=listLast(cgi.script_name,"/");
-		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm" && fileName!="index.cfm" && fileName!="restart.cfm") {
+		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm" && fileName!="index.cfm" && fileName!="restart.cfm" && fileName!="mcp.cfm") {
 			writeLog(text="Lucee Admin request to restricted file [#filename#] before login", type="error", log="application");
 			cfsetting(show:false);
 			cfheader(statuscode="404" statustext="Invalid access");

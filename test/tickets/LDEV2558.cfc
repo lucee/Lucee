@@ -10,8 +10,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				expect(len(extensions)).toBeGT(10);
 			});
 
-			it(title = "getPageContext().getConfig().getServerRHExtensions() should return at least 10 extensions", body = function( currentSpec ) {
-				local.extensions=getPageContext().getConfig().getServerRHExtensions();
+			it(title = "getPageContext().getConfig().getRHExtensions() should return at least 10 extensions", body = function( currentSpec ) {
+				local.extensions=getPageContext().getConfig().getRHExtensions();
 				expect(len(extensions)).toBeGT(10);
 			});
 

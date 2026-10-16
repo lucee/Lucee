@@ -743,6 +743,7 @@ public interface Config {
 
 	public Struct getRemoteClientUsage();
 
+	@Deprecated
 	public Class<AdminSync> getAdminSyncClass();
 
 	public Class<VideoExecuter> getVideoExecuterClass();

@@ -32,41 +32,36 @@
 	<cfswitch expression="#form.mainAction#">
 	<!--- UPDATE --->
 		<cfcase value="#stText.Buttons.Update#">
-				<cfadmin action="updateDebug"
+				<!---
+				<cfdump var="#isDefined('form.monitoring_debuggingDatabase') && form.monitoring_debuggingDatabase#">
+				<cfdump var="#form#" abort>--->
+			<cfadmin action="updateDebug"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					debug="#isDefined('form.debug') && form.debug#"
-					database="#isDefined('form.database') && form.database#"
-					exception="#isDefined('form.exception') && form.exception#"
-					tracing="#isDefined('form.tracing') && form.tracing#"
-					dump="#isDefined('form.dump') && form.dump#"
-					timer="#isDefined('form.timer') && form.timer#"
-					implicitAccess="#isDefined('form.implicitAccess') && form.implicitAccess#"
-					queryUsage="#isDefined('form.queryUsage') && form.queryUsage#"
-					template="#isDefined('form.template') && form.template#"
-					thread="#isDefined('form.thread') && form.thread#"
-
-
-					debugTemplate=""
-					remoteClients="#request.getRemoteClients()#">
+					debuggingDatabase="#form.debuggingDatabase?:false#"
+					debuggingException="#form.debuggingException?:false#"
+					debuggingTracing="#form.debuggingTracing?:false#"
+					debuggingDump="#form.debuggingDump?:false#"
+					debuggingTimer="#form.debuggingTimer?:false#"
+					debuggingImplicitAccess="#form.debuggingImplicitAccess?:false#"
+					debuggingQueryUsage="#form.debuggingQueryUsage?:false#"
+					debuggingTemplate="#form.debuggingTemplate?:false#"
+					debuggingThread="#form.debuggingThread?:false#">
 		</cfcase>
 		<cfcase value="#stText.Buttons.resetServerAdmin#">
 
 				<cfadmin action="updateDebug"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					debug=""
-					database=""
-					exception=""
-					tracing=""
-					dump=""
-					timer=""
-					implicitAccess=""
-					queryUsage=""
-					thread=""
-
-					debugTemplate=""
-					remoteClients="#request.getRemoteClients()#">
+					debuggingDatabase=""
+					debuggingException=""
+					debuggingTracing=""
+					debuggingDump=""
+					debuggingTimer=""
+					debuggingImplicitAccess=""
+					debuggingQueryUsage=""
+					debuggingTemplate=""
+					debuggingThread="">
 		</cfcase>
 
 	</cfswitch>
@@ -122,33 +117,34 @@ Redirtect to entry --->
 
 
 			<tbody>
-						<cfif hasAccess>
 							
 								
 
 										<cfloop list="template,database,exception,tracing,dump,timer,implicitAccess,thread" item="item">
+										<cfset cfgKey = "debugging" & ucFirst(item)>
 										<tr>
 											<th scope="row">#stText.debug.settings[item]#</th>
 											<td>
-												<cfset lbl = _debug[item] ? stText.general.yes : stText.general.no>
-												<cfif hasAccess>
-													<label><input type="checkbox" class="checkbox" name="#item#" value="true"  <cfif item EQ "database">id="sp_radio_qu"</cfif> #_debug[item] ? 'checked="checked"' : ''#>
-													#stText.general.enabled#</label>
-												<cfelse>
-													<b>#_debug[item] ? stText.general.yes : stText.general.no#</b>
-													<input type="hidden" name="#item#" value="#_debug[item]#">
-												</cfif>
+												<cfset lbl = _debug[cfgKey] ? stText.general.yes : stText.general.no>
+												
+												<cfmodule template="systemSetting.cfm"
+													name="#cfgKey#" 
+													propName="monitoring_#cfgKey#"
+													value="#_debug[cfgKey]#"
+													access="#hasAccess#"
+													description="#stText.debug.settings[item&"Desc"]#"
+													br=false
+													sp=true
+													descOnTop=false>
+													<label>
+														<input type="checkbox" class="checkbox" name="#cfgKey#" value="true"  <cfif item EQ "database">id="sp_radio_qu"</cfif> #_debug[cfgKey] ? 'checked="checked"' : ''#>
+													</label>
+												</cfmodule>
 												<cfif structKeyExists(stText.debug.settings, item&"Alert")>
-													<div class="comment">
-														<b style="color:##bf4f36">#stText.debug.settings[item&"Alert"]#</b>
+													<div class="err">
+														<b >#stText.debug.settings[item&"Alert"]#</b>
 													</div>
 												</cfif>
-												<div class="comment">#stText.debug.settings[item&"Desc"]#</div>
-												<cfsavecontent variable="codeSample">
-													this.monitoring.debugging#ucFirst(item)#=#_debug[item]#;
-												</cfsavecontent>
-												<cfset renderCodingTip( codeSample )>
-												<cfset renderSysPropEnvVar( name:"lucee.monitoring.debugging#ucFirst(item)#",value:_debug[item])>
 
 												<cfif item EQ "database">
 												<table class="maintbl autowidth" id="debugoptionqutbl">
@@ -156,44 +152,31 @@ Redirtect to entry --->
 													<tr>
 														<th scope="row">#stText.debug.settings.queryUsage#</th>
 														<td>
-															<cfset lbl = _debug.queryUsage ? stText.general.yes : stText.general.no>
-															<cfif hasAccess>
-																<label><input type="checkbox" class="checkbox" name="queryUsage" value="true" #_debug.queryUsage ? 'checked="checked"' : ''#>
-																#stText.general.enabled#</label>
-															<cfelse>
-																<b>#_debug.queryUsage ? stText.general.yes : stText.general.no#</b>
-																<input type="hidden" name="queryUsage" value="#_debug.queryUsage#">
-															</cfif>
-															<div class="comment">#stText.debug.settings["queryUsageDesc"]#</div>
-
-															<cfsavecontent variable="cs">
-																this.monitoring.debuggingQueryUsage=#_debug.queryUsage#;
-															</cfsavecontent>
-															<cfset renderCodingTip( cs )>
-															<cfset renderSysPropEnvVar( name:"lucee.monitoring.debuggingQueryUsage",value:_debug.queryUsage)>
+															<cfmodule template="systemSetting.cfm"
+																name="debuggingQueryUsage" 
+																propName="monitoring_debuggingQueryUsage"
+																value="#_debug.debuggingQueryUsage#"
+																access="#hasAccess#"
+																description="#stText.debug.settings["queryUsageDesc"]#"
+																br=false
+																sp=true
+																descOnTop=false>#_debug.debuggingQueryUsage#
+															<cfset lbl = _debug.debuggingQueryUsage ? stText.general.yes : stText.general.no>
+																<label><input type="checkbox" class="checkbox" 
+																	name="debuggingQueryUsage" 
+																	value="true" #_debug.debuggingQueryUsage ? 'checked="checked"' : ''#>
+																</label>
+															</cfmodule>
 														</td>
 													</tr>
 												</table>
 												</cfif>
-												
-												
-
-
 											</td>
 										</tr>
 										</cfloop>
 
 								
-						<cfelse>
-							<!---<input type="hidden" name="scriptProtect" value="#appSettings.scriptProtect#">--->
-							<b>#lbl#</b>
-							<div class="comment">#_debug.debug?stText.debug.settings.generalYes:stText.debug.settings.generalNo#</div>
-							<cfloop list="database,exception,tracing,dump,timer,implicitAccess" item="item">
-								<cfif _debug[item]>- #stText.debug.settings[item]#<br></cfif>
-							</cfloop>
-
-
-						</cfif>
+						
 					</td>
 				</tr>
 

@@ -113,6 +113,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	public static final int RETURN_TYPE_STORED_PROC = 4;
 
 	private static final boolean USE_LOCAL_SCOPE = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.tag.populate.localscope", "true"), true);
+	private static final boolean QOQ_CASE_SENSITIVE_DEFAULT = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.caseSensitive", "false"), false);
 
 	public boolean orgPSQ;
 	public boolean hasChangedPSQ;
@@ -345,11 +346,34 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	/**
 	 * set the value dbtype The database driver type.
-	 * 
-	 * @param dbtype value to set
+	 *
+	 * @param dbtype value to set — accepts a string or a struct with keys: type, caseSensitive, engine
 	 **/
-	public void setDbtype(String dbtype) {
-		data.dbtype = dbtype.toLowerCase();
+	public void setDbtype(Object dbtype) throws PageException {
+		applyDbtype(data, dbtype, true);
+	}
+
+	/**
+	 * Parse a dbtype value (string or struct) and apply it to the QueryBean.
+	 *
+	 * @param data    target QueryBean
+	 * @param dbtype  string or struct value
+	 * @param require if true, the struct "type" key is required; if false, it is optional
+	 */
+	private static void applyDbtype(QueryBean data, Object dbtype, boolean require) throws PageException {
+		if (dbtype instanceof Struct) {
+			Struct sct = (Struct) dbtype;
+			String type = require ? Caster.toString(sct.get(KeyConstants._type)) : Caster.toString(sct.get(KeyConstants._type, null), null);
+			if (!StringUtil.isEmpty(type)) data.dbtype = type.toLowerCase();
+			Boolean cs = Caster.toBoolean(sct.get("caseSensitive", null), null);
+			if (cs != null) data.qoqCaseSensitive = cs;
+			String eng = Caster.toString(sct.get("engine", null), null);
+			if (!StringUtil.isEmpty(eng)) data.qoqEngine = eng.toLowerCase();
+		}
+		else {
+			String str = require ? Caster.toString(dbtype).toLowerCase() : Caster.toString(dbtype, null);
+			if (str != null && !StringUtil.isEmpty(str)) data.dbtype = str.toLowerCase();
+		}
 	}
 
 	/**
@@ -668,6 +692,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				if ("query".equals(data.dbtype)) {
 					QueryImpl q = executeQoQ(pageContext, data, sqlQuery, tl);
 					q.setTemplateLine(tl);
+					if (data.indexName != null) q.index(data.indexName);
 					if (data.returntype == RETURN_TYPE_ARRAY) queryResult = QueryArray.toQueryArray(q); // TODO this should be done in queryExecute
 																										// itself so
 					// we not have to convert afterwards
@@ -952,8 +977,9 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		}
 
 		// dbtype
-		String str = Caster.toString(args.get("dbtype", null), null);
-		if (str != null && str != data.dbtype && !StringUtil.isEmpty(str)) data.dbtype = str;
+		String str;
+		Object dbtypeObj = args.get("dbtype", null);
+		if (dbtypeObj != null) applyDbtype(data, dbtypeObj, false);
 
 		// debug
 		Boolean b = Caster.toBoolean(args.get("debug", null), null);
@@ -1104,8 +1130,24 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	}
 
 	private static lucee.runtime.type.QueryImpl executeQoQ(PageContext pc, QueryBean data, SQL sql, TemplateLine tl) throws PageException {
+		// resolve effective options: per-query → per-app → env var → default
+		Boolean caseSensitive = data.qoqCaseSensitive;
+		String engine = data.qoqEngine;
+
+		if (caseSensitive == null || engine == null) {
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac instanceof ApplicationContextSupport) {
+				ApplicationContextSupport acs = (ApplicationContextSupport) ac;
+				if (caseSensitive == null) caseSensitive = acs.getQoQCaseSensitive();
+				if (engine == null) engine = acs.getQoQEngine();
+			}
+		}
+
+		boolean cs = caseSensitive != null ? caseSensitive.booleanValue() : QOQ_CASE_SENSITIVE_DEFAULT;
+		if (StringUtil.isEmpty(engine)) engine = "auto";
+
 		try {
-			return new HSQLDBHandler().execute(pc, sql, data.maxrows, data.blockfactor, data.timeout);
+			return new HSQLDBHandler().execute( pc, sql, data.maxrows, data.blockfactor, data.timeout, cs, engine );
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

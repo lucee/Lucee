@@ -79,8 +79,6 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public final class WDDXConverter extends ConverterSupport {
 
-	private static final Collection.Key REMOTING_FETCH = KeyConstants._remotingFetch;
-
 	private static final List<String> KNOWN_STRUCT_TYPES = Arrays.asList(new String[] { "coldfusion.server.ConfigMap" });
 
 	private int deep = 1;
@@ -217,7 +215,7 @@ public final class WDDXConverter extends ConverterSupport {
 			if (!ignoreRemotingFetch) {
 				p = (Property) props.get(key, null);
 				if (p != null) {
-					remotingFetch = Caster.toBoolean(p.getDynamicAttributes().get(REMOTING_FETCH, null), null);
+					remotingFetch = Caster.toBoolean(p.getDynamicAttributes().get(KeyConstants._remotingFetch, null), null);
 					if (remotingFetch == null) {
 						if (isPeristent && ORMUtil.isRelated(p)) continue;
 					}
@@ -488,9 +486,9 @@ public final class WDDXConverter extends ConverterSupport {
 	 * @throws IOException
 	 * @throws FactoryConfigurationError
 	 */
-	public Object deserialize(String strWddx, boolean validate) throws ConverterException, IOException, FactoryConfigurationError {
+	public Object deserialize(PageContext pc, String strWddx, boolean validate) throws ConverterException, IOException, FactoryConfigurationError {
 		try {
-			Document doc = XMLUtil.parse(XMLUtil.toInputSource(strWddx), null, validate ? new WDDXEntityResolver() : null, false);
+			Document doc = XMLUtil.parse(pc, XMLUtil.toInputSource(strWddx), null, validate ? new WDDXEntityResolver() : null, false);
 
 			// WDDX Package
 			NodeList docChldren = doc.getChildNodes();

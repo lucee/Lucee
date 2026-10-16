@@ -86,7 +86,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 		Key key = arguments[0].getName();
 		Object value = values.get(key, null);
 		if (value == null) {
-			Key[] keys = CollectionUtil.keys(values);
+			Key[] keys = CollectionUtil.keys(pageContext, values);
 			if (keys.length == 1) {
 				value = values.get(keys[0]);
 			}
@@ -124,7 +124,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 		boolean has = false;
 		if (propValue instanceof Array) {
 			Array arr = ((Array) propValue);
-			Key[] keys = CollectionUtil.keys(arr);
+			Key[] keys = CollectionUtil.keys(pageContext, arr);
 			for (int i = 0; i < keys.length; i++) {
 				o = arr.get(keys[i], null);
 				if (ORMUtil.equals(value, o)) {

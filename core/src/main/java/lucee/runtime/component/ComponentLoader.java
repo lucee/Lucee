@@ -47,6 +47,7 @@ import lucee.runtime.StaticScope;
 import lucee.runtime.SubPage;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.exp.ApplicationException;
@@ -111,7 +112,8 @@ public final class ComponentLoader {
 			synchronized (SystemUtil.createToken(cp.getPageSource().getDisplayPath(), cp.getHash() + "")) {
 				ss = cp.getStaticScope();
 				if (ss == null) {
-					ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope();
+					// no validation, loading the static scope is not an instantiation, so this also works for abstract components
+					ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false, false).staticScope();
 					cp.setStaticScope(ss);
 					return ss;
 				}
@@ -125,7 +127,8 @@ public final class ComponentLoader {
 		Component c = ss.getComponent();
 		while ((bc = (ComponentImpl) c.getBaseComponent()) != null) {
 			ComponentPageImpl bcp = (ComponentPageImpl) ((PageSourceImpl) bc._getPageSource()).loadPage(pc, false, null);
-			if (bcp.getStaticStruct() != null) {
+			// bcp can be null during concurrent class initialization (race condition)
+			if (bcp != null && bcp.getStaticStruct() != null) {
 				long idx = bcp.getStaticStruct().index();
 				if (idx == 0 || idx > index) {
 					reload = true;
@@ -137,7 +140,7 @@ public final class ComponentLoader {
 
 		// if we had changes we need to reload
 		if (reload) {
-			ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope();
+			ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false, false).staticScope();
 			cp.setStaticScope(ss);
 		}
 
@@ -208,7 +211,7 @@ public final class ComponentLoader {
 	private static Object _search(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean executeConstr, short returnType,
 			PageSource currPS, final boolean isExtendedComponent, boolean validate) throws PageException {
 
-		ConfigPro config = (ConfigPro) pc.getConfig();
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 
 		boolean doCache = config.useComponentPathCache();
 		String sub = null;
@@ -227,8 +230,13 @@ public final class ComponentLoader {
 		final String path = (rawPath.indexOf("./") == -1 && !rawPath.endsWith(ext)) ? rawPath.replace('.', '/') : rawPath;
 		boolean isRealPath = !StringUtil.startsWith(path, '/');
 
-		// PageSource currPS = pc.getCurrentPageSource();
-		// Page currP=currPS.loadPage(pc,false);
+		if (searchLocal == null) {
+			searchLocal = Caster.toBoolean(rawPath.indexOf('.') == -1 ? true : config.getComponentLocalSearch());
+		}
+		if (searchRoot == null) {
+			searchRoot = Caster.toBoolean(config.getComponentRootSearch());
+		}
+
 		PageSource ps = null;
 		CIPage page = null;
 
@@ -257,12 +265,11 @@ public final class ComponentLoader {
 		// check local in cache
 		String localCacheName = null;
 		if (isRealPath && currPS != null) {
-			if (searchLocal == null) searchLocal = Caster.toBoolean(rawPath.indexOf('.') == -1 ? true : config.getComponentLocalSearch());
 			if (searchLocal.booleanValue()) {
 				localCacheName = currPS.getDisplayPath().replace('\\', '/');
 				localCacheName = localCacheName.substring(0, localCacheName.lastIndexOf('/') + 1).concat(pathWithCFC);
 				if (doCache) {
-					page = config.getCachedPage(pc, localCacheName);
+					page = config.getComponentPathCache(pc, localCacheName);
 					if (page != null) {
 						return returnType == RETURN_TYPE_PAGE ? page
 								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
@@ -291,7 +298,7 @@ public final class ComponentLoader {
 			do {
 
 				if ((currDir && impDef.isWildcard()) || impDef.getName().equalsIgnoreCase(path)) {
-					page = config.getCachedPage(pc, "import:" + impDef.getPackageAsPath() + pathWithCFC);
+					page = config.getComponentPathCache(pc, "import:" + impDef.getPackageAsPath() + pathWithCFC);
 					if (page != null) {
 						return returnType == RETURN_TYPE_PAGE ? page
 								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
@@ -304,7 +311,7 @@ public final class ComponentLoader {
 
 		if (doCache) {
 			// check global in cache
-			page = config.getCachedPage(pc, pathWithCFC);
+			page = config.getComponentPathCache(pc, pathWithCFC);
 			if (page != null) {
 				return returnType == RETURN_TYPE_PAGE ? page
 						: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
@@ -318,7 +325,7 @@ public final class ComponentLoader {
 			PageSource[] arr = ((PageContextImpl) pc).getRelativePageSources(pathWithCFC);
 			page = toCIPage(PageSourceImpl.loadPage(pc, arr, null));
 			if (page != null) {
-				if (doCache) config.putCachedPageSource(localCacheName, page.getPageSource());
+				if (doCache) config.putComponentPathCache(localCacheName, page.getPageSource());
 
 				return returnType == RETURN_TYPE_PAGE ? page
 						: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
@@ -346,7 +353,7 @@ public final class ComponentLoader {
 						arr = ((PageContextImpl) pc).getRelativePageSources(impDef.getPackageAsPath() + pathWithCFC);
 						page = toCIPage(PageSourceImpl.loadPage(pc, arr, null));
 						if (page != null) {
-							if (doCache) config.putCachedPageSource("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
+							if (doCache) config.putComponentPathCache("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
 							return returnType == RETURN_TYPE_PAGE ? page
 									: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 						}
@@ -356,7 +363,7 @@ public final class ComponentLoader {
 					page = toCIPage(PageSourceImpl.loadPage(pc, ((PageContextImpl) pc).getPageSources("/" + impDef.getPackageAsPath() + pathWithCFC), null));
 					if (page != null) {
 						String key = impDef.getPackageAsPath() + pathWithCFC;
-						if (doCache && !((MappingImpl) page.getPageSource().getMapping()).isAppMapping()) config.putCachedPageSource("import:" + key, page.getPageSource());
+						if (doCache && !((MappingImpl) page.getPageSource().getMapping()).isAppMapping()) config.putComponentPathCache("import:" + key, page.getPageSource());
 						return returnType == RETURN_TYPE_PAGE ? page
 								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 					}
@@ -371,7 +378,7 @@ public final class ComponentLoader {
 								ps = m.getPageSource(impDef.getPackageAsPath() + pathWithCFC);
 								page = toCIPage(ps.loadPageThrowTemplateException(pc, false, (Page) null));
 								if (page != null) {
-									if (doCache && z > 0) config.putCachedPageSource("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
+									if (doCache && z > 0) config.putComponentPathCache("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
 									return returnType == RETURN_TYPE_PAGE ? page
 											: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 								}
@@ -394,7 +401,7 @@ public final class ComponentLoader {
 		page = toCIPage(PageSourceImpl.loadPage(pc, ((PageContextImpl) pc).getPageSources(p), null));
 		if (page != null) {
 			String key = pathWithCFC;
-			if (doCache && !((MappingImpl) page.getPageSource().getMapping()).isAppMapping()) config.putCachedPageSource(key, page.getPageSource());
+			if (doCache && !((MappingImpl) page.getPageSource().getMapping()).isAppMapping()) config.putComponentPathCache(key, page.getPageSource());
 			return returnType == RETURN_TYPE_PAGE ? page : load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 		}
 
@@ -420,7 +427,7 @@ public final class ComponentLoader {
 					}
 
 					if (page != null) {
-						if (doCache && y > 0) config.putCachedPageSource(pathWithCFC, page.getPageSource());
+						if (doCache && y > 0) config.putComponentPathCache(pathWithCFC, page.getPageSource());
 						return returnType == RETURN_TYPE_PAGE ? page
 								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 					}
@@ -429,7 +436,7 @@ public final class ComponentLoader {
 		}
 
 		// search relative to active component (this get not cached because the cache get ambigous if we do)
-		if (searchLocal && isRealPath) {
+		if (searchLocal.booleanValue() && isRealPath) {
 			if (loadingLocation == null) {
 				Component c = pc.getActiveComponent();
 				if (c != null) loadingLocation = c.getPageSource();
@@ -451,7 +458,6 @@ public final class ComponentLoader {
 		if (StringUtil.startsWithIgnoreCase(rawPath, "cfide.")) {
 			String rpm = Constants.DEFAULT_PACKAGE + "." + rawPath.substring(6);
 			try {
-				if (searchRoot == null) searchRoot = Caster.toBoolean(config.getComponentRootSearch());
 				return _search(pc, loadingLocation, rpm, searchLocal, searchRoot, executeConstr, returnType, currPS, false, validate);
 			}
 			catch (ExpressionException ee) {
@@ -469,7 +475,7 @@ public final class ComponentLoader {
 				if (ps != null) {
 					page = toCIPage(PageSourceImpl.loadPage(pc, new PageSource[] { ps }, null));
 					if (page != null) {
-						if (doCache) config.putCachedPageSource("abs:" + rawPath, page.getPageSource());
+						if (doCache) config.putComponentPathCache("abs:" + rawPath, page.getPageSource());
 						return returnType == RETURN_TYPE_PAGE ? page : load(pc, page, rawPath, sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 					}
 				}

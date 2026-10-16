@@ -7,20 +7,20 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
     - name: Set up JDK 21
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v6
       with:
         java-version: '21'
-        distribution: 'adopt'
+        distribution: 'temurin'
     - name: Cache Lucee extensions 
-      uses: actions/cache@v3
+      uses: actions/cache@v6
       with:
         path: ~/work/Lucee/Lucee/cache/
         key: lucee-extensions
         restore-keys: lucee-extensions
     - name: Cache Maven packages
-      uses: actions/cache@v3
+      uses: actions/cache@v6
       with:
         path: |
           ~/.m2/repository/*

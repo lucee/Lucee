@@ -59,17 +59,6 @@ import lucee.runtime.type.util.KeyConstants;
 
 public final class GetUsageData implements Function {
 
-	private static final Key START_TIME = KeyConstants._starttime;
-	private static final Key CACHED_QUERIES = KeyConstants._cachedqueries;
-	private static final Key OPEN_CONNECTIONS = KeyConstants._openconnections;
-	private static final Key ACTIVE_CONNECTIONS = KeyConstants._activeconnections;
-	private static final Key IDLE_CONNECTIONS = KeyConstants._idleconnections;
-	private static final Key WAITING_FOR_CONNECTION = KeyConstants._waitingForConnection;
-	private static final Key ELEMENTS = KeyConstants._elements;
-	private static final Key USERS = KeyConstants._users;
-	private static final Key QUERIES = KeyConstants._queries;
-	private static final Key LOCKS = KeyConstants._locks;
-
 	public static Struct call(PageContext pc) throws PageException {
 		ConfigWeb cw = pc.getConfig();
 		ConfigServer cs = cw.getConfigServer("server");
@@ -88,29 +77,29 @@ public final class GetUsageData implements Function {
 		 */
 
 		// Requests
-		Query req = new QueryImpl(new Collection.Key[] { KeyConstants._web, KeyConstants._uri, START_TIME, KeyConstants._timeout }, 0, "requests");
+		Query req = new QueryImpl(new Collection.Key[] { KeyConstants._web, KeyConstants._uri, KeyConstants._starttime, KeyConstants._timeout }, 0, "requests");
 		sct.setEL(KeyConstants._requests, req);
 
 		// Template Cache
-		Query tc = new QueryImpl(new Collection.Key[] { KeyConstants._web, ELEMENTS, KeyConstants._size }, 0, "templateCache");
+		Query tc = new QueryImpl(new Collection.Key[] { KeyConstants._web, KeyConstants._elements, KeyConstants._size }, 0, "templateCache");
 		sct.setEL(KeyConstants._templateCache, tc);
 
 		// Scopes
 		Struct scopes = new StructImpl();
 		sct.setEL(KeyConstants._scopes, scopes);
-		Query app = new QueryImpl(new Collection.Key[] { KeyConstants._web, KeyConstants._application, ELEMENTS, KeyConstants._size }, 0, "templateCache");
+		Query app = new QueryImpl(new Collection.Key[] { KeyConstants._web, KeyConstants._application, KeyConstants._elements, KeyConstants._size }, 0, "templateCache");
 		scopes.setEL(KeyConstants._application, app);
-		Query sess = new QueryImpl(new Collection.Key[] { KeyConstants._web, KeyConstants._application, USERS, ELEMENTS, KeyConstants._size }, 0, "templateCache");
+		Query sess = new QueryImpl(new Collection.Key[] { KeyConstants._web, KeyConstants._application, KeyConstants._users, KeyConstants._elements, KeyConstants._size }, 0, "templateCache");
 		scopes.setEL(KeyConstants._session, sess);
 
 		// Query
-		Query qry = new QueryImpl(new Collection.Key[] { KeyConstants._web, KeyConstants._application, START_TIME, KeyConstants._sql }, 0, "requests");
-		sct.setEL(QUERIES, qry);
+		Query qry = new QueryImpl(new Collection.Key[] { KeyConstants._web, KeyConstants._application, KeyConstants._starttime, KeyConstants._sql }, 0, "requests");
+		sct.setEL(KeyConstants._queries, qry);
 
 		// Locks
-		Query lck = new QueryImpl(new Collection.Key[] { KeyConstants._web, KeyConstants._application, KeyConstants._name, START_TIME, KeyConstants._timeout, KeyConstants._type },
+		Query lck = new QueryImpl(new Collection.Key[] { KeyConstants._web, KeyConstants._application, KeyConstants._name, KeyConstants._starttime, KeyConstants._timeout, KeyConstants._type },
 				0, "requests");
-		sct.setEL(LOCKS, lck);
+		sct.setEL(KeyConstants._locks, lck);
 
 		// Loop webs
 		ConfigWebPro web;
@@ -137,7 +126,7 @@ public final class GetUsageData implements Function {
 				row = req.addRow();
 				req.setAt(KeyConstants._web, row, web.getLabel());
 				req.setAt(KeyConstants._uri, row, getPath(_pc.getHttpServletRequest()));
-				req.setAt(START_TIME, row, new DateTimeImpl(pc.getStartTime()));
+				req.setAt(KeyConstants._starttime, row, new DateTimeImpl(pc.getStartTime()));
 				req.setAt(KeyConstants._timeout, row, Double.valueOf(pc.getRequestTimeout()));
 
 				// Query
@@ -148,7 +137,7 @@ public final class GetUsageData implements Function {
 						row = qry.addRow();
 						qry.setAt(KeyConstants._web, row, web.getLabel());
 						qry.setAt(KeyConstants._application, row, _pc.getApplicationContext().getName());
-						qry.setAt(START_TIME, row, new DateTimeImpl(aq.startTime));
+						qry.setAt(KeyConstants._starttime, row, new DateTimeImpl(aq.startTime));
 						qry.setAt(KeyConstants._sql, row, aq.sql);
 					}
 				}
@@ -162,7 +151,7 @@ public final class GetUsageData implements Function {
 						lck.setAt(KeyConstants._web, row, web.getLabel());
 						lck.setAt(KeyConstants._application, row, _pc.getApplicationContext().getName());
 						lck.setAt(KeyConstants._name, row, al.name);
-						lck.setAt(START_TIME, row, new DateTimeImpl(al.startTime));
+						lck.setAt(KeyConstants._starttime, row, new DateTimeImpl(al.startTime));
 						lck.setAt(KeyConstants._timeout, row, Caster.toDouble(al.timeoutInMillis / 1000));
 						lck.setAt(KeyConstants._type, row, al.type == LockManager.TYPE_EXCLUSIVE ? "exclusive" : "readonly");
 					}
@@ -181,7 +170,7 @@ public final class GetUsageData implements Function {
 			row = tc.addRow();
 			tc.setAt(KeyConstants._web, row, web.getLabel());
 			tc.setAt(KeyConstants._size, row, Double.valueOf(tce[1]));
-			tc.setAt(ELEMENTS, row, Double.valueOf(tce[0]));
+			tc.setAt(KeyConstants._elements, row, Double.valueOf(tce[0]));
 
 			// Scope Application
 			getAllApplicationScopes(web, factory.getScopeContext(), app);
@@ -193,13 +182,13 @@ public final class GetUsageData implements Function {
 		Struct ds = new StructImpl();
 		sct.setEL(KeyConstants._datasources, ds);
 
-		ds.setEL(CACHED_QUERIES, Caster.toDouble(pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null).size(pc))); // there is only one cache for all contexts
-		// ds.setEL(CACHED_QUERIES, Caster.toDouble(pc.getQueryCache().size(pc))); // there is only one
+		ds.setEL(KeyConstants._cachedqueries, Caster.toDouble(pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null).size(pc))); // there is only one cache for all contexts
+		// ds.setEL(KeyConstants._cachedqueries, Caster.toDouble(pc.getQueryCache().size(pc))); // there is only one
 		// cache for all contexts
-		ds.setEL(OPEN_CONNECTIONS, Caster.toDouble(active + idle));
-		ds.setEL(ACTIVE_CONNECTIONS, Caster.toDouble(active));
-		ds.setEL(IDLE_CONNECTIONS, Caster.toDouble(idle));
-		ds.setEL(WAITING_FOR_CONNECTION, Caster.toDouble(waiters));
+		ds.setEL(KeyConstants._openconnections, Caster.toDouble(active + idle));
+		ds.setEL(KeyConstants._activeconnections, Caster.toDouble(active));
+		ds.setEL(KeyConstants._idleconnections, Caster.toDouble(idle));
+		ds.setEL(KeyConstants._waitingForConnection, Caster.toDouble(waiters));
 
 		// Memory
 		Struct mem = new StructImpl();
@@ -231,7 +220,7 @@ public final class GetUsageData implements Function {
 			app.setAt(KeyConstants._web, row, web.getLabel());
 			app.setAt(KeyConstants._application, row, e.getKey().getString());
 			app.setAt(KeyConstants._size, row, Double.valueOf(sac.size));
-			app.setAt(ELEMENTS, row, Double.valueOf(sac.count));
+			app.setAt(KeyConstants._elements, row, Double.valueOf(sac.count));
 
 		}
 	}
@@ -259,10 +248,10 @@ public final class GetUsageData implements Function {
 			row = sess.addRow();
 
 			sess.setAt(KeyConstants._web, row, web.getLabel());
-			sess.setAt(USERS, row, Double.valueOf(users));
+			sess.setAt(KeyConstants._users, row, Double.valueOf(users));
 			sess.setAt(KeyConstants._application, row, e.getKey().toString());
 			sess.setAt(KeyConstants._size, row, Double.valueOf(size));
-			sess.setAt(ELEMENTS, row, Double.valueOf(count));
+			sess.setAt(KeyConstants._elements, row, Double.valueOf(count));
 		}
 	}
 

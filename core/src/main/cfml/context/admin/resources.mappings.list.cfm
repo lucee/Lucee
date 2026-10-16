@@ -3,6 +3,11 @@
 	<cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
 
 	<div class="pageintro">#stText.Mappings.IntroText#</div>
+
+	<cfset renderSettings("Mappings",{columns:["virtual","physical","archive","primary","listenerType","listenerMode","readonly","hidden","toplevel"
+		,"inspect","inspectTemplateIntervalSlow","inspectTemplateIntervalFast"], value:addPrimary(mappings)} )>
+	
+
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl checkboxtbl">
 			<thead>
@@ -88,8 +93,10 @@
 							</td>
 							<!--- edit --->
 							<td>
-								<cfif not mappings.readOnly>
-									#renderEditButton("#request.self#?action=#url.action#&action2=create&virtual=#mappings.virtual#")#
+								<cfif mappings.readOnly>
+									#lockedReadOnly()#
+								<cfelse>
+									#renderEditButton2("mappings","virtual",mappings.virtual,"#request.self#?action=#url.action#&action2=create&virtual=#mappings.virtual#")#
 								</cfif>
 							</td>
 						</tr>

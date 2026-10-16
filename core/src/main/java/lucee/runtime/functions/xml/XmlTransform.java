@@ -42,7 +42,7 @@ public final class XmlTransform implements Function {
 		try {
 			Document doc;
 			if (oXml instanceof String) {
-				doc = XMLUtil.parse(XMLUtil.toInputSource(pc, oXml.toString()), null, false);
+				doc = XMLUtil.parse(pc, XMLUtil.toInputSource(pc, oXml.toString()), null, false);
 			}
 			else if (oXml instanceof Node) doc = XMLUtil.getDocument((Node) oXml);
 			else throw new XMLException("XML Object is of invalid type, must be a XML String or a XML Object", "now it is " + Caster.toClassName(oXml));

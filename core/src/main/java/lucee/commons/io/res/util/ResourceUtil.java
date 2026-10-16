@@ -57,8 +57,12 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServer;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -219,7 +223,7 @@ public final class ResourceUtil {
 		if (pc == null) {
 			pc = ThreadLocalPageContext.get();
 			if (pc == null) {
-				Config c = ThreadLocalPageContext.getConfig();
+				Config c = ThreadLocalPageContext.getConfig(pc);
 				if (c != null) return toResourceExisting(c, path);
 				return ResourcesImpl.getFileResourceProvider().getResource(path);
 			}
@@ -246,9 +250,9 @@ public final class ResourceUtil {
 
 		if (StringUtil.startsWith(path, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
-			Config cw = pc.getConfig();
+			ConfigWeb cw = pc.getConfig();
 
-			Resource[] sources = ((ConfigPro) cw).getResources(pci,
+			Resource[] sources = ((ConfigWebPro) cw).getResources(pci,
 					ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()), path, false, pci.useSpecialMappings(),
 					true, false, false);
 			if (!ArrayUtil.isEmpty(sources)) {
@@ -264,7 +268,7 @@ public final class ResourceUtil {
 
 	public static Resource toResourceExisting(Config config, String path) throws ExpressionException {
 		path = path.replace('\\', '/');
-		config = ThreadLocalPageContext.getConfig(config);
+		config = ThreadLocalPageContext.getConfigServer(config);
 		Resource res;
 		if (config == null) res = ResourcesImpl.getFileResourceProvider().getResource(path);
 		else res = config.getResource(path);
@@ -275,7 +279,7 @@ public final class ResourceUtil {
 
 	public static Resource toResourceExisting(Config config, String path, Resource defaultValue) {
 		path = path.replace('\\', '/');
-		config = ThreadLocalPageContext.getConfig(config);
+		config = ThreadLocalPageContext.getConfigServer(config);
 		Resource res;
 		if (config == null) res = ResourcesImpl.getFileResourceProvider().getResource(path);
 		else res = config.getResource(path);
@@ -322,9 +326,9 @@ public final class ResourceUtil {
 
 		if (StringUtil.startsWith(destination, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
-			Config cw = pc.getConfig();
+			ConfigWeb cw = pc.getConfig();
 
-			Resource[] sources = ((ConfigPro) cw).getResources(pci,
+			Resource[] sources = ((ConfigWebPro) cw).getResources(pci,
 					ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()), destination, false,
 					pci.useSpecialMappings(), false, true, false);
 
@@ -355,13 +359,16 @@ public final class ResourceUtil {
 	 */
 
 	public static Resource toResourceNotExisting(PageContext pc, String destination) {
-		return toResourceNotExisting(pc, destination, pc.getConfig().allowRealPath(), false);
+		ConfigServerPro cs = ThreadLocalPageContext.getConfigServer(pc);
+
+		return toResourceNotExisting(pc, cs, destination, cs.allowRealPath(), false);
 	}
 
-	public static Resource toResourceNotExisting(PageContext pc, String destination, boolean allowRealpath, boolean checkComponentMappings) {
+	public static Resource toResourceNotExisting(PageContext pc, ConfigServer config, String destination, boolean allowRealpath, boolean checkComponentMappings) {
 		destination = destination.replace('\\', '/');
+		config = ThreadLocalPageContext.getConfigServer(config);
 
-		Resource res = pc.getConfig().getResource(destination);
+		Resource res = config.getResource(destination);
 
 		if (!allowRealpath || res.exists()) {
 			return res;
@@ -369,9 +376,10 @@ public final class ResourceUtil {
 
 		boolean isUNC;
 		if (!(isUNC = isUNCPath(destination)) && StringUtil.startsWith(destination, '/')) {
+			pc = ThreadLocalPageContext.get(pc);
 			PageContextImpl pci = (PageContextImpl) pc;
-			Config cw = pc.getConfig();
-			Resource[] sources = ((ConfigPro) cw).getResources(pci,
+			ConfigWeb cw = pc.getConfig();
+			Resource[] sources = ((ConfigWebImpl) cw).getResources(pci,
 					ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()), destination, false,
 					pci.useSpecialMappings(), IS_WINDOWS, checkComponentMappings, false);
 			if (!ArrayUtil.isEmpty(sources)) {
@@ -384,11 +392,11 @@ public final class ResourceUtil {
 			// if(res2!=null) return res2;
 		}
 		if (isUNC) {
-			res = pc.getConfig().getResource(destination.replace('/', '\\'));
+			res = config.getResource(destination.replace('/', '\\'));
 		}
-		else if (!destination.startsWith("..")) res = pc.getConfig().getResource(destination);
+		else if (!destination.startsWith("..")) res = config.getResource(destination);
 		if (res != null && res.isAbsolute()) return res;
-
+		pc = ThreadLocalPageContext.get(pc);
 		return getRealResource(pc, destination, res);
 	}
 
@@ -460,8 +468,7 @@ public final class ResourceUtil {
 			parent = _check(parent);
 			if (op == parent) return file;
 			if ((file = parent.getRealResource(file.getName())).exists()) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, "application", "resources",
-						"Found a case-insensitive match for directory [" + op + "] with the name [" + parent.getName() + "].");
+				LogUtil.log(Log.LEVEL_DEBUG, "application", "resources", "Found a case-insensitive match for directory [" + op + "] with the name [" + parent.getName() + "].");
 				return file;
 			}
 		}
@@ -469,8 +476,7 @@ public final class ResourceUtil {
 		String[] names = parent.list(new ExactMatchFilter(file.getName()));
 		if (names == null) return file;
 		for (String name: names) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, "application", "resources",
-					"Found a case-insensitive match for file [" + file + "] with the name [" + name + "].");
+			LogUtil.log(Log.LEVEL_DEBUG, "application", "resources", "Found a case-insensitive match for file [" + file + "] with the name [" + name + "].");
 			return parent.getRealResource(name);
 		}
 		return file;
@@ -1189,16 +1195,14 @@ public final class ResourceUtil {
 		try {
 			res.createFile(force);
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 	}
 
 	public static void createDirectoryEL(Resource res, boolean force) {
 		try {
 			res.createDirectory(force);
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 	}
 
 	public static ContentType getContentType(Resource resource) {

@@ -45,13 +45,13 @@
 						type="#request.adminType#"
 						password="#session["password"&request.adminType]#"
 						
-						deepSearch="#isDefined('form.customTagDeepSearchDesc') and form.customTagDeepSearchDesc EQ true#"
-						localSearch="#isDefined('form.customTagLocalSearchDesc') and form.customTagLocalSearchDesc EQ true#"
-						customTagPathCache="#isDefined('form.customTagPathCache') and form.customTagPathCache EQ true#"
+						customTagDeepSearch="#isDefined('form.customTagDeepSearchDesc') and form.customTagDeepSearchDesc EQ true#"
+						customTagLocalSearch="#isDefined('form.customTagLocalSearchDesc') and form.customTagLocalSearchDesc EQ true#"
+						customTagUseCachePath="#isDefined('form.customTagPathCache') and form.customTagPathCache EQ true#"
 						
 						
 						
-						extensions="#form.extensions#"
+						customTagExtensions="#form.extensions#"
 			remoteClients="#request.getRemoteClients()#">
 			<cfelseif form.subAction EQ "#stText.Buttons.Update#">
 				<cfset data.names=toArrayFromForm("name")>
@@ -163,9 +163,9 @@ Redirtect to entry --->
 					<th scope="row">#stText.CustomTags.customTagDeepSearch#</th>
 					<td>
 						<cfif hasAccess>
-							<input type="checkbox" class="checkbox" name="customTagDeepSearchDesc" value="yes" <cfif setting.deepsearch>checked</cfif>>
+							<input type="checkbox" class="checkbox" name="customTagDeepSearchDesc" value="yes" <cfif setting.customTagDeepSearch>checked</cfif>>
 						<cfelse>
-							<b>#yesNoFormat(setting.deepsearch)#</b>
+							<b>#yesNoFormat(setting.customTagDeepSearch)#</b>
 						</cfif>
 						
 						<div class="comment">#stText.CustomTags.customTagDeepSearchDesc#</div>
@@ -175,9 +175,9 @@ Redirtect to entry --->
 					<th scope="row">#stText.CustomTags.customTagLocalSearch#</th>
 					<td>
 						<cfif hasAccess>
-							<input type="checkbox" class="checkbox" name="customTagLocalSearchDesc" value="yes" <cfif setting.localsearch>checked</cfif>>
+							<input type="checkbox" class="checkbox" name="customTagLocalSearchDesc" value="yes" <cfif setting.customTagLocalSearch>checked</cfif>>
 						<cfelse>
-							<b>#yesNoFormat(setting.localsearch)#</b>
+							<b>#yesNoFormat(setting.customTagLocalSearch)#</b>
 						</cfif>
 						<div class="comment">#stText.CustomTags.customTagLocalSearchDesc#</div>
 					</td>
@@ -187,17 +187,17 @@ Redirtect to entry --->
 					<th scope="row">#stText.CustomTags.customTagPathCache#</th>
 					<td>
 						<cfif hasAccess>
-							<input type="checkbox" class="checkbox" name="customTagPathCache" value="yes" <cfif setting.customTagPathCache>checked</cfif>>
+							<input type="checkbox" class="checkbox" name="customTagPathCache" value="yes" <cfif setting.customTagUseCachePath>checked</cfif>>
 						<cfelse>
-							<b>#yesNoFormat(setting.customTagPathCache)#</b>
+							<b>#yesNoFormat(setting.customTagUseCachePath)#</b>
 						</cfif>
 						<div class="comment">#stText.CustomTags.customTagPathCacheDesc#</div>
-						<cfif setting.customTagPathCache><input type="submit" class="button submit" name="mainAction" value="#flushName#"></cfif>
+						<cfif setting.customTagUseCachePath><input type="submit" class="button submit" name="mainAction" value="#flushName#"></cfif>
 					</td>
 				</tr>
 
 				<cfset arrExt=array('cfc','cfm','cfml')>
-				<cfset lstSetExt=ArrayToList(setting.extensions)>
+				<cfset lstSetExt=ArrayToList(setting.customTagExtensions)>
 				<tr>
 					<th scope="row">#stText.CustomTags.extensions#</th>
 					<td>
@@ -225,7 +225,7 @@ Redirtect to entry --->
 									<label>
 										<input type="radio" class="radio" name="extensions" value="custom"<cfif not has> checked="checked"</cfif>>
 									</label>
-									<cfinputClassic type="text" onclick="checkTheRadio(this)" name="extensions_custom" value="#ArrayToList(setting.extensions)#" required="no" class="small" />
+									<cfinputClassic type="text" onclick="checkTheRadio(this)" name="extensions_custom" value="#ArrayToList(setting.customTagExtensions)#" required="no" class="small" />
 									<div class="comment inline">#stText.CustomTags.mode.custom#</div>
 								</li>
 							</ul>

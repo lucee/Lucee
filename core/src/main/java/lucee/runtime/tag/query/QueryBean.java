@@ -95,6 +95,8 @@ public final class QueryBean implements Serializable {
 	public TagListener listener;
 	public Object rawDatasource;
 	public boolean async;
+	public Boolean qoqCaseSensitive;
+	public String qoqEngine;
 
 	public void release() {
 		items.clear();
@@ -133,6 +135,8 @@ public final class QueryBean implements Serializable {
 		listener = null;
 		async = false;
 		indexName = null;
+		qoqCaseSensitive = null;
+		qoqEngine = null;
 	}
 
 }

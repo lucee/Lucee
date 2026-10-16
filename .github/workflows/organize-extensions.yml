@@ -15,37 +15,49 @@ on:
           - com.microsoft.sqlserver.mssql-jdbc
           - com.mysql.cj
           - com.oracle.database.jdbc
+          - com.teradata.jdbc
           - compress-extension
           - ec2-extension
           - ehcache-extension
           - extension-memcached
+          - extension-infinispan
+          - extension-json-extension
+          - extension-loganalyzer
           - esapi-extension
           - form-extension
           - git-extension
-          - hibernate.extension
           - hibernate-orm
           - image-extension
           - jtds
+          - kinesis-extension
           - lucee.extension.couchbase
           - lucee.image.extension
           - lucene-search
           - lucene-search-extension
+          - mail-extension
           - memcached-extension
           - mongodb-extension
+          - mssqljdbc4
+          - org.lucee.athena.jdbc
           - org.lucee.axis.extension
           - org.lucee.exasol
+          - org.duckdb.duckdb_jdbc
           - org.lucee.mssql
           - org.lucee.oracle
           - org.postgresql.postgresql
-          - org.h2.h2
+          - org.h2
           - org.mongodb.mongo-java-driver
           - quartz-extension
           - pdf-extension
+          - poi-extension
           - redis.extension
           - redis.clients.jedis
           - sentry-extension
           - s3-extension
+          - sapdbc
+          - cfspreadsheet
           - websocket-extension
+          - websocket-client-extension
         default: com.mysql.cj
       target_artifact_id:
         description: 'Target artifact ID'
@@ -55,34 +67,46 @@ on:
           - administrator-extension
           - ajax-extension
           - axis-extension
+          - athena-jdbc-extension
           - argon2-extension
           - chart-extension
           - compress-extension
           - couchbase-extension
           - documentation-extension
+          - duckdb-jdbc-extension
           - ec2-extension
           - ehcache-extension
           - esapi-extension
+          - exasol-jdbc-extension
           - form-extension
           - git-extension
+          - h2-jdbc-extension
           - hibernate-extension
           - image-extension
+          - infinispan-extension
           - jtds-jdbc-extension
+          - json-extension
           - kinesis-extension
           - lucene-search-extension
+          - loganalyzer-extension
+          - mail-extension
           - memcached-extension
           - mongodb-extension
           - mssql-jdbc-extension
           - mysql-jdbc-extension
           - oracle-jdbc-extension
           - postgresql-jdbc-extension
+          - poi-extension
           - pdf-extension
           - quartz-extension
           - redis-extension
           - s3-extension
+          - spreadsheet-extension
           - scheduler-classic-extension
           - sentry-extension
+          - sap-jdbc-extension
           - tasks-extension
+          - teradata-jdbc-extension
           - websocket-client-extension
           - websocket-extension
         default: mysql-jdbc-extension
@@ -92,6 +116,14 @@ on:
         type: string
       pom_url:
         description: 'Optional: URL to pom.xml file (e.g., https://raw.githubusercontent.com/lucee/extension-jdbc-mysql/master/pom.xml)'
+        required: false
+        type: string
+      extension_id:
+        description: 'Extension ID (UUID) for pom <properties><id>. Used only when the source pom has no valid id.'
+        required: false
+        type: string
+      logo_url:
+        description: 'Logo image URL for pom <properties><image>. Used only when the source pom has no valid image.'
         required: false
         type: string
       operation:
@@ -114,12 +146,12 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
-    
+      uses: actions/checkout@v7
+
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
-        node-version: '20'
+        node-version: '24'
         
     - name: Install dependencies
       run: |
@@ -141,3 +173,5 @@ jobs:
         INPUT_S3_BUCKET: 'lucee-downloads'
         INPUT_SOURCE_BUCKET: 'extension-downloads'
         INPUT_POM_URL: ${{ inputs.pom_url }}
+        INPUT_EXTENSION_ID: ${{ inputs.extension_id }}
+        INPUT_LOGO_URL: ${{ inputs.logo_url }}

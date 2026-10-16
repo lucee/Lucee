@@ -50,7 +50,7 @@ import jakarta.servlet.http.HttpSession;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.CharSet;
+import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
@@ -139,7 +139,7 @@ public final class DumpUtil {
 				try {
 					WDDXConverter converter = new WDDXConverter(pageContext.getTimeZone(), false, true);
 					converter.setTimeZone(pageContext.getTimeZone());
-					Object rst = converter.deserialize(str, false);
+					Object rst = converter.deserialize(pageContext, str, false);
 					DumpData data = toDumpData(rst, pageContext, maxlevel, props);
 
 					DumpTable table = new DumpTable("string", "#ff6600", "#ffcc99", "#000000");
@@ -175,10 +175,10 @@ public final class DumpUtil {
 			table.appendRow(1, new SimpleDumpData("charset"), new SimpleDumpData(((Charset) o).name()));
 			return table;
 		}
-		// CharSet
-		if (o instanceof CharSet) {
+		// CharsetX
+		if (o instanceof CharsetX) {
 			DumpTable table = new DumpTable("charset", "#ff6600", "#ffcc99", "#000000");
-			table.appendRow(1, new SimpleDumpData("charset"), new SimpleDumpData(((CharSet) o).name()));
+			table.appendRow(1, new SimpleDumpData("charset"), new SimpleDumpData(((CharsetX) o).name()));
 			return table;
 		}
 		// Locale
@@ -390,8 +390,7 @@ public final class DumpUtil {
 						try {
 							ox = arr.getE(i);
 						}
-						catch (Exception e) {
-						}
+						catch (Exception e) {}
 						htmlBox.appendRow(1, new SimpleDumpData(i), toDumpData(ox, pageContext, maxlevel, props));
 					}
 					return setId(id, htmlBox);
@@ -463,8 +462,7 @@ public final class DumpUtil {
 				try {
 					methods = Reflector.getMethods(clazz);
 				}
-				catch (IOException e) {
-				}
+				catch (IOException e) {}
 				String propName;
 				Object value;
 				String exName = null;
@@ -599,8 +597,7 @@ public final class DumpUtil {
 			try {
 				methods = Reflector.getMethods(clazz);
 			}
-			catch (IOException e) {
-			}
+			catch (IOException e) {}
 
 			DumpTable instanceMethods = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
 			instanceMethods.appendRow(-1, new SimpleDumpData("Return"), new SimpleDumpData("Interface"), new SimpleDumpData("Exceptions"));
@@ -687,8 +684,7 @@ public final class DumpUtil {
 						table.appendRow(0, bd);
 					}
 				}
-				catch (NoSuchMethodError e) {
-				}
+				catch (NoSuchMethodError e) {}
 			}
 			else {
 

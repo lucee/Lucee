@@ -120,9 +120,18 @@ class UDFComparator implements Comparator<Object> {
 			args[1] = oRight;
 			Object res = udf.call(pc, args, false);
 			Integer i = Caster.toInteger(res, null);
-			if (i == null) throw new FunctionException(pc, "ArraySort", 2, "function",
-					"return value of the " + (udf instanceof Closure ? "closure" : "function [" + udf.getFunctionName() + "]") + " cannot be casted to an integer.",
-					CasterException.createMessage(res, "integer"));
+			if (i == null) {
+				Long l = Caster.toLong(res, null);
+				if (l != null) {
+					if (l.longValue() > 0L) return 1;
+					if (l.longValue() < 0L) return -1;
+					return 0;
+				}
+
+				throw new FunctionException(pc, "ArraySort", 2, "function",
+						"return value of the " + (udf instanceof Closure ? "closure" : "function [" + udf.getFunctionName() + "]") + " cannot be casted to an integer.",
+						CasterException.createMessage(res, "integer"));
+			}
 			return i.intValue();
 		}
 		catch (PageException pe) {

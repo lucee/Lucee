@@ -447,17 +447,26 @@ component {
 	/**
 	* @hint verifies whether it is datasource or not
 	* @name name of the datasource to be verified
-	* @dbusername username of the database
-	* @dbpassword password of the database
+	* @dbusername username of the database (optional, uses stored credentials if not provided)
+	* @dbpassword password of the database (optional, uses stored credentials if not provided)
 	*/
-	public void function verifyDatasource( required string name, required string dbusername, required string dbpassword ){
-		admin
-			action="verifyDatasource"
-			type="#variables.type#"
-			password="#variables.password#"
-			name="#arguments.name#"
-			dbusername="#arguments.dbusername#"
-			dbpassword="#arguments.dbpassword#";
+	public void function verifyDatasource( required string name, string dbusername, string dbpassword ){
+		if ( !isNull( arguments.dbusername ) && !isNull( arguments.dbpassword ) ) {
+			admin
+				action="verifyDatasource"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#"
+				dbusername="#arguments.dbusername#"
+				dbpassword="#arguments.dbpassword#";
+		}
+		else {
+			admin
+				action="verifyDatasource"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#";
+		}
 	}
 
 	/**
@@ -825,7 +834,7 @@ component {
 		}
 		else {
 			admin
-				action="updateRHExtension"
+				action="updateExtension"
 				type=variables.type
 				password=variables.password
 				source=arguments.id;
@@ -838,7 +847,7 @@ component {
 	*/
 	public void function removeExtension( required string id  ){
 		admin
-			action="removeRHExtension"
+			action="removeExtension"
 			type="#variables.type#"
 			password="#variables.password#"
 			id="#arguments.id#";
@@ -850,7 +859,7 @@ component {
 	*/
 	public query function getServerExtensions(){
 		admin
-			action="getRHServerExtensions"
+			action="getServerExtensions"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
@@ -886,9 +895,9 @@ component {
 	/**
 	* @hint returns the list of extension providers for current context.
 	*/
-	public query function getExtensionProviders(){
+	public array function getExtensionProviders() {
 		admin
-			action="getRHExtensionProviders"
+			action="getExtensionGroups"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.providers";
@@ -896,41 +905,27 @@ component {
 	}
 
 	/**
-	* @hint verifies whether it is an extension provider or not
-	* @url URL to the Extension Provider (Example: http://www.myhost.com)
-	*/
-	public void function verifyExtensionProvider( required string url ){
-		admin
-			action="verifyExtensionProvider"
-			type="#variables.type#"
-			password="#variables.password#"
-			url="#arguments.url#";
-	}
-
-	/**
 	* @hint updates extension provider for current context.
-	* @url URL to the Extension Provider (Example: http://www.myhost.com)
+	* @groupId maven groupId for the extension provider
 	*/
-	public void function updateExtensionProvider( required string url ){
-		admin
-			action="updateRHExtensionProvider"
-			type="#variables.type#"
-			password="#variables.password#"
-
-			url="#trim(arguments.url)#";
+	public void function updateExtensionProvider( required string groupId ){
+		cfadmin(
+			action="updateExtensionGroups",
+			type=variables.type,
+			password=variables.password,
+			groupId=trim(arguments.groupId));
 	}
 
 	/**
 	* @hint removes the extension provider for current context.
-	* @url URL to the Extension Provider (Example: http://www.myhost.com)
+	* @groupId maven groupId for the extension provider
 	*/
-	public void function removeExtensionProvider( required string url ){
-		admin
-			action="removeRHExtensionProvider"
-			type="#variables.type#"
-			password="#variables.password#"
-
-			url="#trim(arguments.url)#";
+	public void function removeExtensionProvider( required string groupId ){
+		cfadmin(
+			action="removeExtensionGroups",
+			type=variables.type,
+			password=variables.password,
+			groupId=trim(arguments.groupId));
 	}
 
 	/**
@@ -1530,14 +1525,14 @@ component {
 
 	/**
 	* @hint updates the debug log settings
-	* @maxLogs defines maximum no.of logs
+	* @debuggingMaxRecordsLogged defines maximum no.of logs
 	*/
-	public void function updateDebugSetting( required numeric maxLogs ){
+	public void function updateDebugSetting( required numeric debuggingMaxRecordsLogged ){
 		admin
 			action="updateDebugSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			maxLogs="#arguments.maxLogs#"
+			debuggingMaxRecordsLogged="#arguments.debuggingMaxRecordsLogged#"
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -1549,7 +1544,7 @@ component {
 			action="updateDebugSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			maxLogs=""
+			debuggingMaxRecordsLogged=""
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -1568,16 +1563,16 @@ component {
 	/**
 	* @hint updates the debugging settings
 	* @debug sets whether  debugging is enabled
-	* @database this option sets to log the database activity for the SQL Query events and Stored Procedure events.
-	* @queryUsage this option sets to log the query usage information.
-	* @exception this option sets to log the all exceptions raised for the request.
-	* @tracing this option sets to log the trace event information.
-	* @dump this option sets to enable output produced with help of the tag cfdump and send to debugging.
-	* @timer this option sets to show timer event information.
-	* @implicitAccess this option sets to log all accesses to scopes, queries and threads that happens implicit (cascaded).
-	* @thread this option sets to log all child threads 
+	* @debuggingDatabase this option sets to log the database activity for the SQL Query events and Stored Procedure events.
+	* @debuggingQueryUsage this option sets to log the query usage information.
+	* @debuggingException this option sets to log the all exceptions raised for the request.
+	* @debuggingTracing this option sets to log the trace event information.
+	* @debuggingDump this option sets to enable output produced with help of the tag cfdump and send to debugging.
+	* @debuggingTimer this option sets to show timer event information.
+	* @debuggingImplicitAccess this option sets to log all accesses to scopes, queries and threads that happens implicit (cascaded).
+	* @debuggingThread this option sets to log all child threads 
 	*/
-	public void function updateDebug( boolean debug, boolean database, boolean queryUsage, boolean exception, boolean tracing, boolean dump, boolean timer, boolean implicitAccess, boolean thread ){
+	public void function updateDebug( boolean debug, boolean debuggingDatabase, boolean debuggingQueryUsage, boolean debuggingException, boolean debuggingTracing, boolean debuggingDump, boolean debuggingTimer, boolean debuggingImplicitAccess, boolean debuggingThread ){
 		var existing = getDebug();
 		admin
 			action="updateDebug"
@@ -1585,15 +1580,14 @@ component {
 			password="#variables.password#"
 
 			debug=isNull(arguments.debug) || isEmpty(arguments.debug) ? existing.debug : arguments.debug
-			database=isNull(arguments.database) || isEmpty(arguments.database) ? existing.database : arguments.database
-			exception=isNull(arguments.exception) || isEmpty(arguments.exception) ? existing.exception : arguments.exception
-			tracing=isNull(arguments.tracing) || isEmpty(arguments.tracing) ? existing.tracing : arguments.tracing
-			dump=isNull(arguments.dump) || isEmpty(arguments.dump) ? existing.dump : arguments.dump
-			timer=isNull(arguments.timer) || isEmpty(arguments.timer) ? existing.timer : arguments.timer
-			implicitAccess=isNull(arguments.implicitAccess) || isEmpty(arguments.implicitAccess) ? existing.implicitAccess : arguments.implicitAccess
-			queryUsage=isNull(arguments.queryUsage) || isEmpty(arguments.queryUsage) ? existing.queryUsage : arguments.queryUsage
-			thread=isNull(arguments.thread) || isEmpty(arguments.thread) ? existing.thread : arguments.thread
-			debugTemplate=""
+			debuggingDatabase=isNull(arguments.debuggingDatabase) || isEmpty(arguments.debuggingDatabase) ? existing.debuggingDatabase : arguments.debuggingDatabase
+			debuggingException=isNull(arguments.debuggingException) || isEmpty(arguments.debuggingException) ? existing.debuggingException : arguments.debuggingException
+			debuggingTracing=isNull(arguments.debuggingTracing) || isEmpty(arguments.debuggingTracing) ? existing.debuggingTracing : arguments.debuggingTracing
+			debuggingDump=isNull(arguments.debuggingDump) || isEmpty(arguments.debuggingDump) ? existing.debuggingDump : arguments.debuggingDump
+			debuggingTimer=isNull(arguments.debuggingTimer) || isEmpty(arguments.debuggingTimer) ? existing.debuggingTimer : arguments.debuggingTimer
+			debuggingImplicitAccess=isNull(arguments.debuggingImplicitAccess) || isEmpty(arguments.debuggingImplicitAccess) ? existing.debuggingImplicitAccess : arguments.debuggingImplicitAccess
+			debuggingQueryUsage=isNull(arguments.debuggingQueryUsage) || isEmpty(arguments.debuggingQueryUsage) ? existing.debuggingQueryUsage : arguments.debuggingQueryUsage
+			debuggingThread=isNull(arguments.debuggingThread) || isEmpty(arguments.debuggingThread) ? existing.debuggingThread : arguments.debuggingThread
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -1607,16 +1601,14 @@ component {
 			password="#variables.password#"
 
 			debug=""
-			database=""
-			exception=""
-			tracing=""
-			dump=""
-			timer=""
-			implicitAccess=""
-			queryUsage=""
-			thread=""
-			
-			debugTemplate=""
+			debuggingDatabase=""
+			debuggingException=""
+			debuggingTracing=""
+			debuggingDump=""
+			debuggingTimer=""
+			debuggingImplicitAccess=""
+			debuggingQueryUsage=""
+			debuggingThread=""
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -1911,19 +1903,19 @@ component {
 
 	/**
 	* @hint updates the login settings
-	* @rememberMe Allow "Remember Me" functionality.
-	* @captcha Use Captcha in the login to make sure the form is submitted by a human.
-	* @delay Sets the delay between login attempts. This is a global setting for all user requests.
+	* @loginRememberme Allow "Remember Me" functionality.
+	* @loginCaptcha Use Captcha in the login to make sure the form is submitted by a human.
+	* @loginDelay Sets the delay between login attempts. This is a global setting for all user requests.
 	*/
-	public void function updateLoginSettings( boolean rememberMe, boolean captcha, numeric delay ){
+	public void function updateLoginSettings( boolean loginRememberme, boolean loginCaptcha, numeric loginDelay ){
 		var existing = getLoginSettings();
 		admin
 			action="updateLoginSettings"
 			type="#variables.type#"
 			password="#variables.password#"
-			rememberme=isNull(arguments.rememberme) || isEmpty(arguments.rememberme) ? existing.rememberme : arguments.rememberme
-			captcha=isNull(arguments.captcha) || isEmpty(arguments.captcha) ? existing.captcha : arguments.captcha
-			delay=isNull(arguments.delay) || isEmpty(arguments.delay) ? existing.delay : arguments.delay;
+			loginRememberme=isNull(arguments.loginRememberme) || isEmpty(arguments.loginRememberme) ? existing.loginRememberme : arguments.loginRememberme
+			loginCaptcha=isNull(arguments.loginCaptcha) || isEmpty(arguments.loginCaptcha) ? existing.loginCaptcha : arguments.loginCaptcha
+			loginDelay=isNull(arguments.loginDelay) || isEmpty(arguments.loginDelay) ? existing.loginDelay : arguments.loginDelay;
 	}
 
 	/**
@@ -2249,20 +2241,20 @@ component {
 
 	/**
 	* @hint updates the concurrent request handling settings.
-	* @max limits the max number of concurrent requests.
-	* @timeout timeout for a request in concurrent request queue.
-	* @enable enable or disable concurrent request queue.
+	* @requestQueueMax limits the max number of concurrent requests.
+	* @requestQueueTimeout timeout for a request in concurrent request queue.
+	* @requestQueueEnable enable or disable concurrent request queue.
 	*/
-	public void function updateQueueSetting( numeric max, numeric timeout, boolean enable ){
+	public void function updateQueueSetting( numeric requestQueueMax, numeric requestQueueTimeout, boolean requestQueueEnable ){
 		var existing = getQueueSetting();
 		admin
 			action="updateQueueSetting"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			max=isNull(arguments.max) || isEmpty(arguments.max) ? existing.max : arguments.max
-			timeout=isNull(arguments.timeout) || isEmpty(arguments.timeout) ? existing.timeout : arguments.timeout
-			enable=isNull(arguments.enable) || isEmpty(arguments.enable) ? existing.enable : arguments.enable
+			requestQueueMax=isNull(arguments.requestQueueMax) || isEmpty(arguments.requestQueueMax) ? existing.requestQueueMax : arguments.requestQueueMax
+			requestQueueTimeout=isNull(arguments.requestQueueTimeout) || isEmpty(arguments.requestQueueTimeout) ? existing.requestQueueTimeout : arguments.requestQueueTimeout
+			requestQueueEnable=isNull(arguments.requestQueueEnable) || isEmpty(arguments.requestQueueEnable) ? existing.requestQueueEnable : arguments.requestQueueEnable
 
 			remoteClients="#variables.remoteClients#";
 	}
@@ -2292,40 +2284,6 @@ component {
 	}
 
 	/**
-	* @hint to get default password.
-	*/
-	public string function getDefaultPassword() {
-		admin
-			action="getDefaultPassword"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="defaultPassword";
-		return defaultPassword;
-	}
-
-	/**
-	* @hint update the default password.
-	* @newPassword the new password to set.
-	*/
-	public void function updateDefaultPassword( required string newPassword) {
-		admin
-			action="updateDefaultPassword"
-			type="#variables.type#"
-			password="#variables.password#"
-			newPassword="#arguments.newPassword#";
-	}
-
-	/**
-	* @hint remove the default password.
-	*/
-	public void function removeDefaultPassword() {
-		admin
-			action="removeDefaultPassword"
-			type="#variables.type#"
-			password="#variables.password#";
-	}
-
-	/**
 	* @hint to get hashedPassword.
 	*/
 	public string function hashpassword() {
@@ -2351,22 +2309,22 @@ component {
 
 	/**
 	* @hint returns the details of custom tag settings
-	* @deepSearch Search for custom tags in subdirectories.
-	* @localSearch Search in the caller directory for the custom tag
-	* @Component path is cached and not resolved again
-	* @extensions These are the extensions used for Custom Tags, in the order they are searched.
+	* @customTagDeepSearch Search for custom tags in subdirectories.
+	* @customTagLocalSearch Search in the caller directory for the custom tag
+	* @customTagUseCachePath path is cached and not resolved again
+	* @customTagExtensions These are the extensions used for Custom Tags, in the order they are searched.
 	*/
-	public void function updateCustomTagSetting( required boolean deepSearch, required boolean localSearch, required boolean customTagPathCache, required string extensions ) {
+	public void function updateCustomTagSetting( required boolean customTagDeepSearch, required boolean customTagLocalSearch, required boolean customTagUseCachePath, required string customTagExtensions ) {
 		var existing = getCustomTagSetting();
 		admin
 			action="updateCustomTagSetting"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			deepSearch=isNull(arguments.deepSearch) || isEmpty(arguments.deepSearch) ? existing.customTagDeepSearch : arguments.deepSearch
-			localSearch=isNull(arguments.localSearch) || isEmpty(arguments.localSearch) ? existing.customTagLocalSearch : arguments.localSearch
-			customTagPathCache=isNull(arguments.customTagPathCache) || isEmpty(arguments.customTagPathCache) ? existing.customTagPathCache : arguments.customTagPathCache
-			extensions=isNull(arguments.extensions) || isEmpty(arguments.extensions) ? arrayToList(existing.extensions) : arguments.extensions
+			customTagDeepSearch=isNull(arguments.customTagDeepSearch) || isEmpty(arguments.customTagDeepSearch) ? existing.customTagDeepSearch : arguments.customTagDeepSearch
+			customTagLocalSearch=isNull(arguments.customTagLocalSearch) || isEmpty(arguments.customTagLocalSearch) ? existing.customTagLocalSearch : arguments.customTagLocalSearch
+			customTagUseCachePath=isNull(arguments.customTagUseCachePath) || isEmpty(arguments.customTagUseCachePath) ? existing.customTagUseCachePath : arguments.customTagUseCachePath
+			customTagExtensions=isNull(arguments.customTagExtensions) || isEmpty(arguments.customTagExtensions) ? arrayToList(existing.customTagExtensions) : arguments.customTagExtensions
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2652,7 +2610,7 @@ component {
 		string  access_write,
 		boolean search,
 		boolean scheduled_task,
-		array   file_access ) {
+		array   file_access ) { 
 		var existing = getDefaultSecurityManager();
 		admin
 			action="updateDefaultSecurityManager"
@@ -2901,6 +2859,365 @@ component {
 			password="#variables.password#";
 	}
 
+	/**
+	* @hint returns general information about the current context
+	*/
+	public struct function getInfo(){
+		admin
+			action="getInfo"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint returns regex engine settings
+	*/
+	public struct function getRegex(){
+		admin
+			action="getRegex"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates regex engine settings
+	* @regexType regex engine type name
+	*/
+	public void function updateRegex(string regexType){
+		admin
+			action="updateRegex"
+			type="#variables.type#"
+			password="#variables.password#"
+			regexType="#arguments.regexType ?: ''#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint returns proxy settings
+	*/
+	public struct function getProxy(){
+		admin
+			action="getProxy"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates proxy settings
+	*/
+	public void function updateProxy(boolean proxyEnabled, string proxyServer="", numeric proxyPort=80, string proxyUsername="", string proxyPassword=""){
+		var existing = getProxy();
+		admin
+			action="updateProxy"
+			type="#variables.type#"
+			password="#variables.password#"
+			proxyEnabled=isNull(arguments.proxyEnabled) ? (existing.enabled ?: false) : arguments.proxyEnabled
+			proxyServer=isNull(arguments.proxyServer) || isEmpty(arguments.proxyServer) ? (existing.server ?: "") : arguments.proxyServer
+			proxyPort=isNull(arguments.proxyPort) || arguments.proxyPort == 0 ? (existing.port ?: 80) : arguments.proxyPort
+			proxyUsername=isNull(arguments.proxyUsername) ? (existing.username ?: "") : arguments.proxyUsername
+			proxyPassword=isNull(arguments.proxyPassword) ? (existing.password ?: "") : arguments.proxyPassword;
+	}
+
+	/**
+	* @hint removes proxy settings
+	*/
+	public void function removeProxy(){
+		admin
+			action="removeProxy"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
+	/**
+	* @hint returns develop mode settings
+	*/
+	public struct function getDevelopMode(){
+		admin
+			action="getDevelopMode"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates develop mode
+	* @developMode enable or disable develop mode
+	*/
+	public void function updateDevelopMode(required boolean developMode){
+		admin
+			action="updateDevelopMode"
+			type="#variables.type#"
+			password="#variables.password#"
+			developMode="#arguments.developMode#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint returns monitoring display settings
+	*/
+	public struct function getMonitoring(){
+		admin
+			action="getMonitoring"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates monitoring display settings
+	* @monitoring struct with showDebug, showMetric, showDoc, showTest keys
+	*/
+	public void function updateMonitoring(struct monitoring={}){
+		admin
+			action="updateMonitoring"
+			type="#variables.type#"
+			password="#variables.password#"
+			monitoring="#arguments.monitoring#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint returns configured AI connections
+	*/
+	public query function getAIConnections(){
+		admin
+			action="getAIConnections"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates an AI connection
+	*/
+	public void function updateAIConnection(
+		required string name,
+		required string class,
+		string bundleName="",
+		string bundleVersion="",
+		string default="",
+		struct custom={}
+	){
+		admin
+			action="updateAIConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			class="#arguments.class#"
+			bundleName="#arguments.bundleName#"
+			bundleVersion="#arguments.bundleVersion#"
+			default="#arguments.default#"
+			custom="#arguments.custom#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint removes an AI connection
+	* @name connection name
+	*/
+	public void function removeAIConnection(required string name){
+		admin
+			action="removeAIConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint verifies an AI connection
+	* @name connection name
+	*/
+	public struct function verifyAIConnection(required string name){
+		admin
+			action="verifyAIConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint manages scheduled tasks via cfadmin schedule
+	*/
+	public void function schedule(required struct attributes){
+		var attrs = duplicate(arguments.attributes);
+		attrs.type = variables.type;
+		attrs.password = variables.password;
+		attrs.action = "schedule";
+		if (!structKeyExists(attrs, "remoteClients")) {
+			attrs.remoteClients = variables.remoteClients;
+		}
+		admin attributeCollection="#attrs#";
+	}
+
+	/**
+	* @hint returns remote client definitions
+	*/
+	public query function getRemoteClients(){
+		admin
+			action="getRemoteClients"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates a remote client definition
+	*/
+	public void function updateRemoteClient(
+		required string label,
+		required string url,
+		string remoteType="",
+		string securityKey="",
+		string usage="",
+		string adminPassword="",
+		string serverUsername="",
+		string serverPassword="",
+		string proxyServer="",
+		string proxyUsername="",
+		string proxyPassword="",
+		string proxyPort=""
+	){
+		admin
+			action="updateRemoteClient"
+			type="#variables.type#"
+			password="#variables.password#"
+			label="#arguments.label#"
+			url="#arguments.url#"
+			remoteType="#arguments.remoteType#"
+			securityKey="#arguments.securityKey#"
+			usage="#arguments.usage#"
+			adminPassword="#arguments.adminPassword#"
+			serverUsername="#arguments.serverUsername#"
+			serverPassword="#arguments.serverPassword#"
+			proxyServer="#arguments.proxyServer#"
+			proxyUsername="#arguments.proxyUsername#"
+			proxyPassword="#arguments.proxyPassword#"
+			proxyPort="#arguments.proxyPort#";
+	}
+
+	/**
+	* @hint removes a remote client
+	* @url remote client url
+	*/
+	public void function removeRemoteClient(required string url){
+		admin
+			action="removeRemoteClient"
+			type="#variables.type#"
+			password="#variables.password#"
+			url="#arguments.url#";
+	}
+
+	/**
+	* @hint updates remote client usage metadata
+	*/
+	public void function updateRemoteClientUsage(required string code, required string displayName){
+		admin
+			action="updateRemoteClientUsage"
+			type="#variables.type#"
+			password="#variables.password#"
+			code="#arguments.code#"
+			displayName="#arguments.displayName#";
+	}
+
+	/**
+	* @hint removes remote client usage metadata
+	* @code usage code
+	*/
+	public void function removeRemoteClientUsage(required string code){
+		admin
+			action="removeRemoteClientUsage"
+			type="#variables.type#"
+			password="#variables.password#"
+			code="#arguments.code#";
+	}
+
+	/**
+	* @hint returns loader version information
+	*/
+	public struct function getLoaderInfo(){
+		admin
+			action="getLoaderInfo"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint returns the main application logger name
+	*/
+	public string function getMainLog(){
+		admin
+			action="getMainLog"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	/**
+	* @hint updates default cache connection names
+	*/
+	public void function updateCacheDefaultConnection(
+		string defaultObject="",
+		string defaultTemplate="",
+		string defaultQuery="",
+		string defaultResource="",
+		string defaultFunction="",
+		string defaultInclude="",
+		string defaultHttp="",
+		string defaultFile="",
+		string defaultWebservice=""
+	){
+		admin
+			action="updateCacheDefaultConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			defaultObject="#arguments.defaultObject#"
+			defaultTemplate="#arguments.defaultTemplate#"
+			defaultQuery="#arguments.defaultQuery#"
+			defaultResource="#arguments.defaultResource#"
+			defaultFunction="#arguments.defaultFunction#"
+			defaultInclude="#arguments.defaultInclude#"
+			defaultHttp="#arguments.defaultHttp#"
+			defaultFile="#arguments.defaultFile#"
+			defaultWebservice="#arguments.defaultWebservice#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint resets all default cache connection names
+	*/
+	public void function removeCacheDefaultConnection(){
+		admin
+			action="removeCacheDefaultConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint validates the administrator password
+	*/
+	public void function checkPassword(){
+		admin
+			action="checkPassword"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
 
 	/**
 	 * Takes a config JSON string that may contain environment varialbes or system properties

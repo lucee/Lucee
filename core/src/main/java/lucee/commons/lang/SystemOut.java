@@ -30,7 +30,7 @@ import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class SystemOut {
@@ -71,7 +71,7 @@ public final class SystemOut {
 	}
 
 	public static void printStack(int type) {
-		Config config = ThreadLocalPageContext.getConfig();
+		ConfigServerPro config = ThreadLocalPageContext.getConfigServer();
 		if (config != null) {
 			if (type == ERR) printStack(config.getErrWriter());
 			else printStack(config.getOutWriter());
@@ -103,7 +103,7 @@ public final class SystemOut {
 	}
 
 	public static PrintWriter getPrinWriter(int type) {
-		Config config = ThreadLocalPageContext.getConfig();
+		ConfigServerPro config = ThreadLocalPageContext.getConfigServer();
 		if (config != null) {
 			if (type == ERR) return config.getErrWriter();
 			return config.getOutWriter();

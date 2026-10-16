@@ -29,6 +29,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -116,7 +117,7 @@ public final class JavaCast implements Function {
 
 		try {
 			if (javaSettings != null) {
-				JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), Caster.toStruct(javaSettings), null);
+				JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(ConfigUtil.getConfigServerImpl(pc.getConfig()), Caster.toStruct(javaSettings), null);
 				return ClassUtil.loadClass(((PageContextImpl) pc).getRPCClassLoader(js), type);
 			}
 			return ClassUtil.loadClass(pc, type);

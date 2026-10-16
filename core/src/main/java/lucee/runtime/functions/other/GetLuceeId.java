@@ -20,11 +20,10 @@ package lucee.runtime.functions.other;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigUtil;
-import lucee.runtime.config.IdentificationServer;
+import lucee.runtime.config.Identification;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -36,31 +35,28 @@ public final class GetLuceeId implements Function {
 
 	private static final long serialVersionUID = 105306626462365773L;
 
-	private static final Collection.Key SECURITY_KEY = KeyConstants._securityKey;
-	private static final Collection.Key API_KEY = KeyConstants._apiKey;
-
 	public static Struct call(PageContext pc) throws PageException {
 		Struct sct = new StructImpl();
 		Struct web = new StructImpl();
 		Struct server = new StructImpl();
 
-		IdentificationServer id = ConfigUtil.getConfigServerImpl(pc.getConfig()).getIdentification();
+		Identification id = ConfigUtil.getConfigServerImpl(pc.getConfig()).getIdentification();
 
 		// Web FUTURE remove
-		web.set(SECURITY_KEY, id.getSecurityKey());
+		web.set(KeyConstants._securityKey, id.getSecurityKey());
 		web.set(KeyConstants._id, id.getId());
-		web.set(API_KEY, id.getApiKey());
+		web.set(KeyConstants._apiKey, id.getApiKey());
 		sct.set(KeyConstants._web, web);
 
 		// Server FUTURE remove
-		server.set(SECURITY_KEY, id.getSecurityKey());
+		server.set(KeyConstants._securityKey, id.getSecurityKey());
 		server.set(KeyConstants._id, id.getId());
-		server.set(API_KEY, id.getApiKey());
+		server.set(KeyConstants._apiKey, id.getApiKey());
 		sct.set(KeyConstants._server, server);
 
-		sct.set(SECURITY_KEY, id.getSecurityKey());
+		sct.set(KeyConstants._securityKey, id.getSecurityKey());
 		sct.set(KeyConstants._id, id.getId());
-		sct.set(API_KEY, id.getApiKey());
+		sct.set(KeyConstants._apiKey, id.getApiKey());
 
 		sct.set(KeyConstants._request, Caster.toString(pc.getId()));
 

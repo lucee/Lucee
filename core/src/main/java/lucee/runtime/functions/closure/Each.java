@@ -35,6 +35,8 @@ import lucee.commons.io.SystemUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.concurrency.Data;
+import lucee.runtime.concurrency.PageContextPool;
+import lucee.runtime.concurrency.ParallelUtil;
 import lucee.runtime.concurrency.UDFCaller2;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -60,30 +62,32 @@ public final class Each extends BIF implements ClosureFunc {
 	private static final long serialVersionUID = 1955185705863596525L;
 
 	public static String call(PageContext pc, Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false, DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, "false", 0, TYPE_UNDEFINED);
 	}
 
-	public static String call(PageContext pc, Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
+	public static String call(PageContext pc, Object obj, UDF udf, String parallel) throws PageException {
+		return _call(pc, obj, udf, parallel, 0, TYPE_UNDEFINED);
 	}
 
-	public static String call(PageContext pc, Object obj, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+	public static String call(PageContext pc, Object obj, UDF udf, String parallel, Number maxThreads) throws PageException {
 		return _call(pc, obj, udf, parallel, Caster.toIntValue(maxThreads), TYPE_UNDEFINED);
 	}
 
-	private static String _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
+	private static String _call(PageContext pc, Object obj, UDF udf, String parallel, int maxThreads, short type) throws PageException {
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;
 		Thread thread = null;
-		// 0 or less == default
-		if (maxThreads < 1) maxThreads = DEFAULT_MAX_THREAD;
-		// 1 == not parallel
-		else if (maxThreads == 1) parallel = false;
+		short pm = ParallelUtil.toParallel(parallel);
+		// a concurrency of 1 means one at a time, i.e. not parallel
+		if (maxThreads == 1) pm = ParallelUtil.PARALLEL_NONE;
+		// platform threads need a concrete pool size; virtual threads stay unbounded when no limit is given
+		else if (pm == ParallelUtil.PARALLEL_THREAD && maxThreads < 1) maxThreads = DEFAULT_MAX_THREAD;
 
-		if (parallel) {
-			execute = ThreadUtil.createExecutorService(maxThreads);
+		if (pm != ParallelUtil.PARALLEL_NONE) {
+			execute = ThreadUtil.createExecutorService(maxThreads, pm == ParallelUtil.PARALLEL_VIRTUAL);
 			futures = new ArrayList<Future<Data<Object>>>();
 			thread = ((PageContextImpl) pc).getThread();
+			((PageContextImpl) pc).setParallelPool(new PageContextPool(pc));
 		}
 
 		// !!!! Don't combine the first 2 ifs with the ifs below, type overrules instanceof check
@@ -113,7 +117,7 @@ public final class Each extends BIF implements ClosureFunc {
 		else if (obj instanceof Map) {
 			Iterator it = ((Map) obj).entrySet().iterator();
 			Entry e;
-			ParentException parentException = new ParentException();
+			ParentException parentException = execute != null ? new ParentException() : null;
 			while (it.hasNext()) {
 				e = (Entry) it.next();
 				_call(pc, parentException, udf, new Object[] { e.getKey(), e.getValue(), obj }, execute, futures);
@@ -124,7 +128,7 @@ public final class Each extends BIF implements ClosureFunc {
 		else if (obj instanceof List) {
 			ListIterator it = ((List) obj).listIterator();
 			int index;
-			ParentException parentException = new ParentException();
+			ParentException parentException = execute != null ? new ParentException() : null;
 			while (it.hasNext()) {
 				index = it.nextIndex();
 				_call(pc, parentException, udf, new Object[] { it.next(), Double.valueOf(index), obj }, execute, futures);
@@ -135,7 +139,7 @@ public final class Each extends BIF implements ClosureFunc {
 		// Iterator
 		else if (obj instanceof Iterator) {
 			Iterator it = (Iterator) obj;
-			ParentException parentException = new ParentException();
+			ParentException parentException = execute != null ? new ParentException() : null;
 			while (it.hasNext()) {
 				_call(pc, parentException, udf, new Object[] { it.next() }, execute, futures);
 				// udf.call(pc, new Object[]{it.next()}, true);
@@ -144,7 +148,7 @@ public final class Each extends BIF implements ClosureFunc {
 		// Enumeration
 		else if (obj instanceof Enumeration) {
 			Enumeration e = (Enumeration) obj;
-			ParentException parentException = new ParentException();
+			ParentException parentException = execute != null ? new ParentException() : null;
 			while (e.hasMoreElements()) {
 				_call(pc, parentException, udf, new Object[] { e.nextElement() }, execute, futures);
 				// udf.call(pc, new Object[]{e.nextElement()}, true);
@@ -156,32 +160,48 @@ public final class Each extends BIF implements ClosureFunc {
 		}
 		else throw new FunctionException(pc, "Each", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
 
-		if (parallel) afterCall(pc, futures, execute, thread);
+		if (execute != null) afterCall(pc, futures, execute, thread);
 
 		return null;
 	}
 
 	public static void afterCall(PageContext pc, List<Future<Data<Object>>> futures, ExecutorService es, Thread thread) throws PageException {
+		Exception first = null;
 		try {
 			Iterator<Future<Data<Object>>> it = futures.iterator();
-			// Future<String> f;
 			while (it.hasNext()) {
-				pc.write(it.next().get().output);
+				try {
+					pc.write(it.next().get().output);
+				}
+				catch (Exception e) {
+					if (first == null) first = e;
+				}
 			}
 		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
 		finally {
-			((PageContextImpl) pc).setThread(thread);
-			if (es != null) es.shutdown();
+			finishParallelCall(pc, es, thread);
+		}
+		if (first != null) throw Caster.toPageException(first);
+	}
+
+	static void finishParallelCall(PageContext pc, ExecutorService es, Thread thread) {
+		((PageContextImpl) pc).setThread(thread);
+		if (es != null) es.shutdown();
+		closeParallelPool(pc);
+	}
+
+	static void closeParallelPool(PageContext pc) {
+		PageContextPool pool = ((PageContextImpl) pc).getParallelPool();
+		if (pool != null) {
+			pool.close();
+			((PageContextImpl) pc).setParallelPool(null);
 		}
 	}
 
 	public static void invoke(PageContext pc, Array array, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
 		Iterator it = (array instanceof ArrayPro ? ((ArrayPro) array).entryArrayIterator() : array.entryIterator());
 		Entry e;
-		ParentException parentException = new ParentException();
+		ParentException parentException = execute != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			_call(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), array }, execute, futures);
@@ -193,7 +213,7 @@ public final class Each extends BIF implements ClosureFunc {
 		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
 		try {
 			Object row;
-			ParentException parentException = new ParentException();
+			ParentException parentException = execute != null ? new ParentException() : null;
 			while (it.hasNext()) {
 				row = it.next();
 				_call(pc, parentException, udf, new Object[] { row, Caster.toDoubleValue(qry.getCurrentrow(pid)), qry }, execute, futures);
@@ -207,7 +227,7 @@ public final class Each extends BIF implements ClosureFunc {
 	public static void invoke(PageContext pc, Iteratorable coll, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
 		Iterator<Entry<Key, Object>> it = coll.entryIterator();
 		Entry<Key, Object> e;
-		ParentException parentException = new ParentException();
+		ParentException parentException = execute != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			_call(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue(), coll }, execute, futures);
@@ -220,7 +240,7 @@ public final class Each extends BIF implements ClosureFunc {
 
 		Iterator it = (arr instanceof ArrayPro ? ((ArrayPro) arr).entryArrayIterator() : arr.entryIterator());
 		Entry e;
-		ParentException parentException = new ParentException();
+		ParentException parentException = execute != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			_call(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, execute, futures);
@@ -241,8 +261,8 @@ public final class Each extends BIF implements ClosureFunc {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 
 		if (args.length == 2) return call(pc, args[0], Caster.toFunction(args[1]));
-		if (args.length == 3) return call(pc, args[0], Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]));
-		if (args.length == 4) return call(pc, args[0], Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toNumber(pc, args[3]));
+		if (args.length == 3) return call(pc, args[0], Caster.toFunction(args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, args[0], Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toNumber(pc, args[3]));
 
 		throw new FunctionException(pc, "Each", 2, 4, args.length);
 

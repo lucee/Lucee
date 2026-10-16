@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -179,6 +181,19 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 	@Override
 	public void setContentType(String contentType) {
 		this.contentType = contentType;
+		// Match the servlet contract: a charset parameter also sets the response character encoding.
+		// Callers such as _internalRequest encode the body with getCharacterEncoding(), which otherwise
+		// stays ISO-8859-1 and fails (empty body) when the page contains characters outside that set.
+		if (contentType == null) return;
+		int semi = contentType.lastIndexOf(';');
+		if (semi == -1) return;
+		String param = contentType.substring(semi + 1).trim();
+		if (param.length() >= 8 && param.regionMatches(true, 0, "charset=", 0, 8)) {
+			String cs = param.substring(8).trim();
+			int n = cs.length();
+			if (n >= 2 && ((cs.charAt(0) == '"' && cs.charAt(n - 1) == '"') || (cs.charAt(0) == '\'' && cs.charAt(n - 1) == '\''))) cs = cs.substring(1, n - 1).trim();
+			if (cs.length() > 0) this.charset = cs;
+		}
 	}
 
 	@Override
@@ -266,7 +281,7 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 
 	@Override
 	public Collection<String> getHeaderNames() {
-		Set<String> names = new HashSet<String>();
+		Set<String> names = new LinkedHashSet<String>();
 		for (int i = 0; i < headers.length; i++) {
 			names.add(headers[i].getName());
 		}
@@ -275,13 +290,13 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 
 	@Override
 	public Collection<String> getHeaders(String name) {
-		Set<String> values = new HashSet<String>();
+		List<String> values = new ArrayList<String>();
 		for (int i = 0; i < headers.length; i++) {
-			if (headers[i].getName().equals(name)) {
+			if (headers[i].getName().equalsIgnoreCase(name)) {
 				values.add(Caster.toString(headers[i].getValue(), null));
 			}
 		}
-		return values.size() == 0 ? null : values;
+		return values.isEmpty() ? null : values;
 	}
 
 	@Override

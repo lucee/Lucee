@@ -62,8 +62,8 @@ Redirtect to entry  --->
 	<cfset printError(error)>
 
 	<!--- Legacy ORM Warning --->
-	<cfif hasLegacyORM >
-		<cfset extLink = request.self & "?action=ext.applications&action2=detail&id=D062D72F-F8A2-46F0-8CBC91325B2F067B&name=" & URLEncodedFormat( 'Ortus ORM Extension' )>
+	<cfif hasLegacyOrtusORM >
+		<cfset extLink = request.self & "?action=ext.applications&action2=detail&id=FAD1E8CB-4F45-4184-86359145767C29DE&name=" & URLEncodedFormat( 'Lucee Hibernate ORM Extension' )>
 		<div class="warning">
 			#stText.Settings.orm.extensionold#
 		</div>
@@ -71,7 +71,7 @@ Redirtect to entry  --->
 			<a href="#extLink#">#stText.Settings.orm.extensionoldlink#</a>
 		</p>
 	<cfelseif !hasORMEngine>
-		<cfset extLink = request.self & "?action=ext.applications&action2=detail&id=D062D72F-F8A2-46F0-8CBC91325B2F067B&name=" & URLEncodedFormat( 'Ortus ORM Extension' )>
+		<cfset extLink = request.self & "?action=ext.applications&action2=detail&id=FAD1E8CB-4F45-4184-86359145767C29DE&name=" & URLEncodedFormat( 'Lucee Hibernate ORM Extension' )>
 		<div class="error">
 			#stText.Settings.orm.extensionmissing#
 		</div>

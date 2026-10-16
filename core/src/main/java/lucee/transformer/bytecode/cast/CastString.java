@@ -84,7 +84,9 @@ public final class CastString extends ExpressionBase implements ExprString, Cast
 		else {
 			Type rtn = ((ExpressionBase) expr).writeOutAsType(bc, MODE_REF);
 			if (rtn.equals(Types.STRING)) return Types.STRING;
-			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_STRING);
+
+			adapter.loadArg(0);
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_STRING2);
 		}
 
 		return Types.STRING;

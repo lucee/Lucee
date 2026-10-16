@@ -54,6 +54,7 @@ public final class GatewayEntryImpl implements GatewayEntry {
 	}
 
 	private static int toStartupMode(String startupMode) {
+		if (startupMode == null) return STARTUP_MODE_AUTOMATIC;
 		startupMode = startupMode.trim().toLowerCase();
 		if ("manual".equals(startupMode)) return STARTUP_MODE_MANUAL;
 		else if ("disabled".equals(startupMode)) return STARTUP_MODE_DISABLED;

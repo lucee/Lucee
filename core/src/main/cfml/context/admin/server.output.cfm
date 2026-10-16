@@ -36,7 +36,7 @@ Defaults --->
 					cfmlWriter="#form.cfmlWriter#"
 					suppressContent="#isDefined('form.suppressContent') and form.suppressContent#"
 					allowCompression="#isDefined('form.allowCompression') and form.allowCompression#"
-					bufferOutput="#isDefined('form.bufferOutput') and form.bufferOutput#"
+					bufferOutput="#isDefined('form.bufferTagBodyOutput') and form.bufferTagBodyOutput#"
 					contentLength=""
 					remoteClients="#request.getRemoteClients()#">
 		
@@ -92,42 +92,42 @@ Defaults --->
 				<tr>
 					<th scope="row">#stText.setting.whitespace#</th>
 					<td>
+						<cfmodule template="systemSetting.cfm" 
+							name="cfmlWriter" 
+							value="#setting.cfmlWriter#"
+							access="#hasAccess#"
+							description=""
+							br=false
+							sp=false
+							descOnTop=true>
+						
 						<cfset desc={
 								'regular':stText.setting.cfmlWriterReg,
 								'white-space':stText.setting.cfmlWriterWS,
 								'white-space-pref':stText.setting.cfmlWriterWSPref
 									}>
 						
-						<cfif hasAccess>
-							<cfloop list="regular,white-space,white-space-pref" index="k">
-								<input type="radio" class="checkbox" name="cfmlWriter" value="#k#" <cfif setting.cfmlWriter EQ k>checked="checked"</cfif>>
-								<div class="comment">#desc[k]#</div><br> 
-							</cfloop>
-						<cfelse>
-							<b>#desc[setting.cfmlWriter]#
-							<input type="hidden" name="cfmlWriter" value="#setting.cfmlWriter#">
-						</cfif>
-						<cfset renderSysPropEnvVar( name:"lucee.cfml.writer",value:setting.cfmlWriter)>
+						<cfloop list="regular,white-space,white-space-pref" index="k">
+							<input type="radio" class="checkbox" name="cfmlWriter" value="#k#" <cfif setting.cfmlWriter EQ k>checked="checked"</cfif>>
+							<div class="comment">#desc[k]#</div><br> 
+						</cfloop>
+						</cfmodule>
 					</td>
 				</tr>
 				<!--- Allow Compression --->
 				<tr>
 					<th scope="row">#stText.setting.AllowCompression#</th>
 					<td>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="AllowCompression" 
+							value="#setting.AllowCompression#"
+							access="#hasAccess#"
+							description="#stText.setting.AllowCompressionDescription#"
+							br=false
+							sp=true
+							descOnTop=false>
 							<input type="checkbox" name="AllowCompression" class="checkbox" value="true" <cfif setting.AllowCompression>checked="checked"</cfif>>
-						<cfelse>
-							<b>#iif(setting.AllowCompression,de('Yes'),de('No'))#</b>
-							<!---<input type="hidden" name="AllowCompression" value="#setting.AllowCompression#">--->
-						</cfif>
-						<div class="comment">#stText.setting.AllowCompressionDescription#</div>
-						
-
-						<cfsavecontent variable="codeSample">
-							this.compression = #setting.AllowCompression#;
-						</cfsavecontent>
-						<cfset renderCodingTip( codeSample )>
-						<cfset renderSysPropEnvVar( name:"lucee.allow.compression",value:setting.AllowCompression)>
+						</cfmodule>
 					</td>
 				</tr>
 
@@ -135,18 +135,16 @@ Defaults --->
 				<tr>
 					<th scope="row">#stText.setting.suppressContent#</th>
 					<td>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="suppressContent" 
+							value="#setting.suppressContent#"
+							access="#hasAccess#"
+							description="#stText.setting.suppressContentDescription#"
+							br=false
+							sp=true
+							descOnTop=false>
 							<input type="checkbox" name="suppressContent" class="checkbox" value="true" <cfif setting.suppressContent>checked="checked"</cfif>>
-						<cfelse>
-							<b>#iif(setting.suppressContent,de('Yes'),de('No'))#</b>
-							<!---<input type="hidden" name="suppressContent" value="#setting.suppressContent#">--->
-						</cfif>
-						<div class="comment">#stText.setting.suppressContentDescription#</div>
-						
-						<cfsavecontent variable="codeSample">
-							this.suppressRemoteComponentContent = #setting.suppressContent#;
-						</cfsavecontent>
-						<cfset renderCodingTip( codeSample )>
+						</cfmodule>
 					</td>
 				</tr>
 
@@ -154,19 +152,16 @@ Defaults --->
 				<tr>
 					<th scope="row">#stText.setting.bufferOutput#</th>
 					<td>
-						<cfif hasAccess>
-							<input type="checkbox" name="bufferOutput" class="checkbox" value="true" <cfif setting.bufferOutput>checked="checked"</cfif>>
-						<cfelse>
-							<b>#iif(setting.bufferOutput,de('Yes'),de('No'))#</b>
-							<!---<input type="hidden" name="suppressContent" value="#setting.suppressContent#">--->
-						</cfif>
-						<div class="comment">#stText.setting.bufferOutputDescription#</div>
-
-
-						<cfsavecontent variable="codeSample">
-							this.bufferOutput = #setting.bufferOutput#;
-						</cfsavecontent>
-						<cfset renderCodingTip( codeSample )>
+						<cfmodule template="systemSetting.cfm" 
+							name="bufferTagBodyOutput" 
+							value="#setting.bufferOutput#"
+							access="#hasAccess#"
+							description="#stText.setting.bufferOutputDescription#"
+							br=false
+							sp=true
+							descOnTop=false>
+							<input type="checkbox" name="bufferTagBodyOutput" class="checkbox" value="true" <cfif setting.bufferOutput>checked="checked"</cfif>>
+						</cfmodule>
 					</td>
 				</tr>
 				<cfif hasAccess>

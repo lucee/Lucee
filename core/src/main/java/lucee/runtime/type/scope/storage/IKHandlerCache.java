@@ -32,17 +32,17 @@ public final class IKHandlerCache implements IKHandler {
 		synchronized (SystemUtil.createToken("IKHandlerCache", key)) { // sync necessary?
 			Object val = cache.getValue(key, null);
 			if (val instanceof byte[][]) {
-				ScopeContext.info(log,
-						"Load existing byte data from cache [" + name + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+				ScopeContext.trace(log,
+						"Load existing byte data from cache [" + name + "] to create " + strType + " scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "]");
 				return new IKStorageValue((byte[][]) val);
 			}
 			else if (val instanceof IKStorageValue) {
-				ScopeContext.info(log,
-						"Load existing data from cache [" + name + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+				ScopeContext.trace(log,
+						"Load existing data from cache [" + name + "] to create " + strType + " scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "]");
 				return (IKStorageValue) val;
 			}
 			else {
-				ScopeContext.info(log, "Create new [" + strType + "] scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in cache [" + name + "]");
+				ScopeContext.debug(log, "Create new [" + strType + "] scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in cache [" + name + "]");
 			}
 			return null;
 		}
@@ -65,12 +65,13 @@ public final class IKHandlerCache implements IKHandler {
 							: IKStorageValue.toByteRepresentation(
 									IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(), storageScope.lastModifiedAtInit(), log, type)),
 							Long.valueOf(storageScope.getTimeSpan()), null);
+					storageScope.markStored();
 				}
 				else if (existingVal != null) {
 					cache.remove(key);
 				}
 			}
-			ScopeContext.info(log, "Store scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in cache [" + name + "]");
+			ScopeContext.trace(log, "Store scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in cache [" + name + "]");
 		}
 		catch (Exception e) {
 			ScopeContext.error(log, e);

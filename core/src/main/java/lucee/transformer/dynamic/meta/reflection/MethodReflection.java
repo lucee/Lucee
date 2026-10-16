@@ -1,10 +1,7 @@
 package lucee.transformer.dynamic.meta.reflection;
 
-import java.io.IOException;
-
 import org.objectweb.asm.Type;
 
-import lucee.commons.lang.ExceptionUtil;
 import lucee.transformer.dynamic.meta.LegacyMethod;
 import lucee.transformer.dynamic.meta.Method;
 
@@ -68,12 +65,7 @@ class MethodReflection extends FunctionMemberReflection implements Method, Legac
 	}
 
 	@Override
-	public Object invoke(Object obj, Object... args) throws IOException {
-		try {
-			return method.invoke(obj, args);
-		}
-		catch (Exception e) {
-			throw ExceptionUtil.toIOException(e);
-		}
+	public Object invoke(Object obj, Object... args) throws Exception {
+		return method.invoke(obj, args);
 	}
 }

@@ -20,14 +20,13 @@ package lucee.runtime.spooler;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
+import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
-import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.Constants;
@@ -76,12 +75,13 @@ public abstract class SpoolerTaskHTTPCall extends SpoolerTaskSupport {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("method", methodName);
 		params.put("returnFormat", "json");
+		HTTPResponse res = null;
 		try {
 			Charset cs = pc.getWebCharset();
 			params.put("argumentCollection", new JSONConverter(true, cs, JSONDateFormat.PATTERN_CF, false).serialize(pc, args, SerializationSettings.SERIALIZE_AS_ROW, true));
 
-			HTTPResponse res = HTTPEngine4Impl.post(HTTPUtil.toURL(url, HTTPUtil.ENCODED_AUTO), client.getServerUsername(), client.getServerPassword(), -1L, true,
-					pc.getWebCharset().name(), Constants.NAME + " Remote Invocation", client.getProxyData(), null, params);
+			res = HTTPEngine.post(HTTPUtil.toURL(url, HTTPUtil.ENCODED_AUTO), client.getServerUsername(), client.getServerPassword(), HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT,
+					HTTPEngine.DEFAULT_CONNECT_TIMEOUT, -1L, true, pc.getWebCharset().name(), Constants.NAME + " Remote Invocation", client.getProxyData(), null, params, true);
 
 			return new JSONExpressionInterpreter().interpret(pc, res.getContentAsString());
 
@@ -92,8 +92,8 @@ public abstract class SpoolerTaskHTTPCall extends SpoolerTaskSupport {
 		catch (ConverterException ce) {
 			throw Caster.toPageException(ce);
 		}
-		catch (GeneralSecurityException e) {
-			throw Caster.toPageException(e);
+		finally {
+			HTTPEngine.closeEL(res);
 		}
 
 	}

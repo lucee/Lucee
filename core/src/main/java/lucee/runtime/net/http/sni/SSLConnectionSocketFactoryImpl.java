@@ -45,4 +45,13 @@ public final class SSLConnectionSocketFactoryImpl extends SSLConnectionSocketFac
 		return Collections.emptyList();
 	}
 
+	public static List<String> getEnabledSslProtocols() {
+		try {
+			return Arrays.asList(SSLContext.getDefault().getDefaultSSLParameters().getProtocols());
+		}
+		catch (NoSuchAlgorithmException ex) {
+		}
+		return Collections.emptyList();
+	}
+
 }

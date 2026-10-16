@@ -35,7 +35,6 @@ import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
@@ -87,6 +86,7 @@ public final class MappingImpl implements Mapping {
 
 	private final String strPhysical;
 	private Resource physical;
+	private boolean physicalUnresolvedLogged;
 
 	private String lcVirtualWithSlash;
 	private Map<String, SoftReference<Object>> customTagPath = new ConcurrentHashMap<String, SoftReference<Object>>();
@@ -111,6 +111,8 @@ public final class MappingImpl implements Mapping {
 	private short configInspect;
 
 	private Log log;
+
+	private short source = 0;
 
 	public MappingImpl(Config config, String virtual, String strPhysical, String strArchive, short inspect, int inspectTemplateAutoIntervalSlow,
 			int inspectTemplateAutoIntervalFast, boolean physicalFirst, boolean hidden, boolean readonly, boolean topLevel, boolean appMapping, boolean ignoreVirtual,
@@ -180,7 +182,11 @@ public final class MappingImpl implements Mapping {
 				if (physical == null && strPhysical != null) {
 					ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
 					physical = ConfigUtil.getResource(cs, strPhysical, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot, false);
-					if (archive == null) this.physicalFirst = true;
+					if (physical == null && !physicalUnresolvedLogged && !StringUtil.isEmpty(strPhysical, true)) {
+						physicalUnresolvedLogged = true;
+						if (log != null) log.warn("mapping", "physical path [" + strPhysical + "] of mapping [" + virtual + "] cannot be resolved, the mapping has no physical location");
+					}
+					if (strArchive == null) this.physicalFirst = true;
 					else if (physical == null) this.physicalFirst = false;
 				}
 			}
@@ -203,12 +209,12 @@ public final class MappingImpl implements Mapping {
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
 						archMod = tmp.lastModified();
-						LogUtil.log(config, "OSGi", t);
+						config.getLog("application").error("OSGi", "failed to load archive [" + tmp + "], archive is ignored", t);
 						tmp = null;
 					}
 
-					if (tmp == null) this.physicalFirst = true;
-					else if (physical == null) this.physicalFirst = false;
+					if (tmp == null && strPhysical != null) this.physicalFirst = true;
+					else if (strPhysical == null) this.physicalFirst = false;
 					archive = tmp;
 				}
 			}
@@ -232,8 +238,7 @@ public final class MappingImpl implements Mapping {
 			if (archiveBundle != null) return archiveBundle.loadClass(className);
 			// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);
 		}
-		catch (ClassNotFoundException e) {
-		}
+		catch (ClassNotFoundException e) {}
 
 		return defaultValue;
 	}
@@ -322,11 +327,12 @@ public final class MappingImpl implements Mapping {
 
 	/**
 	 * remove all Page from Pool using this classloader
-	 * 
+	 *
 	 * @param cl
+	 * @return count of pages cleared
 	 */
-	public void clearPages(ClassLoader cl) {
-		pageSourcePool.clearPages(cl);
+	public int clearPages(ClassLoader cl) {
+		return pageSourcePool.clearPages(cl);
 	}
 
 	public void clearUnused() {
@@ -714,7 +720,7 @@ public final class MappingImpl implements Mapping {
 		}
 
 		public Mapping toMapping() {
-			ConfigWebPro cwi = (ConfigWebPro) ThreadLocalPageContext.getConfig();
+			ConfigWebPro cwi = ThreadLocalPageContext.getConfigWeb();
 			return cwi.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual);
 		}
 	}
@@ -736,4 +742,12 @@ public final class MappingImpl implements Mapping {
 		}
 	}
 
+	public MappingImpl setSource(short source) {
+		this.source = source;
+		return this;
+	}
+
+	public short getSource() {
+		return source;
+	}
 }

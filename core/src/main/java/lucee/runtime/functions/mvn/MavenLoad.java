@@ -12,7 +12,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -35,9 +35,13 @@ public final class MavenLoad implements Function {
 			array = new ArrayImpl();
 			array.append(Caster.toStruct(input));
 		}
+		else if (Decision.isSimpleValue(input)) {
+			array = new ArrayImpl();
+			array.append(input);
+		}
 		else {
 			throw new FunctionException(pc, "MavenLoad", 1, "input", "Invalid type [" + Caster.toTypeName(input)
-					+ "]. Input must be a struct formatted as [{\"groupId\" : \"org.lucee\", \"artifactId\" : \"lucee\", \"version\" : \"7.0.0.0\"}] or an array containing multiple such structs.");
+					+ "]. Input must be a string formatted as [org.lucee:lucee:7.0.0.0], a struct formatted as [{\"groupId\" : \"org.lucee\", \"artifactId\" : \"lucee\", \"version\" : \"7.0.0.0\"}] or an array containing multiple such strings or structs.");
 		}
 
 		Iterator<Object> it = array.valueIterator();
@@ -49,9 +53,9 @@ public final class MavenLoad implements Function {
 
 		while (it.hasNext()) {
 
-			GAVSO gavso = MavenUtil.toGAVSO(it.next());
+			MavenCoordinate coordinate = MavenUtil.toCoordinate(it.next());
 			try {
-				for (Resource r: POM.getInstance(dir, gavso.g, gavso.a, gavso.v, MavenUtil.toScope(gavso.s, POM.SCOPES_FOR_RUNTIME), log).getJars()) {
+				for (Resource r: POM.getInstance(dir, coordinate.groupId, coordinate.artifactId, coordinate.version, coordinate.classifier, coordinate.extension, MavenUtil.toScope(coordinate.scope, POM.SCOPES_FOR_RUNTIME), log).getJars()) {
 					rtnData.set(r.getAbsolutePath(), "");
 				}
 			}

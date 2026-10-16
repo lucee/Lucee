@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -38,7 +37,6 @@ import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
-import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.PageContext;
@@ -174,7 +172,8 @@ public final class HTTPClient implements Objects, Iteratorable {
 			InputStream is = null;
 			HTTPResponse rsp = null;
 			try {
-				rsp = HTTPEngine4Impl.get(metaURL, username, password, 5000, false, "UTF-8", createUserAgent(pc), proxyData, null);
+				rsp = HTTPEngine.get(metaURL, username, password, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, 5000, false, "UTF-8",
+						createUserAgent(pc), proxyData, null, true);
 				MimeType mt = getMimeType(rsp, null);
 				int format = MimeType.toFormat(mt, -1);
 				if (format == -1) throw new ApplicationException("cannot convert response with mime type [" + mt + "] to a CFML Object");
@@ -300,7 +299,8 @@ public final class HTTPClient implements Objects, Iteratorable {
 		InputStream is = null;
 		try {
 			// call remote cfc
-			rsp = HTTPEngine4Impl.post(url, username, password, -1, false, "UTF-8", createUserAgent(pc), proxyData, HTTPEngine.toHeaders(headers), formfields);
+			rsp = HTTPEngine.post(url, username, password, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, -1, false, "UTF-8", createUserAgent(pc),
+					proxyData, HTTPEngine.toHeaders(headers), formfields, true);
 
 			// read result
 			Header[] rspHeaders = rsp.getAllHeaders();
@@ -329,9 +329,6 @@ public final class HTTPClient implements Objects, Iteratorable {
 		}
 		catch (IOException ioe) {
 			throw Caster.toPageException(ioe);
-		}
-		catch (GeneralSecurityException e) {
-			throw Caster.toPageException(e);
 		}
 		finally {
 			try {

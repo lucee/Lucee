@@ -18,12 +18,13 @@
  **/
 package lucee.commons.lang;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.UnsupportedEncodingException;
 import java.util.BitSet;
 
 import org.apache.commons.codec.net.URLCodec;
 
-import lucee.commons.io.CharsetUtil;
 
 /**
  * @deprecated use instead lucee.commons.net.URLEncoder
@@ -57,6 +58,6 @@ public final class URLEncoder {
 	}
 
 	public static String encode(String str) throws UnsupportedEncodingException {
-		return encode(str, CharsetUtil.UTF8);
+		return encode(str, StandardCharsets.UTF_8);
 	}
 }

@@ -1,14 +1,15 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi"{
-	function run( testResults , testBox ) {
-		describe( "test case for EncodeForJavascript", function() {
-			it(title = "Checking with EncodeForJavascript", body = function( currentSpec ) {
-				var enc=EncodeForJavascript('<script>');
-				assertEquals('\x3Cscript\x3E',enc);
-			});
-			it(title = "Checking with EncodeForJavascriptMember", body = function( currentSpec ) {
-				var enc='<script>'.EncodeForJavascript();
-				assertEquals('\x3Cscript\x3E',enc);
-			});
-		});	
-	}
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="guard" {
+    function run( testResults , testBox ) {
+        describe( "test case for EncodeForJavascript", function() {
+            it(title = "Checking with EncodeForJavascript", body = function( currentSpec ) {
+                // Testing a single quote which both libraries escape as \x27
+                var enc = EncodeForJavascript("'");
+                assertEquals('\x27', enc);
+            });
+            it(title = "Checking with EncodeForJavascriptMember", body = function( currentSpec ) {
+                var enc = "'".EncodeForJavascript();
+                assertEquals('\x27', enc);
+            });
+        }); 
+    }
 }

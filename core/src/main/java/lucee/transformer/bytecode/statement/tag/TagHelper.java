@@ -71,7 +71,7 @@ public final class TagHelper {
 
 	// TagUtil.setAttributeCollection(Tag, Struct)
 	private static final Method SET_ATTRIBUTE_COLLECTION = new Method("setAttributeCollection", Types.VOID,
-			new Type[] { Types.PAGE_CONTEXT, TAG, MISSING_ATTRIBUTE_ARRAY, Types.STRUCT, Types.INT_VALUE });
+			new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, MISSING_ATTRIBUTE_ARRAY, Types.STRUCT, Types.INT_VALUE });
 
 	// Tag use(String)
 	private static final Method USE_REG = new Method("use", TAG, new Type[] { Types.STRING, Types.STRING, Types.INT_VALUE, Types.STRING });
@@ -129,7 +129,7 @@ public final class TagHelper {
 	private static final Method DO_FINALLY = new Method("doFinally", Types.VOID, new Type[] {});
 
 	// JspWriter popBody()
-	private static final Method POP_BODY = new Method("popBody", Types.JSP_WRITER, new Type[] {});
+	private static final Method POP_BODY = new Method("popBody", Types.VOID, new Type[] { Types.PAGE_CONTEXT });
 
 	// void reuse(Tag tag)
 	private static final Method RE_USE_REG = new Method("reuse", Types.VOID, new Type[] { Types.TAG });
@@ -270,7 +270,7 @@ public final class TagHelper {
 				// TagUtil.setAttributeCollection(Tag, Struct)
 				adapter.loadArg(0);
 				adapter.loadLocal(currLocal);
-				if (currType != TAG) adapter.checkCast(TAG);
+				// if (currType != TAG) adapter.checkCast(TAG);
 
 				///
 				TagLibTagAttr[] missings = tag.getMissingAttributes();
@@ -357,8 +357,7 @@ public final class TagHelper {
 					adapter.visitJumpInsn(Opcodes.IF_ICMPEQ, endIf);
 					// ... pc.popBody();
 					adapter.loadArg(0);
-					adapter.invokeVirtual(Types.PAGE_CONTEXT, POP_BODY);
-					adapter.pop();
+					adapter.invokeStatic(Types.PAGE_CONTEXT_UTIL, POP_BODY);
 					adapter.visitLabel(endIf);
 
 					// tag.doFinally();

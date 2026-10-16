@@ -8,7 +8,6 @@ import org.w3c.dom.Node;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -175,7 +174,7 @@ public final class CastOther extends ExpressionBase implements Cast {
 
 			if ("date".equals(lcType) || "datetime".equals(lcType)) {
 				val = ic.getValue(expr);
-				if (!(val instanceof DateTime)) val = Caster.toDate(val, ThreadLocalPageContext.getTimeZone(ic.getPageContext()));
+				if (!(val instanceof DateTime)) val = Caster.toDate(val, ic.getPageContext() != null ? ic.getPageContext().getTimeZone() : TimeZone.getDefault());
 				ic.stack(val);
 				return DateTime.class;
 			}

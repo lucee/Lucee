@@ -3,18 +3,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip="true"{
 		variables.uri = createURI("LDEV4121");
 	}
 
-	function afterAll() {
-		cleanup();
-	}
-
-	private function cleanUp() {
-		if (!notHasH2()) {
-			queryExecute( sql="DROP TABLE IF EXISTS LDEV4121", options: {
-				datasource: server.getDatasource("h2", variables.dbfile)
-			}); 
-		}
-	}
-
 	function run( testResults, testBox ) {
 		describe(title="Testcase for LDEV-4121", body=function() {
 			it( title="checking default property value to override NULL value on ORM Entity", skip=(noOrm() || notHasH2()), body=function( currentSpec ){
@@ -27,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip="true"{
 	}
 
 	private boolean function notHasH2() {
-		variables.dbfile = "#getDirectoryFromPath( getCurrentTemplatePath() )#/datasource/dbh2";
+		variables.dbfile = server._getTempDir( "LDEV4121" );
 		return !structCount(server.getDatasource("h2", variables.dbfile));
 	}
 

@@ -43,6 +43,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -140,6 +141,7 @@ import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.it.CollectionAsEntryIterator;
+import lucee.runtime.type.it.EnumAsIt;
 import lucee.runtime.type.scope.ObjectStruct;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -155,8 +157,7 @@ import lucee.runtime.util.ForEachUtil;
  * This class can cast object of one type to another by CFML rules
  */
 public final class Caster {
-	private Caster() {
-	}
+	private Caster() {}
 	// static Map calendarsMap=new ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
 
 	private static final int NUMBERS_MIN = 0;
@@ -2121,6 +2122,15 @@ public final class Caster {
 		return -1;
 	}
 
+	// used in compiled code in transformer
+	public final static String str(Object o, PageContext pc) throws PageException {
+		return toString(pc, o);
+	}
+
+	public final static String toString(Object o) throws PageException {
+		return toString(null, o);
+	}
+
 	/**
 	 * cast an Object to a String
 	 * 
@@ -2128,14 +2138,15 @@ public final class Caster {
 	 * @return casted String
 	 * @throws PageException
 	 */
-	public static String toString(Object o) throws PageException {
+	public final static String toString(PageContext pc, Object o) throws PageException {
 		if (o instanceof CharSequence) return o.toString();
 		else if (o instanceof Number) return toString(((Number) o));
 		else if (o instanceof Boolean) return toString(((Boolean) o).booleanValue());
+		else if (pc != null && o instanceof CastablePro) return ((CastablePro) o).castToString(pc);
 		else if (o instanceof Castable) return ((Castable) o).castToString();
 		else if (o instanceof Date) {
 			if (o instanceof DateTime) return ((DateTime) o).castToString();
-			return new DateTimeImpl((Date) o).castToString();
+			return new DateTimeImpl((Date) o).castToString(pc);
 		}
 		else if (o instanceof Clob) return toString((Clob) o);
 		else if (o instanceof Locale) return toString((Locale) o);
@@ -2162,7 +2173,7 @@ public final class Caster {
 			return toString((Throwable) o, true);
 		}
 		else if (o instanceof InputStream) {
-			PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
+			pc = ThreadLocalPageContext.get(pc);
 			InputStream r = null;
 			try {
 				return IOUtil.toString(r = (InputStream) o, pc.getWebCharset());
@@ -2180,7 +2191,7 @@ public final class Caster {
 			}
 		}
 		else if (o instanceof byte[]) {
-			PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
+			pc = ThreadLocalPageContext.get(pc);
 
 			try {
 				return new String((byte[]) o, pc.getWebCharset());
@@ -2191,8 +2202,8 @@ public final class Caster {
 			}
 		}
 		else if (o instanceof char[]) return new String((char[]) o);
-		else if (o instanceof ObjectWrap) return toString(((ObjectWrap) o).getEmbededObject());
-		else if (o instanceof Calendar) return toString(((Calendar) o).getTime());
+		else if (o instanceof ObjectWrap) return toString(pc, ((ObjectWrap) o).getEmbededObject());
+		else if (o instanceof Calendar) return toString(pc, ((Calendar) o).getTime());
 		else if (o == null) return "";
 
 		// INFO Collection is new of type Castable
@@ -2237,7 +2248,11 @@ public final class Caster {
 	 * @return casted String
 	 */
 	public static String toString(Object o, String defaultValue) {
-		return toString(o, true, defaultValue);
+		return toString(null, o, true, defaultValue);
+	}
+
+	public static String toString(PageContext pc, Object o, String defaultValue) {
+		return toString(pc, o, true, defaultValue);
 	}
 
 	public static String toStringTrim(Object o, String defaultValue) {
@@ -2247,9 +2262,14 @@ public final class Caster {
 	}
 
 	public static String toString(Object o, boolean executeDefaultToStringMethod, String defaultValue) {
+		return toString(null, o, executeDefaultToStringMethod, defaultValue);
+	}
+
+	public static String toString(PageContext pc, Object o, boolean executeDefaultToStringMethod, String defaultValue) {
 		if (o instanceof CharSequence) return o.toString();
 		else if (o instanceof Boolean) return toString(((Boolean) o).booleanValue());
 		else if (o instanceof Number) return toString(((Number) o));
+		else if (pc != null && o instanceof CastablePro) return ((CastablePro) o).castToString(pc, defaultValue);
 		else if (o instanceof Castable) return ((Castable) o).castToString(defaultValue);
 		else if (o instanceof Date) {
 			if (o instanceof DateTime) {
@@ -2344,15 +2364,17 @@ public final class Caster {
 		return str;
 	}
 
-	private static DecimalFormat pf = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
-	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
-	private static DecimalFormat ff = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
-	static {
+	// DecimalFormat synchronizes internally, so a shared instance serialises all threads (LDEV-6508)
+	private static final ThreadLocal<DecimalFormat> pf = ThreadLocal.withInitial(() -> createDecimalFormat("#.################"));
+	private static final ThreadLocal<DecimalFormat> df = ThreadLocal.withInitial(() -> createDecimalFormat("#.############"));
+	private static final ThreadLocal<DecimalFormat> ff = ThreadLocal.withInitial(() -> createDecimalFormat("#.#######"));
+	// -0.9899924966004454
 
-		pf.applyLocalizedPattern("#.################");
-		df.applyLocalizedPattern("#.############");
-		ff.applyLocalizedPattern("#.#######");
-	}// -0.9899924966004454
+	private static DecimalFormat createDecimalFormat(String pattern) {
+		DecimalFormat format = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
+		format.applyLocalizedPattern(pattern);
+		return format;
+	}
 
 	public static String toString(double d) {
 		long l = (long) d;
@@ -2360,11 +2382,11 @@ public final class Caster {
 
 		if (d > l && (d - l) < 0.000000000001) return toString(l);
 		if (l > d && (l - d) < 0.000000000001) return toString(l);
-		return df.format(d);
+		return df.get().format(d);
 	}
 
 	public static String toStringPercise(double d) {
-		return pf.format(d);
+		return pf.get().format(d);
 	}
 
 	public static String toString(float f) {
@@ -2379,13 +2401,13 @@ public final class Caster {
 		char c;
 		for (int x = str.length() - 1; x >= 0; x--) {
 			c = str.charAt(x);
-			if (c == 'E' || c == 'e') return ff.format(f);
+			if (c == 'E' || c == 'e') return ff.get().format(f);
 		}
 		return str;
 	}
 
 	public static String toString(Number n) {
-		if (n instanceof BigDecimal) return pf.format(n);
+		if (n instanceof BigDecimal) return toString((BigDecimal) n);
 		if (n instanceof Double) return Caster.toString(n.doubleValue());
 		if (n instanceof Long) return Caster.toString(n.longValue());
 		if (n instanceof Float) return Caster.toString(n.floatValue());
@@ -2393,7 +2415,8 @@ public final class Caster {
 	}
 
 	public static String toString(BigDecimal bd) {
-		return pf.format(bd);
+		if (bd.scale() <= 0) return bd.toPlainString();
+		return pf.get().format(bd);
 	}
 
 	/**
@@ -2876,8 +2899,7 @@ public final class Caster {
 					Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Map.class);
 					if (tmp instanceof Map) return (Map) tmp;
 				}
-				catch (PageException e) {
-				}
+				catch (PageException e) {}
 			}
 			if (duplicate) return (Map) Duplicator.duplicate(o, false);
 			return ((Struct) o);
@@ -2985,8 +3007,20 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static byte[] toBinary(Object o) throws PageException {
+		return toBinary(o, false);
+	}
+
+	/**
+	 * cast an Object to a Binary
+	 *
+	 * @param o Object to cast
+	 * @param precise if a string is decoded as base64, it must be 100% valid base64
+	 * @return casted Binary
+	 * @throws PageException
+	 */
+	public static byte[] toBinary(Object o, boolean precise) throws PageException {
 		if (o instanceof byte[]) return (byte[]) o;
-		else if (o instanceof ObjectWrap) return toBinary(((ObjectWrap) o).getEmbededObject(""));
+		else if (o instanceof ObjectWrap) return toBinary(((ObjectWrap) o).getEmbededObject(""), precise);
 
 		else if (o instanceof InputStream) {
 			ByteArrayOutputStream barr = new ByteArrayOutputStream();
@@ -3027,7 +3061,7 @@ public final class Caster {
 			}
 		}
 		try {
-			return Base64Encoder.decode(toString(o), false);
+			return Base64Encoder.decode(toString(o), precise);
 		}
 		catch (PageException e) {
 			throw new CasterException(o, "binary");
@@ -3525,8 +3559,7 @@ public final class Caster {
 					}
 					return new TimeSpanImpl(values[0], values[1], values[2], values[3]);
 				}
-				catch (ExpressionException e) {
-				}
+				catch (ExpressionException e) {}
 			}
 		}
 		else if (o instanceof ObjectWrap) {
@@ -3607,7 +3640,7 @@ public final class Caster {
 			}
 
 		}
-		return NativeException.newInstance(t, rethrowIfNecessary);
+		return NativeException.getInstance(t, rethrowIfNecessary);
 	}
 
 	/**
@@ -3662,8 +3695,7 @@ public final class Caster {
 			try {
 				return toClassName(((ObjectWrap) o).getEmbededObject());
 			}
-			catch (PageException e) {
-			}
+			catch (PageException e) {}
 		}
 		return toClassName(o.getClass());
 	}
@@ -3835,7 +3867,7 @@ public final class Caster {
 	}
 
 	public static Object castTo(String type, Object o) throws PageException {
-		return castTo(ThreadLocalPageContext.get(), type, o, false);
+		return castTo(null, type, o, false);
 	}
 
 	/**
@@ -4272,8 +4304,7 @@ public final class Caster {
 					try {
 						val = Caster.castTo(pc, p.getType(), pair.getValue(), false);
 					}
-					catch (PageException e) {
-					}
+					catch (PageException e) {}
 
 					// store in variables and this scope
 					scope.setEL(pair.getName(), val);
@@ -4282,8 +4313,7 @@ public final class Caster {
 				return cfc;
 			}
 		}
-		catch (PageException e) {
-		}
+		catch (PageException e) {}
 		return defaultValue;
 	}
 
@@ -4500,8 +4530,14 @@ public final class Caster {
 		else if (o instanceof Iterator) {
 			return new CollectionAsEntryIterator((Iterator) o);
 		}
+		else if (o instanceof Iterable) {
+			return new CollectionAsEntryIterator(((Iterable) o).iterator());
+		}
+		else if (o instanceof Enumeration) {
+			return new CollectionAsEntryIterator(new EnumAsIt((Enumeration) o));
+		}
 
-		throw new CasterException("cannot cast object of type [" + toTypeName(o) + "] to a entry iterator (Iterator<Entry>)");
+		throw ForEachUtil.notLoopable(o);
 	}
 
 	public static Object toStringWhenKey(Object o) {
@@ -4524,8 +4560,7 @@ public final class Caster {
 				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Collection.class);
 				if (tmp instanceof Collection) return (Collection) tmp;
 			}
-			catch (PageException e) {
-			}
+			catch (PageException e) {}
 		}
 		else if (o instanceof Map) {
 			return MapAsStruct.toStruct((Map) o, true);// StructImpl((Map)o);
@@ -4597,8 +4632,7 @@ public final class Caster {
 				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Collection.class);
 				if (tmp instanceof Collection) return (Collection) tmp;
 			}
-			catch (PageException e) {
-			}
+			catch (PageException e) {}
 		}
 		else if (o instanceof Map) {
 			return MapAsStruct.toStruct((Map) o, true);
@@ -5012,8 +5046,7 @@ public final class Caster {
 				return new ScriptConverter().serialize(value);
 			}
 		}
-		catch (ConverterException e) {
-		}
+		catch (ConverterException e) {}
 		return defaultValue;
 	}
 
@@ -5026,7 +5059,7 @@ public final class Caster {
 		if (src instanceof File) src = src.toString();
 		if (src instanceof String) {
 			if (existing) return ResourceUtil.toResourceExisting(pc, (String) src, allowRealpath);
-			return ResourceUtil.toResourceNotExisting(pc, (String) src, allowRealpath, false);
+			return ResourceUtil.toResourceNotExisting(pc, null, (String) src, allowRealpath, false);
 		}
 		if (src instanceof FileStreamWrapper) return ((FileStreamWrapper) src).getResource();
 		throw new CasterException(src, "Resource");
@@ -5054,15 +5087,13 @@ public final class Caster {
 	}
 
 	public static Calendar toCalendar(Date date, TimeZone tz, Locale l) {
-		tz = ThreadLocalPageContext.getTimeZone(tz);
-		Calendar c = tz == null ? JREDateTimeUtil.newInstance(tz, l) : JREDateTimeUtil.newInstance(tz, l);
+		Calendar c = JREDateTimeUtil.newInstance(ThreadLocalPageContext.getTimeZone(tz), l);
 		c.setTime(date);
 		return c;
 	}
 
 	public static Calendar toCalendar(long time, TimeZone tz, Locale l) {
-		tz = ThreadLocalPageContext.getTimeZone(tz);
-		Calendar c = tz == null ? JREDateTimeUtil.newInstance(tz, l) : JREDateTimeUtil.newInstance(tz, l);
+		Calendar c = JREDateTimeUtil.newInstance(ThreadLocalPageContext.getTimeZone(tz), l);
 		c.setTimeInMillis(time);
 		return c;
 	}
@@ -5226,8 +5257,7 @@ public final class Caster {
 		try {
 			return toBigDecimal(str);
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 		return defaultValue;
 	}
 
@@ -5277,8 +5307,7 @@ public final class Caster {
 				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) obj, CharSequence.class);
 				if (tmp instanceof CharSequence) return (CharSequence) tmp;
 			}
-			catch (PageException pe) {
-			}
+			catch (PageException pe) {}
 		}
 		return Caster.toString(obj);
 	}
@@ -5290,8 +5319,7 @@ public final class Caster {
 				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) obj, CharSequence.class);
 				if (tmp instanceof CharSequence) return (CharSequence) tmp;
 			}
-			catch (PageException pe) {
-			}
+			catch (PageException pe) {}
 		}
 
 		String str = Caster.toString(obj, null);
@@ -5441,17 +5469,22 @@ public final class Caster {
 		return Double.valueOf(-n.doubleValue());
 	}
 
+	public static Map<String, String> toStringMap(Struct sct) throws PageException {
+		Map<String, String> rtn = new LinkedHashMap<>();
+		Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		Entry<Key, Object> entry;
+		while (it.hasNext()) {
+			entry = it.next();
+			rtn.put(entry.getKey().getString(), Caster.toString(entry.getValue()));
+		}
+		return rtn;
+
+	}
+
 	public static Map<String, String> toStringMap(Struct sct, Map<String, String> defaultValue) {
 		if (sct == null) return defaultValue;
 		try {
-			Map<String, String> rtn = new LinkedHashMap<>();
-			Iterator<Entry<Key, Object>> it = sct.entryIterator();
-			Entry<Key, Object> entry;
-			while (it.hasNext()) {
-				entry = it.next();
-				rtn.put(entry.getKey().getString(), Caster.toString(entry.getValue()));
-			}
-			return rtn;
+			return toStringMap(sct);
 		}
 		catch (Exception e) {
 			return defaultValue;

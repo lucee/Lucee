@@ -16,10 +16,12 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
+//FUTURE remove
 package lucee.runtime.config;
 
 import lucee.runtime.type.Struct;
 
 public interface AdminSync {
+	@Deprecated
 	public void broadcast(Struct attributes, Config config);
 }
