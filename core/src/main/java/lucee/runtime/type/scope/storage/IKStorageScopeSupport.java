@@ -320,6 +320,14 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if (ac != null && (this.tokens == null || this.tokens.isEmpty()) && ac.getSessionCluster() && isSessionStorage(pc)) {
 			data0.remove(KeyConstants._csrf_token);
 		}
+		else if (ac != null && ac.getSessionCluster() && isSessionStorage(pc)) {
+			// make sure tokens generated in this request are persisted, even if the entry was removed in the meantime
+			IKStorageScopeItem csrf = data0.get(KeyConstants._csrf_token);
+			if (csrf == null || csrf.removed() || csrf.getValue() != this.tokens) {
+				hasChanges = true;
+				data0.put(KeyConstants._csrf_token, new IKStorageScopeItem(this.tokens));
+			}
+		}
 		store(pc);
 	}
 
@@ -355,6 +363,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		Key k;
 		while (it.hasNext()) {
 			k = it.next();
+			// csrf tokens are held separately from the scope keys (like in StorageScopeImpl), clearing the scope does not drop them
+			if (KeyConstants._csrf_token.equals(k)) continue;
 			removeEL(k);
 		}
 	}
