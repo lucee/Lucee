@@ -1884,6 +1884,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		Attribute attr;
 
+		// LDEV-4366: detect an explicit name= before handling dynamic attrs (order-independent)
+		boolean hasExplicitName = hasName;
+		for (int i = 0; i < attrs.length; i++) {
+			if ("name".equalsIgnoreCase(attrs[i].getName()) && !isNull(attrs[i].getValue())) {
+				hasExplicitName = true;
+				break;
+			}
+		}
+
 		// first fill all regular attribute -> name="value"
 		boolean hasDynamic = false;
 		for (int i = attrs.length - 1; i >= 0; i--) {
@@ -1898,6 +1907,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 					param.addAttribute(attr);
 				}
 				else if (attr.isDynamicType()) {
+					// LDEV-4366: when name= is present, unknown attrs are not allowed (ACF/tag parity)
+					if (hasExplicitName) throw attrNotSupported(data.srcCode, tlt, attr.getName());
 					hasName = true;
 					if (hasDynamic) throw attrNotSupported(data.srcCode, tlt, attr.getName());
 					hasDynamic = true;
