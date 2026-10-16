@@ -174,16 +174,15 @@ public final class Map extends BIF implements ClosureFunc {
 
 	private static Collection invoke(PageContext pc, Array arr, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
 		Array rtn = new ArrayImpl();
+		Iterator it = (arr instanceof ArrayPro ? ((ArrayPro) arr).entryArrayIterator() : arr.entryIterator());
+		Entry e;
 		boolean async = es != null;
 		Object res;
 		ParentException parentException = es != null ? new ParentException() : null;
-		// LDEV-2523 visit every index, including null elements (the entry iterators skip them)
-		int len = arr.size();
-		ArgumentIntKey k;
-		for (int i = 1; i <= len; i++) {
-			k = ArgumentIntKey.init(i);
-			res = _inv(pc, parentException, udf, new Object[] { arr.get(i, null), Caster.toDoubleValue(i), arr }, k, es, futures);
-			if (!async) rtn.setEL(i, res);
+		while (it.hasNext()) {
+			e = (Entry) it.next();
+			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), es, futures);
+			if (!async) rtn.set(Caster.toString(e.getKey()), res);
 		}
 		return rtn;
 	}
