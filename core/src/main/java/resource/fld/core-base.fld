@@ -15562,6 +15562,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 		</return>
 	</function>
+	<!-- structIsOrdered -->
+	<function>
+		<name>structIsOrdered</name>
+		<class>lucee.runtime.functions.struct.StructIsOrdered</class>
+		<member-name>isOrdered</member-name>
+		<keywords>struct,decision</keywords>
+		<description>Returns true if the structure keeps the order in which its keys were added (an ordered/linked struct), otherwise false.</description>
+		<argument>
+			<name>struct</name>
+			<alias>structure,object</alias>
+			<type>struct</type>
+			<required>Yes</required>
+			<description>Structure to test</description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 	<!-- structKeyArray -->
 	<function>
 		<name>structKeyArray</name>

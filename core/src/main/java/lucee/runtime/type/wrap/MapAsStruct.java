@@ -19,8 +19,10 @@
 package lucee.runtime.type.wrap;
 
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -46,6 +48,8 @@ public final class MapAsStruct extends StructSupport implements Struct {
 
 	Map map;
 	private boolean caseSensitive;
+	// the order of a wrapped map (e.g. Collections.synchronizedMap(LinkedHashMap)) is not visible from its class
+	private boolean ordered;
 
 	/**
 	 * constructor of the class
@@ -53,9 +57,10 @@ public final class MapAsStruct extends StructSupport implements Struct {
 	 * @param map
 	 * @param caseSensitive
 	 */
-	private MapAsStruct(Map map, boolean caseSensitive) {
+	private MapAsStruct(Map map, boolean caseSensitive, boolean ordered) {
 		this.map = map;
 		this.caseSensitive = caseSensitive;
+		this.ordered = ordered;
 	}
 
 	public static Struct toStruct(Map map) {
@@ -63,8 +68,17 @@ public final class MapAsStruct extends StructSupport implements Struct {
 	}
 
 	public static Struct toStruct(Map map, boolean caseSensitive) {
+		return toStruct(map, caseSensitive, false);
+	}
+
+	public static Struct toStruct(Map map, boolean caseSensitive, boolean ordered) {
 		if (map instanceof Struct) return ((Struct) map);
-		return new MapAsStruct(map, caseSensitive);
+		return new MapAsStruct(map, caseSensitive, ordered);
+	}
+
+	// insertion ordered (LinkedHashMap) and sorted maps (e.g. TreeMap) keep a defined key order
+	public boolean isOrdered() {
+		return ordered || map instanceof LinkedHashMap || map instanceof SortedMap;
 	}
 
 	@Override
@@ -201,7 +215,9 @@ public final class MapAsStruct extends StructSupport implements Struct {
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
-		return new MapAsStruct(Duplicator.duplicateMap(map, deepCopy), caseSensitive);
+		Map copy = Duplicator.duplicateMap(map, deepCopy);
+		// a copy that falls back to another map type (e.g. HashMap) does not keep the order
+		return new MapAsStruct(copy, caseSensitive, ordered && copy.getClass() == map.getClass());
 	}
 
 	@Override
