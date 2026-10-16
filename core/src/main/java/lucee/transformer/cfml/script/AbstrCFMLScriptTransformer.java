@@ -962,17 +962,34 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			// name
 			// String idName=identifier(data,false,true);
 			boolean required = false;
+			boolean argFinal = false;
 
 			String idName = variableDec(data, false);
-			// required
-			if ("required".equalsIgnoreCase(idName)) {
-				comments(data);
-				String idName2 = variableDec(data, false);
-				if (idName2 != null) {
-					idName = idName2;
-					required = true;
+			// required / final modifiers (order: any combination of required and final before type/name)
+			// LDEV-3671: "final" was previously treated as the type, shifting the real name
+			for (int _mod = 0; _mod < 2 && idName != null; _mod++) {
+				if ("required".equalsIgnoreCase(idName) && !required) {
+					comments(data);
+					String idName2 = variableDec(data, false);
+					if (idName2 != null) {
+						idName = idName2;
+						required = true;
+						continue;
+					}
+					if (idName == null) return defaultValue;
+					break;
 				}
-				if (idName == null) return defaultValue;
+				if ("final".equalsIgnoreCase(idName) && !argFinal) {
+					comments(data);
+					String idName2 = variableDec(data, false);
+					if (idName2 != null) {
+						idName = idName2;
+						argFinal = true;
+						continue;
+					}
+					break;
+				}
+				break;
 			}
 
 			String typeName = "any";
@@ -1040,6 +1057,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				}
 			}
 
+			if (argFinal) {
+				if (meta == null) meta = new HashMap<String, Attribute>();
+				meta.put("final", new Attribute(true, "final", data.factory.EMPTY(), "boolean"));
+			}
 			result.add(new Argument(data.factory.createLitString(idName), data.factory.createLitString(typeName), data.factory.createLitBoolean(required), defVal, passByRef,
 					displayName, hint, meta));
 
