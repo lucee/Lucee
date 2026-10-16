@@ -1,4 +1,4 @@
-name: Build 7.0
+name: Build 7.1
 
 on: 
   workflow_call:
@@ -9,7 +9,7 @@ on:
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
-        default: '21'
+        default: '25'
   push:
     branches:
       - '**' # thus ignoring tagging
@@ -19,22 +19,37 @@ on:
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
-        default: '21'
+        default: '25'
       LUCEE_TEST_JAVA_VERSION:
         description: Optional Java Test version, default is the build java version
         required: false
         type: string
 
-#concurrency:
-#  group: ${{ github.head_ref }}
-#  cancel-in-progress: true
+# Run builds of the same ref one after another, so every merge on a release branch
+# resolves its own revision (max tag + 1) after the previous build has tagged.
+# PRs have their own ref (refs/pull/N/merge), so they are not blocked by branch builds.
+# queue: max keeps up to 100 pending runs (default would keep only one and cancel older pending runs).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    # LDEV-6516: contents:write to annotated-tag published revisions; actions for artifacts
+    permissions:
+      contents: write
+      actions: write
+      checks: write
+      pull-requests: write
+      issues: read
     env:
-      DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/7.0') }}"
-      LUCEE_BUILD_JAVA_VERSION: 21
+      DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/7.1') }}"
+      # bucket behind cdn.lucee.org (ant/upload_to_s3.cfm uploads the build there, see LDEV-6537 for the cut-off)
+      S3_DOWNLOAD_BUCKET: lucee-downloads
+      S3_DOWNLOAD_REGION: us-east-1
+      LUCEE_BUILD_JAVA_VERSION: 25
       LUCEE_TEST_JAVA_VERSION: ''
     services:
       ldap:
@@ -93,6 +108,7 @@ jobs:
       with:
         timezoneLinux: "UTC"
     - uses: actions/checkout@v4
+      # Tags fetched explicitly in Resolve next revision (fetch-tags alone is unreliable on checkout v4)
 
     - name: Set up Test Java Version ${{ env.LUCEE_TEST_JAVA_VERSION }}
       uses: actions/setup-java@v4
@@ -149,17 +165,109 @@ jobs:
         sudo -u postgres psql -c 'grant all privileges on database lucee to lucee;'
         sudo -u postgres psql -c 'grant all on schema public to lucee;' -d lucee
     - name: Start MongoDB (docker)
-      uses: supercharge/mongodb-github-action@1.6.0
-      with:
-        mongodb-version: 4.4
-        mongodb-port: 27017
+      run: |
+        docker run -d --name mongodb -p 27017:27017 mongo:4.4
+        sleep 5
     - name: Setup Memcached (docker)
-      uses: niden/actions-memcached@v7
+      run: |
+        docker run -d --name memcached -p 11211:11211 memcached:latest
+        sleep 5
+    # ubuntu-latest moved to Maven 3.10.0 (runner image 20261004). With it, central-publishing-maven-plugin
+    # leaves org/lucee/lucee/maven-metadata-local.xml in the staging dir, which Central rejects with
+    # "Bundle has content that does NOT have a .pom file: org/lucee/lucee". Pin Maven 3.9.x until the plugin handles it.
+    - name: Set up Maven 3.9.16
+      run: |
+        MVN_VERSION=3.9.16
+        MVN_SHA512=831a8591fe20c8243b1dbe7d71e3244f31d1665b0804b2e825e38cbbe5ce0cafb8338851f90780735568773e0a6cd07bbec107cda0b896b008b861075358b6f6
+        curl -fsSL -o "$RUNNER_TEMP/maven.tar.gz" "https://repo1.maven.org/maven2/org/apache/maven/apache-maven/$MVN_VERSION/apache-maven-$MVN_VERSION-bin.tar.gz"
+        echo "$MVN_SHA512  $RUNNER_TEMP/maven.tar.gz" | sha512sum -c -
+        tar xzf "$RUNNER_TEMP/maven.tar.gz" -C "$RUNNER_TEMP"
+        echo "$RUNNER_TEMP/apache-maven-$MVN_VERSION/bin" >> $GITHUB_PATH
+        "$RUNNER_TEMP/apache-maven-$MVN_VERSION/bin/mvn" -v
+    - name: Resolve next revision
+      id: resolve-revision
+      run: |
+        set -euo pipefail
+        # LDEV-6516: on mainline 7.1 push (DO_DEPLOY), allocate next build from tags / Maven metadata.
+        # PRs and forks keep the default POM revision and must not consume production build numbers.
+        if [ "${{ env.DO_DEPLOY }}" != "true" ]; then
+          echo "Skipping revision bump (not a mainline 7.1 deploy build)"
+          exit 0
+        fi
+        # Match build step: without GPG secrets CI only runs tests — do not consume a build number
+        if [ "${{ secrets.GPG_PASSPHRASE }}" == "" ]; then
+          echo "Skipping revision bump (no GPG / deploy credentials; test-only run)"
+          exit 0
+        fi
+
+        BASE=$(mvn -f loader/pom.xml help:evaluate -Dexpression=lucee.version.base -q -DforceStdout | tr -d '\r')
+        QUALIFIER=$(mvn -f loader/pom.xml help:evaluate -Dexpression=lucee.version.qualifier -q -DforceStdout | tr -d '\r')
+        echo "Base=$BASE qualifier=$QUALIFIER"
+
+        # Ensure tags are available for max(build)+1
+        git fetch --tags --force origin 2>/dev/null || true
+
+        MAX_BUILD=""
+        while IFS= read -r tag; do
+          [ -z "$tag" ] && continue
+          build="${tag#"${BASE}".}"
+          case "$build" in
+            ''|*[!0-9]*) continue ;;
+          esac
+          if [ -z "$MAX_BUILD" ] || [ "$build" -gt "$MAX_BUILD" ]; then
+            MAX_BUILD="$build"
+          fi
+        done < <(git tag -l "${BASE}.*")
+
+        if [ -z "$MAX_BUILD" ]; then
+          echo "No git tags matching ${BASE}.N — falling back to Maven metadata"
+          META_FILES=""
+          for url in \
+            "https://cdn.lucee.org/org/lucee/lucee/maven-metadata.xml" \
+            "https://repo1.maven.org/maven2/org/lucee/lucee/maven-metadata.xml" \
+            "https://central.sonatype.com/repository/maven-snapshots/org/lucee/lucee/maven-metadata.xml"
+          do
+            tmp=$(mktemp)
+            if curl -fsSL --max-time 30 "$url" -o "$tmp"; then
+              META_FILES="$META_FILES $tmp"
+            else
+              rm -f "$tmp"
+            fi
+          done
+          if [ -n "$META_FILES" ]; then
+            # Match base.N or base.N-QUALIFIER
+            MAX_BUILD=$(cat $META_FILES | sed -n "s/.*<version>${BASE}\.\([0-9][0-9]*\)\([-.].*\)\?<\/version>.*/\1/p" | sort -n | tail -1 || true)
+            rm -f $META_FILES
+          fi
+        fi
+
+        if [ -z "$MAX_BUILD" ]; then
+          NEXT_BUILD=0
+        else
+          NEXT_BUILD=$((MAX_BUILD + 1))
+        fi
+
+        VERSION="${BASE}.${NEXT_BUILD}${QUALIFIER}"
+        # Tag shape matches existing practice: numeric 4-part without -SNAPSHOT
+        TAG="${BASE}.${NEXT_BUILD}"
+
+        echo "Resolved VERSION=$VERSION (max seen build=${MAX_BUILD:-none})"
+        echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+        echo "TAG=$TAG" >> "$GITHUB_ENV"
+
     - name: Extract version number
       id: extract-version
       run: |
-        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        set -euo pipefail
+        if [ -z "${VERSION:-}" ]; then
+          VERSION=$(mvn -f loader/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout | tr -d '\r')
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+        fi
+        # LDEV-6529: fail early on a bogus version (e.g. "1", the version of Maven's standalone-pom without a pom.xml)
+        if ! echo "$VERSION" | grep -Eq '^[0-9]+(\.[0-9]+){3}(-[A-Za-z0-9]+)*$'; then
+          echo "::error::[$VERSION] is not a Lucee version"; exit 1
+        fi
+        echo "Using VERSION=$VERSION"
     - name: Build Lucee with Maven
       env:
         MYSQL_SERVER: localhost
@@ -229,15 +337,25 @@ jobs:
       #run: ant -noinput -buildfile loader/build.xml
       run: |
         echo "-------DO_DEPLOY: ${{ env.DO_DEPLOY }} -------";
+        REVISION_ARGS=()
+        if [ -n "${VERSION:-}" ]; then
+          REVISION_ARGS=(-Drevision="$VERSION")
+          echo "------- Using -Drevision=$VERSION -------";
+        fi
         if [ "${{ secrets.GPG_PASSPHRASE }}" == "" ]; then
           echo "------- Maven Test on ${{ github.event_name }} ---------";
-          mvn -B -e -f loader/pom.xml test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         elif [[ "$VERSION" == *-SNAPSHOT ]]; then
           echo "------- Maven Deploy SNAPSHOT on ${{ github.event_name }} ---------";
-          mvn -B -e -f loader/pom.xml clean deploy -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean deploy --settings maven-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
+        elif [[ "$VERSION" == *-ALPHA ]]; then
+          echo "------- Maven Install ALPHA (no deplyment) on ${{ github.event_name }} ---------";
+          mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         else
           echo "------- Maven Deploy RELEASE on ${{ github.event_name }} -------";
-          mvn -B -e -f loader/pom.xml clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
+          mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
+          echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
         fi
     - name: clean github.ref_name
       uses: mad9000/actions-find-and-replace-string@5
@@ -256,6 +374,81 @@ jobs:
     - name: Remove Lucee build artifacts from local maven cache (avoid growing cache)
       run: |
         rm -rfv ~/.m2/repository/org/lucee/lucee/
+    - name: Tag published revision
+      if: success() && env.DID_DEPLOY == 'true' && env.TAG != ''
+      run: |
+        set -euo pipefail
+        echo "Creating annotated tag $TAG for $VERSION"
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+          echo "Tag $TAG already exists — skipping"
+        else
+          git tag -a "$TAG" -m "$TAG"
+          git push origin "refs/tags/$TAG"
+        fi
+    - name: Trigger the Lucee Docker image build
+      # LDEV-6536: runs after the maven deploy, so the jar is on Maven already (was in ant/upload_to_s3.cfm)
+      if: success() && env.DID_DEPLOY == 'true' && env.VERSION != ''
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
+      run: |
+        jq -n --arg v "$VERSION" '{event_type: "build-docker-images", client_payload: {LUCEE_VERSION: $v}}' \
+          | gh api repos/lucee/lucee-dockerfiles/dispatches --input -
+        echo "Lucee Docker build triggered for $VERSION, see https://github.com/lucee/lucee-dockerfiles/actions"
+    - name: Attach Lucee artifacts (express zip, jar, light, zero, lco) to the GitHub release
+      # LDEV-6529: releases only (no snapshots), uses the files this job just built, nothing comes from cdn.lucee.org
+      if: ${{ env.DID_DEPLOY == 'true' && env.VERSION != '' && !contains(env.VERSION, '-SNAPSHOT') }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -euo pipefail
+        # the version of what was actually built: loader/target/<version>.lco (next to <version>.jvmNN.lco)
+        mapfile -t LCOS < <(find loader/target -maxdepth 1 -type f -name '*.lco' ! -name '*.jvm*.lco' -printf '%f\n')
+        if [ "${#LCOS[@]}" -ne 1 ]; then
+          echo "::error::expected exactly one <version>.lco in loader/target, found [${LCOS[*]:-}]"; exit 1
+        fi
+        BUILT="${LCOS[0]%.lco}"
+        case "$BUILT" in *-SNAPSHOT*) echo "$BUILT is a snapshot, not attaching it to a release"; exit 0;; esac
+        if [ "$BUILT" != "$VERSION" ]; then
+          echo "::error::VERSION [$VERSION] does not match the built version [$BUILT]"; exit 1
+        fi
+        if [ -z "${TAG:-}" ]; then
+          echo "::error::no release tag for $BUILT (TAG is set by Resolve next revision)"; exit 1
+        fi
+
+        # same file names as on cdn.lucee.org
+        mkdir -p release-assets
+        cp "loader/target/lucee-$BUILT.jar" "release-assets/lucee-$BUILT.jar"
+        cp "loader/target/lucee-light-$BUILT.jar" "release-assets/lucee-light-$BUILT.jar"
+        cp "loader/target/lucee-zero-$BUILT.jar" "release-assets/lucee-zero-$BUILT.jar"
+        cp "loader/target/$BUILT.lco" "release-assets/$BUILT.lco"
+        .github/scripts/build-express.sh "$BUILT" "loader/target/lucee-$BUILT.jar" "release-assets/lucee-express-$BUILT.zip"
+        .github/scripts/build-war.sh "$BUILT" "loader/target/lucee-$BUILT.jar" "release-assets/lucee-$BUILT.war"
+        ls -l release-assets
+
+        # the release uses the annotated tag created by "Tag published revision" (numeric, without qualifier)
+        if ! gh release view "$TAG" > /dev/null 2>&1; then
+          ARGS=(--verify-tag --title "Lucee $BUILT" --notes "Lucee $BUILT")
+          case "$BUILT" in *-RC*|*-BETA*|*-ALPHA*) ARGS+=(--prerelease);; esac
+          gh release create "$TAG" "${ARGS[@]}"
+        fi
+        gh release upload "$TAG" release-assets/* --clobber
+
+    - name: Regenerate org/lucee index.html and group maven-metadata.xml on S3
+      # LDEV-XXXX: what organize-artifacts.yml did after organizing a version, now on every build that was published to S3
+      if: ${{ success() && env.DID_DEPLOY == 'true' && env.S3_PUBLISHED == 'true' }}
+      run: |
+        cd .github/scripts
+        npm ci
+        node rebuild-group-metadata.js
+      env:
+        INPUT_S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
+        INPUT_S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
+        INPUT_S3_BUCKET: ${{ env.S3_DOWNLOAD_BUCKET }}
+        INPUT_S3_REGION: ${{ env.S3_DOWNLOAD_REGION }}
+
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()

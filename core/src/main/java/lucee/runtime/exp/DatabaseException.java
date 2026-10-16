@@ -129,8 +129,7 @@ public class DatabaseException extends PageExceptionImpl {
 				if (!"__default__".equals(dc.getDatasource().getName())) setAdditional(KeyConstants._Datasource, dc.getDatasource().getName());
 
 			}
-			catch (SQLException e) {
-			}
+			catch (SQLException e) {}
 		}
 	}
 
@@ -163,20 +162,22 @@ public class DatabaseException extends PageExceptionImpl {
 
 	@Override
 	public CatchBlock getCatchBlock(Config config) {
-		String strSQL = sql == null ? "" : sql.toString();
-		if (StringUtil.isEmpty(strSQL)) strSQL = Caster.toString(getAdditional().get("SQL", ""), "");
+		if (catchBlock == null) {
+			String strSQL = sql == null ? "" : sql.toString();
+			if (StringUtil.isEmpty(strSQL)) strSQL = Caster.toString(getAdditional().get("SQL", ""), "");
 
-		String datasourceName = datasource == null ? "" : datasource.getName();
-		if (StringUtil.isEmpty(datasourceName)) datasourceName = Caster.toString(getAdditional().get("DataSource", ""), "");
+			String datasourceName = datasource == null ? "" : datasource.getName();
+			if (StringUtil.isEmpty(datasourceName)) datasourceName = Caster.toString(getAdditional().get("DataSource", ""), "");
 
-		CatchBlock sct = super.getCatchBlock(config);
-		sct.setEL("NativeErrorCode", Double.valueOf(errorcode));
-		sct.setEL("DataSource", datasourceName);
-		sct.setEL("SQLState", sqlstate);
-		sct.setEL("Sql", strSQL);
-		sct.setEL("queryError", strSQL);
-		sct.setEL("where", "");
-		return sct;
+			CatchBlock sct = super.getCatchBlock(config);
+			sct.setEL("NativeErrorCode", Double.valueOf(errorcode));
+			sct.setEL(KeyConstants._DataSource, datasourceName);
+			sct.setEL("SQLState", sqlstate);
+			sct.setEL(KeyConstants._Sql, strSQL);
+			sct.setEL("queryError", strSQL);
+			sct.setEL(KeyConstants._where, "");
+		}
+		return catchBlock;
 	}
 
 	public static DatabaseException notFoundException(PageContext pc, String datasource) {

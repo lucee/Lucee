@@ -73,6 +73,10 @@ public final class CFTagCore extends CFTag {
 		if (StringUtil.isEmpty(mappingName)) mappingName = "mapping-tag";
 		Mapping mapping = config.getTagMapping(mappingName);
 
+		if (mapping == null) {
+			throw new RuntimeException("Tag mapping \"" + mappingName + "\" not found");
+		}
+
 		return new InitFile(pageContext, mapping.getPageSource(filename), filename);
 
 	}

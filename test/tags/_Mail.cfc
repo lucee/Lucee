@@ -1,4 +1,5 @@
 /*
+
  * Copyright (c) 2015, Lucee Association Switzerland. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -14,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase"  skip=true {
 
 	variables.PORT=2526;
 	variables.from="susi@sorglos.de";

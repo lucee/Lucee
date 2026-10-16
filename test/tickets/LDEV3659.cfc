@@ -21,7 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="h2,orm" skip=true{
 	
 	function run( testResults, testBox ) {
 		describe("Second Testcase for LDEV-3659", function() {
-			it( title="LDEV-3659 -- mixed transactions with ORM and cfquery H2", skip="#isDatasourceNotConfigured('h2')#", body=function( currentSpec ) {
+			it( title="LDEV-3659 -- mixed transactions with ORM and cfquery H2", skip=(noOrm() || isDatasourceNotConfigured('h2')), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/index.cfm",
 					form: {
@@ -32,7 +32,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="h2,orm" skip=true{
 				expect( trim( result.filecontent ) ).toBe( "Michael Born" );
 			});
 			it( title="LDEV-3659 -- transactions with ORM and cfquery MSSQL", skip2="true",
-					skip="#isDatasourceNotConfigured('mssql')#", body=function( currentSpec ) {
+					skip=(noOrm() || isDatasourceNotConfigured('mssql')), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/index.cfm",
 					form: {
@@ -49,7 +49,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="h2,orm" skip=true{
 		switch ( arguments.db ){
 			case "h2":
 				if (! structKeyExists( variables, "dbfile" ) )
-					variables.dbfile = "#getDirectoryFromPath( getCurrentTemplatePath() )#/datasource/db";
+					variables.dbfile = server._getTempDir( "LDEV3659" );
 				return server.getDatasource( "h2", variables.dbfile );
 				break;
 			case "mssql":
@@ -67,5 +67,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="h2,orm" skip=true{
 	private string function createURI(string calledName) {
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrentTemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

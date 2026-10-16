@@ -18,7 +18,7 @@
 		username:"",
 		password:"",
 		connectionLimit:"",
-		ConnectionTimeout:"1",
+		ConnectionTimeout:"10",
 		blob:false,
 		clob:false,
 		allowed_select:true,

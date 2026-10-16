@@ -32,7 +32,6 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -195,8 +194,7 @@ public final class JSONConverter extends ConverterSupport {
 					sct.setEL(getter.getName().substring(3), testRecusrion(getter.invoke(obj, ArrayUtil.OBJECT_EMPTY), tmp));
 
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 		}
 
@@ -284,14 +282,25 @@ public final class JSONConverter extends ConverterSupport {
 	 * @throws IOException
 	 */
 	private void _serializeList(PageContext pc, List list, Appendable sb, int queryFormat, Boolean preserveCase, Set<Object> done) throws ConverterException, IOException {
+		// snapshot — caller's list may be concurrently mutated (LDEV-3367). toArray on its own
+		// can still race on some List impls (e.g. ArrayList AIOOBE if shrunk between size() and copy);
+		// fall back to a synchronized copy on any failure.
+		Object[] snapshot;
+		try {
+			snapshot = list.toArray();
+		}
+		catch (Throwable t) {
+			synchronized (list) {
+				snapshot = list.toArray();
+			}
+		}
+
 		sb.append("[");
 		sb.append(eol);
 		right();
 
-		boolean doIt = false;
-		ListIterator it = list.listIterator();
-		while (it.hasNext()) {
-			if (doIt) {
+		for (int i = 0; i < snapshot.length; i++) {
+			if (i > 0) {
 				sb.append(',');
 				sb.append(eol);
 				sb.append(indent());
@@ -299,8 +308,7 @@ public final class JSONConverter extends ConverterSupport {
 			else {
 				sb.append(indent());
 			}
-			doIt = true;
-			_serialize(pc, it.next(), sb, queryFormat, preserveCase, done);
+			_serialize(pc, snapshot[i], sb, queryFormat, preserveCase, done);
 		}
 
 		sb.append(eol);

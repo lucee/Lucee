@@ -507,7 +507,7 @@ public final class Util {
 		index = q.indexOf('-');
 		String qra = index == -1 ? "" : q.substring(index + 1).trim();
 		String qrn = index == -1 ? q : q.substring(0, index);
-		int qr = isEmpty(qln) ? Integer.MIN_VALUE : Integer.parseInt(qrn);
+		int qr = isEmpty(qrn) ? Integer.MIN_VALUE : Integer.parseInt(qrn);
 
 		if (ql > qr) return true;
 		if (ql < qr) return false;

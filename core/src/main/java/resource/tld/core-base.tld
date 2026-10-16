@@ -1962,351 +1962,6 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>template path to forward to</description>
 		</attribute>
 	</tag>
-	<!-- Ftp -->
-	<tag>
-		<name>ftp</name>
-		<tag-class>lucee.runtime.tag.Ftp</tag-class>
-		<body-content>empty</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<script>
-			<type>multiple</type>
-			<rtexprvalue>true</rtexprvalue>
-		</script>
-		<description>Lets users implement File Transfer Protocol (FTP) operations.</description>
-		<attribute-type>fixed</attribute-type>
-	<attribute-groups>
-		<group>
-			<name>open</name>
-			<label>Open Connection</label>
-			<description>`action="open"` - Open persistent FTP connection</description>
-			<attributes>connection,server,username,password,port,timeout,retryCount,passive,transferMode,stopOnError,secure,key,passphrase,fingerprint,proxyServer,proxyPort,proxyUser,proxyPassword</attributes>
-		</group>
-		<group>
-			<name>close</name>
-			<label>Close Connection</label>
-			<description>`action="close"` - Close FTP connection</description>
-			<attributes>connection</attributes>
-		</group>
-		<group>
-			<name>getFile</name>
-			<label>Download File</label>
-			<description>`action="getFile"` - Download file from FTP server</description>
-			<attributes>connection,remoteFile,localFile,failIfExists,transferMode,ASCIIExtensionList</attributes>
-		</group>
-		<group>
-			<name>putFile</name>
-			<label>Upload File</label>
-			<description>`action="putFile"` - Upload file to FTP server</description>
-			<attributes>connection,remoteFile,localFile,transferMode,ASCIIExtensionList</attributes>
-		</group>
-		<group>
-			<name>listDir</name>
-			<label>List Directory</label>
-			<description>`action="listDir"` - List contents of FTP directory</description>
-			<attributes>connection,directory,name</attributes>
-		</group>
-		<group>
-			<name>createDir</name>
-			<label>Create Directory</label>
-			<description>`action="createDir"` - Create directory on FTP server</description>
-			<attributes>connection,directory</attributes>
-		</group>
-		<group>
-			<name>removeDir</name>
-			<label>Remove Directory</label>
-			<description>`action="removeDir"` - Remove directory from FTP server</description>
-			<attributes>connection,directory</attributes>
-		</group>
-		<group>
-			<name>changeDir</name>
-			<label>Change Directory</label>
-			<description>`action="changeDir"` - Change current directory on FTP server</description>
-			<attributes>connection,directory</attributes>
-		</group>
-		<group>
-			<name>getCurrentDir</name>
-			<label>Get Current Directory</label>
-			<description>`action="getCurrentDir"` - Get current working directory path</description>
-			<attributes>connection,result</attributes>
-		</group>
-		<group>
-			<name>getCurrentUrl</name>
-			<label>Get Current URL</label>
-			<description>`action="getCurrentUrl"` - Get current working directory as URL</description>
-			<attributes>connection,result</attributes>
-		</group>
-		<group>
-			<name>exists</name>
-			<label>Check Exists</label>
-			<description>`action="exists"` - Check if file or directory exists</description>
-			<attributes>connection,item,result</attributes>
-		</group>
-		<group>
-			<name>existsFile</name>
-			<label>Check File Exists</label>
-			<description>`action="existsFile"` - Check if file exists</description>
-			<attributes>connection,remoteFile,result</attributes>
-		</group>
-		<group>
-			<name>existsDir</name>
-			<label>Check Directory Exists</label>
-			<description>`action="existsDir"` - Check if directory exists</description>
-			<attributes>connection,directory,result</attributes>
-		</group>
-		<group>
-			<name>rename</name>
-			<label>Rename File/Directory</label>
-			<description>`action="rename"` - Rename file or directory on FTP server</description>
-			<attributes>connection,existing,new</attributes>
-		</group>
-		<group>
-			<name>remove</name>
-			<label>Remove File</label>
-			<description>`action="remove"` - Remove file from FTP server</description>
-			<attributes>connection,item</attributes>
-		</group>
-		<group>
-			<name>copy</name>
-			<label>Copy File</label>
-			<description>`action="copy"` - Copy file on FTP server</description>
-			<attributes>connection,existing,new</attributes>
-		</group>
-		<group>
-			<name>quote</name>
-			<label>Send Raw FTP Command</label>
-			<description>`action="quote"` - Send raw FTP command to server</description>
-			<attributes>connection</attributes>
-		</group>
-	</attribute-groups>
-		<attribute>
-			<type>string</type>
-			<name>action</name>
-			<values>copy,exists,existsFile,existsDir,open,close,changeDir,createDir,getCurrentDir,getCurrentUrl,listDir,removeDir,getFile,putFile,quote,rename,remove</values>
-			<required>true</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>the action that should be execute</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>username</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The Username for the connection</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>password</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The Password for the connection</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>server</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The Server to connect</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>timeout</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>timeout for the connection</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>port</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>server port of the connection</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>connection</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>the name for the connection, used to cache the connection</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>proxyServer</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Host name or IP address of a proxy server.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>proxyPort</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The port number on the proxy server from which the object is requested. Default is 80. When
-	used with resolveURL, the URLs of retrieved documents that specify a port number are automatically
-	resolved to preserve links in the retrieved document.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>proxyUser</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>When required by a proxy server, a valid username.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>proxyPassword</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>When required by a proxy server, a valid password.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>retryCount</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>retry count</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>stopOnError</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>define if execution halt on error or not</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>passive</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>enable passive mode</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>name</name>
-			<alias>variable</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>name of the query for list directory</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>directory</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>remote directory to list</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>ASCIIExtensionList</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Delimited list of file extensions that force ASCII transfer mode, if transferMode = "auto".</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>transferMode</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>ASCII, binary or auto mode</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>remoteFile</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>File on the Server</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>localFile</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>File on the current machine</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>failIfExists</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>throw an error if local file already exists or overwrite it</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>existing</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>source or existing file or directory to rename</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>new</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>new name for file or directory</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>item</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>item on the server</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>result</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the result value (default:cfftp)</description>
-		</attribute>
-		
-		<attribute>
-			<type>string</type>
-			<name>fingerprint</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>the ssh fingerprint</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>secure</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Secure connection
-- false FTP (default)
-- true SFTP
-- sftp FTPS.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>recurse</name>
-			<alias>recursive</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>delete content of the directory</description>
-		</attribute>
-
-		<attribute>
-			<type>string</type>
-			<name>key</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>the ssh private key</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>passphrase</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>the passphrase that protects ssh private key</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>actionParam</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>used with action="quote" to execute custom ftp commands</description>
-		</attribute>
-		
-	</tag>
 
 	<!-- Header -->
 	<tag>
@@ -3007,264 +2662,6 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		</attribute>
 	</tag>
 
-	<!-- Imap -->
-	<tag>
-		<name>Imap</name>
-		<tag-class>lucee.runtime.tag.Imap</tag-class>
-		<body-content>empty</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<script>
-			<type>multiple</type>
-			<rtexprvalue>true</rtexprvalue>
-		</script>
-		<description>Retrieves and deletes e-mail messages from an Imap mail server.
-		This tag works exactly the same way as the cfmail tag. It has the same attributes.
-		The Internet Message Access Protocol or IMAP is one of two of the most prevalent Internet standard protocols for e-mail retrieval,
-		the other being POP3. Virtually all modern e-mail clients and servers support both protocols as a means of transferring e-mail messages from a server,
-		such as those used by Gmail, to a client, such as Mozilla Thunderbird and Microsoft Outlook.
-		Many implementations of webmail use IMAP to retrieve e-mail messages from a server and display them within a web browser,
-		making the use of this protocol transparent to the user.
-		</description>
-		<attribute-type>fixed</attribute-type>
-	<attribute-groups>
-		<group>
-			<name>getHeaderOnly</name>
-			<label>Get Headers</label>
-			<description>`action="getHeaderOnly"` - Retrieve email headers without body</description>
-			<attributes>connection,name,folder,messageNumber,uid,maxRows,startRow,delimiter,stopOnError</attributes>
-		</group>
-		<group>
-			<name>getAll</name>
-			<label>Get Full Messages</label>
-			<description>`action="getAll"` - Retrieve complete email messages</description>
-			<attributes>connection,name,folder,messageNumber,uid,attachmentPath,generateUniqueFilenames,maxRows,startRow,delimiter,stopOnError</attributes>
-		</group>
-		<group>
-			<name>delete</name>
-			<label>Delete Messages</label>
-			<description>`action="delete"` - Delete email messages</description>
-			<attributes>connection,folder,messageNumber,uid,delimiter,stopOnError</attributes>
-		</group>
-		<group>
-			<name>markRead</name>
-			<label>Mark as Read</label>
-			<description>`action="markRead"` - Mark messages as read</description>
-			<attributes>connection,folder,messageNumber,uid,delimiter,stopOnError</attributes>
-		</group>
-		<group>
-			<name>createFolder</name>
-			<label>Create Folder</label>
-			<description>`action="createFolder"` - Create new IMAP folder</description>
-			<attributes>connection,folder</attributes>
-		</group>
-		<group>
-			<name>deleteFolder</name>
-			<label>Delete Folder</label>
-			<description>`action="deleteFolder"` - Delete IMAP folder</description>
-			<attributes>connection,folder</attributes>
-		</group>
-		<group>
-			<name>renameFolder</name>
-			<label>Rename Folder</label>
-			<description>`action="renameFolder"` - Rename IMAP folder</description>
-			<attributes>connection,folder,newFolder</attributes>
-		</group>
-		<group>
-			<name>listAllFolders</name>
-			<label>List Folders</label>
-			<description>`action="listAllFolders"` - Get list of all folders</description>
-			<attributes>connection,name,recurse,delimiter</attributes>
-		</group>
-		<group>
-			<name>moveMail</name>
-			<label>Move Messages</label>
-			<description>`action="moveMail"` - Move messages to different folder</description>
-			<attributes>connection,folder,newFolder,messageNumber,uid,delimiter,stopOnError</attributes>
-		</group>
-		<group>
-			<name>open</name>
-			<label>Open Connection</label>
-			<description>`action="open"` - Open persistent IMAP connection</description>
-			<attributes>connection,server,port,username,password,secure,timeout</attributes>
-		</group>
-		<group>
-			<name>close</name>
-			<label>Close Connection</label>
-			<description>`action="close"` - Close persistent IMAP connection</description>
-			<attributes>connection</attributes>
-		</group>
-	</attribute-groups>
-
-		<attribute>
-			<type>string</type>
-			<name>connection</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>label for a connection.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>server</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Host name biff.upperlip.com or IP address 192.1.2.225 of the Imap server.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>port</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Defaults to the standard Imap port, 143.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>uid</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Specifies the unique ID or a comma-delimited list of Uids to retrieve or delete. If you set invalid Uids, then they are ignored.</description>
-	</attribute>
-		<attribute>
-			<type>string</type>
-			<name>username</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>If no user name is specified, the Imap connection is anonymous.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>password</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Password that corresponds to user name.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>secure</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>enables SSL for pop requests</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>action</name>
-			<values>getHeaderOnly,getAll,delete,open,close,markRead,createFolder,deleteFolder,renameFolder,listAllFolders,moveMail</values>
-			<default-value>getHeaderOnly</default-value>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the mail action.
-- getHeaderOnly
-- getAll
-- delete
-- open
-- close
-- markRead
-- createFolder
-- deleteFolder
-- renameFolder
-- listAllFolders
-- moveMail</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>name</name>
-			<alias>variable</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Name for the index query.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>messageNumber</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Can be a comma-separated list of the message ids</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>attachmentPath</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Allows attachments to be written to the specified directory when action = "getAll". If an
-		invalid attachmentPath is specified, no attachment files are written to the server.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>timeout</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the maximum time, in seconds, to wait for mail processing. Defaults is 60 seconds.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>maxRows</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Sets the number of messages returned, starting with the number in the startRow attribute.
-		This attribute is ignored if messageNumber is specified.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>startRow</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the first row number to be retrieved. Default is 1. This attribute is ignored if
-		messageNumber is specified.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>debug</name>
-			<status>deprecated</status>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>this attribute is deprecated and ignored, log control happens via the logging framework directly.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>generateUniqueFilenames</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Boolean indicating whether to generate unique filenames for the files attached to an e-mail
-		message to avoid naming conflicts when the files are saved. Default is NO.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>folder</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Folder for action, default is INBOX</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>newFolder</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Name of new folder, used by action renameFolder and moveMail</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>recurse</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Used for action listAllFolders</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>delimiter</name>
-			<alias>delimiters</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Character that separates uid list, The default value is comma(,).</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>stopOnError</name>
-			<introduced>7.0.0.340</introduced>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Stop execution on error, default is true</description>
-		</attribute>
-	</tag>
-
 	<!-- Import -->
 	<tag>
 		<name>Import</name>
@@ -3930,6 +3327,20 @@ To use cached data, the function must be called with the exact same arguments.
 			<description>Specifies the character that cfldap uses to separate multiple attribute name/value pairs when more than one attribute is specified in the attribute attribute or the attribute that you want to use has the default delimiter character, which is the semicolon (;), such as mgrpmsgrejecttext;lang-en. The delimiter character is used by the query, add, and
 		modify action attributes, and is used by cfldap to output multi-value attributes</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>clientCert</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Full path to the PKCS12 keystore file containing the client certificate. Used with secure="CFSSL_CLIENT_AUTH".</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>clientCertPassword</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Password for the client certificate keystore. Used with secure="CFSSL_CLIENT_AUTH".</description>
+		</attribute>
 	</tag>
 	<!-- Location -->
 	<tag>
@@ -4455,446 +3866,6 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 
 	</tag>
-	<!-- Mail -->
-	<tag>
-		<name>mail</name>
-		<tag-class>lucee.runtime.tag.Mail</tag-class>
-		<tte-class>lucee.transformer.cfml.evaluator.impl.Mail</tte-class>
-		<handle-exception>false</handle-exception>
-		<body-content>must</body-content>
-		<body-rtexprvalue>true</body-rtexprvalue>
-		<script>
-			<type>multiple</type>
-			<rtexprvalue>true</rtexprvalue>
-		</script>
-		<description>Sends e-mail messages by an SMTP server.</description>
-		<attribute-type>fixed</attribute-type>
-	<attribute-groups>
-		<group>
-			<name>text</name>
-			<label>Text Email</label>
-			<description>Send plain text email</description>
-			<attributes>wrapText</attributes>
-		</group>
-		<group>
-			<name>html</name>
-			<label>HTML Email</label>
-			<description>Send HTML formatted email</description>
-			<attributes></attributes>
-		</group>
-		<group>
-			<name>query</name>
-			<label>Email from Query</label>
-			<description>Send emails using query data</description>
-			<attributes>query,group,groupCaseSensitive,startRow,maxRows,wrapText</attributes>
-		</group>
-	</attribute-groups>
-
-		<attribute>
-			<type>object</type>
-			<name>from</name>
-			<required>true</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The sender of the e-mail message.</description>
-		</attribute>
-		<attribute>
-			<type>object</type>
-			<name>to</name>
-			<required>true</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The name of the e-mail message recipient.</description>
-		</attribute>
-		<attribute>
-			<type>object</type>
-			<name>cc</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Indicates addresses to copy the e-mail message to; "cc" stands for "carbon copy."</description>
-		</attribute>
-		<attribute>
-			<type>object</type>
-			<name>bcc</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Indicates addresses to copy the e-mail message to, without listing them in the message header.
-		"bcc" stands for "blind carbon copy."</description>
-		</attribute>
-		<attribute>
-			<type>object</type>
-			<name>replyTo</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Address(es) to which the recipient is directed to send replies.</description>
-		</attribute>
-		<attribute>
-			<type>object</type>
-			<name>failTo</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Address to which mailing systems should send delivery failure notifications. Sets the mail envelope reverse-path value.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>subject</name>
-			<required>true</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The subject of the mail message. This field may be driven dynamically on
-		a message-by-message basis</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>type</name>
-			<required>false</required>
-			<default>text/plain</default>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies extended type attributes for the message.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>maxRows</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<status>unimplemented</status>
-			<description>Specifies the maximum number of e-mail messages to send.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>mimeAttach</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the path of the file to be attached to the e-mail message. An attached file
-		is MIME-encoded.</description>
-		</attribute>
-		<attribute>
-			<type>any</type>
-			<name>listener</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>
-				listener for the mail. the listener can have 2 (optional) functions, "before" and "after" that get triggered before and after sending the mail.
-				The functions get all data about the mail. 
-				Listener is only used when "async" (spoolEnable) is set to true.
-				This attribute overwrites any mail listener defined in the application.cfc/cfapplication.
-				
-				The "before" function can also modify some data, by returning a struct containing the following keys:
-				from, to, bcc, cc, replyTo, failTo, subject, charset
-				
-				the listener can be a component looking like this:
-				component {
-					function before(lastExecution,nextExecution,created,id,type,detail,tries,remainingTries,closed,caller,advanced){}
-					function after(lastExecution,nextExecution,created,id,type,detail,tries,remainingTries,closed,caller,advanced,passed,exception){}}
-				
-				a struct looking like this:
-				component {before:function(...){}, after:function(...){}}
-				
-			</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>query</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<status>unimplemented</status>
-			<description>The name of the cfquery from which to draw data for message(s) to send. Specify this
-		attribute to send more than one mail message, or to send the results of a query within a message.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>group</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<status>unimplemented</status>
-			<description>Specifies the query column to use when you group sets of records together to send as an e-mail
-		message. For example, if you send a set of billing statements to customers, you might group on
-		"Customer_ID." The group attribute, which is case sensitive, eliminates adjacent duplicates when the
-		data is sorted by the specified field. See the Usage section for exceptions.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>groupCaseSensitive</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<status>implemented</status>
-			<description>Boolean indicating whether to group with regard to case or not. The default value is NO;
-		case is considered while grouping. If the query attribute specifies a query object that was generated
-		by a case-insensitive SQL query, set the groupCaseSensitive attribute to NO to keep the recordset
-		intact.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>startRow</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<status>unimplemented</status>
-			<description>Specifies the row in the query to start from.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>server</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The address of the SMTP server to use for sending messages. If no server is specified, the
-		server name specified in the Lucee Administrator is used.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>port</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The TCP/IP port on which the SMTP server listens for requests. This is normally 25.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>mailerID</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies a mailer ID to be passed in the X-Mailer SMTP header, which identifies the mailer
-		application.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>timeout</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The number of seconds to wait before timing out the connection to the SMTP server.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>username</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>A user name to send to SMTP servers that require authentication. Requires a password attribute.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>password</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>A password to send to SMTP servers that require authentication. Requires a username attribute.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>wrapText</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the maximum line length, in characters of the mail text. If a line has more than the specified number of characters, replaces the last white space character, such as a tab or space, preceding the specified position with a line break. If there are no white space characters, inserts a line break at the specified position. A common value for this attribute is 72.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>charset</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Character encoding of the mail message</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>async</name>
-			<alias>spoolEnable</alias>
-			<default>true</default>
-			<required>false</required>
-			<default>true</default>
-			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true, the mail is sent asynchronously by the Lucee Task manager (with multiple tries),
-			if set to false the mail is sent in the same thread that executes the request, which is useful for troubleshooting because you get an error message if there is one.
-			This setting overrides the setting with the same name in the Lucee Administrator.
-			This attribute replaces the old "spoolEnable" attribute which is still supported as an alias.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>useTls</name>
-			<alias>tls,starttls</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Whether to use Transport Level Security.</description>
-		</attribute>
-		<attribute>
-			<type>String</type>
-			<name>priority</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The message priority level. Can be one of the following values:
-	* An integer in the range 1-5; 1 represents the highest priority.
-	* One of the following string values, which correspond to the numeric values: highest or urgent, high, normal, low, and lowest or non-urgent.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>useSsl</name>
-			<alias>ssl,secure</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Whether to use Secure Sockets Layer.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>proxyServer</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Host name or IP address of a proxy server.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>proxyPort</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The port number on the proxy server from which the object is requested. Default is 80. When
-	used with resolveURL, the URLs of retrieved documents that specify a port number are automatically
-	resolved to preserve links in the retrieved document.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>proxyUser</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>When required by a proxy server, a valid username.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>proxyPassword</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>When required by a proxy server, a valid password.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>remove</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>remove all attachments from filesystem after the mail is successfully sent</description>
-		</attribute>
-		<attribute>
-			<type>datetime</type>
-			<name>sendTime</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Set a future date time to send an email in the future via the spooler.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>debug</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Whether to enable detailed logging to console.</description>
-		</attribute>
-	</tag>
-	<!-- MailPart -->
-	<tag>
-		<name>MailPart</name>
-		<tag-class>lucee.runtime.tag.MailPart</tag-class>
-		<body-content>must</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<script>
-			<type>multiple</type>
-			<rtexprvalue>true</rtexprvalue>
-		</script>
-		<description>Specifies one part of a multipart e-mail message. Can only be used in the cfmail tag. You can use more than one cfmailpart tag within a cfmail tag</description>
-		<attribute-type>fixed</attribute-type>
-		<attribute>
-			<type>string</type>
-			<name>type</name>
-			<required>true</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The MIME media type of the part</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>wrapText</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the maximum line length, in characters of the mail text</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>charset</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The character encoding in which the part text is encoded</description>
-		</attribute>
-	</tag>
-	<!-- MailParam -->
-	<tag>
-		<name>MailParam</name>
-		<tag-class>lucee.runtime.tag.MailParam</tag-class>
-		<tte-class>lucee.transformer.cfml.evaluator.impl.MailParam</tte-class>
-		<body-content>empty</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<script>
-			<type>multiple</type>
-			<rtexprvalue>true</rtexprvalue>
-		</script>
-		<description>Can either attach a file or add a header to a message. It is nested within a cfmail tag. You can
-  use more than one cfmailparam tag within a cfmail tag.</description>
-		<attribute-type>fixed</attribute-type>
-		<attribute>
-			<type>string</type>
-			<name>file</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Attaches the specified file to the message. This attribute is mutually exclusive with the
-		name attribute.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>filename</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>file name used for the file attached with the attribute "file", if not set the name of the file itself is used.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>name</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the name of the header. Header names are case insensitive. This attribute is mutually
-		exclusive with the file attribute.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>value</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Indicates the value of the header.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>type</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The MIME media type of the part.</description>
-		</attribute>
-
-		<attribute>
-			<type>string</type>
-			<name>disposition</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>
-			How the attached file is to be handled. Can be one of the following:
-			attachment: presents the file as an attachment.
-			inline: displays the file contents in the message.
-			</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>contentId</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The Identifier for the attached file. This ID should be globally unique and is used to identify the file in an IMG or other tag in the mail body that references the file content. </description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>remove</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>remove attachment from filesystem after the mail is successfully sent</description>
-		</attribute>
-		<attribute>
-			<type>any</type>
-			<name>content</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>send given value as attachment</description>
-		</attribute>
-	</tag>
 	<!-- Module -->
 	<tag>
 		<name>Module</name>
@@ -5058,168 +4029,6 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 	</tag>
 
-	<!-- Pop -->
-	<tag>
-		<name>Pop</name>
-		<tag-class>lucee.runtime.tag.Pop</tag-class>
-		<body-content>empty</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<script>
-			<type>multiple</type>
-			<rtexprvalue>true</rtexprvalue>
-		</script>
-		<description>Retrieves and deletes e-mail messages from a POP mail server.</description>
-		<attribute-type>fixed</attribute-type>
-		<attribute-groups>
-			<group>
-				<name>getHeaderOnly</name>
-				<label>Get Headers Only</label>
-				<description>`action="getHeaderOnly"` - Retrieve email headers without body content</description>
-				<attributes>connection,server,port,username,password,secure,timeout,name,messageNumber,uid,maxRows,startRow,delimiter</attributes>
-			</group>
-			<group>
-				<name>getAll</name>
-				<label>Get Full Messages</label>
-				<description>`action="getAll"` - Retrieve complete email messages including body and attachments</description>
-				<attributes>connection,server,port,username,password,secure,timeout,name,messageNumber,uid,attachmentPath,generateUniqueFilenames,maxRows,startRow,delimiter</attributes>
-			</group>
-			<group>
-				<name>delete</name>
-				<label>Delete Messages</label>
-				<description>`action="delete"` - Delete email messages from POP server</description>
-				<attributes>connection,server,port,username,password,secure,timeout,messageNumber,uid,delimiter</attributes>
-			</group>
-		</attribute-groups>
-		<attribute>
-			<type>string</type>
-			<name>connection</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>label for a connection.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>server</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Host name biff.upperlip.com or IP address 192.1.2.225 of the POP server.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>uid</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>UID or a comma-delimited list of UIDs to get or delete.
-			Invalid UIDs are ignored.</description>
-	</attribute>
-		<attribute>
-			<type>number</type>
-			<name>port</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Defaults to the standard POP port, 110.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>username</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>If no user name is specified, the POP connection is anonymous.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>password</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Password that corresponds to user name.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>secure</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>enables SSL for pop requests</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>action</name>
-			<values>getHeaderOnly,getAll,delete</values>
-			<default-value>getHeaderOnly</default-value>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the mail action.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>name</name>
-			<alias>variable</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Name for the index query.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>messageNumber</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Can be a comma-separated list of the message ids</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>attachmentPath</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Allows attachments to be written to the specified directory when action = "getAll". If an
-		invalid attachmentPath is specified, no attachment files are written to the server.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>timeout</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the maximum time, in seconds, to wait for mail processing. Defaults is 60 seconds.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>debug</name>
-			<status>deprecated</status>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>this attribute is deprecated and ignored, log control happens via the logging framework directly.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>maxRows</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Sets the number of messages returned, starting with the number in the startRow attribute.
-		This attribute is ignored if messageNumber is specified.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>startRow</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the first row number to be retrieved. Default is 1. This attribute is ignored if
-		messageNumber is specified.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>generateUniqueFilenames</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Boolean indicating whether to generate unique filenames for the files attached to an e-mail
-		message to avoid naming conflicts when the files are saved. Default is NO.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>delimiter</name>
-			<alias>delimiters</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Character that separates uid list, The default value is comma(,).</description>
-		</attribute>
-	</tag>
 	<!-- ProcessingDirective -->
 	<tag>
 	    <name>processingDirective</name>
@@ -5579,13 +4388,14 @@ Lucee uses the number of characters in the file.</description>
 			<description>The name of the data source from which this query should retrieve data.</description>
 		</attribute>
 		<attribute>
-			<type>string</type>
+			<type>any</type>
 			<name>dbType</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>support the following values:
 			- query: for doing a query on an existing query object
-			- hql: for doing a query on orm </description>
+			- hql: for doing a query on orm
+			- struct: { type: "query", caseSensitive: true, engine: "native"|"hsqldb"|"auto" } </description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -9169,13 +7979,13 @@ Valid only for cfinput type="text".</description>
 			<name>session</name>
 			<label>Session Management</label>
 			<description>Configure session scope behavior and storage</description>
-			<attributes>sessionManagement,sessionType,sessionStorage,sessionTimeout,sessionCluster,sessionCookie</attributes>
+			<attributes>sessionManagement,sessionType,sessionStorage,sessionTimeout,sessionCommitInterval,sessionCluster,sessionCookie</attributes>
 		</group>
 		<group>
 			<name>client</name>
 			<label>Client Management</label>
 			<description>Configure client scope behavior and storage</description>
-			<attributes>clientManagement,clientStorage,clientTimeout,clientCluster,setClientCookies,authCookie</attributes>
+			<attributes>clientManagement,clientStorage,clientTimeout,clientCommitInterval,clientCluster,setClientCookies,authCookie</attributes>
 		</group>
 		<group>
 			<name>cache</name>
@@ -9437,12 +8247,31 @@ Suport for cookie was removed in Lucee 7
 		</attribute>
 		<attribute>
 			<type>timespan</type>
+			<name>sessionCommitInterval</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>For storage-backed sessions (cache/Redis/datasource), controls how often an unmodified session
+		is re-persisted to refresh its storage TTL or expires column. Without this, a read-heavy session
+		silently evicts at the original TTL boundary. Defaults to sessionTimeout/2. Set to createTimespan(0,0,0,0)
+		to disable the periodic refresh.</description>
+		</attribute>
+		<attribute>
+			<type>timespan</type>
 			<name>clientTimeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Enter the CreateTimeSpan function and values in days, hours, minutes, and seconds, separated
 		by commas, to specify the lifespan of client variables. The default value is specified in the
 		Variables page of the Lucee Administrator.</description>
+		</attribute>
+		<attribute>
+			<type>timespan</type>
+			<name>clientCommitInterval</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>For storage-backed client scopes, controls how often an unmodified scope is re-persisted to refresh
+		its storage TTL or expires column. Defaults to clientTimeout/2. Set to createTimespan(0,0,0,0) to disable
+		the periodic refresh.</description>
 		</attribute>
 		<attribute>
 			<type>timespan</type>
@@ -11257,6 +10086,7 @@ dWord: creates a value of 0 (zero)</description>
 			<default>keyword</default>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.0.0.221</introduced>
 		<description>Specifies the search algorithm to use when querying this collection. Options:
 - `keyword`: Traditional term-based search using Lucene (default)
 - `vector`: Pure semantic search using vector embeddings
@@ -11270,6 +10100,7 @@ When set to `keyword`, the `embedding` attribute is ignored. Vector and hybrid m
 			<alias>embeddingService</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.0.0.218</introduced>
 		<description>Specifies the embedding service to use for creating vector representations of documents,
 enabling semantic search capabilities. Default is "TF-IDF" if not specified.
 This attribute is ignored when `mode="keyword"`. Valid options:
@@ -11284,6 +10115,7 @@ This attribute is ignored when `mode="keyword"`. Valid options:
 			<required>false</required>
 			<default>0.5</default>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.0.0.221</introduced>
 			<description>When `mode="hybrid"`, this value controls the balance between keyword and vector search components. Value range is 0.0 to 1.0, where:
 - 0.5: Equal weight given to both keyword and vector search (default)
 - Values greater than 0.5: Greater emphasis on vector search (semantic matching)
@@ -11623,6 +10455,7 @@ Permits searching collections by title or displaying a separate title from the k
 		</attribute>
 		<attribute>
 		    <type>number</type>
+		    <introduced>7.0.3.30</introduced>
 		    <name>contextPassages</name>
 		    <required>false</required>
 		    <default>0</default>
@@ -11635,6 +10468,7 @@ Permits searching collections by title or displaying a separate title from the k
 		
 		<attribute>
 		    <type>number</type>
+		    <introduced>7.0.3.30</introduced>
 		    <name>contextPassageLength</name>
 		    <required>false</required>
 		    <default>150</default>
@@ -11646,6 +10480,7 @@ Permits searching collections by title or displaying a separate title from the k
 		
 		<attribute>
 		    <type>number</type>
+		    <introduced>7.0.3.30</introduced>
 		    <name>contextBytes</name>
 		    <required>false</required>
 		    <default>1000</default>
@@ -11657,6 +10492,7 @@ Permits searching collections by title or displaying a separate title from the k
 		
 		<attribute>
 		    <type>string</type>
+		    <introduced>7.0.3.30</introduced>
 		    <name>contextHighlightBegin</name>
 		    <required>false</required>
 		    <rtexprvalue>true</rtexprvalue>
@@ -11667,6 +10503,7 @@ Permits searching collections by title or displaying a separate title from the k
 		
 		<attribute>
 		    <type>string</type>
+		    <introduced>7.0.3.30</introduced>
 		    <name>contextHighlightEnd</name>
 		    <required>false</required>
 		    <rtexprvalue>true</rtexprvalue>

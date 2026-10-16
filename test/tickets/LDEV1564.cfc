@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1564", function() {
-			it( title='Checking Transaction with ormEnable=true ', skip=notHasMsSQL(), body=function( currentSpec ) {
+			it( title='Checking Transaction with ormEnable=true ', skip=(noOrm() || notHasMsSQL()), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm"
 				);
@@ -22,5 +22,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

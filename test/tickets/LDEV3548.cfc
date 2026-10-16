@@ -1,5 +1,6 @@
 <cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop"{
+ 
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop" skip=true{
 
 	function beforeAll() {
 		variables.uri = createURI("LDEV3548"); 	

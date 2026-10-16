@@ -27,7 +27,6 @@ import java.net.URL;
 import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
@@ -39,6 +38,7 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.util.ResourceOutputStream;
 import lucee.commons.io.res.util.ResourceSupport;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.StringUtil;
 
 public final class SMBResource extends ResourceSupport implements Resource {
 
@@ -101,16 +101,16 @@ public final class SMBResource extends ResourceSupport implements Resource {
 	private static String _userInfo(NtlmPasswordAuthentication auth, boolean addAtSign) {
 		String result = "";
 		if (auth != null) {
-			if (!StringUtils.isEmpty(auth.getDomain())) {
+			if (!StringUtil.isEmpty(auth.getDomain())) {
 				result += auth.getDomain() + ";";
 			}
-			if (!StringUtils.isEmpty(auth.getUsername())) {
+			if (!StringUtil.isEmpty(auth.getUsername())) {
 				result += auth.getUsername() + ":";
 			}
-			if (!StringUtils.isEmpty(auth.getPassword())) {
+			if (!StringUtil.isEmpty(auth.getPassword())) {
 				result += auth.getPassword();
 			}
-			if (addAtSign && !StringUtils.isEmpty(result)) {
+			if (addAtSign && !StringUtil.isEmpty(result)) {
 				result += "@";
 			}
 		}
@@ -452,7 +452,6 @@ public final class SMBResource extends ResourceSupport implements Resource {
 		try {
 
 			ResourceUtil.checkCreateFileOK(this, createParentWhenNotExists);
-			// client.unregisterFTPFile(this);
 			IOUtil.copy(new ByteArrayInputStream(new byte[0]), getOutputStream(), true, true);
 		}
 		catch (SmbException e) {

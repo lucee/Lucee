@@ -168,13 +168,13 @@ public final class OpBool extends ExpressionBase implements ExprBoolean {
 		sct.setEL(KeyConstants._operator, toStringOperation().toUpperCase());
 		// left
 		{
-			Struct sctLeft = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctLeft = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			left.dump(sctLeft);
 			sct.setEL(KeyConstants._left, sctLeft);
 		}
 		// right
 		{
-			Struct sctRight = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctRight = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			right.dump(sctRight);
 			sct.setEL(KeyConstants._right, sctRight);
 		}

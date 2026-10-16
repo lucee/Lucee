@@ -118,11 +118,18 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 		// Message
 		Throwable t = event.getThrown();
 		data.append('"');
-		data.append(StringUtil.replace(getFormattedMessage(t, msg), "\"", "\"\"", false));
+		String fm = getFormattedMessage(t, msg);
 		if (t != null) {
 			String est = ExceptionUtil.getStacktrace(t, false, true);
+			// the stack trace starts with the class name and message of the exception, so only add the message
+			// in front when it says something more, and separate the two (LDEV-6119, LDEV-6214)
+			if (!StringUtil.isEmpty(fm, true) && !est.startsWith(fm)) {
+				data.append(StringUtil.replace(fm, "\"", "\"\"", false));
+				data.append(';');
+			}
 			data.append(StringUtil.replace(est, "\"", "\"\"", false));
 		}
+		else data.append(StringUtil.replace(fm, "\"", "\"\"", false));
 		data.append('"');
 
 		return data.append(LINE_SEPARATOR).toString();

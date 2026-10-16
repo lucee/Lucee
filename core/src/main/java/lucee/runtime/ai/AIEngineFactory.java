@@ -54,7 +54,7 @@ public final class AIEngineFactory {
 
 		ClassDefinition<AIEngine> cd;
 
-		cd = ConfigFactoryImpl.getClassDefinition(data, "", config.getIdentification());
+		cd = ConfigFactoryImpl.getClassDefinition(config, data, "", config.getIdentification());
 		if (cd.hasClass()) {
 
 			Struct custom = Caster.toStruct(data.get(KeyConstants._custom, null), null);

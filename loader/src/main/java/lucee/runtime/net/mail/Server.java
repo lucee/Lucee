@@ -81,4 +81,8 @@ public interface Server {
 	public abstract int getId();
 
 	public abstract int getType();
+
+	// FUTURE public long getLifeTimeSpan();
+	// FUTURE public long getIdleTimeSpan();
+	// FUTURE public boolean reuseConnections()
 }

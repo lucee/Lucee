@@ -59,7 +59,6 @@ import lucee.commons.io.res.Resources;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
-import lucee.commons.io.res.type.compress.Compress;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ByteSizeParser;
 import lucee.commons.lang.CharSet;
@@ -109,7 +108,6 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
-import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionProvider;
@@ -181,6 +179,23 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private static final RHExtension[] RHEXTENSIONS_EMPTY = new RHExtension[0];
 
+	// DAP secret - required to register a debugger listener. If not set, DAP debugger is disabled.
+	public static final String DEBUGGER_SECRET;
+	// DAP debugger active - controls bytecode instrumentation for stepping/breakpoints (default true when secret set)
+	public static final boolean DEBUGGER;
+	static {
+		String secret = SystemUtil.getSystemPropOrEnvVar("lucee.dap.secret", null);
+		if (secret != null && !secret.trim().isEmpty()) {
+			DEBUGGER_SECRET = secret.trim();
+			// Breakpoint support defaults to true, can be disabled for console-only mode
+			DEBUGGER = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.dap.breakpoint", null), true);
+		}
+		else {
+			DEBUGGER_SECRET = null;
+			DEBUGGER = false;
+		}
+	}
+
 	private Integer mode;
 	private static final double DEFAULT_VERSION = 5.0d;
 	private static final long CACHE_DIR_SIZE_DEFAULT = 1024L * 1024L * 100L;
@@ -207,10 +222,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Boolean mergeFormAndURL;
 
-	private Map<String, LoggerAndSourceData> loggers;
+	private volatile Map<String, LoggerAndSourceData> loggers;
 
 	private Integer debugLogOutput;
-	private Integer debugOptions;
+	private volatile Integer debugOptions;
 
 	private boolean suppresswhitespace = false;
 	private Boolean suppressContent;
@@ -306,6 +321,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private ResourceProvider defaultResourceProvider;
 
 	private ProxyData proxy = null;
+	private boolean initProxy = true;
 
 	private Resource clientScopeDir;
 	private Resource sessionScopeDir;
@@ -374,7 +390,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Boolean executionLogEnabled;
 	private ExecutionLogFactory executionLogFactory;
-	private final Map<String, ORMEngine> ormengines = new HashMap<String, ORMEngine>();
+	private final Map<String, ORMEngine> ormengines = new ConcurrentHashMap<String, ORMEngine>();
 	private ClassDefinition<? extends ORMEngine> cdORMEngine;
 	private ORMConfiguration ormConfig;
 
@@ -418,7 +434,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private String mainLoggerName;
 
 	private short compileType = -1;
-	private short inspectTemplate = INSPECT_AUTO;
+	private short inspectTemplate = -1;
 	private int inspectTemplateAutoIntervalSlow = ConfigPro.INSPECT_INTERVAL_UNDEFINED;
 	private int inspectTemplateAutoIntervalFast = ConfigPro.INSPECT_INTERVAL_UNDEFINED;
 
@@ -466,7 +482,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (allowURLRequestTimeout == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "isAllowURLRequestTimeout")) {
 				if (allowURLRequestTimeout == null) {
-					String allowURLReqTimeout = ConfigFactoryImpl.getAttr(root, new String[] { "requestTimeoutInURL", "allowUrlRequesttimeout" });
+					String allowURLReqTimeout = ConfigFactoryImpl.getAttr(this, root, new String[] { "requestTimeoutInURL", "allowUrlRequesttimeout" });
 					if (!StringUtil.isEmpty(allowURLReqTimeout)) {
 						allowURLRequestTimeout = Caster.toBooleanValue(allowURLReqTimeout, false);
 					}
@@ -545,7 +561,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getScopeCascadingType")) {
 				if (scopeType == null) {
 					// Cascading
-					String strScopeCascadingType = ConfigFactoryImpl.getAttr(root, "scopeCascading");
+					String strScopeCascadingType = ConfigFactoryImpl.getAttr(this, root, "scopeCascading");
 					if (!StringUtil.isEmpty(strScopeCascadingType)) {
 						scopeType = ConfigUtil.toScopeCascading(strScopeCascadingType, Config.SCOPE_STANDARD);
 					}
@@ -627,7 +643,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "allowImplicidQueryCall")) {
 				if (allowImplicidQueryCall == null) {
 					Boolean b = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.cascade.to.resultset", null), null);
-					if (b == null) b = Caster.toBoolean(ConfigFactoryImpl.getAttr(root, "cascadeToResultset"), Boolean.TRUE);
+					if (b == null) b = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, root, "cascadeToResultset"), Boolean.TRUE);
 					allowImplicidQueryCall = b;
 				}
 			}
@@ -658,7 +674,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					if (b == null) {
 						Struct security = ConfigUtil.getAsStruct("security", root);
 						if (security != null) {
-							b = Caster.toBoolean(ConfigFactoryImpl.getAttr(security, "limitEvaluation"), null);
+							b = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, security, "limitEvaluation"), null);
 						}
 					}
 					if (b != null) limitEvaluation = b;
@@ -686,7 +702,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (mergeFormAndURL == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "mergeFormAndURL")) {
 				if (mergeFormAndURL == null) {
-					String strMergeFormAndURL = ConfigFactoryImpl.getAttr(root, "mergeUrlForm");
+					String strMergeFormAndURL = ConfigFactoryImpl.getAttr(this, root, "mergeUrlForm");
 					if (!StringUtil.isEmpty(strMergeFormAndURL, true)) {
 						mergeFormAndURL = Caster.toBoolean(strMergeFormAndURL, Boolean.FALSE);
 					}
@@ -713,7 +729,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (applicationTimeout == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getApplicationTimeout")) {
 				if (applicationTimeout == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "applicationTimeout");
+					String str = ConfigFactoryImpl.getAttr(this, root, "applicationTimeout");
 					if (!StringUtil.isEmpty(str, true)) {
 						applicationTimeout = Caster.toTimespan(str.trim(), null);
 					}
@@ -740,7 +756,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (sessionTimeout == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getSessionTimeout")) {
 				if (sessionTimeout == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "sessionTimeout");
+					String str = ConfigFactoryImpl.getAttr(this, root, "sessionTimeout");
 					if (!StringUtil.isEmpty(str, true)) {
 						sessionTimeout = Caster.toTimespan(str.trim(), null);
 					}
@@ -767,7 +783,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (clientTimeout == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getClientTimeout")) {
 				if (clientTimeout == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "clientTimeout");
+					String str = ConfigFactoryImpl.getAttr(this, root, "clientTimeout");
 					if (!StringUtil.isEmpty(str, true)) {
 						clientTimeout = Caster.toTimespan(str.trim(), null);
 					}
@@ -796,7 +812,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (requestTimeout == null) {
 					TimeSpan ts = null;
 					String reqTimeout = SystemUtil.getSystemPropOrEnvVar("lucee.requesttimeout", null);
-					if (StringUtil.isEmpty(reqTimeout)) reqTimeout = ConfigFactoryImpl.getAttr(root, "requesttimeout");
+					if (StringUtil.isEmpty(reqTimeout)) reqTimeout = ConfigFactoryImpl.getAttr(this, root, "requesttimeout");
 					if (!StringUtil.isEmpty(reqTimeout)) ts = Caster.toTimespan(reqTimeout, null);
 					if (ts != null && ts.getMillis() > 0) requestTimeout = ts;
 					else requestTimeout = new TimeSpanImpl(0, 0, 0, 50);
@@ -822,7 +838,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (clientCookies == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "isClientCookies")) {
 				if (clientCookies == null) {
-					String strClientCookies = ConfigFactoryImpl.getAttr(root, "clientCookies");
+					String strClientCookies = ConfigFactoryImpl.getAttr(this, root, "clientCookies");
 					if (!StringUtil.isEmpty(strClientCookies, true)) {
 						clientCookies = Caster.toBoolean(strClientCookies, Boolean.TRUE);
 					}
@@ -849,7 +865,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (developMode == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "isDevelopMode")) {
 				if (developMode == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "developMode");
+					String str = ConfigFactoryImpl.getAttr(this, root, "developMode");
 					if (!StringUtil.isEmpty(str, true)) {
 						developMode = Caster.toBoolean(str.trim(), ConfigPro.DEFAULT_DEVELOP_MODE);
 					}
@@ -876,7 +892,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (clientManagement == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "isClientManagement")) {
 				if (clientManagement == null) {
-					String strClientManagement = ConfigFactoryImpl.getAttr(root, "clientManagement");
+					String strClientManagement = ConfigFactoryImpl.getAttr(this, root, "clientManagement");
 					if (!StringUtil.isEmpty(strClientManagement)) {
 						clientManagement = Caster.toBoolean(strClientManagement, Boolean.FALSE);
 					}
@@ -903,7 +919,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (domainCookies == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "isDomainCookies")) {
 				if (domainCookies == null) {
-					String strDomainCookies = ConfigFactoryImpl.getAttr(root, "domainCookies");
+					String strDomainCookies = ConfigFactoryImpl.getAttr(this, root, "domainCookies");
 					if (!StringUtil.isEmpty(strDomainCookies, true)) {
 						domainCookies = Caster.toBoolean(strDomainCookies.trim(), Boolean.FALSE);
 					}
@@ -930,7 +946,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (sessionManagement == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "isSessionManagement")) {
 				if (sessionManagement == null) {
-					String strSessionManagement = ConfigFactoryImpl.getAttr(root, "sessionManagement");
+					String strSessionManagement = ConfigFactoryImpl.getAttr(this, root, "sessionManagement");
 					if (!StringUtil.isEmpty(strSessionManagement, true)) {
 						sessionManagement = Caster.toBoolean(strSessionManagement, Boolean.TRUE);
 					}
@@ -1096,8 +1112,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getPSQL")) {
 				if (psq == null) {
 					// PSQ
-					String strPSQ = ConfigFactoryImpl.getAttr(root, "preserveSingleQuote");
-					if (StringUtil.isEmpty(strPSQ)) strPSQ = ConfigFactoryImpl.getAttr(root, "datasourcePreserveSingleQuotes");
+					String strPSQ = ConfigFactoryImpl.getAttr(this, root, "preserveSingleQuote");
+					if (StringUtil.isEmpty(strPSQ)) strPSQ = ConfigFactoryImpl.getAttr(this, root, "datasourcePreserveSingleQuotes");
 					if (!StringUtil.isEmpty(strPSQ)) {
 						psq = Caster.toBoolean(strPSQ, Boolean.FALSE);
 					}
@@ -1125,8 +1141,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		try {
 			cl = getRPCClassLoader(false);
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 		if (cl != null) return cl;
 		return SystemUtil.getCoreClassLoader();
 
@@ -1184,7 +1199,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (showDebug == null) {
 					// monitoring debug
 					String str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.showDebug", null);
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "showDebug");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "showDebug");
 
 					if (!StringUtil.isEmpty(str)) {
 						showDebug = Caster.toBoolean(str, Boolean.FALSE);
@@ -1213,11 +1228,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getShowDoc")) {
 				if (showDoc == null) {
 					String str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.showDoc", null);
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "showReference");
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "doc");
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "documentation");
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "reference");
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "showDoc");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "showReference");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "doc");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "documentation");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "reference");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "showDoc");
 					if (!StringUtil.isEmpty(str)) {
 						showDoc = Caster.toBoolean(str, Boolean.FALSE);
 					}
@@ -1245,10 +1260,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getShowMetric")) {
 				if (showMetric == null) {
 					String str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.showMetric", null);
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "showMetrics");
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "metric");
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "metrics");
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "showMetric");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "showMetrics");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "metric");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "metrics");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "showMetric");
 					if (!StringUtil.isEmpty(str)) {
 						showMetric = Caster.toBoolean(str, Boolean.FALSE);
 					}
@@ -1276,9 +1291,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getShowTest")) {
 				if (showTest == null) {
 					String str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.showTest", null);
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "showTests");
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "test");
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "showTest");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "showTests");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "test");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "showTest");
 					if (!StringUtil.isEmpty(str)) {
 						showTest = Caster.toBoolean(str, false);
 					}
@@ -1305,7 +1320,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (debugLogOutput == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "debugLogOutput")) {
 				if (debugLogOutput == null) {
-					String strDLO = ConfigFactoryImpl.getAttr(root, "debuggingLogOutput");
+					String strDLO = ConfigFactoryImpl.getAttr(this, root, "debuggingLogOutput");
 					if (!StringUtil.isEmpty(strDLO)) {
 						debugLogOutput = Caster.toBooleanValue(strDLO, false) ? ConfigPro.CLIENT_BOOLEAN_TRUE : ConfigPro.CLIENT_BOOLEAN_FALSE;
 					}
@@ -1404,8 +1419,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 						try {
 							scheduler = new SchedulerImpl(ConfigUtil.getEngine(this), this, new ArrayImpl());
 						}
-						catch (PageException e1) {
-						}
+						catch (PageException e1) {}
 					}
 				}
 			}
@@ -1440,7 +1454,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (initPassword) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getPassword")) {
 				if (initPassword) {
-					Password pw = PasswordImpl.readFromStruct(root, getSalt(), false, true);
+					Password pw = PasswordImpl.readFromStruct(this, root, getSalt(), false, true);
 					if (pw != null) {
 						password = pw;
 					}
@@ -2037,7 +2051,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (tempDirectory == null) {
 					try {
 						Resource configDir = getConfigDir();
-						String strTempDirectory = ConfigUtil.translateOldPath(ConfigFactoryImpl.getAttr(root, "tempDirectory"));
+						String strTempDirectory = ConfigUtil.translateOldPath(ConfigFactoryImpl.getAttr(this, root, "tempDirectory"));
 
 						Resource cst = null;
 						// Temp Dir
@@ -2240,7 +2254,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					ImportDefintion di = getComponentDefaultImport();
 					String pack = di == null ? null : di.getPackageAsPath();
 					if (StringUtil.isEmpty(pack, true)) pack = "";
-					else if (!pack.endsWith("/")) pack += "";
+					else if (!pack.endsWith("/")) pack += "/";
 					// name
 					String componentName = getBaseComponentTemplate();
 
@@ -2289,18 +2303,16 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 									try {
 										physical = p.getCanonicalPath() + " (" + m.getStrPhysical() + ")";
 									}
-									catch (IOException e) {
-									}
+									catch (IOException e) {}
 								}
 
 								Resource a = m.getArchive();
 								String archive = m.getStrArchive();
-								if (p != null) {
+								if (a != null) {
 									try {
 										archive = a.getCanonicalPath() + " (" + m.getStrArchive() + ")";
 									}
-									catch (IOException e) {
-									}
+									catch (IOException e) {}
 								}
 
 								detail.append(physical).append(':').append(archive);
@@ -2331,7 +2343,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getRestList")) {
 				if (restList == null) {
 					Struct rest = ConfigUtil.getAsStruct("rest", root);
-					restList = rest != null ? Caster.toBoolean(ConfigFactoryImpl.getAttr(rest, "list"), Boolean.FALSE) : Boolean.FALSE;
+					restList = rest != null ? Caster.toBoolean(ConfigFactoryImpl.getAttr(this, rest, "list"), Boolean.FALSE) : Boolean.FALSE;
 				}
 			}
 		}
@@ -2372,7 +2384,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (clientType == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getClientType")) {
 				if (clientType == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "clientType");
+					String str = ConfigFactoryImpl.getAttr(this, root, "clientType");
 					if (!StringUtil.isEmpty(str, true)) {
 						str = str.trim().toLowerCase();
 						if (str.equals("file")) clientType = Config.CLIENT_SCOPE_TYPE_FILE;
@@ -2451,7 +2463,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getComponentDataMemberDefaultAccess")) {
 				if (componentDataMemberDefaultAccess == null) {
 
-					String strDmda = ConfigFactoryImpl.getAttr(root, "componentDataMemberAccess");
+					String strDmda = ConfigFactoryImpl.getAttr(this, root, "componentDataMemberAccess");
 					if (!StringUtil.isEmpty(strDmda, true)) {
 						strDmda = strDmda.toLowerCase().trim();
 						if (strDmda.equals("remote")) componentDataMemberDefaultAccess = Component.ACCESS_REMOTE;
@@ -2492,7 +2504,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (componentDumpTemplate == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getComponentDumpTemplate")) {
 				if (componentDumpTemplate == null) {
-					String strDumpRemplate = ConfigFactoryImpl.getAttr(root, "componentDumpTemplate");
+					String strDumpRemplate = ConfigFactoryImpl.getAttr(this, root, "componentDumpTemplate");
 					if (StringUtil.isEmpty(strDumpRemplate, true)) {
 						componentDumpTemplate = "/lucee/component-dump.cfm";
 					}
@@ -2540,14 +2552,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					boolean hasAccess = ConfigUtil.hasAccess(this, SecurityManager.TYPE_DEBUGGING);
 
 					// 500
-					String template500 = ConfigFactoryImpl.getAttr(root, "errorGeneralTemplate");
-					if (StringUtil.isEmpty(template500)) template500 = ConfigFactoryImpl.getAttr(root, "generalErrorTemplate");
+					String template500 = ConfigFactoryImpl.getAttr(this, root, "errorGeneralTemplate");
+					if (StringUtil.isEmpty(template500)) template500 = ConfigFactoryImpl.getAttr(this, root, "generalErrorTemplate");
 					if (hasAccess && !StringUtil.isEmpty(template500)) tmp.put("500", template500);
 					else tmp.put("500", "/lucee/templates/error/error." + (Constants.getCFMLTemplateExtensions()[0]));
 
 					// 404
-					String template404 = ConfigFactoryImpl.getAttr(root, "errorMissingTemplate");
-					if (StringUtil.isEmpty(template404)) template404 = ConfigFactoryImpl.getAttr(root, "missingErrorTemplate");
+					String template404 = ConfigFactoryImpl.getAttr(this, root, "errorMissingTemplate");
+					if (StringUtil.isEmpty(template404)) template404 = ConfigFactoryImpl.getAttr(this, root, "missingErrorTemplate");
 					if (hasAccess && !StringUtil.isEmpty(template404)) tmp.put("404", template404);
 					else tmp.put("404", "/lucee/templates/error/error." + (Constants.getCFMLTemplateExtensions()[0]));
 
@@ -2575,7 +2587,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getSessionType")) {
 				if (sessionType == null) {
 					// Session-Type
-					String strSessionType = ConfigFactoryImpl.getAttr(root, "sessionType");
+					String strSessionType = ConfigFactoryImpl.getAttr(this, root, "sessionType");
 					if (!StringUtil.isEmpty(strSessionType, true)) {
 						sessionType = AppListenerUtil.toSessionType(strSessionType.trim(), Config.SESSION_TYPE_APPLICATION);
 					}
@@ -2632,7 +2644,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					String strDeployDirectory = null;
 					Struct fileSystem = ConfigUtil.getAsStruct("fileSystem", root);
 					if (fileSystem != null) {
-						strDeployDirectory = ConfigUtil.translateOldPath(ConfigFactoryImpl.getAttr(fileSystem, "deployDirectory"));
+						strDeployDirectory = ConfigUtil.translateOldPath(ConfigFactoryImpl.getAttr(this, fileSystem, "deployDirectory"));
 					}
 					deployDirectory = ConfigUtil.getFile(configDir, strDeployDirectory, "cfclasses", configDir, FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, this);
 				}
@@ -2679,7 +2691,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (suppressContent == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "isSuppressContent")) {
 				if (suppressContent == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "suppressContent");
+					String str = ConfigFactoryImpl.getAttr(this, root, "suppressContent");
 					if (!StringUtil.isEmpty(str, true)) {
 						suppressContent = Caster.toBoolean(str, Boolean.FALSE);
 					}
@@ -2716,7 +2728,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getTemplateCharSet")) {
 				if (templateCharset == null) {
 					String template = SystemUtil.getSystemPropOrEnvVar("lucee.template.charset", null);
-					if (StringUtil.isEmpty(template)) template = ConfigFactoryImpl.getAttr(root, "templateCharset");
+					if (StringUtil.isEmpty(template)) template = ConfigFactoryImpl.getAttr(this, root, "templateCharset");
 					if (!StringUtil.isEmpty(template)) templateCharset = CharsetUtil.toCharSet(template, null);
 
 					if (templateCharset == null) templateCharset = SystemUtil.getCharSet();
@@ -2749,7 +2761,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (webCharset == null) {
 					// web
 					String web = SystemUtil.getSystemPropOrEnvVar("lucee.web.charset", null);
-					if (StringUtil.isEmpty(web)) web = ConfigFactoryImpl.getAttr(root, "webCharset");
+					if (StringUtil.isEmpty(web)) web = ConfigFactoryImpl.getAttr(this, root, "webCharset");
 					if (!StringUtil.isEmpty(web)) webCharset = CharsetUtil.toCharSet(web, null);
 
 					if (webCharset == null) webCharset = CharSet.UTF8;
@@ -2782,7 +2794,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (resourceCharset == null) {
 					String resource = null;
 					resource = SystemUtil.getSystemPropOrEnvVar("lucee.resource.charset", null);
-					if (StringUtil.isEmpty(resource)) resource = ConfigFactoryImpl.getAttr(root, "resourceCharset");
+					if (StringUtil.isEmpty(resource)) resource = ConfigFactoryImpl.getAttr(this, root, "resourceCharset");
 					if (!StringUtil.isEmpty(resource)) resourceCharset = CharsetUtil.toCharSet(resource, null);
 					if (resourceCharset == null) resourceCharset = SystemUtil.getCharSet();
 				}
@@ -3059,14 +3071,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					ApplicationListener listener;
 					String strLT = SystemUtil.getSystemPropOrEnvVar("lucee.listener.type", null);
 					if (StringUtil.isEmpty(strLT)) strLT = SystemUtil.getSystemPropOrEnvVar("lucee.application.listener", null);
-					if (StringUtil.isEmpty(strLT)) strLT = ConfigFactoryImpl.getAttr(root, new String[] { "listenerType", "applicationListener" });
+					if (StringUtil.isEmpty(strLT)) strLT = ConfigFactoryImpl.getAttr(this, root, new String[] { "listenerType", "applicationListener" });
 					listener = ConfigUtil.loadListener(strLT, null);
 					if (listener == null) listener = new MixedAppListener();
 
 					// mode
 					String strLM = SystemUtil.getSystemPropOrEnvVar("lucee.listener.mode", null);
 					if (StringUtil.isEmpty(strLM)) strLM = SystemUtil.getSystemPropOrEnvVar("lucee.application.mode", null);
-					if (StringUtil.isEmpty(strLM)) strLM = ConfigFactoryImpl.getAttr(root, new String[] { "listenerMode", "applicationMode" });
+					if (StringUtil.isEmpty(strLM)) strLM = ConfigFactoryImpl.getAttr(this, root, new String[] { "listenerMode", "applicationMode" });
 					int listenerMode = ConfigUtil.toListenerMode(strLM, -1);
 					if (listenerMode == -1) listenerMode = ApplicationListener.MODE_CURRENT2ROOT;
 					listener.setMode(listenerMode);
@@ -3075,7 +3087,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					if (listener instanceof ModernAppListener) {
 						String strSi = SystemUtil.getSystemPropOrEnvVar("lucee.listener.singleton", null);
 						if (StringUtil.isEmpty(strSi)) strSi = SystemUtil.getSystemPropOrEnvVar("lucee.application.singleton", null);
-						if (StringUtil.isEmpty(strSi)) strSi = ConfigFactoryImpl.getAttr(root, new String[] { "listenerSingleton", "applicationSingleton" });
+						if (StringUtil.isEmpty(strSi)) strSi = ConfigFactoryImpl.getAttr(this, root, new String[] { "listenerSingleton", "applicationSingleton" });
 						listener.setSingelton(Caster.toBooleanValue(strSi, false));
 					}
 					applicationListener = listener;
@@ -3106,7 +3118,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getScriptProtect")) {
 				if (scriptProtect == null) {
 					String strScriptProtect = SystemUtil.getSystemPropOrEnvVar("lucee.script.protect", null);
-					if (StringUtil.isEmpty(strScriptProtect)) strScriptProtect = ConfigFactoryImpl.getAttr(root, "scriptProtect");
+					if (StringUtil.isEmpty(strScriptProtect)) strScriptProtect = ConfigFactoryImpl.getAttr(this, root, "scriptProtect");
 					if (!StringUtil.isEmpty(strScriptProtect)) {
 						scriptProtect = AppListenerUtil.translateScriptProtect(strScriptProtect, 0);
 					}
@@ -3133,14 +3145,27 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	@Override
 	public ProxyData getProxyData() {
+		if (initProxy) {
+			synchronized (SystemUtil.createToken("ConfigImpl", "getProxyData")) {
+				if (initProxy) {
+					proxy = ConfigFactoryImpl.loadProxy(this, root);
+					initProxy = false;
+				}
+			}
+		}
 		return proxy;
 	}
 
-	/**
-	 * @param proxy the proxyPassword to set
-	 */
-	protected void setProxyData(ProxyData proxy) {
-		this.proxy = proxy;
+	public ConfigImpl resetProxyData() {
+		if (!initProxy) {
+			synchronized (SystemUtil.createToken("ConfigImpl", "getProxyData")) {
+				if (!initProxy) {
+					proxy = null;
+					initProxy = true;
+				}
+			}
+		}
+		return this;
 	}
 
 	@Override
@@ -3157,7 +3182,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (triggerComponentDataMember == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getTriggerComponentDataMember")) {
 				if (triggerComponentDataMember == null) {
-					triggerComponentDataMember = Caster.toBoolean(ConfigFactoryImpl.getAttr(root, "componentImplicitNotation"), Boolean.FALSE);
+					triggerComponentDataMember = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, root, "componentImplicitNotation"), Boolean.FALSE);
 				}
 			}
 		}
@@ -3181,7 +3206,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getClientScopeDir")) {
 				if (clientScopeDir == null) {
 					Resource configDir = getConfigDir();
-					String strClientDirectory = ConfigFactoryImpl.getAttr(root, "clientDirectory");
+					String strClientDirectory = ConfigFactoryImpl.getAttr(this, root, "clientDirectory");
 					if (!StringUtil.isEmpty(strClientDirectory, true)) {
 						strClientDirectory = ConfigUtil.translateOldPath(strClientDirectory.trim());
 						clientScopeDir = ConfigUtil.getFile(configDir, strClientDirectory, "client-scope", configDir, FileUtil.TYPE_DIR, ResourceUtil.LEVEL_PARENT_FILE, this);
@@ -3217,7 +3242,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (clientScopeDirSize == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getClientScopeDirSize")) {
 				if (clientScopeDirSize == null) {
-					String strMax = ConfigFactoryImpl.getAttr(root, "clientDirectoryMaxSize");
+					String strMax = ConfigFactoryImpl.getAttr(this, root, "clientDirectoryMaxSize");
 					if (!StringUtil.isEmpty(strMax, true)) {
 						clientScopeDirSize = ByteSizeParser.parseByteSizeDefinition(strMax.trim(), 1024L * 1024L * 100L);
 					}
@@ -3260,7 +3285,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	private static final Object dclt = new SerializableObject();
-	private static final long POOL_MAX_IDLE = 60000;
+	private static final long POOL_MAX_IDLE = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.pool.maxIdle", null), 60) * 1000L;
 
 	@Override
 	public PhysicalClassLoader getDirectClassLoader(boolean reload) throws IOException {
@@ -3288,7 +3313,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getCacheDir")) {
 				if (cacheDir == null) {
 					Resource configDir = getConfigDir();
-					String strCacheDirectory = ConfigFactoryImpl.getAttr(root, "cacheDirectory");
+					String strCacheDirectory = ConfigFactoryImpl.getAttr(this, root, "cacheDirectory");
 					if (!StringUtil.isEmpty(strCacheDirectory)) {
 						strCacheDirectory = ConfigUtil.translateOldPath(strCacheDirectory);
 						Resource res = ConfigUtil.getFile(configDir, strCacheDirectory, "cache", configDir, FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, this);
@@ -3319,7 +3344,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (cacheDirSize == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getCacheDirSize")) {
 				if (cacheDirSize == null) {
-					String strMax = ConfigFactoryImpl.getAttr(root, "cacheDirectoryMaxSize");
+					String strMax = ConfigFactoryImpl.getAttr(this, root, "cacheDirectoryMaxSize");
 					if (!StringUtil.isEmpty(strMax)) {
 						cacheDirSize = ByteSizeParser.parseByteSizeDefinition(strMax, CACHE_DIR_SIZE_DEFAULT);
 					}
@@ -3407,7 +3432,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (useComponentShadow == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "useComponentShadow")) {
 				if (useComponentShadow == null) {
-					useComponentShadow = Caster.toBoolean(ConfigFactoryImpl.getAttr(root, "componentUseVariablesScope"), Boolean.TRUE);
+					useComponentShadow = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, root, "componentUseVariablesScope"), Boolean.TRUE);
 				}
 			}
 		}
@@ -3430,7 +3455,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (useComponentPathCache == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "useComponentPathCache")) {
 				if (useComponentPathCache == null) {
-					useComponentPathCache = Caster.toBoolean(ConfigFactoryImpl.getAttr(root, "componentUseCachePath"), Boolean.TRUE);
+					useComponentPathCache = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, root, "componentUseCachePath"), Boolean.TRUE);
 				}
 			}
 		}
@@ -3454,8 +3479,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "useCTPathCache")) {
 				if (useCTPathCache == null) {
 					if (ConfigUtil.hasAccess(this, SecurityManager.TYPE_CUSTOM_TAG)) {
-						String strDoPathcache = ConfigFactoryImpl.getAttr(root, "customTagUseCachePath");
-						if (StringUtil.isEmpty(strDoPathcache, true)) strDoPathcache = ConfigFactoryImpl.getAttr(root, "customTagCachePaths");
+						String strDoPathcache = ConfigFactoryImpl.getAttr(this, root, "customTagUseCachePath");
+						if (StringUtil.isEmpty(strDoPathcache, true)) strDoPathcache = ConfigFactoryImpl.getAttr(this, root, "customTagCachePaths");
 						if (!StringUtil.isEmpty(strDoPathcache, true)) {
 							useCTPathCache = Caster.toBooleanValue(strDoPathcache.trim(), true);
 						}
@@ -3557,7 +3582,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		String id = DatasourceConnectionFactory.createId(ds, user, pass);
 		DatasourceConnPool pool = pools.get(id);
 		if (pool == null) {
-			synchronized (id) {
+			synchronized (SystemUtil.createToken("dsPool", id)) {
 				pool = pools.get(id);
 				if (pool == null) {// TODO add config but from where?
 					DataSourcePro dsp = (DataSourcePro) ds;
@@ -3569,33 +3594,45 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 						if (mt <= 0) mt = Integer.MAX_VALUE;
 					}
 
-					pool = new DatasourceConnPool(this, ds, user, pass, "datasource",
-							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt, 0, 0, 0, 0, 0, null));
+					// maxWaitMillis: how long to wait for a connection when pool is exhausted (30 seconds)
+					long maxWaitMillis = 30000L;
+					// minEvictableIdleTimeMillis: use idleTimeout (in minutes) for how long connection can be idle
+					// before eviction
+					// -1 = not set (use default 10 minutes), 0 = infinite (no eviction), >0 = use that value
+					int idleTimeout = dsp.getIdleTimeout();
+					long minEvictableIdleTimeMillis;
+					if (idleTimeout > 0) {
+						minEvictableIdleTimeMillis = idleTimeout * 60000L;
+					}
+					else if (idleTimeout == 0) {
+						minEvictableIdleTimeMillis = -1; // infinite - disable eviction
+					}
+					else {
+						minEvictableIdleTimeMillis = 10 * 60000L; // default: 10 minutes
+					}
+
+					pool = new DatasourceConnPool(this, ds, user, pass, "datasource", DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt,
+							maxWaitMillis, minEvictableIdleTimeMillis, 0, 0, 0, null));
 					pools.put(id, pool);
-					cleanConnectionPools(id);
 				}
 			}
 		}
 		return pool;
 	}
 
-	private void cleanConnectionPools(String excludeId) {
-		DatasourceConnPool pool;
-		List<String> keysToRemove = null;
+	// mark-then-sweep across two ticks: any borrow between mark and sweep clears the mark
+	public void cleanDatasourceConnectionPools() {
+		long now = System.currentTimeMillis();
 		for (Entry<String, DatasourceConnPool> e: pools.entrySet()) {
-			if (excludeId.equals(e.getKey())) {
-				continue;
-			}
-			pool = e.getValue();
-			if ((pool.getNumActive() + pool.getNumIdle() + pool.getNumWaiters()) == 0 && (pool.getLastBorrowed() + POOL_MAX_IDLE) < System.currentTimeMillis()) {
-				if (keysToRemove == null) keysToRemove = new ArrayList<>();
-				keysToRemove.add(e.getKey());
-			}
-		}
-
-		if (keysToRemove != null) {
-			for (String k: keysToRemove) {
-				pools.remove(k);
+			DatasourceConnPool pool = e.getValue();
+			if ((pool.getNumActive() + pool.getNumIdle() + pool.getNumWaiters()) == 0 && (pool.getLastBorrowed() + POOL_MAX_IDLE) < now) {
+				if (pool.isEvictionCandidate()) {
+					pool.close();
+					pools.remove(e.getKey(), pool);
+				}
+				else {
+					pool.setEvictionCandidate(true);
+				}
 			}
 		}
 	}
@@ -3612,13 +3649,23 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public void removeDatasourceConnectionPool(DataSource ds) {
+		removeDatasourceConnectionPool(ds.getName());
+	}
+
+	@Override
+	public void removeDatasourceConnectionPool(String name) {
+		List<Entry<String, DatasourceConnPool>> matches = null;
 		for (Entry<String, DatasourceConnPool> e: pools.entrySet()) {
-			if (e.getValue().getFactory().getDatasource().getName().equalsIgnoreCase(ds.getName())) {
-				synchronized (e.getKey()) {
-					pools.remove(e.getKey());
-				}
-				e.getValue().clear();
+			if (e.getValue().getFactory().getDatasource().getName().equalsIgnoreCase(name)) {
+				if (matches == null) matches = new ArrayList<>();
+				matches.add(e);
 			}
+		}
+		if (matches == null) return;
+		// close first, then CAS-remove: if close() throws, entry stays in the map and bg sweep retries
+		for (Entry<String, DatasourceConnPool> e: matches) {
+			e.getValue().close();
+			pools.remove(e.getKey(), e.getValue()); // CAS — only remove if value unchanged
 		}
 	}
 
@@ -3632,8 +3679,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					}
 					else {
 						if (ConfigUtil.hasAccess(this, SecurityManager.TYPE_CUSTOM_TAG)) {
-							String strDoCTLocalSearch = ConfigFactoryImpl.getAttr(root, "customTagLocalSearch");
-							if (StringUtil.isEmpty(strDoCTLocalSearch, true)) strDoCTLocalSearch = ConfigFactoryImpl.getAttr(root, "customTagSearchLocal");
+							String strDoCTLocalSearch = ConfigFactoryImpl.getAttr(this, root, "customTagLocalSearch");
+							if (StringUtil.isEmpty(strDoCTLocalSearch, true)) strDoCTLocalSearch = ConfigFactoryImpl.getAttr(this, root, "customTagSearchLocal");
 							if (!StringUtil.isEmpty(strDoCTLocalSearch)) {
 								doLocalCustomTag = Caster.toBooleanValue(strDoCTLocalSearch.trim(), true);
 							}
@@ -3668,7 +3715,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					}
 					else {
 						if (ConfigUtil.hasAccess(this, SecurityManager.TYPE_CUSTOM_TAG)) {
-							String strExtensions = ConfigFactoryImpl.getAttr(root, "customTagExtensions");
+							String strExtensions = ConfigFactoryImpl.getAttr(this, root, "customTagExtensions");
 							if (!StringUtil.isEmpty(strExtensions)) {
 								try {
 									String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(strExtensions, ","));
@@ -3704,7 +3751,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (doComponentTagDeepSearch == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "doComponentDeepSearch")) {
 				if (doComponentTagDeepSearch == null) {
-					String strDeepSearch = ConfigFactoryImpl.getAttr(root, "componentDeepSearch");
+					String strDeepSearch = ConfigFactoryImpl.getAttr(this, root, "componentDeepSearch");
 					if (!StringUtil.isEmpty(strDeepSearch)) {
 						doComponentTagDeepSearch = Caster.toBoolean(strDeepSearch.trim(), Boolean.FALSE);
 					}
@@ -3737,8 +3784,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					}
 					else {
 						if (ConfigUtil.hasAccess(this, SecurityManager.TYPE_CUSTOM_TAG)) {
-							String strDoCTDeepSearch = ConfigFactoryImpl.getAttr(root, "customTagDeepSearch");
-							if (StringUtil.isEmpty(strDoCTDeepSearch, true)) strDoCTDeepSearch = ConfigFactoryImpl.getAttr(root, "customTagSearchSubdirectories");
+							String strDoCTDeepSearch = ConfigFactoryImpl.getAttr(this, root, "customTagDeepSearch");
+							if (StringUtil.isEmpty(strDoCTDeepSearch, true)) strDoCTDeepSearch = ConfigFactoryImpl.getAttr(this, root, "customTagSearchSubdirectories");
 							if (!StringUtil.isEmpty(strDoCTDeepSearch)) {
 								doCustomTagDeepSearch = Caster.toBooleanValue(strDoCTDeepSearch.trim(), false);
 							}
@@ -3771,7 +3818,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getVersion")) {
 				if (version == null) {
 					try {
-						String strVersion = ConfigFactoryImpl.getAttr(root, "version");
+						String strVersion = ConfigFactoryImpl.getAttr(this, root, "version");
 						version = Caster.toDoubleValue(strVersion, DEFAULT_VERSION);
 					}
 					catch (Throwable t) {
@@ -3802,7 +3849,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (closeConnection == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "closeConnection")) {
 				if (closeConnection == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "closeConnection");
+					String str = ConfigFactoryImpl.getAttr(this, root, "closeConnection");
 					if (!StringUtil.isEmpty(str)) {
 						closeConnection = Caster.toBoolean(str, Boolean.FALSE);
 					}
@@ -3829,7 +3876,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (contentLength == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "contentLength")) {
 				if (contentLength == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "contentLength");
+					String str = ConfigFactoryImpl.getAttr(this, root, "contentLength");
 					if (!StringUtil.isEmpty(str)) {
 						contentLength = Caster.toBoolean(str, Boolean.TRUE);
 					}
@@ -3858,7 +3905,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (allowCompression == null) {
 					String str = SystemUtil.getSystemPropOrEnvVar("lucee.allow.compression", null);
 					if (StringUtil.isEmpty(str)) {
-						str = ConfigFactoryImpl.getAttr(root, "allowCompression");
+						str = ConfigFactoryImpl.getAttr(this, root, "allowCompression");
 					}
 					if (!StringUtil.isEmpty(str)) {
 						allowCompression = Caster.toBoolean(str, ConfigImpl.DEFAULT_ALLOW_COMPRESSION);
@@ -3916,7 +3963,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (showVersion == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "isShowVersion")) {
 				if (showVersion == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "showVersion");
+					String str = ConfigFactoryImpl.getAttr(this, root, "showVersion");
 					if (!StringUtil.isEmpty(str)) {
 						showVersion = Caster.toBoolean(str, Boolean.FALSE);
 					}
@@ -3978,7 +4025,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getRemoteClientMaxThreads")) {
 				if (remoteClientMaxThreads == null) {
 					Struct _clients = ConfigUtil.getAsStruct("remoteClients", root);
-					remoteClientMaxThreads = Caster.toInteger(ConfigFactoryImpl.getAttr(_clients, "maxThreads"), 20);
+					remoteClientMaxThreads = Caster.toInteger(ConfigFactoryImpl.getAttr(this, _clients, "maxThreads"), 20);
 				}
 			}
 		}
@@ -4005,7 +4052,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					String strDir = SystemUtil.getSystemPropOrEnvVar("lucee.task.directory", null);
 					if (StringUtil.isEmpty(strDir)) {
 						Struct _clients = ConfigUtil.getAsStruct("remoteClients", root);
-						strDir = _clients != null ? ConfigFactoryImpl.getAttr(_clients, "directory") : null;
+						strDir = _clients != null ? ConfigFactoryImpl.getAttr(this, _clients, "directory") : null;
 					}
 					remoteClientDirectory = ConfigUtil.getFile(getRootDirectory(), strDir, "client-task", getConfigDir(), FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE,
 							this);
@@ -4056,8 +4103,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (localMode == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getLocalMode")) {
 				if (localMode == null) {
-					String strLocalMode = ConfigFactoryImpl.getAttr(root, "localMode");
-					if (StringUtil.isEmpty(strLocalMode)) strLocalMode = ConfigFactoryImpl.getAttr(root, "localScopeMode");
+					String strLocalMode = ConfigFactoryImpl.getAttr(this, root, "localMode");
+					if (StringUtil.isEmpty(strLocalMode)) strLocalMode = ConfigFactoryImpl.getAttr(this, root, "localScopeMode");
 					if (!StringUtil.isEmpty(strLocalMode, true)) {
 						localMode = AppListenerUtil.toLocalMode(strLocalMode, Undefined.MODE_LOCAL_OR_ARGUMENTS_ONLY_WHEN_EXISTS);
 					}
@@ -4176,7 +4223,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (allowRealPath == null) {
 					Struct fileSystem = ConfigUtil.getAsStruct("fileSystem", root);
 					if (fileSystem != null) {
-						String strAllowRealPath = ConfigFactoryImpl.getAttr(fileSystem, "allowRealpath");
+						String strAllowRealPath = ConfigFactoryImpl.getAttr(this, fileSystem, "allowRealpath");
 						if (!StringUtil.isEmpty(strAllowRealPath, true)) {
 							allowRealPath = Caster.toBoolean(strAllowRealPath.trim(), Boolean.TRUE);
 						}
@@ -4223,7 +4270,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getRemoteClientUsage")) {
 				if (remoteClientUsage == null) {
 					Struct _clients = ConfigUtil.getAsStruct("remoteClients", root);
-					Struct sct = ConfigUtil.getAsStruct(_clients, true, "usage");// config.setRemoteClientUsage(toStruct(strUsage));
+					Struct sct = ConfigUtil.getAsStruct(null, _clients, true, "usage");// config.setRemoteClientUsage(toStruct(strUsage));
 					if (sct == null) remoteClientUsage = new StructImpl();
 					else remoteClientUsage = sct;
 
@@ -4251,8 +4298,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getAdminSyncClass")) {
 				if (adminSyncClass == null) {
 					try {
-						ClassDefinition asc = ConfigFactoryImpl.getClassDefinition(root, "adminSync", getIdentification());
-						if (!asc.hasClass()) asc = ConfigFactoryImpl.getClassDefinition(root, "adminSynchronisation", getIdentification());
+						ClassDefinition asc = ConfigFactoryImpl.getClassDefinition(this, root, "adminSync", getIdentification());
+						if (!asc.hasClass()) asc = ConfigFactoryImpl.getClassDefinition(this, root, "adminSynchronisation", getIdentification());
 
 						if (asc.hasClass()) {
 
@@ -4396,7 +4443,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (inspectTemplate == -1) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getInspectTemplate")) {
 				if (inspectTemplate == -1) {
-					String strInspectTemplate = ConfigFactoryImpl.getAttr(root, "inspectTemplate");
+					String strInspectTemplate = SystemUtil.getSystemPropOrEnvVar("lucee.inspect.template", null);
+					if (StringUtil.isEmpty(strInspectTemplate, true)) strInspectTemplate = ConfigFactoryImpl.getAttr(this, root, "inspectTemplate");
 					if (!StringUtil.isEmpty(strInspectTemplate, true)) {
 						inspectTemplate = ConfigUtil.inspectTemplate(strInspectTemplate, ConfigPro.INSPECT_AUTO);
 					}
@@ -4425,7 +4473,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (typeChecking == null) {
 					Boolean b = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.type.checking", null), null);
 					if (b == null) b = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.udf.type.checking", null), null);
-					if (b == null) b = Caster.toBoolean(ConfigFactoryImpl.getAttr(root, new String[] { "typeChecking", "UDFTypeChecking" }), Boolean.TRUE);
+					if (b == null) b = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, root, new String[] { "typeChecking", "UDFTypeChecking" }), Boolean.TRUE);
 					typeChecking = b;
 				}
 			}
@@ -4449,9 +4497,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (inspectTemplateAutoIntervalSlow == ConfigPro.INSPECT_INTERVAL_UNDEFINED) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getInspectTemplateAutoInterval")) {
 				if (inspectTemplateAutoIntervalSlow == ConfigPro.INSPECT_INTERVAL_UNDEFINED) {
-					inspectTemplateAutoIntervalFast = Caster.toIntValue(ConfigFactoryImpl.getAttr(root, "inspectTemplateIntervalFast"), ConfigPro.INSPECT_INTERVAL_FAST);
+					inspectTemplateAutoIntervalFast = Caster.toIntValue(ConfigFactoryImpl.getAttr(this, root, "inspectTemplateIntervalFast"), ConfigPro.INSPECT_INTERVAL_FAST);
 					if (inspectTemplateAutoIntervalFast <= 0) inspectTemplateAutoIntervalFast = ConfigPro.INSPECT_INTERVAL_FAST;
-					inspectTemplateAutoIntervalSlow = Caster.toIntValue(ConfigFactoryImpl.getAttr(root, "inspectTemplateIntervalSlow"), ConfigPro.INSPECT_INTERVAL_SLOW);
+					inspectTemplateAutoIntervalSlow = Caster.toIntValue(ConfigFactoryImpl.getAttr(this, root, "inspectTemplateIntervalSlow"), ConfigPro.INSPECT_INTERVAL_SLOW);
 					if (inspectTemplateAutoIntervalSlow <= 0) inspectTemplateAutoIntervalSlow = ConfigPro.INSPECT_INTERVAL_SLOW;
 				}
 			}
@@ -4599,11 +4647,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public boolean getExecutionLogEnabled() {
+		if (DEBUGGER) return true;
+
 		if (executionLogEnabled == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getExecutionLogEnabled")) {
 				if (executionLogEnabled == null) {
 					Struct sct = ConfigUtil.getAsStruct("executionLog", root);
-					executionLogEnabled = Caster.toBoolean(ConfigFactoryImpl.getAttr(sct, "enabled"), Boolean.FALSE);
+					executionLogEnabled = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, sct, "enabled"), Boolean.FALSE);
 				}
 			}
 		}
@@ -4659,34 +4709,34 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 		ORMEngine engine = ormengines.get(name);
 		if (engine == null) {
-			// try {
-			Throwable t = null;
+			synchronized (SystemUtil.createToken("ConfigImpl", "getORMEngine:" + name)) {
+				engine = ormengines.get(name);
+				if (engine == null) {
+					Throwable t = null;
 
-			try {
-				engine = (ORMEngine) ClassUtil.loadInstance(getORMEngineClassDefintion().getClazz());
-				engine.init(pc);
-			}
-			catch (ClassException ce) {
-				t = ce;
-			}
-			catch (BundleException be) {
-				t = be;
-			}
-			catch (NoClassDefFoundError ncfe) {
-				t = ncfe;
-			}
+					try {
+						engine = (ORMEngine) ClassUtil.loadInstance(getORMEngineClassDefintion().getClazz());
+						engine.init(pc);
+					}
+					catch (ClassException ce) {
+						t = ce;
+					}
+					catch (BundleException be) {
+						t = be;
+					}
+					catch (NoClassDefFoundError ncfe) {
+						t = ncfe;
+					}
 
-			if (t != null) {
-				ApplicationException ae = new ApplicationException(
-						"cannot initialize ORM Engine [" + getORMEngineClassDefintion() + "], make sure you have added all the required jar files");
-				ExceptionUtil.initCauseEL(ae, t);
-				throw ae;
-
+					if (t != null) {
+						ApplicationException ae = new ApplicationException(
+								"cannot initialize ORM Engine [" + getORMEngineClassDefintion() + "], make sure you have added all the required jar files");
+						ExceptionUtil.initCauseEL(ae, t);
+						throw ae;
+					}
+					ormengines.put(name, engine);
+				}
 			}
-			ormengines.put(name, engine);
-			/*
-			 * } catch (PageException pe) { throw pe; }
-			 */
 		}
 
 		return engine;
@@ -4752,7 +4802,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private Map<String, SoftReference<UDF>> udfCache = new ConcurrentHashMap<String, SoftReference<UDF>>();
 
 	@Override
-	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws TemplateException {
+	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws PageException {
 		return componentPathCache.getPage(pc, pathWithCFC);
 	}
 
@@ -4764,7 +4814,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
 		if (applicationPathCache == null) return null;
-		String id = (path + ":" + filename + ":" + mode).toLowerCase();
+		String id = path + ":" + filename + ":" + mode;
 
 		SoftReference<CacheElement> tmp = getApplicationPathCacheTimeout() <= 0 ? null : applicationPathCache.get(id);
 		if (tmp != null) {
@@ -4783,7 +4833,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
 		if (getApplicationPathCacheTimeout() <= 0) return;
 		if (applicationPathCache == null) applicationPathCache = new ConcurrentHashMap<String, SoftReference<CacheElement>>();// MUSTMUST new
-		String id = (path + ":" + filename + ":" + mode).toLowerCase();
+		String id = path + ":" + filename + ":" + mode;
 		applicationPathCache.put(id, new SoftReference<CacheElement>(new CacheElement(ps, isCFC)));
 	}
 
@@ -4794,7 +4844,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (applicationPathCacheTimeout == null) {
 					TimeSpan ts = null;
 					String str = SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null);
-					if (StringUtil.isEmpty(str)) str = ConfigFactoryImpl.getAttr(root, "applicationPathTimeout");
+					if (StringUtil.isEmpty(str)) str = ConfigFactoryImpl.getAttr(this, root, "applicationPathTimeout");
 					if (!StringUtil.isEmpty(str)) ts = Caster.toTimespan(str, null);
 					if (ts != null && ts.getMillis() > 0) applicationPathCacheTimeout = ts.getMillis();
 					else applicationPathCacheTimeout = 20000L;
@@ -4898,7 +4948,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (componentDefaultImport == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getComponentDefaultImport")) {
 				if (componentDefaultImport == null) {
-					String strCDI = ConfigFactoryImpl.getAttr(root, "componentAutoImport");
+					String strCDI = ConfigFactoryImpl.getAttr(this, root, "componentAutoImport");
 					if (!StringUtil.isEmpty(strCDI, true)) {
 						this.componentDefaultImport = ImportDefintionImpl.getInstance(strCDI.trim(), null);
 					}
@@ -4932,7 +4982,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (componentLocalSearch == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getComponentLocalSearch")) {
 				if (componentLocalSearch == null) {
-					componentLocalSearch = Caster.toBoolean(ConfigFactoryImpl.getAttr(root, "componentLocalSearch"), Boolean.TRUE);
+					componentLocalSearch = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, root, "componentLocalSearch"), Boolean.TRUE);
 				}
 			}
 		}
@@ -4967,11 +5017,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	@Override
-	public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
-		return Compress.getInstance(zipFile, format, caseSensitive);
-	}
-
-	@Override
 	public boolean getSessionCluster() {
 		return false;
 	}
@@ -4986,7 +5031,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (clientStorage == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "")) {
 				if (clientStorage == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "clientStorage");
+					String str = ConfigFactoryImpl.getAttr(this, root, "clientStorage");
 					if (!StringUtil.isEmpty(str, true)) {
 						clientStorage = str.trim();
 					}
@@ -5013,7 +5058,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (sessionStorage == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getSessionStorage")) {
 				if (sessionStorage == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "sessionStorage");
+					String str = ConfigFactoryImpl.getAttr(this, root, "sessionStorage");
 					if (!StringUtil.isEmpty(str, true)) {
 						sessionStorage = str.trim();
 					}
@@ -5070,10 +5115,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 							try {
 								e = Caster.toStruct(it.next(), null);
 								if (e == null) continue;
-								id = ConfigFactoryImpl.getAttr(e, "id");
+								id = ConfigFactoryImpl.getAttr(this, e, "id");
 								list.put(id,
-										new DebugEntry(id, ConfigFactoryImpl.getAttr(e, "type"), ConfigFactoryImpl.getAttr(e, "iprange"), ConfigFactoryImpl.getAttr(e, "label"),
-												ConfigFactoryImpl.getAttr(e, "path"), ConfigFactoryImpl.getAttr(e, "fullname"), ConfigUtil.getAsStruct(e, true, "custom")));
+										new DebugEntry(id, ConfigFactoryImpl.getAttr(this, e, "type"), ConfigFactoryImpl.getAttr(this, e, "iprange"),
+												ConfigFactoryImpl.getAttr(this, e, "label"), ConfigFactoryImpl.getAttr(this, e, "path"),
+												ConfigFactoryImpl.getAttr(this, e, "fullname"), ConfigUtil.getAsStruct(this, e, true, "custom")));
 							}
 							catch (Throwable t) {
 								ExceptionUtil.rethrowIfNecessary(t);
@@ -5125,8 +5171,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (debugMaxRecordsLogged == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getDebugMaxRecordsLogged")) {
 				if (debugMaxRecordsLogged == null) {
-					String strMax = ConfigFactoryImpl.getAttr(root, "debuggingMaxRecordsLogged");
-					if (StringUtil.isEmpty(strMax)) strMax = ConfigFactoryImpl.getAttr(root, "debuggingShowMaxRecordsLogged");
+					String strMax = ConfigFactoryImpl.getAttr(this, root, "debuggingMaxRecordsLogged");
+					if (StringUtil.isEmpty(strMax)) strMax = ConfigFactoryImpl.getAttr(this, root, "debuggingShowMaxRecordsLogged");
 					if (!StringUtil.isEmpty(strMax)) {
 						debugMaxRecordsLogged = Caster.toIntValue(strMax, 10);
 					}
@@ -5157,9 +5203,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (dotNotationUpperCase == null) {
 					Boolean tmp = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.preserve.case", null), null);
 					if (tmp != null) tmp = !tmp; // invert: lucee.preserve.case=true means dotNotationUpperCase=false
-					if (tmp == null) tmp = Caster.toBoolean(ConfigFactoryImpl.getAttr(root, "dotNotationUpperCase"), null);
+					if (tmp == null) tmp = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, root, "dotNotationUpperCase"), null);
 					if (tmp == null) {
-						tmp = Caster.toBoolean(ConfigFactoryImpl.getAttr(root, "preserveCase"), null);
+						tmp = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, root, "preserveCase"), null);
 						if (tmp != null) tmp = !tmp;
 					}
 					if (tmp == null) dotNotationUpperCase = Boolean.TRUE;
@@ -5193,7 +5239,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (defaultFunctionOutput == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getDefaultFunctionOutput")) {
 				if (defaultFunctionOutput == null) {
-					String output = ConfigFactoryImpl.getAttr(root, "defaultFunctionOutput");
+					String output = ConfigFactoryImpl.getAttr(this, root, "defaultFunctionOutput");
 					defaultFunctionOutput = Caster.toBooleanValue(output, true);
 				}
 			}
@@ -5221,7 +5267,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (getSuppressWSBeforeArg == null) {
 					String suppress = SystemUtil.getSystemPropOrEnvVar("lucee.suppress.ws.before.arg", null);
 					if (StringUtil.isEmpty(suppress, true)) {
-						suppress = ConfigFactoryImpl.getAttr(root, new String[] { "suppressWhitespaceBeforeArgument", "suppressWhitespaceBeforecfargument" });
+						suppress = ConfigFactoryImpl.getAttr(this, root, new String[] { "suppressWhitespaceBeforeArgument", "suppressWhitespaceBeforecfargument" });
 					}
 					getSuppressWSBeforeArg = Caster.toBooleanValue(suppress, true);
 				}
@@ -5256,7 +5302,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (mode == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getMode")) {
 				if (mode == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "mode");
+					String str = ConfigFactoryImpl.getAttr(this, root, "mode");
 					if (!StringUtil.isEmpty(str, true)) {
 						str = str.trim();
 						if ("custom".equalsIgnoreCase(str)) mode = ConfigPro.MODE_CUSTOM;
@@ -5289,12 +5335,12 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (writerType == null) {
 					String str = SystemUtil.getSystemPropOrEnvVar("lucee.cfml.writer", null);
 					if (StringUtil.isEmpty(str)) {
-						str = ConfigFactoryImpl.getAttr(root, "cfmlWriter");
+						str = ConfigFactoryImpl.getAttr(this, root, "cfmlWriter");
 					}
 
 					// CB compatibility
 					if (StringUtil.isEmpty(str, true)) {
-						str = ConfigFactoryImpl.getAttr(root, "whitespaceManagement");
+						str = ConfigFactoryImpl.getAttr(this, root, "whitespaceManagement");
 					}
 
 					if (!StringUtil.isEmpty(str, true)) {
@@ -5336,7 +5382,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (bufferOutput == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getBufferOutput")) {
 				if (bufferOutput == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "bufferTagBodyOutput");
+					String str = ConfigFactoryImpl.getAttr(this, root, "bufferTagBodyOutput");
 					if (!StringUtil.isEmpty(str, true)) {
 						bufferOutput = Caster.toBoolean(str.trim(), DEFAULT_BUFFER_TAG_BODY_OUTPUT);
 					}
@@ -5391,7 +5437,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (checkForChangesInConfigFile == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "checkForChangesInConfigFile")) {
 				if (checkForChangesInConfigFile == null) {
-					String cFc = ConfigFactoryImpl.getAttr(root, "checkForChanges");
+					String cFc = ConfigFactoryImpl.getAttr(this, root, "checkForChanges");
 					if (!StringUtil.isEmpty(cFc, true)) {
 						checkForChangesInConfigFile = Caster.toBoolean(cFc.trim(), Boolean.FALSE);
 					}
@@ -5418,7 +5464,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (externalizeStringGTE == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getExternalizeStringGTE")) {
 				if (externalizeStringGTE == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "externalizeStringGte");
+					String str = ConfigFactoryImpl.getAttr(this, root, "externalizeStringGte");
 					if (Decision.isNumber(str)) {
 						externalizeStringGTE = Caster.toIntValue(str, -1);
 					}
@@ -5476,8 +5522,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 				}
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 
 			if (list == null) loggers.clear();
 			else {
@@ -5575,7 +5620,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getHandleUnQuotedAttrValueAsString")) {
 				if (handleUnQuotedAttrValueAsString == null) {
 					// Handle Unquoted Attribute Values As String
-					String str = ConfigFactoryImpl.getAttr(root, "handleUnquotedAttributeValueAsString");
+					String str = ConfigFactoryImpl.getAttr(this, root, "handleUnquotedAttributeValueAsString");
 					if (str != null && Decision.isBoolean(str)) {
 						handleUnQuotedAttrValueAsString = Caster.toBooleanValue(str, true);
 					}
@@ -5605,7 +5650,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					HashMap<Integer, Object> map = new HashMap<Integer, Object>();
 					for (int i = 0; i < ConfigPro.CACHE_TYPES.length; i++) {
 						try {
-							String cw = ConfigFactoryImpl.getAttr(root, "cachedWithin" + StringUtil.ucFirst(ConfigPro.STRING_CACHE_TYPES[i]));
+							String cw = ConfigFactoryImpl.getAttr(this, root, "cachedWithin" + StringUtil.ucFirst(ConfigPro.STRING_CACHE_TYPES[i]));
 							if (!StringUtil.isEmpty(cw, true)) map.put(ConfigPro.CACHE_TYPES[i], cw.trim());
 						}
 						catch (Throwable t) {
@@ -5652,8 +5697,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (salt == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getSalt")) {
 				if (salt == null) {
-					String salt = ConfigFactoryImpl.getAttr(root, "salt");
-					if (StringUtil.isEmpty(salt, true)) salt = ConfigFactoryImpl.getAttr(root, "adminSalt");
+					String salt = ConfigFactoryImpl.getAttr(this, root, "salt");
+					if (StringUtil.isEmpty(salt, true)) salt = ConfigFactoryImpl.getAttr(this, root, "adminSalt");
 					// salt (every context need to have a salt)
 					if (StringUtil.isEmpty(salt, true)) throw new RuntimeException("context is invalid, there is no salt!");
 					this.salt = salt.trim();
@@ -5780,7 +5825,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getQueueMax")) {
 				if (queueMax == -1) {
 					Integer max = Caster.toInteger(SystemUtil.getSystemPropOrEnvVar("lucee.queue.max", null), null);
-					if (max == null) max = Caster.toInteger(ConfigFactoryImpl.getAttr(root, "requestQueueMax"), null);
+					if (max == null) max = Caster.toInteger(ConfigFactoryImpl.getAttr(this, root, "requestQueueMax"), null);
 					queueMax = Caster.toIntValue(max, 100);
 				}
 			}
@@ -5805,7 +5850,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getQueueTimeout")) {
 				if (queueTimeout == -1) {
 					Long timeout = Caster.toLong(SystemUtil.getSystemPropOrEnvVar("lucee.queue.timeout", null), null);
-					if (timeout == null) timeout = Caster.toLong(ConfigFactoryImpl.getAttr(root, "requestQueueTimeout"), null);
+					if (timeout == null) timeout = Caster.toLong(ConfigFactoryImpl.getAttr(this, root, "requestQueueTimeout"), null);
 					queueTimeout = Caster.toLongValue(timeout, 0L);
 				}
 			}
@@ -5830,7 +5875,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getQueueEnable")) {
 				if (queueEnable == null) {
 					Boolean enable = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.queue.enable", null), null);
-					if (enable == null) enable = Caster.toBoolean(ConfigFactoryImpl.getAttr(root, "requestQueueEnable"), null);
+					if (enable == null) enable = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, root, "requestQueueEnable"), null);
 					queueEnable = Caster.toBooleanValue(enable, false);
 				}
 			}
@@ -5854,7 +5899,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (cgiScopeReadonly == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getCGIScopeReadonly")) {
 				if (cgiScopeReadonly == null) {
-					String strCGIReadonly = ConfigFactoryImpl.getAttr(root, "cgiScopeReadOnly");
+					String strCGIReadonly = ConfigFactoryImpl.getAttr(this, root, "cgiScopeReadOnly");
 					if (!StringUtil.isEmpty(strCGIReadonly, true)) {
 						cgiScopeReadonly = Caster.toBooleanValue(strCGIReadonly.trim(), true);
 					}
@@ -6007,7 +6052,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (fullNullSupport == null) {
 					boolean fns = false;
 					String str = SystemUtil.getSystemPropOrEnvVar("lucee.full.null.support", null);
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, new String[] { "nullSupport", "fullNullSupport" });
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, new String[] { "nullSupport", "fullNullSupport" });
 
 					if (!StringUtil.isEmpty(str, true)) {
 						fns = Caster.toBooleanValue(str, false);
@@ -6051,7 +6096,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getCachedAfterTimeRange")) {
 				if (initCachedAfterTimeRange) {
 					TimeSpan ts = null;
-					String ca = ConfigFactoryImpl.getAttr(root, "cachedAfter");
+					String ca = ConfigFactoryImpl.getAttr(this, root, "cachedAfter");
 					if (!StringUtil.isEmpty(ca)) ts = Caster.toTimespan(ca, null);
 					if (ts != null && ts.getMillis() > 0) cachedAfterTimeRange = ts;
 					initCachedAfterTimeRange = false;
@@ -6089,6 +6134,18 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (startups != null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getStartups")) {
 				if (startups != null) {
+					// Call finalize() on existing startup hook instances before clearing
+					for (Startup startup: startups.values()) {
+						try {
+							Method fin = Reflector.getMethod(startup.instance.getClass(), "finalize", new Class[0], true, null);
+							if (fin != null) {
+								fin.invoke(startup.instance, new Object[0]);
+							}
+						}
+						catch (Exception e) {
+							// ignore - best effort cleanup
+						}
+					}
 					startups = null;
 				}
 			}
@@ -6123,7 +6180,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (preciseMath == null) {
 					boolean pm = false;
 					String str = SystemUtil.getSystemPropOrEnvVar("lucee.precise.math", null);
-					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "preciseMath");
+					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(this, root, "preciseMath");
 
 					if (!StringUtil.isEmpty(str, true)) {
 						pm = Caster.toBooleanValue(str, false);
@@ -6163,7 +6220,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 							mainLoggerName = mainLogger.trim();
 						}
 						else {
-							mainLogger = ConfigFactoryImpl.getAttr(root, "mainLogger");
+							mainLogger = ConfigFactoryImpl.getAttr(this, root, "mainLogger");
 							if (!StringUtil.isEmpty(mainLogger, true)) {
 								mainLoggerName = mainLogger.trim();
 							}
@@ -6197,7 +6254,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (formUrlAsStruct == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getFormUrlAsStruct")) {
 				if (formUrlAsStruct == null) {
-					String str = ConfigFactoryImpl.getAttr(root, "formUrlAsStruct");
+					String str = ConfigFactoryImpl.getAttr(this, root, "formUrlAsStruct");
 					if (!StringUtil.isEmpty(str, true)) {
 						formUrlAsStruct = Caster.toBoolean(str.trim(), Boolean.TRUE);
 					}
@@ -6225,7 +6282,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (returnFormat == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getReturnFormat")) {
 				if (returnFormat == null) {
-					String strRF = ConfigFactoryImpl.getAttr(root, "returnFormat");
+					String strRF = ConfigFactoryImpl.getAttr(this, root, "returnFormat");
 					if (!StringUtil.isEmpty(strRF, true)) returnFormat = UDFUtil.toReturnFormat(strRF, UDF.RETURN_FORMAT_WDDX);
 					else returnFormat = UDF.RETURN_FORMAT_WDDX;
 				}
@@ -6266,6 +6323,17 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			}
 		}
 		return javaSettings;
+	}
+
+	public ConfigImpl resetJavaSettings() {
+		if (javaSettings != null) {
+			synchronized (javaSettingsInstances) {
+				if (javaSettings != null) {
+					javaSettings = null;
+				}
+			}
+		}
+		return this;
 	}
 
 	@Override
@@ -6338,11 +6406,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		baseComponentPageSource = null;
 	}
 
-	public void resetAll() throws IOException {
+	public void resetAll() throws Exception {
 		resetAll(null);
 	}
 
-	public void resetAll(ResetFilter filter) throws IOException {
+	public void resetAll(ResetFilter filter) throws Exception {
 		List<Method> methods = Reflector.getMethods(this.getClass());
 		if (filter == null) {
 			for (Method method: methods) {

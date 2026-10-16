@@ -4,7 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 	}
 	function run( testResults , testBox ) {
 		describe( 'Running hql query' , function() {
-			it('With OrmExecuteQuery',  function( currentSpec ) {
+			it( title='With OrmExecuteQuery', skip=noOrm(), body=function( currentSpec ) {
 				local.uri=createURI("LDEV1214/index.cfm");
 				local.result=_InternalRequest(
 					template:uri
@@ -26,5 +26,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

@@ -22,10 +22,12 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.util.Calendar;
 import java.util.TimeZone;
 
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.dt.TimestampImpl;
 
 public final class TimeCast implements Cast {
 
@@ -40,8 +42,18 @@ public final class TimeCast implements Cast {
 		Time t = useTimeZone ? rst.getTime(columnIndex, JREDateTimeUtil.getThreadCalendar(tz)) : rst.getTime(columnIndex);
 		if (t == null) return null;
 
-		return new DateTimeImpl(t.getTime());
+		return Cast.JDBC_DATETIME_FORMAT ? new TimestampImpl(t, t.toString()) : new DateTimeImpl(t.getTime());
 
+	}
+
+	@Override
+	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex, Calendar cal) throws SQLException, IOException {
+		if (!useTimeZone || cal == null) {
+			return toCFType( tz, rst, columnIndex );
+		}
+		Time t = rst.getTime( columnIndex, cal );
+		if (t == null) return null;
+		return new DateTimeImpl( t.getTime() );
 	}
 
 }

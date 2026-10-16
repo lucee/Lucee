@@ -3,10 +3,13 @@ package lucee.runtime.security;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.IOUtil;
@@ -31,11 +34,13 @@ public class FileSecretProvider extends SecretProviderSupport {
 	private Resource res;
 	private Map<String, String> data;
 	private int type;
+	// private boolean readonly;
 
 	@Override
 	public void init(Config config, Struct properties, String name) throws PageException {
 		super.init(config, properties, name);
 		caseSensitive = Caster.toBooleanValue(properties.get("caseSensitive", null), false);
+		// readonly = Caster.toBooleanValue(properties.get("readonly", null), true);
 
 		boolean doThrow = false;
 		String type = Caster.toString(properties.get("type", null), null);
@@ -50,7 +55,7 @@ public class FileSecretProvider extends SecretProviderSupport {
 
 		// data
 		String strFile = Caster.toStringTrim(properties.get(KeyConstants._file, null), null);
-		if (Util.isEmpty(strFile, true)) throw new ApplicationException("the property [file] containg the secrets is required for the File secrets provider");
+		if (Util.isEmpty(strFile, true)) throw new ApplicationException("the property [file] containing the secrets is required for the File secrets provider");
 		res = ResourceUtil.toResourceExisting(config, strFile);
 		init();
 	}
@@ -118,6 +123,21 @@ public class FileSecretProvider extends SecretProviderSupport {
 	@Override
 	public void refresh() throws PageException {
 		init();
+	}
+
+	@Override
+	public void setSecret(String key, String value) throws PageException {
+		throw new ApplicationException("The File secret provider is read-only at runtime.");
+	}
+
+	@Override
+	public void removeSecret(String key) throws PageException {
+		throw new ApplicationException("The File secret provider is read-only at runtime.");
+	}
+
+	@Override
+	public List<String> listSecretNames() throws PageException {
+		return new ArrayList<>(new TreeSet<>(data.keySet()));
 	}
 
 	private static String toType(int type, String defaultValue) {

@@ -140,8 +140,8 @@ public class StructImpl extends StructSupport {
 	}
 
 	/**
-	 * Calculate optimal initial capacity for a struct with known size.
-	 * Accounts for HashMap's default load factor (0.75) to avoid resize operations.
+	 * Calculate optimal initial capacity for a struct with known size. Accounts for HashMap's default
+	 * load factor (0.75) to avoid resize operations.
 	 *
 	 * @param size expected number of entries
 	 * @param min minimum capacity (should be power of 2)
@@ -355,7 +355,7 @@ public class StructImpl extends StructSupport {
 
 	@Override
 	public int hashCode() {
-		return super.hashCode();
+		return map.hashCode();
 	}
 
 	@Override

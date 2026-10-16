@@ -4,42 +4,42 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	}
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4285", function() {
-			it( title="entityLoad() with positional argument(name)", body=function( currentSpec ) {
+			it( title="entityLoad() with positional argument(name)", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { Scene = 1 }
 				);
 				expect(result.filecontent.trim()).toBe(true);
 			});
-			it( title="entityLoad() with positional arguments(name, idOrFilter)", body=function( currentSpec ) {
+			it( title="entityLoad() with positional arguments(name, idOrFilter)", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { Scene = 2 }
 				);
 				expect(result.filecontent.trim()).toBe(true);
 			});
-			it( title="entityLoad() with positional arguments(name, idOrFilter, uniqueOrOrder)", body=function( currentSpec ) {
+			it( title="entityLoad() with positional arguments(name, idOrFilter, uniqueOrOrder)", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { Scene = 3 }
 				);
 				expect(result.filecontent.trim()).toBe(true);
 			});
-			it( title="entityLoad() with positional arguments(name, idOrFilter, uniqueOrOrder, options)", body=function( currentSpec ) {
+			it( title="entityLoad() with positional arguments(name, idOrFilter, uniqueOrOrder, options)", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { Scene = 4 }
 				);
 				expect(result.filecontent.trim()).toBe(true);
 			});
-			it( title="entityLoad() with named arguments(name, idOrFilter, uniqueOrOrder, options)", body=function( currentSpec ) {
+			it( title="entityLoad() with named arguments(name, idOrFilter, uniqueOrOrder, options)", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { Scene = 5 }
 				);
 				expect(result.filecontent.trim()).toBe(true);
 			});
-			it( title="entityLoad() with named arguments(name, idOrFilter, options)", body=function( currentSpec ) {
+			it( title="entityLoad() with named arguments(name, idOrFilter, options)", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { Scene = 6 }
@@ -53,14 +53,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 				);
 				expect(result.filecontent.trim()).toBe(true);
 			});
-			it( title="entityLoad() with named arguments(name, options)", body=function( currentSpec ) {
+			it( title="entityLoad() with named arguments(name, options)", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { Scene = 8 }
 				);
 				expect(result.filecontent.trim()).toBe(true);
 			});
-				it( title="entityLoad() with named arguments(name, uniqueOrOrder)", body=function( currentSpec ) {
+				it( title="entityLoad() with named arguments(name, uniqueOrOrder)", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { Scene = 9 }
@@ -79,5 +79,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	private string function createURI( string calledName ) {
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrentTemplatePath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

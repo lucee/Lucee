@@ -21,11 +21,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"	{
 	//public function setUp(){}
 
 	public void function testThisDataSource(){
+		if (noOrm()) return;
 		local.uri=createURI("LDEV0338_1/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals("",result.filecontent.trim());
 	}
 	public void function testORMSettingsDataSource(){
+		if (noOrm()) return;
 		local.uri=createURI("LDEV0338_2/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals("",result.filecontent.trim());
@@ -35,5 +37,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"	{
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
 	}
-} 
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
+	}
+}
 </cfscript>

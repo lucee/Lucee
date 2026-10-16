@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread"{
     
     function beforeAll() {
         variables.threadPrefix = "testThread_" & createUUID();

@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.type;
 
@@ -47,15 +47,20 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	private static final long HSTART = 0xBB40E64DA205B064L;
 	private static final long HMULT = 7664345821815920749L;
 
-	private static final int MAX = Caster.toInteger(SystemUtil.getSystemPropOrEnvVar("lucee.cache.variableKeys", null), 5000);
+	private static final int MAX = Caster.toInteger(SystemUtil.getSystemPropOrEnvVar("lucee.cache.variableKeys", null), 50000);
 
-	// private boolean intern;
+	// Reference fields (8 bytes each) - group together to minimize padding
 	private String key;
 	private transient String lcKey;
 	private transient String ucKey;
-	private transient int wjh;
-	private transient int sfm = -1;
+
+	// long field (8 bytes)
 	private transient long h64;
+
+	// int field (4 bytes)
+	private transient int wjh;
+
+	// static field
 	private static Map<String, Key> keys = new HashMap<String, Key>();
 
 	public KeyImpl() {
@@ -115,16 +120,6 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 		return wjh;
 	}
 
-	public int slotForMap() {
-		if (sfm == -1) {
-			int h = 0;
-			h ^= hashCode();
-			h ^= (h >>> 20) ^ (h >>> 12);
-			sfm = h ^ (h >>> 7) ^ (h >>> 4);
-		}
-		return sfm;
-	}
-
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		out.writeObject(key);
@@ -139,7 +134,7 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 
 	/**
 	 * only used in KeyConstants
-	 * 
+	 *
 	 * @param key
 	 * @return
 	 */
@@ -151,7 +146,7 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 
 	/**
 	 * literal values set in source code
-	 * 
+	 *
 	 * @param key
 	 * @return
 	 */
@@ -166,7 +161,7 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	}
 
 	/**
-	 * 
+	 *
 	 * used to create the keys for the method initKeys()
 	 */
 	public static Collection.Key initKeys(String key) {
@@ -179,7 +174,7 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 
 	/**
 	 * for dynamic loading of key objects
-	 * 
+	 *
 	 * @param string
 	 * @return
 	 */
@@ -188,7 +183,7 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	}
 
 	/**
-	 * 
+	 *
 	 * used to inside the rest of the source created, can be dynamic values, so a lot
 	 */
 	public static Collection.Key source(String key) {
@@ -469,29 +464,29 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 
 	/*
 	 * public static void main(String[] args) throws Exception { // KeyConstants._percentage
-	 * 
+	 *
 	 * modify(ResourcesImpl.getFileResourceProvider().getResource(
 	 * "/Users/mic/Projects/Lucee/Lucee6/core/src/main/java/lucee"));
-	 * 
+	 *
 	 * }
-	 * 
+	 *
 	 * private static void modify(Resource resource) throws IOException { boolean stop = false; for
 	 * (Resource r: resource.listResources()) { if (r.isDirectory()) modify(r); if
 	 * (r.getAbsolutePath().endsWith(".java")) {
-	 * 
+	 *
 	 * String content = IOUtil.toString(r, "UTF-8"); String result = null; int start = -1, end; while
 	 * ((start = content.indexOf("KeyImpl.getInstance(\"", start + 1)) != -1) { end =
 	 * content.indexOf("\")", start + 22); if (end > start) { String k = content.substring(start + 21,
 	 * end); if (KeyConstants.getFieldName(k) == null) print.e("public static final Key _" + k +
 	 * " = KeyImpl._const(\"" + k + "\");"); result = content = content.substring(0, start) +
 	 * "KeyConstants._" + k + content.substring(end + 2);
-	 * 
+	 *
 	 * stop = true;
-	 * 
+	 *
 	 * // print.e(content);
-	 * 
+	 *
 	 * start = end; } else break;
-	 * 
+	 *
 	 * } if (result != null) IOUtil.write(r, result, "UTF-8", false); // if (stop) throw new
 	 * IOException("www"); } } }
 	 */

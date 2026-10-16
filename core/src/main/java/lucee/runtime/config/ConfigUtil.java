@@ -37,8 +37,8 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
-import lucee.commons.io.res.type.compress.CompressResource;
-import lucee.commons.io.res.type.compress.CompressResourceProvider;
+import lucee.commons.io.res.type.zip.ZipResource;
+import lucee.commons.io.res.type.zip.ZipResourceProvider;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
@@ -56,6 +56,7 @@ import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
@@ -69,6 +70,7 @@ import lucee.runtime.net.http.ServletConfigDummy;
 import lucee.runtime.net.http.ServletContextDummy;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.security.SecretProviderFactory;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -94,6 +96,11 @@ public final class ConfigUtil {
 	 * @param str
 	 * @return
 	 */
+	public static CharSequence decrypt(CharSequence str) {
+		if (str instanceof String) return str;
+		return decrypt(str);
+	}
+
 	public static String decrypt(String str) {
 		if (StringUtil.isEmpty(str) || !StringUtil.startsWithIgnoreCase(str, "encrypted:")) return str;
 		str = str.substring(10);
@@ -200,7 +207,8 @@ public final class ConfigUtil {
 
 		Resource rel = directory.getRealResource(path);
 		Resource abs = config.getResource(path);
-		boolean isChildOf = abs.getParentResource().getParentResource() != null && ResourceUtil.isChildOf(abs, directory);
+		Resource absParent = abs.getParentResource();
+		boolean isChildOf = absParent != null && absParent.getParentResource() != null && ResourceUtil.isChildOf(abs, directory);
 
 		for (short level: new short[] { ResourceUtil.LEVEL_PARENT_FILE, ResourceUtil.LEVEL_GRAND_PARENT_FILE, ResourceUtil.LEVEL_ALL }) {
 			if (!StringUtil.isEmpty(path, true)) {
@@ -489,8 +497,7 @@ public final class ConfigUtil {
 
 	public static void checkGeneralReadAccess(ConfigPro config, Password password) throws SecurityException {
 		SecurityManager sm = config.getSecurityManager();
-		short access = sm.getAccess(SecurityManager.TYPE_ACCESS_READ);
-		if (config instanceof ConfigServer) access = SecurityManager.ACCESS_PROTECTED;
+		short access = toGeneralAccess(config, sm.getAccess(SecurityManager.TYPE_ACCESS_READ));
 		if (access == SecurityManager.ACCESS_PROTECTED) {
 			checkPassword(config, "read", password);
 		}
@@ -502,15 +509,19 @@ public final class ConfigUtil {
 	public static void checkGeneralWriteAccess(ConfigPro config, Password password) throws SecurityException {
 		SecurityManager sm = config.getSecurityManager();
 		if (sm == null) return;
-		short access = sm.getAccess(SecurityManager.TYPE_ACCESS_WRITE);
-
-		if (config instanceof ConfigServer) access = SecurityManager.ACCESS_PROTECTED;
+		short access = toGeneralAccess(config, sm.getAccess(SecurityManager.TYPE_ACCESS_WRITE));
 		if (access == SecurityManager.ACCESS_PROTECTED) {
 			checkPassword(config, "write", password);
 		}
 		else if (access == SecurityManager.ACCESS_CLOSE) {
 			throw new SecurityException("can't access, write access is disabled");
 		}
+	}
+
+	private static short toGeneralAccess(ConfigPro config, short access) {
+		// there is no higher context left that could reopen a closed server context, so "closed" falls back to "password protected" there
+		if (config instanceof ConfigServer && access == SecurityManager.ACCESS_CLOSE) return SecurityManager.ACCESS_PROTECTED;
+		return access;
 	}
 
 	public static void checkPassword(ConfigPro config, String type, Password password) throws SecurityException {
@@ -767,24 +778,24 @@ public final class ConfigUtil {
 		return rst;
 	}
 
-	public static Object replaceConfigPlaceHolders(Object obj) {
+	public static Object replaceConfigPlaceHolders(Config config, Object obj) {
 		if (obj == null) return obj;
 
 		// handle simple value
 		if (Decision.isSimpleValue(obj)) {
-			if (obj instanceof CharSequence) return replaceConfigPlaceHolder(obj.toString());
+			if (obj instanceof CharSequence) return replaceConfigPlaceHolder(config, obj.toString());
 			return obj;
 		}
 
 		// handle collection
 		if (obj instanceof lucee.runtime.type.Collection) {
-			return replaceConfigPlaceHolders((lucee.runtime.type.Collection) obj);
+			return replaceConfigPlaceHolders(config, (lucee.runtime.type.Collection) obj);
 		}
 
 		return obj;
 	}
 
-	public static lucee.runtime.type.Collection replaceConfigPlaceHolders(lucee.runtime.type.Collection data) {
+	public static lucee.runtime.type.Collection replaceConfigPlaceHolders(Config config, lucee.runtime.type.Collection data) {
 		if (data == null) return data;
 
 		lucee.runtime.type.Collection repl;
@@ -795,21 +806,27 @@ public final class ConfigUtil {
 		Entry<Key, Object> e;
 		while (it.hasNext()) {
 			e = it.next();
-			repl.setEL(e.getKey(), replaceConfigPlaceHolders(e.getValue()));
+			repl.setEL(e.getKey(), replaceConfigPlaceHolders(config, e.getValue()));
 		}
 		return repl;
 	}
 
-	public static String replaceConfigPlaceHolder(String v) {
+	public static String replaceConfigPlaceHolderX(String v) {
+		return replaceConfigPlaceHolder(null, v);
+	}
+
+	public final static String replaceConfigPlaceHolder(Config config, String v) {
 		if (StringUtil.isEmpty(v) || v.indexOf('{') == -1) return v;
 
-		int s = -1, e = -1, d = -1;
+		int s = -1, e = -1, d = -1, sec = -1;
 		int prefixLen, start = -1, end;
-		String _name, _prop;
+		String _name;
+		CharSequence _prop;
 		while ((s = v.indexOf("{system:", start)) != -1 | /* don't change */
 				(e = v.indexOf("{env:", start)) != -1 | /* don't change */
-				(d = v.indexOf("${", start)) != -1) {
-			boolean isSystem = false, isDollar = false;
+				(d = v.indexOf("${", start)) != -1 | /* don't change */
+				(sec = v.indexOf("{secret:", start)) != -1) {
+			boolean isSystem = false, isDollar = false, isSecret = false;
 			// system
 			if (s > -1 && (e == -1 || e > s)) {
 				start = s;
@@ -820,6 +837,12 @@ public final class ConfigUtil {
 			else if (e > -1) {
 				start = e;
 				prefixLen = 5;
+			}
+			// secret
+			else if (sec > -1) {
+				start = sec;
+				prefixLen = 8;
+				isSecret = true;
 			}
 			// dollar
 			else {
@@ -832,7 +855,23 @@ public final class ConfigUtil {
 			if (end > prefixLen) {
 				_name = v.substring(start + prefixLen, end);
 				// print.edate(_name);
-				if (isDollar) {
+				if (isSecret) {
+
+					String[] _parts = _name.split(":");
+					try {
+						if (config == null) throw new ApplicationException("cannot use secret in this context");
+						if (_parts.length == 1) {
+							_prop = SecretProviderFactory.getSecret(ThreadLocalPageContext.getConfig(config), null, _parts[0], true);
+						}
+						else {
+							_prop = SecretProviderFactory.getSecret(ThreadLocalPageContext.getConfig(config), _parts[0], _parts[1], true);
+						}
+					}
+					catch (PageException pe) {
+						throw new PageRuntimeException(pe);
+					}
+				}
+				else if (isDollar) {
 					String[] _parts = _name.split(":");
 					_prop = SystemUtil.getSystemPropOrEnvVar(_parts[0], (_parts.length > 1) ? _parts[1] : null);
 				}
@@ -858,7 +897,7 @@ public final class ConfigUtil {
 		return getAsArray(child, getAsStruct(parent, sct));
 	}
 
-	public static Array getAsArray(Struct input, boolean replacePlaceholders, String... names) {
+	public static Array getAsArray(Config config, Struct input, boolean replacePlaceholders, String... names) {
 		Array arr = null;
 		if (input == null) return arr;
 
@@ -875,10 +914,10 @@ public final class ConfigUtil {
 			input.put(names[0], arr);
 			return arr;
 		}
-		return replacePlaceholders ? (Array) replaceConfigPlaceHolders(arr) : arr;
+		return replacePlaceholders ? (Array) replaceConfigPlaceHolders(config, arr) : arr;
 	}
 
-	public static Struct getAsStruct(Struct input, boolean allowCSSString, String... names) {
+	public static Struct getAsStruct(Config config, Struct input, boolean allowCSSString, String... names) {
 		Struct sct = null;
 		if (input == null) return sct;
 
@@ -894,7 +933,7 @@ public final class ConfigUtil {
 			for (String name: names) {
 				obj = input.get(name, null);
 				if (obj instanceof CharSequence && !StringUtil.isEmpty(obj.toString(), true)) {
-					sct = toStruct(obj.toString().trim());
+					sct = toStruct(config, obj.toString().trim());
 					if (!sct.isEmpty()) break;
 				}
 			}
@@ -906,10 +945,10 @@ public final class ConfigUtil {
 			input.put(names[0], sct);
 			return sct;
 		}
-		return (Struct) replaceConfigPlaceHolders(sct);
+		return (Struct) replaceConfigPlaceHolders(config, sct);
 	}
 
-	public static Struct toStruct(String str) {
+	public static Struct toStruct(Config config, String str) {
 
 		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		try {
@@ -917,7 +956,7 @@ public final class ConfigUtil {
 			String[] item;
 			for (int i = 0; i < arr.length; i++) {
 				item = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(arr[i], '='));
-				if (item.length == 2) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), replaceConfigPlaceHolder(URLDecoder.decode(item[1], true)));
+				if (item.length == 2) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), replaceConfigPlaceHolder(config, URLDecoder.decode(item[1], true)));
 				else if (item.length == 1) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), "");
 			}
 		}
@@ -976,7 +1015,7 @@ public final class ConfigUtil {
 	 * @return
 	 * @throws PageException
 	 */
-	public static Array getAsArray(Struct input, boolean convertStructToArray, Key convertKey, Key stringKey, boolean replacePlaceHolder, String... names) {
+	public static Array getAsArray(Config config, Struct input, boolean convertStructToArray, Key convertKey, Key stringKey, boolean replacePlaceHolder, String... names) {
 		Array arr = null;
 		if (input == null) return arr;
 
@@ -1034,7 +1073,7 @@ public final class ConfigUtil {
 			return arr;
 		}
 
-		if (replacePlaceHolder) return (Array) replaceConfigPlaceHolders(arr);
+		if (replacePlaceHolder) return (Array) replaceConfigPlaceHolders(config, arr);
 
 		return arr;
 	}
@@ -1312,10 +1351,17 @@ public final class ConfigUtil {
 			}
 		}
 		Mapping[] thisMappings = config.getMappings();
+		// LDEV-6483 the root mapping is the one with virtual "/", not the last one. The server config has no "/" mapping
+		// and its mappings have no defined order, so the last mapping (e.g. /lucee-server) was never checked
+		Mapping rootMapping = rootApp;
 
 		// config mappings
-		for (int i = 0; i < thisMappings.length - 1; i++) {
+		for (int i = 0; i < thisMappings.length; i++) {
 			mapping = thisMappings[i];
+			if ("/".equals(mapping.getVirtual())) {
+				if (rootMapping == null) rootMapping = mapping;
+				continue;
+			}
 			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
 				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
 				if (onlyPhysicalExisting) {
@@ -1325,9 +1371,8 @@ public final class ConfigUtil {
 			}
 		}
 
-		if (useDefaultMapping) {
-			if (rootApp != null) mapping = rootApp;
-			else mapping = thisMappings[thisMappings.length - 1];
+		if (useDefaultMapping && (rootMapping != null || thisMappings.length > 0)) {
+			mapping = rootMapping != null ? rootMapping : thisMappings[thisMappings.length - 1];
 
 			ps = mapping.getPageSource(realPath);
 			if (onlyPhysicalExisting) {
@@ -1353,9 +1398,10 @@ public final class ConfigUtil {
 						}
 					}
 					// Archive
-					if (m.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
+					if (m.hasArchive() && res.getResourceProvider() instanceof ZipResourceProvider) {
 						Resource archive = m.getArchive();
-						CompressResource cr = ((CompressResource) res);
+
+						ZipResource cr = ((ZipResource) res);
 						if (archive.equals(cr.getCompressResource())) {
 							return m.getPageSource(cr.getCompressPath());
 						}
@@ -1374,9 +1420,9 @@ public final class ConfigUtil {
 					}
 				}
 				// Archive
-				if (m.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
+				if (m.hasArchive() && res.getResourceProvider() instanceof ZipResourceProvider) {
 					Resource archive = m.getArchive();
-					CompressResource cr = ((CompressResource) res);
+					ZipResource cr = ((ZipResource) res);
 					if (archive.equals(cr.getCompressResource())) {
 						return m.getPageSource(cr.getCompressPath());
 					}
@@ -1404,9 +1450,9 @@ public final class ConfigUtil {
 					}
 				}
 				// Archive
-				if (mapping.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
+				if (mapping.hasArchive() && res.getResourceProvider() instanceof ZipResourceProvider) {
 					Resource archive = mapping.getArchive();
-					CompressResource cr = ((CompressResource) res);
+					ZipResource cr = ((ZipResource) res);
 					if (archive.equals(cr.getCompressResource())) {
 						return mapping.getPageSource(cr.getCompressPath());
 					}
@@ -1426,9 +1472,9 @@ public final class ConfigUtil {
 				}
 			}
 			// Archive
-			if (mapping.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
+			if (mapping.hasArchive() && res.getResourceProvider() instanceof ZipResourceProvider) {
 				Resource archive = mapping.getArchive();
-				CompressResource cr = ((CompressResource) res);
+				ZipResource cr = ((ZipResource) res);
 				if (archive.equals(cr.getCompressResource())) {
 					return mapping.getPageSource(cr.getCompressPath());
 				}

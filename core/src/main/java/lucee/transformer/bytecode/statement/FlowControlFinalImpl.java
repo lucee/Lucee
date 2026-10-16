@@ -18,29 +18,57 @@
  **/
 package lucee.transformer.bytecode.statement;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.GeneratorAdapter;
+
+import lucee.transformer.TransformerException;
+import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.visitor.OnFinally;
 
 public final class FlowControlFinalImpl implements FlowControlFinal {
 
-	private Label entryLabel;
-	private Label gotoLabel;
-
-	public FlowControlFinalImpl() {
-		this.entryLabel = new Label();
-	}
+	// pairs of [entry label, label to go to after the finally code], one per distinct target
+	private final List<Label[]> entries = new ArrayList<Label[]>();
+	private OnFinally onFinally;
 
 	@Override
-	public void setAfterFinalGOTOLabel(Label gotoLabel) {
-		this.gotoLabel = gotoLabel;
-	}
-
-	@Override
-	public Label getAfterFinalGOTOLabel() {
-		return gotoLabel;
-	}
-
-	@Override
-	public Label getFinalEntryLabel() {
+	public Label getFinalEntryLabel(Label afterFinalGOTOLabel) {
+		for (Label[] entry: entries) {
+			if (entry[1] == afterFinalGOTOLabel) return entry[0];
+		}
+		Label entryLabel = new Label();
+		entries.add(new Label[] { entryLabel, afterFinalGOTOLabel });
 		return entryLabel;
+	}
+
+	@Override
+	public void writeOutFinalEntries(BytecodeContext bc) throws TransformerException {
+		if (entries.isEmpty()) return;
+		GeneratorAdapter ga = bc.getAdapter();
+		Label end = new Label();
+		ga.visitJumpInsn(Opcodes.GOTO, end); // ignore when coming not from break/continue/retry
+		// index loop instead of an iterator, an entry added while the finally code is written still gets written
+		Label[] entry;
+		for (int i = 0; i < entries.size(); i++) {
+			entry = entries.get(i);
+			ga.visitLabel(entry[0]);
+			onFinally.writeOut(bc);
+			ga.visitJumpInsn(Opcodes.GOTO, entry[1]);
+		}
+		ga.visitLabel(end);
+	}
+
+	@Override
+	public void setOnFinally(OnFinally onFinally) {
+		this.onFinally = onFinally;
+	}
+
+	@Override
+	public OnFinally getOnFinally() {
+		return onFinally;
 	}
 }

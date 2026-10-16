@@ -55,7 +55,7 @@ public final class BundleProvider {
 		put(mappingsFallback, "com.amazonaws.aws-java-sdk-osgi", new Info("com.amazonaws", "aws-java-sdk-osgi"));
 		put(mappingsFallback, "com.amazonaws.aws.java.sdk.support", new Info("com.amazonaws", "aws-java-sdk-support"));
 		put(mappingsFallback, "com.google.gson", new Info("com.google.code.gson", "gson"));
-		put(mappingsFallback, "com.launchdarkly.client", new Info("commons-codec", "commons-codec"));
+		put(mappingsFallback, "com.launchdarkly.client", new Info("org.lucee", "launchdarkly"));
 		put(mappingsFallback, "ehcache", new Info("net.sf.ehcache", "ehcache-core"));
 
 		put(mappingsFallback, "ESAPI", new Info("org.owasp.esapi", "esapi"));
@@ -171,7 +171,7 @@ public final class BundleProvider {
 		put(mappingsFallback, "junit-jupiter-params", new Info[0]);
 		put(mappingsFallback, "junit-platform-commons", new Info[0]);
 		put(mappingsFallback, "junit-platform-engine", new Info[0]);
-		put(mappingsFallback, "jython-standalone", new Info("com.carrotsearch", "java-sizeof"));
+		put(mappingsFallback, "jython-standalone", new Info("org.python", "jython-standalone"));
 		put(mappingsFallback, "log4j", new Info("log4j", "log4j"));
 		put(mappingsFallback, "lowagie.itext", new Info[0]);
 		put(mappingsFallback, "lucee.image.extension", new Info[0]);
@@ -226,6 +226,7 @@ public final class BundleProvider {
 		put(mappingsFallback, "org.apache.commons.net", new Info("commons-net", "commons-net"));
 		put(mappingsFallback, "org.apache.commons.pool", new Info("commons-pool", "commons-pool"));
 		put(mappingsFallback, "org.apache.commons.pool2", new Info("org.apache.commons", "commons-pool2"));
+		put(mappingsFallback, "org.apache.commons.text", new Info("org.apache.commons", "commons-text"));
 		put(mappingsFallback, "org.apache.felix.framework", new Info("org.apache.felix", "org.apache.felix.framework"));
 		put(mappingsFallback, "org.apache.fop", new Info[0]);
 		put(mappingsFallback, "org.apache.hadoop.zookeeper", new Info[0]);
@@ -252,7 +253,7 @@ public final class BundleProvider {
 		put(mappingsFallback, "org.hsqldb.hsqldb", new Info[0]);
 		put(mappingsFallback, "org.infinispan.client-hotrod", new Info("org.infinispan", "infinispan-client-hotrod"));
 		put(mappingsFallback, "org.infinispan.commons", new Info("org.lucee", "org.infinispan.commons"));
-		put(mappingsFallback, "org.infinispan.protostream", new Info("com.google.protobuf", "protobuf-java"));
+		put(mappingsFallback, "org.infinispan.protostream", new Info("org.infinispan.protostream", "protostream"));
 		put(mappingsFallback, "org.infinispan.query-dsl", new Info("org.infinispan", "infinispan-query-dsl"));
 		put(mappingsFallback, "org.infinispan.remote-query-client", new Info("org.infinispan", "infinispan-remote-query-client"));
 		put(mappingsFallback, "org.jboss.logging.jboss-logging", new Info("org.jboss.logging", "jboss-logging"));
@@ -269,9 +270,9 @@ public final class BundleProvider {
 		put(mappingsFallback, "org.lucee.aws-java-sdk-core", new Info("org.lucee", "aws-java-sdk-core"));
 		put(mappingsFallback, "org.lucee.aws-java-sdk-kms", new Info("org.lucee", "aws-java-sdk-kms"));
 		put(mappingsFallback, "org.lucee.aws-java-sdk-s3", new Info("org.lucee", "aws-java-sdk-s3"));
-		put(mappingsFallback, "org.lucee.aws-java-sdk-s3-all", new Info("org.lucee", "aws-jmespath-java"));
+		put(mappingsFallback, "org.lucee.aws-java-sdk-s3-all", new Info("org.lucee", "aws-java-sdk-s3-all"));
 		put(mappingsFallback, "org.lucee.aws-jmespath-java", new Info("org.lucee", "aws-jmespath-java"));
-		put(mappingsFallback, "org.lucee.aws-java-sdk-secretsmanager-all", new Info("org.lucee", "aws-java-sdk-core"));
+		put(mappingsFallback, "org.lucee.aws-java-sdk-secretsmanager-all", new Info("org.lucee", "awssecretsmanager"));
 		put(mappingsFallback, "org.lucee.aws-jmespath", new Info("org.lucee", "awsjmespath"));
 		put(mappingsFallback, "org.lucee.aws-secretsmanager", new Info("org.lucee", "awssecretsmanager"));
 		put(mappingsFallback, "org.lucee.axis", new Info("org.lucee", "axis"));
@@ -807,7 +808,7 @@ public final class BundleProvider {
 			index = q.indexOf('-');
 			String qra = index == -1 ? "" : q.substring(index + 1).trim();
 			String qrn = index == -1 ? q : q.substring(0, index);
-			int qr = Util.isEmpty(qln) ? Integer.MIN_VALUE : Integer.parseInt(qrn);
+			int qr = Util.isEmpty(qrn) ? Integer.MIN_VALUE : Integer.parseInt(qrn);
 
 			if (ql > qr) return 5;
 			if (ql < qr) return -5;

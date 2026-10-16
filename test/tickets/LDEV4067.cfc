@@ -5,28 +5,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4067", function() {
-			it( title="checking this scope calling from closure without ORM entity",  body=function( currentSpec ) {
+			it( title="checking this scope calling from closure without ORM entity", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\LDEV4067.cfm",
 					forms = {scene:1}
 				);
 				expect(trim(result.filecontent)).toBe("Michael");
 			});
-			it( title="checking variables scope calling from closure without ORM entity",  body=function( currentSpec ) {
+			it( title="checking variables scope calling from closure without ORM entity", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\LDEV4067.cfm",
 					forms = {scene:2}
 				);
 				expect(trim(result.filecontent)).toBe("Michael");
 			});
-			it( title="checking this scope calling from lambda without ORM entity",  body=function( currentSpec ) {
+			it( title="checking this scope calling from lambda without ORM entity", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\LDEV4067.cfm",
 					forms = {scene:3}
 				);
 				expect(trim(result.filecontent)).toBe("Michael");
 			});
-			it( title="checking variables scope calling from lambda without ORM entity",  body=function( currentSpec ) {
+			it( title="checking variables scope calling from lambda without ORM entity", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\LDEV4067.cfm",
 					forms = {scene:4}
@@ -68,5 +68,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
 	}
-	
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
+	}
+
 }

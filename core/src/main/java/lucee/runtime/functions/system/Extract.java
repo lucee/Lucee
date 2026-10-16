@@ -31,7 +31,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
 
 /**
- * Implements the CFML Function compress
+ * Implements the CFML Function extract (basic zip/gzip support)
  */
 public final class Extract implements Function {
 
@@ -39,35 +39,22 @@ public final class Extract implements Function {
 
 		boolean singleFileFormat = false;
 		strFormat = strFormat.trim().toLowerCase();
-		int format = CompressUtil.FORMAT_ZIP;
-		if (strFormat.equals("bzip")) {
-			format = CompressUtil.FORMAT_BZIP;
-			singleFileFormat = true;
-		}
-		else if (strFormat.equals("bzip2")) {
-			format = CompressUtil.FORMAT_BZIP2;
-			singleFileFormat = true;
+		int format;
+		if (strFormat.equals("zip")) {
+			format = CompressUtil.FORMAT_ZIP;
 		}
 		else if (strFormat.equals("gzip")) {
 			format = CompressUtil.FORMAT_GZIP;
 			singleFileFormat = true;
 		}
-		else if (strFormat.equals("tar")) format = CompressUtil.FORMAT_TAR;
-		else if (strFormat.equals("tbz")) format = CompressUtil.FORMAT_TBZ;
-		else if (strFormat.startsWith("tar.bz")) format = CompressUtil.FORMAT_TBZ;
-		else if (strFormat.equals("tbz2")) format = CompressUtil.FORMAT_TBZ2;
-		else if (strFormat.startsWith("tar.gz")) format = CompressUtil.FORMAT_TGZ;
-		else if (strFormat.equals("tgz")) format = CompressUtil.FORMAT_TGZ;
-		else if (strFormat.equals("zip")) format = CompressUtil.FORMAT_ZIP;
 		else throw new FunctionException(pc, "extract", 1, "format",
-				"invalid format definition [" + strFormat + "]," + " valid formats are [bzip, bzip2, gzip, tar, tbz (tar.bz), tbz2, tgz (tar.gz) and zip]");
+				"invalid format definition [" + strFormat + "], valid formats are [zip, gzip]. For additional formats (tar, tgz, bzip, etc.) install the compress extension.");
 
 		String[] arrSources = ListUtil.toStringArrayEL(ListUtil.listToArrayRemoveEmpty(strSource, ","));
 
 		Resource[] sources = new Resource[arrSources.length];
 		for (int i = 0; i < sources.length; i++) {
 			sources[i] = ResourceUtil.toResourceExisting(pc, arrSources[i]);
-			// FileUtil.toFileExisting(pc,arrSources[i]);
 			pc.getConfig().getSecurityManager().checkFileLocation(sources[i]);
 		}
 

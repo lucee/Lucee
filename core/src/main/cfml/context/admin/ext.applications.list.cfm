@@ -236,36 +236,6 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 		}
 	}
 
-	private function toVersionSortable(required string version) localMode=true {
-		version=unwrap(version.trim());
-		arr=listToArray(arguments.version,'.');
-
-		// OSGi compatible version
-		if(arr.len()==4 && isNumeric(arr[1]) && isNumeric(arr[2]) && isNumeric(arr[3])) {
-			try{ 
-				osgiVersion = variables.toOSGiVersion(version);
-				if (structCount(osgiVersion)) {
-					return variables.toOSGiVersion(version).sortable;
-				}
-			}
-			catch(local.e){
-				//systemOutput(version & " " & e.message, true);
-			};
-		}
-		rtn = "";
-		for (i = 1; i <= arrayLen(arr); i++) {
-			v = REReplace(arr[i], "[a-zA-Z-]", "", "all");
-			paddingLength = (i == 4) ? 4 : 5;
-			v = (len(v) < paddingLength) ? repeatString("0", paddingLength - len(v)) & v : v;
-			rtn &= (i == 1 ? "" : ".") & v;
-		}
-		if (arrayLen(arr) <= 3) {
-			rtn &= ".0000";
-		}
-		return rtn;
-	}
-
-
 </cfscript>
 
 

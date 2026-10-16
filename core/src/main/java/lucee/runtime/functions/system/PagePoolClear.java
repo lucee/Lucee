@@ -21,100 +21,33 @@
  */
 package lucee.runtime.functions.system;
 
-import java.util.Collection;
-import java.util.Iterator;
-
-import lucee.runtime.Mapping;
-import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigServer;
-import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebPro;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageSourcePool;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
-import lucee.runtime.ext.function.Function;
-import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.op.Caster;
 
-public final class PagePoolClear extends BIF implements Function {
+public final class PagePoolClear extends BIF {
 
 	private static final long serialVersionUID = -2777306151061026079L;
 
 	public static boolean call(PageContext pc) {
-		return call(pc, false);
+		return InspectTemplates.call(pc);
 	}
 
 	public static boolean call(PageContext pc, boolean force) {
 		if (!force) {
 			return InspectTemplates.call(pc);
 		}
-
-		clear(pc, null, false);
+		PageSourcePool.clearPages(pc.getConfig(), null, false);
 		return true;
-	}
-
-	public static void clear(PageContext pc, Config c, boolean unused) {
-		if (c instanceof ConfigServer) {
-			for (ConfigWeb cw: ((ConfigServer) c).getConfigWebs()) {
-				clear(pc, cw, unused);
-			}
-			return;
-		}
-
-		ConfigWebPro config;
-		pc = ThreadLocalPageContext.get(pc);
-		if (c == null) config = (ConfigWebPro) ThreadLocalPageContext.getConfig(pc);
-		else config = (ConfigWebPro) c;
-
-		// application context
-		if (pc != null) {
-			ApplicationContext ac = pc.getApplicationContext();
-			if (ac != null) {
-				clear(config, ac.getMappings(), unused);
-				clear(config, ac.getComponentMappings(), unused);
-				clear(config, ac.getCustomTagMappings(), unused);
-			}
-		}
-
-		// config
-		clear(config, config.getMappings(), unused);
-		clear(config, config.getCustomTagMappings(), unused);
-		clear(config, config.getComponentMappings(), unused);
-		clear(config, config.getFunctionMappings(), unused);
-		clear(config, config.getTagMappings(), unused);
-	}
-
-	public static void clear(Config config, Collection<Mapping> mappings, boolean unused) {
-		if (mappings == null) return;
-		Iterator<Mapping> it = mappings.iterator();
-		while (it.hasNext()) {
-			clear(config, it.next(), unused);
-		}
-	}
-
-	public static void clear(Config config, Mapping[] mappings, boolean unused) {
-		if (mappings == null) return;
-		for (int i = 0; i < mappings.length; i++) {
-			clear(config, mappings[i], unused);
-		}
-	}
-
-	public static void clear(Config config, Mapping mapping, boolean unused) {
-		if (mapping == null) return;
-		MappingImpl mi = (MappingImpl) mapping;
-		if (unused) {
-			mi.clearUnused();
-		}
-		else {
-			mi.clearPages(null);
-		}
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 0) return call(pc);
-		else throw new FunctionException(pc, "PagePoolClear", 0, 0, args.length);
+		if (args.length == 0) return call(pc, false);
+		else if (args.length == 1) return call(pc, Caster.toBooleanValue(args[0]));
+		else throw new FunctionException(pc, "PagePoolClear", 0, 1, args.length);
 	}
 }

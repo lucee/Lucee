@@ -165,9 +165,10 @@ public final class TagLibTagAttr {
 				Class clazz = tag.getTagClassDefinition().getClazz(null);
 				if (clazz != null) {
 					Method[] methods = clazz.getMethods();
+					String methodNameLower = methodName.toLowerCase();
 					for (int i = 0; i < methods.length; i++) {
 						Method method = methods[i];
-						if (method.getName().equalsIgnoreCase(methodName)) {
+						if (method.getName().toLowerCase().equals(methodNameLower)) {
 							Class[] types = method.getParameterTypes();
 							if (types.length == 1) {
 								Class type = types[0];
@@ -353,7 +354,7 @@ public final class TagLibTagAttr {
 	}
 
 	public void setValues(String valueList) {
-		if (tag.getName().equalsIgnoreCase("pop")) if (StringUtil.isEmpty(valueList, true)) return;
+		if (tag.getName().equals("pop")) if (StringUtil.isEmpty(valueList, true)) return;  // tag names are already lowercase
 		this.valueList = valueList;
 	}
 

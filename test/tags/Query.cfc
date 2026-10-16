@@ -272,8 +272,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			query name="local.qry" {
 				echo("select * from "&tbl);
 			}
-			assertTrue(qry.recordcount==1);
-			assertEquals(res,qry.id);
+			expect(qry.recordcount).toBe(1);
+			expect(qry.id).toBe(res);
 		}
 		finally {
 			dropTable(tbl);

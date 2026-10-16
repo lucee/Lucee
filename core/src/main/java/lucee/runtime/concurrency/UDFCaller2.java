@@ -90,7 +90,7 @@ public final class UDFCaller2<P> implements Callable<Data<P>> {
 				((ExecutionLogSupport) execLog).setSpawnOffsetNano(System.nanoTime() - parentPci.getStartTimeNS());
 			}
 		}
-		ThreadLocalPageContext.register(pc);
+		ThreadLocalPageContext.registerChild(pc);
 		pc.getRootOut().setAllowCompression(false); // make sure content is not compressed
 		String str = null;
 		Object result = null;

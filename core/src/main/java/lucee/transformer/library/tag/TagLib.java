@@ -64,8 +64,8 @@ public class TagLib implements Cloneable, Lib {
 	private String nameSpace;
 	private String nameSpaceSeperator = ":";
 	private ClassDefinition<? extends ExprTransformer> ELClass = EXPR_TRANSFORMER;
-	private Map<String, TagLibTag> tags = new ConcurrentHashMap<String, TagLibTag>();
-	private Map<String, TagLibTag> appendixTags = new ConcurrentHashMap<String, TagLibTag>();
+	private Map<String, TagLibTag> tags = new ConcurrentHashMap<String, TagLibTag>(512);
+	private Map<String, TagLibTag> appendixTags = new ConcurrentHashMap<String, TagLibTag>(64);
 	private ExprTransformer exprTransformer;
 
 	private char[] nameSpaceAndNameSpaceSeperator;
@@ -229,7 +229,7 @@ public class TagLib implements Cloneable, Lib {
 		tags.put(tag.getName(), tag);
 
 		if (tag.hasAppendix()) appendixTags.put(tag.getName(), tag);
-		else if (appendixTags.containsKey(tag.getName())) appendixTags.remove(tag.getName());
+		else appendixTags.remove(tag.getName());  // no-op if not present
 	}
 
 	/**
@@ -394,7 +394,7 @@ public class TagLib implements Cloneable, Lib {
 		if (deepCopy) throw new PageRuntimeException(new ExpressionException("deep copy not supported"));
 
 		Iterator<Entry<String, TagLibTag>> it = tags.entrySet().iterator();
-		Map<String, TagLibTag> cm = new ConcurrentHashMap<String, TagLibTag>();
+		Map<String, TagLibTag> cm = new ConcurrentHashMap<>(tags.size());
 		Entry<String, TagLibTag> entry;
 		while (it.hasNext()) {
 			entry = it.next();

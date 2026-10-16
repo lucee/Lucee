@@ -119,24 +119,6 @@ Path placeholders:
     	<!--
         arguments:
 		lock-timeout   - 	define how long a request wait for a lock
-		case-sensitive	-	is zip handled case-sensitive or not
-	 	-->
-    	<resource-provider 
-    		scheme="tar"
-    		class="lucee.commons.io.res.type.tar.TarResourceProvider"
-    		arguments="lock-timeout:1000;case-sensitive:true;"/>
-    	<!--
-        arguments:
-		lock-timeout   - 	define how long a request wait for a lock
-		case-sensitive	-	is zip handled case-sensitive or not
-	 	-->
-    	<resource-provider 
-    		scheme="tgz"
-    		class="lucee.commons.io.res.type.tgz.TGZResourceProvider"
-    		arguments="lock-timeout:1000;case-sensitive:true;"/>
-    	<!--
-        arguments:
-		lock-timeout   - 	define how long a request wait for a lock
 		case-sensitive	-	is http handled case-sensitive or not
 	 	-->
     	<resource-provider 

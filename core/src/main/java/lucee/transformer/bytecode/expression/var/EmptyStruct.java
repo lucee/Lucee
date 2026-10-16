@@ -45,6 +45,6 @@ public final class EmptyStruct extends ExpressionBase {
 	public void dump(Struct sct) {
 		super.dump(sct);
 		sct.setEL(KeyConstants._type, "ObjectExpression");
-		sct.setEL(KeyConstants._properties, new ArrayImpl());
+		sct.setEL(KeyConstants._properties, new ArrayImpl(8, false));
 	}
 }

@@ -87,6 +87,11 @@ public abstract class PageExceptionImpl extends PageException {
 	private String varName;
 	private boolean exposeMessage;
 
+	protected CatchBlockImpl catchBlock;
+
+	// LDEV-6282: dedup marker — debugger suspends once per exception regardless of which notify path fires first.
+	private transient volatile boolean debuggerNotified;
+
 	/**
 	 * Class Constructor
 	 * 
@@ -135,6 +140,13 @@ public abstract class PageExceptionImpl extends PageException {
 			this.setExtendedInfo(pe.getExtendedInfo());
 		}
 		this.type = type.trim();
+	}
+
+	// LDEV-6282: returns true if this call is the first to mark (caller should notify); false if already marked.
+	public synchronized boolean markDebuggerNotified() {
+		if (debuggerNotified) return false;
+		debuggerNotified = true;
+		return true;
 	}
 
 	private static String filterSecrets(String msg, int startIndex) {
@@ -217,7 +229,10 @@ public abstract class PageExceptionImpl extends PageException {
 
 	@Override
 	public CatchBlock getCatchBlock(Config config) {
-		return new CatchBlockImpl(this, 0);
+		if (catchBlock == null) {
+			catchBlock = new CatchBlockImpl(this, 0);
+		}
+		return catchBlock;
 	}
 
 	public Array getTagContext(Config config) {
@@ -309,8 +324,7 @@ public abstract class PageExceptionImpl extends PageException {
 					}
 				}
 			}
-			catch (Throwable th) {
-			}
+			catch (Throwable th) {}
 
 			// check last
 			if (tagContext.size() > 0) {
@@ -318,8 +332,7 @@ public abstract class PageExceptionImpl extends PageException {
 					Struct last = (Struct) tagContext.getE(tagContext.size());
 					if (last.get(KeyConstants._Raw_Trace).equals(trace.toString())) continue;
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 
 			item = new StructImpl();
@@ -400,8 +413,7 @@ public abstract class PageExceptionImpl extends PageException {
 		try {
 			ro.clearBuffer();
 		}
-		catch (IOException ioe) {
-		}
+		catch (IOException ioe) {}
 		if (gc == null) return "";
 		return gc;
 	}
@@ -409,7 +421,7 @@ public abstract class PageExceptionImpl extends PageException {
 	/**
 	 * @return return the file where the failure occurred
 	 */
-	private String getFile(Config config) {
+	public String getFile(Config config) {
 		if (getTagContext(config).size() == 0) return "";
 
 		Struct sct = (Struct) getTagContext(config).get(1, null);
@@ -528,8 +540,7 @@ public abstract class PageExceptionImpl extends PageException {
 				htmlBox.appendRow(1, new SimpleDumpData("Code"), code);
 
 			}
-			catch (PageException e) {
-			}
+			catch (PageException e) {}
 		}
 
 		// Java Stacktrace
@@ -682,6 +693,7 @@ public abstract class PageExceptionImpl extends PageException {
 	}
 
 	// keep this for backward compatibility to jakarta 10
+	@Override
 	public Throwable getRootCause() {
 		Throwable cause = this;
 		Throwable temp;

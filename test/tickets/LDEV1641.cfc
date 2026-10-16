@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1641", body=function() {
-			it(title="Checking ORM transaction, with larger id", body = function( currentSpec ) {
+			it(title="Checking ORM transaction, with larger id", skip="#noOrm()#", body = function( currentSpec ) {
 				var uri = createURI("LDEV1641/specs/test.cfm");
 				var result = _InternalRequest(
 					template:uri,
@@ -15,5 +15,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

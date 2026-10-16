@@ -81,17 +81,19 @@ public final class MissingIncludeException extends PageExceptionImpl {
 
 	@Override
 	public CatchBlock getCatchBlock(Config config) {
-		CatchBlock sct = super.getCatchBlock(config);
-		String mapping = "";
-		if (StringUtil.startsWith(pageSource.getRealpath(), '/')) {
-			mapping = pageSource.getMapping().getVirtual();
-			if (StringUtil.endsWith(mapping, '/')) mapping = mapping.substring(0, mapping.length() - 1);
-		}
-		sct.setEL(MISSING_FILE_NAME, mapping + pageSource.getRealpath());
+		if (catchBlock == null) {
+			CatchBlock sct = super.getCatchBlock(config);
+			String mapping = "";
+			if (StringUtil.startsWith(pageSource.getRealpath(), '/')) {
+				mapping = pageSource.getMapping().getVirtual();
+				if (StringUtil.endsWith(mapping, '/')) mapping = mapping.substring(0, mapping.length() - 1);
+			}
+			sct.setEL(MISSING_FILE_NAME, mapping + pageSource.getRealpath());
 
-		sct.setEL(MISSING_FILE_NAME_REL, mapping + pageSource.getRealpath());
-		sct.setEL(MISSING_FILE_NAME_ABS, pageSource.getDisplayPath());
-		return sct;
+			sct.setEL(MISSING_FILE_NAME_REL, mapping + pageSource.getRealpath());
+			sct.setEL(MISSING_FILE_NAME_ABS, pageSource.getDisplayPath());
+		}
+		return catchBlock;
 	}
 
 	@Override

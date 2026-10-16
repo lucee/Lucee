@@ -310,4 +310,9 @@ public final class ComponentScopeThis extends StructSupport implements Component
 	public boolean isBind() {
 		return true;
 	}
+
+	@Override
+	public final int hashCode() {
+		return java.util.Objects.hash(component);
+	}
 }

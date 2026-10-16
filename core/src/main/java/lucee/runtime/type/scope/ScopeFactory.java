@@ -18,60 +18,67 @@
  **/
 package lucee.runtime.type.scope;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Arrays;
 
+import lucee.commons.io.SystemUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.op.Caster;
 
 /**
- * creates Local and Argument scopes and recyle it
+ * creates Local and Argument scopes and recyle it.
+ * Per-PageContext instance; pools are single-threaded by design (PC owns one request thread at a time).
+ * LIFO ordering: most-recently-recycled scope is reused first (cache-friendly).
  */
 public final class ScopeFactory {
 
-	private static final int MAX_SIZE = 50;
+	private static final int MAX_SIZE;
+	private static final int INITIAL_SIZE;
+	static {
+		MAX_SIZE = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.scope.pool.maxsize", "50"), 50);
+		INITIAL_SIZE = Math.min(MAX_SIZE, 8);
+	}
 
-	int argumentCounter = 0;
-
-	private final ConcurrentLinkedQueue<Argument> arguments = new ConcurrentLinkedQueue<Argument>();
-	private final ConcurrentLinkedQueue<LocalImpl> locals = new ConcurrentLinkedQueue<LocalImpl>();
+	// Lazy-allocated LIFO stacks. Many ScopeFactory instances never recycle a scope; they pay nothing.
+	private Argument[] argPool;
+	private int argPoolTop = -1;
+	private LocalImpl[] localPool;
+	private int localPoolTop = -1;
 
 	/**
 	 * @return returns an Argument scope
 	 */
 	public Argument getArgumentInstance() {
-		Argument arg = arguments.poll();
-		if (arg != null) {
-			return arg;
-		}
-		return new ArgumentImpl();
+		return (argPoolTop < 0) ? new ArgumentImpl() : argPool[argPoolTop--];
 	}
 
 	/**
 	 * @return retruns a Local Instance
 	 */
 	public LocalImpl getLocalInstance() {
-		LocalImpl lcl = locals.poll();
-		if (lcl != null) {
-			return lcl;
-		}
-		return new LocalImpl();
+		return (localPoolTop < 0) ? new LocalImpl() : localPool[localPoolTop--];
 	}
 
 	/**
 	 * @param argument recycle an Argument scope for reuse
 	 */
 	public void recycle(PageContext pc, Argument argument) {
-		if (arguments.size() >= MAX_SIZE || argument.isBind()) return;
+		// isBind first: cheap field read, short-circuits captured-by-closure scopes (LDEV-3210)
+		if (argument.isBind() || argPoolTop + 1 >= MAX_SIZE) return;
 		argument.release(pc);
-		arguments.add(argument);
+		if (argPool == null) argPool = new Argument[INITIAL_SIZE];
+		else if (argPoolTop + 1 >= argPool.length) argPool = Arrays.copyOf(argPool, Math.min(argPool.length * 2, MAX_SIZE));
+		argPool[++argPoolTop] = argument;
 	}
 
 	/**
 	 * @param local recycle a Local scope for reuse
 	 */
 	public void recycle(PageContext pc, LocalImpl local) {
-		if (locals.size() >= MAX_SIZE || local.isBind()) return;
+		if (local.isBind() || localPoolTop + 1 >= MAX_SIZE) return;
 		local.release(pc);
-		locals.add(local);
+		if (localPool == null) localPool = new LocalImpl[INITIAL_SIZE];
+		else if (localPoolTop + 1 >= localPool.length) localPool = Arrays.copyOf(localPool, Math.min(localPool.length * 2, MAX_SIZE));
+		localPool[++localPoolTop] = local;
 	}
 
 	/**

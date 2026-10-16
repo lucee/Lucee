@@ -22,6 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	//public function setUp(){}
 
 	public void function testSimple(){
+		if (noOrm()) return;
 		local.uri=createURI("simple/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -29,6 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	}
 
 	public void function testClearSession() {
+		if (noOrm()) return;
 		local.uri=createURI("clearSession/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -36,6 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	}
 
 	public void function testMany2One() {
+		if (noOrm()) return;
 		local.uri=createURI("many2one/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -54,24 +57,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	}
 
 	public void function testMany2Many() {
+		if (noOrm()) return;
 		local.uri=createURI("many2many/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
 		assertEquals("moduleLangs:1;2;Tags:1;2;",trim(result.fileContent));
 	}
 	public void function testTransactionSave() {
+		if (noOrm()) return;
 		local.uri=createURI("transSave/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
 		assertEquals("1",trim(result.fileContent));
 	}
 	public void function testTransactionSaveExCommit() {
+		if (noOrm()) return;
 		local.uri=createURI("transSaveExCommit/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
 		assertEquals("1",trim(result.fileContent));
 	}
 	public void function testTransactionSaveFlush() {
+		if (noOrm()) return;
 		local.uri=createURI("transSaveFlush/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -84,14 +91,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 		assertEquals("1",trim(result.fileContent));
 	}*/
 	public void function testTransactionRollback() {
+		if (noOrm()) return;
 		local.uri=createURI("transRollback/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
 		assertEquals("0",trim(result.fileContent));
 	}
 
+	public void function testMappedSuperClass() {
+		if (noOrm()) return;
+		local.uri=createURI("mappedSuperClass/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("",trim(result.fileContent));
+	}
+
 	// ormSettings dialects tests
 	public void function testDialectMYSQL() skip="notHasMysql" {
+		if (noOrm()) return;
 		local.uri=createURI("testDialects/testMysql/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -99,6 +116,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	}
 
 	public void function testDialectMSSQL() skip="notHasMSSQL" {
+		if (noOrm()) return;
 		local.uri=createURI("testDialects/testMssql/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -106,6 +124,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	}
 
 	public void function testDialectPostgres() skip="notHasPostgres" {
+		if (noOrm()) return;
 		local.uri=createURI("testDialects/testPostgres/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -113,6 +132,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	}
 	
 	public void function testDialectH2() {
+		if (noOrm()) return;
 		local.uri=createURI("testDialects/testH2/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -134,6 +154,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	public boolean function notHasPostgres() {
 		return structCount(server.getDatasource("postgres")) == 0;
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 
 	public boolean function isHibernate54() {

@@ -3,7 +3,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pdf" {
 	function run( testResults , testBox ) {
 		describe( title="LDEV-5711 cfdocumentsection", body=function() {
 
-			xit(title="cfdocument with cfdocumentSection with marginTop", body = function( currentSpec ) {
+			it(title="cfdocument with cfdocumentSection with marginTop", body = function( currentSpec ) {
 				var tmpFile = getTempFile("", "ldev-5711", "pdf");
 				cfDocument(	overwrite=true,
 						filename = "#tmpFile#",

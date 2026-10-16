@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1793", body=function() {
-			it( title='Checking EntityLoadByPK() with ID value as Binary format',skip=isNotSupported(),body=function( currentSpec ) {
+			it( title='Checking EntityLoadByPK() with ID value as Binary format',skip=(noOrm() || isNotSupported()),body=function( currentSpec ) {
 				var uri = createURI("LDEV1793");
 				var result = _InternalRequest(
 					template:"#uri#/index.cfm"
@@ -29,5 +29,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 
 	private struct function getCredentials() {
 		return server.getDatasource("mysql");
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

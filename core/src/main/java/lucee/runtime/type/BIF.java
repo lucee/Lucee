@@ -106,6 +106,11 @@ public final class BIF extends MemberSupport implements UDFPlus {
 	}
 
 	@Override
+	protected final int hash() {
+		return java.util.Objects.hash(id, args);
+	}
+
+	@Override
 	public FunctionArgument[] getFunctionArguments() {
 		if (args == null) {
 			ArrayList<FunctionLibFunctionArg> src = flf.getArg();

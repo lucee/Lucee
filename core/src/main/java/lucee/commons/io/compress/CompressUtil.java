@@ -17,11 +17,6 @@
  */
 package lucee.commons.io.compress;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,15 +28,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
-
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.ModeUtil;
-import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
@@ -60,35 +47,11 @@ public final class CompressUtil {
 	 * Field <code>FORMAT_ZIP</code>
 	 */
 	public static final int FORMAT_ZIP = 0;
-	/**
-	 * Field <code>FORMAT_TAR</code>
-	 */
-	public static final int FORMAT_TAR = 1;
-	/**
-	 * Field <code>FORMAT_TGZ</code>
-	 */
-	public static final int FORMAT_TGZ = 2;
+
 	/**
 	 * Field <code>FORMAT_GZIP</code>
 	 */
 	public static final int FORMAT_GZIP = 3;
-	/**
-	 * Field <code>FORMAT_BZIP</code>
-	 */
-	public static final int FORMAT_BZIP = 4;
-	/**
-	 * Field <code>FORMAT_BZIP</code>
-	 */
-	public static final int FORMAT_BZIP2 = 4;
-
-	/**
-	 * Field <code>FORMAT_TBZ</code>
-	 */
-	public static final int FORMAT_TBZ = 5;
-	/**
-	 * Field <code>FORMAT_TBZ2</code>
-	 */
-	public static final int FORMAT_TBZ2 = 5;
 
 	/**
 	 * Constructor of the class
@@ -106,62 +69,8 @@ public final class CompressUtil {
 	 */
 	public static void extract(int format, Resource source, Resource target) throws IOException {
 		if (format == FORMAT_ZIP) extractZip(source, target);
-		else if (format == FORMAT_TAR) extractTar(source, target);
 		else if (format == FORMAT_GZIP) extractGZip(source, target);
-		else if (format == FORMAT_BZIP) extractBZip(source, target);
-		else if (format == FORMAT_TGZ) extractTGZ(source, target);
-		else if (format == FORMAT_TBZ) extractTBZ(source, target);
 		else throw new IOException("Can't extract in given format");
-	}
-
-	/*
-	 * public static void listt(int format, Resource source) throws IOException { if (format ==
-	 * FORMAT_ZIP) listZipp(source); // else if(format==FORMAT_TAR) listar(source); // else
-	 * if(format==FORMAT_GZIP)listGZip(source); // else if(format==FORMAT_TGZ) listTGZ(source); else
-	 * throw new IOException("can't list in given format, atm only zip files are supported"); }
-	 */
-
-	private static void extractTGZ(Resource source, Resource target) throws IOException {
-		// File tmpTarget = File.createTempFile("_temp","tmp");
-		Resource tmp = SystemUtil.getTempDirectory().getRealResource(System.currentTimeMillis() + ".tmp");
-		try {
-			// read Gzip
-			extractGZip(source, tmp);
-
-			// read Tar
-			extractTar(tmp, target);
-		}
-		finally {
-			tmp.delete();
-		}
-	}
-
-	private static void extractTBZ(Resource source, Resource target) throws IOException {
-		// File tmpTarget = File.createTempFile("_temp","tmp");
-		Resource tmp = SystemUtil.getTempDirectory().getRealResource(System.currentTimeMillis() + ".tmp");
-		try {
-			// read bzip
-			extractBZip(source, tmp);
-
-			// read Tar
-			extractTar(tmp, target);
-		}
-		finally {
-			tmp.delete();
-		}
-	}
-
-	private static void extractBZip(Resource source, Resource target) throws IOException {
-		InputStream is = null;
-		OutputStream os = null;
-		try {
-			is = new BZip2CompressorInputStream(IOUtil.toBufferedInputStream(source.getInputStream()));
-			os = IOUtil.toBufferedOutputStream(target.getOutputStream());
-			IOUtil.copy(is, os, false, false);
-		}
-		finally {
-			IOUtil.close(is, os);
-		}
 	}
 
 	private static void extractGZip(Resource source, Resource target) throws IOException {
@@ -188,47 +97,6 @@ public final class CompressUtil {
 	public static void extract(int format, Resource[] sources, Resource target) throws IOException {
 		for (int i = 0; i < sources.length; i++) {
 			extract(format, sources[i], target);
-		}
-	}
-
-	private static void extractTar(Resource tarFile, Resource targetDir) throws IOException {
-		if (!targetDir.exists() || !targetDir.isDirectory()) throw new IOException("[" + targetDir + "] is not an existing directory");
-
-		if (!tarFile.exists()) throw new IOException("[" + tarFile + "] is not an existing file");
-
-		if (tarFile.isDirectory()) {
-			Resource[] files = tarFile.listResources(new ExtensionResourceFilter("tar"));
-			if (files == null) throw new IOException("directory [" + tarFile + "] is empty");
-			extract(FORMAT_TAR, files, targetDir);
-			return;
-		}
-
-		// read the tar file and extract its contents
-		TarArchiveInputStream tis = null;
-		try {
-			tis = new TarArchiveInputStream(IOUtil.toBufferedInputStream(tarFile.getInputStream()));
-			TarArchiveEntry entry;
-			int mode;
-			while ((entry = tis.getNextTarEntry()) != null) {
-				// print.ln(entry);
-				Resource target = targetDir.getRealResource(entry.getName());
-				if (entry.isDirectory()) {
-					target.mkdirs();
-				}
-				else {
-					Resource parent = target.getParentResource();
-					if (!parent.exists()) parent.mkdirs();
-					IOUtil.copy(tis, target, false);
-				}
-				target.setLastModified(entry.getModTime().getTime());
-				mode = entry.getMode();
-				if (mode > 0) {
-					target.setMode(ModeUtil.extractPermissions(mode, false));
-				}
-			}
-		}
-		finally {
-			IOUtil.close(tis);
 		}
 	}
 
@@ -299,7 +167,6 @@ public final class CompressUtil {
 	 */
 	public static void compress(int format, Resource source, Resource target, boolean includeBaseFolder, int mode) throws IOException {
 		if (format == FORMAT_GZIP) compressGZip(source, target);
-		else if (format == FORMAT_BZIP2) compressBZip2(source, target);
 		else {
 			Resource[] sources = (!includeBaseFolder && source.isDirectory()) ? source.listResources() : new Resource[] { source };
 			compress(format, sources, target, mode);
@@ -318,64 +185,8 @@ public final class CompressUtil {
 	public static void compress(int format, Resource[] sources, Resource target, int mode) throws IOException {
 
 		if (format == FORMAT_ZIP) compressZip(sources, target, null);
-		else if (format == FORMAT_TAR) compressTar(sources, target, mode);
-		else if (format == FORMAT_TGZ) compressTGZ(sources, target, mode);
-		else if (format == FORMAT_TBZ2) compressTBZ2(sources, target, mode);
 
 		else throw new IOException("Can't compress in given format");
-	}
-
-	/**
-	 * compress a source file/directory to a tar/gzip file
-	 * 
-	 * @param sources
-	 * @param target
-	 * @param mode
-	 * @throws IOException
-	 */
-	public static void compressTGZ(Resource[] sources, Resource target, int mode) throws IOException {
-		File tmpTarget = File.createTempFile("_temp", ".tmp");
-		try {
-			// write Tar
-			OutputStream tmpOs = new FileOutputStream(tmpTarget);
-			try {
-				compressTar(sources, tmpOs, mode);
-			}
-			finally {
-				IOUtil.close(tmpOs);
-			}
-
-			// write Gzip
-			InputStream is = null;
-			OutputStream os = null;
-			try {
-				is = new FileInputStream(tmpTarget);
-				os = target.getOutputStream();
-				compressGZip(is, os);
-			}
-			finally {
-				IOUtil.close(is, os);
-			}
-		}
-		finally {
-			tmpTarget.delete();
-		}
-	}
-
-	/**
-	 * compress a source file/directory to a tar/bzip2 file
-	 * 
-	 * @param sources
-	 * @param target
-	 * @param mode
-	 * @throws IOException
-	 */
-	private static void compressTBZ2(Resource[] sources, Resource target, int mode) throws IOException {
-		// File tmpTarget = File.createTempFile("_temp","tmp");
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		compressTar(sources, baos, mode);
-		_compressBZip2(new ByteArrayInputStream(baos.toByteArray()), target.getOutputStream());
-		// tmpTarget.delete();
 	}
 
 	/**
@@ -408,45 +219,6 @@ public final class CompressUtil {
 		InputStream is = IOUtil.toBufferedInputStream(source);
 		if (!(target instanceof GZIPOutputStream)) target = new GZIPOutputStream(IOUtil.toBufferedOutputStream(target));
 		IOUtil.copy(is, target, true, true);
-	}
-
-	/**
-	 * compress a source file to a bzip2 file
-	 * 
-	 * @param source
-	 * @param target
-	 * @throws IOException
-	 */
-	private static void compressBZip2(Resource source, Resource target) throws IOException {
-		if (source.isDirectory()) {
-			throw new IOException("You can only create a BZIP File from a single source file, use TBZ (TAR-BZIP2) to first TAR multiple files");
-		}
-		InputStream is = null;
-		OutputStream os = null;
-		try {
-			is = source.getInputStream();
-			os = target.getOutputStream();
-		}
-		catch (IOException ioe) {
-			IOUtil.close(is, os);
-			throw ioe;
-		}
-
-		_compressBZip2(is, os);
-	}
-
-	/**
-	 * compress a source file to a bzip2 file
-	 * 
-	 * @param source
-	 * @param target
-	 * @throws IOException
-	 */
-	private static void _compressBZip2(InputStream source, OutputStream target) throws IOException {
-
-		InputStream is = IOUtil.toBufferedInputStream(source);
-		OutputStream os = new BZip2CompressorOutputStream(IOUtil.toBufferedOutputStream(target));
-		IOUtil.copy(is, os, true, true);
 	}
 
 	/**
@@ -508,73 +280,6 @@ public final class CompressUtil {
 				zos.closeEntry();
 			}
 			compressZip(parent, filter == null ? source.listResources() : source.listResources(filter), zos, filter);
-		}
-	}
-
-	/**
-	 * compress a source file/directory to a tar file
-	 * 
-	 * @param sources
-	 * @param target
-	 * @param mode
-	 * @throws IOException
-	 */
-	public static void compressTar(Resource[] sources, Resource target, int mode) throws IOException {
-		compressTar(sources, IOUtil.toBufferedOutputStream(target.getOutputStream()), mode);
-	}
-
-	public static void compressTar(Resource[] sources, OutputStream target, int mode) throws IOException {
-		if (target instanceof TarArchiveOutputStream) {
-			compressTar("", sources, (TarArchiveOutputStream) target, mode);
-			return;
-		}
-		TarArchiveOutputStream tos = new TarArchiveOutputStream(target);
-		tos.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
-		try {
-			compressTar("", sources, tos, mode);
-		}
-		finally {
-			IOUtil.close(tos);
-		}
-	}
-
-	public static void compressTar(String parent, Resource[] sources, TarArchiveOutputStream tos, int mode) throws IOException {
-
-		if (!StringUtil.isEmpty(parent)) parent += "/";
-		if (sources != null) {
-			for (int i = 0; i < sources.length; i++) {
-				compressTar(parent + sources[i].getName(), sources[i], tos, mode);
-			}
-		}
-	}
-
-	private static void compressTar(String parent, Resource source, TarArchiveOutputStream tos, int mode) throws IOException {
-		String _parent = parent;
-		if (!source.isFile() && parent.charAt(parent.length() - 1) != '/')
-			_parent += "/"; // indicates this is a directory
-
-		TarArchiveEntry entry = new TarArchiveEntry(_parent);
-
-		entry.setName(parent);
-		// mode
-		if (mode > 0) entry.setMode(ModeUtil.extractPermissions(mode, false));
-		else if (source.getMode() > 0) entry.setMode(ModeUtil.extractPermissions(source.getMode(), false));
-
-		if (source.isFile())
-			entry.setSize(source.length());
-		entry.setModTime(source.lastModified());
-		tos.putArchiveEntry(entry);
-		try {
-			if (source.isFile())
-				IOUtil.copy(source, tos, false);
-		}
-		finally {
-			tos.closeArchiveEntry();
-		}
-
-		if (source.isDirectory()) {
-			Resource[] sources = source.listResources();
-			compressTar(parent, sources, tos, mode);
 		}
 	}
 

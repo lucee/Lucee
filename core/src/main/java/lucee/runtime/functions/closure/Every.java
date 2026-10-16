@@ -72,23 +72,29 @@ public final class Every extends BIF implements ClosureFunc {
 	}
 
 	private static boolean _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
-
-		Thread thread = null;
-		ExecutorService execute = null;
-		List<Future<Data<Object>>> futures = null;
 		// 0 or less == default
 		if (maxThreads < 1) maxThreads = Each.DEFAULT_MAX_THREAD;
 		// 1 == not parallel
 		else if (maxThreads == 1) parallel = false;
 
-		if (parallel) {
-			execute = ThreadUtil.createExecutorService(maxThreads);
-			futures = new ArrayList<Future<Data<Object>>>();
-			thread = ((PageContextImpl) pc).getThread();
+		if (!parallel) return dispatch(pc, obj, udf, type, null, null);
+
+		ExecutorService execute = ThreadUtil.createExecutorService(maxThreads);
+		List<Future<Data<Object>>> futures = new ArrayList<Future<Data<Object>>>();
+		Thread thread = ((PageContextImpl) pc).getThread();
+		try {
+			// dispatch return is always true in async mode; afterCall produces the real result
+			dispatch(pc, obj, udf, type, execute, futures);
+			return afterCall(pc, futures);
 		}
+		finally {
+			// drain orphans so they can't race the caller's post-parallel state (LDEV-6395)
+			ThreadUtil.finishParallelSection(pc, execute, thread, futures);
+		}
+	}
 
+	private static boolean dispatch(PageContext pc, Object obj, UDF udf, short type, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
 		boolean res;
-
 		// !!!! Don't combine the first 3 ifs with the ifs below, type overrules instanceof check
 		// Array
 		if (type == TYPE_ARRAY) {
@@ -141,9 +147,6 @@ public final class Every extends BIF implements ClosureFunc {
 			res = invoke(pc, (StringListData) obj, udf, execute, futures);
 		}
 		else throw new FunctionException(pc, "Every", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
-
-		if (parallel) res = afterCall(pc, futures, execute, thread);
-
 		return res;
 	}
 
@@ -152,11 +155,12 @@ public final class Every extends BIF implements ClosureFunc {
 		Iterator it = (arr instanceof ArrayPro ? ((ArrayPro) arr).entryArrayIterator() : arr.entryIterator());
 		Entry e;
 
-		if (!it.hasNext()) return false; // array is empty or has only null values
+		// LDEV-3873 an empty array returns true (like an empty struct, query or list), an array with only null values stays false (LDEV-1271)
+		if (!it.hasNext()) return arr.size() == 0;
 
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), e.getValue(), es, futures);
@@ -173,7 +177,7 @@ public final class Every extends BIF implements ClosureFunc {
 		boolean async = es != null;
 		double r;
 		Object res, row;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		try {
 			while (it.hasNext()) {
 				row = it.next();
@@ -197,7 +201,7 @@ public final class Every extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), e.getValue(), es, futures);
@@ -214,7 +218,7 @@ public final class Every extends BIF implements ClosureFunc {
 		Object res, v;
 		int index;
 		ArgumentIntKey k;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			index = it.nextIndex();
 			k = ArgumentIntKey.init(index);
@@ -230,7 +234,7 @@ public final class Every extends BIF implements ClosureFunc {
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue(), sct }, e.getKey(), e.getValue(), es, futures);
@@ -244,7 +248,7 @@ public final class Every extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey(), e.getValue(), map }, e.getKey(), e.getValue(), es, futures);
@@ -259,7 +263,7 @@ public final class Every extends BIF implements ClosureFunc {
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue() }, e.getKey(), e.getValue(), es, futures);
@@ -275,7 +279,7 @@ public final class Every extends BIF implements ClosureFunc {
 		Object res;
 		int count = 0;
 		ArgumentIntKey k;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			v = it.next();
 			k = ArgumentIntKey.init(++count);
@@ -292,7 +296,7 @@ public final class Every extends BIF implements ClosureFunc {
 		Object res;
 		int count = 0;
 		ArgumentIntKey k;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (e.hasMoreElements()) {
 			v = e.nextElement();
 			k = ArgumentIntKey.init(++count);
@@ -311,7 +315,7 @@ public final class Every extends BIF implements ClosureFunc {
 		return null;
 	}
 
-	public static boolean afterCall(PageContext pc, List<Future<Data<Object>>> futures, ExecutorService es, Thread thread) throws PageException {
+	public static boolean afterCall(PageContext pc, List<Future<Data<Object>>> futures) throws PageException {
 		try {
 			Iterator<Future<Data<Object>>> it = futures.iterator();
 			Data<Object> d;
@@ -324,10 +328,6 @@ public final class Every extends BIF implements ClosureFunc {
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
-		}
-		finally {
-			((PageContextImpl) pc).setThread(thread);
-			if (es != null) es.shutdown();
 		}
 	}
 

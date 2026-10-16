@@ -1,10 +1,16 @@
 package lucee.runtime.ai;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import lucee.commons.io.log.LogUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 
 public abstract class AIEngineSupport implements AIEngine {
@@ -71,5 +77,20 @@ public abstract class AIEngineSupport implements AIEngine {
 		catch (Exception e) {
 			return defaultValue;
 		}
+	}
+
+	protected static Map<String, String> toHeaders(Struct struct) throws PageException {
+		if (struct == null || struct.isEmpty()) {
+			return new HashMap<>();
+		}
+		Map<String, String> map = new HashMap<>();
+		Iterator<Entry<Key, Object>> it = struct.entryIterator();
+		Entry<Key, Object> e;
+		while (it.hasNext()) {
+			e = it.next();
+			map.put(e.getKey().getString(), Caster.toString(e.getValue()));
+		}
+
+		return map;
 	}
 }

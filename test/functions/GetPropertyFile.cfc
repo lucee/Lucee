@@ -36,13 +36,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}).toThrow();
 			});
 
-			xit("respects the specified encoding", function() {
-				var utf16FilePath = GetDirectoryFromPath(GetCurrentTemplatePath()) & "utf16.properties";
-				fileWrite(utf16FilePath, toBinary(toBase64("key=value")), "UTF-16");
+			it("respects the specified encoding", function() {
+				var utf16FilePath = getTempFile( getTempDirectory(), "getPropertyFileEnc", "properties" );
+				fileWrite( utf16FilePath, "key=caf" & chr( 233 ), "UTF-16" );
 
-				expect(getPropertyString(utf16FilePath, "key", "UTF-16")).toBe("value");
+				var st = getPropertyFile( utf16FilePath, "UTF-16" );
+				expect( st ).toHaveKey( "key" );
+				expect( st[ "key" ] ).toBe( "caf" & chr( 233 ) );
 
-				fileDelete(utf16FilePath);
+				fileDelete( utf16FilePath );
 			});
 		});
 	}

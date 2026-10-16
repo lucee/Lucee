@@ -56,6 +56,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.Config;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.SQL;
@@ -107,6 +108,7 @@ public final class SimpleQuery implements Query, ResultSet, Objects, QueryResult
 	private long exeTime;
 	private int recordcount;
 	private ArrayInt arrCurrentRow = new ArrayInt();
+	private String cacheId;
 	private String cacheType;
 	private int updateCount;
 	private DatasourceConnection dc;
@@ -2211,6 +2213,17 @@ public final class SimpleQuery implements Query, ResultSet, Objects, QueryResult
 	}
 
 	@Override
+	public String getCacheId(Collection arguments, String defaultValue) {
+		// for query we need no arguments for the cache
+		return cacheId;
+	}
+
+	@Override
+	public void setCacheId(String cacheId) {
+		this.cacheId = cacheId;
+	}
+
+	@Override
 	public String getCacheType() {
 		return cacheType;
 	}
@@ -2234,6 +2247,11 @@ public final class SimpleQuery implements Query, ResultSet, Objects, QueryResult
 		catch (SQLException e) {
 			throw new DatabaseException(e, dc);
 		}
+	}
+
+	@Override
+	public int getCachetype() {
+		return Config.CACHE_TYPE_QUERY;
 	}
 
 }

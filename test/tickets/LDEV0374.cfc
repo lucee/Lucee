@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 	public function run( testResults , testBox ) {
 		describe( title="Testing date functions & its equivalent member functions for ORM entity's date", body=function() {
-			it(title="Testing dateDiff function", body=function( currentSpec ) {
+			it( title="Testing dateDiff function", skip=noOrm(), body=function( currentSpec ) {
 				local.uri = createURI("LDEV0374/test.cfm");
 				// Dummy request
 				local.result = _InternalRequest(
@@ -22,7 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 				assertEquals("4", local.result.fileContent.trim());
 			});
 
-			it(title="Testing dateDiff's equivalent member function", body=function( currentSpec ) {
+			it( title="Testing dateDiff's equivalent member function", skip=noOrm(), body=function( currentSpec ) {
 				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
@@ -34,7 +34,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 				assertEquals("4", local.result.fileContent.trim());
 			});
 
-			it(title="Testing dateDiff function with formatted date", body=function( currentSpec ) {
+			it( title="Testing dateDiff function with formatted date", skip=noOrm(), body=function( currentSpec ) {
 				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
@@ -46,7 +46,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 				assertEquals("4", local.result.fileContent.trim());
 			});
 
-			it(title="Testing dateDiff's equivalent member function function with formatted date", body=function( currentSpec ) {
+			it( title="Testing dateDiff's equivalent member function function with formatted date", skip=noOrm(), body=function( currentSpec ) {
 				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
@@ -58,7 +58,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 				assertEquals("4", local.result.fileContent.trim());
 			});
 
-			it(title="Testing dateCompare function", body=function( currentSpec ) {
+			it( title="Testing dateCompare function", skip=noOrm(), body=function( currentSpec ) {
 				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
@@ -70,7 +70,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 				assertEquals("-1", local.result.fileContent.trim());
 			});
 
-			it(title="Testing dateCompare's equivalent member function", body=function( currentSpec ) {
+			it( title="Testing dateCompare's equivalent member function", skip=noOrm(), body=function( currentSpec ) {
 				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
@@ -82,7 +82,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 				assertEquals("-1", local.result.fileContent.trim());
 			});
 
-			it(title="Testing dateCompare function with formatted date", body=function( currentSpec ) {
+			it( title="Testing dateCompare function with formatted date", skip=noOrm(), body=function( currentSpec ) {
 				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
@@ -94,7 +94,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 				assertEquals("-1", local.result.fileContent.trim());
 			});
 
-			it(title="Testing dateCompare's equivalent member function with formatted date", body=function( currentSpec ) {
+			it( title="Testing dateCompare's equivalent member function with formatted date", skip=noOrm(), body=function( currentSpec ) {
 				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
@@ -111,5 +111,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 	private string function createURI(string calledName){
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI & "" & calledName;
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

@@ -81,7 +81,7 @@ public class TemplateException extends PageExceptionImpl {
 	 * @param message
 	 */
 	public TemplateException(SourceCode sc, String message) {
-		this(getPageSource(sc), sc.getLine(), sc.getColumn(), message);
+		this(getPageSource(sc), sc.getLine(), sc.getColumn(), message + ", at [" + sc.getLine() + ":" + sc.getColumn() + "] in [" + sc.getLineAsString() + "]");
 	}
 
 	public TemplateException(SourceCode sc, int line, int column, String message) {

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="guard" {
 	function run( testResults , testBox ) {
 		describe( "test case for EncodeForDN", function() {
 			it(title = "Checking EncodeForDN() function", body = function( currentSpec ) {

@@ -195,6 +195,16 @@ public final class ResourceUtil {
 	}
 	// private static Magic mimeTypeParser;
 
+	public static Resource toResourceExisting(PageContext pc, String path, Resource defaultValue) {
+		try {
+			return toResourceExisting(pc, path);
+		}
+		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+			return defaultValue;
+		}
+	}
+
 	/**
 	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) file must exist otherwise
@@ -206,6 +216,14 @@ public final class ResourceUtil {
 	 * @throws ExpressionException
 	 */
 	public static Resource toResourceExisting(PageContext pc, String path) throws ExpressionException {
+		if (pc == null) {
+			pc = ThreadLocalPageContext.get();
+			if (pc == null) {
+				Config c = ThreadLocalPageContext.getConfig();
+				if (c != null) return toResourceExisting(c, path);
+				return ResourcesImpl.getFileResourceProvider().getResource(path);
+			}
+		}
 		return toResourceExisting(pc, path, pc.getConfig().allowRealPath());
 	}
 

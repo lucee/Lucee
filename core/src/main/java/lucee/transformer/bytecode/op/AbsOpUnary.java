@@ -110,8 +110,12 @@ public abstract class AbsOpUnary extends ExpressionBase {
 		 * (susi.sorglos++ or variables.susi++)
 		 */
 		if ((scope == null && size > 1) || (scope != null && size > 0)) {
-			Member last = var.removeMember(members.size() - 1);
+			// BUGFIX: Don't permanently remove member - just get a copy for processing
+			// The original removeMember() was destructive and corrupted shared Variable objects
+			Member last = members.get(members.size() - 1);
 			if (!(last instanceof DataMember)) throw new TransformerException(bc, "you cannot use a unary operator with a function " + last.getClass().getName(), getStart());
+			// Remove member temporarily for 4-arg method processing
+			var.removeMember(members.size() - 1);
 
 			// if (operation == Factory.OP_UNARY_CONCAT || operation == Factory.OP_UNARY_MULTIPLY || operation
 			// == Factory.OP_UNARY_PLUS || operation == Factory.OP_UNARY_MINUS
@@ -143,6 +147,10 @@ public abstract class AbsOpUnary extends ExpressionBase {
 				else if (operation == Factory.OP_UNARY_MULTIPLY) adapter.invokeStatic(Types.OP_UTIL, UNARY_PRE_MULTIPLY4);
 				else if (operation == Factory.OP_UNARY_CONCAT) adapter.invokeStatic(Types.OP_UTIL, UNARY_PRE_CONCAT4);
 			}
+
+			// BUGFIX: Restore the removed member to prevent corruption of shared Variable objects
+			// This ensures finally blocks can access the same variable without "members empty" corruption
+			var.addMember(last);
 
 			if (operation == Factory.OP_UNARY_CONCAT) return Types.STRING;
 
@@ -237,13 +245,13 @@ public abstract class AbsOpUnary extends ExpressionBase {
 		sct.setEL(KeyConstants._prefix, (type == Factory.OP_UNARY_PRE) ? Boolean.TRUE : Boolean.FALSE);
 		// variable
 		{
-			Struct sctVar = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctVar = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			var.dump(sctVar);
 			sct.setEL(KeyConstants._variable, sctVar);
 		}
 		// value
 		{
-			Struct sctVal = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctVal = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			value.dump(sctVal);
 			sct.setEL(KeyConstants._value, sctVal);
 		}

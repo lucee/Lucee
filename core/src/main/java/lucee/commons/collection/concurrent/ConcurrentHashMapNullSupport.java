@@ -90,6 +90,37 @@ import lucee.runtime.type.util.StructSupport;
  * @author Doug Lea
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
+ *
+ * <p><b>Why this class has its original name back (LDEV-6288):</b></p>
+ *
+ * <p>This is the original pre-7.1 segmented {@code ConcurrentHashMapNullSupport}
+ * implementation, restored under its original fully-qualified name. LDEV-5098 in 7.1
+ * replaced this class with a thin JDK-backed wrapper that kept the same simple name
+ * but bumped {@code serialVersionUID} from {@code …397L} to {@code …398L} and
+ * fundamentally changed the field layout (segmented {@code Segment[]} vs. a single
+ * {@code Map<K,Object> delegate}). That break made any pre-7.1 serialised session
+ * data — {@code objectSave}/{@code objectLoad} blobs, application-scope persistence,
+ * clustered session replication — fail with {@code InvalidClassException} on first
+ * read after upgrade.</p>
+ *
+ * <p>LDEV-6288 fixes this by:</p>
+ * <ol>
+ *   <li>Restoring the original implementation under its original name (this class).</li>
+ *   <li>Renaming the JDK-backed wrapper to {@link ConcurrentHashMapNullSupportJDK}.</li>
+ *   <li>Routing in {@link MapFactory}: default mode returns {@code …JDK}; legacy mode
+ *       (system property {@code lucee.concurrent.map.impl=legacy}) returns this class.</li>
+ * </ol>
+ *
+ * <p>Effect on the wire: pre-7.1 streams find this class waiting for them, with the
+ * matching UID and field shape, and deserialise transparently. 7.1.0.X-pre-fix
+ * snapshots that serialised against the bumped UID will fail to deserialise — that's
+ * an accepted casualty since the snapshots weren't released for production use.</p>
+ *
+ * <p>Operational note: when {@code legacy} mode is set, this class is the active
+ * backing map for every default-flavour CFML struct. Slightly slower than the JDK
+ * default (~3-8% on struct microbenchmarks) but bug-for-bug compatible with iteration
+ * order from 7.0 and earlier — the diagnostic tool for confirming whether a 7.1
+ * regression is genuinely an ordering-assumption bug in user code.</p>
  */
 public final class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implements Serializable {
 	private static final long serialVersionUID = 7249069246763182397L;

@@ -112,7 +112,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	public static final int RETURN_TYPE_STRUCT = 3;
 	public static final int RETURN_TYPE_STORED_PROC = 4;
 
-	private static final boolean USE_LOCAL_SCOPE = Caster.toBooleanValue( SystemUtil.getSystemPropOrEnvVar( "lucee.tag.populate.localscope", "true" ), true );
+	private static final boolean USE_LOCAL_SCOPE = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.tag.populate.localscope", "true"), true);
+	private static final boolean QOQ_CASE_SENSITIVE_DEFAULT = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.caseSensitive", "false"), false);
 
 	public boolean orgPSQ;
 	public boolean hasChangedPSQ;
@@ -345,11 +346,34 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	/**
 	 * set the value dbtype The database driver type.
-	 * 
-	 * @param dbtype value to set
+	 *
+	 * @param dbtype value to set — accepts a string or a struct with keys: type, caseSensitive, engine
 	 **/
-	public void setDbtype(String dbtype) {
-		data.dbtype = dbtype.toLowerCase();
+	public void setDbtype(Object dbtype) throws PageException {
+		applyDbtype(data, dbtype, true);
+	}
+
+	/**
+	 * Parse a dbtype value (string or struct) and apply it to the QueryBean.
+	 *
+	 * @param data    target QueryBean
+	 * @param dbtype  string or struct value
+	 * @param require if true, the struct "type" key is required; if false, it is optional
+	 */
+	private static void applyDbtype(QueryBean data, Object dbtype, boolean require) throws PageException {
+		if (dbtype instanceof Struct) {
+			Struct sct = (Struct) dbtype;
+			String type = require ? Caster.toString(sct.get(KeyConstants._type)) : Caster.toString(sct.get(KeyConstants._type, null), null);
+			if (!StringUtil.isEmpty(type)) data.dbtype = type.toLowerCase();
+			Boolean cs = Caster.toBoolean(sct.get("caseSensitive", null), null);
+			if (cs != null) data.qoqCaseSensitive = cs;
+			String eng = Caster.toString(sct.get("engine", null), null);
+			if (!StringUtil.isEmpty(eng)) data.qoqEngine = eng.toLowerCase();
+		}
+		else {
+			String str = require ? Caster.toString(dbtype).toLowerCase() : Caster.toString(dbtype, null);
+			if (str != null && !StringUtil.isEmpty(str)) data.dbtype = str.toLowerCase();
+		}
 	}
 
 	/**
@@ -570,6 +594,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 		SQL sqlQuery = null;
 		long exe = 0;
+		String cacheId = null;
+
 		try {
 			// cannot use attribute params and queryparam tag
 
@@ -588,7 +614,6 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			// lucee.runtime.type.Query query=null;
 			QueryResult queryResult = null;
 			String cacheHandlerId = null;
-			String cacheId = null;
 
 			final long now = System.currentTimeMillis();
 
@@ -667,6 +692,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				if ("query".equals(data.dbtype)) {
 					QueryImpl q = executeQoQ(pageContext, data, sqlQuery, tl);
 					q.setTemplateLine(tl);
+					if (data.indexName != null) q.index(data.indexName);
 					if (data.returntype == RETURN_TYPE_ARRAY) queryResult = QueryArray.toQueryArray(q); // TODO this should be done in queryExecute
 																										// itself so
 					// we not have to convert afterwards
@@ -675,6 +701,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 						queryResult = QueryStruct.toQueryStruct(q, data.columnName); // TODO this should be done in
 						// queryExecute itself so we not
 						// have to convert // afterwards
+
 					}
 					else queryResult = q;
 				}
@@ -698,10 +725,11 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 						}
 						if (data.result != null) {
 							long time = System.nanoTime() - start;
-							Struct sct = new StructImpl();
+							Struct sct = new StructImpl(Struct.TYPE_REGULAR, 8);
 							sct.setEL(KeyConstants._cached, Boolean.FALSE);
 							sct.setEL(KeyConstants._executionTime, Caster.toDouble(time / 1000000));
 							sct.setEL(KeyConstants._executionTimeNano, Caster.toDouble(time));
+							if (cacheId != null) sct.setEL(KeyConstants._cachedWithinId, cacheId);
 							sct.setEL(KeyConstants._SQL, sqlQuery.getSQLString());
 
 							if (!Decision.isArray(obj)) sct.setEL(KeyConstants._RECORDCOUNT, Caster.toDouble(1));
@@ -720,6 +748,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 					if (cacheItem != null) {
 						try {
 							cacheHandler.set(pageContext, cacheId, data.cachedWithin, cacheItem);
+							queryResult.setCacheId(cacheId);
 						}
 						catch (PageException pe) {
 							LogUtil.log(pageContext, "query", pe);
@@ -730,6 +759,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 			else {
 				queryResult.setCacheType(cacheHandlerId);
+				queryResult.setCacheId(cacheId);
 			}
 
 			if (PageContextUtil.debug(pageContext) && data.debug) {
@@ -754,7 +784,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 
 			// Result
-			Struct meta = createMetaData(pageContext, data, queryResult, sqlQuery, setVars, exe);
+			Struct meta = createMetaData(pageContext, data, queryResult, sqlQuery, setVars, exe, cacheId);
 
 			// listener
 			((ConfigWebPro) pageContext.getConfig()).getActionMonitorCollector().log(pageContext, "query", "Query", exe, queryResult);
@@ -775,7 +805,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				args.set(KeyConstants._exception, pe.getCatchBlock(pageContext.getConfig()));
 				ResMeta rm = writeBackResult(pageContext, data, data.listener.error(pageContext, args), setVars);
 				if (data.result == null || (rm.meta == null && rm.asQueryResult() != null))
-					rm.meta = createMetaData(pageContext, data, rm.asQueryResult(), null, setVars, exe + (System.nanoTime() - addExe));
+					rm.meta = createMetaData(pageContext, data, rm.asQueryResult(), null, setVars, exe + (System.nanoTime() - addExe), cacheId);
 				callAfter(pageContext, data, strSQL, tl, true, rm.res, rm.meta, setVars);
 			}
 			else throw pe;
@@ -798,10 +828,11 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		}
 	}
 
-	private static Struct createMetaData(PageContext pageContext, QueryBean data, QueryResult queryResult, SQL sqlQuery, boolean setVars, long exe) throws PageException {
+	private static Struct createMetaData(PageContext pageContext, QueryBean data, QueryResult queryResult, SQL sqlQuery, boolean setVars, long exe, String cacheId)
+			throws PageException {
 		Struct meta;
 		if (data.result != null && queryResult != null) {
-			meta = new StructImpl();
+			meta = new StructImpl(Struct.TYPE_REGULAR, 16);
 			boolean fns = ((PageContextImpl) pageContext).getFullNullSupport();
 
 			meta.setEL(KeyConstants._cached, Caster.toBoolean(queryResult.isCached()));
@@ -815,7 +846,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			meta.setEL(KeyConstants._RECORDCOUNT, Caster.toDouble(rc));
 			meta.setEL(KeyConstants._executionTime, Caster.toDouble(queryResult.getExecutionTime() / 1000000));
 			meta.setEL(KeyConstants._executionTimeNano, Caster.toDouble(queryResult.getExecutionTime()));
-
+			if (cacheId != null) meta.setEL(KeyConstants._cachedWithinId, cacheId);
 			if (sqlQuery != null) meta.setEL(KeyConstants._SQL, sqlQuery.getSQLString());
 
 			// GENERATED KEYS
@@ -848,7 +879,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			if (sqlQuery != null) {
 				SQLItem[] params = sqlQuery.getItems();
 				if (params != null && params.length > 0) {
-					Array arr = new ArrayImpl();
+					Array arr = new ArrayImpl(params.length);
 					meta.setEL(KeyConstants._sqlparameters, arr);
 					for (int i = 0; i < params.length; i++) {
 						if (fns) arr.append(params[i].isNulls() ? null : params[i].getValue());
@@ -875,8 +906,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	}
 
 	private static Struct createArgStruct(PageContext pc, QueryBean data, String strSQL, TemplateLine tl) throws PageException {
-		Struct rtn = new StructImpl(Struct.TYPE_LINKED);
-		Struct args = new StructImpl(Struct.TYPE_LINKED);
+		Struct rtn = new StructImpl(Struct.TYPE_LINKED, 4);
+		Struct args = new StructImpl(Struct.TYPE_LINKED, 32);
 
 		boolean fns = ((PageContextImpl) pc).getFullNullSupport();
 
@@ -905,7 +936,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			set(args, "params", data.params);
 		}
 		else if (data.items != null) {
-			Array params = new ArrayImpl();
+			Array params = new ArrayImpl(data.items.size());
 			Iterator<SQLItem> it = data.items.iterator();
 			SQLItem item;
 			while (it.hasNext()) {
@@ -946,8 +977,9 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		}
 
 		// dbtype
-		String str = Caster.toString(args.get("dbtype", null), null);
-		if (str != null && str != data.dbtype && !StringUtil.isEmpty(str)) data.dbtype = str;
+		String str;
+		Object dbtypeObj = args.get("dbtype", null);
+		if (dbtypeObj != null) applyDbtype(data, dbtypeObj, false);
 
 		// debug
 		Boolean b = Caster.toBoolean(args.get("debug", null), null);
@@ -1051,7 +1083,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	}
 
 	private static Struct setExecutionTime(PageContext pc, long exe) {
-		Struct sct = new StructImpl();
+		Struct sct = new StructImpl(Struct.TYPE_REGULAR, 2);
 		sct.setEL(KeyConstants._executionTime, Double.valueOf(exe));
 		if (USE_LOCAL_SCOPE && pc.undefinedScope().getCheckArguments()) pc.localScope().setEL(KeyConstants._cfquery, sct);
 		else pc.undefinedScope().setEL(KeyConstants._cfquery, sct);
@@ -1060,14 +1092,14 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	private static Object executeORM(PageContext pageContext, QueryBean data, SQL sql, int returnType, Struct ormoptions) throws PageException {
 		ORMSession session = ORMUtil.getSession(pageContext);
-		if (ormoptions == null) ormoptions = new StructImpl();
+		if (ormoptions == null) ormoptions = new StructImpl(Struct.TYPE_REGULAR, 4);
 		String dsn = null;
 		if (ormoptions != null) dsn = Caster.toString(ormoptions.get(KeyConstants._datasource, null), null);
 		if (StringUtil.isEmpty(dsn, true)) dsn = ORMUtil.getDefaultDataSource(pageContext).getName();
 
 		// params
 		SQLItem[] _items = sql.getItems();
-		Array params = new ArrayImpl();
+		Array params = new ArrayImpl(_items.length);
 		for (int i = 0; i < _items.length; i++) {
 			params.appendEL(_items[i]);
 		}
@@ -1098,8 +1130,24 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	}
 
 	private static lucee.runtime.type.QueryImpl executeQoQ(PageContext pc, QueryBean data, SQL sql, TemplateLine tl) throws PageException {
+		// resolve effective options: per-query → per-app → env var → default
+		Boolean caseSensitive = data.qoqCaseSensitive;
+		String engine = data.qoqEngine;
+
+		if (caseSensitive == null || engine == null) {
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac instanceof ApplicationContextSupport) {
+				ApplicationContextSupport acs = (ApplicationContextSupport) ac;
+				if (caseSensitive == null) caseSensitive = acs.getQoQCaseSensitive();
+				if (engine == null) engine = acs.getQoQEngine();
+			}
+		}
+
+		boolean cs = caseSensitive != null ? caseSensitive.booleanValue() : QOQ_CASE_SENSITIVE_DEFAULT;
+		if (StringUtil.isEmpty(engine)) engine = "auto";
+
 		try {
-			return new HSQLDBHandler().execute(pc, sql, data.maxrows, data.blockfactor, data.timeout);
+			return new HSQLDBHandler().execute( pc, sql, data.maxrows, data.blockfactor, data.timeout, cs, engine );
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

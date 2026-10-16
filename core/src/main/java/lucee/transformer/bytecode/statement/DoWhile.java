@@ -62,6 +62,9 @@ public final class DoWhile extends StatementBaseNoFinal implements FlowControlBr
 
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		begin = new Label(); // LDEV-5922 fresh labels per emission, a finally body is written more than once
+		beforeEnd = new Label();
+		end = new Label();
 		GeneratorAdapter adapter = bc.getAdapter();
 		adapter.visitLabel(begin);
 		body.writeOut(bc);
@@ -102,13 +105,13 @@ public final class DoWhile extends StatementBaseNoFinal implements FlowControlBr
 
 		// body
 		{
-			Struct body = new StructImpl(Struct.TYPE_LINKED);
+			Struct body = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			this.body.dump(body);
 			sct.setEL(KeyConstants._body, body);
 		}
 		// test
 		{
-			Struct test = new StructImpl(Struct.TYPE_LINKED);
+			Struct test = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			expr.dump(test);
 			sct.setEL(KeyConstants._test, test);
 		}

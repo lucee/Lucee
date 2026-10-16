@@ -116,17 +116,17 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 
 		String cl = toClassName(sct, prefix);
 
+		// Maven?
+		String maven = toMaven(sct, prefix);
+		if (!StringUtil.isEmpty(maven, true)) {
+			return new ClassDefinitionImpl(cl, maven);
+		}
+
 		// OSGi?
 		String bn = toBundleName(sct, prefix, strict);
 		String bv = toBundleVersion(sct, prefix, strict);
 		if (!StringUtil.isEmpty(bn)) {
 			return new ClassDefinitionImpl(cl, bn, bv, id);
-		}
-
-		// Maven?
-		String maven = toMaven(sct, prefix);
-		if (!StringUtil.isEmpty(maven, true)) {
-			return new ClassDefinitionImpl(cl, maven);
 		}
 
 		// Component?
@@ -231,8 +231,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	/**
 	 * only used by deserializer!
 	 */
-	public ClassDefinitionImpl() {
-	}
+	public ClassDefinitionImpl() {}
 
 	public ClassDefinitionImpl<T> setVersionOnlyMattersWhenDownloading(boolean versionOnlyMattersWhenDownloading) {
 		this.versionOnlyMattersWhenDownloading = versionOnlyMattersWhenDownloading;
@@ -278,7 +277,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 				return clazz = (Class<T>) config.getRPCClassLoader(false, JavaSettingsImpl.getInstance(config, getMaven())).loadClass(className);
 			}
 			catch (Exception e) {
-				ClassException ce = new ClassException("Failes to load class [" + className + "]");
+				ClassException ce = new ClassException("Failed to load class [" + className + "] from [" + maven + "]");
 				ExceptionUtil.initCauseEL(ce, e);
 				throw ce;
 			}
@@ -329,6 +328,10 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		return gavsos;
 	}
 
+	public String getMavenRaw() {
+		return maven;
+	}
+
 	@Override
 	public boolean hasVersion() {
 		return version != null;
@@ -363,8 +366,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 			try {
 				maven = MavenUtil.toString(getMaven());
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 			sb.append("class:").append(className).append(";maven:").append(maven).append(";");
 		}
 		else {
@@ -381,17 +383,25 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	public static ClassDefinition toClassDefinition(String className, Identification id, Map<String, String> attributes) {
 		if (StringUtil.isEmpty(className, true)) return null;
 
-		String bn = null, bv = null;
 		if (attributes != null) {
-			// name
-			bn = attributes.get("name");
+			// maven
+			String mvn = attributes.get("maven");
+			if (StringUtil.isEmpty(mvn)) mvn = attributes.get("mvn");
+			if (!StringUtil.isEmpty(mvn)) {
+				return new ClassDefinitionImpl(className, mvn);
+			}
+
+			// bundle
+			String bn = attributes.get("name");
 			if (StringUtil.isEmpty(bn)) bn = attributes.get("bundle-name");
 
-			// version
-			bv = attributes.get("version");
-			if (StringUtil.isEmpty(bv)) bv = attributes.get("bundle-version");
+			if (!StringUtil.isEmpty(bn)) {
+				String bv = attributes.get("version");
+				if (StringUtil.isEmpty(bv)) bv = attributes.get("bundle-version");
+				return new ClassDefinitionImpl(className, bn, bv, id);
+			}
 		}
-		return new ClassDefinitionImpl(className, bn, bv, id);
+		return new ClassDefinitionImpl(className);
 	}
 
 	@Override

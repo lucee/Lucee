@@ -421,8 +421,4 @@ public final class QueryColumnRef implements QueryColumn {
 
 		throw new ApplicationException("Query is not of type QueryImpl. Use instead Query.columnArray() or Query.columnList().listToArray().");
 	}
-
-	/*
-	 * @Override public int hashCode() { return CollectionUtil.hashCode(this); }
-	 */
 }

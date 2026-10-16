@@ -26,8 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.osgi.framework.Version;
-
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -48,6 +46,7 @@ import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.runtime.config.ConfigAdmin.AlreadyInstalledExtension;
 import lucee.runtime.config.maven.ExtensionProvider;
+import lucee.runtime.config.maven.Version;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ApplicationException;
@@ -59,7 +58,6 @@ import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.functions.system.IsZipFile;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -246,7 +244,7 @@ public final class DeployHandler {
 				try {
 					filter.reset(config);
 				}
-				catch (IOException e) {
+				catch (Exception e) {
 					if (throwOnError) throw Caster.toPageException(e);
 
 					if (log != null) log.error("deploy-extension", e);
@@ -288,7 +286,7 @@ public final class DeployHandler {
 				try {
 					filter.reset(config);
 				}
-				catch (IOException e) {
+				catch (Exception e) {
 					if (throwOnError) throw Caster.toPageException(e);
 
 					if (log != null) log.error("deploy-extension", e);
@@ -314,6 +312,9 @@ public final class DeployHandler {
 	 */
 	public static RHExtension deployExtension(Config config, ExtensionDefintion ed, ResetFilter filter, Log log, boolean reload, boolean force, boolean throwOnError,
 			RefBoolean installDone) throws PageException {
+
+		if (log != null) log.info("extension", "Installing extension [" + ed + "]");
+
 		ConfigPro ci = (ConfigPro) config;
 		String coreVersion = ConfigUtil.getCFMLEngine(config).getInfo().getVersion().toString();
 		// is the extension already installed
@@ -337,6 +338,7 @@ public final class DeployHandler {
 
 			RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, local, filter, reload, force, RHExtension.ACTION_COPY);
 			installDone.setValue(true);
+			if (log != null) log.info("extension", "Installed extension [" + ed + "] from provided file");
 			return _ext;
 		}
 
@@ -366,6 +368,7 @@ public final class DeployHandler {
 					IOUtil.copy(ext.getSource(), res);
 					RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, filter, reload, force, RHExtension.ACTION_MOVE);
 					installDone.setValue(true);
+					if (log != null) log.info("extension", "Installed extension [" + ed + "] from local provider");
 					return _ext;
 				}
 				catch (Exception e) {
@@ -449,6 +452,7 @@ public final class DeployHandler {
 				IOUtil.copy(ext.getSource(), res);
 				RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, filter, reload, force, RHExtension.ACTION_MOVE);
 				installDone.setValue(true);
+				if (log != null) log.info("extension", "Installed extension [" + ed + "] from local provider");
 				return _ext;
 			}
 			catch (Exception e) {
@@ -463,6 +467,7 @@ public final class DeployHandler {
 			try {
 				RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, filter, reload, force, RHExtension.ACTION_MOVE);
 				installDone.setValue(true);
+				if (log != null) log.info("extension", "Installed extension [" + ed + "] from remote extension provider");
 				return _ext;
 			}
 			catch (Exception e) {
@@ -500,7 +505,7 @@ public final class DeployHandler {
 				}
 			}
 			else {
-				version = OSGiUtil.toVersion(ed.getVersion(), false);
+				version = Version.parseVersion(ed.getVersion());
 				if (LogUtil.doesDebug(log) && version != null) {
 					log.debug("main", "use defined [" + version + "] for artifact [" + artifact + "]");
 				}
@@ -607,8 +612,7 @@ public final class DeployHandler {
 					return res;
 				}
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 		// remote
 		try {

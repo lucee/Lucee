@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	function isModernHibernate(){		
 		return (left(bundleInfo(createObject("java","org.lucee.extension.orm.hibernate.HibernateORMEngine")).version,1)>=5);
@@ -10,7 +10,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 
 		describe( "test case for the function ORMQueryExecute", function() {
-			it(title="test inline parameter",  body=function( currentSpec ) {
+			it( title="test inline parameter", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/index.cfm",
 					forms : {Scene = "inline"}
@@ -19,7 +19,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect(isValid("uuid",trim(result.filecontent))).toBe(true);
 			});
 
-			it(title="test struct parameter",  body=function( currentSpec ) {
+			it( title="test struct parameter", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/index.cfm",
 					forms : {Scene = "struct"}
@@ -29,7 +29,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			// this only works for Hibernate >=5
-			it(title="test array parameter",body=function( currentSpec ) {
+			it( title="test array parameter", skip=noOrm(), body=function( currentSpec ) {
 				if( !isModernHibernate() ) return;
 				local.result = _InternalRequest(
 					template : "#uri#/index.cfm",
@@ -39,7 +39,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect(isValid("uuid",trim(result.filecontent))).toBe(true);
 			});
 
-			it(title="test legacy parameter",  body=function( currentSpec ) {
+			it( title="test legacy parameter", skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/index.cfm",
 					forms : {Scene = "legacy"}
@@ -54,8 +54,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
 	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
+	}
 }
-
-
-
-

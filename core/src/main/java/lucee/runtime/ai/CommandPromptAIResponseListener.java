@@ -18,8 +18,7 @@ public final class CommandPromptAIResponseListener implements AIResponseListener
 	public void listen(String part, int chunkIndex, boolean isComplete) {
 		PrintStream stream = streamType == OUT ? System.err : System.err;
 
-		// stream.print("-------------- index:" + chunkIndex + ";complete?" + isComplete + "
-		// --------------");
+		stream.print("-------------- chunk-index:" + chunkIndex + ";complete?" + isComplete + " --------------");
 		stream.print(part);
 	}
 
@@ -27,7 +26,7 @@ public final class CommandPromptAIResponseListener implements AIResponseListener
 	public void listen(Object part, String contentType, int chunkIndex, int partIndex, boolean isComplete) throws PageException {
 		PrintStream stream = streamType == OUT ? System.err : System.err;
 
-		stream.print("-------------- type:" + contentType + ";index:" + chunkIndex + ";complete?" + isComplete + " --------------");
+		stream.print("-------------- content-type:" + contentType + ";part-index:" + partIndex + ";chunk-index:" + chunkIndex + ";complete?" + isComplete + " --------------");
 		stream.println(part);
 	}
 }

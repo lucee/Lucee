@@ -251,12 +251,13 @@ public final class TagLibTag {
 		Iterator<TagLibTagAttr> it = attributes.values().iterator();
 		TagLibTagAttr attr;
 		String[] aliases;
+		String aliasLower = alias.toLowerCase();
 		while (it.hasNext()) {
 			attr = it.next();
 			if (ArrayUtil.isEmpty(attr.getAlias())) continue;
 			aliases = attr.getAlias();
 			for (int i = 0; i < aliases.length; i++) {
-				if (aliases[i].equalsIgnoreCase(alias)) return attr;
+				if (aliases[i].equals(aliasLower)) return attr;
 			}
 		}
 		return null;

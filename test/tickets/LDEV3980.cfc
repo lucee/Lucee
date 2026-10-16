@@ -18,21 +18,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm,mysql" {
     
     function run( testResults, testBox ) {
         describe("Testcase for LDEV3980", function() {
-            it( title="ORM entityNew() within transaction", skip="#notHasMysql()#", body=function( currentSpec ) {
+            it( title="ORM entityNew() within transaction", skip=(noOrm() || notHasMysql()), body=function( currentSpec ) {
                 local.result = _InternalRequest(
                     template : "#uri#\LDEV3980.cfm",
                     forms = {scene:1}
                 );
                 expect(result.filecontent).toBe("success");
             });
-            it( title="ORM entityNew with properties within transaction", skip="#notHasMysql()#", body=function( currentSpec ) {
+            it( title="ORM entityNew with properties within transaction", skip=(noOrm() || notHasMysql()), body=function( currentSpec ) {
                 local.result = _InternalRequest(
                     template : "#uri#\LDEV3980.cfm",
                     forms = {scene:2}
                 );
                 expect(result.filecontent).toBe("success");
             });
-            it( title="ORM entityNew and entitySave within transaction", skip="#notHasMysql()#", body=function( currentSpec ) {
+            it( title="ORM entityNew and entitySave within transaction", skip=(noOrm() || notHasMysql()), body=function( currentSpec ) {
                 local.result = _InternalRequest(
                     template : "#uri#\LDEV3980.cfm",
                     forms = {scene:3}
@@ -49,5 +49,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm,mysql" {
 
     private boolean function notHasMysql() {
         return !structCount(server.getDatasource("mysql"));
+    }
+
+    private function noOrm() {
+        return ( structCount( server.getTestService("orm") ) eq 0 );
     }
 }

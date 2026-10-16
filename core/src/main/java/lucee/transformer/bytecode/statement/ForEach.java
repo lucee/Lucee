@@ -84,6 +84,8 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		begin = new Label(); // LDEV-5922 fresh labels per emission, a finally body is written more than once
+		end = new Label();
 		GeneratorAdapter adapter = bc.getAdapter();
 		final int it = adapter.newLocal(Types.ITERATOR);
 		final int item = adapter.newLocal(Types.REFERENCE);
@@ -175,19 +177,19 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 
 		// left
 		{
-			Struct left = new StructImpl(Struct.TYPE_LINKED);
+			Struct left = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			key.dump(left);
 			sct.setEL(KeyConstants._left, left);
 		}
 		// right
 		{
-			Struct right = new StructImpl(Struct.TYPE_LINKED);
+			Struct right = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			value.dump(right);
 			sct.setEL(KeyConstants._right, right);
 		}
 		// body
 		{
-			Struct body = new StructImpl(Struct.TYPE_LINKED);
+			Struct body = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			this.body.dump(body);
 			sct.setEL(KeyConstants._body, body);
 		}

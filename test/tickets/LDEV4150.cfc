@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4150",  function() {
-			it( title="checking length property value to sqltype=varchar on ORM Entity", skip="#notHasMssql()#",  body=function( currentSpec ) {
+			it( title="checking length property value to sqltype=varchar on ORM Entity", skip=(noOrm() || notHasMssql()),  body=function( currentSpec ) {
 				local.result = _InternalRequest(
 						template : "#uri#\LDEV4150.cfm"
 				).filecontent;
@@ -30,6 +30,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	private string function createURI(string calledName) {
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 
 }

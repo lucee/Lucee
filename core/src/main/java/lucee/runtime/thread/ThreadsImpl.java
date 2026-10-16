@@ -182,7 +182,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	}
 
 	private Object getOutput() {
-		if (ct.output == null) return "";
+		if (ct.output == null || ct.output.size() == 0) return "";
 
 		InputStream is = new ByteArrayInputStream(ct.output.toByteArray());
 		return Http.getOutput(is, ct.contentType, ct.contentEncoding, true);
@@ -190,6 +190,9 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	}
 
 	private boolean isInterrupted() {
+		// LDEV-5339: this check was likely copied from getOutput() above, but output is only set for daemon threads
+		// (not task threads), so task threads would always return false here. This is now harmless because
+		// ChildThreadImpl.isInterrupted() tracks the interrupted flag independently of the output buffer.
 		if (ct.output == null) return false;
 		return ct.isInterrupted();
 	}
@@ -229,6 +232,14 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 		Object _null = NullSupportHelper.NULL(pc);
 		Object meta = getMeta(key, _null);
 		if (meta != _null) return meta;
+		return ct.content.get(pc, key, defaultValue);
+	}
+
+	/**
+	 * the values set by the code inside the thread, without the metadata of the thread (LDEV-2773)
+	 */
+	public final Object getContent(PageContext pc, Key key, Object defaultValue) {
+		if (uncoupled != null) return uncoupled.get(pc, key, defaultValue);
 		return ct.content.get(pc, key, defaultValue);
 	}
 

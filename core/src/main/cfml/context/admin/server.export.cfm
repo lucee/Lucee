@@ -217,7 +217,7 @@ optional=[];
 if(datasources.blob) optional.append('blob:#datasources.blob# // default: false');
 if(datasources.clob) optional.append('clob:#datasources.clob# // default: false');
 if(isNumeric(datasources.connectionLimit))optional.append('connectionLimit:#datasources.connectionLimit# // default:-1');
-if(datasources.connectionTimeout NEQ 1)optional.append('connectionTimeout:#datasources.connectionTimeout# // default: 1; unit: seconds');
+if(datasources.connectionTimeout NEQ 10)optional.append('connectionTimeout:#datasources.connectionTimeout# // default: 10; unit: minutes');
 if(datasources.metaCacheTimeout NEQ 60000)optional.append(',metaCacheTimeout:#datasources.metaCacheTimeout# // default: 60000; unit: milliseconds');
 if(len(datasources.timezone))optional.append("timezone:'#replace(datasources.timezone,"'","''","all")#'");
 if(datasources.storage) optional.append('storage:#datasources.storage# // default: false');

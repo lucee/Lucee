@@ -278,7 +278,12 @@ public final class Collection extends TagImpl {
 			MethodInstance mi = Reflector.getMethodInstance(engine.getClass(), KeyImpl.init("createCollection"),
 					new Object[] { collection, path, language, mode, embedding, ratio, SearchEngine.DENY_OVERWRITE }, true, true);
 			if (mi.hasMethod()) {
-				mi.invoke(engine);
+				try {
+					mi.invoke(engine);
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
+				}
 				return;
 			}
 		}

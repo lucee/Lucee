@@ -17,7 +17,6 @@
  */
 package lucee.runtime.functions.other;
 
-import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.StaticScope;
 import lucee.runtime.component.ComponentLoader;
@@ -30,25 +29,25 @@ public class _GetStaticScope implements Function {
 	private static final long serialVersionUID = -2676531632543576056L;
 
 	public static Object call(PageContext pc, String componentPath) throws PageException {
-		return call(pc, componentPath, null);
+		return call(pc, componentPath, _CreateComponent.TYPE_BOTH);
 	}
 
 	public static Object call(PageContext pc, String componentPath, String type) throws PageException {
+		if ("java".equalsIgnoreCase(type)) return call(pc, componentPath, _CreateComponent.TYPE_JAVA);
+		if ("cfml".equalsIgnoreCase(type)) return call(pc, componentPath, _CreateComponent.TYPE_CFML);
+		return call(pc, componentPath, _CreateComponent.TYPE_BOTH);
+	}
 
-		int iType = _CreateComponent.TYPE_BOTH;
-		if (StringUtil.isEmpty(type, true)) iType = _CreateComponent.TYPE_BOTH;
-		if ("java".equalsIgnoreCase(type)) iType = _CreateComponent.TYPE_JAVA;
-		else if ("cfml".equals(type)) iType = _CreateComponent.TYPE_CFML;
+	private static Object call(PageContext pc, String componentPath, int type) throws PageException {
 
-		if (iType != _CreateComponent.TYPE_JAVA) {
-			StaticScope ss = ComponentLoader.getStaticScope(pc, null, componentPath, null, null, iType == _CreateComponent.TYPE_CFML);
+		if (type != _CreateComponent.TYPE_JAVA) {
+			StaticScope ss = ComponentLoader.getStaticScope(pc, null, componentPath, null, null, type == _CreateComponent.TYPE_CFML);
 			if (ss != null) return ss;
 		}
 
 		// no if needed, if type=="cfml", getStaticScope return a result or throw an exception
-		Class cls = _CreateComponent.loadClass(pc, componentPath, iType);
+		Class cls = _CreateComponent.loadClass(pc, componentPath, type);
 		return new JavaObject((pc).getVariableUtil(), cls, false);
 
 	}
-
 }

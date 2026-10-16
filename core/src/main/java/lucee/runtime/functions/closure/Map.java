@@ -78,22 +78,30 @@ public final class Map extends BIF implements ClosureFunc {
 	}
 
 	private static Collection _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry, short type) throws PageException {
-
-		Thread thread = null;
-		ExecutorService execute = null;
-		List<Future<Data<Object>>> futures = null;
 		// 0 or less == default
 		if (maxThreads < 1) maxThreads = Each.DEFAULT_MAX_THREAD;
 		// 1 == not parallel
 		else if (maxThreads == 1) parallel = false;
-		if (parallel) {
-			execute = ThreadUtil.createExecutorService(maxThreads);
-			futures = new ArrayList<Future<Data<Object>>>();
-			thread = ((PageContextImpl) pc).getThread();
-		}
 
+		if (!parallel) return dispatch(pc, obj, udf, resQry, type, null, null);
+
+		ExecutorService execute = ThreadUtil.createExecutorService(maxThreads);
+		List<Future<Data<Object>>> futures = new ArrayList<Future<Data<Object>>>();
+		Thread thread = ((PageContextImpl) pc).getThread();
 		Collection coll;
+		try {
+			coll = dispatch(pc, obj, udf, resQry, type, execute, futures);
+			afterCall(pc, coll, futures);
+		}
+		finally {
+			// drain orphans so they can't race the caller's post-parallel state (LDEV-6395)
+			ThreadUtil.finishParallelSection(pc, execute, thread, futures);
+		}
+		return coll;
+	}
 
+	private static Collection dispatch(PageContext pc, Object obj, UDF udf, Query resQry, short type, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
+		Collection coll;
 		// !!!! Don't combine the first 3 ifs with the ifs below, type overrules instanceof check
 		// Array
 		if (type == TYPE_ARRAY) {
@@ -144,9 +152,6 @@ public final class Map extends BIF implements ClosureFunc {
 			coll = invoke(pc, (StringListData) obj, udf, execute, futures);
 		}
 		else throw new FunctionException(pc, "Map", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
-
-		if (parallel) afterCall(pc, coll, futures, execute, thread);
-
 		return coll;
 	}
 
@@ -158,7 +163,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), es, futures);
@@ -173,7 +178,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), es, futures);
@@ -189,7 +194,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Object res, v;
 		int index;
 		ArgumentIntKey k;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			index = it.nextIndex();
 			k = ArgumentIntKey.init(index);
@@ -206,7 +211,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue(), sct }, e.getKey(), es, futures);
@@ -216,15 +221,13 @@ public final class Map extends BIF implements ClosureFunc {
 	}
 
 	private static Query invoke(PageContext pc, Query qry, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures, Query template) throws PageException {
-		Key[] colNames = qry.getColumnNames();
-
 		QueryImpl rtn;
 
 		if (template == null) {
-			rtn = new QueryImpl(colNames, 0, qry.getName());
+			rtn = QueryImpl.newInstanceWithSameColumns(qry, 0, qry.getName());
 		}
 		else {
-			rtn = new QueryImpl(template.getColumnNames(), 0, template.getName());
+			rtn = QueryImpl.newInstanceWithSameColumns(template, 0, template.getName());
 			/*
 			 * // check if we have the necessary columns for(Key colName:colNames) {
 			 * if(rtn.getColumn(colName,null)==null) { rtn.addColumn(colName,new ArrayImpl()); } }
@@ -232,19 +235,24 @@ public final class Map extends BIF implements ClosureFunc {
 		}
 		final int pid = pc.getId();
 		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
-		int rowNbr;
-		Object row, res;
+		try {
+			int rowNbr;
+			Object row, res;
 
-		ParentException parentException = new ParentException();
-		boolean async = es != null;
-		while (it.hasNext()) {
-			row = it.next();
-			rowNbr = qry.getCurrentrow(pid);
+			ParentException parentException = es != null ? new ParentException() : null;
+			boolean async = es != null;
+			while (it.hasNext()) {
+				row = it.next();
+				rowNbr = qry.getCurrentrow(pid);
 
-			res = _inv(pc, parentException, udf, new Object[] { row, rowNbr, qry }, rowNbr, es, futures);
-			if (!async) {
-				addRow(Caster.toStruct(res), rtn);
+				res = _inv(pc, parentException, udf, new Object[] { row, rowNbr, qry }, rowNbr, es, futures);
+				if (!async) {
+					addRow(Caster.toStruct(res), rtn);
+				}
 			}
+		}
+		finally {
+			it.reset();
 		}
 		return rtn;
 	}
@@ -265,7 +273,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey(), e.getValue(), map }, e.getKey(), es, futures);
@@ -283,7 +291,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue() }, e.getKey(), es, futures);
@@ -300,7 +308,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Object res;
 		int count = 0;
 		ArgumentIntKey k;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			v = it.next();
 			k = ArgumentIntKey.init(++count);
@@ -318,7 +326,7 @@ public final class Map extends BIF implements ClosureFunc {
 		Object res;
 		int count = 0;
 		ArgumentIntKey k;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (e.hasMoreElements()) {
 			v = e.nextElement();
 			k = ArgumentIntKey.init(++count);
@@ -337,7 +345,7 @@ public final class Map extends BIF implements ClosureFunc {
 		return null;
 	}
 
-	public static void afterCall(PageContext pc, Collection coll, List<Future<Data<Object>>> futures, ExecutorService es, Thread thread) throws PageException {
+	public static void afterCall(PageContext pc, Collection coll, List<Future<Data<Object>>> futures) throws PageException {
 		boolean isQuery = coll instanceof Query;
 		try {
 			Iterator<Future<Data<Object>>> it = futures.iterator();
@@ -351,10 +359,6 @@ public final class Map extends BIF implements ClosureFunc {
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
-		}
-		finally {
-			((PageContextImpl) pc).setThread(thread);
-			if (es != null) es.shutdown();
 		}
 	}
 

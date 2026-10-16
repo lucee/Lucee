@@ -45,7 +45,7 @@ import lucee.runtime.type.util.MemberUtil;
 /**
  * Printable and Castable DateTime Object
  */
-public final class DateTimeImpl extends DateTime implements SimpleValue, Objects {
+public class DateTimeImpl extends DateTime implements SimpleValue, Objects {
 
 	private static final long serialVersionUID = 1287979666244112798L;
 

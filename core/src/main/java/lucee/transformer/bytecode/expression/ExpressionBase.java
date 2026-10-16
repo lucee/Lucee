@@ -105,7 +105,7 @@ public abstract class ExpressionBase implements Expression {
 	public void dump(Struct sct) {
 		// start
 		if (start != null) {
-			Struct sctStart = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctStart = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			sctStart.setEL(KeyConstants._line, start.line);
 			sctStart.setEL(KeyConstants._column, start.displayColumn());
 			sctStart.setEL(KeyConstants._offset, start.displayPosition());
@@ -117,7 +117,7 @@ public abstract class ExpressionBase implements Expression {
 
 		// end
 		if (end != null) {
-			Struct sctEnd = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctEnd = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			sctEnd.setEL(KeyConstants._line, end.line);
 			sctEnd.setEL(KeyConstants._column, end.displayColumn());
 			sctEnd.setEL(KeyConstants._offset, end.displayPosition());

@@ -393,6 +393,136 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		
 		});
 
+		describe(title="LDEV-5976 test merging cfconfig.json - NPE when target key doesn't exist", body=function(){
+
+			it(title = "importing into empty config should not NPE", body = function ( currentSpec ){
+				var merger = _getMerger();
+
+				var src = {};
+
+				var import = {
+					"extensions": [{
+						"id": "7E673D15-D87C-41A6-8B5F1956528C605F",
+						"name": "MySQL",
+						"version": "9.2.0"
+					}],
+					"requestTimeout": "0,0,0,50",
+					"componentPaths": ["/custom/components"]
+				};
+
+				merger.merge( src, import );
+
+				expect( src.extensions ).toHaveLength( 1 );
+				expect( src.requestTimeout ).toBe( "0,0,0,50" );
+				expect( src.componentPaths ).toHaveLength( 1 );
+			});
+
+			it(title = "importing unknown array key into empty config should not NPE", body = function ( currentSpec ){
+				var merger = _getMerger();
+
+				var src = {};
+
+				var import = {
+					"customArrayKey": [
+						{ "name": "foo", "value": "bar" },
+						{ "name": "baz", "value": "qux" }
+					]
+				};
+
+				merger.merge( src, import );
+
+				expect( src.customArrayKey ).toHaveLength( 2 );
+			});
+
+			it(title = "importing nested struct where parent doesn't exist should not NPE", body = function ( currentSpec ){
+				var merger = _getMerger();
+
+				var src = {};
+
+				var import = {
+					"rest": {
+						"mapping": [
+							{
+								"virtual": "/api",
+								"physical": "/home/api/",
+								"default": "false"
+							}
+						],
+						"list": "true"
+					}
+				};
+
+				merger.merge( src, import );
+
+				expect( src.rest.mapping ).toHaveLength( 1 );
+				expect( src.rest.list ).toBeTrue();
+			});
+
+			it(title = "importing deeply nested config should not NPE", body = function ( currentSpec ){
+				var merger = _getMerger();
+
+				var src = {
+					"level1": {}
+				};
+
+				var import = {
+					"level1": {
+						"level2": {
+							"level3": {
+								"value": "deep"
+							}
+						}
+					}
+				};
+
+				merger.merge( src, import );
+
+				expect( src.level1.level2.level3.value ).toBe( "deep" );
+			});
+
+			it(title = "importing unmergeable arrays (componentMappings, customTagMappings, mailServers) should not NPE", body = function ( currentSpec ){
+				var merger = _getMerger();
+
+				var src = {};
+
+				var import = {
+					"componentMappings": [
+						{
+							"inspectTemplate": "always",
+							"physical": "{lucee-config}/components/"
+						}
+					],
+					"customTagMappings": [
+						{
+							"inspectTemplate": "never",
+							"physical": "{lucee-config}/customtags/"
+						}
+					],
+					"defaultResourceProvider": [
+						{
+							"class": "lucee.commons.io.res.type.file.FileResourceProvider",
+							"arguments": "lock-timeout:1000;"
+						}
+					],
+					"mailServers": [
+						{
+							"tls": false,
+							"port": "1025",
+							"smtp": "mail.example.com"
+						}
+					]
+				};
+
+				merger.merge( src, import );
+
+				expect( src.componentMappings ).toHaveLength( 1 );
+				expect( src.customTagMappings ).toHaveLength( 1 );
+				expect( src.defaultResourceProvider ).toHaveLength( 1 );
+				expect( src.mailServers ).toHaveLength( 1 );
+			});
+
+		});
+
 		describe(title="LDEV-5774 test merging cfconfig.json - debugTemplates", body=function(){
 
 			it(title = "check config import update", body = function ( currentSpec ){

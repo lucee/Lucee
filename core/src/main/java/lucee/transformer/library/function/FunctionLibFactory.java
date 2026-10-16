@@ -168,7 +168,12 @@ public final class FunctionLibFactory extends DefaultHandler {
 	public void startElement(String uri, String name, String qName, Attributes atts) {
 		// Start Function
 		inside = qName;
-		this.attributes = SaxUtil.toMap(atts);
+		// Only convert attributes to Map for elements that need them
+		if ((qName.equals("class") || qName.equals("tte-class")) && atts.getLength() > 0) {
+			this.attributes = SaxUtil.toMap(atts);
+		} else {
+			this.attributes = null;
+		}
 
 		if (qName.equals("function")) startFunction();
 		else if (qName.equals("argument")) startArg();
@@ -185,7 +190,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	@Override
 	public void endElement(String uri, String name, String qName) {
 		setContent(content.toString().trim());
-		content = new StringBuilder();
+		content.setLength(0);
 		inside = "";
 		if (qName.equals("function")) endFunction();
 		else if (qName.equals("argument")) endArg();
@@ -262,7 +267,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	 */
 	@Override
 	public void characters(char ch[], int start, int length) {
-		content.append(new String(ch, start, length));
+		content.append(ch, start, length);
 	}
 
 	private void setContent(String value) {

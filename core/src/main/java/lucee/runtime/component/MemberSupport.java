@@ -60,6 +60,13 @@ public abstract class MemberSupport implements Serializable, Member, Duplicable 
 		return access;
 	}
 
+	@Override
+	public final int hashCode() {
+		return hash();
+	}
+
+	protected abstract int hash();
+
 	/**
 	 * @param access
 	 */

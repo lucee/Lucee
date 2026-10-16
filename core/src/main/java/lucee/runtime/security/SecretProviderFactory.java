@@ -1,6 +1,11 @@
 package lucee.runtime.security;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.osgi.framework.BundleException;
 
@@ -12,6 +17,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigFactoryImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -22,6 +28,7 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
@@ -35,7 +42,7 @@ public class SecretProviderFactory {
 	public static SecretProvider getInstance(Config config, String name, Struct data) throws PageException, ClassException, BundleException {
 		ClassDefinition<SecretProvider> cd;
 
-		cd = ConfigFactoryImpl.getClassDefinition(data, "", config.getIdentification());
+		cd = ConfigFactoryImpl.getClassDefinition(config, data, "", config.getIdentification());
 		if (cd.hasClass()) {
 
 			Struct custom = Caster.toStruct(data.get(KeyConstants._custom, null), null);
@@ -57,7 +64,7 @@ public class SecretProviderFactory {
 		return sp;
 	}
 
-	public static class Ref implements SimpleValue, Dumpable, Castable {
+	public static class Ref implements SimpleValue, Dumpable, Castable, CharSequence {
 
 		private SecretProvider sp;
 		private String key;
@@ -159,6 +166,40 @@ public class SecretProviderFactory {
 			return this;
 		}
 
+		public Ref touch(boolean touch) throws PageException {
+			if (touch) castToString();
+			return this;
+		}
+
+		@Override
+		public int length() {
+			try {
+				return castToString().length();
+			}
+			catch (PageException e) {
+				throw new PageRuntimeException(e);
+			}
+		}
+
+		@Override
+		public char charAt(int index) {
+			try {
+				return castToString().charAt(index);
+			}
+			catch (PageException e) {
+				throw new PageRuntimeException(e);
+			}
+		}
+
+		@Override
+		public CharSequence subSequence(int start, int end) {
+			try {
+				return castToString().subSequence(start, end);
+			}
+			catch (PageException e) {
+				throw new PageRuntimeException(e);
+			}
+		}
 	}
 
 	private static String obfuscate(String secret) {
@@ -180,4 +221,80 @@ public class SecretProviderFactory {
 		}
 		return val;
 	}
+
+	public static Ref getSecret(Config config, String secretProvider, String key, boolean resolve) throws PageException {
+		if (StringUtil.isEmpty(secretProvider, true)) {
+			for (SecretProvider sp: ((ConfigPro) config).getSecretProviders().values()) {
+				if (sp.getSecret(key, null) != null) {
+					return new SecretProviderFactory.Ref(sp, key).touch(resolve);
+				}
+			}
+			throw new ApplicationException("no secret provider found that provides the key [" + key + "]");
+		}
+
+		SecretProvider sp = ((ConfigPro) config).getSecretProvider(secretProvider);
+		return new SecretProviderFactory.Ref(sp, key).touch(resolve);
+	}
+
+	public static Collection<String> listSecretNames(Config config, String secretProvider) throws PageException {
+		if (StringUtil.isEmpty(secretProvider, true)) {
+			Set<String> allNames = new TreeSet<>(); // TreeSet for sorted output
+			for (SecretProvider sp: ((ConfigPro) config).getSecretProviders().values()) {
+				try {
+					allNames.addAll(SecretProviderUtil.toSecretProviderExtended(sp).listSecretNames());
+				}
+				catch (PageException pe) {
+					// provider doesn't support listSecretNames, skip
+				}
+			}
+			return allNames;
+		}
+		return SecretProviderUtil.toSecretProviderExtended(((ConfigPro) config).getSecretProvider(secretProvider)).listSecretNames();
+	}
+
+	public static Map<String, Ref> listSecrets(Config config, String secretProvider, boolean resolve) throws PageException {
+		Map<String, Ref> all = new HashMap<>();
+
+		if (StringUtil.isEmpty(secretProvider, true)) {
+			for (SecretProvider sp: ((ConfigPro) config).getSecretProviders().values()) {
+				try {
+					for (String name: SecretProviderUtil.toSecretProviderExtended(sp).listSecretNames()) {
+						if (!all.containsKey(name)) {
+							all.put(name, new SecretProviderFactory.Ref(sp, name).touch(resolve));
+						}
+					}
+				}
+				catch (PageException pe) {
+					// provider doesn't support listSecretNames, skip
+				}
+			}
+			return all;
+		}
+
+		SecretProvider sp = ((ConfigPro) config).getSecretProvider(secretProvider);
+		try {
+			for (String name: SecretProviderUtil.toSecretProviderExtended(sp).listSecretNames()) {
+				all.put(name, new SecretProviderFactory.Ref(sp, name).touch(resolve));
+			}
+		}
+		catch (PageException pe) {
+			// provider doesn't support listSecretNames, return empty map
+		}
+		return all;
+	}
+
+	public static void removeSecret(Config config, String key, String secretProvider) throws PageException {
+		if (StringUtil.isEmpty(secretProvider, true)) {
+			for (SecretProvider sp: ((ConfigPro) config).getSecretProviders().values()) {
+				if (sp.getSecret(key, null) != null) {
+					SecretProviderUtil.toSecretProviderExtended(sp).removeSecret(key);
+					return;
+				}
+			}
+			throw new ApplicationException("No secret provider found that provides the key [" + key + "]");
+		}
+
+		SecretProviderUtil.toSecretProviderExtended(((ConfigPro) config).getSecretProvider(secretProvider)).removeSecret(key);
+	}
+
 }

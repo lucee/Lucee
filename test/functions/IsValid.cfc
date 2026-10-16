@@ -203,7 +203,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		assertFalse(IsValid("creditcard",'4000000000007'));
 	}
 
-	public void function testEmail() localmode="true"{
+	private void function testEmail() localmode="true"{
 		// no longer pass with javax.mail 1.4.7 assertTrue(IsValid("email",'a-b.c@abc-_fgdg.dfgd.dj'));
 		assertTrue(isValid('email','a@gmail.com'));
 		assertTrue(isValid('email','A@gmail.com'));

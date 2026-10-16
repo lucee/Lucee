@@ -24,6 +24,7 @@ import java.util.Set;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
+import lucee.runtime.component.ComponentPageRef;
 import lucee.runtime.component.DataMember;
 import lucee.runtime.component.Member;
 import lucee.runtime.component.StaticStruct;
@@ -37,6 +38,7 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Struct;
@@ -51,35 +53,36 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 	private static final long serialVersionUID = -2692540782121852340L;
 
 	private final StaticScope base;
-	private ComponentPageImpl cp;
+	private ComponentPageRef cpr;
 	private final int dataMemberDefaultAccess;
 	private final ComponentImpl c;
 
-	public StaticScope(StaticScope base, ComponentImpl c, ComponentPageImpl cp, int dataMemberDefaultAccess) {
+	public StaticScope(StaticScope base, ComponentImpl c, ComponentPageRef cpr, int dataMemberDefaultAccess) {
 		this.base = base;
-		this.cp = cp;
+		this.cpr = cpr;
 		this.c = c;
 		this.dataMemberDefaultAccess = dataMemberDefaultAccess;
 	}
 
-	public PageSource getPageSource() {
-		return this.cp.getPageSource();
+	public PageSource getPageSource(PageContext pc) throws PageException {
+		return this.cpr.get(pc).getPageSource();
 	}
 
 	@Override
 	public int size() {
-		int s = cp.getStaticStruct().size();
+		ComponentPageImpl cp = cpr.get(null, null);
+		int s = cp == null ? 0 : cp.getStaticStruct().size();
 		return (base == null) ? s : base.size() + s;
 
 	}
 
 	public Member _remove(PageContext pc, Key key) throws PageException {
 		// does the current struct has this key
-		StaticStruct ss = cp.getStaticStruct();
+		StaticStruct ss = cpr.get(pc).getStaticStruct();
 		Member m = ss.get(key);
 		if (m != null) {
-			if (m.getModifier() == Member.MODIFIER_FINAL)
-				throw new ExpressionException("Cannot remove key [" + key + "] in static scope from component [" + cp.getComponentName() + "], that member is set to final");
+			if (m.getModifier() == Member.MODIFIER_FINAL) throw new ExpressionException(
+					"Cannot remove key [" + key + "] in static scope from component [" + cpr.get(pc).getComponentName() + "], that member is set to final");
 
 			if (!c.isAccessible(ThreadLocalPageContext.get(pc), m.getAccess())) throw notExisting(key);
 			return ss.remove(key);
@@ -111,13 +114,15 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 	@Override
 	public void clear() {
 		if (base != null) base.clear();
-		cp.getStaticStruct().clear();
+		ComponentPageImpl cp = cpr.get(null, null);
+		if (cp != null) cp.getStaticStruct().clear();
 	}
 
 	private Member _get(PageContext pc, Key key, Member defaultValue) {
 		// does the current struct has this key
-		StaticStruct ss = cp.getStaticStruct();
-		if (!ss.isEmpty()) {
+		ComponentPageImpl cp = cpr.get(pc, null);
+		StaticStruct ss = cp == null ? null : cp.getStaticStruct();
+		if (ss != null && !ss.isEmpty()) {
 			Member m = ss.get(key);
 
 			if (m != null) {
@@ -132,8 +137,9 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 
 	private Pair<Member, ComponentImpl> _getWithBase(PageContext pc, Key key, Member defaultValue) {
 		// does the current struct has this key
-		StaticStruct ss = cp.getStaticStruct();
-		if (!ss.isEmpty()) {
+		ComponentPageImpl cp = cpr.get(pc, null);
+		StaticStruct ss = cp == null ? null : cp.getStaticStruct();
+		if (ss != null && !ss.isEmpty()) {
 			Member m = ss.get(key);
 
 			if (m != null) {
@@ -197,16 +203,17 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 		return null;
 	}
 
-	private Member _set(PageContext pc, Member existing, Key key, Object value, int access, int modifier) throws ExpressionException {
+	private Member _set(PageContext pc, Member existing, Key key, Object value, int access, int modifier) throws PageException {
 		if (value instanceof Member) {
-			return cp.getStaticStruct().put(key, (Member) value);
+			return cpr.get(pc).getStaticStruct().put(key, (Member) value);
 		}
 
 		// check if user has access
 		if (!c.isAccessible(pc, existing != null ? existing.getAccess() : dataMemberDefaultAccess)) throw notExisting(key);
 
 		// set
-		return cp.getStaticStruct().put(key, new DataMember(existing != null ? existing.getAccess() : access, existing != null ? existing.getModifier() : modifier, value));
+		return cpr.get(pc).getStaticStruct().put(key,
+				new DataMember(existing != null ? existing.getAccess() : access, existing != null ? existing.getModifier() : modifier, value));
 	}
 
 	@Override
@@ -259,13 +266,15 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 	@Override
 	public final boolean containsKey(Key key) {
 		if (base != null && base.containsKey(key)) return true;
-		return cp.getStaticStruct().containsKey(key);
+		ComponentPageImpl cp = cpr.get(null, null);
+		return cp != null && cp.getStaticStruct().containsKey(key);
 	}
 
 	@Override
 	public final boolean containsKey(PageContext pc, Key key) {
 		if (base != null && base.containsKey(pc, key)) return true;
-		return cp.getStaticStruct().containsKey(key);
+		ComponentPageImpl cp = cpr.get(null, null);
+		return cp != null && cp.getStaticStruct().containsKey(key);
 	}
 
 	@Override
@@ -298,12 +307,15 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 		if (base != null) base._entries(map, access);
 
 		// fill accessable keys
-		StaticStruct ss = cp.getStaticStruct();
-		Iterator<Entry<Key, Member>> it = ss.entrySet().iterator();
-		Entry<Key, Member> e;
-		while (it.hasNext()) {
-			e = it.next();
-			if (e.getValue().getAccess() <= access) map.put(e.getKey(), e.getValue().getValue());
+		ComponentPageImpl cp = cpr.get(null, null);
+		StaticStruct ss = cp == null ? null : cp.getStaticStruct();
+		if (ss != null) {
+			Iterator<Entry<Key, Member>> it = ss.entrySet().iterator();
+			Entry<Key, Member> e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (e.getValue().getAccess() <= access) map.put(e.getKey(), e.getValue().getValue());
+			}
 		}
 		return map;
 	}
@@ -313,32 +325,49 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 		if (base != null) base.all(map);
 
 		// fill accessable keys
-		StaticStruct ss = cp.getStaticStruct();
-		Iterator<Entry<Key, Member>> it = ss.entrySet().iterator();
-		Entry<Key, Member> e;
-		while (it.hasNext()) {
-			e = it.next();
-			map.put(e.getKey(), e.getValue());
+		ComponentPageImpl cp = cpr.get(null, null);
+		StaticStruct ss = cp == null ? null : cp.getStaticStruct();
+		if (ss != null) {
+			Iterator<Entry<Key, Member>> it = ss.entrySet().iterator();
+			Entry<Key, Member> e;
+			while (it.hasNext()) {
+				e = it.next();
+				map.put(e.getKey(), e.getValue());
+			}
 		}
 		return map;
 	}
 
 	@Override
 	public Object call(PageContext pc, Key key, Object[] args) throws PageException {
-		Member m = _get(pc, key, null);
-		if (m instanceof UDF) {
-			return _call(pc, key, ((UDF) m), null, args);
+		UDF udf = toUDF(_get(pc, key, null));
+		if (udf != null) {
+			return _call(pc, key, udf, null, args);
 		}
 		throw notExisting(key);
 	}
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key key, Struct args) throws PageException {
-		Member m = _get(pc, key, null);
-		if (m instanceof UDF) {
-			return _call(pc, key, ((UDF) m), args, null);
+		UDF udf = toUDF(_get(pc, key, null));
+		if (udf != null) {
+			return _call(pc, key, udf, args, null);
 		}
 		throw notExisting(key);
+	}
+
+	/**
+	 * a member is callable when it is a function or a data member holding a function, for example
+	 * "final fn = () => ..." in a static constructor is stored as a DataMember to keep the modifier
+	 * (LDEV-4792)
+	 */
+	private static UDF toUDF(Member m) {
+		if (m instanceof UDF) return (UDF) m;
+		if (m instanceof DataMember) {
+			Object v = m.getValue();
+			if (v instanceof UDF) return (UDF) v;
+		}
+		return null;
 	}
 
 	Object _call(PageContext pc, Collection.Key calledName, UDF udf, Struct namedArgs, Object[] args) throws PageException {
@@ -350,7 +379,7 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 
 		// debug yes
 		if (((PageContextImpl) pc).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
-			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, cp.getPageSource(), udf.getFunctionName());// new DebugEntry(src,udf.getFunctionName());
+			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, cpr.get(pc).getPageSource(), udf.getFunctionName());// new DebugEntry(src,udf.getFunctionName());
 			long currTime = pc.getExecutionTime();
 			long time = System.nanoTime();
 
@@ -418,8 +447,12 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
 		int access = c.getAccess(pageContext);
+
+		ComponentPageImpl cp = cpr.get(pageContext, null);
+		String cfcName = cp != null ? cp.getComponentName() : "unknown"; // unlikely ever happen
+
 		DumpTable table = new DumpTable("component", "#99cc99", "#ccffcc", "#000000");
-		table.setTitle("Static Scope from Component " + cp.getComponentName());
+		table.setTitle("Static Scope from Component " + cfcName);
 		table.setComment("Only the functions and data members that are accessible from your location are displayed");
 
 		DumpTable content = _toDumpData(c.top, pageContext, maxlevel, dp, access);
@@ -518,11 +551,23 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 	}
 
 	private ExpressionException notExisting(Collection.Key key) {
-		return new ExpressionException(
-				ExceptionUtil.similarKeyMessage(this, key.getString(), "static member", "static members", "Component [" + cp.getComponentName() + "]", true));
+		ComponentPageImpl cp = cpr.get(null, null);
+		String cfcName = cp != null ? cp.getComponentName() : "unknown"; // unlikely ever happen
+		return new ExpressionException(ExceptionUtil.similarKeyMessage(this, key.getString(), "static member", "static members", "Component [" + cfcName + "]", true));
 	}
 
 	public long index() {
-		return cp.getStaticStruct().index();
+		try {
+			ComponentPageImpl cp = cpr.get(null);
+			return cp.getStaticStruct().index();
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
+	}
+
+	@Override
+	public final int hashCode() {
+		return java.util.Objects.hash(c);
 	}
 }

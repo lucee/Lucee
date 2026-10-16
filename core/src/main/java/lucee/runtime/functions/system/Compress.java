@@ -20,7 +20,6 @@ package lucee.runtime.functions.system;
 
 import java.io.IOException;
 
-import lucee.commons.io.ModeUtil;
 import lucee.commons.io.compress.CompressUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -32,40 +31,26 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
 
 /**
- * Implements the CFML Function compress
+ * Implements the CFML Function compress (basic zip/gzip support)
  */
 public final class Compress implements Function {
 
 	public static boolean call(PageContext pc, String strFormat, String strSource, String srcTarget) throws PageException {
-		return call(pc, strFormat, strSource, srcTarget, true, "777");
+		return call(pc, strFormat, strSource, srcTarget, true, null);
 	}
 
 	public static boolean call(PageContext pc, String strFormat, String strSource, String srcTarget, boolean includeBaseFolder) throws PageException {
-		return call(pc, strFormat, strSource, srcTarget, includeBaseFolder, "777");
+		return call(pc, strFormat, strSource, srcTarget, includeBaseFolder, null);
 	}
 
 	public static boolean call(PageContext pc, String strFormat, String strSource, String srcTarget, boolean includeBaseFolder, String strMode) throws PageException {
-		int mode;
-		try {
-			mode = ModeUtil.toOctalMode(strMode);
-		}
-		catch (IOException e) {
-			throw Caster.toPageException(e);
-		}
+		// strMode is accepted for signature compatibility but only used by compress extension for tar formats
 		strFormat = strFormat.trim().toLowerCase();
-		int format = CompressUtil.FORMAT_ZIP;
-		if (strFormat.equals("bzip")) format = CompressUtil.FORMAT_BZIP;
-		else if (strFormat.equals("bzip2")) format = CompressUtil.FORMAT_BZIP2;
+		int format;
+		if (strFormat.equals("zip")) format = CompressUtil.FORMAT_ZIP;
 		else if (strFormat.equals("gzip")) format = CompressUtil.FORMAT_GZIP;
-		else if (strFormat.equals("tar")) format = CompressUtil.FORMAT_TAR;
-		else if (strFormat.equals("tbz")) format = CompressUtil.FORMAT_TBZ;
-		else if (strFormat.startsWith("tar.bz")) format = CompressUtil.FORMAT_TBZ;
-		else if (strFormat.equals("tbz2")) format = CompressUtil.FORMAT_TBZ2;
-		else if (strFormat.startsWith("tar.gz")) format = CompressUtil.FORMAT_TGZ;
-		else if (strFormat.equals("tgz")) format = CompressUtil.FORMAT_TGZ;
-		else if (strFormat.equals("zip")) format = CompressUtil.FORMAT_ZIP;
 		else throw new FunctionException(pc, "compress", 1, "format",
-				"invalid format definition [" + strFormat + "]," + " valid formats are [bzip, bzip2, gzip, tar, tbz (tar.bz), tbz2, tgz (tar.gz) and zip]");
+				"invalid format definition [" + strFormat + "], valid formats are [zip, gzip]. For additional formats (tar, tgz, bzip, etc.) install the compress extension.");
 
 		String[] arrSources = ListUtil.toStringArrayEL(ListUtil.listToArrayRemoveEmpty(strSource, ","));
 
@@ -79,8 +64,8 @@ public final class Compress implements Function {
 		(pc.getConfig()).getSecurityManager().checkFileLocation(target);
 
 		try {
-			if (sources.length == 1) CompressUtil.compress(format, sources[0], target, includeBaseFolder, mode);
-			else CompressUtil.compress(format, sources, target, mode);
+			if (sources.length == 1) CompressUtil.compress(format, sources[0], target, includeBaseFolder, -1);
+			else CompressUtil.compress(format, sources, target, -1);
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);

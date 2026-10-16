@@ -121,6 +121,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private TimeSpan applicationTimeout;
 	private TimeSpan sessionTimeout;
 	private TimeSpan clientTimeout;
+	private TimeSpan sessionCommitInterval;
+	private TimeSpan clientCommitInterval;
 	private TimeSpan requestTimeout;
 	private int loginStorage = Scope.SCOPE_SESSION;
 	private int scriptProtect;
@@ -182,6 +184,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initApplicationTimeout;
 	private boolean initSessionTimeout;
 	private boolean initClientTimeout;
+	private boolean initSessionCommitInterval;
+	private boolean initClientCommitInterval;
 	private boolean initRequestTimeout;
 	private boolean initSetClientCookies;
 	private boolean initSetClientManagement;
@@ -242,6 +246,10 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initQueryPSQ;
 	private boolean initQueryCacheAfter;
 	private boolean initQueryVarUsage;
+	private boolean initQoQCaseSensitive;
+	private Boolean qoqCaseSensitive;
+	private boolean initQoQEngine;
+	private String qoqEngine;
 	private boolean initProxyData;
 	private boolean initBlockedExtForFileUpload;
 	private boolean initXmlFeatures;
@@ -436,6 +444,38 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 			initClientTimeout = true;
 		}
 		return clientTimeout;
+	}
+
+	@Override
+	public TimeSpan getSessionCommitInterval() {
+		if (!initSessionCommitInterval) {
+			Object o = get(component, KeyConstants._sessionCommitInterval, null);
+			if (o != null) sessionCommitInterval = Caster.toTimespan(o, null);
+			initSessionCommitInterval = true;
+		}
+		return sessionCommitInterval;
+	}
+
+	@Override
+	public TimeSpan getClientCommitInterval() {
+		if (!initClientCommitInterval) {
+			Object o = get(component, KeyConstants._clientCommitInterval, null);
+			if (o != null) clientCommitInterval = Caster.toTimespan(o, null);
+			initClientCommitInterval = true;
+		}
+		return clientCommitInterval;
+	}
+
+	@Override
+	public void setSessionCommitInterval(TimeSpan sessionCommitInterval) {
+		this.sessionCommitInterval = sessionCommitInterval;
+		initSessionCommitInterval = true;
+	}
+
+	@Override
+	public void setClientCommitInterval(TimeSpan clientCommitInterval) {
+		this.clientCommitInterval = clientCommitInterval;
+		initClientCommitInterval = true;
 	}
 
 	@Override
@@ -963,6 +1003,11 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 		// class definition
 		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, true, config.getIdentification());
 
+		if (!cd.isBundle()) {
+			ClassDefinition _cd = ((ConfigPro) config).getCacheDefinition(cd.getClassName());
+			if (_cd != null) cd = _cd;
+		}
+
 		CacheConnectionImpl cc = new CacheConnectionImpl(config, name, cd, Caster.toStruct(data.get(KeyConstants._custom, null), null),
 				Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), Caster.toBooleanValue(data.get(KeyConstants._storage, null), false));
 		String id = cc.id();
@@ -974,8 +1019,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 			else LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, ModernApplicationContext.class.getName(),
 					"method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 		initCacheConnections.put(id, cc);
 		return cc;
 
@@ -1781,22 +1825,32 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public JavaSettings getJavaSettings() {
 		if (!initJavaSettings) {
-			// PATCH to avoid cycle
 			if (initJavaSettingsBefore) {
-				return null;
-			}
-			initJavaSettingsBefore = true;
-			Object o = javaSettings != null ? null : get(component, KeyConstants._javasettings, null);
-			if (javaSettings != null || (o != null && Decision.isStruct(o))) {
-				if (javaSettings == null) javaSettings = JavaSettingsImpl.getInstance(config, Caster.toStruct(o, null), null);
+				return null; // Cycle detected
 			}
 
-			initJavaSettings = true;
-			initJavaSettingsBefore = false;
+			initJavaSettingsBefore = true;
+			try {
+				if (javaSettings == null) {
+
+					Object o = get(component, KeyConstants._javasettings, null);
+					if (o != null && Decision.isStruct(o)) {
+						Struct raw = Caster.toStruct(o, null);
+						javaSettings = JavaSettingsImpl.getInstance(config, raw, null);
+
+						if (javaSettings != null && JavaSettingsImpl.doMerge(raw, true)) {
+							javaSettings = JavaSettingsImpl.merge(config, javaSettings, ((ConfigPro) config).getJavaSettings());
+						}
+					}
+				}
+				initJavaSettings = true;
+			}
+			finally {
+				initJavaSettingsBefore = false;
+			}
 		}
 
-		if (javaSettings == null) return ((ConfigPro) config).getJavaSettings();
-		return javaSettings;
+		return javaSettings != null ? javaSettings : ((ConfigPro) config).getJavaSettings();
 	}
 
 	public static ClassLoader getDefaultClassLoader(ConfigWeb config) throws IOException {
@@ -2131,6 +2185,35 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public void setQueryVarUsage(int varUsage) {
 		this.queryVarUsage = varUsage;
 		this.initQueryVarUsage = true;
+	}
+
+	private Struct getQoQStruct() {
+		Struct qry = Caster.toStruct(get(component, KeyConstants._query, null), null);
+		if (qry == null) return null;
+		return Caster.toStruct(qry.get("qoq", null), null);
+	}
+
+	@Override
+	public Boolean getQoQCaseSensitive() {
+		if (!initQoQCaseSensitive) {
+			Struct qoq = getQoQStruct();
+			if (qoq != null) qoqCaseSensitive = Caster.toBoolean(qoq.get("caseSensitive", null), null);
+			initQoQCaseSensitive = true;
+		}
+		return qoqCaseSensitive;
+	}
+
+	@Override
+	public String getQoQEngine() {
+		if (!initQoQEngine) {
+			Struct qoq = getQoQStruct();
+			if (qoq != null) {
+				String eng = Caster.toString(qoq.get("engine", null), null);
+				if (!StringUtil.isEmpty(eng)) qoqEngine = eng.toLowerCase();
+			}
+			initQoQEngine = true;
+		}
+		return qoqEngine;
 	}
 
 	@Override

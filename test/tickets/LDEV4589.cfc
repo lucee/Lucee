@@ -33,4 +33,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="booleanFormat" ski
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
 	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
+	}
 }

@@ -9,9 +9,6 @@
 		location url="index.cfm" addtoken=false;
 	}
 
-	if(structKeyExists(form, "captchaValue")){
-		session.cap = form.captchaValue;
-	}
 	param name="request.disableFrame" default="false" type="boolean";
 	param name="request.setCFApplication" default="true" type="boolean";
 	if(request.setCFApplication) {
@@ -83,7 +80,9 @@
 		<cfset application[keyLTL] = now()>
 		<cfparam name="form.captcha" default="">
 
-		<cfif loginSettings.captcha && structKeyExists(session, "cap") && compare(form.captcha,session.cap) != 0>
+		<cfset captchaExpected = structKeyExists(session, "cap") ? session.cap : "">
+		<cfset structDelete(session, "cap")>
+		<cfif loginSettings.captcha && extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B") && (!len(captchaExpected) || compare(form.captcha, captchaExpected) != 0)>
 			<cfset login_error = "Invalid security code (captcha) definition">
 		<cfelse>
 			<cfadmin action="hashPassword"
@@ -109,31 +108,6 @@
 	</cfif>
 </cfif>
 
-<!--- Process New Password !--->
-<cfif structKeyExists(form, "new_password") && structKeyExists(form, "new_password_re")>
-	<cfif len(form.new_password) LT 6>
-		<cfset login_error = "password is too short, it must have at least 6 chars">
-	<cfelseif form.new_password != form.new_password_re>
-		<cfset login_error = "password and password retype are not equal">
-	<cfelse>
-		<cfadmin action="updatePassword"
-			type="#request.adminType#"
-			newPassword="#form.new_password#">
-		<cfadmin action="hashPassword"
-				type="#request.adminType#"
-				pw="#form.new_password#"
-				returnVariable="hashedPassword">
-		<cfset session["password" & request.adminType]=hashedPassword>
-		<cfif form.rememberMe != "s">
-			<cfcookie
-				expires="#dateAdd(form.rememberMe,1,now())#"
-				name="lucee_admin_pw_#ad#"
-				value="#hashedPassword#">
-		<cfelse>
-			<cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
-		</cfif>
-	</cfif>
-</cfif>
 <!--- cookie ---->
 
 <cfset fromCookie=false>
@@ -401,7 +375,7 @@
 	// As a Set of Array and Structures, so that it is sorted
 
 	favoriteLis = "";
-
+	
 	context='';
 	// write Naviagtion
 	current.label="Overview";
@@ -411,6 +385,8 @@
 	strNav ="";
 	adminUrls = []; // track menu urls for automated testing
 	hasScheduler=extensionExists("97EB5427-F051-4684-91EBA6DBB5C5203F");
+	hasMail=extensionExists("212BA548-F15A-4EBD-8B1EEDF8DD8A844D");
+
 	for(i=1;i lte arrayLen(navigation);i=i+1) {
 		stNavi = navigation[i];
 		hasChildren=structKeyExists(stNavi,"children");
@@ -440,6 +416,7 @@
 					if (structKeyExists(stCld,'_action'))_action=stCld._action;
 					else _action=stNavi.action & '.' & stCld.action;
 					if(!hasScheduler && _action=="services.schedule") continue;
+					if(!hasMail && _action=="services.mail") continue;
 					isfavorite = application.adminfunctions.isfavorite(_action);
 					li = '<li' & (isfavorite ? ' class="favorite"':'') & '><a '&(isActive?'class="menu_active"':'class="menu_inactive"')&' href="' & request.self & '?action=' &ListCompact( _action,'.') & '"> ' & stCld.label & '</a></li>';
 					ArrayAppend(adminUrls, request.self & '?action=' &ListCompact( _action,'.'));
@@ -463,9 +440,8 @@
 		}
 		else {
 			idName = toIDField(stNavi.label);
-			isCollapsed = !hasActiveItem && application.adminfunctions.getdata('collapsed_' & idName) == 1;
-			strNav = strNav & '<li id="#idName#"#isCollapsed ? ' class="collapsed"':''#><a href="##">' &
-				 stNavi.label & '</a><ul#isCollapsed ? ' style="display:none"':''#>'&subNav& "</ul></li>";
+			// the collapsed state is restored in the browser by initMenu() (admin.js)
+			strNav = strNav & '<li id="#idName#"><a href="##">' & stNavi.label & '</a><ul>'&subNav& "</ul></li>";
 		}
 	}
 	strNav ='<ul id="menu">'& strNav&'</ul>' ;

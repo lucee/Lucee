@@ -22,6 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"	{
 	//public function setUp(){}
 
 	public void function testWithDefaultSettings(){
+		if (noOrm()) return;
 		// explicit and transaction
 		local.uri=createURI("LDEV1370/index.cfm");
 		local.result=_InternalRequest(uri);
@@ -37,6 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"	{
 	}
 
 	public void function testWithSettingsTrue(){
+		if (noOrm()) return;
 		// explicit and transaction
 		local.uri=createURI("LDEV1370/index.cfm");
 		local.result=_InternalRequest(template:uri,urls:{flushAtRequestEnd:1,autoManageSession:1});
@@ -52,6 +54,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"	{
 	}
 
 	public void function testWithSettingsFalse(){
+		if (noOrm()) return;
 		// explicit and transaction
 		local.uri=createURI("LDEV1370/index.cfm");
 		local.result=_InternalRequest(template:uri,urls:{flushAtRequestEnd:0,autoManageSession:0});
@@ -69,6 +72,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"	{
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 	
 } 

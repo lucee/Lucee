@@ -4,7 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.UnmodifiableClassException;
-import java.lang.ref.SoftReference;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.Map;
@@ -32,7 +33,7 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 	private final Map<String, String> allLoadedClasses = new ConcurrentHashMap<>(); // this includes all renames
 	private final Map<String, String> unavaiClasses = new ConcurrentHashMap<>();
 
-	private final Map<String, SoftReference<Object>> instances = new ConcurrentHashMap<>();
+	private final Map<String, Reference<Object>> instances = new ConcurrentHashMap<>();
 
 	private static final AtomicLong counter = new AtomicLong(Long.MAX_VALUE - 1);
 	private static long _start = 0L;
@@ -100,27 +101,27 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 
 	public Object loadInstance(String name) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
 			NoSuchMethodException, SecurityException {
-		SoftReference<Object> ref = instances.get(name);
+		Reference<Object> ref = instances.get(name);
 		Object value;
 		if (ref != null && (value = ref.get()) != null) {
 			return value;
 		}
 		Class<?> clazz = loadClass(name, false, true);
 		value = clazz.getConstructor().newInstance();
-		instances.put(name, new SoftReference<Object>(value));
+		instances.put(name, new WeakReference<Object>(value));
 		return value;
 	}
 
 	public Object loadInstance(String name, byte[] barr) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
 			NoSuchMethodException, SecurityException, UnmodifiableClassException, IOException {
-		SoftReference<Object> ref = instances.get(name);
+		Reference<Object> ref = instances.get(name);
 		Object value;
 		if (ref != null && (value = ref.get()) != null) {
 			return value;
 		}
 		Class<?> clazz = loadClass(name, barr);
 		value = clazz.getConstructor().newInstance();
-		instances.put(name, new SoftReference<Object>(value));
+		instances.put(name, new WeakReference<Object>(value));
 		return value;
 	}
 

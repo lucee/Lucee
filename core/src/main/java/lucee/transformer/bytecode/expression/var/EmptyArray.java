@@ -45,7 +45,7 @@ public final class EmptyArray extends ExpressionBase {
 	public void dump(Struct sct) {
 		super.dump(sct);
 		sct.setEL(KeyConstants._type, "ArrayExpression");
-		sct.setEL(KeyConstants._elements, new ArrayImpl());
+		sct.setEL(KeyConstants._elements, new ArrayImpl(8, false));
 	}
 
 }

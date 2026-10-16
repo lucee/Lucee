@@ -67,8 +67,11 @@ public final class OpBigDecimal extends ExpressionBase {
 
 	public Type writeOutNumber(BytecodeContext bc, int mode) throws TransformerException {
 
+		// LDEV-3020: BigDecimal has no exponent operation, the result of the number operation needs to be converted to a BigDecimal (that is what the caller expects)
 		if (operation == Factory.OP_DBL_EXP) {
-			return new OpNumber(left, right, operation).writeOutNumber(bc, mode);
+			new OpNumber(left, right, operation).writeOutNumber(bc, MODE_REF);
+			bc.getAdapter().invokeStatic(Types.CASTER, TO_BIG_DECIMAL);
+			return Types.BIG_DECIMAL;
 		}
 
 		GeneratorAdapter adapter = bc.getAdapter();
@@ -124,13 +127,13 @@ public final class OpBigDecimal extends ExpressionBase {
 		sct.setEL(KeyConstants._operator, OpNumber.toString(operation));
 		// left
 		{
-			Struct sctLeft = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctLeft = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			getLeft().dump(sctLeft);
 			sct.setEL(KeyConstants._left, sctLeft);
 		}
 		// right
 		{
-			Struct sctRight = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctRight = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			getRight().dump(sctRight);
 			sct.setEL(KeyConstants._right, sctRight);
 		}

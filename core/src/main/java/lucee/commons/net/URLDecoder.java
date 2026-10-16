@@ -37,6 +37,8 @@ public final class URLDecoder {
 	}
 
 	/**
+	 * used by ESAPI extension
+	 * 
 	 * @param str
 	 * @param force
 	 * @return

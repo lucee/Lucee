@@ -70,7 +70,6 @@ import lucee.commons.io.res.type.file.FileResourceProvider;
 import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
-import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
@@ -275,13 +274,13 @@ public final class ConfigAdmin {
 	private ConfigAdmin(ConfigPro config, Password password) throws IOException, PageException {
 		this.config = ConfigUtil.getConfigServerImpl(config);
 		this.password = password;
-		root = ConfigFactoryImpl.loadDocument(config.getConfigFile());
+		root = ConfigFactoryImpl.loadDocument(config, config.getConfigFile());
 	}
 
 	private ConfigAdmin(ConfigPro config, Password password, boolean optionalPW) throws IOException, PageException {
 		this.config = ConfigUtil.getConfigServerImpl(config);
 		this.password = password;
-		root = ConfigFactoryImpl.loadDocument(config.getConfigFile());
+		root = ConfigFactoryImpl.loadDocument(config, config.getConfigFile());
 		this.optionalPW = optionalPW;
 	}
 
@@ -349,6 +348,10 @@ public final class ConfigAdmin {
 		_cleanup();
 		ConfigFile.write(config.getConfigFile(), root);
 
+	}
+	
+	private static Object getScheduleTaskSyncToken(ConfigPro config) {
+		return SystemUtil.createToken("ConfigAdmin:schedule", ResourceUtil.getNormalizedPathEL(config.getConfigFile()));
 	}
 
 	private void _reload(boolean refreshScheduler) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
@@ -592,10 +595,12 @@ public final class ConfigAdmin {
 	}
 
 	public static Array updateScheduledTask(ConfigPro config, ScheduleTask task, boolean reload) throws IOException, PageException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
-		admin._updateScheduledTask(task);
-		admin.storeAndReload(false, true, reload, false);
-		return admin._getScheduledTasks();
+		synchronized (getScheduleTaskSyncToken(config)) {
+			ConfigAdmin admin = new ConfigAdmin(config, null);
+			admin._updateScheduledTask(task);
+			admin.storeAndReload(false, true, reload, false);
+			return admin._getScheduledTasks();
+		}
 	}
 
 	private void _updateScheduledTask(ScheduleTask task) throws ExpressionException {
@@ -654,24 +659,28 @@ public final class ConfigAdmin {
 
 	public static void pauseScheduledTask(ConfigPro config, String name, boolean pause, boolean throwWhenNotExist, boolean reload)
 			throws PageException, IOException, ConverterException, BundleException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
-		Struct data = null;
-		try {
-			data = admin._getScheduledTask(name, true);
-		}
-		catch (ExpressionException ee) {
-			if (throwWhenNotExist) throw ee;
-			return;
-		}
-		data.setEL("paused", pause);
+		synchronized (getScheduleTaskSyncToken(config)) {
+			ConfigAdmin admin = new ConfigAdmin(config, null);
+			Struct data = null;
+			try {
+				data = admin._getScheduledTask(name, true);
+			}
+			catch (ExpressionException ee) {
+				if (throwWhenNotExist) throw ee;
+				return;
+			}
+			data.setEL("paused", pause);
 
-		admin.storeAndReload(false, true, reload, false);
+			admin.storeAndReload(false, true, reload, false);
+		}
 	}
 
 	public static void removeScheduledTask(ConfigPro config, String name, boolean reload) throws PageException, IOException, ConverterException, BundleException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
-		admin._removeScheduledTask(name);
-		admin.storeAndReload(false, true, reload, false);
+		synchronized (getScheduleTaskSyncToken(config)) {
+			ConfigAdmin admin = new ConfigAdmin(config, null);
+			admin._removeScheduledTask(name);
+			admin.storeAndReload(false, true, reload, false);
+		}
 	}
 
 	/**
@@ -700,7 +709,7 @@ public final class ConfigAdmin {
 
 	private void _updateMaven(GAVSO mvnEntry) throws PageException {
 		Struct javasettings = _getRootElement("javasettings");
-		Array maven = ConfigUtil.getAsArray(javasettings, false, "maven", "mvn");
+		Array maven = ConfigUtil.getAsArray(config, javasettings, false, "maven", "mvn");
 
 		// update
 		GAVSO ex;
@@ -1016,7 +1025,7 @@ public final class ConfigAdmin {
 	public void removeCustomTag(String virtual) throws SecurityException {
 		checkWriteAccess();
 
-		Array mappings = ConfigUtil.getAsArray(root, true, KeyConstants._virtual, KeyConstants._physical, false, "customTagMappings", "customTagPaths");
+		Array mappings = ConfigUtil.getAsArray(config, root, true, KeyConstants._virtual, KeyConstants._physical, false, "customTagMappings", "customTagPaths");
 		Key[] keys = mappings.keys();
 		Struct data;
 		String v;
@@ -1024,7 +1033,7 @@ public final class ConfigAdmin {
 			Key key = keys[i];
 			data = Caster.toStruct(mappings.get(key, null), null);
 			if (data == null) continue;
-			v = createVirtual(data);
+			v = createVirtual(config, data);
 
 			if (virtual.equals(v)) {
 				mappings.removeEL(key);
@@ -1055,7 +1064,7 @@ public final class ConfigAdmin {
 	public void removeComponentMapping(String virtual) throws SecurityException {
 		checkWriteAccess();
 
-		Array mappings = ConfigUtil.getAsArray(root, true, KeyConstants._virtual, KeyConstants._physical, false, "componentMappings", "componentPaths");
+		Array mappings = ConfigUtil.getAsArray(config, root, true, KeyConstants._virtual, KeyConstants._physical, false, "componentMappings", "componentPaths");
 		Key[] keys = mappings.keys();
 		Struct data;
 		String v;
@@ -1063,7 +1072,7 @@ public final class ConfigAdmin {
 			Key key = keys[i];
 			data = Caster.toStruct(mappings.get(key, null), null);
 			if (data == null) continue;
-			v = createVirtual(data);
+			v = createVirtual(config, data);
 
 			if (virtual.equals(v)) {
 				mappings.removeEL(key);
@@ -1108,7 +1117,7 @@ public final class ConfigAdmin {
 			throw new ExpressionException("physical must have a value when primary has value physical");
 		}
 
-		Array mappings = ConfigUtil.getAsArray(root, true, KeyConstants._virtual, KeyConstants._physical, false, "customTagMappings", "customTagPaths");
+		Array mappings = ConfigUtil.getAsArray(config, root, true, KeyConstants._virtual, KeyConstants._physical, false, "customTagMappings", "customTagPaths");
 		Key[] keys = mappings.keys();
 		// Update
 		String v;
@@ -1117,7 +1126,7 @@ public final class ConfigAdmin {
 			Key key = keys[i];
 			Struct el = Caster.toStruct(mappings.get(key, null), null);
 			if (el == null) continue;
-			v = createVirtual(el);
+			v = createVirtual(config, el);
 			if (virtual.equals(v)) {
 				el.setEL("virtual", v);
 				el.setEL("physical", physical);
@@ -1151,7 +1160,7 @@ public final class ConfigAdmin {
 			el.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
 		if (ConfigPro.INSPECT_INTERVAL_FAST != inspectTemplateIntervalFast && ConfigPro.INSPECT_INTERVAL_UNDEFINED != inspectTemplateIntervalFast)
 			el.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
-		el.setEL("virtual", StringUtil.isEmpty(virtual) ? createVirtual(el) : virtual);
+		el.setEL("virtual", StringUtil.isEmpty(virtual) ? createVirtual(config, el) : virtual);
 
 		config.resetCustomTagMappings();
 	}
@@ -1209,7 +1218,7 @@ public final class ConfigAdmin {
 			throw new ExpressionException("physical must have a value when primary has value physical");
 		}
 
-		Array componentMappings = ConfigUtil.getAsArray(root, true, KeyConstants._virtual, KeyConstants._physical, false, "componentMappings", "componentPaths");
+		Array componentMappings = ConfigUtil.getAsArray(config, root, true, KeyConstants._virtual, KeyConstants._physical, false, "componentMappings", "componentPaths");
 		Key[] keys = componentMappings.keys();
 		Struct el;
 
@@ -1221,7 +1230,7 @@ public final class ConfigAdmin {
 			data = Caster.toStruct(componentMappings.get(key, null), null);
 			if (data == null) continue;
 
-			v = createVirtual(data);
+			v = createVirtual(config, data);
 
 			if (virtual.equals(v)) {
 				data.setEL("virtual", v);
@@ -1254,14 +1263,14 @@ public final class ConfigAdmin {
 			el.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
 		if (ConfigPro.INSPECT_INTERVAL_FAST != inspectTemplateIntervalFast && ConfigPro.INSPECT_INTERVAL_UNDEFINED != inspectTemplateIntervalFast)
 			el.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
-		el.setEL("virtual", StringUtil.isEmpty(virtual) ? createVirtual(el) : virtual);
+		el.setEL("virtual", StringUtil.isEmpty(virtual) ? createVirtual(config, el) : virtual);
 		config.resetComponentMappings();
 	}
 
-	public static String createVirtual(Struct data) {
-		String str = ConfigFactoryImpl.getAttr(data, "virtual");
+	public static String createVirtual(Config config, Struct data) {
+		String str = ConfigFactoryImpl.getAttr(config, data, "virtual");
 		if (!StringUtil.isEmpty(str)) return str;
-		return createVirtual(ConfigFactoryImpl.getAttr(data, "physical"), ConfigFactoryImpl.getAttr(data, "archive"));
+		return createVirtual(ConfigFactoryImpl.getAttr(config, data, "physical"), ConfigFactoryImpl.getAttr(config, data, "archive"));
 	}
 
 	public static String createVirtual(String physical, String archive) {
@@ -1533,9 +1542,9 @@ public final class ConfigAdmin {
 	 * @throws PageException
 	 */
 	public void updateDataSource(String id, String bundleName, String bundleVersion, String name, String newName, ClassDefinition cd, String dsn, String username, String password,
-			String host, String database, int port, int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow,
-			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset,
-			boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections) throws PageException {
+			String host, String database, int port, int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, long metaCacheTimeout, boolean blob,
+			boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax paramSyntax,
+			boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections) throws PageException {
 
 		checkWriteAccess();
 		SecurityManager sm = config.getSecurityManager();
@@ -1594,6 +1603,10 @@ public final class ConfigAdmin {
 				el.setEL(KeyConstants._connectionLimit, Caster.toString(connectionLimit));
 				el.setEL(KeyConstants._connectionTimeout, Caster.toString(idleTimeout));
 				el.setEL(KeyConstants._liveTimeout, Caster.toString(liveTimeout));
+				if (minIdle > 0) el.setEL("minIdle", Caster.toString(minIdle));
+				else if (el.containsKey("minIdle")) el.removeEL(KeyImpl.init("minIdle"));
+				if (maxIdle > 0) el.setEL("maxIdle", Caster.toString(maxIdle));
+				else if (el.containsKey("maxIdle")) el.removeEL(KeyImpl.init("maxIdle"));
 				el.setEL(KeyConstants._metaCacheTimeout, Caster.toString(metaCacheTimeout));
 				el.setEL(KeyConstants._blob, Caster.toString(blob));
 				el.setEL(KeyConstants._clob, Caster.toString(clob));
@@ -1687,7 +1700,9 @@ public final class ConfigAdmin {
 
 	private void _removeJDBCDriver(ClassDefinition cd) throws PageException {
 
-		if (!cd.isBundle()) throw new ApplicationException("missing bundle name");
+		if ( !cd.isBundle() && !( cd instanceof ClassDefinitionImpl && ( (ClassDefinitionImpl) cd ).isMaven() ) ) {
+			throw new ApplicationException( "missing bundle name or maven coordinates" );
+		}
 
 		Struct children = ConfigUtil.getAsStruct("jdbcDrivers", root);
 		Key[] keys = children.keys();
@@ -1706,15 +1721,13 @@ public final class ConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {
-				}
+				catch (BundleException e) {}
 			}
 		}
 	}
 
-	private void _removeStartupHook(ClassDefinition cd) throws PageException {
-
-		if (!cd.isBundle()) throw new ApplicationException("missing bundle name");
+	private void _removeStartupHook(ClassDefinitionImpl cd) throws PageException {
+		if (!cd.isBundle() && !cd.isMaven()) throw new ApplicationException("Cannot remove extension startup hook [" + cd + "]: missing bundle name or maven coordinates");
 
 		Array children = ConfigUtil.getAsArray("startupHooks", root);
 		Key[] keys = children.keys();
@@ -1732,15 +1745,14 @@ public final class ConfigAdmin {
 		}
 
 		// now unload (maybe not necessary)
+		unloadStartupIfNecessary(config, cd, true);
 		if (cd.isBundle()) {
-			unloadStartupIfNecessary(config, cd, true);
 			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), cd.getVersion(), null);
 			if (bl != null) {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {
-				}
+				catch (BundleException e) {}
 			}
 		}
 	}
@@ -1775,8 +1787,7 @@ public final class ConfigAdmin {
 			}
 			config.getStartups().remove(cd.getClassName());
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 	}
 
 	public void updateJDBCDriver(String label, String id, ClassDefinition cd, String connectionString) throws PageException {
@@ -1788,8 +1799,10 @@ public final class ConfigAdmin {
 
 		// check if label exists
 		if (StringUtil.isEmpty(label)) throw new ApplicationException("missing label for jdbc driver [" + cd.getClassName() + "]");
-		// check if it is a bundle
-		if (!cd.isBundle()) throw new ApplicationException("missing bundle name for [" + label + "]");
+		// check if it is a bundle or maven coordinates
+		if ( !cd.isBundle() && !( cd instanceof ClassDefinitionImpl && ( (ClassDefinitionImpl) cd ).isMaven() ) ) {
+			throw new ApplicationException( "missing bundle name or maven coordinates for [" + label + "]" );
+		}
 
 		Struct children = ConfigUtil.getAsStruct("jdbcDrivers", root);
 		Key[] keys = children.keys();
@@ -1827,16 +1840,15 @@ public final class ConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {
-				}
+				catch (BundleException e) {}
 			}
 		}
 	}
 
-	private void _updateStartupHook(ClassDefinition cd) throws PageException {
+	private void _updateStartupHook(ClassDefinitionImpl cd) throws PageException {
 		unloadStartupIfNecessary(config, cd, false);
-		// check if it is a bundle
-		if (!cd.isBundle()) throw new ApplicationException("missing bundle info");
+		// check if it is a bundle or maven
+		if (!cd.isBundle() && !cd.isMaven()) throw new ApplicationException("Cannot register extension startup hook [" + cd + "]: missing bundle name or maven coordinates");
 
 		Array children = ConfigUtil.getAsArray("startupHooks", root);
 
@@ -1861,18 +1873,8 @@ public final class ConfigAdmin {
 
 		// make sure the class exists
 		setClass(child, null, "", cd);
-
-		// now unload again, JDBC driver can be loaded when necessary
-		if (cd.isBundle()) {
-			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), cd.getVersion(), null);
-			if (bl != null) {
-				try {
-					OSGiUtil.uninstall(bl);
-				}
-				catch (BundleException e) {
-				}
-			}
-		}
+		// Note: Unlike JDBC drivers, startup hooks are NOT lazy-loaded - they are instantiated
+		// immediately via resetStartups().getStartups(). Do not uninstall the bundle here.
 	}
 
 	private void _updateStartupHook(String component) {
@@ -2096,16 +2098,17 @@ public final class ConfigAdmin {
 		// throw new ExpressionException("name ["+name+"] is not allowed for a cache connection, the
 		// following names are reserved words [object,template]");
 
-		try {
-			Class clazz;
-			if (cd.getClassName() != null && cd.getClassName().endsWith(".EHCacheLite"))
-				clazz = ClassUtil.loadClass(config.getClassLoader(), "org.lucee.extension.cache.eh.EHCache");
-			else clazz = ClassUtil.loadClass(config.getClassLoader(), cd.getClassName());
+		if (!cd.isBundle()) {
+			ClassDefinition _cd = config.getCacheDefinition(cd.getClassName());
+			if (_cd != null) cd = _cd;
+		}
 
+		try {
+			Class clazz = cd.getClazz();
 			if (!Reflector.isInstaneOf(clazz, Cache.class, false)) throw new ExpressionException("class [" + clazz.getName() + "] is not of type [" + Cache.class.getName() + "]");
 		}
-		catch (ClassException e) {
-			throw new ExpressionException(e.getMessage());
+		catch (ClassException | BundleException e) {
+			throw Caster.toPageException(e);
 		}
 
 		Struct parent = _getRootElement("cache");
@@ -2459,6 +2462,7 @@ public final class ConfigAdmin {
 
 			if (key.getString().equalsIgnoreCase(name)) {
 				children.removeEL(key);
+				config.removeDatasourceConnectionPool(name);
 			}
 		}
 	}
@@ -3658,7 +3662,7 @@ public final class ConfigAdmin {
 
 		synchronized (factory) {
 			try {
-				cleanUp(factory);
+				cleanUp(factory, cs);
 				factory.update(cs.getPassword(), cs.getIdentification());
 			}
 			catch (Exception e) {
@@ -3708,7 +3712,7 @@ public final class ConfigAdmin {
 
 		try {
 			CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
-			cleanUp(factory);
+			cleanUp(factory, cs);
 			// do we have the core file?
 			final File patchDir = factory.getPatchDirectory();
 			File localPath = new File(version.toString() + ".lco");
@@ -3750,7 +3754,14 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public void mvnChangeVersionTo(Version version, Password password, Identification id) throws PageException {
+	public static lucee.runtime.config.maven.Version toVersion(String version, final lucee.runtime.config.maven.Version defaultValue) {
+		// remove extension if there is any
+		final int rIndex = version.lastIndexOf(".lco");
+		if (rIndex != -1) version = version.substring(0, rIndex);
+		return lucee.runtime.config.maven.Version.parseVersion(version, defaultValue);
+	}
+
+	public void mvnChangeVersionTo(lucee.runtime.config.maven.Version version, Password password, Identification id) throws PageException {
 		checkWriteAccess();
 		ConfigServerImpl cs = (ConfigServerImpl) ConfigUtil.getConfigServer(config, password);
 
@@ -3758,17 +3769,17 @@ public final class ConfigAdmin {
 
 		try {
 			CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
-			cleanUp(factory);
+			cleanUp(factory, cs);
 			// do we have the core file?
 			final File patchDir = factory.getPatchDirectory();
 			File localPath = new File(version.toString() + ".lco");
 
 			if (!localPath.isFile()) {
 				localPath = null;
-				Version v;
+				lucee.runtime.config.maven.Version v;
 				final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
 				for (final File patch: patches) {
-					v = CFMLEngineFactory.toVersion(patch.getName(), null);
+					v = toVersion(patch.getName(), null);
 					// not a valid file get deleted
 					if (v == null) {
 						patch.delete();
@@ -3778,7 +3789,7 @@ public final class ConfigAdmin {
 							localPath = patch;
 						}
 						// delete newer files
-						else if (OSGiUtil.isNewerThan(v, version)) {
+						else if (lucee.runtime.config.maven.Version.compare(v, version) > 0) {
 							patch.delete();
 						}
 					}
@@ -3800,7 +3811,8 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private void cleanUp(CFMLEngineFactory factory) throws IOException {
+	private void cleanUp(CFMLEngineFactory factory, ConfigServerImpl cs) throws IOException {
+		cs.shutdown();
 		final File patchDir = factory.getPatchDirectory();
 		final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
 		for (final File patch: patches) {
@@ -3846,7 +3858,7 @@ public final class ConfigAdmin {
 		return newLucee;
 	}
 
-	private File mvnDownloadCore(CFMLEngineFactory factory, Version version, Identification id) throws IOException, PageException {
+	private File mvnDownloadCore(CFMLEngineFactory factory, lucee.runtime.config.maven.Version version, Identification id) throws IOException, PageException {
 		// local resource
 		final File patchDir = factory.getPatchDirectory();
 		final File newLucee = new File(patchDir, version + (".lco"));
@@ -3880,7 +3892,7 @@ public final class ConfigAdmin {
 
 		synchronized (factory) {
 			try {
-				cleanUp(factory);
+				cleanUp(factory, cs);
 				factory.restart(cs.getPassword());
 			}
 			catch (Exception e) {
@@ -3894,6 +3906,8 @@ public final class ConfigAdmin {
 
 		synchronized (factory) {
 			try {
+				cs.shutdown();
+
 				// Get a lookup instance for accessing private methods
 				MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(factory.getClass(), MethodHandles.lookup());
 
@@ -4874,7 +4888,7 @@ public final class ConfigAdmin {
 				while (itl.hasNext()) {
 					map = itl.next();
 					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
-					if (cd != null && cd.isBundle()) {
+					if (cd != null && (cd.isBundle() || (cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven()))) {
 						_updateCache(cd);
 						filter.add("resetCacheDefinitions");
 						filter.add("resetCacheAll");
@@ -4927,6 +4941,7 @@ public final class ConfigAdmin {
 					gavso = itl.next();
 					if (gavso != null) {
 						_updateMaven(gavso);
+						filter.add("resetJavaSettings");
 						reloadNecessary = true;
 					}
 					logger.info("extension", "Update maven endpoint [" + gavso + "] from extension [" + rhext.getMetadata().getName() + ":" + rhext.getVersion() + "]");
@@ -5016,12 +5031,12 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					ClassDefinitionImpl cd = (ClassDefinitionImpl) ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					String _label = map.get("label");
 					String _id = map.get("id");
 					String _dsn = map.get("connectionString");
 					if (StringUtil.isEmpty(_dsn, true)) _dsn = map.get("dsn");
-					if (cd != null && cd.isBundle()) {
+					if (cd != null && (cd.isBundle() || cd.isMaven())) {
 						_updateJDBCDriver(_label, _id, cd, _dsn);
 						filter.add("resetJDBCDrivers");
 						reloadNecessary = true;
@@ -5037,11 +5052,11 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					ClassDefinitionImpl cd = (ClassDefinitionImpl) ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					String cfc = map.get("component");
 
 					// class
-					if (cd != null && cd.isBundle()) {
+					if (cd != null && (cd.isBundle() || cd.isMaven())) {
 						_updateStartupHook(cd);
 						filter.add("resetStartups");
 						reloadNecessary = true;
@@ -5053,6 +5068,12 @@ public final class ConfigAdmin {
 						filter.add("resetStartups");
 						reloadNecessary = true;
 						logger.info("extension", "Update Startup Hook [" + cfc + "] from extension [" + rhext.getMetadata().getName() + ":" + rhext.getVersion() + "]");
+					}
+					// neither valid class nor component - log error
+					else {
+						logger.error("extension",
+								"Startup Hook from extension [" + rhext.getMetadata().getName() + ":" + rhext.getVersion() + "] could not be registered: class definition [" + cd
+										+ "] is not a valid OSGi bundle (missing bundle-name/bundle-version?) and no component specified");
 					}
 				}
 			}
@@ -5182,6 +5203,11 @@ public final class ConfigAdmin {
 			// if(reloadNecessary){
 			reloadNecessary = true;
 			storeAndReload(false, true, reload && reloadNecessary, false);
+
+			// Trigger startup hooks if they were added/updated (LDEV-5955)
+			if (filter.allow("resetStartups")) {
+				((ConfigImpl) config).resetStartups().getStartups();
+			}
 
 		}
 		catch (Throwable t) {
@@ -5438,8 +5464,8 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
-					if (cd != null && cd.isBundle()) {
+					ClassDefinitionImpl cd = (ClassDefinitionImpl) ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					if (cd != null && (cd.isBundle() || cd.isMaven())) {
 						_removeJDBCDriver(cd);
 					}
 					logger.info("extension", "Remove JDBC Driver [" + cd + "] from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");
@@ -5453,10 +5479,10 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					ClassDefinitionImpl cd = (ClassDefinitionImpl) ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					String cfc = map.get("component");
 
-					if (cd != null && cd.isBundle()) {
+					if (cd != null && (cd.isBundle() || cd.isMaven())) {
 						_removeStartupHook(cd);
 						filter.add("resetStartups");
 					}
@@ -5483,9 +5509,15 @@ public final class ConfigAdmin {
 				Iterator<Map<String, String>> itl = mappings.iterator();
 				Map<String, String> map;
 				String virtual;
+				Set<String> usedByOthers = getMappingsUsedByOtherExtensions(ci, rhe);
 				while (itl.hasNext()) {
 					map = itl.next();
 					virtual = map.get("virtual");
+					// LDEV-6462 do not remove a mapping another installed extension still declares
+					if (usedByOthers.contains(toMappingKey(virtual))) {
+						logger.info("extension", "keep Mapping [" + virtual + "], it is also used by another extension");
+						continue;
+					}
 					_removeMapping(virtual);
 					logger.info("extension", "remove Mapping [" + virtual + "]");
 				}
@@ -6215,6 +6247,7 @@ public final class ConfigAdmin {
 		Resource context = config.getConfigDir().getRealResource("context");
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
+			LogUtil.log(config, Log.LEVEL_INFO, "deploy", "_removeContext() removing: " + trg.getAbsolutePath());
 			trg.remove(true);
 			if (_store) ConfigAdmin._storeAndReload((ConfigPro) config);
 			ResourceUtil.removeEmptyFolders(context, null);
@@ -6407,7 +6440,7 @@ public final class ConfigAdmin {
 			el = Caster.toStruct(children.get(key, null), null);
 			if (el == null) continue;
 
-			id = Caster.toString(el.get(KeyConstants._id), null);
+			id = Caster.toString(el.get(KeyConstants._id, null), null);
 			if (extensionID.equalsIgnoreCase(id)) {
 				bundles = RHExtension.toBundleDefinitions(ConfigUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 
@@ -6509,6 +6542,28 @@ public final class ConfigAdmin {
 		}
 	}
 
+	// virtual paths (see toMappingKey) of the mappings declared by all installed extensions except the given one
+	private static Set<String> getMappingsUsedByOtherExtensions(ConfigPro config, RHExtension rhe) {
+		Set<String> used = new HashSet<>();
+		List<Map<String, String>> mappings;
+		for (RHExtension other: config.getAllRHExtensions()) {
+			if (other == null || rhe.getId().equalsIgnoreCase(other.getId())) continue;
+			mappings = other.getMetadata().getMappings();
+			if (ArrayUtil.isEmpty(mappings)) continue;
+			for (Map<String, String> map: mappings) {
+				used.add(toMappingKey(map.get("virtual")));
+			}
+		}
+		return used;
+	}
+
+	private static String toMappingKey(String virtual) {
+		if (virtual == null) return "";
+		virtual = virtual.trim().toLowerCase();
+		while (virtual.length() > 1 && virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
+		return virtual;
+	}
+
 	private String[] _removeExtensionCheckOtherUsage(Array children, Struct curr, String type) {
 		String currVal = ConfigUtil.getAsString(type, curr, null);
 		if (StringUtil.isEmpty(currVal)) return null;
@@ -6598,8 +6653,7 @@ public final class ConfigAdmin {
 								return old;
 							}
 						}
-						catch (Exception ee) {
-						}
+						catch (Exception ee) {}
 					}
 				}
 				catch (Exception e) {

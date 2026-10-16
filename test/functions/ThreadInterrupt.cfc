@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread" {
     
     function beforeAll() {
         variables.threadPrefix = "testThread_" & createUUID();
@@ -151,14 +151,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
             it("interrupts a thread already in terminated state", function() {
                 // Create and complete a thread
                 var threadName = variables.threadPrefix & "_already_terminated";
-                
+
                 thread name=threadName action="run" {
                     thread.result = "Thread ran to completion";
                 }
-                
+
                 // Wait for thread to complete
                 threadJoin(threadName);
-                
+
                 // Try to interrupt the completed thread
                 var exceptionOccurred = false;
                 try {
@@ -166,9 +166,97 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 } catch (any e) {
                     exceptionOccurred = true;
                 }
-                
+
                 // Assert no exception was thrown
                 expect(exceptionOccurred).toBeFalse();
+            });
+
+            it("thread scope INTERRUPTED property reflects interrupt status", function() {
+                var threadName = variables.threadPrefix & "_interrupted_property";
+
+                thread name=threadName action="run" {
+                    // Long sleep to give us time to check and interrupt
+                    try {
+                        sleep( 5000 );
+                    }
+                    catch ( any e ) {
+                        // Expected - interrupted
+                    }
+                }
+
+                // Give thread time to start
+                sleep( 100 );
+
+                // Check INTERRUPTED is false before interrupting
+                expect( cfthread[threadName].INTERRUPTED ).toBeFalse();
+
+                // Interrupt the thread
+                threadInterrupt( threadName );
+
+                // Check INTERRUPTED is now true
+                expect( cfthread[threadName].INTERRUPTED ).toBeTrue();
+
+                // Join and cleanup
+                threadJoin( threadName );
+            });
+
+            it("INTERRUPTED property remains true after InterruptedException clears Java flag", function() {
+                // This tests that our custom interrupted tracking works even after
+                // Java's Thread.isInterrupted() flag is cleared by InterruptedException
+                var threadName = variables.threadPrefix & "_interrupted_persists";
+
+                thread name=threadName action="run" {
+                    try {
+                        sleep( 5000 );
+                    }
+                    catch ( any e ) {
+                        // InterruptedException clears Java's interrupt flag
+                        // But our INTERRUPTED property should still be true
+                    }
+                }
+
+                // Give thread time to start sleeping
+                sleep( 100 );
+
+                // Interrupt - this will cause InterruptedException which clears Java's flag
+                threadInterrupt( threadName );
+
+                // Wait for thread to catch the exception and complete
+                threadJoin( threadName );
+
+                // INTERRUPTED should still be true even after exception cleared Java's flag
+                expect( cfthread[threadName].INTERRUPTED ).toBeTrue();
+            });
+
+            it("isThreadInterrupted function returns correct status", function() {
+                var threadName = variables.threadPrefix & "_isThreadInterrupted";
+
+                thread name=threadName action="run" {
+                    try {
+                        sleep( 5000 );
+                    }
+                    catch ( any e ) {
+                        // Expected - interrupted
+                    }
+                }
+
+                // Give thread time to start
+                sleep( 100 );
+
+                // Check isThreadInterrupted returns false before interrupting
+                expect( isThreadInterrupted( threadName ) ).toBeFalse();
+
+                // Interrupt the thread
+                threadInterrupt( threadName );
+
+                // Check isThreadInterrupted returns true
+                expect( isThreadInterrupted( threadName ) ).toBeTrue();
+
+                // Join and cleanup
+                threadJoin( threadName );
+
+                // Should still be true after completion
+                expect( isThreadInterrupted( threadName ) ).toBeTrue();
             });
         });
     }

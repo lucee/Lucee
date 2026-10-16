@@ -22,7 +22,7 @@ component extends="AI" {
 			defaultValue = "",
 			required = true,
 			description = "Secret key for accessing the AI engine. You can use environment variables like this: ${MY_SECRET_KEY}.",
-			type = "text"
+			type = "password"
 		)
 		,group("Fine-Tune", "Customize settings to fine-tune your AI session.")
 		,field(displayName = "Model",
@@ -66,11 +66,11 @@ component extends="AI" {
 		)
 		,field(displayName = "Socket Timeout", 
 			name = "socketTimeout",
-			defaultValue = "10000",
+			defaultValue = "20000",
 			required = true,
 			description = "Maximum time between data packets after connection (milliseconds).",
 			type = "select",
-			values = "5000,10000,20000,30000,60000"
+			values = "5000,10000,20000,30000,60000,120000,180000,300000"
 		)
 	];
 

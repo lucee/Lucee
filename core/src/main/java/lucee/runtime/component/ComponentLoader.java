@@ -111,7 +111,8 @@ public final class ComponentLoader {
 			synchronized (SystemUtil.createToken(cp.getPageSource().getDisplayPath(), cp.getHash() + "")) {
 				ss = cp.getStaticScope();
 				if (ss == null) {
-					ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope();
+					// no validation, loading the static scope is not an instantiation, so this also works for abstract components
+					ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false, false).staticScope();
 					cp.setStaticScope(ss);
 					return ss;
 				}
@@ -125,7 +126,8 @@ public final class ComponentLoader {
 		Component c = ss.getComponent();
 		while ((bc = (ComponentImpl) c.getBaseComponent()) != null) {
 			ComponentPageImpl bcp = (ComponentPageImpl) ((PageSourceImpl) bc._getPageSource()).loadPage(pc, false, null);
-			if (bcp.getStaticStruct() != null) {
+			// bcp can be null during concurrent class initialization (race condition)
+			if (bcp != null && bcp.getStaticStruct() != null) {
 				long idx = bcp.getStaticStruct().index();
 				if (idx == 0 || idx > index) {
 					reload = true;
@@ -137,7 +139,7 @@ public final class ComponentLoader {
 
 		// if we had changes we need to reload
 		if (reload) {
-			ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope();
+			ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false, false).staticScope();
 			cp.setStaticScope(ss);
 		}
 
@@ -256,15 +258,17 @@ public final class ComponentLoader {
 		// CACHE
 		// check local in cache
 		String localCacheName = null;
-		if (searchLocal == null) searchLocal = Caster.toBoolean(rawPath.indexOf('.') == -1 ? true : config.getComponentLocalSearch());
-		if (searchLocal && isRealPath && currPS != null) {
-			localCacheName = currPS.getDisplayPath().replace('\\', '/');
-			localCacheName = localCacheName.substring(0, localCacheName.lastIndexOf('/') + 1).concat(pathWithCFC);
-			if (doCache) {
-				page = config.getCachedPage(pc, localCacheName);
-				if (page != null) {
-					return returnType == RETURN_TYPE_PAGE ? page
-							: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
+		if (isRealPath && currPS != null) {
+			if (searchLocal == null) searchLocal = Caster.toBoolean(rawPath.indexOf('.') == -1 ? true : config.getComponentLocalSearch());
+			if (searchLocal.booleanValue()) {
+				localCacheName = currPS.getDisplayPath().replace('\\', '/');
+				localCacheName = localCacheName.substring(0, localCacheName.lastIndexOf('/') + 1).concat(pathWithCFC);
+				if (doCache) {
+					page = config.getCachedPage(pc, localCacheName);
+					if (page != null) {
+						return returnType == RETURN_TYPE_PAGE ? page
+								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
+					}
 				}
 			}
 		}
@@ -311,7 +315,7 @@ public final class ComponentLoader {
 
 		// SEARCH
 		// search from local
-		if (searchLocal && isRealPath) {
+		if (searchLocal != null && searchLocal && isRealPath) {
 			// check realpath
 			PageSource[] arr = ((PageContextImpl) pc).getRelativePageSources(pathWithCFC);
 			page = toCIPage(PageSourceImpl.loadPage(pc, arr, null));

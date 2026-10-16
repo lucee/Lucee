@@ -18,7 +18,9 @@
  **/
 package lucee.runtime.functions.cache;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
@@ -27,6 +29,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 
 public final class CacheGetDefaultCacheName extends BIF {
@@ -37,6 +40,12 @@ public final class CacheGetDefaultCacheName extends BIF {
 		int type = CacheUtil.toType(strType, Config.CACHE_TYPE_NONE);
 		if (type == Config.CACHE_TYPE_NONE) throw new FunctionException(pc, "CacheGetDefaultCacheName", 1, "type",
 				"invalid type definition [" + strType + "], valid types are [object, template, query, resource, function, include, http, file, webservice]");
+
+		ApplicationContextSupport applicationContext = ((PageContextImpl) pc).getApplicationContext(false);
+		if (applicationContext != null) {
+			String dcn = applicationContext.getDefaultCacheName(type);
+			if (!StringUtil.isEmpty(dcn, true)) return dcn;
+		}
 
 		ConfigPro config = (ConfigPro) pc.getConfig();
 		CacheConnection conn = config.getCacheDefaultConnection(type);

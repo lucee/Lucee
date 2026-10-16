@@ -179,7 +179,6 @@ body.dark-mode .comment {
 body.dark-mode div.error {
   border: 1px solid var(--error-color);
   color: var(--error-color) !important;
-  background-color: rgba(255, 0, 0, 0.1);
 }
 
 body.dark-mode div.error a,

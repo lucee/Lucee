@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
 import lucee.runtime.db.SQL;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -233,6 +234,12 @@ public final class QueryFQ implements Query, Objects, QueryResult, Serializable 
 	@Override
 	public String getCacheType() {
 		return qry.getCacheType();
+	}
+
+	@Override
+	public String getCacheId(Collection arguments, String defaultValue) {
+		// for query we need no arguments for the cache
+		return qry instanceof QueryResult ? ((QueryResult) qry).getCacheId(arguments, defaultValue) : null;
 	}
 
 	@Override
@@ -1104,6 +1111,12 @@ public final class QueryFQ implements Query, Objects, QueryResult, Serializable 
 	}
 
 	@Override
+	public void setCacheId(String cacheId) {
+		if (!cloned) _clone();
+		if (qry instanceof QueryResult) ((QueryResult) qry).setCacheId(cacheId);
+	}
+
+	@Override
 	public void setCached(boolean isCached) {
 		if (!cloned) _clone();
 		qry.setCached(isCached);
@@ -1697,6 +1710,11 @@ public final class QueryFQ implements Query, Objects, QueryResult, Serializable 
 		qr = (QueryResult) qry;
 		obj = (Objects) qry;
 		cloned = true;
+	}
+
+	@Override
+	public int getCachetype() {
+		return Config.CACHE_TYPE_QUERY;
 	}
 
 }

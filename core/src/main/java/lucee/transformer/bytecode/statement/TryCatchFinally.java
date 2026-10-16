@@ -395,36 +395,36 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 
 		// body
 		{
-			Struct body = new StructImpl(Struct.TYPE_LINKED);
+			Struct body = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			tryBody.dump(body);
 			sct.setEL(KeyConstants._body, body);
 		}
 		// handlers
 		if (catches != null && catches.size() > 0) {
-			Array handlers = new ArrayImpl();
+			Array handlers = new ArrayImpl(8, false);
 			for (Catch c: catches) {
-				Struct sctCatch = new StructImpl(Struct.TYPE_LINKED);
+				Struct sctCatch = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 				sctCatch.setEL(KeyConstants._type, "CatchClause");
 
 				// param
-				Struct sctParam = new StructImpl(Struct.TYPE_LINKED);
+				Struct sctParam = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 				sctCatch.setEL(KeyConstants._param, sctParam);
 				if (c.type instanceof LitString) {
 					sctParam.setEL(KeyConstants._type, ((LitString) c.type).getString());
 				}
 				else if (c.type != null) {
-					Struct sctType = new StructImpl(Struct.TYPE_LINKED);
+					Struct sctType = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 					c.type.dump(sctType);
 					sctParam.setEL(KeyConstants._type, sctType);
 				}
 				if (c.name != null) {
-					Struct sctName = new StructImpl(Struct.TYPE_LINKED);
+					Struct sctName = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 					c.name.dump(sctName);
 					sctParam.setEL(KeyConstants._name, sctName);
 				}
 				// body
 				if (c.body != null) {
-					Struct sctBody = new StructImpl(Struct.TYPE_LINKED);
+					Struct sctBody = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 					c.body.dump(sctBody);
 					sctCatch.setEL(KeyConstants._body, sctBody);
 				}
@@ -438,7 +438,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 		}
 		// finalizer
 		if (finallyBody != null) {
-			Struct finalizer = new StructImpl(Struct.TYPE_LINKED);
+			Struct finalizer = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			finallyBody.dump(finalizer);
 			sct.setEL(KeyConstants._finalizer, finalizer);
 		}

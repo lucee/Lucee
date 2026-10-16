@@ -50,12 +50,18 @@ import lucee.transformer.bytecode.visitor.TryCatchFinallyVisitor;
 import lucee.transformer.bytecode.visitor.TryFinallyVisitor;
 import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
+import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 import lucee.transformer.statement.tag.Attribute;
 import lucee.transformer.statement.tag.Tag;
 
 public final class TagHelper {
+
+	private static final int TYPE_REG = 1;
+	private static final int TYPE_OSGI = 2;
+	private static final int TYPE_MVN = 4;
+
 	private static final Type MISSING_ATTRIBUTE = Type.getType(MissingAttribute.class);
 	private static final Type MISSING_ATTRIBUTE_ARRAY = Type.getType(MissingAttribute[].class);
 	private static final Type BODY_TAG = Type.getType(BodyTag.class);
@@ -65,11 +71,12 @@ public final class TagHelper {
 
 	// TagUtil.setAttributeCollection(Tag, Struct)
 	private static final Method SET_ATTRIBUTE_COLLECTION = new Method("setAttributeCollection", Types.VOID,
-			new Type[] { Types.PAGE_CONTEXT, TAG, MISSING_ATTRIBUTE_ARRAY, Types.STRUCT, Types.INT_VALUE });
+			new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, MISSING_ATTRIBUTE_ARRAY, Types.STRUCT, Types.INT_VALUE });
 
 	// Tag use(String)
-	private static final Method USE4 = new Method("use", TAG, new Type[] { Types.STRING, Types.STRING, Types.INT_VALUE, Types.STRING });
-	private static final Method USE6 = new Method("use", TAG, new Type[] { Types.STRING, Types.STRING, Types.STRING, Types.STRING, Types.INT_VALUE, Types.STRING });
+	private static final Method USE_REG = new Method("use", TAG, new Type[] { Types.STRING, Types.STRING, Types.INT_VALUE, Types.STRING });
+	private static final Method USE_MVN = new Method("use", TAG, new Type[] { Types.STRING, Types.STRING, Types.STRING, Types.INT_VALUE, Types.STRING });
+	private static final Method USE_OSGI = new Method("use", TAG, new Type[] { Types.STRING, Types.STRING, Types.STRING, Types.STRING, Types.INT_VALUE, Types.STRING });
 
 	// void setAppendix(String appendix)
 	private static final Method SET_APPENDIX1 = new Method("setAppendix", Type.VOID_TYPE, new Type[] { Types.STRING });
@@ -122,11 +129,12 @@ public final class TagHelper {
 	private static final Method DO_FINALLY = new Method("doFinally", Types.VOID, new Type[] {});
 
 	// JspWriter popBody()
-	private static final Method POP_BODY = new Method("popBody", Types.JSP_WRITER, new Type[] {});
+	private static final Method POP_BODY = new Method("popBody", Types.VOID, new Type[] { Types.PAGE_CONTEXT });
 
 	// void reuse(Tag tag)
-	private static final Method RE_USE1 = new Method("reuse", Types.VOID, new Type[] { Types.TAG });
-	private static final Method RE_USE3 = new Method("reuse", Types.VOID, new Type[] { Types.TAG, Types.STRING, Types.STRING });
+	private static final Method RE_USE_REG = new Method("reuse", Types.VOID, new Type[] { Types.TAG });
+	private static final Method RE_USE_MVN = new Method("reuse", Types.VOID, new Type[] { Types.TAG, Types.STRING });
+	private static final Method RE_USE_OSGI = new Method("reuse", Types.VOID, new Type[] { Types.TAG, Types.STRING, Types.STRING });
 
 	/**
 	 * writes out the tag
@@ -142,11 +150,16 @@ public final class TagHelper {
 		final TagLibTag tlt = tag.getTagLibTag();
 
 		final ClassDefinition cd = tlt.getTagClassDefinition();
-		final boolean fromBundle = cd.getName() != null;
+
+		final int type;
+		if (cd.isBundle()) type = TYPE_OSGI;
+		else if (((ClassDefinitionImpl) cd).isMaven()) type = TYPE_MVN;
+		else type = TYPE_REG;
+
 		final Type currType;
 		final Type currDoFinallyType;
 
-		if (fromBundle) {
+		if (type != TYPE_REG) {
 			try {
 				if (Reflector.isInstaneOf(cd.getClazz(), BodyTag.class, false)) currType = BODY_TAG;
 				else currType = TAG;
@@ -176,17 +189,24 @@ public final class TagHelper {
 		adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
 		adapter.push(cd.getClassName());
 		// has bundle info/version
-		if (fromBundle) {
+		if (type == TYPE_OSGI) {
 			// name
 			adapter.push(cd.getName());
 			// version
 			if (cd.getVersion() != null) adapter.push(cd.getVersionAsString());
 			else ASMConstants.NULL(adapter);
 		}
+		else if (type == TYPE_MVN) {
+			adapter.push(((ClassDefinitionImpl) cd).getMavenRaw());
+		}
 		adapter.push(tlt.getFullName());
 		adapter.push(tlt.getAttributeType());
 		adapter.push((bc.getPageSource() == null ? "<memory>" : bc.getPageSource().getDisplayPath()) + ":" + ((tag.getStart() == null) ? 0 : tag.getStart().line));
-		adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, fromBundle ? USE6 : USE4);
+
+		if (type == TYPE_OSGI) adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, USE_OSGI);
+		else if (type == TYPE_MVN) adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, USE_MVN);
+		else adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, USE_REG);
+
 		if (currType != TAG) adapter.checkCast(currType);
 		adapter.storeLocal(currLocal);
 
@@ -196,12 +216,22 @@ public final class TagHelper {
 				adapter.loadArg(0);
 				adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
 				adapter.loadLocal(currLocal);
-				if (cd.getName() != null) {
+				// OSGi
+				if (type == TYPE_OSGI) {
 					adapter.push(cd.getName());
 					if (cd.getVersion() != null) adapter.push(cd.getVersionAsString());
 					else ASMConstants.NULL(adapter);
+					adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, RE_USE_OSGI);
 				}
-				adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, fromBundle ? RE_USE3 : RE_USE1);
+				// Maven
+				else if (type == TYPE_MVN) {
+					adapter.push(((ClassDefinitionImpl) cd).getMavenRaw());
+					adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, RE_USE_MVN);
+				}
+				// Regular
+				else {
+					adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, RE_USE_REG);
+				}
 			}
 		}, null);
 		if (doReuse) outerTcfv.visitTryBegin(bc);
@@ -210,7 +240,7 @@ public final class TagHelper {
 		if (tlt.hasAppendix()) {
 			adapter.loadLocal(currLocal);
 			adapter.push(tag.getAppendix());
-			if (fromBundle) // PageContextUtil.setAppendix(tag,appendix)
+			if (type != TYPE_REG) // PageContextUtil.setAppendix(tag,appendix)
 				ASMUtil.invoke(ASMUtil.STATIC, adapter, Types.TAG_UTIL, SET_APPENDIX2);
 			else // tag.setAppendix(appendix)
 				ASMUtil.invoke(ASMUtil.VIRTUAL, adapter, currType, SET_APPENDIX1);
@@ -222,25 +252,27 @@ public final class TagHelper {
 			adapter.loadLocal(currLocal);
 			adapter.push(hasBody);
 
-			if (fromBundle) // PageContextUtil.setAppendix(tag,appendix)
+			if (type != TYPE_REG) // PageContextUtil.setAppendix(tag,appendix)
 				ASMUtil.invoke(ASMUtil.STATIC, adapter, Types.TAG_UTIL, HAS_BODY2);
 			else // tag.setAppendix(appendix)
 				ASMUtil.invoke(ASMUtil.VIRTUAL, adapter, currType, HAS_BODY1);
 		}
 
 		// default attributes (get overwritten by attributeCollection because of that set before)
-		setAttributes(bc, tag, currLocal, currType, true, fromBundle);
+		setAttributes(bc, tag, currLocal, currType, true, type != TYPE_REG);
 
 		// attributeCollection
 		Attribute attrColl = tag.getAttribute("attributecollection");
+		boolean skipAttrColl = false;
 		if (attrColl != null) {
 			int attrType = tag.getTagLibTag().getAttributeType();
 			if (TagLibTag.ATTRIBUTE_TYPE_NONAME != attrType) {
-				tag.removeAttribute("attributecollection");
+				// LDEV-3847 do not remove the attribute from the tag, the same tag can be written more than once (finally block)
+				skipAttrColl = true;
 				// TagUtil.setAttributeCollection(Tag, Struct)
 				adapter.loadArg(0);
 				adapter.loadLocal(currLocal);
-				if (currType != TAG) adapter.checkCast(TAG);
+				// if (currType != TAG) adapter.checkCast(TAG);
 
 				///
 				TagLibTagAttr[] missings = tag.getMissingAttributes();
@@ -285,20 +317,20 @@ public final class TagHelper {
 				adapter.push(attr.getName());
 				attr.getValue().writeOut(bc, Expression.MODE_REF);
 
-				if (fromBundle) ASMUtil.invoke(ASMUtil.STATIC, adapter, Types.TAG_UTIL, SET_META_DATA3);
+				if (type != TYPE_REG) ASMUtil.invoke(ASMUtil.STATIC, adapter, Types.TAG_UTIL, SET_META_DATA3);
 				else ASMUtil.invoke(ASMUtil.VIRTUAL, adapter, currType, SET_META_DATA2);
 			}
 		}
 
 		// set attributes
-		setAttributes(bc, tag, currLocal, currType, false, fromBundle);
+		setAttributes(bc, tag, currLocal, currType, false, type != TYPE_REG, skipAttrColl);
 		// Body
 		if (hasBody) {
 			final int state = adapter.newLocal(Types.INT_VALUE);
 
 			// int state=tag.doStartTag();
 			adapter.loadLocal(currLocal);
-			ASMUtil.invoke(fromBundle ? ASMUtil.INTERFACE : ASMUtil.VIRTUAL, adapter, currType, DO_START_TAG);
+			ASMUtil.invoke(type != TYPE_REG ? ASMUtil.INTERFACE : ASMUtil.VIRTUAL, adapter, currType, DO_START_TAG);
 			// adapter.invokeVirtual(currType, DO_START_TAG);
 			adapter.storeLocal(state);
 
@@ -327,14 +359,13 @@ public final class TagHelper {
 					adapter.visitJumpInsn(Opcodes.IF_ICMPEQ, endIf);
 					// ... pc.popBody();
 					adapter.loadArg(0);
-					adapter.invokeVirtual(Types.PAGE_CONTEXT, POP_BODY);
-					adapter.pop();
+					adapter.invokeStatic(Types.PAGE_CONTEXT_UTIL, POP_BODY);
 					adapter.visitLabel(endIf);
 
 					// tag.doFinally();
 					if (tlt.handleException()) {
 						adapter.loadLocal(currLocal);
-						ASMUtil.invoke(fromBundle ? ASMUtil.INTERFACE : ASMUtil.VIRTUAL, adapter, currDoFinallyType, DO_FINALLY);
+						ASMUtil.invoke(type != TYPE_REG ? ASMUtil.INTERFACE : ASMUtil.VIRTUAL, adapter, currDoFinallyType, DO_FINALLY);
 						// adapter.invokeVirtual(currType, DO_FINALLY);
 					}
 					// GOTO after execution body, used when a continue/break was called before
@@ -349,20 +380,20 @@ public final class TagHelper {
 			if (tlt.handleException()) {
 				TryCatchFinallyVisitor tcfv = new TryCatchFinallyVisitor(onFinally, fcf);
 				tcfv.visitTryBegin(bc);
-				doTry(bc, adapter, tag, currLocal, currType, fromBundle);
+				doTry(bc, adapter, tag, currLocal, currType, type != TYPE_REG);
 				int t = tcfv.visitTryEndCatchBeging(bc);
 				// tag.doCatch(t);
 				adapter.loadLocal(currLocal);
 				adapter.loadLocal(t);
 				// adapter.visitVarInsn(Opcodes.ALOAD,t);
-				ASMUtil.invoke(fromBundle ? ASMUtil.INTERFACE : ASMUtil.VIRTUAL, adapter, currDoFinallyType, DO_CATCH);
+				ASMUtil.invoke(type != TYPE_REG ? ASMUtil.INTERFACE : ASMUtil.VIRTUAL, adapter, currDoFinallyType, DO_CATCH);
 				// adapter.invokeVirtual(currType, DO_CATCH);
 				tcfv.visitCatchEnd(bc);
 			}
 			else {
 				TryFinallyVisitor tfv = new TryFinallyVisitor(onFinally, fcf);
 				tfv.visitTryBegin(bc);
-				doTry(bc, adapter, tag, currLocal, currType, fromBundle);
+				doTry(bc, adapter, tag, currLocal, currType, type != TYPE_REG);
 				tfv.visitTryEnd(bc);
 			}
 
@@ -372,7 +403,7 @@ public final class TagHelper {
 		else {
 			// tag.doStartTag();
 			adapter.loadLocal(currLocal);
-			ASMUtil.invoke(fromBundle ? ASMUtil.INTERFACE : ASMUtil.VIRTUAL, adapter, currType, DO_START_TAG);
+			ASMUtil.invoke(type != TYPE_REG ? ASMUtil.INTERFACE : ASMUtil.VIRTUAL, adapter, currType, DO_START_TAG);
 			// adapter.invokeVirtual(currType, DO_START_TAG);
 			adapter.pop();
 		}
@@ -380,7 +411,7 @@ public final class TagHelper {
 		// if (tag.doEndTag()==Tag.SKIP_PAGE) throw new Abort(0<!-- SCOPE_PAGE -->);
 		Label endDoEndTag = new Label();
 		adapter.loadLocal(currLocal);
-		ASMUtil.invoke(fromBundle ? ASMUtil.INTERFACE : ASMUtil.VIRTUAL, adapter, currType, DO_END_TAG);
+		ASMUtil.invoke(type != TYPE_REG ? ASMUtil.INTERFACE : ASMUtil.VIRTUAL, adapter, currType, DO_END_TAG);
 		// adapter.invokeVirtual(currType, DO_END_TAG);
 		adapter.push(jakarta.servlet.jsp.tagext.Tag.SKIP_PAGE);/* JAVJAK */
 		adapter.visitJumpInsn(Opcodes.IF_ICMPNE, endDoEndTag);
@@ -399,6 +430,11 @@ public final class TagHelper {
 	}
 
 	private static void setAttributes(BytecodeContext bc, Tag tag, int currLocal, Type currType, boolean doDefault, boolean interf) throws TransformerException {
+		setAttributes(bc, tag, currLocal, currType, doDefault, interf, false);
+	}
+
+	private static void setAttributes(BytecodeContext bc, Tag tag, int currLocal, Type currType, boolean doDefault, boolean interf, boolean skipAttrColl)
+			throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 		Map<String, Attribute> attributes = tag.getAttributes();
 
@@ -408,6 +444,7 @@ public final class TagHelper {
 		while (it.hasNext()) {
 			attr = it.next();
 			if (doDefault != attr.isDefaultAttribute()) continue;
+			if (skipAttrColl && "attributecollection".equalsIgnoreCase(attr.getName())) continue;
 
 			if (attr.isDynamicType()) {
 				adapter.loadLocal(currLocal);

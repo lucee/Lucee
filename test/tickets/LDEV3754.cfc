@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp,mail" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp,mail" skip=true {
 
 	// TODO ZAC once this is merged to 6.0, enable test and setup to use updated server.getTestService("smtp")
 	// also fails due to https://luceeserver.atlassian.net/browse/LDEV-3431

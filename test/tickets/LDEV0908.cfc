@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql,orm" {
 
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-908", body=function() {
-			it(title = "Checking ", body = function( currentSpec ) {
+			it(title = "Checking ", skip=noOrm(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm"
 				);
@@ -32,5 +32,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql,orm" {
 	/*private struct function getCredentials() {
 		return server.getDatasource("mysql");
 	}*/
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
+	}
 }
 

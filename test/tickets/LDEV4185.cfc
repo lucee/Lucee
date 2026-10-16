@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ORM"  {
 
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV4185", function() {
-			it( title="Checking isWithinTransaction() with native Hibernate transaction", skip="#notHasH2()#", body=function( currentSpec ) {
+			it( title="Checking isWithinTransaction() with native Hibernate transaction", skip=(noOrm() || notHasH2()), body=function( currentSpec ) {
 				var result = _InternalRequest(
 					template : "#variables.uri#/LDEV4185.cfm"
 				);
@@ -24,5 +24,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ORM"  {
 	private string function createURI(string calledName) {
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

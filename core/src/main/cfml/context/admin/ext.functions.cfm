@@ -316,6 +316,7 @@
 			loop query="#locals#" {
 				var row=queryAddRow(qry);
 				qry.setCell("provider","local",row);
+				qry.setCell("otherVersions",[],row);
 				loop list="#locals.columnlist()#" item="local.k" {
             		qry.setCell(k,locals[k],row);
             	}
@@ -619,7 +620,7 @@
 			if(!isNull(http.status_code) && http.status_code==200) {
 				return http.fileContent;
 			}
-			var errorMessage = "Error: Download extension returned #http.status_code# for #uri#";
+			var errorMessage = "Error: Download extension returned #http.status_code# for [#uri#]#len( http.errorDetail ) ? ' [' & http.errorDetail & ']' : ''#";
 			writeLog(type="ERROR", text=errorMessage, log="deploy");
 			writeLog(type="ERROR", text="file-content:"&http.fileContent, log="deploy"); // log the actual error response out for debugging
 			throw encodeForHtml(errorMessage); // rather not encode here, but this is hits a generic error handler
@@ -641,7 +642,7 @@
 		return result;
 	}
 	
-	function toVersionSortable(required string version) localMode=true {
+	function toVersionSortable(version) localMode=true {
 		version=variables.unwrap(arguments.version.trim());
 		arr=listToArray(arguments.version,'.');
 
@@ -672,18 +673,18 @@
 		return 	rtn;
 	}
 
-	struct function toOSGiVersion(required string version, boolean ignoreInvalidVersion=false){
-		local.arr=listToArray(arguments.version,'.');
+	function toOSGiVersion(version, ignoreInvalidVersion) localmode=true {
+		var arr=listToArray(arguments.version,'.');
 
 		if(arr.len()!=4 || !isNumeric(arr[1]) || !isNumeric(arr[2]) || !isNumeric(arr[3])) {
-			if(ignoreInvalidVersion) return {};
+			if(ignoreInvalidVersion?: false) return {};
 			return {};
 			//throw "version number ["&arguments.version&"] is invalid";
 		}
-		local.sct={major:arr[1]+0,minor:arr[2]+0,micro:arr[3]+0,qualifier_appendix:"",qualifier_appendix_nbr:100};
+		var sct={major:arr[1]+0,minor:arr[2]+0,micro:arr[3]+0,qualifier_appendix:"",qualifier_appendix_nbr:100};
 
 		// qualifier has an appendix? (BETA,SNAPSHOT)
-		local.qArr=listToArray(arr[4],'-');
+		var qArr=listToArray(arr[4],'-');
 		if(qArr.len()==1 && isNumeric(qArr[1])) local.sct.qualifier=qArr[1]+0;
 		else if(qArr.len()==2 && isNumeric(qArr[1])) {
 			sct.qualifier=qArr[1]+0;
@@ -707,16 +708,16 @@
 		sct.display=
 					sct.pure
 					&(sct.qualifier_appendix==""?"":"-"&sct.qualifier_appendix);
-		sct.sortable=repeatString("0",2-len(sct.major))&sct.major
-					&"."&repeatString("0",3-len(sct.minor))&sct.minor
-					&"."&repeatString("0",4-len(sct.micro))&sct.micro
+		sct.sortable=repeatString("0",5-len(sct.major))&sct.major
+					&"."&repeatString("0",5-len(sct.minor))&sct.minor
+					&"."&repeatString("0",5-len(sct.micro))&sct.micro
 					&"."&repeatString("0",4-len(sct.qualifier))&sct.qualifier
 					& #sct.keyExists("qualifier_appendix1") && isNumeric(sct.qualifier_appendix1)? "."&repeatString("0",4-len(sct.qualifier_appendix1))&sct.qualifier_appendix1  : ""#
 					&"."&repeatString("0",3-len(sct.qualifier_appendix_nbr))&sct.qualifier_appendix_nbr;
 		return sct;
 	}
 
-	function unwrap(String str) {
+	function unwrap(str) {
 		local.str = arguments.str.trim();
 		if((left(str,1)==chr(8220) || left(str,1)=='"') && (right(str,1)=='"' || right(str,1)==chr(8221)))
 			str=mid(str,2,len(str)-2);

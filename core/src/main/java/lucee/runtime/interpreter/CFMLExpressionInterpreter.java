@@ -26,9 +26,7 @@ import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ParserString;
 import lucee.commons.lang.Range;
 import lucee.loader.engine.CFMLEngineFactory;
-import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageSource;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -1437,10 +1435,7 @@ public class CFMLExpressionInterpreter {
 			if (!firstCanBeNumber) return null;
 			else if (!cfml.isCurrentDigit()) return null;
 		}
-		boolean doUpper;
-		PageSource ps = pc == null ? null : pc.getCurrentPageSource();
-		if (ps != null) doUpper = !isJson && ((MappingImpl) ps.getMapping()).getDotNotationUpperCase();
-		else doUpper = !isJson && (config).getDotNotationUpperCase(); // MUST .lucee should not be upper case
+		boolean doUpper = !isJson && config.getDotNotationUpperCase();
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(doUpper ? cfml.getCurrentUpper() : cfml.getCurrent());

@@ -1,30 +1,65 @@
-<cffunction name="addZero">
-	<cfargument name="str">
- <!---   <while len(str) LT 2>
-    	<cfset str="0"&str>
-    </while>--->
-    <cfreturn arguments.str>
-</cffunction>
+<cfscript>
+function obfuscate(raw) {
+	
+	if(len(raw)<7)	{
+		if(len(raw)==0) return "";
+		return repeatString("*",len(raw));
+	}
+	return left(raw,3) & repeatString("*",len(raw)-6) & right(raw,3);
+}
+function addZero(str) {
+	return arguments.str;
+}
+</cfscript>
+
+
+
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>
 	<cfswitch expression="#form.mainAction#">
 	<!--- UPDATE --->
 		<cfcase value="#stText.Buttons.submit#">
-			<cfset custom=struct()>
-		
-		
-			<!--- custom --->
-			<cfloop collection="#form#" item="key">
-				<cfif left(key,13) EQ "custompart_d_">
-					<cfset name=mid(key,14,10000)>
-					<cfset custom[name]=(form["custompart_d_"&name]*86400)+(form["custompart_h_"&name]*3600)+(form["custompart_m_"&name]*60)+form["custompart_s_"&name]>
-				</cfif>
-			</cfloop>	   
-			<cfloop collection="#form#" item="key">
-				<cfif left(key,7) EQ "custom_">
-					<cfset custom[mid(key,8,10000)]=form[key]>
-				</cfif>
-			</cfloop>
+			<cfscript>
+				custom={};
+				defaults={};
+
+				// convert the custom part fields
+				loop collection=form item="key" {
+					if(left(key,13) EQ "custompart_d_") {
+						name=mid(key,14,10000);
+						custom[name]=(form["custompart_d_"&name]*86400)+(form["custompart_h_"&name]*3600)+(form["custompart_m_"&name]*60)+form["custompart_s_"&name];
+					}
+				}	
+
+				// convert the custom fields
+				loop collection=form item="key" {
+					if(left(key,7) EQ "custom_") {
+						custom[mid(key,8,10000)]=form[key];
+					}
+				}
+
+				// convert the custom default fields
+				loop collection=form item="key" {
+					if(left(key,15) EQ "default_custom_") {
+						defaults[mid(key,16,10000)]=form[key];
+					}
+				}
+				if(len(defaults)) {
+					loop query=connections {
+						if(connections.name==trim(form.name)) {
+							defaultCustom=connections.custom;
+							break;
+						}
+					}
+					if(!isNull(defaultCustom)) {
+						loop struct=defaults index="k" item="v" {
+							if(structKeyExists(custom,k) && custom[k]==v) {
+								custom[k]=defaultCustom[k]?:v;
+							}
+						}
+					}
+				}
+			</cfscript>
 			<cfadmin 
 				action="updateAIConnection"
 				type="#request.adminType#"
@@ -57,7 +92,6 @@ Redirtect to entry --->
 </cfif>
 
 <cfset isNew=false>
-<cfset unsupportedCacheCountExt="memcached.extension">
 <cfif StructKeyExists(url,'name')>
 	<cfloop query="connections" >
 		<cfif hash(connections.name) EQ url.name>
@@ -77,8 +111,7 @@ Redirtect to entry --->
 					<cfset error.message = cfcatch.message>
 				</cfcatch>
 			</cftry>
-			<cfset btnClearCache = connection.bundleName != unsupportedCacheCountExt ? stText.Settings.cache.clearCache : "Clear Cache" />
-		</cfif> 
+		</cfif>
 	</cfloop>
 <cfelse>
 	<cfset isNew=true>
@@ -88,11 +121,8 @@ Redirtect to entry --->
 	<cfset connection.default=false>
 	<cfset connection.custom=struct()>
 	<cfset driver=drivers[form.class]>
-	<cfset btnClearCache = "">
 	<!--- <cfset connection.name=lcase(driver.getLabel())&"_"&FormatBaseN(randRange(1,999999),36)> --->
 	<cfset connection.name="">
-
-	
 </cfif>
 
 
@@ -163,10 +193,14 @@ Redirtect to entry --->
 						<th scope="row">#field.getDisplayName()#</th>
 						<td>
 							<cfif type EQ "text" or type EQ "password">
-								<cfinputClassic type="#type#" 
-									name="custom_#field.getName()#" 
-									value="#default#" class="large" style="width:100%" required="#field.getRequired()#" 
-									message="Missing value for field #field.getDisplayName()#">
+								<cfif type EQ "password">
+									<cfset default=obfuscate(default)>
+									<input type="hidden" name="default_custom_#field.getName()#" value="#default#">
+								</cfif>
+								<cfinputClassic type="text" 
+										name="custom_#field.getName()#" 
+										value="#default#" class="large" style="width:100%" required="#field.getRequired()#" 
+										message="Missing value for field #field.getDisplayName()#">
 								<!--- TODO more dynamic solution --->
 								<cfif not isNew and "model" EQ field.getName()>
 									<cftry>

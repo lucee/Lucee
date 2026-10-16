@@ -175,7 +175,7 @@ public final class ExceptonImpl implements Excepton {
 
 	@Override
 	public PageException createNativeException(Throwable t) {
-		return NativeException.newInstance(t);
+		return NativeException.getInstance(t);
 	}
 
 	@Override

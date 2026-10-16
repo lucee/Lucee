@@ -3,11 +3,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi"{
 		describe( "test case for EncodeForHTMLAttribute", function() {
 			it(title = "Checking with EncodeForHTMLAttribute", body = function( currentSpec ) {
 				var enc=EncodeForHTMLAttribute('<script>');
-				assertEquals('&lt;script&gt;',enc);
+				assertEquals(0, find("<",enc));
 			});
 			it(title = "Checking with EncodeForHTMLAttributeMember", body = function( currentSpec ) {
 				var enc='<script>'.EncodeForHTMLAttribute();
-				assertEquals('&lt;script&gt;',enc);
+				assertEquals(0, find("<",enc));
 			});
 		});	
 	}

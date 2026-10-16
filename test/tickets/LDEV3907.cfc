@@ -20,7 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 				expect(trim(result)).toBe("LDEV3907");
 			});
 
-			it( title="updating the primary key in ORM entity and then accessing after saving (force:false)", skip=notHasMssql(), body=function( currentSpec ) {
+			it( title="updating the primary key in ORM entity and then accessing after saving (force:false)", skip=(noOrm() || notHasMssql()), body=function( currentSpec ) {
 				try {
 					local.result = _InternalRequest(
 						template : "#uri#\LDEV3907.cfm",
@@ -35,7 +35,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 				expect(trim(result)).toBe("LDEV3907");
 			});
 
-			it( title="updating any value in the ORM entity and then accesssing after an ormsave (force: false)", skip=true, body=function( currentSpec ) {
+			it( title="updating any value in the ORM entity and then accessing after an ormsave (force: false)", skip=true, body=function( currentSpec ) {
 				try {
 					local.result = _InternalRequest(
 						template : "#uri#\LDEV3907.cfm",
@@ -51,7 +51,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 				expect(trim(result)).toBe("LDEV3907");
 			});
 
-			it( title="updating any value in the ORM entity and then accesssing after an ormsave (force: true)", skip=notHasMssql(), body=function( currentSpec ) {
+			it( title="updating any value in the ORM entity and then accessing after an ormsave (force: true)", skip=(noOrm() || notHasMssql()), body=function( currentSpec ) {
 				try {
 					local.result = _InternalRequest(
 						template : "#uri#\LDEV3907.cfm",
@@ -77,5 +77,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	private string function createURI(string calledName) {
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

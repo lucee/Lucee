@@ -1,19 +1,22 @@
 package lucee.runtime.type.query;
 
 import lucee.commons.io.SystemUtil.TemplateLine;
+import lucee.runtime.cache.CacheObject;
 import lucee.runtime.db.SQL;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Duplicable;
 
-public interface QueryResult extends Dumpable, Duplicable {
+public interface QueryResult extends Dumpable, Duplicable, CacheObject {
 
 	public SQL getSql();
 
 	public boolean isCached();
 
 	public void setCacheType(String cacheType);
+
+	public void setCacheId(String cacheId);
 
 	public String getCacheType();
 

@@ -33,22 +33,25 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Duplicable;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.HTTPStruct;
 import lucee.runtime.type.util.KeyConstants;
 
 public final class HTTPCacheItem implements CacheItem, Serializable, Dumpable, Duplicable {
 
 	private static final long serialVersionUID = -8462614105941179140L;
 
-	private final Struct data;
+	private Struct data;
 	private final String url;
 	private final long executionTimeNS;
 	private final Object filecontent;
+	private final String cacheId;
 
-	public HTTPCacheItem(Struct data, String url, long executionTimeNS) {
+	public HTTPCacheItem(Struct data, String url, long executionTimeNS, String cacheId) {
 		this.data = data;
 		this.filecontent = data.get(KeyConstants._filecontent, "");
 		this.url = url;
 		this.executionTimeNS = executionTimeNS;
+		this.cacheId = cacheId;
 	}
 
 	@Override
@@ -74,6 +77,9 @@ public final class HTTPCacheItem implements CacheItem, Serializable, Dumpable, D
 	}
 
 	public Struct getData() {
+		if (data instanceof HTTPStruct) return data;
+		data = new HTTPStruct(cacheId, data);
+
 		return data;
 	}
 
@@ -102,7 +108,7 @@ public final class HTTPCacheItem implements CacheItem, Serializable, Dumpable, D
 
 	@Override
 	public Object duplicate(boolean deepCopy) {
-		return new HTTPCacheItem((Struct) Duplicator.duplicate(data, deepCopy), url, executionTimeNS);
+		return new HTTPCacheItem((Struct) Duplicator.duplicate(data, deepCopy), url, executionTimeNS, cacheId);
 	}
 
 }

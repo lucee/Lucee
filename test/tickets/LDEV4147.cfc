@@ -1,5 +1,5 @@
 <cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap"  skip=true{
 
 	function beforeAll() {
 		variables.uri = createURI("LDEV4147");

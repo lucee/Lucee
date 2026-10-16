@@ -103,6 +103,8 @@ public final class StringUtil {
 	private static final Pattern SPACES = Pattern.compile("\\s+");
 
 	private static final char[] SURROGATE_CHARACTERS_RANGE = new char[] { (char) 55296, (char) 57343 };
+	private static final Pair<Long, String>[] byteValues = new Pair[] { new Pair<Long, String>(1099511627776L, "TB"), new Pair<Long, String>(1073741824L, "GB"),
+			new Pair<Long, String>(1048576L, "MB"), new Pair<Long, String>(1024L, "KB") };
 
 	/**
 	 * do first Letter Upper case
@@ -930,7 +932,19 @@ public final class StringUtil {
 
 	public static int indexOfIgnoreCase(String haystack, String needle, int offset) {
 		if (StringUtil.isEmpty(haystack) || StringUtil.isEmpty(needle)) return -1;
-		return offset > 0 ? haystack.toLowerCase().indexOf(needle.toLowerCase(), offset) : haystack.toLowerCase().indexOf(needle.toLowerCase());
+		return haystack.toLowerCase().indexOf(needle.toLowerCase(), offset);
+	}
+
+	/**
+	 * Fast path for indexOfIgnoreCase when inputs are known to be non-null and non-empty.
+	 * Use this in hot paths where you control the inputs (e.g., constant strings, generated method names).
+	 *
+	 * @param haystack the string to search in (must not be null or empty)
+	 * @param needle the string to search for (must not be null or empty)
+	 * @return the index of the first occurrence, or -1 if not found
+	 */
+	public static int indexOfIgnoreCaseNoCheck(String haystack, String needle) {
+		return haystack.toLowerCase().indexOf(needle.toLowerCase());
 	}
 
 	/**
@@ -1582,6 +1596,44 @@ public final class StringUtil {
 
 			}
 		}
+		return SPACES.matcher(str).replaceAll(" ");
+	}
+
+	public static String byteFormat(long size) {
+		for (Pair<Long, String> pair: byteValues) {
+			if (size >= pair.getName()) {
+				double result = (double) size / pair.getName();
+				return Caster.toString(Caster.toLongValue(result)) + "" + pair.getValue();
+			}
+		}
+		return size + "B";
+	}
+
+	/**
+	 * Fast date-specific whitespace normalization. Handles U+00A0 (non-breaking space from HTTP headers)
+	 * and U+202F (narrow no-break space from Java's DateTimeFormatter) by converting them to regular spaces.
+	 * Also collapses multiple consecutive spaces to a single space.
+	 *
+	 * @param str the string to normalize
+	 * @return the normalized string with U+00A0 and U+202F replaced by regular spaces, and multiple spaces collapsed
+	 */
+	public static String normalizeDateWhitespace(String str) {
+		int len = str.length();
+		char c;
+		char[] carr = null;
+
+		// Replace U+00A0 (non-breaking space) and U+202F (narrow no-break space) with regular space
+		for (int i = 0; i < len; i++) {
+			c = str.charAt(i);
+			if (c == 0x00A0 || c == 0x202F) {
+				if (carr == null) carr = str.toCharArray();
+				carr[i] = ' ';
+			}
+		}
+
+		if (carr != null) str = String.valueOf(carr);
+
+		// Collapse multiple consecutive spaces to a single space
 		return SPACES.matcher(str).replaceAll(" ");
 	}
 }

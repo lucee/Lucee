@@ -21,6 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache,orm"
 	//public function setUp(){}
 
 	function testLoadingEHCache() localmode=true {
+		if(noOrm()) return;
 		ConfigurationFactory=createObject('java','net.sf.ehcache.config.ConfigurationFactory');
 		FAILSAFE_CLASSPATH_CONFIGURATION_FILE = "/ehcache-failsafe.xml";
 		_url = ConfigurationFactory.getClass().getResource(FAILSAFE_CLASSPATH_CONFIGURATION_FILE);
@@ -28,6 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache,orm"
 	}
 
 	public void function testUsingSecondaryCache(){
+		if(noOrm()) return;
 		local.uri=createURI("LDEV0096/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals("",result.filecontent.trim());
@@ -37,5 +39,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache,orm"
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
 	}
-} 
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
+	}
+}
 </cfscript>

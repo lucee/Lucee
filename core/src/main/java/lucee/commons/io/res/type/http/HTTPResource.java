@@ -205,7 +205,7 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 			if (cl != null && exists()) last = Caster.toIntValue(cl.getValue(), 0);
 		}
 		catch (Exception e) {
-			LogUtil.warn("ftp", e);
+			LogUtil.warn("http", e);
 		}
 		finally {
 			HTTPEngine.closeEL(rsp);

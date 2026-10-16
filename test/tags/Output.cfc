@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi">
+ ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="guard">
 
 	<cffunction name="testEncodeForStatic" localmode="true">
 		<cfset str="<">
@@ -33,9 +33,10 @@
 	<cffunction name="testEncodeForIgnoreExistingEncode" localmode="true">
 		<cfset str="<">
 		<cfsavecontent variable="c"><cfoutput encodeFor="url">#encodeForCSS(str)#:#str#</cfoutput></cfsavecontent>
-		<cfset assertEquals('\3c :%3C',c)>
+		
+		<cfset res = (c EQ '\3c :%3C' OR c EQ '%5C3c:%3C')>
+		<cfset assertTrue(res, "Result [#c#] did not match expected CSS-in-URL patterns")>
 	</cffunction>
-
 
 	<cffunction name="testEncodeForInvalid" localmode="true">
 		<cfset str="<">

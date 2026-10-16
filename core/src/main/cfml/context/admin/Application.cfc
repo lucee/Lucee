@@ -26,7 +26,7 @@ this.sessiontimeout="#createTimeSpan(0,0,30,0)#";
 this.setclientcookies="yes";
 this.setdomaincookies="no"; 
 this.applicationtimeout="#createTimeSpan(1,0,0,0)#";
-this.localmode="update";
+this.localmode=false;
 this.web.charset="utf-8";
 this.sessionCookie.httpOnly = true; // prevent access to session cookies from javascript
 this.sessionCookie.sameSite = "strict";
@@ -41,6 +41,7 @@ this.monitoring.showDebug=false;
 this.monitoring.showDoc=false;
 this.monitoring.showMetric=false;
 this.monitoring.showTest=false;
+this.nullSupport=false;
 
 this.xmlFeatures = {
 	externalGeneralEntities: false,

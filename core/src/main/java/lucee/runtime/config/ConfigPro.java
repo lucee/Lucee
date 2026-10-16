@@ -13,7 +13,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
-import lucee.commons.io.res.type.compress.Compress;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.PhysicalClassLoader;
@@ -34,7 +33,6 @@ import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
@@ -166,6 +164,10 @@ public interface ConfigPro extends Config {
 	public Collection<DatasourceConnPool> getDatasourceConnectionPools();
 
 	public void removeDatasourceConnectionPool(DataSource ds);
+
+	public void removeDatasourceConnectionPool(String name);
+
+	public void cleanDatasourceConnectionPools();
 
 	public void clearCTCache();
 
@@ -330,7 +332,7 @@ public interface ConfigPro extends Config {
 
 	public void putCTInitFile(String key, InitFile initFile);
 
-	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws TemplateException;
+	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws PageException;
 
 	public void putCachedPageSource(String pathWithCFC, PageSource ps);
 
@@ -340,8 +342,6 @@ public interface ConfigPro extends Config {
 	 * @return
 	 */
 	public List<ExtensionDefintion> loadLocalExtensions(boolean validate);
-
-	public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException;
 
 	public int getPasswordOrigin();
 

@@ -33,6 +33,7 @@ import lucee.commons.lang.Pair;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
@@ -83,6 +84,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 	Struct catchBlock;
 	boolean terminated;
 	boolean completed;
+	private volatile boolean interrupted;
 	ByteArrayOutputStream output;
 
 	// only used for type daemon
@@ -108,7 +110,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 
 	private Object threadScope;
 
-	private ParentException parentException;
+	private final PageSource parentPageSource;
 
 	private final boolean separateScopes;
 
@@ -123,7 +125,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 		this.serializable = serializable;
 		this.tagName = tagName;
 		this.threadIndex = threadIndex;
-		this.parentException = new ParentException();
+		this.parentPageSource = parent != null ? parent.getCurrentPageSource() : null;
 		this.separateScopes = separateScopes;
 		start = System.currentTimeMillis();
 		if (attrs == null) this.attrs = new StructImpl();
@@ -177,7 +179,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 			// daemon
 			if (this.pc != null) {
 				pc = this.pc;
-				ThreadLocalPageContext.register(pc);
+				ThreadLocalPageContext.registerChild(pc);
 			}
 			// task
 			else {
@@ -243,7 +245,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 				ExceptionUtil.rethrowIfNecessary(t);
 				if (!Abort.isSilentAbort(t)) {
 					ConfigWeb c = pc.getConfig();
-					ExceptionUtil.initCauseEL(t, parentException);
+					ExceptionUtil.initCauseEL(t, new ParentException(parentPageSource, tagName));
 					Log log = ThreadLocalPageContext.getLog(c, "thread");
 					if (log != null) {
 						try {
@@ -327,6 +329,17 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 	@Override
 	public void terminated() {
 		terminated = true;
+	}
+
+	@Override
+	public void interrupt() {
+		interrupted = true;
+		super.interrupt();
+	}
+
+	@Override
+	public boolean isInterrupted() {
+		return interrupted || super.isInterrupted();
 	}
 
 	/**

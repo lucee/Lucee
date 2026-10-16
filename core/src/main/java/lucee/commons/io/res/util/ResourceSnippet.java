@@ -71,7 +71,7 @@ public final class ResourceSnippet implements java.io.Serializable {
 			is.close();
 		}
 		catch (IOException ex) {
-			LogUtil.warn("ftp", ex);
+			LogUtil.warn("io", ex);
 		}
 
 		return result;

@@ -22,6 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	//public function setUp(){}
 
 	public void function test(){
+		if (noOrm()) return;
 
 		//dump(getApplicationSettings().mappings);
 
@@ -35,6 +36,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
 	}
-	
-} 
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
+	}
+
+}
 </cfscript>

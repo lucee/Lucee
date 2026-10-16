@@ -43,7 +43,9 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.config.RequestConfig.Builder;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
 import org.apache.http.client.methods.HttpPatch;
@@ -122,6 +124,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.HTTPStruct;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.PageContextUtil;
@@ -141,6 +144,7 @@ import lucee.runtime.util.URLResolver;
  **/
 public final class Http extends BodyTagImpl {
 
+	private static final TimeSpan MAX_CONN_TIMEOUT_MS = TimeSpanImpl.fromMillis(20000L);
 	public static final String MULTIPART_RELATED = "multipart/related";
 	public static final String MULTIPART_FORM_DATA = "multipart/form-data";
 
@@ -841,17 +845,43 @@ public final class Http extends BodyTagImpl {
 			HttpEntityEnclosingRequest eeReqPost = null;
 			HttpEntityEnclosingRequest eeReq = null;
 
+			// Note: We need to determine if GET/DELETE will have a body by checking params
+			// If no body is needed, use standard HttpGet/HttpDelete for better server compatibility
+			// Some servers (like Cloudflare) refuse compression for non-standard GET requests with body support
+			boolean needsBodyForGet = false;
+			boolean needsBodyForDelete = false;
+
+			// Check if any params require a body for GET/DELETE
+			for (int i = 0; i < len; i++) {
+				HttpParamBean param = this.params.get(i);
+				int type = param.getType();
+				if (type == HttpParamBean.TYPE_XML || type == HttpParamBean.TYPE_BODY) {
+					if (this.method == METHOD_GET) needsBodyForGet = true;
+					if (this.method == METHOD_DELETE) needsBodyForDelete = true;
+				}
+			}
+
 			if (this.method == METHOD_GET) {
-				req = new HttpGetWithBody(url);
-				eeReq = (HttpEntityEnclosingRequest) req;
+				if (needsBodyForGet) {
+					req = new HttpGetWithBody(url);
+					eeReq = (HttpEntityEnclosingRequest) req;
+				}
+				else {
+					req = new HttpGet(url);
+				}
 			}
 			else if (this.method == METHOD_HEAD) {
 				req = new HttpHead(url);
 			}
 			else if (this.method == METHOD_DELETE) {
 				isBinary = true;
-				req = new HttpDeleteWithBody(url);
-				eeReq = (HttpEntityEnclosingRequest) req;
+				if (needsBodyForDelete) {
+					req = new HttpDeleteWithBody(url);
+					eeReq = (HttpEntityEnclosingRequest) req;
+				}
+				else {
+					req = new HttpDelete(url);
+				}
 			}
 			else if (this.method == METHOD_PUT) {
 				isBinary = true;
@@ -926,8 +956,7 @@ public final class Http extends BodyTagImpl {
 				else if (type == HttpParamBean.TYPE_HEADER) {
 					if (param.getName().equalsIgnoreCase("content-type")) hasContentType = true;
 
-					if (param.getName().equalsIgnoreCase("Content-Length")) {
-					}
+					if (param.getName().equalsIgnoreCase("Content-Length")) {}
 					else if (param.getName().equalsIgnoreCase("Accept-Encoding")) {
 						acceptEncoding.append(headerValue(param.getValueAsString()));
 						acceptEncoding.append(", ");
@@ -1108,7 +1137,7 @@ public final class Http extends BodyTagImpl {
 		try {
 			if (httpContext == null) httpContext = new HttpClientContext();
 
-			Struct cfhttp = new StructImpl();
+			HTTPStruct cfhttp = new HTTPStruct(cacheId);
 			cfhttp.setEL(ERROR_DETAIL, "");
 			if (safeToMemory) pageContext.setVariable(result, cfhttp);
 
@@ -1369,7 +1398,7 @@ public final class Http extends BodyTagImpl {
 			// TODO: check if we can use statCode instead of rsp.getStatusCode() everywhere and cleanup the code
 			if (cacheHandler != null && rsp.getStatusCode() == 200) {
 				// add to cache
-				cacheHandler.set(pageContext, cacheId, cachedWithin, new HTTPCacheItem(cfhttp, url, System.nanoTime() - start));
+				cacheHandler.set(pageContext, cacheId, cachedWithin, new HTTPCacheItem(cfhttp, url, System.nanoTime() - start, cacheId));
 			}
 
 			logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false, null);
@@ -1821,8 +1850,7 @@ public final class Http extends BodyTagImpl {
 			try {
 				is = new GZIPInputStream(is);
 			}
-			catch (IOException e) {
-			}
+			catch (IOException e) {}
 		}
 
 		try {
@@ -1834,16 +1862,14 @@ public final class Http extends BodyTagImpl {
 				try {
 					return IOUtil.toString(is, cs);
 				}
-				catch (IOException e) {
-				}
+				catch (IOException e) {}
 			}
 			// Binary
 			else {
 				try {
 					return IOUtil.toBytes(is);
 				}
-				catch (IOException e) {
-				}
+				catch (IOException e) {}
 			}
 		}
 		finally {
@@ -1892,29 +1918,27 @@ public final class Http extends BodyTagImpl {
 
 	private static void setTimeout(Http http, HttpClientBuilder builder, TimeSpan timeout, TimeSpan connectionTimeout, TimeSpan socketTimeout) {
 
-		// timeout is only of interest if we miss the others
-		if (connectionTimeout == null && timeout != null) connectionTimeout = timeout;
-		if (socketTimeout == null && timeout != null) socketTimeout = timeout;
+		// . Resolve Connection Timeout
+		if (connectionTimeout == null) connectionTimeout = timeout;
+
+		// Apply the ceiling: Use the smaller of the requested timeout or the 20s cap
+		if (connectionTimeout == null || connectionTimeout.getMillis() > MAX_CONN_TIMEOUT_MS.getMillis() || connectionTimeout.getMillis() <= 0) {
+			connectionTimeout = MAX_CONN_TIMEOUT_MS;
+		}
+
+		// 2. Resolve Socket/Read Timeout
+		if (socketTimeout == null) socketTimeout = timeout;
+
+		// Update the Http object for logging accuracy
 		if (http != null) {
 			http.timeout = timeout;
 			http.connectionTimeout = connectionTimeout;
 			http.socketTimeout = socketTimeout;
 		}
 
-		Builder b = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD);
-
-		// connection timeout
-		if ((connectionTimeout != null && connectionTimeout.getMillis() > 0)) {
-			int ms = (int) connectionTimeout.getMillis();
-			if (ms < 0) ms = Integer.MAX_VALUE;
-			b = b.setConnectionRequestTimeout(ms).setConnectTimeout(ms);
-		}
-		// socket timeout
-		if ((socketTimeout != null && socketTimeout.getMillis() > 0)) {
-			int ms = (int) socketTimeout.getMillis();
-			if (ms < 0) ms = Integer.MAX_VALUE;
-			b = b.setSocketTimeout(ms);
-		}
+		// Build the config - .getMillis() returns the int we need
+		Builder b = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setConnectTimeout((int) connectionTimeout.getMillis())
+				.setConnectionRequestTimeout((int) connectionTimeout.getMillis()).setSocketTimeout(socketTimeout != null ? (int) socketTimeout.getMillis() : 0);
 
 		builder.setDefaultRequestConfig(b.build());
 	}

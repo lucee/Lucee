@@ -4,6 +4,7 @@ import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
 import lucee.runtime.db.SQL;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -24,6 +25,7 @@ public final class QueryArray extends ArrayImpl implements QueryResult {
 	private final TemplateLine templateLine;
 	private final String name;
 
+	private String cacheId;
 	private String cacheType;
 	private int updateCount;
 	private Key[] columnNames;
@@ -72,6 +74,7 @@ public final class QueryArray extends ArrayImpl implements QueryResult {
 	@Override
 	public Collection duplicate(boolean deepCopy) {
 		QueryArray qa = new QueryArray(name, sql, templateLine);
+		qa.cacheId = cacheId;
 		qa.cacheType = cacheType;
 		qa.columnNames = columnNames;
 		qa.executionTime = executionTime;
@@ -83,6 +86,17 @@ public final class QueryArray extends ArrayImpl implements QueryResult {
 	@Override
 	public SQL getSql() {
 		return sql;
+	}
+
+	@Override
+	public void setCacheId(String cacheId) {
+		this.cacheId = cacheId;
+	}
+
+	@Override
+	public String getCacheId(Collection arguments, String defaultValue) {
+		// for query we need no arguments for the cache
+		return cacheId;
 	}
 
 	@Override
@@ -167,6 +181,7 @@ public final class QueryArray extends ArrayImpl implements QueryResult {
 
 		QueryArray qa = new QueryArray(q.getName(), q.getSql(), q.getTemplateLine());
 		qa.setCacheType(q.getCacheType());
+		qa.setCacheId(q.getCacheId(null, null));
 		qa.setColumnNames(q.getColumnNames());
 		qa.setExecutionTime(q.getExecutionTime());
 		qa.setUpdateCount(q.getUpdateCount());
@@ -174,15 +189,21 @@ public final class QueryArray extends ArrayImpl implements QueryResult {
 		int rows = q.getRecordcount();
 		if (rows == 0) return qa;
 		Key[] columns = q.getColumnNames();
+		int structCapacity = StructImpl.optimalCapacity(columns.length, 2);
 
 		Struct tmp;
 		for (int r = 1; r <= rows; r++) {
-			qa.add(tmp = new StructImpl(Struct.TYPE_LINKED));
+			qa.add(tmp = new StructImpl(Struct.TYPE_LINKED, structCapacity));
 			for (Key c: columns) {
 				tmp.set(c, q.getAt(c, r, null));
 			}
 		}
 		return qa;
+	}
+
+	@Override
+	public int getCachetype() {
+		return Config.CACHE_TYPE_QUERY;
 	}
 
 }

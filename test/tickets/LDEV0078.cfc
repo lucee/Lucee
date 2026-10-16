@@ -20,6 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql,orm" {
 
 
 	public void function test1(){
+		if(noOrm()) return;
 		if(!hasCredentials()) return;
 		local.uri=createURI("LDEV0078/test1.cfm");
 		local.result=_InternalRequest(uri);
@@ -27,6 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql,orm" {
 	}
 
 	public void function test2(){
+		if(noOrm()) return;
 		if(!hasCredentials()) return;
 		local.uri=createURI("LDEV0078/test2.cfm");
 		local.result=_InternalRequest(uri);
@@ -34,6 +36,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql,orm" {
 	}
 
 	public void function test3(){
+		if(noOrm()) return;
 		if(!hasCredentials()) return;
 		local.uri=createURI("LDEV0078/test3.cfm");
 		local.result=_InternalRequest(uri);
@@ -46,8 +49,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql,orm" {
 	}
 
 	private boolean function hasCredentials() {
+		if ( structCount( server.getTestService("orm") ) eq 0 ) {
+			return false;
+		}
 		return structCount(server.getDatasource("mysql"));
 	}
-	
-} 
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
+	}
+
+}
 </cfscript>

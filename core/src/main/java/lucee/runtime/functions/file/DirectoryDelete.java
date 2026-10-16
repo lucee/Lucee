@@ -20,7 +20,9 @@ package lucee.runtime.functions.file;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.tag.Directory;
 
@@ -30,6 +32,7 @@ public final class DirectoryDelete {
 	}
 
 	public static String call(PageContext pc, String path, boolean recurse) throws PageException {
+		if (StringUtil.isEmpty(path, true)) throw new FunctionException(pc, "DirectoryDelete", 1, "path", "The argument [path] is required and cannot be empty");
 		Resource dir = ResourceUtil.toResourceNotExisting(pc, path);
 		Directory.actionDelete(pc, dir, recurse, null);
 		return null;

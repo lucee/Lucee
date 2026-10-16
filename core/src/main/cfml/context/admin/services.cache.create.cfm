@@ -29,18 +29,17 @@
 				action="updateCacheConnection"
 				type="#request.adminType#"
 				password="#session["password"&request.adminType]#"
-				
-				
+
 				name="#trim(form.name)#" 
 				class="#trim(form.class)#"
 				bundleName="#isNull(form.bundleName)?"":trim(form.bundleName)#"
 				bundleVersion="#isNull(form.bundleVersion)?"":trim(form.bundleVersion)#"
-
+				maven="#isNull(form.maven)?"":trim(form.maven)#"
 
 				storage="#isDefined('form.storage') and form.storage#"
-				default="#StructKeyExists(form,'default')?form.default:""#" 
+				default="#StructKeyExists(form,'default')?form.default:""#"
 				custom="#custom#"
-				
+
 				remoteClients="#request.getRemoteClients()#">
 					
 		</cfcase>
@@ -58,7 +57,6 @@ Redirtect to entry --->
 </cfif>
 
 <cfset isNew=false>
-<cfset unsupportedCacheCountExt="memcached.extension">
 <cfif StructKeyExists(url,'name')>
 	<cfloop query="connections" >
 		<cfif hash(connections.name) EQ url.name>
@@ -76,8 +74,11 @@ Redirtect to entry --->
 					<cfset error.message = cfcatch.message>
 				</cfcatch>
 			</cftry>
-			<cfset btnClearCache = connection.bundleName != unsupportedCacheCountExt ? replace(stText.Settings.cache.clearCache,"{count}", validConnection ? cacheCount(cacheName=connection.name) : "0") : "Clear Cache" />
-		</cfif> 
+			<cfset cacheItemCount = validConnection ? cacheCount(cacheName=connection.name) : -1>
+			<cfset btnClearCache = cacheItemCount GTE 0
+				? replace(stText.Settings.cache.clearCache, "{count}", cacheItemCount)
+				: stText.Settings.cache.clearCacheUnsupported />
+		</cfif>
 	</cfloop>
 <cfelse>
 	<cfset isNew=true>
@@ -95,7 +96,10 @@ Redirtect to entry --->
 	<cfif structKeyExists(form,"subAction") AND form.subAction == btnClearCache>
 	<!--- cache clear --->
 		<cfset cacheClear(cacheName=connection.name)>
-		<cfset btnClearCache = connection.bundleName != unsupportedCacheCountExt ? replace(stText.Settings.cache.clearCache,"{count}", validConnection ? cacheCount(cacheName=connection.name) : "0") : "Clear Cache" />
+		<cfset cacheItemCount = validConnection ? cacheCount(cacheName=connection.name) : -1>
+		<cfset btnClearCache = cacheItemCount GTE 0
+			? replace(stText.Settings.cache.clearCache, "{count}", cacheItemCount)
+			: stText.Settings.cache.clearCacheUnsupported />
 	<cfelse>
 		<cfswitch expression="#form.mainAction#">
 			<!--- UPDATE --->
@@ -126,6 +130,7 @@ Redirtect to entry --->
 					class="#trim(form.class)#"
 					bundleName="#isNull(form.bundleName)?"":trim(form.bundleName)#"
 					bundleVersion="#isNull(form.bundleVersion)?"":trim(form.bundleVersion)#"
+					maven="#isNull(form.maven)?"":trim(form.maven)#"
 
 
 					storage="#isDefined('form.storage') and form.storage#"
@@ -158,6 +163,7 @@ Redirtect to entry --->
 		<cfinputClassic type="hidden" name="class" value="#driver.getClass()#">
 		<cfif !isNull(driver.getBundleName)><cfinputClassic type="hidden" name="bundleName" value="#driver.getBundleName()#"></cfif>
 		<cfif !isNull(driver.getBundleVersion)><cfinputClassic type="hidden" name="bundleVersion" value="#driver.getBundleVersion()#"></cfif>
+		<cfif !isNull(driver.getMaven)><cfinputClassic type="hidden" name="maven" value="#driver.getMaven()#"></cfif>
 		
 		<cfinputClassic type="hidden" name="name" value="#connection.name#" >
 		<cfinputClassic type="hidden" name="_name" value="#connection.name#" >
@@ -348,10 +354,10 @@ Redirtect to entry --->
 	
 <cftry>
 <cfoutput><cfsavecontent variable="codeSample">
+<cfset newLineChar = Chr(13) & Chr(10)>
+<cfset tabChar = chr(9)>
+<cfset customTab = newLineChar & tabChar & tabChar>
 <cfif isStruct(connection.custom)>
-	<cfset newLineChar = Chr(13) & Chr(10)>
-	<cfset tabChar = chr(9)>
-	<cfset customTab = newLineChar & tabChar & tabChar>
 	<cfset connectionCustom_Aligned = serialize(connection.custom)>
 	<cfset connectionCustom_Aligned = replaceNoCase(connectionCustom_Aligned, '","', '",#customTab#"', 'ALL')>
 	<cfset connectionCustom_Aligned = replaceNoCase(connectionCustom_Aligned, '{"', '{#customTab#"', "ALL")>
@@ -359,10 +365,19 @@ Redirtect to entry --->
 <cfelse>
 	<cfset connectionCustom_Aligned = '{}'>
 </cfif>
+<cfif !isEmpty( connection.maven ?: "" )>
+	<cfset classLine = "maven: '#connection.maven#'">
+<cfelse>
+	<cfset classLine = "class: '#connection.class#'">
+	<cfif !isEmpty( connection.bundleName ?: "" )>
+		<cfset classLine &= "#newLineChar##tabChar#, bundleName: '#connection.bundleName#'">
+	</cfif>
+	<cfif !isEmpty( connection.bundleVersion ?: "" )>
+		<cfset classLine &= "#newLineChar##tabChar#, bundleVersion: '#connection.bundleVersion#'">
+	</cfif>
+</cfif>
 this.cache.connections["#connection.name#"] = {
-	  class: '#connection.class#'#isNull(connection.bundleName) || isEmpty(connection.bundleName)?"":"
-	, bundleName: '"&connection.bundleName&"'"##isNull(connection.bundleVersion) || isEmpty(connection.bundleVersion)?"":"
-	, bundleVersion: '"&connection.bundleVersion&"'"##!connection.readOnly?"":"
+	  #classLine##!connection.readOnly?"":"
 	, readOnly: "&connection.readonly#
 	, storage: #connection.storage#
 	, custom: #connectionCustom_Aligned#

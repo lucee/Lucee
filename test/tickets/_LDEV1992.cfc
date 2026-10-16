@@ -4,7 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 	}
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1992", function() {
-			it( title='Checking ', body=function( currentSpec ) {
+			it( title='Checking ', skip=noOrm(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm");
 				expect(result.filecontent.trim()).toBe(1);
@@ -15,6 +15,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
 	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
+	}
+
 	function afterAll(){
 		variables.adminWeb = new org.lucee.cfml.Administrator("web", request.WebAdminPassword);
 		var datasource = adminWeb.getDatasource('TestDSN1');

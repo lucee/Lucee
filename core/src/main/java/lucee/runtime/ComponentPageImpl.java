@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -102,6 +103,11 @@ public abstract class ComponentPageImpl extends ComponentPage {
 	private static final long serialVersionUID = -3483642653131058030L;
 
 	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyConstants._Id16hohohh;
+
+	// Note: Static property registry is now generated per-class in bytecode, not in base class
+	// Each generated component class has its own __staticProperties field and __getStaticProperties()
+	// method
+	// See PageImpl.writeOutStatic() for bytecode generation
 
 	private long lastCheck = -1;
 
@@ -598,8 +604,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 						pc.forceWrite(content);
 						hasContent = true;
 					}
-					catch (IOException e) {
-					}
+					catch (IOException e) {}
 				}
 			}
 
@@ -795,8 +800,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 							try {
 								args = new CFMLExpressionInterpreter().interpret(pc, str);
 							}
-							catch (PageException _pe) {
-							}
+							catch (PageException _pe) {}
 						}
 					}
 				}
@@ -1146,6 +1150,40 @@ public abstract class ComponentPageImpl extends ComponentPage {
 	// this method only exist that old classes from archives still work, not perfectly, but good enough
 	public StaticStruct getStaticStruct() {
 		return new StaticStruct();
+	}
+
+	/**
+	 * Returns the static properties map for this component class. Components with properties will
+	 * override this method to return their static property registry. Default implementation returns
+	 * null for components without properties.
+	 *
+	 * @return Map of property names to PropertyImpl instances, or null if no properties
+	 */
+	public Map<String, lucee.runtime.component.PropertyImpl> getStaticProperties() {
+		return null;
+	}
+
+	/**
+	 * LDEV-3335: Returns the static flyweight accessor UDF map for this component class. Components
+	 * with accessors will override this to return their static UDF registry. Default implementation
+	 * returns null for components without accessor UDFs.
+	 *
+	 * @return Map of accessor names to UDF instances, or null if no accessor UDFs
+	 */
+	public Map<Key, UDF> getStaticAccessorUDFs() {
+		return null;
+	}
+
+	/**
+	 * Initializes component properties from the static property registry. Components with properties
+	 * will override this method to provide optimized property initialization. Default implementation
+	 * does nothing (no-op for components without properties).
+	 *
+	 * @param impl The ComponentImpl instance to initialize properties for
+	 * @throws PageException if property initialization fails
+	 */
+	public void initPropertiesStub(ComponentImpl impl) throws PageException {
+		// No-op for components without properties
 	}
 
 	public abstract void initComponent(PageContext pc, ComponentImpl c, boolean executeDefaultConstructor) throws PageException;

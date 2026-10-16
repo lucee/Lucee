@@ -21,9 +21,17 @@ package lucee.runtime.query.caster;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Calendar;
 import java.util.TimeZone;
 
+import lucee.commons.io.SystemUtil;
+import lucee.runtime.op.Caster;
+
 public interface Cast {
+
+	// when enabled, DATE/TIME/TIMESTAMP query columns keep the JDBC driver's native toString() format
+	// (matching ACF) instead of Lucee's {ts '...'} ODBC escape format when cast to a string - see LDEV-1344
+	public static final boolean JDBC_DATETIME_FORMAT = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.query.datetime.jdbcformat", null), false);
 
 	public static final Cast ARRAY = new ArrayCast();
 	public static final Cast BIT = new BitCast();
@@ -48,7 +56,28 @@ public interface Cast {
 	public static final Cast ORACLE_TIMESTAMPLTZ = new OracleTimestampLTZ();
 	public static final Cast ORACLE_TIMESTAMPNS = new OracleTimestampNS();
 
+	// Common type-specific casters for better performance
+	public static final Cast VARCHAR = new VarcharCast();
+	public static final Cast DOUBLE = new DoubleCast();
+	public static final Cast DECIMAL = new DecimalCast();
+
 	// public Object toCFType(TimeZone tz,int type,ResultSet rst, int columnIndex) throws SQLException,
 	// IOException;
 	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException;
+
+	/**
+	 * Optimized version that accepts a pre-created Calendar instance to avoid repeated ThreadLocal
+	 * lookups and Calendar initialization overhead when processing multiple rows in a result set.
+	 *
+	 * @param tz the timezone
+	 * @param rst the result set
+	 * @param columnIndex the column index (1-based)
+	 * @param cal a Calendar instance to reuse (can be null if not needed by this cast type)
+	 * @return the CF type value
+	 * @throws SQLException if database access error occurs
+	 * @throws IOException if IO error occurs
+	 */
+	default Object toCFType(TimeZone tz, ResultSet rst, int columnIndex, Calendar cal) throws SQLException, IOException {
+		return toCFType( tz, rst, columnIndex );
+	}
 }

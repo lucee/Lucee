@@ -119,7 +119,7 @@ public final class PrintOut extends StatementBaseNoFinal {
 		sct.setEL(KeyConstants._type, "ExpressionStatement");
 
 		{
-			Struct expression = new StructImpl(Struct.TYPE_LINKED);
+			Struct expression = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			expr.dump(expression);
 			sct.setEL("expression", expression);
 		}

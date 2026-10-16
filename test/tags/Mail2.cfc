@@ -1,5 +1,13 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail"  javaSettings='{
+		"maven": [
+			"com.icegreen:greenmail:2.1.7"
+		]
+	}'  { 
 	
+	import "com.icegreen.greenmail.util.ServerSetup";
+	import "com.icegreen.greenmail.util.GreenMail";
+	import "com.icegreen.greenmail.util.GreenMailUtil";
+	import "org.lucee.extension.mail.SMTPVerifier";
 	processingdirective pageencoding="UTF-8";
 
 
@@ -11,16 +19,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 
 	function beforeAll() {
 		if(isNull(application.testSMTP)) {
-			var ServerSetup=createObject("java","com.icegreen.greenmail.util.ServerSetup","org.lucee.greenmail","1.6.15");
-			var GreenMail=createObject("java","com.icegreen.greenmail.util.GreenMail","org.lucee.greenmail","1.6.15");
-			variables.utils = createObject("java","com.icegreen.greenmail.util.GreenMailUtil","org.lucee.greenmail","1.6.15");
-			application.testSMTP = GreenMail.init(ServerSetup.init(variables.port, nullValue(), ServerSetup.PROTOCOL_SMTP));
+			application.testSMTP=new GreenMail(new ServerSetup(variables.port, nullValue(), ServerSetup::PROTOCOL_SMTP));
 			application.testSMTP.start();
 		}
 		else {
 			application.testSMTP.purgeEmailFromAllMailboxes();
 		}
-
+		application.self=this;
 
     }
 
@@ -30,9 +35,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 			application.testSMTP.stop();
 		}
     }
-	
-	
-	
+
 	function run( testResults , testBox ) {
 		describe( title="Test suite for the tag cfmail", body=function() {
 			it(title="send a simple text mail", body = function( currentSpec ) {
@@ -217,8 +220,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 
 			it(title="verify mail server", body = function( currentSpec ) {
 				lock name="test:mail" {
-					var SMTPVerifier=createObject("java","lucee.runtime.net.mail.SMTPVerifier");
-        			expect( SMTPVerifier.verify("localhost", nullValue(), nullValue(), variables.port) ).toBeTrue();
+					expect( return SMTPVerifier::verify("localhost", nullValue(), nullValue(), variables.port) ).toBeTrue();
 				}
 			});	
 
@@ -297,12 +299,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 					var messages = mail.getReceivedMessages();
 					expect( len(messages) ).toBe( len( headerNames ) );
 
-					arrayEach( headerNames, function( el, idx ) {
+					loop array=headerNames item="local.el" index="idx" {	
 						expect( messages[ idx ].getSubject() ).toBe( "mail #idx# with #el#");
 						var msgHeaders = getMessageHeaders( messages[ idx ] );
 						expect( msgHeaders).toHaveKey( "Message-Id" );
 						expect( msgHeaders["Message-Id"] ).toBeWithCase( "<" & messageId & "-" & el & ">" );
-					});
+					}
 
 					application.testSMTP.purgeEmailFromAllMailboxes();
 				}
@@ -323,7 +325,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 
 	private function getMessageHeaders( msg ){
-		var str = utils.getHeaders( arguments.msg );
+		var str = GreenMailUtil::getHeaders( arguments.msg );
 		var tmp = listToArray( str, chr( 10 ) );
 		var headers = structNew( "ordered" );
 		arrayEach( tmp, function( v ){
@@ -333,9 +335,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 	
 	private string function createURI(string calledName, boolean contract=false){
-		var base = getDirectoryFromPath( getCurrentTemplatePath() );
-		var baseURI = contract ? contractPath( base ) : "/test/#listLast(base,"\/")#";
-		return baseURI & "/" & calledName;
+		//var base = getDirectoryFromPath( getCurrentTemplatePath() );
+		//var baseURI = contract ? contractPath( base ) : "/testAdditional/#listLast(base,"\/")#";
+		
+		return  "/test/" & calledName;
 	}
 
 	private function _testViaApplicationCFC ( string serverField, string subject ){

@@ -34,7 +34,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
-import lucee.commons.io.res.type.compress.Compress;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
@@ -76,7 +75,6 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
-import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionProvider;
@@ -105,6 +103,7 @@ import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecretProvider;
 import lucee.runtime.security.SecurityManager;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.spooler.SpoolerEngine;
 import lucee.runtime.tag.TagHandlerPool;
 import lucee.runtime.type.Collection.Key;
@@ -602,7 +601,12 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public SecurityManager getSecurityManager() {
-		return cs.getSecurityManager();
+		SecurityManager sm = cs.getSecurityManager();
+		// Set the root directory for local file access checks
+		if (sm instanceof SecurityManagerImpl) {
+			((SecurityManagerImpl) sm).setRootDirectory(getRootDirectory());
+		}
+		return sm;
 	}
 
 	@Override
@@ -1025,7 +1029,7 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws TemplateException {
+	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws PageException {
 		return componentPathCache.getPage(pc, pathWithCFC);
 	}
 
@@ -1097,11 +1101,6 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	@Override
 	public boolean getComponentRootSearch() {
 		return cs.getComponentRootSearch();
-	}
-
-	@Override
-	public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
-		return cs.getCompressInstance(zipFile, format, caseSensitive);
 	}
 
 	@Override
@@ -1600,6 +1599,21 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public ConfigWebHelper.ResolvedMapping resolveApplicationMappingPath(Resource source, String rawPath) {
+		return helper.resolveApplicationMappingPath(source, rawPath);
+	}
+
+	@Override
+	public void clearResolvedMappingPaths() {
+		helper.clearResolvedMappingPaths();
+	}
+
+	@Override
+	public void revalidateNegativeMappingPaths() {
+		helper.revalidateNegativeMappingPaths();
+	}
+
+	@Override
 	public CIPage getBaseComponentPage(PageContext pc) throws PageException {
 		return helper.getBaseComponentPage(pc);
 	}
@@ -1852,6 +1866,16 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	@Override
 	public void removeDatasourceConnectionPool(DataSource ds) {
 		cs.removeDatasourceConnectionPool(ds);
+	}
+
+	@Override
+	public void removeDatasourceConnectionPool(String name) {
+		cs.removeDatasourceConnectionPool(name);
+	}
+
+	@Override
+	public void cleanDatasourceConnectionPools() {
+		cs.cleanDatasourceConnectionPools();
 	}
 
 	@Override

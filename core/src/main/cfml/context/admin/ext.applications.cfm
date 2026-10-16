@@ -24,14 +24,6 @@
     returnVariable="extensions">
 
 
-<cfif request.adminType=="web">
-	<cfadmin
-	    action="getRHServerExtensions"
-	    type="#request.adminType#"
-	    password="#session["password"&request.adminType]#"
-	    returnVariable="serverExtensions">
-</cfif>
-
 <cfparam name="error" default="#struct(message:"",detail:"")#">
 
 

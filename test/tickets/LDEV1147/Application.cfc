@@ -13,14 +13,14 @@
 			setting requesttimeout=10 showdebugOutput=false;
 			//  create package
 			query {
-				echo("CREATE OR REPLACE package lucee_bug_test as PROCEDURE testproc;
+				echo("CREATE OR REPLACE package ldev1147_pkg as PROCEDURE testproc;
 						PROCEDURE testproc2(p1 varchar2);
 					end;"
 				);
 			}
 			//  create package body
 			query {
-				echo("CREATE OR REPLACE package body lucee_bug_test as
+				echo("CREATE OR REPLACE package body ldev1147_pkg as
 					PROCEDURE testproc IS
 					BEGIN
 						NULL;
@@ -34,7 +34,7 @@
 			}
 			//  create Synonym for package
 			query {
-					echo("create or replace synonym bu## for lucee_bug_test");
+					echo("create or replace synonym ldev1147_syn## for ldev1147_pkg");
 			}
 		}
 	</cfscript>

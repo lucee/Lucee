@@ -17,7 +17,7 @@
 /**
 * Create a new function: isInThread() to allow for checking if you are in a thread or not
 */
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread" {
 
 	function run( testResults, testBox ){
 		// all your suites go here.

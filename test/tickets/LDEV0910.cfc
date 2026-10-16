@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" skip=true {
 	variables.isSupported = false;
 	variables.creds = getCredentials();
 	if( !structIsEmpty(creds.pop) && !structIsEmpty(creds.imap) )

@@ -191,7 +191,7 @@ public final class RCL extends ClassLoader implements Closeable {
 			return data;
 		}
 		catch (IOException ioe) {
-			LogUtil.warn("ftp", ioe);
+			LogUtil.warn("zip", ioe);
 		}
 		finally {
 			IOUtil.closeEL(is);

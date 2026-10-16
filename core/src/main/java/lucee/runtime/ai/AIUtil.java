@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
+import lucee.commons.digest.Base64Encoder;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.lang.ClassException;
@@ -16,11 +17,13 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
+import lucee.runtime.coder.CoderException;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -202,7 +205,7 @@ public final class AIUtil {
 
 	public static List<Part> getAnswersFromAnswer(Response rsp) {
 		List<Part> parts = new ArrayList<>();
-		parts.add(new ResponsePartImpl(rsp.getAnswer()));
+		parts.add(new PartImpl(rsp.getAnswer(), 0));
 		return parts;
 	}
 
@@ -266,8 +269,26 @@ public final class AIUtil {
 
 			// request
 			req = c.getRequest();
-			if (req.isMultiPart()) throw new ApplicationException("serialising multi part request is not supported yet");
-			sct.set(KeyConstants._question, req.getQuestion());
+			if (req.isMultiPart()) {
+				Array _arr = new ArrayImpl();
+				for (Part p: req.getQuestions()) {
+					Struct _sct = new StructImpl();
+					_arr.append(_sct);
+					_sct.set(KeyConstants._contenttype, p.getContentType());
+					if (p.isText()) {
+						_sct.set(KeyConstants._type, "text");
+						_sct.set(KeyConstants._content, p.getAsString());
+					}
+					else {
+						_sct.set(KeyConstants._type, "binary");
+						_sct.set(KeyConstants._content, Caster.toBase64(p.getAsBinary()));
+					}
+				}
+				sct.set(KeyConstants._question, _arr);
+			}
+			else {
+				sct.set(KeyConstants._question, req.getQuestion());
+			}
 
 			// response
 			rsp = c.getResponse();
@@ -336,9 +357,19 @@ public final class AIUtil {
 		int index = 0;
 		while (it.hasNext()) {
 			sct = Caster.toStruct(it.next());
+
+			Object obj = sct.get(KeyConstants._question);
+			RequestSupport req;
+			if (obj instanceof CharSequence) {
+				req = new RequestSupport(Caster.toString(obj));
+			}
+			else {
+				req = new RequestSupport(toParts(Caster.toArray(obj)));
+			}
+
 			conversations[index++] = new ConversationImpl(
 
-					new RequestSupport(Caster.toString(sct.get(KeyConstants._question))),
+					req,
 
 					new SimpleResponse(Caster.toString(sct.get(KeyConstants._answer)))
 
@@ -347,11 +378,60 @@ public final class AIUtil {
 		return conversations;
 	}
 
+	private static List<Part> toParts(Array array) throws PageException {
+		List<Part> list = new ArrayList<>();
+		Iterator<Object> it = array.valueIterator();
+		Struct sct;
+		String contenttype, type;
+		while (it.hasNext()) {
+			sct = Caster.toStruct(it.next());
+			type = Caster.toString(sct.get(KeyConstants._type));
+			contenttype = Caster.toString(sct.get(KeyConstants._contenttype));
+
+			// text
+			if ("text".equals(type)) {
+				list.add(new PartImpl(null, list.size(), Caster.toString(sct.get(KeyConstants._content)), contenttype));
+			}
+			else {
+				try {
+					list.add(new PartImpl(null, list.size(), Base64Encoder.decode(Caster.toString(sct.get(KeyConstants._content)), false), contenttype));
+				}
+				catch (CoderException ce) {
+					throw Caster.toPageException(ce);
+				}
+			}
+		}
+		return list;
+	}
+
 	public static AIEngine getEngine(Class<? extends AIEngine> clazz, Struct properties) throws ClassException, PageException {
 		return ((AIEngine) ClassUtil.loadInstance(clazz)).init(new ClassDefinitionImpl<>(clazz), properties, null, null, null);
 	}
 
 	public static AISession createSession(AIEngine aie) throws PageException {
 		return aie.createSession(null, null, -1, -1D, aie.getConnectTimeout(), aie.getSocketTimeout());
+	}
+
+	public static String extractTextFromParts(List<Part> parts) {
+		if (parts == null) return "";
+
+		StringBuilder sb = new StringBuilder();
+		for (Part part: parts) {
+			if (part.isText()) {
+				String text = part.getAsString();
+				if (!StringUtil.isEmpty(text)) {
+					if (sb.length() > 0) sb.append(" ");
+					sb.append(text);
+				}
+			}
+		}
+		return sb.toString();
+	}
+
+	public static boolean isTextOnly(List<Part> answers) {
+		for (Part a: answers) {
+			if (!a.isText()) return false;
+		}
+		return true;
 	}
 }

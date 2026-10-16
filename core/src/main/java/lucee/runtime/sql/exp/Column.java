@@ -42,6 +42,6 @@ public interface Column extends Expression {
 
 	public Object getValue(PageContext pc, Query qry, int row) throws PageException;
 
-	public Object getValue(PageContext pc, Query qry, int row, Object defaultValue);
+	public Object getValue(PageContext pc, Query qry, int row, Object defaultValue) throws PageException;
 
 }

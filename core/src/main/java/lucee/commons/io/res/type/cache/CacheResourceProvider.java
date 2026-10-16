@@ -19,11 +19,9 @@
 package lucee.commons.io.res.type.cache;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
@@ -56,8 +54,6 @@ public final class CacheResourceProvider implements ResourceProviderPro {
 	private Map arguments;
 
 	private Cache defaultCache;
-
-	private Set<Integer> inits = new HashSet<Integer>();
 
 	// private Config config;
 
@@ -152,7 +148,14 @@ public final class CacheResourceProvider implements ResourceProviderPro {
 	 */
 	CacheResourceCore createCore(String path, String name, int type) throws IOException {
 		CacheResourceCore value = new CacheResourceCore(type, path, name);
-		getCache().put(toKey(path, name), value, null, null);
+		Cache cache = getCache();
+		String key = toKey(path, name);
+		if (type == CacheResourceCore.TYPE_DIRECTORY && cache instanceof RamCache) {
+			((RamCache) cache).putPinned(key, value, null, null);
+		}
+		else {
+			cache.put(key, value, null, null);
+		}
 		return value;
 	}
 
@@ -215,18 +218,21 @@ public final class CacheResourceProvider implements ResourceProviderPro {
 			}
 			c = defaultCache;
 		}
-		if (!inits.contains(c.hashCode())) {
-			String k = toKey("null", "");
-			try {
-				if (!c.contains(k)) {
-					CacheResourceCore value = new CacheResourceCore(CacheResourceCore.TYPE_DIRECTORY, null, "");
+		// LDEV-1109: always verify root exists - it may have been lost to GC via soft references
+		String k = toKey("null", "");
+		try {
+			if (!c.contains(k)) {
+				CacheResourceCore value = new CacheResourceCore(CacheResourceCore.TYPE_DIRECTORY, null, "");
+				if (c instanceof RamCache) {
+					((RamCache) c).putPinned(k, value, Constants.LONG_ZERO, Constants.LONG_ZERO);
+				}
+				else {
 					c.put(k, value, Constants.LONG_ZERO, Constants.LONG_ZERO);
 				}
 			}
-			catch (IOException e) {
-				// simply ignore
-			}
-			inits.add(c.hashCode());
+		}
+		catch (IOException e) {
+			// simply ignore
 		}
 		return c;
 	}

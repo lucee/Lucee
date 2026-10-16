@@ -210,22 +210,22 @@ public abstract class TagBase extends StatementBase implements Tag {
 		if (fullname != null) sct.setEL(KeyConstants._fullname, fullname);
 
 		// attributes
-		Array arrAttrs = new ArrayImpl();
+		Array arrAttrs = new ArrayImpl(8, false);
 		sct.setEL(KeyConstants._attributes, arrAttrs);
 		for (Entry<String, Attribute> entry: attributes.entrySet()) {
 			Attribute attr = entry.getValue();
-			Struct sctAttr = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctAttr = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			arrAttrs.appendEL(sctAttr);
 			sctAttr.setEL(KeyConstants._name, attr.getName());
 			sctAttr.setEL(KeyConstants._type, "Attribute");
 
-			Struct val = new StructImpl(Struct.TYPE_LINKED);
+			Struct val = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			attr.getValue().dump(val);
 			sctAttr.setEL(KeyConstants._value, val);
 		}
 		// body
 		if (this.body != null) {
-			Struct body = new StructImpl(Struct.TYPE_LINKED);
+			Struct body = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			this.body.dump(body);
 			sct.setEL(KeyConstants._body, body);
 		}

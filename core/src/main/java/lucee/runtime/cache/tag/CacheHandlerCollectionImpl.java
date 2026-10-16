@@ -19,6 +19,7 @@ package lucee.runtime.cache.tag;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -209,7 +210,7 @@ public final class CacheHandlerCollectionImpl implements CacheHandlerCollection 
 	public static String createId(Resource res, boolean binary) {
 		StringBuilder sb = new StringBuilder().append(res.getAbsolutePath()).append(CACHE_DEL).append(binary).append(CACHE_DEL);
 
-		return HashUtil.create64BitHashAsString(sb, Character.MAX_RADIX);
+		return CacheUtil.key(HashUtil.create64BitHashAsString(sb, Character.MAX_RADIX));
 	}
 
 	public static String createId(String wsdlUrl, String username, String password, ProxyData proxyData, String methodName, Object[] arguments, Struct namedArguments) {
@@ -218,7 +219,7 @@ public final class CacheHandlerCollectionImpl implements CacheHandlerCollection 
 
 		createIdArgs(null, sb, arguments, namedArguments);
 
-		return HashUtil.create64BitHashAsString(sb, Character.MAX_RADIX);
+		return CacheUtil.key(HashUtil.create64BitHashAsString(sb, Character.MAX_RADIX));
 	}
 
 	public static String createId(UDFImpl udf, Object[] args, Struct values) {
@@ -226,7 +227,7 @@ public final class CacheHandlerCollectionImpl implements CacheHandlerCollection 
 		StringBuilder sb = new StringBuilder().append(src == null ? "" : src).append(CACHE_DEL).append(udf.properties.getStartLine()).append(CACHE_DEL)
 				.append(udf.getFunctionName()).append(CACHE_DEL);
 		createIdArgs(udf, sb, args, values);
-		return HashUtil.create64BitHashAsString(sb, Character.MAX_RADIX);
+		return CacheUtil.key(HashUtil.create64BitHashAsString(sb, Character.MAX_RADIX));
 	}
 
 	private static void createIdArgs(UDFImpl udf, StringBuilder sb, Object[] args, Struct namedArgs) {
@@ -250,12 +251,11 @@ public final class CacheHandlerCollectionImpl implements CacheHandlerCollection 
 	}
 
 	private static void _create(Struct sct, StringBuilder sb) {
-		Iterator<Entry<Key, Object>> it = sct.entryIterator();
-		Entry<Key, Object> e;
+		Key[] keys = sct.keys();
+		Arrays.sort(keys);
 		sb.append('{');
-		while (it.hasNext()) {
-			e = it.next();
-			sb.append(e.getKey().getLowerString()).append(':').append(_createId(e.getValue())).append(',');
+		for (Key k: keys) {
+			sb.append(k.getLowerString()).append(':').append(_createId(sct.get(k, null))).append(',');
 		}
 		sb.append('}');
 	}
@@ -277,7 +277,7 @@ public final class CacheHandlerCollectionImpl implements CacheHandlerCollection 
 			sb.append(hpb.getEncoded()).append(CACHE_DEL).append(hpb.getMimeType()).append(CACHE_DEL).append(hpb.getName()).append(CACHE_DEL).append(hpb.getType())
 					.append(CACHE_DEL).append(toString(hpb.getValue())).append(CACHE_DEL).append(toString(hpb.getFile())).append(CACHE_DEL);
 		}
-		return HashUtil.create64BitHashAsString(sb.toString());
+		return CacheUtil.key(HashUtil.create64BitHashAsString(sb.toString()));
 	}
 
 	private static Object toString(Object value) {

@@ -17,6 +17,7 @@
  */
 package lucee.loader.osgi;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +30,7 @@ public class BundleCollection {
 	public final Bundle core;
 	private final List<Bundle> slaves;
 	public final Felix felix;
+	private File felixCacheParentDirectory;
 
 	public BundleCollection(final Felix felix, final Bundle master, final List<Bundle> slaves) {
 		this.felix = felix;
@@ -36,6 +38,7 @@ public class BundleCollection {
 		this.slaves = new ArrayList<Bundle>();
 		if (slaves != null) for (final Bundle slave: slaves)
 			if (!slave.equals(master)) this.slaves.add(slave);
+		this.felixCacheParentDirectory = felixCacheParentDirectory;
 	}
 
 	public Iterator<Bundle> getSlaves() {

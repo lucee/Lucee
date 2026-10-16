@@ -79,13 +79,14 @@ public final class CustomTypeException extends PageExceptionImpl {
 
 	@Override
 	public CatchBlock getCatchBlock(Config config) {
-		CatchBlock cb = super.getCatchBlock(config);
-		cb.setEL(KeyConstants._code, cb.get(KeyConstants._errorcode, null));
-		cb.setEL(KeyConstants._type, getCustomTypeAsString());
-		String ei = getExtendedInfo();
-		if (ei != null) cb.setEL(KeyConstants._extended_info, ei);
-		// cb.setEL("ErrorCode","");
-		return cb;
+		if (catchBlock == null) {
+			CatchBlock cb = super.getCatchBlock(config);
+			cb.setEL(KeyConstants._code, cb.get(KeyConstants._errorcode, null));
+			cb.setEL(KeyConstants._type, getCustomTypeAsString());
+			String ei = getExtendedInfo();
+			if (ei != null) cb.setEL(KeyConstants._extended_info, ei);
+		}
+		return catchBlock;
 	}
 
 	@Override

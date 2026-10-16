@@ -95,11 +95,11 @@ public final class DynAssign extends ExpressionBase {
 		sct.setEL(KeyConstants._type, "CallExpression");
 		sct.setEL(KeyConstants._operator, "AssignmentExpression");
 
-		Struct left = new StructImpl(Struct.TYPE_LINKED);
+		Struct left = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 		sct.setEL(KeyConstants._left, left);
 		name.dump(sct);
 
-		Struct right = new StructImpl(Struct.TYPE_LINKED);
+		Struct right = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 		sct.setEL(KeyConstants._right, right);
 		value.dump(sct);
 	}

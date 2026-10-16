@@ -94,7 +94,7 @@ public final class QuerySpoolerTask extends SpoolerTaskSupport {
 			// daemon
 			if (this.pc != null) {
 				pc = this.pc;
-				ThreadLocalPageContext.register(pc);
+				ThreadLocalPageContext.registerChild(pc);
 			}
 			// task
 			else {

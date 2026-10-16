@@ -27,4 +27,8 @@ public final class AIEnginePool {
 		return aie;
 	}
 
+	public void flushEngine(String name) {
+		instances.remove(name);
+	}
+
 }

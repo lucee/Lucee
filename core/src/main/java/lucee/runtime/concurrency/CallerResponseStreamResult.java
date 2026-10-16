@@ -47,7 +47,7 @@ public abstract class CallerResponseStreamResult implements Callable<String> {
 
 	@Override
 	public final String call() throws PageException {
-		ThreadLocalPageContext.register(pc);
+		ThreadLocalPageContext.registerChild(pc);
 		pc.getRootOut().setAllowCompression(false); // make sure content is not compressed
 		String str = null;
 		try {

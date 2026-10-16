@@ -12,7 +12,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle,postgres,ms
 
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1760", body=function() {
-			it( title='MySql checking ORM auto detect dialect',skip=isNotSupported("mysql"),body=function( currentSpec ) {
+			it( title='MySql checking ORM auto detect dialect',skip=(noOrm() || isNotSupported("mysql")),body=function( currentSpec ) {
 				var uri = createURI("LDEV1760");
 				var result = _InternalRequest(
 					template:"#uri#/AutoDetectMySql/index.cfm"
@@ -20,7 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle,postgres,ms
 				expect(result.filecontent.trim()).toBe('');
 			});
 
-			it( title='Oracle checking ORM auto detect dialect',skip=isNotSupported("oracle"),body=function( currentSpec ) {
+			it( title='Oracle checking ORM auto detect dialect',skip=(noOrm() || isNotSupported("oracle")),body=function( currentSpec ) {
 				var uri = createURI("LDEV1760");
 				var result = _InternalRequest(
 					template:"#uri#/AutoDetectOracle/index.cfm"
@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle,postgres,ms
 				expect(result.filecontent.trim()).toBe('');
 			});
 
-			it( title='Postgres checking ORM auto detect dialect',skip=isNotSupported("postgres"),body=function( currentSpec ) {
+			it( title='Postgres checking ORM auto detect dialect',skip=(noOrm() || isNotSupported("postgres")),body=function( currentSpec ) {
 				var uri = createURI("LDEV1760");
 				var result = _InternalRequest(
 					template:"#uri#/AutoDetectPostgres/index.cfm"
@@ -36,7 +36,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle,postgres,ms
 				expect(result.filecontent.trim()).toBe('');
 			});
 
-			it( title='MsSql checking ORM auto detect dialect',skip=isNotSupported("mssql"),body=function( currentSpec ) {
+			it( title='MsSql checking ORM auto detect dialect',skip=(noOrm() || isNotSupported("mssql")),body=function( currentSpec ) {
 				var uri = createURI("LDEV1760");
 				var result = _InternalRequest(
 					template:"#uri#/AutoDetectMsSql/index.cfm"
@@ -44,7 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle,postgres,ms
 				expect(result.filecontent.trim()).toBe('');
 			});
 
-			it( title='checking Dialect ORM with mySQL with dialect="MySQLwithInnoDB" in ORM settings',skip=isNotSupported("mysql"),body=function( currentSpec ) {
+			it( title='checking Dialect ORM with mySQL with dialect="MySQLwithInnoDB" in ORM settings',skip=(noOrm() || isNotSupported("mysql")),body=function( currentSpec ) {
 				var uri = createURI("LDEV1760");
 				var result = _InternalRequest(
 					template:"#uri#/MySQLwithInnoDB/index.cfm"
@@ -62,5 +62,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle,postgres,ms
 
 	private struct function getCredentials(db) {
 		return server.getDatasource(db);
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

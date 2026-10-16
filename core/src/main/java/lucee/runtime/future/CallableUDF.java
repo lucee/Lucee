@@ -54,7 +54,6 @@ public final class CallableUDF implements Callable<Object> {
 	@Override
 	public Object call() throws Exception {
 		PageContext pc = null;
-		ThreadLocalPageContext.register(pc);
 
 		DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
 		pc = ThreadUtil.createPageContext(cw, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes, true, -1, null,
@@ -62,6 +61,8 @@ public final class CallableUDF implements Callable<Object> {
 		pc.setRequestTimeout(requestTimeout);
 
 		pc.setApplicationContext(ac);
+
+		ThreadLocalPageContext.register(pc);
 
 		try {
 			return udf.call(pc, arg == Future.ARG_NULL ? new Object[] {} : new Object[] { arg }, true);

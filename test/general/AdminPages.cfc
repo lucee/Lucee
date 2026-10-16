@@ -106,13 +106,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
             });
 
             it( title="check admin 404", body=function(){
-                // not found (page doens't exist )
+                // not found (page doesn't exist )
                 checkUrl( adminRoot, "index.cfm?action=i.dont.exist", 404 );
             });
 
             it( title="check admin 500", body=function(){
-                // 500 (mappng doesn't exist)
+                // 500 (mapping doesn't exist)
                 checkUrl( adminRoot, "index.cfm?action=resources.mappings&action2=create&virtual=/lucee/adminMissing", 500 );
+            });
+
+            it( title="check admin updates notification (JSON)", body=function(){
+                local.content = checkUrl( adminRoot, "update.cfm?adminType=server&json=true", 200 );
+                expect( isJson( local.content ) ).toBeTrue( "Response should be JSON" );
+                local.data = deserializeJson( local.content );
+                local.TAB = chr( 9 );
+                if ( local.data.hasUpdate || arrayLen( local.data.extensionUpdates ) ) {
+                    systemOutput( "", true );
+                    systemOutput( "Admin reports update(s) available:", true );
+                    if ( local.data.hasUpdate ) {
+                        systemOutput( TAB & "Core: " & local.data.currentVersion & " -> " & local.data.availableVersion, true );
+                    }
+                    for ( local.ext in local.data.extensionUpdates ) {
+                        systemOutput( TAB & "Extension: " & local.ext.name & " " & local.ext.current & " -> " & local.ext.available, true );
+                    }
+                    systemOutput( "", true );
+                }
             });
         });
     }
@@ -147,7 +165,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
         //expect( local.result.status ).toBeBetween( 200, 399, adminRoot & page & " returned status code: " & local.result.status);
         // if ( local.result.status neq arguments.statusCode )
         //     systemOutput( trim(local.result.filecontent), true );
-        expect( local.result.status ).toBe( arguments.statusCode, 
+        expect( local.result.status ).toBe( arguments.statusCode,
             arguments.adminRoot & page & " returned status code: " & local.result.status );
+        return local.result.fileContent;
     }
 }

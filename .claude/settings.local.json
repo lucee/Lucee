@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git show:*)",
+      "Bash(git stash show:*)"
+    ]
+  }
+}

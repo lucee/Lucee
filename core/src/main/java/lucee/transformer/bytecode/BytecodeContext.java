@@ -19,8 +19,11 @@
 package lucee.transformer.bytecode;
 
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.GeneratorAdapter;
@@ -30,6 +33,8 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.compiler.JavaFunction;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
@@ -44,7 +49,7 @@ public class BytecodeContext implements Context {
 	private ClassWriter classWriter;
 	private GeneratorAdapter adapter;
 	private String className;
-	private List<LitString> keys;
+	private Map<LitString, Integer> keys;
 	private int count = 0;
 	private Method method;
 	private boolean doSubFunctions = true;
@@ -58,14 +63,20 @@ public class BytecodeContext implements Context {
 	private int line;
 	private BytecodeContext root;
 	private boolean writeLog;
+	private Boolean isLineBased; // cached value, null = not yet calculated
+	protected Set<Integer> executableLines; // lazy init
 	private int rtn = -1;
 	private final boolean returnValue;
 
-	private static long _id = 0;
+	private static final AtomicLong _id = new AtomicLong(0);
 
-	private synchronized static String id() {
-		if (_id < 0) _id = 0;
-		return StringUtil.addZeros(++_id, 4);
+	private static String id() {
+		long id = _id.incrementAndGet();
+		if (id < 0) {
+			_id.set(0);
+			id = 0;
+		}
+		return StringUtil.addZeros(id, 4);
 	}
 
 	private String id = id();
@@ -75,7 +86,7 @@ public class BytecodeContext implements Context {
 	protected final ExpressionUtil expressionUtil;
 	private int sourceOffset;
 
-	public BytecodeContext(Config config, PageSource ps, ConstrBytecodeContext constr, PageImpl page, List<LitString> keys, ClassWriter classWriter, String className,
+	public BytecodeContext(Config config, PageSource ps, ConstrBytecodeContext constr, PageImpl page, Map<LitString, Integer> keys, ClassWriter classWriter, String className,
 			GeneratorAdapter adapter, Method method, boolean writeLog, boolean suppressWSbeforeArg, boolean output, boolean returnValue, int sourceOffset) {
 		this.config = ThreadLocalPageContext.getConfig(config);
 		this.classWriter = classWriter;
@@ -103,7 +114,7 @@ public class BytecodeContext implements Context {
 
 	}
 
-	public BytecodeContext(ConstrBytecodeContext constr, List<LitString> keys, BytecodeContext bc, GeneratorAdapter adapter, Method method) {
+	public BytecodeContext(ConstrBytecodeContext constr, Map<LitString, Integer> keys, BytecodeContext bc, GeneratorAdapter adapter, Method method) {
 		this.classWriter = bc.getClassWriter();
 		this.className = bc.getClassName();
 		this.writeLog = bc.writeLog();
@@ -195,12 +206,13 @@ public class BytecodeContext implements Context {
 
 	public synchronized int registerKey(LitString lit) {
 		// synchronized (keys) {
-		int index = keys.indexOf(lit);
-		if (index != -1) return index;// calls the toString method of litString
+		Integer index = keys.get(lit);
+		if (index != null) return index;// calls the toString method of litString
 
-		keys.add(lit);
+		int newIndex = keys.size();
+		keys.put(lit, newIndex);
 
-		return keys.size() - 1;
+		return newIndex;
 		// }
 	}
 
@@ -208,7 +220,7 @@ public class BytecodeContext implements Context {
 		this.page.registerJavaFunction(jbc);
 	}
 
-	public List<LitString> getKeys() {
+	public Map<LitString, Integer> getKeys() {
 		return keys;
 	}
 
@@ -270,11 +282,22 @@ public class BytecodeContext implements Context {
 
 	public void visitLineNumber(int line) {
 		this.line = line;
+		if (executableLines == null) executableLines = new TreeSet<>();
+		executableLines.add(line);
+		// Also track in constructor context so getExecutableLines() gets all lines
+		if (constr != null) {
+			constr.trackExecutableLine(line);
+		}
 		getAdapter().visitLineNumber(line, getAdapter().mark());
 	}
 
 	public int getLine() {
 		return line;
+	}
+
+	public int[] getExecutableLines() {
+		if (executableLines == null) return new int[0];
+		return executableLines.stream().mapToInt(Integer::intValue).toArray();
 	}
 
 	public BytecodeContext getRoot() {
@@ -287,6 +310,30 @@ public class BytecodeContext implements Context {
 
 	public boolean writeLog() {
 		return this.writeLog;
+	}
+
+	/**
+	 * Check if the configured ExecutionLog is line-based.
+	 * Line-based logs receive line numbers, char-based logs receive character offsets.
+	 * Result is cached for performance.
+	 */
+	public boolean isLineBased() {
+		if (isLineBased == null) {
+			isLineBased = Boolean.FALSE;
+			try {
+				Config cfg = getConfig();
+				if (cfg instanceof ConfigPro) {
+					ExecutionLogFactory factory = ((ConfigPro) cfg).getExecutionLogFactory();
+					if (factory != null) {
+						isLineBased = factory.isLineBased();
+					}
+				}
+			}
+			catch (Throwable t) {
+				// ignore - default to false
+			}
+		}
+		return isLineBased;
 	}
 
 	public Page getPage() {

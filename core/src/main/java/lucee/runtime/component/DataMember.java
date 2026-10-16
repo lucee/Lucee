@@ -37,4 +37,9 @@ public final class DataMember extends MemberSupport {
 	public Object duplicate(boolean deepCopy) {
 		return new DataMember(getAccess(), getModifier(), Duplicator.duplicate(value, deepCopy));
 	}
+
+	@Override
+	protected final int hash() {
+		return value.hashCode();
+	}
 }

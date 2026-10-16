@@ -29,10 +29,21 @@ public final class ExpressionPath extends Path {
 
 	private Pattern pattern;
 	private List<String> variables;
+	private boolean constrained;
 
 	public ExpressionPath(Pattern pattern, List<String> variables) {
+		this(pattern, variables, false);
+	}
+
+	public ExpressionPath(Pattern pattern, List<String> variables, boolean constrained) {
 		this.pattern = pattern;
 		this.variables = variables;
+		this.constrained = constrained;
+	}
+
+	@Override
+	public boolean isConstrained() {
+		return constrained;
 	}
 
 	public static Path getInstance(String path) {
@@ -44,6 +55,7 @@ public final class ExpressionPath extends Path {
 		String content, variableName, regexPart;
 		StringBuilder regex = new StringBuilder();
 		List<String> variables = new ArrayList<String>();
+		boolean constrained = false;
 		while ((startIndex = path.indexOf('{', last)) != -1) {
 			if (last + 1 < startIndex) {
 				delimiter(variables, regex, path.substring(last + 1, startIndex));
@@ -57,6 +69,7 @@ public final class ExpressionPath extends Path {
 			if (index != -1) {
 				variableName = content.substring(0, index).trim();
 				regexPart = content.substring(index + 1).trim();
+				constrained = true;
 			}
 			else {
 				variableName = content.trim();
@@ -78,7 +91,7 @@ public final class ExpressionPath extends Path {
 		Pattern pattern = Pattern.compile(regex.toString());
 		// print.e(regex);
 		// print.e(variables);
-		return new ExpressionPath(pattern, variables);
+		return new ExpressionPath(pattern, variables, constrained);
 	}
 
 	private static void delimiter(List<String> variables, StringBuilder regex, String delimiter) {

@@ -11,7 +11,23 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="struct" {
 				animals.aardvark="Orycteropus afer";
 				animals.Alligator="Mississippiensis";
 				animals.albatross="Diomedeidae";
-				expect(structKeyList(animals)).toBeWithCase("AARDVARK,AARDWOLF,ALBATROSS,ALLIGATOR");
+				// ConcurrentHashMap doesn't guarantee ordering, just check all keys present
+				var keys = structKeyList(animals);
+				expect(keys).toIncludeWithCase("AARDVARK");
+				expect(keys).toIncludeWithCase("AARDWOLF");
+				expect(keys).toIncludeWithCase("ALBATROSS");
+				expect(keys).toIncludeWithCase("ALLIGATOR");
+				expect(structCount(animals)).toBe(4);
+			});
+
+			it(title = "Create struct with StructNew(linked) maintains order",body = function( currentSpec ){
+				var animals=StructNew("linked");
+				animals.Aardwolf="Proteles cristata";
+				animals.aardvark="Orycteropus afer";
+				animals.Alligator="Mississippiensis";
+				animals.albatross="Diomedeidae";
+				// Linked/ordered structs should maintain insertion order
+				expect(structKeyList(animals)).toBeWithCase("AARDWOLF,AARDVARK,ALLIGATOR,ALBATROSS");
 			});
 
 			// only supported with server setting (i.e. unquoted)

@@ -32,17 +32,17 @@ public final class IKHandlerCache implements IKHandler {
 		synchronized (SystemUtil.createToken("IKHandlerCache", key)) { // sync necessary?
 			Object val = cache.getValue(key, null);
 			if (val instanceof byte[][]) {
-				ScopeContext.info(log,
-						"Load existing byte data from cache [" + name + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+				ScopeContext.trace(log,
+						"Load existing byte data from cache [" + name + "] to create " + strType + " scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "]");
 				return new IKStorageValue((byte[][]) val);
 			}
 			else if (val instanceof IKStorageValue) {
-				ScopeContext.info(log,
-						"Load existing data from cache [" + name + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+				ScopeContext.trace(log,
+						"Load existing data from cache [" + name + "] to create " + strType + " scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "]");
 				return (IKStorageValue) val;
 			}
 			else {
-				ScopeContext.info(log, "Create new [" + strType + "] scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in cache [" + name + "]");
+				ScopeContext.debug(log, "Create new [" + strType + "] scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in cache [" + name + "]");
 			}
 			return null;
 		}
@@ -51,7 +51,7 @@ public final class IKHandlerCache implements IKHandler {
 	@Override
 	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, Map<Collection.Key, IKStorageScopeItem> data, String strType, int type,
 			Log log) {
-		if (!storageScope.hasChanges()) return;
+		if (!storageScope.hasChanges(pc, log)) return;
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), name);
 			String key = getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
@@ -60,17 +60,17 @@ public final class IKHandlerCache implements IKHandler {
 				Object existingVal = cache.getValue(key, null);
 
 				if (storageScope.hasContent()) {
-					cache.put(key, deserializeIKStorageValueSupported(cache)
-							? new IKStorageValue(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(), storageScope.lastModifiedAtInit(), log, type))
-							: IKStorageValue.toByteRepresentation(
-									IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(), storageScope.lastModifiedAtInit(), log, type)),
-							Long.valueOf(storageScope.getTimeSpan()), null);
+					Map<Collection.Key, IKStorageScopeItem> toStore = IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(),
+							storageScope.lastModifiedAtInit(), log, type);
+					IKStorageValue sv = new IKStorageValue(toStore);
+					cache.put(key, deserializeIKStorageValueSupported(cache) ? sv : IKStorageValue.toByteRepresentation(sv), Long.valueOf(storageScope.getTimeSpan()), null);
+					storageScope.markStored(sv.lastModified(), toStore != data);
 				}
 				else if (existingVal != null) {
 					cache.remove(key);
 				}
 			}
-			ScopeContext.info(log, "Store scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in cache [" + name + "]");
+			ScopeContext.trace(log, "Store scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in cache [" + name + "]");
 		}
 		catch (Exception e) {
 			ScopeContext.error(log, e);

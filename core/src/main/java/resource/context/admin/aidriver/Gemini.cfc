@@ -1,12 +1,29 @@
 component extends="AI" {
 	variables.fields = [
-		group("Security", "Provide access credentials to connect to Gemini. This is required to authenticate your requests.")
+
+		group("Endpoint", "Define a predefined or custom endpoint for your OpenAI connection.")
+		/*,field(displayName = "URL",
+			name = "url",
+			defaultValue = "",
+			required = false,
+			description = "Custom URL/Endpoint for the Gemini REST API, including host, port, and script path, such as [https://generativelanguage.googleapis.com/v1/].",
+			type = "text"
+		)*/
+		,field(displayName = "Enable Beta Access",
+            name = "beta",
+            defaultValue = "true",
+            required = false,
+            description = "Unlock access to the latest pre-release models and emerging capabilities. 
+			Enable this option if you intend to use features that are currently in the preview phase. Ignored with custom URL.",
+            type = "checkbox"
+        )
+		,group("Security", "Provide access credentials to connect to Gemini. This is required to authenticate your requests.")
 		,field(displayName = "API Key",
 			name = "apikey",
 			defaultValue = "",
 			required = true,
 			description = "The API key required to access Gemini. You can use environment variables such as ${MY_SECRET_KEY} for secure storage.",
-			type = "text"
+			type = "password"
 		)
 		,group("Fine-Tune", "Customize settings to fine-tune your AI session.")
 		,field(displayName = "Model",
@@ -50,11 +67,11 @@ component extends="AI" {
 		)
 		,field(displayName = "Socket Timeout", 
 			name = "socketTimeout",
-			defaultValue = "10000",
+			defaultValue = "20000",
 			required = true,
 			description = "Maximum time between data packets after connection (milliseconds).",
 			type = "select",
-			values = "5000,10000,20000,30000,60000"
+			values = "5000,10000,20000,30000,60000,120000,180000,300000"
 		)
 	];
 

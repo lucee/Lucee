@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
 
-import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -75,7 +74,8 @@ public final class RepoReader extends DefaultHandler {
 		// Use HTTPDownloader with DEBUG logging for Maven repo metadata lookups
 		Reader r = null;
 		try {
-			r = IOUtil.getReader( HTTPDownloader.get( url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, null, Log.LEVEL_TRACE ), (Charset) null );
+			r = IOUtil.getReader(HTTPDownloader.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, null, Log.LEVEL_TRACE),
+					(Charset) null);
 			init(new InputSource(r));
 		}
 		catch (IOException ioe) {
@@ -89,9 +89,14 @@ public final class RepoReader extends DefaultHandler {
 		String key;
 		Object lastModified = null;
 		for (Entry<String, Map<String, Object>> e: artifacts.entrySet()) {
-			key = Caster.toString(e.getValue().get("classifier"), null);
-			if (StringUtil.isEmpty(key, true)) key = Caster.toString(e.getValue().get("extension"), null);
-			if (StringUtil.isEmpty(key, true)) key = e.getKey();
+			String classifier = Caster.toString(e.getValue().get("classifier"), null);
+			String extension = Caster.toString(e.getValue().get("extension"), null);
+			if (!StringUtil.isEmpty(classifier, true)) {
+				key = classifier;
+				if (!StringUtil.isEmpty(extension, true) && extension.endsWith(".asc")) key = classifier + ".asc";
+			}
+			else if (!StringUtil.isEmpty(extension, true)) key = extension;
+			else key = e.getKey();
 			res.put(key, e.getValue().get("url"));
 			if (lastModified == null) {
 				Object tmp = e.getValue().get("lastModified");

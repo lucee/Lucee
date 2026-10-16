@@ -39,6 +39,11 @@ public final class IKStorageScopeItem implements Serializable, ObjectWrap, Casta
 	}
 
 	@Override
+	public final int hashCode() {
+		return value == null ? 0 : value.hashCode();
+	}
+
+	@Override
 	public Object getEmbededObject(Object defaultValue) {
 		return value;
 	}

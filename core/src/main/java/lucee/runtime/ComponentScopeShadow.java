@@ -138,16 +138,19 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 
 	@Override
 	public Object get(PageContext pc, Key key, Object defaultValue) {
+		// fast path: shadow map lookup (covers 99%+ of property access)
+		Object val = shadow.getOrDefault(key, CollectionUtil.NULL);
+		if (val != CollectionUtil.NULL && (NullSupportHelper.full(pc) || val != null)) return val;
+
+		// slow path: special keys (SUPER/THIS/STATIC can never be in the shadow map — set() blocks them)
 		if (key.equalsIgnoreCase(KeyConstants._SUPER)) {
-			Component ac = ComponentUtil.getActiveComponent(ThreadLocalPageContext.get(pc), component);
+			Component ac = ComponentUtil.getCurrentComponent(ThreadLocalPageContext.get(pc), component);
 			return SuperComponent.superInstance((ComponentImpl) ac.getBaseComponent());
 		}
 		if (key.equalsIgnoreCase(KeyConstants._THIS)) return component.top;
 		if (key.equalsIgnoreCase(KeyConstants._STATIC)) return component.staticScope();
 
-		Object val = shadow.getOrDefault(key, CollectionUtil.NULL);
-		if (val != CollectionUtil.NULL && (NullSupportHelper.full(pc) || val != null)) return val;
-
+		// static scope fallback
 		val = component.staticScope().getOrDefault(key, CollectionUtil.NULL);
 		if (val != CollectionUtil.NULL && (NullSupportHelper.full(pc) || val != null)) return val;
 
@@ -395,5 +398,10 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 	@Override
 	public boolean isBind() {
 		return true;
+	}
+
+	@Override
+	public final int hashCode() {
+		return java.util.Objects.hash(component, shadow);
 	}
 }

@@ -83,7 +83,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="sas" {
     }
 
     private boolean function isDatasourceNotConfigured(){
-        return !structCount(server.getDatasource("mssql"));
+        return !structCount(server.getDatasource("mssql")) || !structCount( server.getTestService("orm") );
     } 
 
     private string function createURI(string calledName) {

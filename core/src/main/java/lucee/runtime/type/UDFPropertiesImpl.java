@@ -50,26 +50,31 @@ import lucee.runtime.type.util.UDFUtil;
 public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	private static final long serialVersionUID = 8679484452640746605L; // do not change
 
+	// Reference fields (8 bytes each) - group together to minimize padding
 	public String functionName;
-	public int returnType;
 	public String strReturnType;
-	public boolean output;
-	public Boolean bufferOutput;
 	public String hint;
 	public String displayName;
-	public int index;
+	public String description;
+	public String strReturnFormat;
 	public FunctionArgument[] arguments;
 	public Struct meta;
-	public String description;
+	public Set<Collection.Key> argumentsSet;
+	public Object cachedWithin;
+	public Boolean bufferOutput;
 	public Boolean secureJson;
 	public Boolean verifyClient;
-	public String strReturnFormat;
-	public int returnFormat;
-	public Set<Collection.Key> argumentsSet;
-	public int access;
-	public Object cachedWithin;
 	public Integer localMode;
+
+	// int fields (4 bytes each) - group together
+	public int returnType;
+	public int index;
+	public int returnFormat;
+	public int access;
 	public int modifier;
+
+	// boolean field (1 byte) - at end to minimize padding
+	public boolean output;
 
 	/**
 	 * NEVER USE THIS CONSTRUCTOR, this constructor is only for deserialize this object from stream

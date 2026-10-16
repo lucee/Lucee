@@ -50,6 +50,11 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.QueryUtil;
 
 public final class Executer {
+	private boolean caseSensitive;
+
+	public void setCaseSensitive(boolean caseSensitive) {
+		this.caseSensitive = caseSensitive;
+	}
 
 	/**
 	 * execute a SQL Statement against CFML Scopes
@@ -553,7 +558,12 @@ public final class Executer {
 	 * @throws PageException
 	 */
 	private int executeCompare(PageContext pc, SQL sql, Query qr, ZExpression expression, int row) throws PageException {
-		return OpUtil.compare(pc, executeExp(pc, sql, qr, expression.getOperand(0), row), executeExp(pc, sql, qr, expression.getOperand(1), row));
+		Object left = executeExp(pc, sql, qr, expression.getOperand(0), row);
+		Object right = executeExp(pc, sql, qr, expression.getOperand(1), row);
+		if (caseSensitive && left instanceof String && right instanceof String) {
+			return ((String) left).compareTo((String) right);
+		}
+		return OpUtil.compare(pc, left, right);
 	}
 
 	private Object executeLike(PageContext pc, SQL sql, Query qr, ZExpression expression, int row) throws PageException {
@@ -562,7 +572,7 @@ public final class Executer {
 	}
 
 	private boolean like(SQL sql, String haystack, String needle) throws PageException {
-		return LikeCompare.like(sql, haystack, needle);
+		return LikeCompare.like(sql, haystack, needle, caseSensitive);
 	}
 
 	/**
@@ -581,7 +591,15 @@ public final class Executer {
 		Object left = executeExp(pc, sql, qr, expression.getOperand(0), row);
 
 		for (int i = 1; i < len; i++) {
-			if (OpUtil.compare(pc, left, executeExp(pc, sql, qr, expression.getOperand(i), row)) == 0) return Boolean.TRUE;
+			Object right = executeExp(pc, sql, qr, expression.getOperand(i), row);
+			int cmp;
+			if (caseSensitive && left instanceof String && right instanceof String) {
+				cmp = ((String) left).compareTo((String) right);
+			}
+			else {
+				cmp = OpUtil.compare(pc, left, right);
+			}
+			if (cmp == 0) return Boolean.TRUE;
 		}
 		return Boolean.FALSE;
 	}

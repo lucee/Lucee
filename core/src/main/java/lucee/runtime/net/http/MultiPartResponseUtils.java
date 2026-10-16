@@ -25,8 +25,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 import org.apache.commons.fileupload2.core.MultipartInput;
-//import org.apache.commons.fileupload.MultipartStream;
-import org.apache.commons.lang3.StringUtils;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
@@ -91,7 +89,7 @@ public final class MultiPartResponseUtils {
 			String[] headerArray = ListUtil.listToStringArray(rawHeader, ':');
 			String headerName = headerArray[0];
 			if (!StringUtil.isEmpty(headerName, true)) {
-				String value = StringUtils.join(Arrays.copyOfRange(headerArray, 1, headerArray.length), ":").trim();
+				String value = ListUtil.arrayToList(Arrays.copyOfRange(headerArray, 1, headerArray.length), ":").trim();
 				result.set(headerName, value);
 			}
 		}

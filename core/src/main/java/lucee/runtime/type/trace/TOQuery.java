@@ -38,19 +38,24 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Map;
 
+import lucee.commons.io.SystemUtil.TemplateLine;
+import lucee.runtime.config.Config;
 import lucee.runtime.db.SQL;
 import lucee.runtime.debug.Debugger;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.it.ForEachQueryIterator;
+import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.util.QueryUtil;
 
-public final class TOQuery extends TOCollection implements Query, com.allaire.cfx.Query {
+public final class TOQuery extends TOCollection implements Query, com.allaire.cfx.Query, QueryResult {
 
 	private Query qry;
 
@@ -1794,6 +1799,12 @@ public final class TOQuery extends TOCollection implements Query, com.allaire.cf
 	}
 
 	@Override
+	public void setCacheId(String cacheId) {
+		log(cacheId);
+		if (qry instanceof QueryResult) ((QueryResult) qry).setCacheId(cacheId);
+	}
+
+	@Override
 	public int getColumnCount() {
 		log();
 		return qry.getColumnCount();
@@ -1803,5 +1814,49 @@ public final class TOQuery extends TOCollection implements Query, com.allaire.cf
 	public void enableShowQueryUsage() {
 		log();
 		qry.enableShowQueryUsage();
+	}
+
+	@Override
+	public String getCacheId(Collection arguments, String defaultValue) {
+		// for query we need no arguments for the cache
+		return qry instanceof QueryResult ? ((QueryResult) qry).getCacheId(arguments, defaultValue) : null;
+	}
+
+	@Override
+	public int getColumncount() {
+		return getColumnCount();
+	}
+
+	@Override
+	public void setUpdateCount(int updateCount) {
+		if (qry instanceof QueryResult) {
+			((QueryResult) qry).setUpdateCount(updateCount);
+		}
+		else {
+			throw new PageRuntimeException(new ApplicationException("method [setUpdateCount] is not supported"));
+		}
+	}
+
+	@Override
+	public void setColumnNames(Key[] columnNames) throws PageException {
+		if (qry instanceof QueryResult) {
+			((QueryResult) qry).setColumnNames(columnNames);
+		}
+		else {
+			throw new PageRuntimeException(new ApplicationException("method [setColumnNames] is not supported"));
+		}
+	}
+
+	@Override
+	public TemplateLine getTemplateLine() {
+		if (qry instanceof QueryResult) {
+			return ((QueryResult) qry).getTemplateLine();
+		}
+		throw new PageRuntimeException(new ApplicationException("method [getTemplateLine()] is not supported"));
+	}
+
+	@Override
+	public int getCachetype() {
+		return Config.CACHE_TYPE_QUERY;
 	}
 }

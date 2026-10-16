@@ -110,6 +110,7 @@ public final class Directory extends TagImpl {
 
 	/** The name of the directory to perform the action against. */
 	private Resource directory;
+	private String strDirectory;
 
 	/** Defines the action to be taken with directory(ies) specified in directory. */
 	private String action = "list";
@@ -168,6 +169,7 @@ public final class Directory extends TagImpl {
 		filter = null;
 		destination = null;
 		directory = null;
+		strDirectory = null;
 		action = "list";
 		sort = null;
 		mode = -1;
@@ -288,9 +290,8 @@ public final class Directory extends TagImpl {
 	 * @param directory value to set
 	 **/
 	public void setDirectory(String directory) {
-
+		this.strDirectory = directory;
 		this.directory = ResourceUtil.toResourceNotExisting(pageContext, directory);
-		// print.ln(this.directory);
 	}
 
 	/**
@@ -386,9 +387,16 @@ public final class Directory extends TagImpl {
 			if (!StringUtil.isEmpty(name) && res != null) pageContext.setVariable(name, res);
 		}
 		else if (action.equals("create")) actionCreate(pageContext, directory, serverPassword, createPath, mode, acl, storage, nameconflict);
-		else if (action.equals("delete")) actionDelete(pageContext, directory, recurse, serverPassword);
-		else if (action.equals("forcedelete")) actionDelete(pageContext, directory, true, serverPassword);
+		else if (action.equals("delete")) {
+			if (StringUtil.isEmpty(strDirectory, true)) throw new ApplicationException("The attribute [directory] is required for action [delete]");
+			actionDelete(pageContext, directory, recurse, serverPassword);
+		}
+		else if (action.equals("forcedelete")) {
+			if (StringUtil.isEmpty(strDirectory, true)) throw new ApplicationException("The attribute [directory] is required for action [forcedelete]");
+			actionDelete(pageContext, directory, true, serverPassword);
+		}
 		else if (action.equals("rename")) {
+			if (StringUtil.isEmpty(strDirectory, true)) throw new ApplicationException("The attribute [directory] is required for action [rename]");
 			String res = actionRename(pageContext, directory, strNewdirectory, serverPassword, createPath, acl, storage);
 			if (!StringUtil.isEmpty(name) && res != null) pageContext.setVariable(name, res);
 		}
@@ -547,8 +555,7 @@ public final class Directory extends TagImpl {
 			sct.setEL("directoryCreated", new DateTimeImpl(attr.creationTime().toMillis()));
 			sct.setEL(KeyConstants._dateLastModified, new DateTimeImpl(attr.lastModifiedTime().toMillis()));
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 
 		return sct;
 	}
@@ -708,11 +715,10 @@ public final class Directory extends TagImpl {
 		if (createPath && mode != -1 && !directory.getParentResource().exists()) {
 			// need to create paths and apply mode to them
 			Resource tmp = directory.getParentResource();
-			while (!tmp.exists()){
+			while (!tmp.exists()) {
 				newDirectories.add(tmp);
 				tmp = tmp.getParentResource();
 			}
-			lucee.aprint.o(newDirectories);
 		}
 
 		try {
@@ -731,7 +737,7 @@ public final class Directory extends TagImpl {
 		if (mode != -1) {
 			try {
 				directory.setMode(mode);
-				for (Resource newDir: newDirectories){
+				for (Resource newDir: newDirectories) {
 					newDir.setMode(mode);
 				}
 				// FileUtil.setMode(directory,mode);
@@ -820,9 +826,10 @@ public final class Directory extends TagImpl {
 
 		// check directory is empty
 		Resource[] dirList = dir.listResources();
-		if (dirList != null && dirList.length > 0 && forceDelete == false)
-			throw new ApplicationException("Directory [" + dir.toString() + "] is not empty", "Set recurse=true to delete sub-directories and files");
-
+		if (dirList != null && dirList.length > 0) {
+			if (!forceDelete) throw new ApplicationException("Directory [" + dir.toString() + "] is not empty", "Set recurse=true to delete sub-directories and files");
+			ResourceUtil.deleteContent(dir, null);
+		}
 		// delete directory
 		try {
 			dir.remove(forceDelete);
@@ -939,7 +946,8 @@ public final class Directory extends TagImpl {
 	}
 
 	public static String getFileAttribute(Resource file) {
-		// Windows-only attributes (R=ReadOnly, H=Hidden). On Unix, return empty string to avoid unnecessary syscalls.
+		// Windows-only attributes (R=ReadOnly, H=Hidden). On Unix, return empty string to avoid unnecessary
+		// syscalls.
 		if (!IS_WINDOWS) return "";
 
 		// Optimized: fetch both attributes in a single syscall for FileResource on Windows
@@ -962,7 +970,8 @@ public final class Directory extends TagImpl {
 	}
 
 	public static String getFileAttribute(Path path) {
-		// Windows-only attributes (R=ReadOnly, H=Hidden). On Unix, return empty string to avoid unnecessary syscalls.
+		// Windows-only attributes (R=ReadOnly, H=Hidden). On Unix, return empty string to avoid unnecessary
+		// syscalls.
 		if (!IS_WINDOWS) return "";
 
 		String hidden;

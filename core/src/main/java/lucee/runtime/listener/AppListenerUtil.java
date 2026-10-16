@@ -28,6 +28,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.ftp.FTPConnectionData;
+import lucee.commons.io.res.type.ftp.IFTPConnectionData;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -42,6 +43,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebHelper;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.db.ApplicationDataSource;
 import lucee.runtime.db.ClassDefinition;
@@ -55,6 +57,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
+// import lucee.runtime.net.mail.ServerImpl; // removed with mail functionality
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Caster;
@@ -114,8 +117,7 @@ public final class AppListenerUtil {
 		else if (mode == ApplicationListener.MODE_ROOT) p = getApplicationPageRoot(pc, filename);
 		else p = getApplicationPageCurr2Root(pc, requestedPage, filename);
 
-		if (res != null && p != null)
-			((ConfigPro) pc.getConfig()).putApplicationPageSource(dir, p.getPageSource(), filename, mode, isCFC(type));
+		if (res != null && p != null) ((ConfigPro) pc.getConfig()).putApplicationPageSource(dir, p.getPageSource(), filename, mode, isCFC(type));
 		return p;
 	}
 
@@ -230,11 +232,11 @@ public final class AppListenerUtil {
 
 			try {
 				int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
-				if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
+				if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), -1);
 				return ApplicationDataSource.getInstance(config, name, cd, Caster.toString(oConnStr), user, pass, listener,
 						Caster.toBooleanValue(data.get(KeyConstants._blob, null), false), Caster.toBooleanValue(data.get(KeyConstants._clob, null), false),
-						Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 60),
-						Caster.toIntValue(data.get("minIdle", null), 60), Caster.toIntValue(data.get("maxIdle", null), 60), Caster.toIntValue(data.get("maxTotal", null), 60),
+						Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), -1),
+						Caster.toIntValue(data.get("minIdle", null), 0), Caster.toIntValue(data.get("maxIdle", null), 0), Caster.toIntValue(data.get("maxTotal", null), 0),
 						Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone, Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
 						Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
 						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
@@ -251,11 +253,12 @@ public final class AppListenerUtil {
 		try {
 
 			int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
-			if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
+			if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), -1);
 
-			return new DataSourceImpl(config, name, dbt.classDefinition, Caster.toString(data.get(KeyConstants._host)), dbt.connectionString, Caster.toString(data.get(KeyConstants._BUNDLENAME, null), null), Caster.toString(data.get(KeyConstants._BUNDLEVERSION, null), null),
+			return new DataSourceImpl(config, name, dbt.classDefinition, Caster.toString(data.get(KeyConstants._host)), dbt.connectionString,
+					Caster.toString(data.get(KeyConstants._BUNDLENAME, null), null), Caster.toString(data.get(KeyConstants._BUNDLEVERSION, null), null),
 					Caster.toString(data.get(KeyConstants._database)), Caster.toIntValue(data.get(KeyConstants._port, null), -1), user, pass, listener,
-					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1),
+					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), -1),
 					Caster.toIntValue(data.get("minIdle", null), 0), Caster.toIntValue(data.get("maxIdle", null), 0), Caster.toIntValue(data.get("maxTotal", null), 0),
 					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(KeyConstants._blob, null), false),
 					Caster.toBooleanValue(data.get(KeyConstants._clob, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
@@ -298,7 +301,7 @@ public final class AppListenerUtil {
 		while (it.hasNext()) {
 			e = it.next();
 			virtual = translateMappingVirtual(e.getKey().getString());
-			MappingData md = toMappingData(e.getValue(), source);
+			MappingData md = toMappingData(cw, e.getValue(), source);
 			mappings.add(config.getApplicationMapping("application", virtual, md.physical, md.archive, md.physicalFirst, false, !md.physicalMatch, !md.archiveMatch));
 		}
 		return ConfigUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
@@ -317,7 +320,7 @@ public final class AppListenerUtil {
 			e = it.next();
 			virtual = translateMappingVirtual(e.getKey().getString());
 			try {
-				MappingData md = toMappingData(e.getValue(), source);
+				MappingData md = toMappingData(cw, e.getValue(), source);
 				mappings.add(config.getApplicationMapping("application", virtual, md.physical, md.archive, md.physicalFirst, false, !md.physicalMatch, !md.archiveMatch));
 			}
 			catch (Exception ex) {
@@ -328,7 +331,7 @@ public final class AppListenerUtil {
 		return ConfigUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
 	}
 
-	private static MappingData toMappingData(Object value, Resource source) throws PageException {
+	private static MappingData toMappingData(ConfigWeb cw, Object value, Resource source) throws PageException {
 		MappingData md = new MappingData();
 
 		if (Decision.isStruct(value)) {
@@ -340,13 +343,13 @@ public final class AppListenerUtil {
 			// physical
 			String physical = Caster.toString(map.get("physical", null), null);
 			if (!StringUtil.isEmpty(physical, true)) {
-				translateMappingPhysical(md, physical.trim(), source, allowRelPath, false);
+				translateMappingPhysical(cw, md, physical.trim(), source, allowRelPath, false);
 			}
 
 			// archive
 			String archive = Caster.toString(map.get("archive", null), null);
 			if (!StringUtil.isEmpty(archive, true)) {
-				translateMappingPhysical(md, archive.trim(), source, allowRelPath, true);
+				translateMappingPhysical(cw, md, archive.trim(), source, allowRelPath, true);
 			}
 
 			if (archive == null && physical == null) throw new ApplicationException("you must define archive or/and physical!");
@@ -364,33 +367,51 @@ public final class AppListenerUtil {
 		// simple value == only a physical path
 		else {
 			md.physicalFirst = true;
-			translateMappingPhysical(md, Caster.toString(value).trim(), source, true, false);
+			translateMappingPhysical(cw, md, Caster.toString(value).trim(), source, true, false);
 		}
 
 		return md;
 	}
 
-	private static void translateMappingPhysical(MappingData md, String path, Resource source, boolean allowRelPath, boolean isArchive) {
+	private static void translateMappingPhysical(ConfigWeb cw, MappingData md, String path, Resource source, boolean allowRelPath, boolean isArchive) {
+		String resolvedPath;
+		boolean matched;
+
 		if (source == null || !allowRelPath) {
-			if (isArchive) md.archive = path;
-			else md.physical = path;
-			return;
+			resolvedPath = path;
+			matched = false;
 		}
-		source = source.getParentResource().getRealResource(path);
-		if (source.exists()) {
-			if (isArchive) {
-				md.archive = source.getAbsolutePath();
-				md.archiveMatch = true;
+		else {
+			int inspect = cw == null ? Config.INSPECT_UNDEFINED : cw.getInspectTemplate();
+			boolean cacheable = inspect == Config.INSPECT_NEVER || inspect == ConfigPro.INSPECT_AUTO;
+
+			if (cacheable) {
+				ConfigWebHelper.ResolvedMapping rm = ((ConfigWebPro) cw).resolveApplicationMappingPath(source, path);
+				resolvedPath = rm.path;
+				matched = rm.matched;
 			}
 			else {
-				md.physical = source.getAbsolutePath();
-				md.physicalMatch = true;
+				// Legacy path — unchanged behaviour for ONCE and ALWAYS
+				Resource resolved = source.getParentResource().getRealResource(path);
+				if (resolved.exists()) {
+					resolvedPath = resolved.getAbsolutePath();
+					matched = true;
+				}
+				else {
+					resolvedPath = path;
+					matched = false;
+				}
 			}
-			return;
 		}
 
-		if (isArchive) md.archive = path;
-		else md.physical = path;
+		if (isArchive) {
+			md.archive = resolvedPath;
+			md.archiveMatch = matched;
+		}
+		else {
+			md.physical = resolvedPath;
+			md.physicalMatch = matched;
+		}
 	}
 
 	private static String translateMappingVirtual(String virtual) {
@@ -447,7 +468,7 @@ public final class AppListenerUtil {
 					if (virtual.length() == 0) virtual = "/";
 					if (!virtual.startsWith("/")) virtual = "/" + virtual;
 					if (!virtual.equals("/") && virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
-					MappingData md = toMappingData(e.getValue(), source);
+					MappingData md = toMappingData(cw, e.getValue(), source);
 					list.add(config.getApplicationMapping(type, virtual, md.physical, md.archive, md.physicalFirst, true, !md.physicalMatch, !md.archiveMatch));
 				}
 				return list.toArray(new Mapping[list.size()]);
@@ -465,7 +486,7 @@ public final class AppListenerUtil {
 		MappingImpl[] mappings = new MappingImpl[array.size()];
 		for (int i = 0; i < mappings.length; i++) {
 
-			MappingData md = toMappingData(array.getE(i + 1), source);
+			MappingData md = toMappingData(cw, array.getE(i + 1), source);
 			mappings[i] = (MappingImpl) config.getApplicationMapping(type, "/" + i, md.physical, md.archive, md.physicalFirst, true, !md.physicalMatch, !md.archiveMatch);
 		}
 		return mappings;
@@ -818,13 +839,10 @@ public final class AppListenerUtil {
 		if (value == null) value = data.get("useSsl", null);
 		boolean ssl = Caster.toBooleanValue(value, false);
 
-		return new ServerImpl(-1, hostName, port, username, password, lifeTimespan.getMillis(), idleTimespan.getMillis(), tls, ssl, false, ServerImpl.TYPE_LOCAL); // MUST improve
-		// store
-		// connection
-		// somehow
+		return new ServerImpl(-1, hostName, port, username, password, lifeTimespan.getMillis(), idleTimespan.getMillis(), tls, ssl, false, ServerImpl.TYPE_LOCAL);
 	}
 
-	public static FTPConnectionData toFTP(Struct sct) {
+	public static IFTPConnectionData toFTP(Struct sct) {
 		// username
 		Object o = sct.get(KeyConstants._username, null);
 		if (o == null) o = sct.get(KeyConstants._user, null);

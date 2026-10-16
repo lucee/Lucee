@@ -53,6 +53,11 @@ public final class SuperComponent extends MemberSupport implements Component, Me
 		this.comp = comp;
 	}
 
+	@Override
+	protected final int hash() {
+		return java.util.Objects.hash(comp);
+	}
+
 	public static Member superMember(ComponentImpl comp) {
 		if (comp == null) return new DataMember(Component.ACCESS_PRIVATE, Member.MODIFIER_NONE, new StructImpl());
 		return new SuperComponent(comp);

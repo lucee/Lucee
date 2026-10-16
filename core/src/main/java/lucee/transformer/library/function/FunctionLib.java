@@ -22,10 +22,10 @@ package lucee.transformer.library.function;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.lang.Md5;
 import lucee.runtime.exp.ExpressionException;
@@ -38,7 +38,7 @@ import lucee.transformer.library.Lib;
  */
 public final class FunctionLib implements Lib {
 
-	private Map<String, FunctionLibFunction> functions = new ConcurrentHashMap<String, FunctionLibFunction>();
+	private volatile Map<String, FunctionLibFunction> functions = new HashMap<String, FunctionLibFunction>(1024);
 	private String version = "";
 	private String shortName = "";
 	private URI uri;
@@ -110,18 +110,23 @@ public final class FunctionLib implements Lib {
 
 	/**
 	 * Fuegt der FunctionLib eine Funktion (FunctionLibFunction) zu.
-	 * 
+	 *
 	 * @param function
 	 */
-	public void setFunction(FunctionLibFunction function) {
+	public synchronized void setFunction(FunctionLibFunction function) {
 		// alias
 		if (function.getAlias() != null) {
-			FunctionLibFunction dbl = function.duplicate();
-			dbl.setName(function.getAlias());
-			dbl.setAlias(null);
-
-			dbl.setFunctionLib(this);
-			functions.put(dbl.getName(), dbl);
+			for (String alias : function.getAlias().split(",")) {
+				alias = alias.trim();
+				if (!alias.isEmpty()) {
+					FunctionLibFunction dbl = function.duplicate();
+					dbl.setName(alias);
+					dbl.clearAlias();
+					dbl.setAliasOf(function.getNameWithCase());
+					dbl.setFunctionLib(this);
+					functions.put(dbl.getName(), dbl);
+				}
+			}
 		}
 
 		function.setFunctionLib(this);
@@ -252,7 +257,7 @@ public final class FunctionLib implements Lib {
 
 		Iterator<Entry<String, FunctionLibFunction>> it = funcs.entrySet().iterator();
 		Entry<String, FunctionLibFunction> entry;
-		Map<String, FunctionLibFunction> cm = new ConcurrentHashMap<String, FunctionLibFunction>();
+		Map<String, FunctionLibFunction> cm = new HashMap<>(funcs.size());
 		while (it.hasNext()) {
 			entry = it.next();
 			cm.put(entry.getKey(), deepCopy ? entry.getValue() : // TODO add support for deepcopy ((FunctionLibFunction)entry.getValue()).duplicate(deepCopy):

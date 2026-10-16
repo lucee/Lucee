@@ -85,15 +85,15 @@ public final class Call extends ExpressionBase implements Func {
 			}
 		}
 
-		Struct callee = new StructImpl(Struct.TYPE_LINKED);
+		Struct callee = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 		sct.setEL("callee", callee);
 		expr.dump(callee);
 
 		// arguments
-		Array arrArgs = new ArrayImpl();
+		Array arrArgs = new ArrayImpl(8, false);
 		sct.setEL(KeyConstants._arguments, arrArgs);
 		for (Argument arg: args) {
-			Struct sctArg = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctArg = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			arrArgs.appendEL(sctArg);
 			arg.dump(sctArg);
 		}

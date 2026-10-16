@@ -103,7 +103,7 @@ public final class CastString extends ExpressionBase implements ExprString, Cast
 
 		// argument
 		{
-			Struct sctArg = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctArg = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			expr.dump(sctArg);
 			sct.setEL(KeyConstants._argument, sctArg);
 		}

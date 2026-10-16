@@ -545,4 +545,9 @@ public final class ComponentSpecificAccess extends StructSupport implements Comp
 		}
 		return Struct.TYPE_REGULAR;
 	}
+
+	@Override
+	public int hashCode() {
+		return java.util.Objects.hash(component);
+	}
 }

@@ -4,6 +4,7 @@ import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
 import lucee.runtime.db.SQL;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -24,6 +25,7 @@ public final class QueryStruct extends StructImpl implements QueryResult {
 	private final TemplateLine templateLine;
 	private final String name;
 
+	private String cacheId;
 	private String cacheType;
 	private int updateCount;
 	private Key[] columnNames;
@@ -74,6 +76,7 @@ public final class QueryStruct extends StructImpl implements QueryResult {
 	@Override
 	public Collection duplicate(boolean deepCopy) {
 		QueryStruct qa = new QueryStruct(name, sql, templateLine);
+		qa.cacheId = cacheId;
 		qa.cacheType = cacheType;
 		qa.columnNames = columnNames;
 		qa.executionTime = executionTime;
@@ -86,6 +89,17 @@ public final class QueryStruct extends StructImpl implements QueryResult {
 	@Override
 	public SQL getSql() {
 		return sql;
+	}
+
+	@Override
+	public void setCacheId(String cacheId) {
+		this.cacheId = cacheId;
+	}
+
+	@Override
+	public String getCacheId(Collection arguments, String defaultValue) {
+		// for query we need no arguments for the cache
+		return cacheId;
 	}
 
 	@Override
@@ -176,6 +190,7 @@ public final class QueryStruct extends StructImpl implements QueryResult {
 	public static QueryStruct toQueryStruct(QueryImpl q, Key columnName) throws PageException {
 		QueryStruct qs = new QueryStruct(q.getName(), q.getSql(), q.getTemplateLine());
 		qs.setCacheType(q.getCacheType());
+		qs.setCacheId(q.getCacheId(null, null));
 		qs.setColumnNames(q.getColumnNames());
 		qs.setExecutionTime(q.getExecutionTime());
 		qs.setUpdateCount(q.getUpdateCount());
@@ -194,5 +209,10 @@ public final class QueryStruct extends StructImpl implements QueryResult {
 			}
 		}
 		return qs;
+	}
+
+	@Override
+	public int getCachetype() {
+		return Config.CACHE_TYPE_QUERY;
 	}
 }

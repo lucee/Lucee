@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.objectweb.asm.MethodTooLargeException;
+
 import lucee.commons.digest.RSA;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -208,6 +210,14 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 				byte[] barr = page.execute(className);
 				result = new Result(page, barr, page.getJavaFunctions());
 			}
+			catch (MethodTooLargeException mtle) {
+				String source = ps != null ? ps.getDisplayPath() : className;
+				String methodName = mtle.getMethodName();
+				int codeSize = mtle.getCodeSize();
+				throw new RuntimeException(
+					"Bytecode too large compiling [" + source + "]: method [" + methodName + "] generated " + codeSize + " bytes (limit 65535)",
+					mtle);
+			}
 			catch (RuntimeException re) {
 				/*
 				 * String msg = StringUtil.emptyIfNull(re.getMessage()); if (StringUtil.indexOfIgnoreCase(msg,
@@ -270,7 +280,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 			return result;
 		}
 		catch (AlreadyClassException ace) {
-			if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.compiler.block.bytecode", null), true)) throw new TemplateException(
+			if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.compiler.block.bytecode", null), false)) throw new TemplateException(
 					"Bytecode execution is disabled by environment configuration. Lucee is configured to prevent the execution of precompiled bytecode files (.cfm|.cfc|.cfs) directly. "
 							+ "To enable bytecode execution, set the system property `-Dlucee.compiler.block.bytecode=false` or the environment variable `LUCEE_COMPILER_BLOCK_BYTECODE=false`.");
 

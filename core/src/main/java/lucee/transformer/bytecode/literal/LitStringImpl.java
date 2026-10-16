@@ -93,7 +93,7 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 		// str(0,10);
 		// print.ds(str);
 		int externalizeStringGTE = ((ConfigPro) bc.getConfig()).getExternalizeStringGTE();
-		if (externalizeStringGTE > 0 && str.length() > externalizeStringGTE && StringUtil.indexOfIgnoreCase(bc.getMethod().getName(), "call") != -1) {
+		if (externalizeStringGTE > 0 && str.length() > externalizeStringGTE && StringUtil.indexOfIgnoreCaseNoCheck(bc.getMethod().getName(), "call") != -1) {
 			try {
 				GeneratorAdapter ga = bc.getAdapter();
 				PageImpl page = (PageImpl) bc.getPage();
@@ -164,6 +164,11 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 		if (!(obj instanceof LitString)) return false;
 
 		return str.equals(((LitStringImpl) obj).getString());
+	}
+
+	@Override
+	public int hashCode() {
+		return str.hashCode();
 	}
 
 	@Override

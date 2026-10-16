@@ -6,12 +6,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -61,27 +59,20 @@ public final class ClazzDynamic extends Clazz {
 	private String clid;
 	private String id;
 
-	private static Map<ClassLoader, String> clids = new IdentityHashMap<>();
+	private static Map<Integer, String> clids = new ConcurrentHashMap<>();
 	private static String systemId;
 
-	private static Map<Class, SoftReference<? extends Clazz>> classes = new IdentityHashMap<>();
-	// private static Map<String, SoftReference<ClazzDynamic>> classes = new ConcurrentHashMap<>();
-
-	/*
-	 * private static double generateClassLoderId = 0; private static double path = 0; private static
-	 * double isFile = 0; private static double deserialize = 0; private static double put = 0; private
-	 * static double neww = 0; private static double serialize = 0; private static double done = 0;
-	 * private static int count = 0;
-	 */
+	private static Map<Class, Clazz> classes = new ConcurrentHashMap<>();
+	private static Map<String, Map<String, FunctionMember>> membersCollectionOld = new ConcurrentHashMap<>();
+	private static Map<Class, Map<String, FunctionMember>> membersCollection = new ConcurrentHashMap<>();
 
 	public static Clazz getInstance(Class clazz, Resource dir, Log log) {
-		Clazz cd = null;
-		Reference<? extends Clazz> sr = classes.get(clazz);
-		if (sr == null || (cd = sr.get()) == null) {
+		Clazz cd = classes.get(clazz);
+		if (cd == null) {
 			synchronized (clazz) {
-				sr = classes.get(clazz);
-				if (sr == null || (cd = sr.get()) == null) {
-					if (LogUtil.doesDebug(log)) log.debug("dynamic", "extract metadata from [" + clazz.getName() + "]");
+				cd = classes.get(clazz);
+				if (cd == null) {
+					if (LogUtil.doesTrace(log)) log.trace("dynamic", "extract metadata from [" + clazz.getName() + "]");
 					try {
 						cd = new ClazzDynamic(clazz, log);
 					}
@@ -89,11 +80,39 @@ public final class ClazzDynamic extends Clazz {
 						if (log != null) log.error("dynamic", ioe);
 						cd = new ClazzReflection(clazz, log);
 					}
-					classes.put(clazz, new SoftReference<Clazz>(cd));
+					classes.put(clazz, cd);
 				}
 			}
 		}
 		return cd;
+	}
+
+	public static int remove(PhysicalClassLoader pcl) {
+		int count = 0;
+		// Use iterator to safely remove during iteration
+		synchronized (classes) {
+			Iterator<Class> it = classes.keySet().iterator();
+			while (it.hasNext()) {
+				Class clazz = it.next();
+				if (clazz.getClassLoader() == pcl) {
+					it.remove();
+					count++;
+				}
+			}
+		}
+
+		synchronized (membersCollection) {
+			Iterator<Class> it = membersCollection.keySet().iterator();
+			while (it.hasNext()) {
+				Class clazz = it.next();
+				if (clazz.getClassLoader() == pcl) {
+					it.remove();
+					count++;
+				}
+			}
+		}
+
+		return count;
 	}
 
 	public static String generateClassLoderId(Class<?> clazz) {
@@ -104,18 +123,18 @@ public final class ClazzDynamic extends Clazz {
 			return systemId;
 		}
 
-		String id = clids.get(cl);
+		String id = clids.get(System.identityHashCode(cl));
 		if (id != null) return id;
 
 		if (cl instanceof BundleClassLoader) {
 			Bundle b = ((BundleClassLoader) cl).getBundle();
 			id = "b" + HashUtil.create64BitHashAsString(b.getSymbolicName() + ":" + b.getVersion() + ":" + jv, Character.MAX_RADIX);
-			clids.put(cl, id);
+			clids.put(System.identityHashCode(cl), id);
 			return id;
 		}
 		if (cl instanceof PhysicalClassLoader) {
 			id = "p" + HashUtil.create64BitHashAsString(((PhysicalClassLoader) cl).getDirectory().getAbsolutePath() + ":" + jv, Character.MAX_RADIX);
-			clids.put(cl, id);
+			clids.put(System.identityHashCode(cl), id);
 			return id;
 		}
 
@@ -123,7 +142,7 @@ public final class ClazzDynamic extends Clazz {
 		CodeSource codeSource = protectionDomain.getCodeSource();
 		if (codeSource != null && codeSource.getLocation() != null) {
 			id = "j" + HashUtil.create64BitHashAsString(codeSource.getLocation().toString() + ":" + jv, Character.MAX_RADIX);
-			clids.put(cl, id);
+			clids.put(System.identityHashCode(cl), id);
 			return id;
 		}
 		return null;
@@ -204,7 +223,7 @@ public final class ClazzDynamic extends Clazz {
 		outer: for (FunctionMember fm: methods) {
 			if (/* fm.isPublic() && */ (nameCaseSensitive ? methodName.equals(fm.getName()) : methodName.equalsIgnoreCase(fm.getName()))) {
 				Type[] args = ((FunctionMemberDynamic) fm).getArgumentTypes();
-				if (types.length == types.length) {
+				if (types.length == args.length) {
 					for (int i = 0; i < args.length; i++) {
 						if (!types[i].equals(args[i])) continue outer;
 					}
@@ -637,9 +656,6 @@ public final class ClazzDynamic extends Clazz {
 		return cloned;
 	}
 
-	private static Map<String, Map<String, FunctionMember>> membersCollectionOld = new ConcurrentHashMap<>();
-	private static Map<Class, Map<String, FunctionMember>> membersCollection = new IdentityHashMap<>();
-
 	public static void serialize(Serializable o, OutputStream os) throws IOException {
 		ObjectOutputStream oos = null;
 		try {
@@ -678,5 +694,19 @@ public final class ClazzDynamic extends Clazz {
 			IOUtil.close(ois);
 		}
 		return o;
+	}
+
+	public static void flush(ClassLoader cl) {
+		if (cl == null) return;
+
+		synchronized (classes) {
+			Iterator<Class> it = classes.keySet().iterator();
+			while (it.hasNext()) {
+				Class clazz = it.next();
+				if (clazz.getClassLoader() == cl) {
+					it.remove();
+				}
+			}
+		}
 	}
 }

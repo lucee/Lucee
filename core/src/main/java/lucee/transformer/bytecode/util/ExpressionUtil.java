@@ -49,6 +49,14 @@ public final class ExpressionUtil {
 
 	public static final Method CURRENT_LINE = new Method("currentLine", Types.VOID, new Type[] { Types.INT_VALUE });
 
+	// Cache for line number strings to avoid repeated Integer.toString() allocations
+	private static final String[] LINE_CACHE = new String[10000];
+	static {
+		for (int i = 0; i < LINE_CACHE.length; i++) {
+			LINE_CACHE[i] = Integer.toString(i);
+		}
+	}
+
 	private Map<String, String> last = new HashMap<String, String>();
 
 	public static void writeOutExpressionArray(BytecodeContext bc, Type arrayType, Expression[] array) throws TransformerException {
@@ -65,7 +73,7 @@ public final class ExpressionUtil {
 
 	/**
 	 * visit line number
-	 * 
+	 *
 	 * @param bc
 	 * @param pos
 	 */
@@ -75,14 +83,20 @@ public final class ExpressionUtil {
 		}
 	}
 
+	private static String lineToString(int line) {
+		return (line >= 0 && line < LINE_CACHE.length) ? LINE_CACHE[line] : Integer.toString(line);
+	}
+
 	private void visitLine(BytecodeContext bc, int line) {
 		if (line > 0) {
-			if (!("" + line).equals(last.get(bc.getClassName() + ":" + bc.getId()))) {
+			String lineStr = lineToString(line);
+			String key = bc.getClassName() + ":" + bc.getId();
+			if (!lineStr.equals(last.get(key))) {
 				synchronized (SystemUtil.createToken("ExpressionUtil", bc.getClassName())) {
-					if (!("" + line).equals(last.get(bc.getClassName() + ":" + bc.getId()))) {
+					if (!lineStr.equals(last.get(key))) {
 						bc.visitLineNumber(line);
-						last.put(bc.getClassName() + ":" + bc.getId(), "" + line);
-						last.put(bc.getClassName(), "" + line);
+						last.put(key, lineStr);
+						last.put(bc.getClassName(), lineStr);
 					}
 				}
 			}
@@ -152,13 +166,22 @@ public final class ExpressionUtil {
 	}
 
 	private static void call_Log(BytecodeContext bc, Method method, Position pos, String id) {
-		if (!bc.writeLog() || pos == null || (StringUtil.indexOfIgnoreCase(bc.getMethod().getName(), "call") == -1)) return;
+		if (!bc.writeLog() || pos == null || (StringUtil.indexOfIgnoreCaseNoCheck(bc.getMethod().getName(), "call") == -1)) return;
 		try {
 			GeneratorAdapter adapter = bc.getAdapter();
 			adapter.loadArg(0);
-			// adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
-			int off = bc.getSourceOffset();
-			adapter.push(pos.pos - off);
+
+			// Check if execution log is line-based (cached in BytecodeContext)
+			if (bc.isLineBased()) {
+				// Push line number for line-based execution logs (e.g. debugger)
+				adapter.push(pos.line);
+			}
+			else {
+				// Push character position for char-based execution logs (e.g. console)
+				int off = bc.getSourceOffset();
+				adapter.push(pos.pos - off);
+			}
+
 			adapter.push(id);
 			adapter.invokeVirtual(Types.PAGE_CONTEXT, method);
 		}
@@ -168,6 +191,6 @@ public final class ExpressionUtil {
 	}
 
 	public static boolean doLog(BytecodeContext bc) {
-		return bc.writeLog() && StringUtil.indexOfIgnoreCase(bc.getMethod().getName(), "call") != -1;
+		return bc.writeLog() && StringUtil.indexOfIgnoreCaseNoCheck(bc.getMethod().getName(), "call") != -1;
 	}
 }

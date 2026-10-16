@@ -21,6 +21,7 @@ package lucee.runtime.instrumentation;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -34,6 +35,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.log.LoggingPrintStream;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.type.file.FileResource;
@@ -48,100 +50,116 @@ import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 
 /**
  * Factory for obtaining an {@link Instrumentation} instance.
  */
-public final class InstrumentationFactory {
+public class InstrumentationFactory {
 	// private static final String _name = InstrumentationFactory.class.getName();
 	private static final String SEP = File.separator;
 	private static final String TOOLS_VERSION = "7u25";
 	private static final String AGENT_CLASS_NAME = "lucee.runtime.instrumentation.ExternalAgent";
-	private static final boolean IS_WINDOWS = SystemUtil.isWindows();
-	private static final boolean IS_LINUX = SystemUtil.isLinux();
-	private static final boolean IS_SOLARIS = SystemUtil.isSolaris();
-	private static final boolean IS_MACOSX = SystemUtil.isMacOSX();
 
 	private static Instrumentation _instr;
+	private static boolean checked;
 
-	public static synchronized Instrumentation getInstrumentation(final Config config) {
-
+	public static Instrumentation getInstrumentation(final Config config) {
 		final Log log = ThreadLocalPageContext.getLog(config, "application");
-		Instrumentation instr = _getInstrumentation(log, config);
+		// final CFMLEngine engine = ConfigWebUtil.getEngine(config);
 
-		// agent already exist
-		if (instr != null) return instr;
+		if (!checked) {
+			synchronized (SystemUtil.createToken("InstrumentationFactory", "getInstrumentation")) {
+				if (!checked) {
+					PrintStream originalErr = System.err;
+					PrintStream originalOut = System.out;
 
-		AccessController.doPrivileged(new PrivilegedAction<Object>() {
-			@Override
-			public Object run() {
-				ClassLoader ccl = Thread.currentThread().getContextClassLoader();
-				Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader());
-				try {
+					try {
+						LoggingPrintStream loggingErr = new LoggingPrintStream(log, InstrumentationFactory.class.getName(), Log.LEVEL_WARN);
+						System.setErr(loggingErr);
 
-					JavaVendor vendor = JavaVendor.getCurrentVendor();
-					Resource toolsJar = null;
-					// When running on IBM, the attach api classes are packaged in vm.jar which is a part
-					// of the default vm classpath.
-					RefBoolean useOurOwn = new RefBooleanImpl(true);
-					// if (!vendor.isIBM()) {
-					// If we can't find the tools.jar and we're not on IBM we can't load the agent.
-					toolsJar = findToolsJar(config, log, useOurOwn);
-					if (toolsJar == null) {
-						return null;
+						_getInstrumentation(log, config);
+
+						// agent already exist
+						if (_instr != null) return _instr;
+
+						AccessController.doPrivileged(new PrivilegedAction<Object>() {
+							@Override
+							public Object run() {
+								ClassLoader ccl = Thread.currentThread().getContextClassLoader();
+								Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader());
+								try {
+
+									JavaVendor vendor = JavaVendor.getCurrentVendor();
+									Resource toolsJar = null;
+									// When running on IBM, the attach api classes are packaged in vm.jar which is a part
+									// of the default vm classpath.
+									RefBoolean useOurOwn = new RefBooleanImpl(true);
+									// if (!vendor.isIBM()) {
+									// If we can't find the tools.jar and we're not on IBM we can't load the agent.
+									toolsJar = findToolsJar(config, log, useOurOwn);
+									if (toolsJar == null) {
+										return null;
+									}
+									// }
+									log.info("Instrumentation", "tools.jar used:" + toolsJar);
+
+									// add the attach native library
+									if (useOurOwn.toBooleanValue()) addAttachIfNecessary(config, log);
+
+									Class<?> vmClass = loadVMClass(toolsJar, log, vendor);
+									log.info("Instrumentation", "loaded VirtualMachine class:" + (vmClass == null ? "null" : vmClass.getName()));
+									if (vmClass == null) {
+										return null;
+									}
+									String agentPath = createAgentJar(log, config).getAbsolutePath();
+									if (agentPath == null) {
+										return null;
+									}
+									log.info("Instrumentation", "try to load agent (path:" + agentPath + ")");
+									loadAgent(config, log, agentPath, vmClass);
+									// log.info("Instrumentation","agent loaded (path:"+agentPath+")");
+
+								}
+								catch (IOException ioe) {
+									log.log(Log.LEVEL_INFO, "Instrumentation", ioe);
+								}
+								finally {
+									Thread.currentThread().setContextClassLoader(ccl);
+								}
+								return null;
+							}// end run()
+						});
+						// If the load(...) agent call was successful, this variable will no
+						// longer be null.
+						_getInstrumentation(log, config);
+						if (_instr == null) {
+							_instr = InstrumentationFactoryExternal.install();
+						}
+						if (_instr == null) {
+							boolean allowAttachSelf = Caster.toBooleanValue(System.getProperty("jdk.attach.allowAttachSelf"), false);
+							Resource agentJar = createAgentJar(log, config);
+
+							LogUtil.log((config), Log.LEVEL_INFO, InstrumentationFactory.class.getName(),
+									Constants.NAME + " was not able to load an Agent dynamically! "
+											+ "You may add this manually by adding the following to your JVM arguments [-javaagent:\"" + (agentJar) + "\"] "
+											+ (allowAttachSelf ? "." : "or supply -Djdk.attach.allowAttachSelf as system property."));
+
+							return null;
+						}
 					}
-					// }
-					log.info("Instrumentation", "tools.jar used:" + toolsJar);
-
-					// add the attach native library
-					if (useOurOwn.toBooleanValue()) addAttachIfNecessary(config, log);
-
-					Class<?> vmClass = loadVMClass(toolsJar, log, vendor);
-					log.info("Instrumentation", "loaded VirtualMachine class:" + (vmClass == null ? "null" : vmClass.getName()));
-					if (vmClass == null) {
-						return null;
+					catch (Exception e) {
+						LogUtil.log((config), InstrumentationFactory.class.getName(), e);
 					}
-					String agentPath = createAgentJar(log, config).getAbsolutePath();
-					if (agentPath == null) {
-						return null;
+					finally {
+						checked = true;
+						System.setErr(originalErr);
+						System.setOut(originalOut);
 					}
-					log.info("Instrumentation", "try to load agent (path:" + agentPath + ")");
-					loadAgent(config, log, agentPath, vmClass);
-					// log.info("Instrumentation","agent loaded (path:"+agentPath+")");
-
 				}
-				catch (IOException ioe) {
-					log.log(Log.LEVEL_INFO, "Instrumentation", ioe);
-				}
-				finally {
-					Thread.currentThread().setContextClassLoader(ccl);
-				}
-				return null;
-			}// end run()
-		});
-		// If the load(...) agent call was successful, this variable will no
-		// longer be null.
-		instr = _getInstrumentation(log, config);
-		if (instr == null) {
-			instr = InstrumentationFactoryExternal.install();
-		}
-		if (instr == null) {
-			try {
-				boolean allowAttachSelf = Caster.toBooleanValue(System.getProperty("jdk.attach.allowAttachSelf"), false);
-				Resource agentJar = createAgentJar(log, config);
-
-				throw new PageRuntimeException(new ApplicationException(
-						Constants.NAME + " was not able to load an Agent dynamically! " + "You may add this manually by adding the following to your JVM arguments [-javaagent:\""
-								+ (agentJar) + "\"] " + (allowAttachSelf ? "." : "or supply -Djdk.attach.allowAttachSelf as system property.")));
 			}
-			catch (IOException ioe) {
-				LogUtil.log((config), InstrumentationFactory.class.getName(), ioe);
-			}
 		}
-		return instr;
+		return _instr;
 	}
 
 	private static Instrumentation _getInstrumentation(Log log, Config config) {
@@ -203,13 +221,13 @@ public final class InstrumentationFactory {
 		Resource dir = getDeployDirectory(config);
 
 		String os = "bsd"; // used for Mac OS X
-		if (IS_WINDOWS) {
+		if (SystemUtil.isWindows()) {
 			os = "windows";
 		}
-		else if (IS_LINUX) { // not MacOSX
+		else if (SystemUtil.isLinux()) { // not MacOSX
 			os = "linux";
 		}
-		else if (IS_SOLARIS) {
+		else if (SystemUtil.isSolaris()) {
 			os = "solaris";
 		}
 		String name = "tools-" + os + "-" + TOOLS_VERSION + ".jar";
@@ -350,22 +368,22 @@ public final class InstrumentationFactory {
 		String archBits = (SystemUtil.getJREArch() == SystemUtil.ARCH_64) ? "64" : "32";
 
 		// Windows
-		if (IS_WINDOWS) {
+		if (SystemUtil.isWindows()) {
 			trgName = "attach.dll";
 			srcName = "windows" + archBits + "/" + trgName;
 		}
 		// Linux
-		else if (IS_LINUX) {
+		else if (SystemUtil.isLinux()) {
 			trgName = "libattach.so";
 			srcName = "linux" + archBits + "/" + trgName;
 		}
 		// Solaris
-		else if (IS_SOLARIS) {
+		else if (SystemUtil.isSolaris()) {
 			trgName = "libattach.so";
 			srcName = "solaris" + archBits + "/" + trgName;
 		}
 		// Mac OSX
-		else if (IS_MACOSX) {
+		else if (SystemUtil.isMacOSX()) {
 			trgName = "libattach.dylib";
 			srcName = "macosx" + archBits + "/" + trgName;
 		}

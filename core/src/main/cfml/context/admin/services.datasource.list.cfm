@@ -4,38 +4,33 @@
 	<!--- UPDATE --->
 		<cfcase value="#stText.Buttons.Delete#">
 			<cfset data.names=toArrayFromForm("name")>
-				<cfset data.rows=toArrayFromForm("row")>
-				<cfset data.names=toArrayFromForm("name")>
-				
-				<cfloop index="idx" from="1" to="#arrayLen(data.names)#">
-					<cfif arrayIndexExists(data.rows, idx) and data.names[idx] NEQ "">
-						<cfadmin 
-							action="removeDatasource"
-							type="#request.adminType#"
-							password="#session["password"&request.adminType]#"
-							name="#data.names[idx]#"
-							remoteClients="#request.getRemoteClients()#">
-						
-					</cfif>
-				</cfloop>
+			<cfset data.rows=toArrayFromForm("row")>
+			<cfset data.names=toArrayFromForm("name")>
+			
+			<cfloop index="idx" from="1" to="#arrayLen(data.names)#">
+				<cfif arrayIndexExists(data.rows, idx) and data.names[idx] NEQ "">
+					<cfadmin 
+						action="removeDatasource"
+						type="#request.adminType#"
+						password="#session["password"&request.adminType]#"
+						name="#data.names[idx]#"
+						remoteClients="#request.getRemoteClients()#">
+					
+				</cfif>
+			</cfloop>
 		</cfcase>
 		<cfcase value="#stText.Buttons.verify#">
 			<cfset data.names=toArrayFromForm("name")>
 				<cfset data.rows=toArrayFromForm("row")>
-				<cfset data.names=toArrayFromForm("name")>
-				<cfset data.passwords=toArrayFromForm("password")>
-				<cfset data.usernames=toArrayFromForm("username")>
-				
+
 				<cfloop index="idx" from="1" to="#arrayLen(data.names)#">
 					<cfif arrayIndexExists(data.rows, idx) and data.names[idx] NEQ "">
 						<cftry>
-							<cfadmin 
+							<cfadmin
 								action="verifyDatasource"
 								type="#request.adminType#"
 								password="#session["password"&request.adminType]#"
-								name="#data.names[idx]#"
-								dbusername="#data.usernames[idx]#"
-								dbpassword="#data.passwords[idx]#">
+								name="#data.names[idx]#">
 								<cfset stVerifyMessages["#data.names[idx]#"].Label = "OK">
 
 								<cfdbinfo type="Version" datasource="#data.names[idx]#" name='stVerifyMessages["#data.names[idx]#"].dbInfo'>
@@ -216,8 +211,6 @@ list all mappings and display necessary edit fields --->
 						<tr>
 							<td>
 								<input type="checkbox" class="checkbox" name="row_#srcGlobal.currentrow#" value="#srcLocal.currentrow#">
-								<input type="hidden" name="username_#srcGlobal.currentrow#" value="#srcGlobal.Username#">
-								<input type="hidden" name="password_#srcGlobal.currentrow#" value="#srcGlobal.Password#">
 							</td>
 							<td>
 								<input type="hidden" name="name_#srcGlobal.currentrow#" value="#srcGlobal.name#">
@@ -299,8 +292,6 @@ list all mappings and display necessary edit fields --->
 						<tr>
 							<td class="tblContent#css# longwords">
 								 <input type="checkbox" class="checkbox" name="row_#srcLocal.currentrow#" value="#srcLocal.currentrow#">
-								<input type="hidden" name="username_#srcLocal.currentrow#" value="#srcLocal.Username#">
-								<input type="hidden" name="password_#srcLocal.currentrow#" value="#srcLocal.Password#">
 							</td>
 							<td class="tblContent#css# longwords"><input type="hidden" name="name_#srcLocal.currentrow#" value="#srcLocal.name#">#srcLocal.name#</td>
 							<td class="tblContent#css# longwords">#label#

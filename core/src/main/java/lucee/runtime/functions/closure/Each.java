@@ -72,20 +72,31 @@ public final class Each extends BIF implements ClosureFunc {
 	}
 
 	private static String _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
-		ExecutorService execute = null;
-		List<Future<Data<Object>>> futures = null;
-		Thread thread = null;
 		// 0 or less == default
 		if (maxThreads < 1) maxThreads = DEFAULT_MAX_THREAD;
 		// 1 == not parallel
 		else if (maxThreads == 1) parallel = false;
 
-		if (parallel) {
-			execute = ThreadUtil.createExecutorService(maxThreads);
-			futures = new ArrayList<Future<Data<Object>>>();
-			thread = ((PageContextImpl) pc).getThread();
+		if (!parallel) {
+			dispatch(pc, obj, udf, type, null, null);
+			return null;
 		}
 
+		ExecutorService execute = ThreadUtil.createExecutorService(maxThreads);
+		List<Future<Data<Object>>> futures = new ArrayList<Future<Data<Object>>>();
+		Thread thread = ((PageContextImpl) pc).getThread();
+		try {
+			dispatch(pc, obj, udf, type, execute, futures);
+			afterCall(pc, futures);
+		}
+		finally {
+			// drain orphans so they can't race the caller's post-parallel state (LDEV-6395)
+			ThreadUtil.finishParallelSection(pc, execute, thread, futures);
+		}
+		return null;
+	}
+
+	private static void dispatch(PageContext pc, Object obj, UDF udf, short type, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
 		// !!!! Don't combine the first 2 ifs with the ifs below, type overrules instanceof check
 		// Array
 		if (type == TYPE_ARRAY) {
@@ -113,7 +124,7 @@ public final class Each extends BIF implements ClosureFunc {
 		else if (obj instanceof Map) {
 			Iterator it = ((Map) obj).entrySet().iterator();
 			Entry e;
-			ParentException parentException = new ParentException();
+			ParentException parentException = execute != null ? new ParentException() : null;
 			while (it.hasNext()) {
 				e = (Entry) it.next();
 				_call(pc, parentException, udf, new Object[] { e.getKey(), e.getValue(), obj }, execute, futures);
@@ -124,7 +135,7 @@ public final class Each extends BIF implements ClosureFunc {
 		else if (obj instanceof List) {
 			ListIterator it = ((List) obj).listIterator();
 			int index;
-			ParentException parentException = new ParentException();
+			ParentException parentException = execute != null ? new ParentException() : null;
 			while (it.hasNext()) {
 				index = it.nextIndex();
 				_call(pc, parentException, udf, new Object[] { it.next(), Double.valueOf(index), obj }, execute, futures);
@@ -135,7 +146,7 @@ public final class Each extends BIF implements ClosureFunc {
 		// Iterator
 		else if (obj instanceof Iterator) {
 			Iterator it = (Iterator) obj;
-			ParentException parentException = new ParentException();
+			ParentException parentException = execute != null ? new ParentException() : null;
 			while (it.hasNext()) {
 				_call(pc, parentException, udf, new Object[] { it.next() }, execute, futures);
 				// udf.call(pc, new Object[]{it.next()}, true);
@@ -144,7 +155,7 @@ public final class Each extends BIF implements ClosureFunc {
 		// Enumeration
 		else if (obj instanceof Enumeration) {
 			Enumeration e = (Enumeration) obj;
-			ParentException parentException = new ParentException();
+			ParentException parentException = execute != null ? new ParentException() : null;
 			while (e.hasMoreElements()) {
 				_call(pc, parentException, udf, new Object[] { e.nextElement() }, execute, futures);
 				// udf.call(pc, new Object[]{e.nextElement()}, true);
@@ -155,16 +166,11 @@ public final class Each extends BIF implements ClosureFunc {
 			invoke(pc, (StringListData) obj, udf, execute, futures);
 		}
 		else throw new FunctionException(pc, "Each", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
-
-		if (parallel) afterCall(pc, futures, execute, thread);
-
-		return null;
 	}
 
-	public static void afterCall(PageContext pc, List<Future<Data<Object>>> futures, ExecutorService es, Thread thread) throws PageException {
+	public static void afterCall(PageContext pc, List<Future<Data<Object>>> futures) throws PageException {
 		try {
 			Iterator<Future<Data<Object>>> it = futures.iterator();
-			// Future<String> f;
 			while (it.hasNext()) {
 				pc.write(it.next().get().output);
 			}
@@ -172,16 +178,12 @@ public final class Each extends BIF implements ClosureFunc {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		finally {
-			((PageContextImpl) pc).setThread(thread);
-			if (es != null) es.shutdown();
-		}
 	}
 
 	public static void invoke(PageContext pc, Array array, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
 		Iterator it = (array instanceof ArrayPro ? ((ArrayPro) array).entryArrayIterator() : array.entryIterator());
 		Entry e;
-		ParentException parentException = new ParentException();
+		ParentException parentException = execute != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			_call(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), array }, execute, futures);
@@ -193,7 +195,7 @@ public final class Each extends BIF implements ClosureFunc {
 		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
 		try {
 			Object row;
-			ParentException parentException = new ParentException();
+			ParentException parentException = execute != null ? new ParentException() : null;
 			while (it.hasNext()) {
 				row = it.next();
 				_call(pc, parentException, udf, new Object[] { row, Caster.toDoubleValue(qry.getCurrentrow(pid)), qry }, execute, futures);
@@ -207,7 +209,7 @@ public final class Each extends BIF implements ClosureFunc {
 	public static void invoke(PageContext pc, Iteratorable coll, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
 		Iterator<Entry<Key, Object>> it = coll.entryIterator();
 		Entry<Key, Object> e;
-		ParentException parentException = new ParentException();
+		ParentException parentException = execute != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			_call(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue(), coll }, execute, futures);
@@ -220,7 +222,7 @@ public final class Each extends BIF implements ClosureFunc {
 
 		Iterator it = (arr instanceof ArrayPro ? ((ArrayPro) arr).entryArrayIterator() : arr.entryIterator());
 		Entry e;
-		ParentException parentException = new ParentException();
+		ParentException parentException = execute != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			_call(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, execute, futures);

@@ -49,72 +49,20 @@
 
 	stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{version}',server.lucee.version);
 
-		version = "lucee";
-		
-		versionsStr = {};
-		versionsStr.snapShot = {};
-		versionsStr.pre_Release= {};
-		versionsStr.release = {};
-		if(version eq 'custom'){
-			versionsStr.custom = {};
-		}
-		for(type in versionsStr){
-			versionsStr[type].upgrade = [];
-			versionsStr[type].downgrade = [];
-		}
-		if(version eq 'custom' &&  Len(otherVersions)){
-			for(versions in otherVersions){
-				if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
-					arrayPrepend(versionsStr.custom.downgrade, versions);
-				}
-				else{
-					arrayPrepend(versionsStr.custom.upgrade, versions);
-				}
-				hasOptions=true;
-			}
-		}
-		
-		minVs = toVersionSortable(minVersion);
-		try {
-			otherVersions=LuceeVersionsList();
-		}
-		catch(e) {
-			otherVersions=[];
-		}
-			latest=len(otherVersions)?otherVersions[len(otherVersions)]:server.lucee.version;
-		if(!isNull(otherVersions) && len(otherVersions)){
+	try {
+		otherVersions = LuceeVersionsList();
+	}
+	catch(e) {
+		otherVersions = [];
+	}
 
-			for(versions in otherVersions ){
-				if(versions EQ server.lucee.version) cfcontinue;
-				vs=toVersionSortable(versions);
-				if ( !hasLoader7 && listFirst(vs, "." ) gt 6 ) cfcontinue;
-				if(FindNoCase("SNAPSHOT", versions)){
-					if(vs LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.SNAPSHOT.downgrade, versions);
-					} 
-					else{
-						arrayPrepend(versionsStr.SNAPSHOT.upgrade, versions);
-					}
-					hasOptions=true;
-				} 
-				else if(FindNoCase("ALPHA", versions) || FindNoCase("BETA", versions) || FindNoCase("RC", versions)){
-					if(vs LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.pre_Release.downgrade, versions);
-					} else{
-						arrayPrepend(versionsStr.pre_Release.upgrade, versions);
-					}
-					hasOptions=true;
-				}
-				else{
-					if(vs LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.release.downgrade, versions);
-					} else{
-						arrayPrepend(versionsStr.release.upgrade, versions);
-					}
-					hasOptions=true;
-				}
-			}
-		}
+	latest = len( otherVersions ) ? otherVersions[ len( otherVersions ) ] : server.lucee.version;
+
+	versionsStr = categorizeVersions( otherVersions, server.lucee.version, hasLoader7 );
+	hasOptions = arrayLen( versionsStr.snapShot.upgrade ) || arrayLen( versionsStr.snapShot.downgrade )
+		|| arrayLen( versionsStr.pre_Release.upgrade ) || arrayLen( versionsStr.pre_Release.downgrade )
+		|| arrayLen( versionsStr.release.upgrade ) || arrayLen( versionsStr.release.downgrade )
+		|| arrayLen( versionsStr.alpha.upgrade ) || arrayLen( versionsStr.alpha.downgrade );
 	printError(error);
 
 	currMajor=listFirst(server.lucee.version,".");
@@ -144,6 +92,11 @@
 	.btn {
 		color:white;
 		background-color:##CC0000;
+		border: 2px solid ##ff6666;
+	}
+	body.dark-mode .btn {
+		background-color:##cc3333;
+		border-color: ##cc3333;
 	}
 </style>
 
@@ -159,7 +112,7 @@
 
 	<cfset hiddenFormContents = "" >
 	<cfset count = 1>
-	<cfset listVrs = "Release,Pre_Release,SnapShot">
+	<cfset listVrs = "Release,Pre_Release,SnapShot,Alpha">
 	<cfloop list="#listVrs#" index="key">
 		<cfset len = 0>
 		<cfset len = len(versionsStr[key].upgrade) + len(versionsStr[key].downgrade)>
@@ -209,6 +162,7 @@
 						value="#stText.services.update.downUpBtn#">
 						<span class="msg"></span>
 					<div class="comment">
+						<br>
 						<cfloop list="#listVrs#" index="key">
 							<div class="itemintro"><b>#stText.services.update.short[key]# :</b> #stText.services.update[key&"Desc"]#</div>
 						</cfloop>
@@ -233,7 +187,9 @@
 				}
 				if('#server.lucee.state#' == 'SNAPSHOT')
 					var version = 'Snapshot';
-				else if('#server.lucee.state#' == 'RC')
+				else if('#server.lucee.state#' == 'ALPHA')
+					var version = 'Alpha';
+				else if('#server.lucee.state#' == 'RC' || '#server.lucee.state#' == 'BETA')
 					var version = 'Pre_release';
 				else
 					var version = 'Release';
@@ -270,16 +226,25 @@
 						if(v == "Snapshot"){
 							$(".td_Pre_release").remove();
 							$(".td_Release").remove();
+							$(".td_Alpha").remove();
+						}
+						if(v == "Alpha"){
+							$(".td_Pre_release").remove();
+							$(".td_Release").remove();
+							$(".td_Snapshot").remove();
 						}
 						if(v == "Pre_release"){
 							$(".td_Snapshot").remove();
 							$(".td_Release").remove();
+							$(".td_Alpha").remove();
 						}
 						if(v == "Release"){
 							$(".td_Snapshot").remove();
 							$(".td_Pre_release").remove();
+							$(".td_Alpha").remove();
 						}
 						$("##upt_version").append(window["td_"+v]);
+						$("##upt_version option:first").prop('selected', true);
 						$(".btn").removeClass('btn');
 						$("##btn_"+v).addClass('btn');
 					}

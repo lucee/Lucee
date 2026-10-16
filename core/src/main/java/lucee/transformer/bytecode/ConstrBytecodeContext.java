@@ -19,6 +19,7 @@ package lucee.transformer.bytecode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.GeneratorAdapter;
@@ -33,9 +34,18 @@ public final class ConstrBytecodeContext extends BytecodeContext {
 
 	private List<Data> properties = new ArrayList<Data>();
 
-	public ConstrBytecodeContext(Config config, PageSource ps, PageImpl page, List<LitString> keys, ClassWriter classWriter, String className, GeneratorAdapter adapter,
+	public ConstrBytecodeContext(Config config, PageSource ps, PageImpl page, Map<LitString, Integer> keys, ClassWriter classWriter, String className, GeneratorAdapter adapter,
 			Method method, boolean writeLog, boolean suppressWSbeforeArg, boolean output, boolean returnValue, int sourceOffset) {
 		super(config, ps, null, page, keys, classWriter, className, adapter, method, writeLog, suppressWSbeforeArg, output, returnValue, sourceOffset);
+	}
+
+	/**
+	 * Override to return this instance as the constructor context.
+	 * This ensures child BytecodeContexts get a reference to us via getConstructor().
+	 */
+	@Override
+	public ConstrBytecodeContext getConstructor() {
+		return this;
 	}
 
 	public void addUDFProperty(Function function, int arrayIndex, int valueIndex, int type) {
@@ -44,6 +54,17 @@ public final class ConstrBytecodeContext extends BytecodeContext {
 
 	public List<Data> getUDFProperties() {
 		return properties;
+	}
+
+	/**
+	 * Track an executable line from child BytecodeContext instances.
+	 * Called during compilation so all lines end up in the constructor context.
+	 */
+	public void trackExecutableLine(int line) {
+		// Uses the executableLines Set inherited from BytecodeContext
+		// We don't call visitLineNumber as that would emit bytecode
+		if (super.executableLines == null) super.executableLines = new java.util.TreeSet<>();
+		super.executableLines.add(line);
 	}
 
 	/*

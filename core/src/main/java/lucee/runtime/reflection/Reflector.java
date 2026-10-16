@@ -81,7 +81,6 @@ import lucee.transformer.bytecode.util.JavaProxyFactory;
 import lucee.transformer.dynamic.DynamicInvoker;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.Constructor;
-import lucee.transformer.dynamic.meta.FunctionMember;
 import lucee.transformer.dynamic.meta.Method;
 
 /**
@@ -289,7 +288,8 @@ public final class Reflector {
 	 */
 	public static boolean like(Class src, Class trg) {
 		if (src == trg) return true;
-		return isInstaneOf(src, trg, true);
+		if (trg.isAssignableFrom(src)) return true;
+		return isInstaneOf(src, trg, false);
 	}
 
 	public static Object convert(Object src, Class trgClass, RefInteger rating, Object defaultValue) {
@@ -581,8 +581,7 @@ public final class Reflector {
 		try {
 			md = src.getMetaData(pc);
 		}
-		catch (PageException pe) {
-		}
+		catch (PageException pe) {}
 
 		String str;
 		JavaAnnotation ja = null;
@@ -592,8 +591,7 @@ public final class Reflector {
 			try {
 				sct = Caster.toStruct(DeserializeJSON.call(pc, str), null);
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 			if (sct == null) return null;
 
 			// interfaces
@@ -656,10 +654,6 @@ public final class Reflector {
 	}
 
 	static int count = 0;
-
-	public static MethodInstance getMethodInstance(Class clazz, final FunctionMember fm, Object[] args, boolean nameCaseSensitive, boolean exactMatchOnly) {
-		return new MethodInstance(clazz, (Method) fm, args, nameCaseSensitive, !exactMatchOnly);
-	}
 
 	public static MethodInstance getMethodInstance(Class clazz, final Collection.Key methodName, Object[] args, boolean nameCaseSensitive, boolean exactMatchOnly) {
 		return new MethodInstance(clazz, methodName, args, nameCaseSensitive, !exactMatchOnly);
@@ -974,15 +968,33 @@ public final class Reflector {
 
 	/**
 	 * to get a Getter Method of an Object
-	 * 
+	 *
 	 * @param clazz Class to invoke method from
 	 * @param prop Name of the Method without get
 	 * @return return Value of the getter Method
 	 */
 	public static MethodInstance getGetterEL(Class clazz, String prop, boolean nameCaseSensitive) {
-		prop = "get" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstance(clazz, KeyImpl.init(prop), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
-		if (!mi.hasMethod()) return null;
+		String getterName = "get" + StringUtil.ucFirst(prop);
+		MethodInstance mi = getMethodInstance(clazz, KeyImpl.init(getterName), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
+
+		if (!mi.hasMethod()) {
+			String isName = "is" + StringUtil.ucFirst(prop);
+			mi = getMethodInstance(clazz, KeyImpl.init(isName), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
+			if (mi.hasMethod()) {
+				try {
+					lucee.transformer.dynamic.meta.Method m = mi.getMethod();
+					Class rtn = m.getReturnClass();
+					if (rtn != Boolean.class && rtn != boolean.class) return null;
+				}
+				catch (PageException e) {
+					return null;
+				}
+			}
+			else {
+				return null;
+			}
+		}
+
 		try {
 			if (mi.getMethod().getReturnClass() == void.class) return null;
 		}
@@ -1163,8 +1175,7 @@ public final class Reflector {
 					fields[i].set(obj, convert(value, toReferenceClass(fields[i].getType()), null));
 					return true;
 				}
-				catch (PageException e) {
-				}
+				catch (PageException e) {}
 			}
 		}
 		catch (Exception e) {
@@ -1188,8 +1199,12 @@ public final class Reflector {
 		char first = prop.charAt(0);
 		MethodInstance getter = (first >= '0' && first <= '9') ? null : getGetterEL(obj.getClass(), prop, nameCaseSensitive);
 		if (getter == null) throw new ApplicationException("there is no property with name [" + prop + "]  found in [" + Caster.toTypeName(obj) + "]");
-
-		return getter.invoke(obj);
+		try {
+			return getter.invoke(obj);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	/**
@@ -1595,8 +1610,7 @@ public final class Reflector {
 				return c;
 			}
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 		return defaultValue;
 	}
 

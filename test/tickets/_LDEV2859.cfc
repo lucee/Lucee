@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 
 	function run( testResults , testBox ) {
 		describe( "test suite for LDEV2859", function() {
-			it(title = "Orm entitytoquery without name", body = function( currentSpec ) {
+			it( title = "Orm entitytoquery without name", skip=noOrm(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV2859.cfm",
 					forms :	{ scene=1 }
@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 				expect(trim(result.filecontent)).toBe("lucee");
 			});
 
-			it(title = "Orm entitytoquery with entityName", body = function( currentSpec ) {
+			it( title = "Orm entitytoquery with entityName", skip=noOrm(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV2859.cfm",
 					forms :	{ scene = 2 }
@@ -27,5 +27,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 	private string function createURI(string calledName){
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

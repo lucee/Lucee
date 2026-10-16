@@ -36,8 +36,11 @@ public class ConfigMerge {
 					mergeArrayByKey(a, (Array) incomingValue, mergeKey, MERGEABLE_ARRAYS.get(mergeKey));
 				} else {
 					Object existingValue = a.get(incomingKey, null);
-					mergeCollection(mergeKey, (Collection) existingValue, (Collection) incomingValue);
-					//a.setEL(incomingKey, incomingValue);
+					if (existingValue instanceof Collection) {
+						mergeCollection(incomingKey.getString(), (Collection) existingValue, (Collection) incomingValue);
+					} else {
+						a.setEL(incomingKey, incomingValue);
+					}
 				}
 			}
 			else if (incomingValue instanceof Collection) {

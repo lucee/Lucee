@@ -27,13 +27,17 @@
 	* Add a new param
 	*/
 	public HelperBase function addParam() {
-		  // Only validate the param being added (arguments itself)
+		// Only validate the param being added (arguments itself)
 		if (arguments.list ?: false) {
-			if (structKeyExists(arguments, "value") && trim(arguments.value) == '') {
-				var errorMsg = structKeyExists(arguments, "name") 
-					? "param [#arguments.name#] may not be empty" 
-					: "param with list [#arguments.list#] Value may not be empty";
-				throw(errorMsg, "expression");
+			if (structKeyExists(arguments, "value")) {
+				var val = arguments.value;
+				var isEmpty = isSimpleValue(val) ? trim(val) == '' : (isArray(val) && arrayLen(val) == 0);
+				if (isEmpty) {
+					var errorMsg = structKeyExists(arguments, "name")
+						? "param [#arguments.name#] may not be empty"
+						: "param with list [#arguments.list#] Value may not be empty";
+					throw(errorMsg, "expression");
+				}
 			}
 		}
 		ArrayAppend(variables.params, arguments);
@@ -136,7 +140,9 @@
 				<cfif structkeyExists(tagAttributes,'action') and tagAttributes.action eq 'listdir'>
 					<cfset tagAttributes.name = 'local.___q' >
 				</cfif>
-				<cfftp attributeCollection="#tagAttributes#" result="local.tagResult"/>
+				<cfscript>
+					cfftp(attributeCollection=tagAttributes, result="local.tagResult");
+				</cfscript>
 				<cfif tagAttributes["action"] eq "listdir">
 	                  <cfif !isNull(local.___q)><cfset result.setResult(local.___q)></cfif>
 				</cfif>
@@ -161,27 +167,8 @@
 
 			<!--- cfmail --->
 			<cfcase value="mail">
-				<cfset local.body = "">
-				<cfif StructKeyExists(tagAttributes, "body")>
-					<cfset local.body = tagAttributes.body>
-					<cfset Structdelete(tagAttributes, "body")>
-				</cfif>
-				<cfmail attributeCollection="#tagAttributes#">#body#<!---
-				---><cfloop array="#tagParams#" index="local.param"><!---
-                        ---><cfmailparam attributeCollection="#param#"><!---
-                  ---></cfloop><!---
-
-				---><cfloop array="#variables.parts#" index="local.part"><!---
-					---><cfset partbody = ""><!---
-                        ---><cfif structkeyexists(part,"body")><!---
-                             ---><cfset partbody = part["body"]><!---
-                             ---><cfset structdelete(part,"body")><!---
-                        ---></cfif><!---
-                        ---><cfmailpart attributeCollection="#part#">#partbody#</cfmailpart><!---
-                    ---></cfloop><!---
-				---></cfmail>
-
-				<cfreturn this/>
+				<!--- LDEV-6484 the mail extension ships its own org.lucee.cfml.Mail with send(), this is only reached by an outdated Mail.cfc --->
+				<cfthrow type="application" message="new mail() requires the Mail extension (212BA548-F15A-4EBD-8B1EEDF8DD8A844D) to be installed">
 			</cfcase>
 
 			<!--- feed --->

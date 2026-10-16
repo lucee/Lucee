@@ -135,15 +135,9 @@ public final class ColumnExpression extends ExpressionSupport implements Column 
 	}
 
 	@Override
-	public Object getValue(PageContext pc, Query qr, int row, Object defaultValue) {
-		try {
-			return getCol(qr).get(row, defaultValue);
-			// Per the interface, methods accepting a default value cannot throw an exception,
-			// so we must return the default value if any exceptions happen.
-		}
-		catch (PageException e) {
-			return defaultValue;
-		}
+	public Object getValue(PageContext pc, Query qr, int row, Object defaultValue) throws PageException {
+		// Let getCol throw if column doesn't exist - that's a user error that should be reported
+		return getCol(qr).get(row, defaultValue);
 	}
 
 	/**

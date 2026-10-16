@@ -51,6 +51,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	}
 
 	private function notHasMssql() {
+		if ( structCount( server.getTestService("orm") ) eq 0 ) return true;
 		return structCount(server.getDatasource("mssql")) == 0;
 	}
 

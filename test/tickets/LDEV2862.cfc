@@ -16,4 +16,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true labels="orm" {
         var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
         return baseURI&""&calledName;
     }
+
+    private function noOrm() {
+        return ( structCount( server.getTestService("orm") ) eq 0 );
+    }
 }

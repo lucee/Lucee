@@ -196,25 +196,25 @@ public final class NativeSwitch extends StatementBaseNoFinal implements FlowCont
 
 		// discriminant
 		{
-			Struct discriminant = new StructImpl(Struct.TYPE_LINKED);
+			Struct discriminant = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			getFactory().createLitInteger(value).dump(discriminant);
 			sct.setEL(KeyConstants._discriminant, discriminant);
 		}
-		Array arrCases = new ArrayImpl();
+		Array arrCases = new ArrayImpl(8, false);
 		sct.setEL(KeyConstants._cases, arrCases);
 		// cases
 		if (cases != null && cases.size() > 0) {
 			for (Case c: cases) {
-				Struct sctCase = new StructImpl(Struct.TYPE_LINKED);
+				Struct sctCase = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 				sctCase.setEL(KeyConstants._type, "SwitchCase");
 
 				// test
-				Struct sctTest = new StructImpl(Struct.TYPE_LINKED);
+				Struct sctTest = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 				getFactory().createLitInteger(c.value).dump(sctTest);
 				sctCase.setEL(KeyConstants._test, sctTest);
 
 				// consequent
-				Struct sctConsequent = new StructImpl(Struct.TYPE_LINKED);
+				Struct sctConsequent = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 				c.body.dump(sctConsequent);
 				sctCase.setEL(KeyConstants._consequent, sctConsequent);
 
@@ -224,14 +224,14 @@ public final class NativeSwitch extends StatementBaseNoFinal implements FlowCont
 		}
 		// default
 		if (defaultCase != null) {
-			Struct sctCase = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctCase = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			sctCase.setEL(KeyConstants._type, "SwitchCase");
 
 			// test
 			sctCase.setEL(KeyConstants._test, null);
 
 			// consequent
-			Struct sctConsequent = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctConsequent = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			defaultCase.dump(sctConsequent);
 			sctCase.setEL(KeyConstants._consequent, sctConsequent);
 

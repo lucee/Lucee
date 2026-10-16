@@ -173,26 +173,26 @@ public final class Condition extends StatementBaseNoFinal implements HasBodies {
 				Pair pair = ifs.get(i);
 
 				// test
-				Struct test = new StructImpl(Struct.TYPE_LINKED);
+				Struct test = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 				pair.condition.dump(test);
 				currentIf.setEL(KeyConstants._test, test);
 
 				// consequent
-				Struct consequent = new StructImpl(Struct.TYPE_LINKED);
+				Struct consequent = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 				pair.body.dump(consequent);
 				currentIf.setEL(KeyConstants._consequent, consequent);
 
 				// Check if there's another if (else-if) or else coming
 				if (i + 1 < ifs.size()) {
 					// Create nested IfStatement for else-if
-					Struct alternate = new StructImpl(Struct.TYPE_LINKED);
+					Struct alternate = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 					alternate.setEL(KeyConstants._type, "IfStatement");
 					currentIf.setEL(KeyConstants._alternate, alternate);
 					currentIf = alternate;
 				}
 				else if (_else != null) {
 					// Add else block
-					Struct alternate = new StructImpl(Struct.TYPE_LINKED);
+					Struct alternate = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 					_else.body.dump(alternate);
 					currentIf.setEL(KeyConstants._alternate, alternate);
 				}

@@ -11,13 +11,30 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="struct" {
 			};
 			it( title = 'Testcase for structKeyTranslate function',body = function( currentSpec ) {
 				structKeyTranslate(animals);
-				assertEquals('{"size":"small","noise":"chirp"}', serialize(animals.bird));
+				assertEquals("small", animals.bird.size);
+				assertEquals("chirp", animals.bird.noise);
 			});
 
 			it( title = 'Test case for struct.KeyTranslate member function',body = function( currentSpec ) {
 				animals.KeyTranslate();
-				assertEquals('{"size":"small","noise":"chirp"}', serialize(animals.bird));
-			}); 
+				assertEquals("small", animals.bird.size);
+				assertEquals("chirp", animals.bird.noise);
+			});
+
+			it( title = 'Test case for structKeyTranslate with ordered struct',body = function( currentSpec ) {
+				// Ordered struct using [:] notation should maintain insertion order
+				var orderedAnimals = [
+					"cow": [
+						"noise": "moo",
+						"size": "large"
+					],
+					"bird.noise": "chirp",
+					"bird.size": "small"
+				];
+				structKeyTranslate(orderedAnimals);
+				assertEquals("chirp", orderedAnimals.bird.noise);
+				assertEquals("small", orderedAnimals.bird.size);
+			});
 		});
 	}
 }

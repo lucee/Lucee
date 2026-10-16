@@ -38,6 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="orm" skip="true" 
 	}
 
 	public void function testH2_1(){
+		if (noOrm()) return;
 		local.uri=createURI("Jira2049.1/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -45,6 +46,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="orm" skip="true" 
 	}
 
 	public void function testH2_2(){
+		if (noOrm()) return;
 		local.uri=createURI("Jira2049.2/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -57,8 +59,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="orm" skip="true" 
 	}
 
 	public boolean function notHasMySQLCredentials() {
-		return (structCount(server.getDatasource("mysql")) eq 0);	
+		return (structCount(server.getDatasource("mysql")) eq 0);
 	}
-	
-} 
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
+	}
+
+}
 </cfscript>

@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 	function run(){
-		describe( title="Test suite for LDEV-233", skip=checkMySqlEnvVarsAvailable(), body=function(){
+		describe( title="Test suite for LDEV-233", skip=(noOrm() || checkMySqlEnvVarsAvailable()), body=function(){
 			it(title="Checking ORM with cftransaction", body=function(){
 				var uri = createURI("LDEV0233/withTrans.cfm");
 				var result = _InternalRequest(
@@ -90,5 +90,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 	private boolean function checkMySqlEnvVarsAvailable() {
 		var mySQL= server.getDatasource("mysql");
 		return structIsEmpty(mySQL);
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

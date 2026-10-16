@@ -48,6 +48,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
@@ -183,10 +184,12 @@ public final class MemberUtil {
 				keys.add(it.next());
 			}
 		}
-		String msg = ExceptionUtil.similarKeyMessage(keys.toArray(new Key[keys.size()]), methodName.getString(), "function", "functions",
-				types.length == 1 && types[0] != CFTypes.TYPE_ANY ? StringUtil.ucFirst(CFTypes.toString(types[0], "Object")) : "Object", true);
-		String detail = ExceptionUtil.similarKeyMessage(keys.toArray(new Key[keys.size()]), methodName.getString(), "functions",
-				types.length == 1 && types[0] != CFTypes.TYPE_ANY ? StringUtil.ucFirst(CFTypes.toString(types[0], "Object")) : "Object", true);
+		String in = types.length == 1 && types[0] != CFTypes.TYPE_ANY ? StringUtil.ucFirst(CFTypes.toString(types[0], "Object")) : "Object";
+		if (coll instanceof Scope && !StringUtil.isEmpty(((Scope) coll).getTypeAsString())) {
+			in = ((Scope) coll).getTypeAsString() + " scope (" + in + ")";
+		}
+		String msg = ExceptionUtil.similarKeyMessage(keys.toArray(new Key[keys.size()]), methodName.getString(), "function", "functions", in, true);
+		String detail = ExceptionUtil.similarKeyMessage(keys.toArray(new Key[keys.size()]), methodName.getString(), "functions", in, true);
 		throw new ExpressionException(msg, detail);
 	}
 
@@ -257,7 +260,12 @@ public final class MemberUtil {
 			}
 		}
 
-		throw new ExpressionException("No matching function member [" + methodName + "] for call with named arguments found, available function members are ["
+		String inType = StringUtil.ucFirst(strType);
+		if (coll instanceof Scope && !StringUtil.isEmpty(((Scope) coll).getTypeAsString())) {
+			inType = ((Scope) coll).getTypeAsString() + " scope (" + inType + ")";
+		}
+		throw new ExpressionException("No matching function member [" + methodName + "] for call with named arguments found in the " + inType
+				+ ", available function members are ["
 				+ lucee.runtime.type.util.ListUtil.sort(CollectionUtil.getKeyList(members.keySet().iterator(), ","), "textnocase", "asc", ",") + "]");
 	}
 

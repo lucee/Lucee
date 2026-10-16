@@ -1,8 +1,8 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"  labels="orm" {
 	function run(  testResults , testBox ) {
-		describe( title="Test suite for LDEV-1569",  skip=checkMySqlEnvVarsAvailable(), body=function() {
+		describe( title="Test suite for LDEV-1569",  skip=(noOrm() || checkMySqlEnvVarsAvailable()), body=function() {
 			xit(title="checking SerializeJSON() with ORM key having NULL value",
-					skip=checkMySqlEnvVarsAvailable(),
+					skip=(noOrm() || checkMySqlEnvVarsAvailable()),
 					body = function( currentSpec ) {
 				var uri=createURI("LDEV1569/orm.cfm");
 				var result = _InternalRequest(
@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="orm" {
 			});
 
 			xit(title="checking SerializeJSON() ORM key with NULL value, nullSupport=true",
-					skip=checkMySqlEnvVarsAvailable(),
+					skip=(noOrm() || checkMySqlEnvVarsAvailable()),
 					body = function( currentSpec ) {
 				var uri=createURI("LDEV1569/orm.cfm");
 				var result = _InternalRequest(
@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="orm" {
 			});
 
 			it(title="checking SerializeJSON() mysql query with NULL value",
-					skip=checkMySqlEnvVarsAvailable(),
+					skip=(noOrm() || checkMySqlEnvVarsAvailable()),
 					body = function( currentSpec ) {
 				var uri=createURI("LDEV1569/query.cfm");
 				var result = _InternalRequest(
@@ -42,7 +42,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="orm" {
 			});
 
 			it(title="checking SerializeJSON() mysql query with NULL value, nullSupport=true",
-					skip=checkMySqlEnvVarsAvailable(),
+					skip=(noOrm() || checkMySqlEnvVarsAvailable()),
 					body = function( currentSpec ) {
 				var uri=createURI("LDEV1569/query.cfm");
 				var result = _InternalRequest(
@@ -87,5 +87,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="orm" {
 		// getting the credentials from the environment variables
 		var mySQL = server.getDatasource("mysql");
 		return structIsEmpty(mySQL);
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

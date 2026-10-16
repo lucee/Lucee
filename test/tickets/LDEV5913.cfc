@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase"  {
 
 	function run( testResults, testBox ){
 		describe( "LDEV-5913 - super method resolution with closures", function(){

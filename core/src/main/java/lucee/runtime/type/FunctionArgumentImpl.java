@@ -22,6 +22,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Objects;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExternalizableUtil;
@@ -103,6 +104,11 @@ public final class FunctionArgumentImpl implements FunctionArgument, Externaliza
 		this.hint = hint;
 		this.meta = meta;
 		this.passByReference = passByReference;
+	}
+
+	@Override
+	public final int hashCode() {
+		return Objects.hash(name, type, required, defaultType, passByReference);
 	}
 
 	/**

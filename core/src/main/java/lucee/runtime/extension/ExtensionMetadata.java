@@ -15,6 +15,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.VersionRange;
+import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.ListUtil;
 
 public final class ExtensionMetadata implements Serializable {
@@ -91,6 +92,8 @@ public final class ExtensionMetadata implements Serializable {
 
 	private transient List<Map<String, Object>> eventGatewayInstances;
 	private String eventGatewayInstancesRaw;
+
+	private DateTime builtDate;
 
 	public List<Map<String, Object>> getEventGatewayInstances() {
 		if (eventGatewayInstances == null) {
@@ -353,6 +356,14 @@ public final class ExtensionMetadata implements Serializable {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public DateTime getBuiltDate() {
+		return builtDate;
+	}
+
+	public void setBuiltDate(DateTime builtDate) {
+		this.builtDate = builtDate;
 	}
 
 	public String getSymbolicName() {

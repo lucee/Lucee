@@ -19,9 +19,10 @@
 package lucee.runtime.net.mail;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.op.Caster;
 
@@ -46,7 +47,7 @@ public final class ServerImpl implements Server, Serializable {
 	private final int type;
 
 	public static ServerImpl getInstance(String host, int defaultPort, String defaultUsername, String defaultPassword, long defaultLifeTimespan, long defaultIdleTimespan,
-			boolean defaultTls, boolean defaultSsl) throws MailException {
+			boolean defaultTls, boolean defaultSsl) throws ApplicationException {
 
 		String userpass, user = defaultUsername, pass = defaultPassword, tmp;
 		int port = defaultPort;
@@ -76,7 +77,9 @@ public final class ServerImpl implements Server, Serializable {
 					port = Caster.toIntValue(tmp);
 				}
 				catch (ExpressionException e) {
-					throw new MailException("Mail server port definition is invalid [" + tmp + "]");
+					ApplicationException ae = new ApplicationException("Mail server port definition is invalid [" + tmp + "]");
+					ExceptionUtil.initCauseEL(ae, e);
+					throw ae;
 				}
 			}
 			host = host.substring(0, index).trim();
@@ -157,8 +160,11 @@ public final class ServerImpl implements Server, Serializable {
 	}
 
 	@Override
-	public boolean verify() throws SMTPException {
-		return SMTPVerifier.verify(hostName, username, password, port);
+	public boolean verify() {
+		// TODO Mail
+		// return SMTPVerifier.verify(hostName, username, password, port);
+
+		return true;
 	}
 
 	@Override
@@ -201,18 +207,16 @@ public final class ServerImpl implements Server, Serializable {
 		return reuse;
 	}
 
-	public static lucee.runtime.net.mail.Server[] merge(lucee.runtime.net.mail.Server[] arr1, lucee.runtime.net.mail.Server[] arr2) {
-		ArrayList<lucee.runtime.net.mail.Server> result = new ArrayList<Server>();
-
-		// first we fill it with the left array
-		for (int i = 0; i < arr1.length; i++) {
-			result.add(arr1[i]);
-		}
-
-		// Now we fill the second array, but only the one not existing yet
-		for (int i = 0; i < arr2.length; i++) {
-			if (!result.contains(arr2[i])) result.add(arr2[i]);
-		}
-		return result.toArray(new lucee.runtime.net.mail.Server[result.size()]);
-	}
+	/*
+	 * public static lucee.runtime.net.mail.Server[] merge(lucee.runtime.net.mail.Server[] arr1,
+	 * lucee.runtime.net.mail.Server[] arr2) { ArrayList<lucee.runtime.net.mail.Server> result = new
+	 * ArrayList<Server>();
+	 * 
+	 * // first we fill it with the left array for (int i = 0; i < arr1.length; i++) {
+	 * result.add(arr1[i]); }
+	 * 
+	 * // Now we fill the second array, but only the one not existing yet for (int i = 0; i <
+	 * arr2.length; i++) { if (!result.contains(arr2[i])) result.add(arr2[i]); } return
+	 * result.toArray(new lucee.runtime.net.mail.Server[result.size()]); }
+	 */
 }

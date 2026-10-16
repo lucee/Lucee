@@ -294,9 +294,9 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 	public void dump(Struct sct) {
 		super.dump(sct);
 		sct.setEL(KeyConstants._type, "BlockStatement");
-		Array arr = new ArrayImpl();
+		Array arr = new ArrayImpl(8, false);
 		for (Statement stat: statements) {
-			Struct s = new StructImpl(Struct.TYPE_LINKED);
+			Struct s = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			stat.dump(s);
 			arr.appendEL(s);
 		}

@@ -72,6 +72,8 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		beforeUpdate = new Label(); // LDEV-5922 fresh labels per emission, a finally body is written more than once
+		end = new Label();
 		GeneratorAdapter adapter = bc.getAdapter();
 		Label beforeInit = new Label();
 		Label afterInit = new Label();
@@ -132,25 +134,25 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 
 		// init
 		if ( this.init != null ) {
-			Struct init = new StructImpl(Struct.TYPE_LINKED);
+			Struct init = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			this.init.dump(init);
 			sct.setEL(KeyConstants._init, init);
 		}
 		// test
 		if ( condition != null ) {
-			Struct test = new StructImpl(Struct.TYPE_LINKED);
+			Struct test = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			condition.dump(test);
 			sct.setEL(KeyConstants._test, test);
 		}
 		// alternate
 		if ( this.update != null ) {
-			Struct update = new StructImpl(Struct.TYPE_LINKED);
+			Struct update = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			this.update.dump(update);
 			sct.setEL(KeyConstants._update, update);
 		}
 		// body
 		{
-			Struct body = new StructImpl(Struct.TYPE_LINKED);
+			Struct body = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			this.body.dump(body);
 			sct.setEL(KeyConstants._body, body);
 		}

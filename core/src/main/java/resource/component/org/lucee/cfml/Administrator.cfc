@@ -447,17 +447,26 @@ component {
 	/**
 	* @hint verifies whether it is datasource or not
 	* @name name of the datasource to be verified
-	* @dbusername username of the database
-	* @dbpassword password of the database
+	* @dbusername username of the database (optional, uses stored credentials if not provided)
+	* @dbpassword password of the database (optional, uses stored credentials if not provided)
 	*/
-	public void function verifyDatasource( required string name, required string dbusername, required string dbpassword ){
-		admin
-			action="verifyDatasource"
-			type="#variables.type#"
-			password="#variables.password#"
-			name="#arguments.name#"
-			dbusername="#arguments.dbusername#"
-			dbpassword="#arguments.dbpassword#";
+	public void function verifyDatasource( required string name, string dbusername, string dbpassword ){
+		if ( !isNull( arguments.dbusername ) && !isNull( arguments.dbpassword ) ) {
+			admin
+				action="verifyDatasource"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#"
+				dbusername="#arguments.dbusername#"
+				dbpassword="#arguments.dbpassword#";
+		}
+		else {
+			admin
+				action="verifyDatasource"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#";
+		}
 	}
 
 	/**
@@ -1476,7 +1485,7 @@ component {
 			if(n EQ "Debug" or n EQ "Field" or n EQ "Group" ){
 				continue;
 			}
-			tmp=createObject('component',fn);
+			var tmp=createObject('component',fn);
 			drivers[trim(tmp.getId())]=tmp;
 		}
 
@@ -2299,8 +2308,8 @@ component {
 			action="getDefaultPassword"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="defaultPassword";
-		return defaultPassword;
+			returnVariable="local.defaultPassword";
+		return local.defaultPassword;
 	}
 
 	/**
@@ -2333,8 +2342,8 @@ component {
 			action="hashPassword"
 			type="#variables.type#"
 			pw="#variables.password#"
-			returnVariable="hashedPassword";
-		return hashedPassword;
+			returnVariable="local.hashedPassword";
+		return local.hashedPassword;
 	}
 
 	/**

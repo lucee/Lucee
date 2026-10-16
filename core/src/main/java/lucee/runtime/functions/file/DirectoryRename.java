@@ -20,7 +20,9 @@ package lucee.runtime.functions.file;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.tag.Directory;
 
@@ -31,6 +33,7 @@ public final class DirectoryRename {
 	}
 
 	public static String call(PageContext pc, String oldPath, String newPath, boolean createPath) throws PageException {
+		if (StringUtil.isEmpty(oldPath, true)) throw new FunctionException(pc, "DirectoryRename", 1, "oldPath", "The argument [oldPath] is required and cannot be empty");
 		Resource dir = ResourceUtil.toResourceNotExisting(pc, oldPath);
 		return Directory.actionRename(pc, dir, newPath, null, createPath, "public-read", null);
 	}

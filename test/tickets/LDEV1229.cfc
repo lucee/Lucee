@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 	function run( testResults , testBox ) {
 
-		describe( title="Test suite for LDEV-1229 with mysql",  skip=checkMySqlEnvVarsAvailable(), body=function() {
+		describe( title="Test suite for LDEV-1229 with mysql",  skip=(noOrm() || checkMySqlEnvVarsAvailable()), body=function() {
 			it(title="checking property tag, with the attribute cascade = 'all-delete-orphan' ", body = function( currentSpec ) {
 				var uri=createURI("LDEV1229/index.cfm");
 				var result = _InternalRequest(
@@ -12,7 +12,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 			});
 		});
 
-		describe( title="Test suite for LDEV-1229 with h2",  body=function() {
+		describe( title="Test suite for LDEV-1229 with h2",  skip=noOrm(), body=function() {
 			it(title="checking property tag, with the attribute cascade = 'all-delete-orphan' ", body = function( currentSpec ) {
 				var uri=createURI("LDEV1229/index.cfm");
 				var result = _InternalRequest(
@@ -34,5 +34,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 	private boolean function checkMySqlEnvVarsAvailable() {
 		var mysql = server.getDatasource("mysql");
 		return structIsEmpty(mySQL);
+	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

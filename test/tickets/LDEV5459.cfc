@@ -4,8 +4,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 		describe( title='LDEV-5459' , body=function(){
 
-			// this test case can be removed in case the class get missing in the future 
-			it( title='missing object', body=function() {
+			// this test case can be removed in case the class get missing in the future
+			it( title='missing object', skip=noOrm(), body=function() {
 				var type = "org.hibernate.criterion.Restrictions";// must be a class with no empty constructor
 				var obj = createObject( "java", type );
 				expect( obj.getClass().getName() ).toBe( type );
@@ -101,5 +101,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	}
 
+	private function noOrm() {
+		return ( structCount( server.getTestService( "orm" ) ) eq 0 );
+	}
 
 }

@@ -113,12 +113,12 @@ public final class NamedArgumentImpl extends ArgumentImpl implements NamedArgume
 		sct.setEL(KeyConstants._type, "NamedArgument");
 
 		// name
-		Struct name = new StructImpl(Struct.TYPE_LINKED);
+		Struct name = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 		sct.setEL(KeyConstants._name, name);
 		this.name.dump(name);
 
 		// value
-		Struct value = new StructImpl(Struct.TYPE_LINKED);
+		Struct value = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 		sct.setEL(KeyConstants._value, value);
 		super.dump(value);
 	}

@@ -208,7 +208,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void flush() throws IOException {
-		flushBuffer(true);
+		flushBuffer(this.closeConn);
 		out.flush();
 		response.flushBuffer();
 	}

@@ -53,14 +53,14 @@ public final class OpElvis extends ExpressionBase {
 	public static final Method INVOKE_STR = new Method("load", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.DOUBLE_VALUE, Types.STRING_ARRAY });
 	public static final Method INVOKE_KEY = new Method("load", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.DOUBLE_VALUE, Types.COLLECTION_KEY_ARRAY });
 
-	private Variable left;
+	private Expression left;
 	private Expression right;
 
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		// FUTURE this is just a patch, for unknown reason the assignment of inline component or closures
 		// causes a issue, most likely in the way the object uses the stack
-		if (ASMUtil.hasOnlyDataMembers(left) && !(right instanceof AsExpression)) return _writeOutPureDataMember(bc, mode);
+		if (left instanceof Variable && ASMUtil.hasOnlyDataMembers((Variable) left) && !(right instanceof AsExpression)) return _writeOutPureDataMember(bc, mode);
 
 		String name = createRandom(bc);
 		GeneratorAdapter ga = bc.getAdapter();
@@ -120,7 +120,7 @@ public final class OpElvis extends ExpressionBase {
 		Label end = new Label();
 		Label elseLabel = adapter.newLabel();
 
-		List<Member> members = left.getMembers();
+		List<Member> members = ((Variable) left).getMembers();
 
 		// to array
 		Iterator<Member> it = members.iterator();
@@ -136,7 +136,7 @@ public final class OpElvis extends ExpressionBase {
 		// pc
 		adapter.loadArg(0);
 		// scope
-		adapter.push((double) left.getScope());
+		adapter.push((double) ((Variable) left).getScope());
 		// varNames
 
 		// all literal string?
@@ -191,13 +191,13 @@ public final class OpElvis extends ExpressionBase {
 
 	}
 
-	private OpElvis(Variable left, Expression right) {
+	private OpElvis(Expression left, Expression right) {
 		super(left.getFactory(), left.getStart(), right.getEnd());
 		this.left = left;
 		this.right = right;
 	}
 
-	public static Expression toExpr(Variable left, Expression right) {
+	public static Expression toExpr(Expression left, Expression right) {
 		return new OpElvis(left, right);
 	}
 
@@ -208,13 +208,13 @@ public final class OpElvis extends ExpressionBase {
 		sct.setEL(KeyConstants._operator, "ELVIS");
 		// left
 		{
-			Struct sctLeft = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctLeft = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			left.dump(sctLeft);
 			sct.setEL(KeyConstants._left, sctLeft);
 		}
 		// right
 		{
-			Struct sctRight = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctRight = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			right.dump(sctRight);
 			sct.setEL(KeyConstants._right, sctRight);
 		}

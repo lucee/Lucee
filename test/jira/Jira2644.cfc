@@ -20,6 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"	{
 
 
 	public void function testCompositeId(){
+		if(!hasCredentials()) return;
 		// first call only initialize the data
 		local.uri=createURI("Jira2644/one.cfm");
 		local.result=_InternalRequest(uri);
@@ -37,6 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"	{
 	
 	
 	public void function testCompositeId2(){
+		if(!hasCredentials()) return;
 		// first call only initialize the data
 		local.uri=createURI("Jira2644/bestseller.cfm");
 		local.result=_InternalRequest(uri);
@@ -46,6 +48,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"	{
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	
+	private boolean function hasCredentials() {
+		return (structCount( server.getTestService("orm") ) gt 0);
 	}
 	
 } 

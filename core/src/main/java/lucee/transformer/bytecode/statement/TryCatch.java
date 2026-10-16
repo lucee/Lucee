@@ -87,24 +87,24 @@ public final class TryCatch extends StatementBaseNoFinal {
 
 		// body
 		{
-			Struct body = new StructImpl(Struct.TYPE_LINKED);
+			Struct body = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			var.dump(body);
 			sct.setEL(KeyConstants._body, body);
 		}
 		// handlers
 		if (listener != null) {
-			Array handlers = new ArrayImpl();
+			Array handlers = new ArrayImpl(8, false);
 			{
-				Struct sctCatch = new StructImpl(Struct.TYPE_LINKED);
+				Struct sctCatch = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 				sctCatch.setEL(KeyConstants._type, "CatchClause");
 
 				// param
-				Struct sctParam = new StructImpl(Struct.TYPE_LINKED);
+				Struct sctParam = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 				sctCatch.setEL(KeyConstants._param, sctParam);
 
 				// body
 				if (listener != null) {
-					Struct sctBody = new StructImpl(Struct.TYPE_LINKED);
+					Struct sctBody = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 					listener.dump(sctBody);
 					sctCatch.setEL(KeyConstants._body, sctBody);
 				}

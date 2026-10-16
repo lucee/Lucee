@@ -24,12 +24,14 @@
 			it(title="Checking lsNumberFormat with german locale", body=function(){
 				setLocale("german (switzerland)");
 				
-				if(getJavaVersion()>=11) {
-					expect(lsNumberFormat(12345.78)).toBe("12’346");
-
+				if(getJavaVersion()>=26) {
+					expect(lsNumberFormat(12345.78)).toBe("12'346"); // Java 26+ uses apostrophe
 				}
-				else {	
-					expect(lsNumberFormat(12345.78)).toBe("12'346");
+				else if(getJavaVersion()>=11) {
+					expect(lsNumberFormat(12345.78)).toBe("12’346"); // Java 11-25 uses right single quotation mark
+				}
+				else {
+					expect(lsNumberFormat(12345.78)).toBe("12'346"); // Older Java versions
 				}
 
 			});
@@ -51,11 +53,14 @@
 				// formating rounded number to swiss locale
 				var numberFormatObj = createObject("java", "java.text.NumberFormat");
 				numberFormatObj = numberFormatObj.getNumberInstance(localeObj.getDefault());
-				if( getJavaVersion() >= 11 ) {
-					expect(numberFormatObj.format(roundedVal)).toBe("12’346");
+				if(getJavaVersion()>=26) {
+					expect(numberFormatObj.format(roundedVal)).toBe("12'346"); // Java 26+ uses apostrophe
 				}
-				else {	
-					expect(numberFormatObj.format(roundedVal)).toBe("12'346");
+				else if(getJavaVersion()>=11) {
+					expect(numberFormatObj.format(roundedVal)).toBe("12’346"); // Java 11-25 uses right single quotation mark
+				}
+				else {
+					expect(numberFormatObj.format(roundedVal)).toBe("12'346"); // Older Java versions
 				}
 				localeObj.setDefault("en");
 			});

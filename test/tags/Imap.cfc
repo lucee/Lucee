@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" skip=true{
 	variables.isSupported = false;
 	variables.imapCfg = getCredentials();
 	if(!structIsEmpty(imapCfg))

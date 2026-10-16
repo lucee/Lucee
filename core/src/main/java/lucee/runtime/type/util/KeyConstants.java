@@ -20,6 +20,7 @@ package lucee.runtime.type.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -284,19 +285,32 @@ public final class KeyConstants {
 	public static final Key __count = init("_count");
 	public static final Key __time = init("_time");
 	public static final Key _a = init("a");
+	public static final Key _b = init("b");
+	public static final Key _c = init("c");
+	public static final Key _d = init("d");
 	public static final Key _e = init("e");
 	public static final Key _f = init("f");
 	public static final Key _g = init("g");
 	public static final Key _h = init("h");
+	public static final Key _i = init("i");
+	public static final Key _j = init("j");
 	public static final Key _k = init("k");
+	public static final Key _l = init("l");
+	public static final Key _m = init("m");
 	public static final Key _n = init("n");
 	public static final Key _o = init("o");
 	public static final Key _p = init("p");
+	public static final Key _q = init("q");
+	public static final Key _r = init("r");
 	public static final Key _s = init("s");
 	public static final Key _t = init("t");
 	public static final Key _u = init("u");
+	public static final Key _v = init("v");
+	public static final Key _w = init("w");
+	public static final Key _x = init("x");
 	public static final Key _y = init("y");
 	public static final Key _z = init("z");
+
 	public static final Key _aaa = init("aaa");
 	public static final Key _abort = init("abort");
 	public static final Key _access = init("access");
@@ -318,11 +332,9 @@ public final class KeyConstants {
 	public static final Key _auth_user = init("auth_user");
 	public static final Key _author = init("author");
 	public static final Key _avg = init("avg");
-	public static final Key _b = init("b");
 	public static final Key _body = init("body");
 	public static final Key _buffer = init("buffer");
 	public static final Key _by = init("by");
-	public static final Key _c = init("c");
 	public static final Key _cache = init("cache");
 	public static final Key _call = init("call");
 	public static final Key _catch = init("catch");
@@ -369,7 +381,6 @@ public final class KeyConstants {
 	public static final Key _custom3 = init("custom3");
 	public static final Key _custom4 = init("custom4");
 	public static final Key _customx = init("customx");
-	public static final Key _d = init("d");
 	public static final Key _data = init("data");
 	public static final Key _data1 = init("data1");
 	public static final Key _data2 = init("data2");
@@ -452,11 +463,11 @@ public final class KeyConstants {
 	public static final Key _http_Host = init("http_Host");
 	public static final Key _http_host = init("http_host");
 	public static final Key _https = init("https");
-	public static final Key _i = init("i");
 	public static final Key _id = init("id");
 	public static final Key _idx = init("idx");
 	public static final Key _indexOf = init("indexOf");
 	public static final Key _init = init("init");
+	public static final Key _index = init("index");
 	public static final Key _innerJoin = init("innerJoin");
 	public static final Key _insert = init("insert");
 	public static final Key _instance = init("instance");
@@ -468,7 +479,6 @@ public final class KeyConstants {
 	public static final Key _islucee11 = init("islucee11");
 	public static final Key _item = init("item");
 	public static final Key _iterator = init("iterator");
-	public static final Key _j = init("j");
 	public static final Key _java = init("java");
 	public static final Key _javaLoader = init("javaLoader");
 	public static final Key _jsessionid = init("jsessionid");
@@ -497,7 +507,6 @@ public final class KeyConstants {
 	public static final Key _logid = init("logid");
 	public static final Key _login = init("login");
 	public static final Key _logout = init("logout");
-	public static final Key _m = init("m");
 	public static final Key _main = init("main");
 	public static final Key _max = init("max");
 	public static final Key _maxEvents = init("maxEvents");
@@ -561,7 +570,6 @@ public final class KeyConstants {
 	public static final Key _property = init("property");
 	public static final Key _published = init("published");
 	public static final Key _put = init("put");
-	public static final Key _q = init("q");
 	public static final Key _qDir = init("qDir");
 	public static final Key _qry = init("qry");
 	public static final Key _qtest = init("qtest");
@@ -670,7 +678,6 @@ public final class KeyConstants {
 	public static final Key _urltoken = init("urltoken");
 	public static final Key _usage = init("usage");
 	public static final Key _utility = init("utility");
-	public static final Key _v = init("v");
 	public static final Key _v_pages = init("v_pages");
 	public static final Key _validate = init("validate");
 	public static final Key _value = init("value");
@@ -689,7 +696,6 @@ public final class KeyConstants {
 	public static final Key _width = init("width");
 	public static final Key _writeLine = init("writeLine");
 	public static final Key _wsdl = init("wsdl");
-	public static final Key _x = init("x");
 	public static final Key _xfa = init("xfa");
 	public static final Key _xml = init("xml");
 	public static final Key _xtags = init("xtags");
@@ -742,6 +748,7 @@ public final class KeyConstants {
 	public static final Key _recordcount = init("recordcount");
 	public static final Key _cached = init("cached");
 	public static final Key _cachedWithin = init("cachedWithin");
+	public static final Key _cachedWithinId = init("cachedWithinId");
 	public static final Key _COLUMNLIST = init("COLUMNLIST");
 	public static final Key _columnlist = init("columnlist");
 	public static final Key _CURRENTROW = init("CURRENTROW");
@@ -861,6 +868,7 @@ public final class KeyConstants {
 	public static final Key _mappings = init("mappings");
 	public static final Key _web = init("web");
 	public static final Key _mimetype = init("mimetype");
+	public static final Key _mimeType = init("mimeType");
 	public static final Key _0 = init("0");
 	public static final Key _1 = init("1");
 	public static final Key _2 = init("2");
@@ -933,6 +941,7 @@ public final class KeyConstants {
 	public static final Key _webAdminPassword = init("webAdminPassword");
 
 	public static final Key _parsebody = init("parsebody");
+	public static final Key _aroundEach = init("aroundEach");
 	public static final Key _extended_info = init("extended_info");
 	public static final Key _codePrintHTML = init("codePrintHTML");
 	public static final Key _codePrintPlain = init("codePrintPlain");
@@ -1453,8 +1462,6 @@ public final class KeyConstants {
 	public static final Key _LAYOUTS = init("LAYOUTS");
 	public static final Key _TIMEOUTHOURSVALUE = init("TIMEOUTHOURSVALUE");
 	public static final Key __display = init("_display");
-	public static final Key _l = init("l");
-	public static final Key _r = init("r");
 	public static final Key _GETFIELDS = init("GETFIELDS");
 	public static final Key _DATASOURCES = init("DATASOURCES");
 	public static final Key _WIDTH = init("WIDTH");
@@ -2300,7 +2307,6 @@ public final class KeyConstants {
 	public static final Key _49 = init("49");
 	public static final Key _50 = init("50");
 	public static final Key _USD = init("USD");
-	public static final Key _w = init("w");
 	public static final Key _distrokid = init("distrokid");
 	public static final Key _5d83e9016ff804dc = init("5d83e9016ff804dc");
 	public static final Key _51 = init("51");
@@ -2576,6 +2582,8 @@ public final class KeyConstants {
 	public static final Key _sessionManagement = init("sessionManagement");
 	public static final Key _sessionTimeout = init("sessionTimeout");
 	public static final Key _clientTimeout = init("clientTimeout");
+	public static final Key _sessionCommitInterval = init("sessionCommitInterval");
+	public static final Key _clientCommitInterval = init("clientCommitInterval");
 	public static final Key _requestTimeout = init("requestTimeout");
 	public static final Key _setClientCookies = init("setClientCookies");
 	public static final Key _setDomainCookies = init("setDomainCookies");
@@ -3069,7 +3077,10 @@ public final class KeyConstants {
 	public static final Key _limit = init("limit");
 	public static final Key _question = init("question");
 	public static final Key _conversationSizeLimit = init("conversationSizeLimit");
+	public static final Key _connectTimeout = init("connectTimeout");
 	public static final Key _socketTimeout = init("socketTimeout");
+	public static final Key _generationConfig = init("generationConfig");
+	public static final Key _apikey = init("apikey");
 	public static final Key _componentMappings = init("componentMappings");
 	public static final Key _operator = init("operator");
 	public static final Key _argument = init("argument");
@@ -3089,6 +3100,34 @@ public final class KeyConstants {
 	public static final Key _nameSpaceSeparator = init("nameSpaceSeparator");
 	public static final Key _callee = init("callee");
 	public static final Key _computed = init("computed");
+	public static final Key _overhead = init("overhead");
+	public static final Key _testskip = init("testskip");
+	public static final Key _salt = init("salt");
+	public static final Key _hspw = init("hspw");
+	public static final Key _qualifier_appendix1 = init("qualifier_appendix1");
+	public static final Key _getAssert = init("getAssert");
+	public static final Key _beforeEach = init("beforeEach");
+	public static final Key _afterEach = init("afterEach");
+	public static final Key _afterAll = init("afterAll");
+	public static final Key _beforeAll = init("beforeAll");
+	public static final Key _getassert = init("getassert");
+	public static final Key _setassert = init("setassert");
+	public static final Key _setAssert = init("setAssert");
+	public static final Key _cacheHandler = init("cacheHandler");
+	public static final Key _MAVEN = init("MAVEN");
+	public static final Key _eventGatewayInstances = init("eventGatewayInstances");
+	public static final Key _appenderArguments = init("appenderArguments");
+	public static final Key _appender = init("appender");
+	public static final Key _layout = init("layout");
+	public static final Key _admintype = init("admintype");
+	public static final Key _webadminpassword = init("webadminpassword");
+	public static final Key _basedir = init("basedir");
+	public static final Key _srcall = init("srcall");
+	public static final Key __tick = init("_tick");
+	public static final Key __start = init("_start");
+	public static final Key _binary = init("binary");
+	public static final Key _Code = init("Code");
+	public static final Key _statusText = init("statusText");
 
 	public static Map<String, Key> getKeys() {
 		return keys;
@@ -3102,6 +3141,12 @@ public final class KeyConstants {
 		Key k = getKeys().get(key);
 		if (k == null) return new KeyImpl(key);
 		return k;
+	}
+
+	public static void sync() {
+		for (Entry<String, Key> e: getKeys().entrySet()) {
+			KeyImpl.getKeys().put(e.getKey(), e.getValue());
+		}
 	}
 
 }

@@ -113,7 +113,7 @@ public final class Return extends StatementBaseNoFinal {
 
 		// argument
 		if (expr != null) {
-			Struct argument = new StructImpl(Struct.TYPE_LINKED);
+			Struct argument = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			expr.dump(argument);
 			sct.setEL(KeyConstants._argument, argument);
 		}

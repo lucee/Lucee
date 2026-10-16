@@ -93,6 +93,10 @@ public final class QueryUtil {
 		else if (type == Types.BIGINT) return Cast.BIGINT;
 		else if (type == Types.SQLXML) return Cast.SQLXML;
 
+		else if (type == Types.VARCHAR || type == Types.CHAR || type == Types.LONGVARCHAR || type == Types.NVARCHAR || type == Types.NCHAR) return Cast.VARCHAR;
+		else if (type == Types.DOUBLE) return Cast.DOUBLE;
+		else if (type == Types.DECIMAL || type == Types.NUMERIC) return Cast.DECIMAL;
+
 		// ORACLE
 		else if (isOracleType(type) && isOracle(result)) {
 			if (type == CFTypes.ORACLE_OPAQUE) return Cast.ORACLE_OPAQUE;

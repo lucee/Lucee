@@ -22,7 +22,6 @@ import org.osgi.framework.BundleReference;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigPro;
@@ -158,8 +157,7 @@ public final class EnvClassLoader extends URLClassLoader {
 						}
 					}
 				}
-				catch (IOException e) {
-				}
+				catch (IOException e) {}
 				finally {
 					inside.set(Boolean.FALSE);
 				}
@@ -256,8 +254,7 @@ public final class EnvClassLoader extends URLClassLoader {
 				if (b != null)
 					notFound.put(new SoftReference<String>(new StringBuilder(b.getSymbolicName()).append(':').append(b.getVersion()).append(':').append(name).toString()), EMPTY);
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 
 		}
 		return obj;
@@ -310,9 +307,10 @@ public final class EnvClassLoader extends URLClassLoader {
 	}
 
 	private Log log(int logLevel) {
-		if (config == null || !config.isLoggingLoaded()) return null;
-		Log log = ThreadLocalPageContext.getLog(config, "application");
-		if (!LogUtil.does(log, logLevel)) return null;
-		return log;
+		return null;
+		// if (config == null || !config.isLoggingLoaded()) return null;
+		// Log log = ThreadLocalPageContext.getLog(config, "application");
+		// if (!LogUtil.does(log, logLevel)) return null;
+		// return log;
 	}
 }

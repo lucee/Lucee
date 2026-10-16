@@ -38,4 +38,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" skip=tr
 	private boolean function hasCredentials() {
 		return structCount(server.getDatasource("mysql"));
 	}
+
+	private function noOrm() {
+		return ( structCount( server.getTestService("orm") ) eq 0 );
+	}
 }

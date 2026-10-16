@@ -345,11 +345,11 @@ public class Assign extends ExpressionBase {
 		sct.setEL(KeyConstants._type, "AssignmentExpression");
 		sct.setEL(KeyConstants._operator, "ASSIGN");
 
-		Struct left = new StructImpl(Struct.TYPE_LINKED);
+		Struct left = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 		sct.setEL(KeyConstants._left, left);
 		variable.dump(left);
 
-		Struct right = new StructImpl(Struct.TYPE_LINKED);
+		Struct right = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 		sct.setEL(KeyConstants._right, right);
 		value.dump(right);
 

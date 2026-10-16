@@ -21,10 +21,14 @@ package lucee.runtime.db;
 import java.io.Serializable;
 import java.util.Random;
 
+import lucee.commons.lang.SQLComments;
+
 /**
  * represents a SQL Statement with his defined arguments for a prepared statement
  */
 public final class SQLImpl implements SQL, Serializable {
+
+	private static final SQLItem[] EMPTY_ITEMS = new SQLItem[0];
 
 	private String strSQL;
 	private SQLItem[] items;
@@ -40,7 +44,7 @@ public final class SQLImpl implements SQL, Serializable {
 	 */
 	public SQLImpl(String strSQL) {
 		this.strSQL = strSQL;
-		this.items = new SQLItem[0];
+		this.items = EMPTY_ITEMS;
 	}
 
 	/**
@@ -51,7 +55,7 @@ public final class SQLImpl implements SQL, Serializable {
 	 */
 	public SQLImpl(String strSQL, SQLItem[] items) {
 		this.strSQL = strSQL;
-		this.items = items == null ? new SQLItem[0] : items;
+		this.items = items == null ? EMPTY_ITEMS : items;
 	}
 
 	public void addItems(SQLItem item) {
@@ -112,26 +116,12 @@ public final class SQLImpl implements SQL, Serializable {
 		int index = 0;
 		for (int i = 0; i < sqlLen; i++) {
 			c = strSQL.charAt(i);
-			if (!inQuotes && sqlLen + 1 > i) {
-				// read multi line
-				if (c == '/' && strSQL.charAt(i + 1) == '*') {
-					int end = strSQL.indexOf("*/", i + 2);
-					if (end != -1) {
-						i = end + 2;
-						if (i == sqlLen) break;
-						c = strSQL.charAt(i);
-					}
-				}
-
-				// read single line
-				if (c == '-' && strSQL.charAt(i + 1) == '-') {
-					int end = strSQL.indexOf('\n', i + 1);
-					if (end != -1) {
-						i = end + 1;
-						if (i == sqlLen) break;
-						c = strSQL.charAt(i);
-					}
-					else break;
+			if (!inQuotes) {
+				int ce = SQLComments.end(strSQL, i);
+				if (ce != -1) {
+					// skip comments for display purposes
+					i = ce - 1; // the for-loop increment lands us on ce
+					continue;
 				}
 			}
 

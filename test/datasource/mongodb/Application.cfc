@@ -6,7 +6,7 @@
 
 	this.cache.connections["perAppCacheMongo"] = {
 		class: 'org.lucee.mongodb.cache.MongoDBCache'
-		, bundleName: 'mongodb.extension'
+		, bundleName: 'org.lucee.mongodb.extension'
 		//, bundleVersion: '3.2.2.54'
 		, storage: true
 		, custom:

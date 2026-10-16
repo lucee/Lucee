@@ -30,6 +30,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.collection.MapFactory;
@@ -152,6 +157,16 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private GatewayMap gatewayEntries;
 
 	private Resource mvnDir;
+
+	private final ScheduledExecutorService inspectScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+		Thread t = new Thread(r, "InspectAutoRefresh");
+		t.setDaemon(true);
+		t.setPriority(Thread.MIN_PRIORITY);
+		return t;
+	});
+	private volatile ScheduledFuture<?> nextTick;
+	private final Object tickToken = new Object();
+	private final AtomicBoolean fastRequested = new AtomicBoolean(false);
 
 	/**
 	 * @param engine
@@ -343,7 +358,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 				if (defaultSecurityManager == null) {
 					Struct security = ConfigUtil.getAsStruct("security", root);
 					if (security != null) {
-						defaultSecurityManager = ConfigFactoryImpl._toSecurityManagerSingle(security);
+						defaultSecurityManager = ConfigFactoryImpl._toSecurityManagerSingle(this, security);
 					}
 					else defaultSecurityManager = SecurityManagerImpl.getOpenSecurityManager();
 				}
@@ -373,7 +388,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		if (defaultPassword == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getDefaultPassword")) {
 				if (defaultPassword == null) {
-					Password pw = PasswordImpl.readFromStruct(root, getSalt(), true, true);
+					Password pw = PasswordImpl.readFromStruct(this, root, getSalt(), true, true);
 					if (pw != null) defaultPassword = pw;
 					else defaultPassword = getPassword();
 				}
@@ -424,7 +439,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		if (updateType == null) {
 			synchronized (SystemUtil.createToken("ConfigServerImpl", "getUpdateType")) {
 				if (updateType == null) {
-					String ut = ConfigFactoryImpl.getAttr(root, "updateType");
+					String ut = ConfigFactoryImpl.getAttr(this, root, "updateType");
 					if (StringUtil.isEmpty(ut, true)) updateType = "manual";
 					else updateType = ut.trim();
 				}
@@ -624,7 +639,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			synchronized (SystemUtil.createToken("ConfigServerImpl", "isMonitoringEnabled")) {
 				if (monitoringEnabled == null) {
 					Struct parent = ConfigUtil.getAsStruct("monitoring", root);
-					monitoringEnabled = Caster.toBoolean(ConfigFactoryImpl.getAttr(parent, "enabled"), Boolean.FALSE);
+					monitoringEnabled = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, parent, "enabled"), Boolean.FALSE);
 				}
 			}
 		}
@@ -647,7 +662,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		if (delay == -1) {
 			synchronized (SystemUtil.createToken("ConfigServerImpl", "getLoginDelay")) {
 				if (delay == -1) {
-					delay = Caster.toIntValue(ConfigFactoryImpl.getAttr(root, "loginDelay"), 1);
+					delay = Caster.toIntValue(ConfigFactoryImpl.getAttr(this, root, "loginDelay"), 1);
 				}
 			}
 		}
@@ -670,7 +685,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		if (captcha == null) {
 			synchronized (SystemUtil.createToken("ConfigServerImpl", "getLoginCaptcha")) {
 				if (captcha == null) {
-					captcha = Caster.toBooleanValue(ConfigFactoryImpl.getAttr(root, "loginCaptcha"), false);
+					captcha = Caster.toBooleanValue(ConfigFactoryImpl.getAttr(this, root, "loginCaptcha"), false);
 				}
 			}
 		}
@@ -693,7 +708,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		if (rememberMe == null) {
 			synchronized (SystemUtil.createToken("ConfigServerImpl", "getRememberMe")) {
 				if (rememberMe == null) {
-					rememberMe = Caster.toBooleanValue(ConfigFactoryImpl.getAttr(root, "loginRememberme"), true);
+					rememberMe = Caster.toBooleanValue(ConfigFactoryImpl.getAttr(this, root, "loginRememberme"), true);
 				}
 			}
 		}
@@ -716,7 +731,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		if (classicStyle == null) {
 			synchronized (SystemUtil.createToken("ConfigServerImpl", "getDateCasterClassicStyle")) {
 				if (classicStyle == null) {
-					String strClassicDateParsing = ConfigFactoryImpl.getAttr(root, "classicDateParsing");
+					String strClassicDateParsing = ConfigFactoryImpl.getAttr(this, root, "classicDateParsing");
 					classicStyle = Caster.toBoolean(strClassicDateParsing, Boolean.FALSE);
 				}
 			}
@@ -736,9 +751,142 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	}
 
 	@Override
+	public ConfigImpl resetInspectTemplate() {
+		super.resetInspectTemplate();
+		// Admin inspect-mode change drops resolution caches on all web configs — entries
+		// populated under the previous mode contract shouldn't carry across the boundary.
+		for (ConfigWeb cw: getConfigWebs()) {
+			if (cw instanceof ConfigWebPro) ((ConfigWebPro) cw).clearResolvedMappingPaths();
+		}
+		return this;
+	}
+
+	@Override
 	public void reset() {
 		super.reset();
 		getThreadQueue().clear();
+	}
+
+	public void shutdown() {
+		inspectScheduler.shutdownNow();
+	}
+
+	public void ensureInspectTickerStarted() {
+		ScheduledFuture<?> f = nextTick;
+		if (f != null && !f.isDone()) return;
+		synchronized (tickToken) {
+			f = nextTick;
+			if (f != null && !f.isDone()) return;
+			scheduleNextTick(getInspectTemplateAutoInterval(true));
+		}
+	}
+
+	public void requestFastTick() {
+		fastRequested.set(true);
+
+		long fast = getInspectTemplateAutoInterval(false);
+		ScheduledFuture<?> existing = nextTick;
+		if (existing == null || existing.isDone()) {
+			synchronized (tickToken) {
+				existing = nextTick;
+				if (existing == null || existing.isDone()) {
+					scheduleNextTick(fast);
+					return;
+				}
+			}
+		}
+		if (existing.getDelay(TimeUnit.MILLISECONDS) > fast) {
+			synchronized (tickToken) {
+				ScheduledFuture<?> cur = nextTick;
+				if (cur != null && cur.getDelay(TimeUnit.MILLISECONDS) > fast) {
+					scheduleNextTick(fast);
+				}
+			}
+		}
+	}
+
+	private void scheduleNextTick(long delayMs) {
+		ScheduledFuture<?> old = nextTick;
+		if (old != null) old.cancel(false);
+		try {
+			nextTick = inspectScheduler.schedule(this::runInspectTick, delayMs, TimeUnit.MILLISECONDS);
+		}
+		catch (java.util.concurrent.RejectedExecutionException ree) {
+			nextTick = null;
+		}
+	}
+
+	private void runInspectTick() {
+		try {
+			boolean anyAuto = inspectAllAutoMappings();
+			synchronized (tickToken) {
+				boolean fast = fastRequested.getAndSet(false);
+				if (anyAuto) {
+					long delay = fast ? getInspectTemplateAutoInterval(false) : getInspectTemplateAutoInterval(true);
+					scheduleNextTick(delay);
+				}
+				else nextTick = null;
+			}
+		}
+		catch (Throwable t) {
+			if (inspectScheduler.isShutdown()) return;
+			LogUtil.log(this, "inspect-ticker", t);
+			scheduleNextTick(getInspectTemplateAutoInterval(true));
+		}
+	}
+
+	private boolean inspectAllAutoMappings() {
+		boolean anyAuto = false;
+		anyAuto |= resetMatching(getMappings());
+		anyAuto |= resetMatching(getCustomTagMappings());
+		anyAuto |= resetMatching(getComponentMappings());
+		anyAuto |= resetMatching(getFunctionMappings());
+		anyAuto |= resetMatching(getTagMappings());
+		for (ConfigWeb cw: getConfigWebs()) {
+			if (!(cw instanceof ConfigWebPro)) continue;
+			ConfigWebPro cwp = (ConfigWebPro) cw;
+			anyAuto |= resetMatching(cwp.getMappings());
+			anyAuto |= resetMatching(cwp.getCustomTagMappings());
+			anyAuto |= resetMatching(cwp.getComponentMappings());
+			anyAuto |= resetMatching(cwp.getFunctionMappings());
+			anyAuto |= resetMatching(cwp.getTagMappings());
+			anyAuto |= resetMatching(cwp.getApplicationMappings());
+			// Re-check negative entries in the resolution cache for AUTO ConfigWebs only.
+			// On a healthy config (all paths exist) this is a zero-syscall walk.
+			if (cwp.getInspectTemplate() == ConfigPro.INSPECT_AUTO) cwp.revalidateNegativeMappingPaths();
+		}
+		return anyAuto;
+	}
+
+	private static boolean resetMatching(Mapping[] mappings) {
+		if (mappings == null) return false;
+		boolean any = false;
+		for (Mapping m: mappings) {
+			if (matchesAutoPhysical(m)) {
+				any = true;
+				((MappingImpl) m).resetPages(null);
+			}
+		}
+		return any;
+	}
+
+	private static boolean resetMatching(Collection<Mapping> mappings) {
+		if (mappings == null) return false;
+		boolean any = false;
+		for (Mapping m: mappings) {
+			if (matchesAutoPhysical(m)) {
+				any = true;
+				((MappingImpl) m).resetPages(null);
+			}
+		}
+		return any;
+	}
+
+	private static boolean matchesAutoPhysical(Mapping m) {
+		if (m == null) return false;
+		if (m.getInspectTemplate() != ConfigPro.INSPECT_AUTO) return false;
+		if (m.getPhysical() == null) return false;
+		return true;
 	}
 
 	@Override
@@ -900,7 +1048,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		if (authKeys == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getAuthenticationKeys")) {
 				if (authKeys == null) {
-					String keyList = ConfigFactoryImpl.getAttr(root, "authKeys");
+					String keyList = ConfigFactoryImpl.getAttr(this, root, "authKeys");
 					if (!StringUtil.isEmpty(keyList)) {
 						String[] keys = ListUtil.trimItems(ListUtil.toStringArray(ListUtil.toListRemoveEmpty(keyList, ',')));
 						for (int i = 0; i < keys.length; i++) {

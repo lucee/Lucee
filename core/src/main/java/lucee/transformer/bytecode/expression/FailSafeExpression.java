@@ -86,13 +86,13 @@ public final class FailSafeExpression extends ExpressionBase implements Opcodes 
 		sct.setEL(KeyConstants._operator, "FAILSAVE");
 		// left
 		{
-			Struct sctLeft = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctLeft = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			expr.dump(sctLeft);
 			sct.setEL(KeyConstants._left, sctLeft);
 		}
 		// right
 		{
-			Struct sctRight = new StructImpl(Struct.TYPE_LINKED);
+			Struct sctRight = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			defaultValue.dump(sctRight);
 			sct.setEL(KeyConstants._right, sctRight);
 		}

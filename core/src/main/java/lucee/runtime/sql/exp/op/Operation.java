@@ -42,6 +42,7 @@ public interface Operation extends Expression {
 	public static final int OPERATION2_LTGT = 19;
 	public static final int OPERATION2_NOT_LIKE = 20;
 	public static final int OPERATION2_LIKE = 21;
+	public static final int OPERATION2_CONCAT = 22;
 
 	public static final int OPERATION1_PLUS = 30;
 	public static final int OPERATION1_MINUS = 31;
