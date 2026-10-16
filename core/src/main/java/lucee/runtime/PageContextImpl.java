@@ -311,6 +311,9 @@ public final class PageContextImpl extends PageContext {
 	private Boolean _psq;
 	private Locale locale;
 	private TimeZone timeZone;
+	// cached preciseMath flag, valid as long as preciseMathAC is the current application context
+	private ApplicationContextSupport preciseMathAC;
+	private boolean preciseMath;
 
 	// Pools
 	private final ErrorPagePool errorPagePool = new ErrorPagePool();
@@ -3808,6 +3811,29 @@ public final class PageContextImpl extends PageContext {
 		return applicationContext;
 	}
 
+	/**
+	 * Returns the preciseMath setting of the current application context. The value is cached on the
+	 * PageContext and refreshed whenever the application context instance changes or
+	 * {@link #resetPreciseMath()} is called.
+	 */
+	public boolean getPreciseMath() {
+		ApplicationContextSupport ac = applicationContext;
+		if (ac == null) ac = getApplicationContext();
+		if (ac != preciseMathAC) {
+			preciseMath = ac.getPreciseMath();
+			preciseMathAC = ac;
+		}
+		return preciseMath;
+	}
+
+	/**
+	 * invalidates the cached preciseMath flag, call this when the preciseMath setting of the current
+	 * application context (or the server default) changed
+	 */
+	public void resetPreciseMath() {
+		preciseMathAC = null;
+	}
+
 	public ApplicationContextSupport getApplicationContext(boolean createIfNecessary) {
 		if (createIfNecessary && applicationContext == null) {
 			synchronized (scopeFactory) {
@@ -3825,6 +3851,7 @@ public final class PageContextImpl extends PageContext {
 		session = null;
 		application = null;
 		client = null;
+		preciseMathAC = null;
 
 		if (ac != null) this.applicationContext = (ApplicationContextSupport) ac;
 		else return;

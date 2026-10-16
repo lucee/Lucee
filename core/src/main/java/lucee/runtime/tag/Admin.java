@@ -3255,6 +3255,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetSuppressWSBeforeArg().resetDotNotationUpperCase().resetFullNullSupport().resetPreciseMath().resetExternalizeStringGTE()
 				.resetHandleUnQuotedAttrValueAsString().resetTemplateCharsetX();
+		if (pageContext instanceof PageContextImpl) ((PageContextImpl) pageContext).resetPreciseMath();
 
 	}
 
