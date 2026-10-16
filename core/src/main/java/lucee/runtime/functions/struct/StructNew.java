@@ -53,7 +53,7 @@ public final class StructNew extends BIF {
 		int t = toType(type);
 		if (t == StructImpl.TYPE_LINKED_CASESENSITIVE || t == StructImpl.TYPE_CASESENSITIVE) {
 			if (onMissingKey != null) throw new ApplicationException("type [" + type + "] is not supported in combination with onMissingKey listener");
-			return MapAsStruct.toStruct(t == StructImpl.TYPE_LINKED_CASESENSITIVE ? Collections.synchronizedMap(new LinkedHashMap<>()) : new ConcurrentHashMap<>(), true);
+			return MapAsStruct.toStruct(t == StructImpl.TYPE_LINKED_CASESENSITIVE ? Collections.synchronizedMap(new LinkedHashMap<>()) : new ConcurrentHashMap<>(), true, t == StructImpl.TYPE_LINKED_CASESENSITIVE);
 		}
 		if (t == StructImpl.TYPE_MAX) {
 			int max = Caster.toIntValue(type.substring(type.indexOf(':') + 1));
