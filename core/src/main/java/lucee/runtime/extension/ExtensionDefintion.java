@@ -57,8 +57,15 @@ public final class ExtensionDefintion {
 	}
 
 	public MavenCoordinate getCoordinate(Config config, boolean investigate) {
-		if (coordinate != null) return coordinate;
-		return coordinate = ExtensionProvider.toCoordinate((ConfigPro) config, getId(), investigate, coordinate);
+		if (coordinate == null) coordinate = ExtensionProvider.toCoordinate((ConfigPro) config, getId(), investigate, coordinate);
+		// the coordinate can be resolved from the id before the version is known (e.g. an id from lucee.extensions,
+		// the version is set later to the latest one). Without this the storage name ends with "_null.lex", the
+		// start-bundles cleanup does not find the extension in the config and uninstalls it (LDEV-6591)
+		if (coordinate != null && StringUtil.isEmpty(coordinate.version, true)) {
+			String version = getVersion();
+			if (!StringUtil.isEmpty(version, true)) coordinate = new MavenCoordinate(coordinate.groupId, coordinate.artifactId, version);
+		}
+		return coordinate;
 	}
 
 	public ExtensionDefintion setCoordinate(MavenCoordinate coordinate) {

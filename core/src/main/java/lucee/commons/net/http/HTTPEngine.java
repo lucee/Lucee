@@ -103,6 +103,7 @@ public final class HTTPEngine extends HTTPEngineBasic {
 
 	public static HTTPDownloaderHeadResponse head(URL url, String username, String password, long connectTimeout, long readTimeout, String userAgent, ProxyData proxy,
 			boolean pooling) throws IOException {
+		if (proxy == null) proxy = getProxyData(url.getHost());
 		HTTPResponse response = null;
 		try {
 			response = head(url, username, password, DEFAULT_CONNECT_REQUEST_TIMEOUT, connectTimeout, readTimeout, true, null, userAgent, proxy, null, pooling);
@@ -115,6 +116,7 @@ public final class HTTPEngine extends HTTPEngineBasic {
 
 	public static HTTPDownloaderHeadResponse head(URL url, String username, String password, long connectTimeout, long readTimeout, String userAgent, ProxyData proxy,
 			boolean pooling, HTTPDownloaderHeadResponse defaultValue) {
+		if (proxy == null) proxy = getProxyData(url.getHost());
 		HTTPResponse response = null;
 		try {
 			response = head(url, username, password, DEFAULT_CONNECT_REQUEST_TIMEOUT, connectTimeout, readTimeout, true, null, userAgent, proxy, null, pooling);
@@ -156,6 +158,7 @@ public final class HTTPEngine extends HTTPEngineBasic {
 
 	public static InputStream get(URL url, String username, String password, long connectTimeout, long readTimeout, String userAgent, ProxyData proxy, boolean pooling)
 			throws IOException {
+		if (proxy == null) proxy = getProxyData(url.getHost());
 		HTTPResponse4Impl response = get(url, username, password, DEFAULT_CONNECT_REQUEST_TIMEOUT, connectTimeout, readTimeout, true, null, userAgent, proxy, null, pooling);
 
 		int sc = response.getStatusCode();
@@ -167,7 +170,7 @@ public final class HTTPEngine extends HTTPEngineBasic {
 	}
 
 	public static String getAsString(URL url, String charset) throws IOException {
-		HTTPResponse4Impl rsp = get(url, null, null, DEFAULT_CONNECT_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, -1, true, charset, null, null, null, true);
+		HTTPResponse4Impl rsp = get(url, null, null, DEFAULT_CONNECT_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, -1, true, charset, null, getProxyData(url.getHost()), null, true);
 		int sc = rsp.getStatusCode();
 		if (sc < 200 || sc >= 300) {
 			rsp.close();

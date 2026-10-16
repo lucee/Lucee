@@ -159,7 +159,7 @@ public final class CreationImpl implements Creation, Serializable {
 
 		int t = StructNew.toType(type);
 		if (t == StructImpl.TYPE_LINKED_CASESENSITIVE || t == StructImpl.TYPE_CASESENSITIVE) {
-			return MapAsStruct.toStruct(t == StructImpl.TYPE_LINKED_CASESENSITIVE ? Collections.synchronizedMap(new LinkedHashMap<>()) : new ConcurrentHashMap<>(), true);
+			return MapAsStruct.toStruct(t == StructImpl.TYPE_LINKED_CASESENSITIVE ? Collections.synchronizedMap(new LinkedHashMap<>()) : new ConcurrentHashMap<>(), true, t == StructImpl.TYPE_LINKED_CASESENSITIVE);
 		}
 		return new StructImpl(StructNew.toType(type));
 	}

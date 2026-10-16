@@ -14298,6 +14298,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>void</type>
 		</return>
 	</function>
+
+	<!-- SSLCertificateRemove -->
+	<function>
+		<name>SSLCertificateRemove</name>
+		<class>lucee.runtime.functions.other.SSLCertificateRemove</class>
+		<description>Removes a certificate from the custom-cacerts keystore by alias.</description>
+		<argument>
+			<name>alias</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>The alias of the certificate to remove from custom-cacerts.</description>
+		</argument>
+		<return>
+			<type>boolean</type>
+			<description>Returns true if the certificate was successfully removed.</description>
+		</return>
+	</function>
+
 	<!-- stripCr -->
 	<function>
 		<name>stripCr</name>
@@ -15544,6 +15562,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 		</return>
 	</function>
+	<!-- structIsOrdered -->
+	<function>
+		<name>structIsOrdered</name>
+		<class>lucee.runtime.functions.struct.StructIsOrdered</class>
+		<member-name>isOrdered</member-name>
+		<keywords>struct,decision</keywords>
+		<description>Returns true if the structure keeps the order in which its keys were added (an ordered/linked struct), otherwise false.</description>
+		<argument>
+			<name>struct</name>
+			<alias>structure,object</alias>
+			<type>struct</type>
+			<required>Yes</required>
+			<description>Structure to test</description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 	<!-- structKeyArray -->
 	<function>
 		<name>structKeyArray</name>
@@ -15970,6 +16006,14 @@ function(key1, key2)
 			if first argument is a string and this argument is set, the string is not handled as base64 encoded string, 
 			it is simply converted to a binary, with help of the given argument. 
 			the value can be a valid charset name, "web" for the web charset defined with this context or "resource" for the resource charset defined in the context.</description>
+		</argument>
+		<argument>
+			<name>precise</name>
+			<introduced>8.0.0.239</introduced>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>If set to true and the first argument is a base64 string, it must be 100% valid base64 (standard alphabet, correct padding, no whitespace), otherwise an exception is thrown. The precise decoder is faster than the default lenient one. Cannot be combined with the argument charset.</description>
 		</argument>
 		<return>
 			<type>binary</type>

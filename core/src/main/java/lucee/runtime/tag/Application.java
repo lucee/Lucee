@@ -32,6 +32,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
@@ -986,7 +987,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (clientCluster != null) ac.setClientCluster(clientCluster.booleanValue());
 		if (sessionCluster != null) ac.setSessionCluster(sessionCluster.booleanValue());
 		if (cgiReadOnly != null) ac.setCGIScopeReadonly(cgiReadOnly.booleanValue());
-		if (preciseMath != null) ac.setPreciseMath(preciseMath.booleanValue());
+		if (preciseMath != null) {
+			ac.setPreciseMath(preciseMath.booleanValue());
+			if (pageContext instanceof PageContextImpl) ((PageContextImpl) pageContext).resetPreciseMath();
+		}
 		if (returnFormat != null) ac.setReturnFormat(returnFormat.intValue());
 		if (s3 != null) ac.setS3(AppListenerUtil.toS3(s3));
 		if (ftp != null) ac.setFTP(AppListenerUtil.toFTP(ftp));

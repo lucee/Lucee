@@ -1149,6 +1149,22 @@
 		"default": 16
 	},
 	{
+		"sysprop": "lucee.scope.arguments.array",
+		"envvar": "LUCEE_SCOPE_ARGUMENTS_ARRAY",
+		"desc": "Enables array-based storage optimization for the arguments scope (default: true). Uses a lightweight Object[] array for small scopes (1-5 arguments), providing 8-10% performance improvement. Set to false to use HashMap storage instead.",
+		"category": "performance",
+		"type": "boolean",
+		"default": true
+	},
+	{
+		"sysprop": "lucee.scope.local.array",
+		"envvar": "LUCEE_SCOPE_LOCAL_ARRAY",
+		"desc": "Enables array-based storage optimization for the local scope (default: true). Uses a lightweight Object[] array for small scopes (1-5 variables), providing 8-10% performance improvement. Set to false to use HashMap storage instead.",
+		"category": "performance",
+		"type": "boolean",
+		"default": true
+	},
+	{
 		"sysprop": "lucee.scope.local.capacity",
 		"envvar": "LUCEE_SCOPE_LOCAL_CAPACITY",
 		"desc": "Sets the initial capacity (size) for the local scope hashmap",
@@ -1225,6 +1241,17 @@
 		"category": "security",
 		"tags": [ "cfmail" ],
 		"type": "boolean",
+		"default": true
+	},
+	{
+		"sysprop": "lucee.ssl.customcacerts.enabled",
+		"envvar": "LUCEE_SSL_CUSTOMCACERTS_ENABLED",
+		"desc": "Controls whether Lucee uses a custom CA certificates keystore (custom-cacerts) in addition to the JVM's default cacerts. When enabled, certificates installed via SSLCertificateInstall() are stored in {lucee-server}/context/security/custom-cacerts and automatically trusted for all HTTPS connections. Set to `false` to disable and use only the JVM's default trust store",
+		"category": "security",
+		"tags": [ "cfhttp" ],
+		"functions": [ "SSLCertificateInstall", "SSLCertificateList", "SSLCertificateRemove" ],
+		"type": "boolean",
+		"introduced": "7.1",
 		"default": true
 	},
 	{
@@ -1403,6 +1430,14 @@
 		"desc": "Specifies the file location of the trust store that contains trusted Certificate Authorities (CAs) for SSL/TLS connections in Java applications. Lucee 6 uses the JVM trust store by default",
 		"category": "security",
 		"tags": [ "cfhttp", "cfmail" ],
+		"type": "string",
+		"default": null
+	},
+	{
+		"sysprop": "lucee.vdirs.sharedkey",
+		"envvar": "LUCEE_VDIRS_SHAREDKEY",
+		"desc": "Shared secret key for validating x-vdirs header from mod_cfml. When set, enables automatic virtual directory mapping from Apache/IIS aliases. The x-vdirs-sharedkey header must match this value for virtual directories to be processed",
+		"category": "security",
 		"type": "string",
 		"default": null
 	},

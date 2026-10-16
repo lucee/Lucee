@@ -3007,8 +3007,20 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static byte[] toBinary(Object o) throws PageException {
+		return toBinary(o, false);
+	}
+
+	/**
+	 * cast an Object to a Binary
+	 *
+	 * @param o Object to cast
+	 * @param precise if a string is decoded as base64, it must be 100% valid base64
+	 * @return casted Binary
+	 * @throws PageException
+	 */
+	public static byte[] toBinary(Object o, boolean precise) throws PageException {
 		if (o instanceof byte[]) return (byte[]) o;
-		else if (o instanceof ObjectWrap) return toBinary(((ObjectWrap) o).getEmbededObject(""));
+		else if (o instanceof ObjectWrap) return toBinary(((ObjectWrap) o).getEmbededObject(""), precise);
 
 		else if (o instanceof InputStream) {
 			ByteArrayOutputStream barr = new ByteArrayOutputStream();
@@ -3049,7 +3061,7 @@ public final class Caster {
 			}
 		}
 		try {
-			return Base64Encoder.decode(toString(o), false);
+			return Base64Encoder.decode(toString(o), precise);
 		}
 		catch (PageException e) {
 			throw new CasterException(o, "binary");

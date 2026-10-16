@@ -255,7 +255,7 @@ public final class AIUtil {
 		data.setEL(KeyConstants._limit, ais.getConversationSizeLimit());
 		data.setEL(KeyConstants._connectionTimeout, ais.getConnectTimeout());
 		data.setEL("socketTimeout", ais.getSocketTimeout());
-		if (ais instanceof AISessionSupport) data.setEL("systemMessage", ((AISessionSupport) ais).getSystemMessage()); // TODO add to interface
+		data.setEL("systemMessage", ais.getSystemMessage());
 		Request req;
 		Response rsp;
 		Struct sct;
