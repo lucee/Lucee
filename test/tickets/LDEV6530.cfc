@@ -14,26 +14,49 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="log" {
 				expect( reFind( '^"INFO","[^"]*","\d{2}/\d{2}/\d{4}","\d{2}:\d{2}:\d{2}",', line ) ).toBe( 1, line );
 			});
 
-			it( title="the log timestamp follows the request/application timezone, not the JVM default", body=function( currentSpec ) {
+			it( title="setTimeZone() in the request does not change the log timezone, the server config timezone is used", body=function( currentSpec ) {
 				var TimeZone = createObject( "java", "java.util.TimeZone" );
 				var orig = getTimeZone();
+				var configTZ = getPageContext().getConfig().getTimeZone();
 				var name = "ldev6530-" & lCase( createUUID() );
 				try {
-					// both far apart from each other and from any JVM default, so the date or the hour differs
+					// both far apart from each other and from any config timezone, so the date or the hour differs
 					for ( var id in [ "Pacific/Kiritimati", "Etc/GMT+12" ] ) {
 						setTimeZone( id );
+						var before = fmt( configTZ );
+						cflog( text="tz #id#", file=name );
+						var after = fmt( configTZ );
+						var line = findLine( readLog( name ), "tz #id#" );
+						var dt = reMatch( '"\d{2}/\d{2}/\d{4}","\d{2}:\d{2}', line );
+						expect( dt.len() ).toBe( 1, line );
+						expect( [ before, after ] ).toInclude( dt[ 1 ], id & " (config: " & configTZ.getID() & "): " & line );
+					}
+				}
+				finally {
+					setTimeZone( orig );
+				}
+			});
+
+			it( title="the log timestamp follows the server config timezone when it changes", body=function( currentSpec ) {
+				var TimeZone = createObject( "java", "java.util.TimeZone" );
+				var admin = new org.lucee.cfml.Administrator( "server", request.ServerAdminPassword );
+				var regional = admin.getRegional();
+				var name = "ldev6530-" & lCase( createUUID() );
+				try {
+					for ( var id in [ "Pacific/Kiritimati", "Etc/GMT+12" ] ) {
+						admin.updateRegional( id, regional.locale );
 						var tz = TimeZone.getTimeZone( id );
 						var before = fmt( tz );
-						cflog( text="tz #id#", file=name );
+						cflog( text="config #id#", file=name );
 						var after = fmt( tz );
-						var line = findLine( readLog( name ), "tz #id#" );
+						var line = findLine( readLog( name ), "config #id#" );
 						var dt = reMatch( '"\d{2}/\d{2}/\d{4}","\d{2}:\d{2}', line );
 						expect( dt.len() ).toBe( 1, line );
 						expect( [ before, after ] ).toInclude( dt[ 1 ], id & ": " & line );
 					}
 				}
 				finally {
-					setTimeZone( orig );
+					admin.updateRegional( regional.timezone, regional.locale );
 				}
 			});
 

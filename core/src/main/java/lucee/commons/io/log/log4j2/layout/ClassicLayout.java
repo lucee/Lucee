@@ -20,7 +20,6 @@ package lucee.commons.io.log.log4j2.layout;
 
 import java.nio.charset.StandardCharsets;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
@@ -32,6 +31,7 @@ import lucee.commons.io.log.log4j2.LogAdapter;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.util.Util;
+import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 
@@ -42,7 +42,7 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 	// quotes, commas, date (10), time (8), line separator, plus slack for doubled quotes
 	private static final int FIXED_OVERHEAD = 64;
 
-	// date and time converters for one timezone, built once per timezone and shared
+	// date and time converters for one timezone
 	private static final class Converters {
 		final String tz;
 		final DatePatternConverter date;
@@ -55,9 +55,8 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 		}
 	}
 
-	// one converter pair per timezone, so apps with different timezones logging at the same time do not
-	// keep rebuilding them; the number of timezones is finite, so this stays small
-	private static final ConcurrentHashMap<String, Converters> CONVERTERS = new ConcurrentHashMap<>();
+	// converters for the current config timezone, rebuilt only when the admin timezone changes
+	private static volatile Converters converters;
 
 	public ClassicLayout() {
 		// TODO custom charset?
@@ -67,12 +66,22 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 				: "\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Application\",\"Message\"" + LINE_SEPARATOR).getBytes(StandardCharsets.UTF_8), new byte[0]);
 	}
 
-	// the timezone is resolved per event the Lucee way, not from the JVM default: the timezone of the
-	// current (or parent) PageContext, which reflects this.timezone / setTimeZone(), otherwise the
-	// timezone configured in the server config (admin)
+	// a log file is shared by all applications, so the timestamp always uses the timezone of the server
+	// config (admin), never the timezone of the current request/application (this.timezone,
+	// setTimeZone()), otherwise one log file would mix timezones. The JVM default is only used when
+	// there is no config at all.
 	private static Converters converters() {
-		TimeZone tz = ThreadLocalPageContext.getTimeZone();
-		return CONVERTERS.computeIfAbsent(tz.getID(), Converters::new);
+		TimeZone tz = null;
+		Config config = ThreadLocalPageContext.getConfig();
+		if (config != null) tz = config.getTimeZone();
+		if (tz == null) tz = TimeZone.getDefault();
+		String id = tz.getID();
+		Converters c = converters;
+		if (c == null || !c.tz.equals(id)) {
+			c = new Converters(id);
+			converters = c;
+		}
+		return c;
 	}
 
 	@Override
