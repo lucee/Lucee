@@ -18,19 +18,13 @@
  **/
 package lucee.commons.net.http;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.security.GeneralSecurityException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -41,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.Header;
@@ -77,6 +71,7 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
@@ -116,6 +111,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.http.SSLUtil;
 import lucee.runtime.net.http.sni.DefaultHostnameVerifierImpl;
 import lucee.runtime.net.http.sni.DefaultHttpClientConnectionOperatorImpl;
 import lucee.runtime.net.http.sni.SSLConnectionSocketFactoryImpl;
@@ -194,9 +190,10 @@ public abstract class HTTPEngineBasic {
 
 	private static CloseableHttpClient getHttpClient(boolean pooling) throws IOException {
 		if (pooling) {
-			if (SHARED_CLIENT_POOLING == null) {
+			if (SHARED_CLIENT_POOLING == null || isShutDown(SHARED_CLIENT_POOLING_CM)) {
 				synchronized (CLIENT_LOCK) {
-					if (SHARED_CLIENT_POOLING == null) {
+					// rebuild when the pool was released, e.g. after a certificate was installed or removed
+					if (SHARED_CLIENT_POOLING == null || isShutDown(SHARED_CLIENT_POOLING_CM)) {
 						Pair<HttpClientBuilder, HttpClientConnectionManager> pair;
 						try {
 							pair = getHttpClientBuilder(true, null, null, "true");
@@ -259,65 +256,15 @@ public abstract class HTTPEngineBasic {
 	}
 
 	/**
-	 * Build RequestConfig with separate connection and socket timeouts (following Http.java pattern)
-	 */
-	private static RequestConfig buildRequestConfig(long connectTimeout, long socketTimeout) {
-		return RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setConnectionRequestTimeout(2000).setConnectTimeout((int) connectTimeout)
-				.setSocketTimeout((int) socketTimeout).build();
-	}
-
-	/**
 	 * Get ProxyData from ThreadLocalPageContext Config (following Http.java pattern line 1099)
 	 */
-	private static ProxyData getProxyData(String host) {
+	protected static ProxyData getProxyData(String host) {
 		Config config = ThreadLocalPageContext.getConfigServer();
 		if (config != null) {
 			ProxyData proxy = config.getProxyData();
 			return ProxyDataImpl.validate(proxy, host);
 		}
 		return null;
-	}
-
-	/**
-	 * Simple container for client and context
-	 */
-	private static class ClientContext {
-		final CloseableHttpClient client;
-		final HttpContext context;
-
-		ClientContext(CloseableHttpClient client, HttpContext context) {
-			this.client = client;
-			this.context = context;
-		}
-	}
-
-	/**
-	 * Setup HttpClientBuilder with proxy, credentials, and request config. Shared by get(), head(), and
-	 * exists() methods to avoid code duplication.
-	 */
-	private static ClientContext buildHttpClient(URL url, String username, String password, long connectTimeout, long readTimeout, HttpClientBuilder builder,
-			org.apache.http.client.methods.HttpUriRequest request) {
-
-		// Get proxy from Config (already validated in getProxyData)
-		ProxyData proxy = getProxyData(url.getHost());
-
-		// Build RequestConfig with separate connection and socket timeouts
-		RequestConfig requestConfig = buildRequestConfig(connectTimeout, readTimeout);
-		builder.setDefaultRequestConfig(requestConfig);
-
-		// Set credentials if provided
-		HttpHost httpHost = new HttpHost(url.getHost(), url.getPort());
-		HttpContext context = setCredentials(builder, httpHost, username, password, false);
-
-		// Set proxy on builder and request
-		setProxy(url.getHost(), builder, request, proxy);
-
-		// Build client
-		CloseableHttpClient client = builder.build();
-
-		// Return both client and context
-		if (context == null) context = new HttpClientContext();
-		return new ClientContext(client, context);
 	}
 
 	public static HeaderImpl[] toHeaders(Map<String, String> headers) {
@@ -364,9 +311,14 @@ public abstract class HTTPEngineBasic {
 
 	public static Pair<HttpClientBuilder, HttpClientConnectionManager> getHttpClientBuilder(boolean pooling, String clientCert, String clientCertPassword, String redirect)
 			throws GeneralSecurityException, IOException {
+		return getHttpClientBuilder(pooling, clientCert, clientCertPassword, null, null, true, redirect);
+	}
 
-		String key = clientCert + ":" + clientCertPassword;
-		Registry<ConnectionSocketFactory> reg = StringUtil.isEmpty(clientCert, true) ? createRegistry() : createRegistry(clientCert, clientCertPassword);
+	public static Pair<HttpClientBuilder, HttpClientConnectionManager> getHttpClientBuilder(boolean pooling, String clientCert, String clientCertPassword, String trustStore,
+			String trustStorePassword, boolean sslVerify, String redirect) throws GeneralSecurityException, IOException {
+
+		String key = clientCert + ":" + clientCertPassword + ":" + trustStore + ":" + trustStorePassword + ":" + sslVerify;
+		Registry<ConnectionSocketFactory> reg = createRegistry(clientCert, clientCertPassword, trustStore, trustStorePassword, sslVerify);
 
 		// NON-POOLING PATH (Simple, short-lived client)
 		if (!pooling) {
@@ -441,31 +393,38 @@ public abstract class HTTPEngineBasic {
 		builder.setDefaultRequestConfig(rcBuilder.build());
 	}
 
-	private static Registry<ConnectionSocketFactory> createRegistry() throws GeneralSecurityException {
-		SSLContext sslcontext = SSLContext.getInstance("TLS");
-		sslcontext.init(null, null, new java.security.SecureRandom());
-		SSLConnectionSocketFactory defaultsslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-		/* Register connection handlers */
-		return RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory()).register("https", defaultsslsf).build();
+	private static Registry<ConnectionSocketFactory> createRegistry(String clientCert, String clientCertPassword, String trustStore, String trustStorePassword,
+			boolean sslVerify) throws GeneralSecurityException, IOException {
+		Path clientCertPath = StringUtil.isEmpty(clientCert, true) ? null : Paths.get(clientCert);
+		char[] clientPassword = clientCertPassword != null ? clientCertPassword.toCharArray() : null;
+		SSLContext sslContext;
+		HostnameVerifier hostnameVerifier;
 
+		if (!sslVerify) {
+			// no certificate or hostname verification at all (like curl -k)
+			sslContext = SSLUtil.createUnsafeSSLContext(clientCertPath, clientPassword);
+			hostnameVerifier = NoopHostnameVerifier.INSTANCE;
+		}
+		else if (!StringUtil.isEmpty(trustStore, true)) {
+			// JVM cacerts + Lucee custom-cacerts + the given trust store
+			char[] trustPassword = trustStorePassword != null ? trustStorePassword.toCharArray() : "changeit".toCharArray();
+			List<SSLUtil.TrustStoreConfig> additional = new ArrayList<>();
+			additional.add(new SSLUtil.TrustStoreConfig(Paths.get(trustStore), trustPassword));
+			sslContext = SSLUtil.createSSLContext(clientCertPath, clientPassword, additional);
+			hostnameVerifier = new DefaultHostnameVerifierImpl();
+		}
+		else {
+			// JVM cacerts + Lucee custom-cacerts
+			sslContext = SSLUtil.createSSLContext(clientCertPath, clientPassword);
+			hostnameVerifier = new DefaultHostnameVerifierImpl();
+		}
+
+		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactoryImpl(sslContext, hostnameVerifier);
+		return RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory()).register("https", sslsf).build();
 	}
 
-	private static Registry<ConnectionSocketFactory> createRegistry(String clientCert, String clientCertPassword)
-			throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
-		// Currently, clientCert force usePool to being ignored
-		if (clientCertPassword == null) clientCertPassword = "";
-		// Load the client cert
-		File ksFile = new File(clientCert);
-		KeyStore clientStore = KeyStore.getInstance("PKCS12");
-		clientStore.load(new FileInputStream(ksFile), clientCertPassword.toCharArray());
-		// Prepare the keys
-		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-		kmf.init(clientStore, clientCertPassword.toCharArray());
-		SSLContext sslcontext = SSLContext.getInstance("TLS");
-		// Configure the socket factory
-		sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
-		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-		return RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory()).register("https", sslsf).build();
+	private static boolean isShutDown(HttpClientConnectionManager cm) {
+		return cm instanceof PoolingHttpClientConnectionManager && isShutDown((PoolingHttpClientConnectionManager) cm, false);
 	}
 
 	public static void releaseConnectionManager() {
@@ -540,8 +499,9 @@ public abstract class HTTPEngineBasic {
 
 		// 4. Handle Auth/Proxy via Context instead of Builder
 		// This avoids mutating shared builder state across threads
+		CredentialsProvider credsProvider = null;
 		if (!StringUtil.isEmpty(username, true)) {
-			CredentialsProvider credsProvider = new BasicCredentialsProvider();
+			credsProvider = new BasicCredentialsProvider();
 			credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
 			context.setCredentialsProvider(credsProvider);
 		}
@@ -560,6 +520,13 @@ public abstract class HTTPEngineBasic {
 				baseRequest.setConfig(newConfig);
 			}
 
+			if (!StringUtil.isEmpty(proxy.getUsername())) {
+				if (credsProvider == null) {
+					credsProvider = new BasicCredentialsProvider();
+					context.setCredentialsProvider(credsProvider);
+				}
+				credsProvider.setCredentials(new AuthScope(proxy.getServer(), proxy.getPort()), new UsernamePasswordCredentials(proxy.getUsername(), proxy.getPassword()));
+			}
 		}
 
 		// This will be fast (3s) because the client and pool are already "warm"

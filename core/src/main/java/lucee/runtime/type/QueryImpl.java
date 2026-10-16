@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.Reader;
 import java.io.StringReader;
@@ -3238,13 +3239,19 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 	public Iterator<Object> valueIterator() {
 		return new CollectionIterator(keys(), this);
 	}
+	
+	// a stale creatorPid could match a new request and return a stale row, so start without a position (row 1)
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		creatorPid = 0;
+		currentRow = 0;
+		currRow = null;
+	}
 
 	public void readExternal(ObjectInput in) throws IOException {
 		try {
 			QueryImpl other = (QueryImpl) new CFMLExpressionInterpreter(false).interpret(ThreadLocalPageContext.get(), in.readUTF());
-			this.creatorPid = other.creatorPid;
-			this.currentRow = other.currentRow;
-			this.currRow = other.currRow;
+			// row state is keyed by JVM-local pids, so it is not taken over (LDEV-6233)
 			this.columncount = other.columncount;
 			this.columnNames = other.columnNames;
 			this.columns = other.columns;

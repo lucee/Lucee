@@ -331,18 +331,23 @@ public final class ThreadLocalPageContext {
 		return ((ConfigWebImpl) config).getConfigServerImpl();
 	}
 
+	private static boolean _preciseMath(PageContext pc) {
+		if (pc instanceof PageContextImpl) return ((PageContextImpl) pc).getPreciseMath();
+		return (pc.getApplicationContext()).getPreciseMath();
+	}
+
 	public static boolean preciseMath(PageContext pc) {
 		// pc provided
-		if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
+		if (pc != null) return _preciseMath(pc);
 
 		if (ModernApplicationContext.hasCustomPreciseMath) {
 			// pc from current thread
 			pc = pcCurrent();
-			if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
+			if (pc != null) return _preciseMath(pc);
 
 			// pc from parent thread
 			pc = pcParent();
-			if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
+			if (pc != null) return _preciseMath(pc);
 		}
 		ConfigServerPro c = getConfigServer();
 		if (c != null) return c.getPreciseMath();

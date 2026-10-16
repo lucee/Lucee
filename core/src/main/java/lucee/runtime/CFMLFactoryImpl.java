@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import jakarta.servlet.Servlet;
@@ -109,6 +110,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	private static JspEngineInfo info = new JspEngineInfoImpl("1.0");
 	private ConfigWebPro config;
 	ConcurrentLinkedDeque<PageContextImpl> pcs = new ConcurrentLinkedDeque<PageContextImpl>();
+	// ConcurrentLinkedDeque.size() is O(n), so the pool size is tracked separately
+	private final AtomicInteger pcsSize = new AtomicInteger(0);
 	private final Map<Integer, PageContextImpl> runningPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
 	private final Map<Integer, PageContextImpl> runningChildPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
 
@@ -159,8 +162,10 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	 */
 	@Override
 	public void resetPageContext() {
-		LogUtil.log(config, Log.LEVEL_INFO, CFMLFactoryImpl.class.getName(), "Reset " + pcs.size() + " Unused PageContexts");
-		pcs.clear();
+		LogUtil.log(config, Log.LEVEL_INFO, CFMLFactoryImpl.class.getName(), "Reset " + pcsSize.get() + " Unused PageContexts");
+		while (pcs.poll() != null) {
+			pcsSize.decrementAndGet();
+		}
 		Iterator<PageContextImpl> it = runningPcs.values().iterator();
 		while (it.hasNext()) {
 			it.next().reset();
@@ -241,6 +246,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 
 		PageContextImpl pc = createNew ? null : pcs.poll();
+		if (pc != null) pcsSize.decrementAndGet();
 		if (pc == null) pc = new PageContextImpl(scopeContext, config, servlet, tmplPC, ignoreScopes);
 
 		if (timeout > 0) pc.setRequestTimeout(timeout);
@@ -322,7 +328,10 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 		else if (unregisterFromThread) ThreadLocalPageContext.release();
 
-		if (pcs.size() < PC_POOL_MAX_SIZE && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse) pcs.push((PageContextImpl) pc);
+		if (pcsSize.get() < PC_POOL_MAX_SIZE && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse) {
+			pcs.push((PageContextImpl) pc);
+			pcsSize.incrementAndGet();
+		}
 
 		if (runningPcs.size() > MAX_SIZE) clean(runningPcs);
 		if (runningChildPcs.size() > MAX_SIZE) clean(runningChildPcs);
@@ -562,7 +571,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	}
 
 	public long getIdlePCCount() {
-		return pcs.size();
+		return pcsSize.get();
 	}
 
 	public Array getInfo() {

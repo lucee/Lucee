@@ -130,6 +130,7 @@ public final class ConfigWebImpl implements ConfigWebPro {
 	private ComponentPathCache componentPathCache = new ComponentPathCache();
 	private Map<String, Log> logs = new ConcurrentHashMap<>();
 	private lucee.runtime.rest.Mapping[] restMappings;
+	private VirtualDirectoryManager virtualDirectoryManager;
 
 	private Map<String, Mapping> existing = MapFactory.<String, Mapping>getConcurrentMap();
 
@@ -143,6 +144,7 @@ public final class ConfigWebImpl implements ConfigWebPro {
 		this.cs = cs;
 		this.config = config;
 		helper = new ConfigWebHelper(cs, this);
+		this.virtualDirectoryManager = new VirtualDirectoryManager(this);
 
 		if (reload) reload();
 		return this;
@@ -1834,6 +1836,17 @@ public final class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public Resource getConfigServerDir() {
 		return cs.getConfigDir();
+	}
+
+	/**
+	 * Gets virtual directory mappings for the current request from x-vdirs header.
+	 * Returns null if feature is disabled or no virtual directories in request.
+	 *
+	 * @param pc PageContext for current request
+	 * @return Array of virtual directory Mapping objects, or null
+	 */
+	public Mapping[] getVirtualDirectoryMappings( PageContext pc ) {
+		return virtualDirectoryManager != null ? virtualDirectoryManager.getVirtualDirectoryMappings( pc ) : null;
 	}
 
 	@Override

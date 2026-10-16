@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -102,6 +103,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.http.SSLUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.security.SecurityManager;
@@ -219,6 +221,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 			// admin mode
 			load(config, essentialOnly);
+			SSLUtil.init(Paths.get(config.getConfigDir().getAbsolutePath(), "security"));
 
 			if (!essentialOnly) {
 				createContextFiles(configDir, config, doNew);

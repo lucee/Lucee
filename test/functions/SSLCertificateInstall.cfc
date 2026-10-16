@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ssl" {
 			it("should install SSL certificates for google.com without error", function() {
 				expect(function() {
 					SSLCertificateInstall("google.com");
-				}).toThrow(); // disabled since LDEV-917 - use jvm cacerts
+				}).notToThrow(); // LDEV-5571 - now uses custom-cacerts store
 			});
 
 			it("should install SSL certificates for google.com into custom caerts path, bad password to error", function() {
