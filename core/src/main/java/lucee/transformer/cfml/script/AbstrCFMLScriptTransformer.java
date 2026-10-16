@@ -2126,6 +2126,16 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				return expressionStatement(data, parent);
 			}
 			catch (TemplateException e1) {
+				// LDEV-2133 neither a single value nor an expression, maybe named attributes, "throw message='a' type='b';"
+				if (data.ep != null) {
+					data.srcCode.setPos(pos);
+					try {
+						Statement child = __multiAttrStatement(parent, data, tlt);
+						if (child != null) return child;
+					}
+					catch (TemplateException e2) {
+					}
+				}
 				throw e;
 			}
 		}
@@ -2152,6 +2162,12 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		tag.setTagLibTag(tlt);
 
 		comments(data);
+
+		// LDEV-2133 a named attribute other than the single attribute, "abort type='page';", is not an expression for the single attribute
+		if (data.ep != null && isOtherNamedAttribute(data, tlt)) {
+			data.srcCode.setPos(pos);
+			return __multiAttrStatement(parent, data, tlt);
+		}
 
 		// attribute
 		TagLibTagAttr attr = tlt.getScript().getSingleAttr();
@@ -2209,6 +2225,27 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		tag.setEnd(data.srcCode.getPosition());
 		eval(tlt, data, tag);
 		return tag;
+	}
+
+	/**
+	 * checks if the code at the current position starts with "<attribute-name>=" (not "==") for an
+	 * attribute of the tag that is not its single attribute, the position is not changed
+	 */
+	private boolean isOtherNamedAttribute(Data data, TagLibTag tlt) throws TemplateException {
+		int p = data.srcCode.getPos();
+		try {
+			String id = CFMLTransformer.identifier(data.srcCode, false, false);
+			if (StringUtil.isEmpty(id)) return false;
+			TagLibTagAttr attr = tlt.getAttribute(id.toLowerCase(), true);
+			if (attr == null) return false;
+			TagLibTagAttr single = tlt.getScript().getSingleAttr();
+			if (single != null && single.getName().equalsIgnoreCase(attr.getName())) return false;
+			data.srcCode.removeSpace();
+			return data.srcCode.isCurrent('=') && !data.srcCode.isNext('=');
+		}
+		finally {
+			data.srcCode.setPos(p);
+		}
 	}
 
 	private boolean isSimpleValue(String type) {
