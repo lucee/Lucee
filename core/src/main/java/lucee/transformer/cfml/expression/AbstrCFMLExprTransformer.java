@@ -864,6 +864,11 @@ public abstract class AbstrCFMLExprTransformer {
 			comments(data);
 			Expression value = assignOp(data);
 
+			// LDEV-3020: there is no unary integer division, so "x \= y" is written as "x = x \ y" (like "x %= y")
+			if (iOp == Factory.OP_DBL_INTDIV) {
+				ExprNumber res = data.factory.opNumber(expr, value, Factory.OP_DBL_INTDIV);
+				return new OpVariable((Variable) expr, res, data.srcCode.getPosition());
+			}
 			return data.factory.opUnaryNumber((Variable) expr, value, Factory.OP_UNARY_PRE, iOp, expr.getStart(), data.srcCode.getPosition());
 		}
 		comments(data);
