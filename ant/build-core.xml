@@ -796,6 +796,7 @@
       <jvmarg value="-Dlucee.maven.download.policy.startup=warn"/>
       <jvmarg value="-Dlucee.maven.download.policy.runtime=warn"/>
       <jvmarg value="-Dlucee.maven.download.policy.log.level=info"/>
+      <jvmarg value="-Dlucee.vdirs.sharedkey=testsecret"/>
 
       <jvmarg value="-XX:+UnlockExperimentalVMOptions" if:true="${UseEpsilonGC}"/>
       <jvmarg value="-XX:+UseEpsilonGC" if:true="${UseEpsilonGC}"/>
