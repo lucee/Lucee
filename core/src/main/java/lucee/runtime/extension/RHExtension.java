@@ -776,9 +776,8 @@ public final class RHExtension implements Serializable {
 					if (!entry.isDirectory() && path.equalsIgnoreCase("META-INF/MANIFEST.MF")) {
 						data.manifest = toManifest(config, zip.getInputStream(entry), true, null);
 					}
-					else if (!entry.isDirectory() && path.equalsIgnoreCase("META-INF/logo.png")) {
-						data.image = toBase64(zip.getInputStream(entry), true, null);
-					}
+
+					// META-INF/logo.png is not read here, it is loaded lazily by loadImage()
 
 					// jars
 					else if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
@@ -1263,7 +1262,9 @@ public final class RHExtension implements Serializable {
 		coll.setEL(KeyConstants._artifactId, extMayNull != null ? extMayNull.getArtifactId() : md.getArtifactId());
 		coll.setEL(KeyConstants._name, md.getName());
 		coll.setEL(KeyConstants._symbolicName, md.getSymbolicName());
-		coll.setEL(KeyConstants._image, md.getImage());
+		String img = md.getImage();
+		if (StringUtil.isEmpty(img) && extMayNull != null) img = extMayNull.loadImage(md);
+		coll.setEL(KeyConstants._image, img);
 		coll.setEL(KeyConstants._type, md.getType());
 		coll.setEL(KeyConstants._description, StringUtil.emptyIfNull(md.getDescription()));
 		DateTime bd = md.getBuiltDate();
@@ -1436,6 +1437,30 @@ public final class RHExtension implements Serializable {
 		finally {
 			if (closeStream) IOUtil.closeEL(is);
 		}
+	}
+
+	/**
+	 * loads the logo (META-INF/logo.png) of the extension file on demand and keeps it in the metadata,
+	 * so it is not read and Base64 encoded for every extension at startup
+	 */
+	private String loadImage(ExtensionMetadata md) {
+		Resource file = extensionFile;
+		if (file == null || !file.isFile()) return null;
+		try (ZipFile zip = new ZipFile(ResourceUtil.toFile(file))) {
+			java.util.Enumeration<? extends ZipEntry> entries = zip.entries();
+			while (entries.hasMoreElements()) {
+				ZipEntry entry = entries.nextElement();
+				if (!entry.isDirectory() && entry.getName().equalsIgnoreCase("META-INF/logo.png")) {
+					String img = toBase64(zip.getInputStream(entry), true, null);
+					if (!StringUtil.isEmpty(img)) md.setImage(img);
+					return img;
+				}
+			}
+		}
+		catch (Exception e) {
+			LogUtil.log("extension", e);
+		}
+		return null;
 	}
 
 	private static String toBase64(InputStream is, boolean closeStream, String defaultValue) {
