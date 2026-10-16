@@ -61,7 +61,7 @@ public class JfrUtil {
 
 		// Capture start time before begin() for accurate duration measurement
 		if( event instanceof CustomEvent ) {
-			( (CustomEvent) event ).startTime = System.nanoTime();
+			( (CustomEvent) event ).beginNanos = System.nanoTime();
 		}
 
 		// Start the JFR event timing
@@ -112,8 +112,8 @@ public class JfrUtil {
 			}
 
 			// Check duration threshold if enabled (thresholdMs >= 0)
-			if( thresholdMs >= 0 && ce.startTime > 0 ) {
-				long durationMs = ( System.nanoTime() - ce.startTime ) / 1_000_000;
+			if( thresholdMs >= 0 && ce.beginNanos > 0 ) {
+				long durationMs = ( System.nanoTime() - ce.beginNanos ) / 1_000_000;
 				if( durationMs < thresholdMs ) {
 					// Below threshold - remove from map and don't commit
 					activeEvents.remove( eventId );

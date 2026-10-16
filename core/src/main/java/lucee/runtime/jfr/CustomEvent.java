@@ -42,5 +42,5 @@ public class CustomEvent extends jdk.jfr.Event {
 	 * Set by JfrUtil.registerActiveEvent(), used by JfrUtil.commitEvent() for threshold checking.
 	 * Not recorded in JFR (no annotation), only used internally.
 	 */
-	public transient long startTime = 0;
+	public transient long beginNanos = 0;
 }
