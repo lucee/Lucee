@@ -1456,18 +1456,31 @@ public abstract class AbstrCFMLExprTransformer {
 
 	private Expression lambda(Data data) throws TemplateException {
 		int pos = data.srcCode.getPos();
-		if (!data.srcCode.forwardIfCurrent("(")) return null;
 		ArrayList<lucee.transformer.statement.Argument> args = null;
-
-		args = getScriptFunctionArguments(data, null);
-		if (args == null) {
-			data.srcCode.setPos(pos);
-			return null;
+		if (!data.srcCode.forwardIfCurrent("(")) {
+			// LDEV-2417: a single argument does not need parentheses (`x => x * 2`)
+			String argName = identifier(data, false);
+			if (argName == null) return null;
+			data.srcCode.removeSpace();
+			if (!data.srcCode.isCurrent("=>")) {
+				data.srcCode.setPos(pos);
+				return null;
+			}
+			args = new ArrayList<lucee.transformer.statement.Argument>();
+			args.add(new lucee.transformer.statement.Argument(data.factory.createLitString(argName), data.factory.createLitString("any"), data.factory.createLitBoolean(false),
+					null, data.factory.TRUE(), data.factory.EMPTY(), data.factory.EMPTY(), null));
 		}
+		else {
+			args = getScriptFunctionArguments(data, null);
+			if (args == null) {
+				data.srcCode.setPos(pos);
+				return null;
+			}
 
-		if (!data.srcCode.forwardIfCurrent(")")) {
-			data.srcCode.setPos(pos);
-			return null;
+			if (!data.srcCode.forwardIfCurrent(")")) {
+				data.srcCode.setPos(pos);
+				return null;
+			}
 		}
 
 		data.srcCode.removeSpace();
