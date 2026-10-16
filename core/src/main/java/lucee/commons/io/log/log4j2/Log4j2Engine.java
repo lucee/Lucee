@@ -83,7 +83,7 @@ public final class Log4j2Engine extends LogEngine {
 
 	@Override
 	public Log getResourceLog(Resource res, Charset charset, String name, int level, int timeout, RetireListener listener, boolean async) throws PageException {
-		Appender a = toResourceAppender(name, res, new ClassicLayout(), charset, DEFAULT_MAX_BACKUP_INDEX, DEFAULT_MAX_FILE_SIZE, timeout, true);
+		Appender a = toResourceAppender(name, res, new ClassicLayout(config), charset, DEFAULT_MAX_BACKUP_INDEX, DEFAULT_MAX_FILE_SIZE, timeout, true);
 		if (async) {
 			a = new TaskAppender(config, a);
 		}
@@ -186,7 +186,7 @@ public final class Log4j2Engine extends LogEngine {
 		if (cd != null && cd.hasClass()) {
 			// Classic Layout
 			if (ClassicLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
-				layout = new ClassicLayout();
+				layout = new ClassicLayout(config);
 			}
 			// HTML Layout
 			else if (HtmlLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
@@ -309,7 +309,7 @@ public final class Log4j2Engine extends LogEngine {
 			}
 		}
 		if (layout != null) return layout;
-		return new ClassicLayout();
+		return new ClassicLayout(config);
 	}
 
 	@Override
@@ -345,7 +345,7 @@ public final class Log4j2Engine extends LogEngine {
 				}
 				catch (Exception e) {
 					LogUtil.logGlobal(config, "loading-log", e);
-					l = new ClassicLayout();
+					l = new ClassicLayout(config);
 				}
 				appender = getConsoleAppender(name, pw, l, true);
 			}
@@ -477,7 +477,7 @@ public final class Log4j2Engine extends LogEngine {
 			catch (Exception e) {
 				LogUtil.logGlobal(config, "loading-log", e);
 				appender = null;
-				l = new ClassicLayout();
+				l = new ClassicLayout(config);
 			} // l = new ClassicLayout();
 			appender = getConsoleAppender(name, pw, l, true);
 		}
@@ -558,7 +558,7 @@ public final class Log4j2Engine extends LogEngine {
 
 	@Override
 	public Object getClassicLayout() {
-		return new ClassicLayout();
+		return new ClassicLayout(config);
 	}
 
 	private static Appender getDatasourceAppender(Config config, String name, String dsn, String user, String pass, String table, String custom, boolean start) {

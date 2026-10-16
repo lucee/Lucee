@@ -55,24 +55,36 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 		}
 	}
 
-	// converters for the current config timezone, rebuilt only when the admin timezone changes
-	private static volatile Converters converters;
+	// config this layout belongs to, the timezone comes from it (null = resolve from the current thread)
+	private final Config config;
 
+	// converters for the current config timezone, rebuilt only when the admin timezone changes
+	private volatile Converters converters;
+
+	/**
+	 * fallback for code that creates the layout by class name, resolves the config from the current
+	 * thread
+	 */
 	public ClassicLayout() {
+		this(null);
+	}
+
+	public ClassicLayout(Config config) {
 		// TODO custom charset?
 		super(StandardCharsets.UTF_8, (LogAdapter.logWebContextInfo ?
 
 				"\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Context\",\"Application\",\"Message\"" + LINE_SEPARATOR
 				: "\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Application\",\"Message\"" + LINE_SEPARATOR).getBytes(StandardCharsets.UTF_8), new byte[0]);
+		this.config = config;
 	}
 
 	// a log file is shared by all applications, so the timestamp always uses the timezone of the server
 	// config (admin), never the timezone of the current request/application (this.timezone,
 	// setTimeZone()), otherwise one log file would mix timezones. The JVM default is only used when
 	// there is no config at all.
-	private static Converters converters() {
+	private Converters converters() {
 		TimeZone tz = null;
-		Config config = ThreadLocalPageContext.getConfig();
+		Config config = this.config != null ? this.config : ThreadLocalPageContext.getConfig();
 		if (config != null) tz = config.getTimeZone();
 		if (tz == null) tz = TimeZone.getDefault();
 		String id = tz.getID();
