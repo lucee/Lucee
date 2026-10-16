@@ -34,28 +34,28 @@ public final class OperationImpl implements Operation {
 
 	@Override
 	public int compare(boolean left, boolean right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left ? Boolean.TRUE : Boolean.FALSE, right ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, left ? Boolean.TRUE : Boolean.FALSE, right ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compare(boolean left, Date right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left ? Boolean.TRUE : Boolean.FALSE, right);
+		return OpUtil.compare(null, left ? Boolean.TRUE : Boolean.FALSE, right);
 	}
 
 	@Override
 	public int compare(boolean left, double right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left ? Boolean.TRUE : Boolean.FALSE, Double.valueOf(right));
+		return OpUtil.compare(null, left ? Boolean.TRUE : Boolean.FALSE, Double.valueOf(right));
 	}
 
 	@Override
 	public int compare(boolean left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left ? Boolean.TRUE : Boolean.FALSE, right);
+		return OpUtil.compare(null, left ? Boolean.TRUE : Boolean.FALSE, right);
 	}
 
 	@Override
 	public int compare(boolean left, String right) {
 		try {
-			return OpUtil.compare(ThreadLocalPageContext.get(), left ? Boolean.TRUE : Boolean.FALSE, right);
+			return OpUtil.compare(null, left ? Boolean.TRUE : Boolean.FALSE, right);
 		}
 		catch (PageException e) {
 			throw new PageRuntimeException(e);
@@ -64,83 +64,83 @@ public final class OperationImpl implements Operation {
 
 	@Override
 	public int compare(Date left, boolean right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, left, right ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compare(Date left, Date right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Override
 	public int compare(Date left, double right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, Double.valueOf(right));
+		return OpUtil.compare(null, left, Double.valueOf(right));
 	}
 
 	@Override
 	public int compare(Date left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Override
 	public int compare(Date left, String right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Override
 	public int compare(double left, boolean right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(left), right ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, Double.valueOf(left), right ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compare(double left, Date right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(left), right);
+		return OpUtil.compare(null, Double.valueOf(left), right);
 	}
 
 	@Override
 	public int compare(double left, double right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(left), Double.valueOf(right));
+		return OpUtil.compare(null, Double.valueOf(left), Double.valueOf(right));
 	}
 
 	@Override
 	public int compare(double left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(left), right);
+		return OpUtil.compare(null, Double.valueOf(left), right);
 	}
 
 	@Override
 	public int compare(double left, String right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(left), right);
+		return OpUtil.compare(null, Double.valueOf(left), right);
 	}
 
 	@Override
 	public int compare(Object left, boolean right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, left, right ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compare(Object left, Date right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Override
 	public int compare(Object left, double right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, Double.valueOf(right));
+		return OpUtil.compare(null, left, Double.valueOf(right));
 	}
 
 	@Override
 	public int compare(Object left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Override
 	public int compare(Object left, String right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Override
 	public int compare(String left, boolean right) {
 		try {
-			return OpUtil.compare(ThreadLocalPageContext.get(), left, right ? Boolean.TRUE : Boolean.FALSE);
+			return OpUtil.compare(null, left, right ? Boolean.TRUE : Boolean.FALSE);
 		}
 		catch (PageException e) {
 			throw new PageRuntimeException(e);
@@ -149,13 +149,13 @@ public final class OperationImpl implements Operation {
 
 	@Override
 	public int compare(String left, Date right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Override
 	public int compare(String left, double right) {
 		try {
-			return OpUtil.compare(ThreadLocalPageContext.get(), left, Double.valueOf(right));
+			return OpUtil.compare(null, left, Double.valueOf(right));
 		}
 		catch (PageException e) {
 			throw new PageRuntimeException(e);
@@ -164,13 +164,13 @@ public final class OperationImpl implements Operation {
 
 	@Override
 	public int compare(String left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Override
 	public int compare(String left, String right) {
 		try {
-			return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+			return OpUtil.compare(null, left, right);
 		}
 		catch (PageException e) {
 			throw new PageRuntimeException(e);

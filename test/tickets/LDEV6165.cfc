@@ -1,31 +1,31 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="mapping,archive" {
 
-	variables.testVirtual = "/ldev6165-test";
+	variables.testVirtualPrefix = "/test-"&createUniqueID();
 	variables.adminPassword = "";
+	variables.virtuals=[];
 
 	function beforeAll() {
 		variables.adminPassword = request.WEBADMINPASSWORD;
 		variables.oldMappings = GetApplicationSettings().mappings;
-		// cleanup mapping from previous runs
-		try {
-			admin action="removeMapping" type="web" password="#variables.adminPassword#" virtual="#variables.testVirtual#";
-		} catch ( any e ) {}
 	}
 
 	function afterAll() {
 		application action="update" mappings=variables.oldMappings;
 		try {
-			admin action="removeMapping" type="web" password="#variables.adminPassword#" virtual="#variables.testVirtual#";
-		} catch ( any e ) {}
+			loop array=variables.virtuals item="local.v" {
+				admin action="removeMapping" type="web" password="#variables.adminPassword#" virtual="#v#";
+			}
+		} 
+		catch ( any e ) {}
 	}
 
-	private function createLarArchive( required string srcDir, required string larFile, boolean addNonCFMLFiles=false ) {
+	private function createLarArchive( required string virtual, required string srcDir, required string larFile, boolean addNonCFMLFiles=false ) {
 		// create mapping pointing to physical source
 		admin
 			action="updateMapping"
 			type="web"
 			password="#variables.adminPassword#"
-			virtual="#variables.testVirtual#"
+			virtual="#arguments.virtual#"
 			physical="#arguments.srcDir#"
 			toplevel="true"
 			archive=""
@@ -38,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mapping,archive" {
 			type="web"
 			password="#variables.adminPassword#"
 			file="#arguments.larFile#"
-			virtual="#variables.testVirtual#"
+			virtual="#arguments.virtual#"
 			addCFMLFiles="false"
 			addNonCFMLFiles="#arguments.addNonCFMLFiles#";
 
@@ -49,7 +49,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mapping,archive" {
 			action="updateMapping"
 			type="web"
 			password="#variables.adminPassword#"
-			virtual="#variables.testVirtual#"
+			virtual="#arguments.virtual#"
 			physical=""
 			toplevel="true"
 			archive="#arguments.larFile#"
@@ -67,6 +67,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mapping,archive" {
 				var testDir = getTempDirectory() & "LDEV6165/cfml-only/";
 				var srcDir = testDir & "src/";
 				var larFile = testDir & "test.lar";
+				var virtual=variables.testVirtualPrefix&"CFMLOnly";
 
 				// cleanup from previous runs
 				if ( directoryExists( testDir ) ) directoryDelete( testDir, true );
@@ -75,18 +76,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mapping,archive" {
 				// create a simple CFML file — no non-CFML resources
 				fileWrite( srcDir & "hello.cfm", "<cfset greeting = 'cfml-only'>" );
 
-				createLarArchive( srcDir, larFile, false );
+				createLarArchive(virtual, srcDir, larFile, false );
 
 				// this is where the bug manifests — include from the archive
-				include "#variables.testVirtual#/hello.cfm";
+				include "#virtual#/hello.cfm";
 				expect( greeting ).toBe( "cfml-only" );
 			});
 
-			it( title="should resolve pages from a LAR archive with mixed content", skip=true, body=function() {
+			it( title="should resolve pages from a LAR archive with mixed content", body=function() {
 				var testDir = getTempDirectory() & "LDEV6165/mixed/";
 				var srcDir = testDir & "src/";
 				var larFile = testDir & "test.lar";
-
+				var virtual=variables.testVirtualPrefix&"Mixed";
+				
 				// cleanup from previous runs
 				if ( directoryExists( testDir ) ) directoryDelete( testDir, true );
 				directoryCreate( srcDir, true, true );
@@ -95,9 +97,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mapping,archive" {
 				fileWrite( srcDir & "hello.cfm", "<cfset greeting = 'mixed-content'>" );
 				fileWrite( srcDir & "style.css", "body { color: red; }" );
 
-				createLarArchive( srcDir, larFile, true );
+				createLarArchive(virtual, srcDir, larFile, true );
 
-				include "#variables.testVirtual#/hello.cfm";
+				include "#virtual#/hello.cfm";
 				expect( greeting ).toBe( "mixed-content" );
 			});
 

@@ -11,6 +11,12 @@ import lucee.runtime.PageContext;
 public interface DebuggerListener {
 
 	/**
+	 * Contract version this listener implements. Non-default — every implementation must declare.
+	 * Version 1: baseline (extension 3.0.0.8+).
+	 */
+	int getApiVersion();
+
+	/**
 	 * Get the name of this debugger for logging purposes.
 	 *
 	 * @return A human-readable name (e.g., "debugger")
@@ -44,6 +50,17 @@ public interface DebuggerListener {
 	 * @param pc The PageContext that is resuming
 	 */
 	void onResume(PageContext pc);
+
+	/**
+	 * Called when a request is about to be released (PageContext.release()).
+	 * Fires near the top of release(), before scopes are nulled, so the listener
+	 * can still read pc state (e.g. getRequestId() for cleanup keyed by request lifetime).
+	 *
+	 * @param pc The PageContext being released
+	 */
+	default void onRequestEnd(PageContext pc) {
+		// default: no-op
+	}
 
 	/**
 	 * Check if execution should suspend at the given location.

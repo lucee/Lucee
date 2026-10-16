@@ -1,12 +1,14 @@
 package lucee.runtime.functions.system;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.IOException;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -30,7 +32,7 @@ public final class ImportJavaSettings extends BIF implements Function {
 			if (Decision.isSimpleValue(data)) {
 				String str = Caster.toString(data);
 				if (StringUtil.endsWithIgnoreCase(str, ".json")) {
-					str = IOUtil.toString(ResourceUtil.toResourceExisting(pc, str), CharsetUtil.UTF8);
+					str = IOUtil.toString(ResourceUtil.toResourceExisting(pc, str), StandardCharsets.UTF_8);
 				}
 				sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, str));
 
@@ -38,7 +40,7 @@ public final class ImportJavaSettings extends BIF implements Function {
 			else {
 				sct = Caster.toStruct(data);
 			}
-			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), sct, null);
+			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(ConfigUtil.getConfigServerImpl(pc.getConfig()), sct, null);
 			// forces it do download the resources
 			js.getAllResources();
 		}

@@ -21,9 +21,10 @@ package lucee.runtime.sql;
 import java.io.IOException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.MD5;
 import lucee.runtime.PageContext;
@@ -43,6 +44,7 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
+import lucee.runtime.type.QueryColumnImpl;
 import lucee.runtime.type.QueryImpl;
 
 public final class QueryPartitions {
@@ -52,17 +54,39 @@ public final class QueryPartitions {
 	private Collection.Key[] columnKeys;
 	// Needed for functions and aggregates but not explicitly part of the final select
 	private Set<Collection.Key> additionalColumns;
+	// Ordered version of additionalColumns for stable index alignment between buildPartition and addRow.
+	private Collection.Key[] additionalColumnsArr;
 	// Group by expressions
 	private Expression[] groupbys;
 	// Target query for column references
 	private QueryImpl target;
-	// Mapof partitioned query data. Key is unique string representing grouped data, value is a
-	// Query object representing the matching rows in that group/partition
-	private ConcurrentHashMap<String, QueryImpl> partitions = new ConcurrentHashMap<String, QueryImpl>();
+	// Map of partitioned query data. Plain HashMap — build is single-threaded.
+	private HashMap<String, Partition> partitions = new HashMap<String, Partition>();
 	// Reference to QoQ instance
 	private QoQ qoQ;
 	// SQL instance
 	private SQL sql;
+
+	/**
+	 * Carries pre-resolved column refs alongside the partition's QueryImpl so addRow() can write
+	 * via column.add() without looking columns up by name. Indices align with the parent's columns
+	 * and additionalColumnsArr; null = skip (literals, aggregates, source-missing columns).
+	 */
+	public static final class Partition {
+		public final QueryImpl query;
+		public final QueryColumnImpl[] selectColRefs;
+		public final QueryColumnImpl[] additionalColRefs;
+		private int size;
+
+		Partition(QueryImpl query, QueryColumnImpl[] selectColRefs, QueryColumnImpl[] additionalColRefs) {
+			this.query = query;
+			this.selectColRefs = selectColRefs;
+			this.additionalColRefs = additionalColRefs;
+		}
+
+		void bumpSize() { size++; }
+		int getSize() { return size; }
+	}
 
 	/**
 	 * Constructor
@@ -99,6 +123,7 @@ public final class QueryPartitions {
 		for (Key col: additionalColumns) {
 			this.additionalColumns.add(col);
 		}
+		this.additionalColumnsArr = this.additionalColumns.toArray(new Collection.Key[0]);
 		// Convert these Expression aliases to Keys now so we don't do it over and over later
 		this.columnKeys = new Collection.Key[columns.length];
 		for (int cell = 0; cell < columns.length; cell++) {
@@ -114,7 +139,7 @@ public final class QueryPartitions {
 	 * @throws PageException
 	 */
 	public void addEmptyPartition(QueryImpl source, QueryImpl target) throws PageException {
-		partitions.put("default", createPartition(target, source, false));
+		partitions.put("default", buildPartition(target, source, false));
 	}
 
 	/**
@@ -132,43 +157,39 @@ public final class QueryPartitions {
 	public void addRow(PageContext pc, QueryImpl source, int row, boolean finalizedColumnVals) throws PageException {
 		// Generate unique key based on row data
 		String partitionKey = buildPartitionKey(pc, source, row, finalizedColumnVals);
-		// Create partition if necessary
-		QueryImpl targetPartition = partitions.computeIfAbsent(partitionKey, k -> {
-			try {
-				return createPartition(target, source, finalizedColumnVals);
-			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		});
-
-		int newRow = targetPartition.addRow();
+		// Create partition if necessary — manual get+put avoids the per-row computeIfAbsent lambda.
+		Partition partition = partitions.get(partitionKey);
+		if (partition == null) {
+			partition = buildPartition(target, source, finalizedColumnVals);
+			partitions.put(partitionKey, partition);
+		}
+		partition.bumpSize();
 
 		// If we're adding finalized data, just copy it across. Easy. This applies when distincting
 		// a result set after it's already been processed
 		if (finalizedColumnVals) {
 			Collection.Key[] sourceColKeys = source.getColumnNames();
-			Collection.Key[] targetColKeys = targetPartition.getColumnNames();
-			for (int col = 0; col < targetColKeys.length; col++) {
-				targetPartition.setAt(targetColKeys[col], newRow, source.getColumn(sourceColKeys[col]).get(row, null), true);
+			QueryColumnImpl[] selectColRefs = partition.selectColRefs;
+			for (int col = 0; col < selectColRefs.length; col++) {
+				if (selectColRefs[col] != null) {
+					selectColRefs[col].add(source.getColumn(sourceColKeys[col]).get(row, null));
+				}
 			}
-
 		}
 		// For normal group by operations, we ONLY put real data in the partition. Operations will
 		// be added later, but there's no use filling up the partition with place holders
 		else {
+			QueryColumnImpl[] selectColRefs = partition.selectColRefs;
 			for (int cell = 0; cell < columns.length; cell++) {
-
+				Object value;
 				// Literal values
 				if (columns[cell] instanceof Value) {
-					Value v = (Value) columns[cell];
-					targetPartition.setAt(columnKeys[cell], newRow, v.getValue(), true);
+					value = ((Value) columns[cell]).getValue();
 				}
-				// A column expressions is set by column Key
+				// A column expression is read by column Key (ColumnExpression caches its source col internally)
 				else if (columns[cell] instanceof ColumnExpression) {
-					ColumnExpression ce = (ColumnExpression) columns[cell];
 					try {
-						targetPartition.setAt(columnKeys[cell], newRow, ce.getValue(pc, source, row, null), true);
+						value = ((ColumnExpression) columns[cell]).getValue(pc, source, row, null);
 					}
 					catch (DatabaseException e) {
 						// Wrap as IllegalQoQException to prevent fallback to HSQLDB
@@ -177,15 +198,31 @@ public final class QueryPartitions {
 						throw iqe;
 					}
 				}
-
+				else {
+					// Aggregates and other operations — computed in phase 3, never read from this column.
+					continue;
+				}
+				selectColRefs[cell].add(value);
 			}
-			// Populate additional columns needed for operations but are not found in the select
-			// list above
-			for (Collection.Key col: additionalColumns) {
-				if (source.containsKey(col)) {
-					targetPartition.setAt(col, newRow, source.getColumn(col).get(row, null), true);
+			// Additional columns needed for aggregates/operations but not in the select list.
+			// Refs are null where the source didn't contain that column at partition-creation time.
+			QueryColumnImpl[] additionalColRefs = partition.additionalColRefs;
+			for (int i = 0; i < additionalColumnsArr.length; i++) {
+				QueryColumnImpl ref = additionalColRefs[i];
+				if (ref != null) {
+					ref.add(source.getColumn(additionalColumnsArr[i]).get(row, null));
 				}
 			}
+		}
+	}
+
+	/**
+	 * Publish per-partition row counts. column.add(...) bumps column size but not
+	 * query.recordcount, so it has to be set once at the end of the build.
+	 */
+	public void finalizePartitionRecordCounts() {
+		for (Partition p : partitions.values()) {
+			p.query.setRecordcount(p.getSize());
 		}
 	}
 
@@ -263,7 +300,7 @@ public final class QueryPartitions {
 	 *
 	 * @return
 	 */
-	public ConcurrentHashMap<String, QueryImpl> getPartitions() {
+	public Map<String, Partition> getPartitions() {
 		return partitions;
 	}
 
@@ -273,7 +310,10 @@ public final class QueryPartitions {
 	 * @return
 	 */
 	public Query[] getPartitionArray() {
-		return (Query[]) partitions.values().toArray();
+		Query[] arr = new Query[partitions.size()];
+		int i = 0;
+		for (Partition p : partitions.values()) arr[i++] = p.query;
+		return arr;
 	}
 
 	/**
@@ -288,14 +328,17 @@ public final class QueryPartitions {
 	 * @return Empty Query with all the needed columns
 	 * @throws PageException
 	 */
-	private QueryImpl createPartition(QueryImpl target, QueryImpl source, boolean finalizedColumnVals) throws PageException {
+	private Partition buildPartition(QueryImpl target, QueryImpl source, boolean finalizedColumnVals) throws PageException {
 		QueryImpl newTarget = new QueryImpl(new Collection.Key[0], 0, "query", sql);
+		QueryColumnImpl[] selectColRefs = new QueryColumnImpl[columns.length];
+		QueryColumnImpl[] additionalColRefs = new QueryColumnImpl[additionalColumnsArr.length];
 
 		// If we're just distincting fully-realized data, this is just a simple lookup
 		if (finalizedColumnVals) {
 			for (int i = 0; i < columns.length; i++) {
 				ColumnExpression ce = (ColumnExpression) columns[i];
 				newTarget.addColumn(ce.getColumn(), new ArrayImpl(), target.getColumn(target.getColumnNames()[i]).getType());
+				selectColRefs[i] = (QueryColumnImpl) newTarget.getColumn(ce.getColumn());
 			}
 		}
 		// Standard group by
@@ -317,23 +360,29 @@ public final class QueryPartitions {
 					if (!"?".equals(ce.getColumnName())) type = source.getColumn(Caster.toKey(ce.getColumnName())).getType();
 
 					newTarget.addColumn(alias, new ArrayImpl(), type);
+					selectColRefs[i] = (QueryColumnImpl) newTarget.getColumn(alias);
 				}
 				else if (expSelect instanceof Literal) {
 					newTarget.addColumn(alias, new ArrayImpl(), Types.OTHER);
+					selectColRefs[i] = (QueryColumnImpl) newTarget.getColumn(alias);
 				}
+				// other expression types: selectColRefs[i] stays null; addRow's loop skips them
 			}
 
 			// As well as any additional columns that need to be used for expressions and aggregates
 			// but don't appear in the final select.
-			for (Collection.Key col: additionalColumns) {
+			for (int i = 0; i < additionalColumnsArr.length; i++) {
+				Collection.Key col = additionalColumnsArr[i];
 				// This check is here because it seems the SelectsParser also lists table names as
 				// ColumnExpressions
 				if (source.containsKey(col)) {
 					newTarget.addColumn(col, new ArrayImpl(), source.getColumn(col).getType());
+					additionalColRefs[i] = (QueryColumnImpl) newTarget.getColumn(col);
 				}
+				// else: additionalColRefs[i] stays null; addRow's loop skips
 			}
 		}
-		return newTarget;
+		return new Partition(newTarget, selectColRefs, additionalColRefs);
 	}
 
 }

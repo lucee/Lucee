@@ -18,7 +18,8 @@
  **/
 package lucee.runtime.coder;
 
-import lucee.commons.io.CharsetUtil;
+import java.nio.charset.StandardCharsets;
+
 
 /**
  * Hex encoder utils
@@ -73,7 +74,7 @@ public final class HexCoder {
 		if (hexa.length() != 2) {
 			throw new CoderException("invalid hexadecimal String for, [ " + hexa + " ]. The number of characters passed in, must be 2. Allowed characters are [0-9], [a-f], [A-F]");
 		}
-		byte[] b = hexa.getBytes(CharsetUtil.UTF8);
+		byte[] b = hexa.getBytes(StandardCharsets.UTF_8);
 		byte valor = (byte) (hexDigitValue((char) b[0]) * 16 + hexDigitValue((char) b[1]));
 		return valor;
 	}

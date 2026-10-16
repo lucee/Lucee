@@ -148,13 +148,13 @@
 			<cfset dbdriver = getDbDriverType( datasource.classname, datasource.dsn )>
 		</cfif>
 
-		<cfset driver = createObject("component",drivernames[ dbdriver ])>
+		<cfset driver = createObject("component",drivernames[ dbdriver ]?:drivernames[ "other" ])>
 		<cfif dbdriver == "Other">
 			<cfset driver.className = datasource.className>
 		</cfif>
 	</cfif>
 
-	<cfset driver = createObject("component",drivernames[ dbdriver ])>
+	<cfset driver = createObject("component",drivernames[ dbdriver ]?:drivernames[ "other" ])>
 
 	<cfif isInsert>
 

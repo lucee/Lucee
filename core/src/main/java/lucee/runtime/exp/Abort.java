@@ -71,4 +71,13 @@ public class Abort extends AbortException {
 		}
 		return t instanceof Abort && ((Abort) t).getScope() == scope;
 	}
+
+	// Silent control-flow exception (cfabort/cflocation/cfcontent/cfcache/cftrace abort).
+	// Stack is never inspected — Abort.isSilentAbort() codifies this — so skip the JVM
+	// backtrace capture. RequestTimeoutException inherits this but manages its own
+	// stacktrace field + getStackTrace() override, so the JNI skip is harmless there.
+	@Override
+	public Throwable fillInStackTrace() {
+		return this;
+	}
 }

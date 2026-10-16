@@ -532,20 +532,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			describe( title="test-extension providers functions", body=function() {
 				it(title="checking getExtensionProviders()", body=function( currentSpec ) {
 					var getExtensionsProvider = adminWeb.getExtensionProviders();
-					assertEquals(isquery(getExtensionsProvider) ,true);
-					assertEquals(listSort( structKeyList(getExtensionsProvider),'textnocase'),'readonly,url');
+					assertEquals(isArray(getExtensionsProvider) ,true);
+					assertEquals(arrayFindNoCase(getExtensionsProvider,"org.lucee") > 0 ,true);
 				});
 
 				it(title="checking updateExtensionProvider()", body=function( currentSpec ) {
-					adminWeb.updateExtensionProvider('http://www.myhost.com');
+					adminWeb.updateExtensionProvider('rasia.ch');
 					var getExtensionsProvider = adminWeb.getExtensionProviders();
-					assertEquals((isquery(getExtensionsProvider) && FindNocase( 'http://www.myhost.com',valueList(getExtensionsProvider.url)) GT 0) ,true);
+					assertEquals(isArray(getExtensionsProvider) ,true);
+					assertEquals(arrayFindNoCase(getExtensionsProvider,"rasia.ch") > 0 ,true);
 				});
 
 				it(title="checking removeExtensionProvider()", body=function( currentSpec ) {
-					adminWeb.removeExtensionProvider('http://www.myhost.com');
+					adminWeb.removeExtensionProvider('rasia.ch');
 					var getExtensionsProvider = adminWeb.getExtensionProviders();
-					assertEquals((isquery(getExtensionsProvider) && FindNocase( 'http://www.myhost.com',valueList(getExtensionsProvider.url)) EQ 0) ,true);
+					assertEquals(isArray(getExtensionsProvider) ,true);
+					assertEquals(arrayFindNoCase(getExtensionsProvider,"rasia.ch") > 0 ,false);
 				});
 			});
 
@@ -963,13 +965,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getDebugSetting()", body=function( currentSpec ) {
 					var deguggingListSetting = admin.getDebugSetting();
 					assertEquals(isstruct(deguggingListSetting) ,true);
-					assertEquals(listSort( structKeyList(deguggingListSetting),'textnocase'), 'maxLogs');
+					assertEquals(listSort( structKeyList(deguggingListSetting),'textnocase'), 'debuggingMaxRecordsLogged');
 				});
 
 				it(title="checking updateDebugSetting()", body=function( currentSpec ) {
-					admin.updateDebugSetting( maxLogs=100 );
+					admin.updateDebugSetting( debuggingMaxRecordsLogged=100 );
 					var debuggingListSetting = admin.getDebugSetting();
-					assertEquals(debuggingListSetting.maxLogs EQ 100, true);
+					assertEquals(debuggingListSetting.debuggingMaxRecordsLogged EQ 100, true);
 				});
 
 				it(title="checking resetDebugSetting()", body=function( currentSpec ) {
@@ -977,14 +979,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					adminWeb.resetDebugSetting();
 					var adminWebDebuggingListSetting = adminWeb.getDebugSetting();
 
-					assertEquals(adminWebDebuggingListSetting.maxLogs EQ adminDebuggingListSetting.maxLogs, true);
+					assertEquals(adminWebDebuggingListSetting.debuggingMaxRecordsLogged EQ adminDebuggingListSetting.debuggingMaxRecordsLogged, true);
 				});
 
 				it(title="checking getDebug()", body=function( currentSpec ) {
 					var debuggingSetting = admin.getDebug();
 					assertEquals(isstruct(debuggingSetting) ,true);
-					var props="database,debug,dump,exception,implicitAccess,queryUsage,timer,tracing,"
-						& "template,thread"; // new in 6
+					var props="debuggingDatabase,debug,debuggingDump,debuggingException,debuggingImplicitAccess,debuggingQueryUsage,debuggingTimer,debuggingTracing,"
+						& "debuggingTemplate,debuggingThread"; // new in 6
 					loop list=props item="local.prop"{
 						expect( debuggingSetting ).toHaveKey( prop );
 					}
@@ -992,16 +994,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updateDebug()", body=function( currentSpec ) {
-					admin.updateDebug( implicitAccess=true );
+					// round-trip every updatable debug option to verify the renamed update attribute and
+					// the getDebug() return key line up (debuggingTemplate has no update argument)
+					var options = "debuggingDatabase,debuggingException,debuggingTracing,debuggingDump,"
+						& "debuggingTimer,debuggingImplicitAccess,debuggingQueryUsage,debuggingThread";
+
+					var args = {};
+					loop list=options item="local.opt" {
+						args[ opt ] = true;
+					}
+					admin.updateDebug( argumentCollection=args );
 					var debuggingSetting = admin.getDebug();
-					assertEquals(debuggingSetting.implicitAccess EQ true, true);
+					loop list=options item="local.opt" {
+						assertEquals( debuggingSetting[ opt ], true, opt & " should be true" );
+					}
+
+					loop list=options item="local.opt" {
+						args[ opt ] = false;
+					}
+					admin.updateDebug( argumentCollection=args );
+					debuggingSetting = admin.getDebug();
+					loop list=options item="local.opt" {
+						assertEquals( debuggingSetting[ opt ], false, opt & " should be false" );
+					}
 				});
 
 				it(title="checking resetDebug()", body=function( currentSpec ) {
 					var adminDebuggingSetting = admin.getDebug();
 					adminWeb.resetDebug();
 					var adminWebDebuggingSetting = adminWeb.getDebug();
-					var columnlists = ["database","debug","dump","exception","implicitAccess","queryUsage","timer","tracing"];
+					var columnlists = ["debuggingDatabase","debug","debuggingDump","debuggingException","debuggingImplicitAccess","debuggingQueryUsage","debuggingTimer","debuggingTracing"];
 
 					for(var columnlist in columnlists){
 						// assertEquals(adminWebDebuggingSetting["#columnlist#"] EQ adminDebuggingSetting["#columnlist#"], true);
@@ -1186,18 +1208,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getLoginSettings()", body=function( currentSpec ) {
 					var loginSettings = admin.getLoginSettings();
 					assertEquals(isstruct(loginSettings) ,true);
-					loop list="captcha,delay,rememberme" item="local.prop" {
+					loop list="loginCaptcha,loginDelay,loginRememberme" item="local.prop" {
 						expect(loginSettings).toHaveKey(prop);
 					}
 				});
 
 				it(title="checking updateLoginSettings()", body=function( currentSpec ) {
 					var tmpStrt = {};
-					tmpStrt.captcha = "true";
+					tmpStrt.loginCaptcha = "true";
+					tmpStrt.loginRememberme = "false";
+					tmpStrt.loginDelay = 7;
 					admin.updateLoginSettings(argumentCollection=tmpStrt);
 					var loginSettings = admin.getLoginSettings();
 					assertEquals(isstruct(loginSettings) ,true);
-					assertEquals(loginSettings.captcha EQ 'true' ,true);
+					assertEquals(loginSettings.loginCaptcha EQ true ,true);
+					assertEquals(loginSettings.loginRememberme EQ false ,true);
+					assertEquals(loginSettings.loginDelay EQ 7 ,true);
 				});
 			});
 
@@ -1431,6 +1457,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isStruct(appSetting) ,true);
 					var props="AllowURLRequestTimeout,requestTimeout,requestTimeout_day,requestTimeout_hour,"
 						& "requestTimeout_minute,requestTimeout_second,scriptProtect,"
+						& "requestTimeoutConcurrentRequestThreshold,requestTimeoutCPUThreshold,requestTimeoutMemoryThreshold,"
 						& "applicationPathTimeout,applicationPathTimeout_day,applicationPathTimeout_hour,applicationPathTimeout_minute,applicationPathTimeout_second"; // new in 6
 					loop list=props item="local.prop" {
 						expect( appSetting ).toHaveKey( prop );
@@ -1477,46 +1504,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getQueueSetting()", body=function( currentSpec ) {
 					var queueSettings = admin.getQueueSetting();
 					assertEquals(isstruct(queueSettings) ,true);
-					assertEquals(listSort( structKeyList(queueSettings),'textnocase'), 'enable,max,timeout');
+					assertEquals(listSort( structKeyList(queueSettings),'textnocase'), 'requestQueueEnable,requestQueueMax,requestQueueTimeout');
 				});
 
 				it(title="checking updateQueueSetting()", body=function( currentSpec ) {
-					admin.updateQueueSetting(enable=true,max="100",timeout='3600');
+					admin.updateQueueSetting(requestQueueEnable=true,requestQueueMax="100",requestQueueTimeout='3600');
 					var updateQueueSetting = admin.getQueueSetting();
 					assertEquals(isStruct(updateQueueSetting),true);
-					assertEquals(structKeyExists(updateQueueSetting, "enable") && isBoolean(updateQueueSetting.enable),true);
-					assertEquals(structKeyExists(updateQueueSetting, "max") && (updateQueueSetting.max EQ 100),true);
-					assertEquals(structKeyExists(updateQueueSetting, "timeout") && (updateQueueSetting.timeout EQ 3600), true);
+					assertEquals(structKeyExists(updateQueueSetting, "requestQueueEnable") && isBoolean(updateQueueSetting.requestQueueEnable),true);
+					assertEquals(structKeyExists(updateQueueSetting, "requestQueueMax") && (updateQueueSetting.requestQueueMax EQ 100),true);
+					assertEquals(structKeyExists(updateQueueSetting, "requestQueueTimeout") && (updateQueueSetting.requestQueueTimeout EQ 3600), true);
 				});
 			});
 
 			describe( title="test password function", body=function() {
 				it(title="checking updatePassword()", body=function( currentSpec ) {
 					admin.updatePassword(oldPassword="#request.ServerAdminPassword#", newPassword="server" );
-					try{
+					
+					var failed=false;
+					try {
 						// This fails, if prev statement updates the password for server admin.
 						admin.updatePassword(oldPassword="#request.ServerAdminPassword#", newPassword="server" );
-					}catch( any e ){
+					}catch( any e ) {
+						failed=true;
 						assertEquals( e.message, 'No access, password is invalid' );
 					}
+					assertEquals( failed, true );
+
 					admin.updatePassword(oldPassword="server", newPassword="#request.ServerAdminPassword#" );
 				});
 
-				it(title="checking getDefaultPassword()", body=function( currentSpec ) {
-					var defaultPassword = admin.getDefaultPassword();
-					expect(defaultPassword).toBeTypeOf("string");
-				});
-
-				it(title="checking removeDefaultPassword()", body=function( currentSpec ) {
-					admin.removeDefaultPassword();
-					var defaultPassword = admin.getDefaultPassword();
-				});
-
-				it(title="checking updateDefaultPassword()", body=function( currentSpec ) {
-					admin.updateDefaultPassword(newPassword="server");
-					var defaultPassword = admin.getDefaultPassword();
-					expect(defaultPassword).toBeTypeOf("string");
-				});
 				// TODO failing No access, password is invalid
 				it(title="checking resetPassword()", skip=true, body=function( currentSpec ) {
 					var contexts = adminWeb.getContexts();
@@ -1539,7 +1556,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				afterEach(function( currentSpec ){
 					if(currentSpec == 'checking updateCustomTagSetting()'){
-						customTag_Setting.extensions = ArraytoList(customTag_Setting.extensions);
+						customTag_Setting.customTagExtensions = ArraytoList(customTag_Setting.customTagExtensions);
 						adminWeb.updateCustomTagSetting(argumentCollection = customTag_Setting);
 					}
 
@@ -1551,7 +1568,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getCustomTagSetting()", body=function( currentSpec ) {
 					var customTagSetting = adminWeb.getCustomTagSetting();
 					assertEquals(isstruct(customTagSetting) ,true);
-					var props = "customTagDeepSearch,customTagLocalSearch,customTagPathCache,deepSearch,extensions,localSearch";
+					var props = "customTagDeepSearch,customTagExtensions,customTagLocalSearch,customTagUseCachePath";
 					loop list=props item="local.prop" {
 						expect( customTagSetting ).toHaveKey( prop );
 					}
@@ -1560,23 +1577,51 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking updateCustomTagSetting()", body=function( currentSpec ) {
 					var customTagSetting = adminWeb.getCustomTagSetting();
-					customTagSetting.deepSearch = true;
+					customTagSetting.customTagDeepSearch = true;
 					customTagSetting.customTagLocalSearch = false;
-					customTagSetting.extensions = ArraytoList(customTagSetting.extensions);
+					customTagSetting.customTagExtensions = ArraytoList(customTagSetting.customTagExtensions);
 					adminWeb.updateCustomTagSetting(argumentCollection = customTagSetting);
 					var updatedSetting = adminWeb.getCustomTagSetting();
-					assertEquals( updatedSetting.deepSearch EQ true, true );
+					assertEquals( updatedSetting.customTagDeepSearch EQ true, true );
 				});
 
 				it(title="checking updatecustomtag()", body=function( currentSpec ) {
 					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
 					var curr=getDirectoryFromPath(GetCurrentTemplatePath());
 					var path = curr&"/Administrator/TestArchive";
+					var adminLengthBefore=len(adminWeb.getCustomTagMappings());
+					var configLengthBefore=len(_customTagMappings());
 
 					adminWeb.updatecustomtag( virtual="/testcustomtag", physical=path, archive="", primary="Resource", inspect="");
+
 					var customTagMappings = adminWeb.getCustomTagMappings();
-					assertEquals(isQuery(customTagMappings) ,true);
+					var adminLengthAfter=len(adminWeb.getCustomTagMappings());
+					var configLengthAfter=len(_customTagMappings());
+					
+					assertEquals(isQuery(customTagMappings) ,true);	
+					assertEquals(adminLengthBefore+1 ,adminLengthAfter);
+					assertEquals(configLengthBefore+1 ,configLengthAfter);
 					assertEquals( listFindNoCase(valueList(customTagMappings.virtual), "/testcustomtag") NEQ 0, true );
+				});
+
+				it(title="checking updatecomponent()", body=function( currentSpec ) {
+					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					var curr=getDirectoryFromPath(GetCurrentTemplatePath());
+					var path = curr&"/Administrator/TestArchiveX";
+
+					var adminLengthBefore=len(adminWeb.getComponentMappings());
+					var configLengthBefore=len(_componentMappings());
+
+					adminWeb.updateComponentMapping( virtual="/testcomponent", physical=path, archive="", primary="Resource", inspect="");
+					var cfcMappings = adminWeb.getComponentMappings();
+					
+					var adminLengthAfter=len(adminWeb.getComponentMappings());
+					var configLengthAfter=len(_componentMappings());
+					
+					assertEquals(isQuery(cfcMappings) ,true);
+					assertEquals(adminLengthBefore+1 ,adminLengthAfter);
+					assertEquals(configLengthBefore+1 ,configLengthAfter);
+					assertEquals( listFindNoCase(valueList(cfcMappings.virtual), "/testcomponent") NEQ 0, true );
 				});
 
 				it(title="checking createCTArchive()", body=function( currentSpec ) {
@@ -1612,12 +1657,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						errorTemplate = {};
 						errorTemplate.template404 = errorGet.templates.404;
 						errorTemplate.template500 = errorGet.templates.500;
+						//errorTemplate.template404 = errorGet.templatesUnresolved.404;
+						//errorTemplate.template500 = errorGet.templatesUnresolved.500;
+
+						
 					}
 				});
 
 				afterEach(function( currentSpec ){
 					if(currentSpec == 'checking updateError()' || currentSpec == 'checking resetError()'){
-						adminWeb.updateError(argumentCollection=errorTemplate);
+						adminWeb.updateError(argumentCollection={"template404": "/lucee/templates/error/error.cfm", "template500": "/lucee/templates/error/error.cfm"});
 					}
 				});
 
@@ -1891,4 +1940,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		// getting the credentials from the environment variables
 		return server.getDatasource(service=arguments.service, onlyConfig=true);
 	}
+
+	private function _customTagMappings() {
+		var mappings=getPageContext().getConfig().getCustomTagMappings();
+		var arr=[];
+		loop array=mappings item="local.m" {
+			arrayAppend(arr,m.getStrPhysical());
+		}
+		return arr;
+	}
+
+	private function _componentMappings() {
+		var mappings=getPageContext().getConfig().getComponentMappings();
+		var arr=[];
+		loop array=mappings item="local.m" {
+			arrayAppend(arr,m.getStrPhysical());
+		}
+		return arr;
+	}
+
 }

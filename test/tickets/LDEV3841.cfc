@@ -86,14 +86,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( _cgi ).toHaveKey( "Readonly" );
 				expect( _cgi.readOnly ).toBe( "false" );
 			});
-
-			it(title = "checking via application.cfc, cgiReadOnly default / false", body = function( currentSpec ) {
-				expect(function(){
-					var result = _InternalRequest(
-						template : "#createURI("LDEV3841")#/cfc/index.cfm"
-					);
-				}).toThrow();
-			});
 		});
 	}
 

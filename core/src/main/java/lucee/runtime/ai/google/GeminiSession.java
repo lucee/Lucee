@@ -1,9 +1,13 @@
 package lucee.runtime.ai.google;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -15,7 +19,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
@@ -38,6 +41,7 @@ import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -117,6 +121,18 @@ public final class GeminiSession extends AISessionSupport {
 		else {
 			throw new ApplicationException("you need to define parts or a message");
 		}
+
+		// custom
+		if (geminiEngine.custom != null && !geminiEngine.custom.isEmpty()) {
+			Iterator<Entry<Key, Object>> it = geminiEngine.custom.entryIterator();
+			Entry<Key, Object> e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (!root.containsKey(e.getKey())) {
+					root.set(e.getKey(), e.getValue());
+				}
+			}
+		}
 		return root;
 	}
 
@@ -125,8 +141,15 @@ public final class GeminiSession extends AISessionSupport {
 		HttpPost post = new HttpPost(url.toExternalForm());
 		post.setHeader("Content-Type", AIUtil.createJsonContentType(geminiEngine.charset));
 
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
-		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, null);
+		// custom headers
+		if (geminiEngine.headers != null) {
+			for (Entry<String, String> e: geminiEngine.headers.entrySet()) {
+				post.setHeader(e.getKey(), e.getValue());
+			}
+		}
+
+		JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, false);
+		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
 		LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "send request message to [" + url.toExternalForm() + "] by [" + geminiEngine.getLabel() + "]: " + str, "ai", "application");
 
 		StringEntity entity = new StringEntity(str, geminiEngine.charset);

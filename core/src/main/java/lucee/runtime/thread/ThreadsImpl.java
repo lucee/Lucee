@@ -39,6 +39,7 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.tag.Http;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Null;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
@@ -51,17 +52,8 @@ import lucee.runtime.type.util.StructSupport;
 
 public final class ThreadsImpl extends StructSupport implements lucee.runtime.type.scope.Threads {
 
-	private static final Key KEY_ERROR = KeyConstants._ERROR;
-	private static final Key KEY_ELAPSEDTIME = KeyConstants._ELAPSEDTIME;
-	private static final Key KEY_OUTPUT = KeyConstants._OUTPUT;
-	private static final Key KEY_PRIORITY = KeyConstants._PRIORITY;
-	private static final Key KEY_STARTTIME = KeyConstants._STARTTIME;
-	private static final Key KEY_STATUS = KeyConstants._STATUS;
-	private static final Key KEY_STACKTRACE = KeyConstants._STACKTRACE;
-	private static final Key KEY_CHILD_THREADS = KeyConstants._childThreads;
-
-	private static final Key[] DEFAULT_KEYS = new Key[] { KEY_ELAPSEDTIME, KeyConstants._NAME, KEY_OUTPUT, KEY_PRIORITY, KEY_STARTTIME, KEY_STATUS, KEY_STACKTRACE,
-			KEY_CHILD_THREADS, KeyConstants._INTERRUPTED };
+	private static final Key[] DEFAULT_KEYS = new Key[] { KeyConstants._ELAPSEDTIME, KeyConstants._NAME, KeyConstants._OUTPUT, KeyConstants._PRIORITY, KeyConstants._STARTTIME,
+			KeyConstants._STATUS, KeyConstants._STACKTRACE, KeyConstants._childThreads, KeyConstants._INTERRUPTED, KeyConstants._VIRTUAL };
 
 	private ChildThreadImpl ct;
 	private StructImpl uncoupled = null;
@@ -120,8 +112,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	}
 
 	@Override
-	public void release(PageContext pc) {
-	}
+	public void release(PageContext pc) {}
 
 	@Override
 	public void clear() {
@@ -148,16 +139,17 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	}
 
 	private Object getMeta(Key key, Object defaultValue) {
-		if (KEY_ELAPSEDTIME.equalsIgnoreCase(key)) return getState().equals("TERMINATED") ? 0 : Double.valueOf(ct.getEndTime() - ct.getStartTime());
+		if (KeyConstants._ELAPSEDTIME.equalsIgnoreCase(key)) return getState().equals("TERMINATED") ? 0 : Double.valueOf(ct.getEndTime() - ct.getStartTime());
 		if (KeyConstants._NAME.equalsIgnoreCase(key)) return ct.getTagName();
 		if (KeyConstants._INTERRUPTED.equalsIgnoreCase(key)) return isInterrupted();
-		if (KEY_OUTPUT.equalsIgnoreCase(key)) return getOutput();
-		if (KEY_PRIORITY.equalsIgnoreCase(key)) return ThreadUtil.toStringPriority(ct.getPriority());
-		if (KEY_STARTTIME.equalsIgnoreCase(key)) return new DateTimeImpl(ct.getStartTime());
-		if (KEY_STATUS.equalsIgnoreCase(key)) return getState();
-		if (KEY_ERROR.equalsIgnoreCase(key)) return ct.catchBlock;
-		if (KEY_STACKTRACE.equalsIgnoreCase(key)) return getStackTrace();
-		if (KEY_CHILD_THREADS.equalsIgnoreCase(key)) return Duplicator.duplicate(getThreads(), false);
+		if (KeyConstants._VIRTUAL.equalsIgnoreCase(key)) return Boolean.valueOf(ct.isVirtualThread());
+		if (KeyConstants._OUTPUT.equalsIgnoreCase(key)) return getOutput();
+		if (KeyConstants._PRIORITY.equalsIgnoreCase(key)) return ThreadUtil.toStringPriority(ct.getPriority());
+		if (KeyConstants._STARTTIME.equalsIgnoreCase(key)) return new DateTimeImpl(ct.getStartTime());
+		if (KeyConstants._STATUS.equalsIgnoreCase(key)) return getState();
+		if (KeyConstants._ERROR.equalsIgnoreCase(key)) return ct.catchBlock;
+		if (KeyConstants._STACKTRACE.equalsIgnoreCase(key)) return getStackTrace();
+		if (KeyConstants._childThreads.equalsIgnoreCase(key)) return Duplicator.duplicate(getThreads(), false);
 		return defaultValue;
 	}
 
@@ -168,7 +160,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	private String getStackTrace() {
 		StringBuilder sb = new StringBuilder();
 		try {
-			StackTraceElement[] trace = ct.getStackTrace();
+			StackTraceElement[] trace = ct.threadStackTrace();
 			if (trace != null) for (int i = 0; i < trace.length; i++) {
 				sb.append("\tat ");
 				sb.append(trace[i]);
@@ -182,7 +174,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	}
 
 	private Object getOutput() {
-		if (ct.output == null) return "";
+		if (ct.output == null || ct.output.size() == 0) return "";
 
 		InputStream is = new ByteArrayInputStream(ct.output.toByteArray());
 		return Http.getOutput(is, ct.contentType, ct.contentEncoding, true);
@@ -190,7 +182,8 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	}
 
 	private boolean isInterrupted() {
-		// LDEV-5339: this check was likely copied from getOutput() above, but output is only set for daemon threads
+		// LDEV-5339: this check was likely copied from getOutput() above, but output is only set for daemon
+		// threads
 		// (not task threads), so task threads would always return false here. This is now harmless because
 		// ChildThreadImpl.isInterrupted() tracks the interrupted flag independently of the output buffer.
 		if (ct.output == null) return false;
@@ -199,7 +192,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 
 	private Object getState() {
 		try {
-			State state = ct.getState();
+			State state = ct.getExecutionState();
 			if (State.NEW.equals(state)) return "NOT_STARTED";
 			if (State.WAITING.equals(state)) return "WAITING";
 			if (State.TERMINATED.equals(state)) {
@@ -214,7 +207,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 			ExceptionUtil.rethrowIfNecessary(t);
 			if (ct.terminated || ct.catchBlock != null) return "TERMINATED";
 			if (ct.completed) return "COMPLETED";
-			if (!ct.isAlive()) return "WAITING";
+			if (!ct.isThreadAlive()) return "WAITING";
 			return "RUNNING";
 
 		}
@@ -229,9 +222,8 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	@Override
 	public final Object get(PageContext pc, Key key, Object defaultValue) {
 		if (uncoupled != null) return uncoupled.get(pc, key, defaultValue);
-		Object _null = NullSupportHelper.NULL(pc);
-		Object meta = getMeta(key, _null);
-		if (meta != _null) return meta;
+		Object meta = getMeta(key, Null.NULL);
+		if (!NullSupportHelper.isNull(meta)) return meta;
 		return ct.content.get(pc, key, defaultValue);
 	}
 
@@ -262,7 +254,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 			rtn[index] = DEFAULT_KEYS[index];
 		}
 		if (ct.catchBlock != null) {
-			rtn[index] = KEY_ERROR;
+			rtn[index] = KeyConstants._ERROR;
 			index++;
 		}
 
@@ -274,39 +266,55 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 
 	@Override
 	public Object remove(Key key) throws PageException {
+		return remove((PageContext) null, key);
+	}
+
+	public Object remove(PageContext pc, Key key) throws PageException {
 		if (uncoupled != null) return uncoupled.remove(key);
-		Object _null = NullSupportHelper.NULL();
-		if (isReadonly()) throw errorOutside();
-		Object meta = getMeta(key, _null);
-		if (meta != _null) throw errorMeta(key);
+		if (isReadonly(pc)) throw errorOutside();
+		Object meta = getMeta(key, Null.NULL);
+		if (!NullSupportHelper.isNull(meta)) throw errorMeta(key);
 		return ct.content.remove(key);
 	}
 
 	@Override
 	public Object removeEL(Key key) {
+		return removeEL(null, key);
+	}
+
+	public Object removeEL(PageContext pc, Key key) {
 		if (uncoupled != null) return uncoupled.removeEL(key);
-		if (isReadonly()) return null;
+		if (isReadonly(pc)) return null;
 		return ct.content.removeEL(key);
 	}
 
 	@Override
 	public Object set(Key key, Object value) throws PageException {
+		return set(null, key, value);
+	}
+
+	@Override
+	public Object set(PageContext pc, Key key, Object value) throws PageException {
 		if (uncoupled != null) return uncoupled.set(key, value);
 
-		if (isReadonly()) throw errorOutside();
-		Object _null = NullSupportHelper.NULL();
-		Object meta = getMeta(key, _null);
-		if (meta != _null) throw errorMeta(key);
+		if (isReadonly(pc)) throw errorOutside();
+		Object meta = getMeta(key, Null.NULL);
+		if (!NullSupportHelper.isNull(meta)) throw errorMeta(key);
 		return ct.content.set(key, value);
 	}
 
 	@Override
 	public Object setEL(Key key, Object value) {
+		return setEL(null, key, value);
+	}
+
+	@Override
+	public Object setEL(PageContext pc, Key key, Object value) {
 		if (uncoupled != null) return uncoupled.setEL(key, value);
-		if (isReadonly()) return null;
-		Object _null = NullSupportHelper.NULL();
+		if (isReadonly(pc)) return null;
+		Object _null = Null.NULL;
 		Object meta = getMeta(key, _null);
-		if (meta != _null) return null;
+		if (!NullSupportHelper.isNull(meta)) return null;
 		return ct.content.setEL(key, value);
 	}
 
@@ -424,11 +432,11 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 		return ct.content.compareTo(dt);
 	}
 
-	private boolean isReadonly() {
+	private boolean isReadonly(PageContext pc) {
 		if (uncoupled != null) return false;
-		PageContext pc = ThreadLocalPageContext.get();
+		pc = ThreadLocalPageContext.get(pc);
 		if (pc == null) return true;
-		return pc.getThread() != ct;
+		return pc.getThread() != ct.getExecutionThread();
 	}
 
 	private ApplicationException errorOutside() {

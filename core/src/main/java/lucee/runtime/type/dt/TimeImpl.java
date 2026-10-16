@@ -32,13 +32,14 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.SimpleValue;
 
 /**
  * Printable and Castable Time Object (at the moment, same as DateTime)
  */
-public final class TimeImpl extends Time implements SimpleValue {
+public final class TimeImpl extends Time implements SimpleValue, CastablePro {
 
 	private static DateTimeFormatter luceeFormatter = FormatUtil.getDateTimeFormatter(Locale.US, "HH:mm:ss").formatter;
 
@@ -76,18 +77,30 @@ public final class TimeImpl extends Time implements SimpleValue {
 
 	@Override
 	public String castToString() {
-		return "{t '" + FormatUtil.format(luceeFormatter, this, ThreadLocalPageContext.getTimeZone()) + "'}";
+		return castToString((PageContext) null);
+	}
+
+	@Override
+	public String castToString(PageContext pc) {
+		return "{t '" + FormatUtil.format(luceeFormatter, this, ThreadLocalPageContext.getTimeZone(pc)) + "'}";
 	}
 
 	@Override
 	public String toString() {
-		return castToString();
+		return castToString((PageContext) null);
 	}
 
 	@Override
 	public String castToString(String defaultValue) {
 		synchronized (luceeFormatter) {
 			return "{t '" + FormatUtil.format(luceeFormatter, this, ThreadLocalPageContext.getTimeZone()) + "'}";
+		}
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		synchronized (luceeFormatter) {
+			return "{t '" + FormatUtil.format(luceeFormatter, this, ThreadLocalPageContext.getTimeZone(pc)) + "'}";
 		}
 	}
 
@@ -136,21 +149,21 @@ public final class TimeImpl extends Time implements SimpleValue {
 
 	@Override
 	public int compareTo(boolean b) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), (java.util.Date) this, (java.util.Date) dt);
+		return OpUtil.compare(null, (java.util.Date) this, (java.util.Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
+		return OpUtil.compare(null, castToString(), str);
 	}
 }

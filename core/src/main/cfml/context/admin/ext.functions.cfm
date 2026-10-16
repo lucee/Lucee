@@ -196,6 +196,13 @@
 			<cfreturn "data:image/png;base64,#empty#">
 		</cfif>
 
+		<!--- extension metadata sometimes embeds huge base64 logos; skip before decode/imageRead --->
+		<cfset local.maxEmbeddedSrcLen = 350000>
+		<cfset local.maxLogoBytes = 524288>
+		<cfif !isValid("URL", arguments.src) && !fileExists(arguments.src) && len(arguments.src) GT local.maxEmbeddedSrcLen>
+			<cfreturn "data:image/png;base64,#empty#">
+		</cfif>
+
 		<cftry>
 			<cfset local.id=hash(arguments.src&":"&arguments.width&"-"&arguments.height)>
 			<cfset mimetypes={png:'png',gif:'gif',jpg:'jpeg'}>
@@ -236,27 +243,14 @@
 			<cfelse>
 				<cfset local.data=toBinary(arguments.src)>
 			</cfif>
+
+			<cfif len(local.data) GT local.maxLogoBytes>
+				<cfreturn "data:image/png;base64,#empty#">
+			</cfif>
 			
 			<!--- is the image extension installed? --->
-			<cfif serversideDN && extensionExists("B03E92E1-F2F3-4380-981922D0BDFEF2B8")> 
-				<cfif isImage(data)>
-					<cfset local.img=imageRead(data)>
-					<!--- shrink images if needed --->
-					<cfif  (img.width*img.height) GT 1000000 && (img.height GT arguments.height or img.width GT arguments.width)>
-						<cfif img.height GT arguments.height >
-							<cfset imageResize(img,"",arguments.height)>
-						</cfif>
-						<cfif img.width GT arguments.width>
-							<cfset imageResize(img,arguments.width,"")>
-						</cfif>
-					</cfif>
-					<!--- we go this way to influence the quality of the image 
-						and cache the local file
-
-					--->
-					<cfset imagewrite(image:img,destination:tmpfile)>
-					<cfset local.b64=toBase64(fileReadBinary(tmpfile))>
-				</cfif>
+			<cfif serversideDN && extensionExists("B03E92E1-F2F3-4380-981922D0BDFEF2B8")>
+				<cfinclude template="ext.functions.image.cfm">
 			</cfif>	
 
 			<cfif isNull(local.b64) && isBinary(data)>
@@ -266,7 +260,7 @@
 			</cfif>				
 
 			<cfcatch>
-				<cflog text="Error parsing extension logo, #cfcatch.message#, [#arguments.src#]" type="error">
+				<cflog text="Error parsing extension logo, #cfcatch.message#, src length #len(arguments.src)#" type="error">
 				<cfset local.b64=local.empty>
 			</cfcatch>
 		</cftry>
@@ -277,354 +271,78 @@
 
 <cfscript>
 
-	/**
-	* get information from all available ExtensionProvider defined
-	*/
-	function getAllExternalData(boolean forceReload=false, numeric timeSpan=60){
-		admin
-			action="getRHExtensionProviders"
-			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
-			returnVariable="local.providers";
-		return getExternalData(queryColumnData(providers,"url"),arguments.forceReload,arguments.timeSpan);
+	function getExtensionGroups() {
+		cfadmin(
+			action="getExtensionGroups",
+			type="#request.adminType#",
+			password="#session["password"&request.adminType]#",
+			returnVariable="local.groupIds");
+			
+		return groupIds;
 	}
-
-	/**
-	* get information from specific ExtensionProvider, if an extension is provided by multiple providers only the for the newest (version) is returned
-	*/
-	function getExternalData(required string[] providers, boolean forceReload=false, numeric timeSpan=60, boolean useLocalProvider=true) {
-		var datas={};		
-		providers.each(parallel:true,closure:function(value){
-				var data=getProviderInfo(arguments.value,forceReload,timespan);
-				datas[arguments.value]=data;
-			});
-
-		var qry=queryNew("id,name,provider,lastModified");
-
-		if(useLocalProvider) {
-			admin
-			    action="getLocalExtensions"
-			    type="#request.adminType#"
-			    password="#session["password"&request.adminType]#"
-			    returnVariable="local.locals" ;
-			// add column if necessary
-			loop list="#locals.columnlist()#" item="local.k" {
-                if(!qry.columnExists(k)) queryAddColumn(qry,k,[]);
-            }
-           queryAddColumn(qry,'otherVersions',[]);
-
-			loop query="#locals#" {
-				var row=queryAddRow(qry);
-				qry.setCell("provider","local",row);
-				qry.setCell("otherVersions",[],row);
-				loop list="#locals.columnlist()#" item="local.k" {
-            		qry.setCell(k,locals[k],row);
-            	}
-			}
-		}
-
-		querySort(query:qry,names:"id");
-		local.lastId="";
-		for(var row=qry.recordcount;row>=1;row--)  {
-			if(qry.id[row]==lastId) {
-				if(toVersionSortable(qry.version[row])<toVersionSortable(qry.version[row+1])) {
-					local.older=qry.version[row];
-
-					loop array=qry.columnArray() item="local.col" {
-						qry[col][row]=qry[col][row+1];
-					}
+	
+	function getLuceeExtensions(required array groupIds) cachedwithin="#createTimeSpan(0,1,0,0)#" {
+		var names=[];
+		var extensions=[:];
+		var qry=queryNew("id,name,groupId,artifactId,version,lastModified,description,otherVersions,image");
+		var prefix="t"&createUUID();
+		loop array=groupIds item="local.groupId" {
+			try{
+				var artifacts=luceeExtension(groupId);
+				if(arrayLen(artifacts) == 0) {
+					continue;
 				}
-				else
-					local.older=qry.version[row+1];
-
-				local.ov=qry.otherVersions[row+1];
-				if (isSimpleValue(ov) || isNull(ov))
-					qry.otherVersions[row]=[older];
-				else {
-					arrayAppend(ov,older);
-					qry.otherVersions[row]=ov;
-				}
-				queryDeleteRow(qry,row+1);
 			}
-
-
-			lastId=qry.id[row];
-		}
-
-		/* output just for testing
-		var q=duplicate(qry);
-    	loop list=q.columnlist item="local.le" {
-    		if(le=='name' || le=='id' || le=='version' || le=='otherVersions') continue;
-	    	q.deleteColumn(le);
-	    }
-	    dump(q);*/
-
-		loop struct="#datas#" index="local.provider" item="local.data" {
-			if (structKeyExists(data,"error")){
-				var err = "getExternalData() #local.provider# #data.error#";
-				trace text="#err#";
-				WriteLog(type="ERROR", text=err);
+			catch(any ex) {
 				continue;
 			}
 
-			lock name="admin-extension-populate-cols" {
-				// rename older to otherVersions
-				if(queryColumnExists(data.extensions,"older") && !queryColumnExists(data.extensions,"otherVersions")) {
-					data.extensions.addColumn("otherVersions",data.extensions.columnData('older'));
-					data.extensions.deleteColumn("older");
-					//QuerySetColumn(data.extensions,"older","otherVersions");
-				}
-
-				// add missing columns
-				loop list="#data.extensions.columnlist()#" item="local.k" {
-					if(!qry.ColumnExists(k)) qry.addColumn(k,[]);
-				}
-			}
-
-			// add Extensions data
-			var row=0;
-
-            loop query="#data.extensions#" label="outer"{
-            	row=0;
-            	// does a row with the same id already exist?
-            	local.localNewer=false;
-            	loop query="#qry#" label="inner" {
-            		// has already record with that id
-            		if(qry.id==data.extensions.id) {
-
-            			// current version is older
-            			row=qry.currentrow;
-            			if(qry.version>data.extensions.version) {
-            				// local data is newer
-							//localNewer=true;
-            				//continue outer;
-            			}
-            		}
-            	}
-
-            	// merge
-            	if(row>0) {
-					qry.setCell("provider",provider,row);
-					qry.setCell("lastModified",data.lastModified,row);
-					if(variables.toVersionSortable(qry.version[row])<variables.toVersionSortable(data.extensions.version)) {
-						local.v=qry.version[row];
-						loop list="#data.extensions.columnlist()#" item="local.k" {
-							if(k=='otherVersions') continue;
-		            		qry.setCell(k,data.extensions[k],row);
-		            	}
-		            	if(isSimpleValue(qry.otherVersions[row]) || isNull(qry.otherVersions[row])) qry.otherVersions[row]=[v];
-		            	else arrayAppend(qry.otherVersions[row],v);
-					}
-					else {
-						if(isSimpleValue(qry.otherVersions[row]) || isNull(qry.otherVersions[row])) qry.otherVersions[row]=[data.extensions.version];
-						else arrayAppend(qry.otherVersions[row],data.extensions.version);
-					}
-
-					local.locals=qry.otherVersions[row];
-					local.externals=data.extensions.otherVersions;
-					if(isArray(locals) && locals.len() && isArray(externals) && externals.len()) {
-						loop array=locals item="local.lv" {
-							local.lvs=variables.toVersionSortable(lv);
-							local.exists=false;
-							for(var i=externals.len();i>=1;i--) {
-								if(variables.toVersionSortable(externals[i])==lvs) exists=true;
-							}
-
-							if(!exists) {
-								arrayAppend(externals,lv);
+			loop array=artifacts index="local.i" item="local.artifactId" {
+				var name=prefix&"_"&groupId&"_"&artifactId;
+				arrayAppend(names, name);
+				thread name=name extensions=extensions groupId=groupId artifactId=artifactId {
+					try {
+						extensions[artifactId]["groupId"]=groupId;
+						var versions=luceeExtension(groupId,artifactId);
+						extensions[artifactId]["versions"]=versions;
+						if(len(versions)) {
+							for(local.v=len(versions);local.v > 0;local.v--) {
+								try{
+									extensions[artifactId]["last"]=luceeExtension(groupId,artifactId,versions[v],true);
+									break;
+								}
+								catch(any e) {
+									extensions[artifactId]["last"]={};
+								}
 							}
 						}
-						qry.otherVersions[row]=externals;
 					}
-					else if(isArray(locals) && locals.len() ) {
-						qry.otherVersions[row]=locals;
+					catch(any e) {
+						extensions[artifactId]["last"]={};
 					}
-					else {
-						qry.otherVersions[row]=externals;
-					}
-
-
-            	}
-				else {
-					row=queryAddRow(qry);
-					qry.setCell("provider",provider,row);
-					qry.setCell("lastModified",data.lastModified,row);
-	            	loop list="#data.extensions.columnlist()#" item="local.k" {
-		            	qry.setCell(k,data.extensions[k],row);
-		            }
-	        	}
-            }
-    	}
-    	if(isQuery(qry)) querySort(query:qry,names:"name,id");
-
-    	/* output just for testing
-		var q=duplicate(qry);
-    	loop list=q.columnlist item="local.le" {
-    		if(le=='name' || le=='id' || le=='version' || le=='older' || le=='otherVersions') continue;
-	    	q.deleteColumn(le);
-	    }
-		dump(q);*/
-
-    	return qry;
-	}
-
-	function getProvidersInfo(required string[] providers, boolean forceReload=false, numeric timeSpan=60,parallel=false){
-		var datas={};
-		providers.each(parallel:arguments.parallel,closure:function(value){
-				var data=getProviderInfo(arguments.value,forceReload,timespan);
-				datas[arguments.value]=data;
-			});
-    	return datas;
-	}
-
-	function getProviderInfoAsync(required string provider){
-		thread args=arguments {
-			getProviderInfo(args.provider, true, 60, 50);
-		}
-	}
-
-	function getProviderInfo(required string provider, boolean forceReload=false, numeric timeSpan=60, timeout=10){
-		if(arguments.provider=="local" || arguments.provider=="") {
-			local.provider={};
-			provider.meta.title="Local Extension Provider";
-			provider.meta.description="Extensions located at: ";
-			provider.meta.mode="develop";
-			provider.lastModified=now();
-			return provider;
-		}
-
-    	// request (within request we only try once to load the data)
-        if(!arguments.forceReload and
-			StructKeyExists(request,"rhproviders") and
-			StructKeyExists(request.rhproviders,provider) and
-			isStruct(request.rhproviders[provider]))
-        		return request.rhproviders[provider];
-        // from session
-        if(!arguments.forceReload and
-        	  StructKeyExists(session,"rhproviders") and
-			  StructKeyExists(session.rhproviders,provider) and
-			  StructKeyExists(session.rhproviders[provider],'lastModified') and
-			  DateAdd("s",arguments.timespan,session.rhproviders[provider].lastModified) GT now())
-				return session.rhproviders[provider];
-
-		try {
-			
-			// get info from remote
-			var uri=provider&"/rest/extension/provider/info";
-
-			admin
-				action="getAPIKey"
-				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				returnVariable="local.apiKey";
-
-			var start=getTickCount();
-
-			try{
-				http url="#uri#?type=all&coreVersion=#server.lucee.version#" cachedWithin=createTimespan(0,0,5,0) result="local.http" timeout=arguments.timeout {
-					httpparam type="header" name="accept" value="application/json";
-					if(!isNull(apikey))httpparam type="url" name="ioid" value="#apikey#";
 				}
 			}
-			catch(e) {
-				writeLog("Provider calls to #arguments.provider# failed with #e.message# #e.stacktrace#" , "error");
-				if(!structKeyExists(request, "providerRetryCount") || !structKeyExists(request.providerRetryCount, arguments.provider)) request.providerRetryCount[arguments.provider] = 0;
-
-				request.providerRetryCount[arguments.provider]++;
-
-				// call it in the background once per the provider
-				if(request.providerRetryCount[arguments.provider] <= 1) getProviderInfoAsync(arguments.provider);
-			}
-
-			if(isNull(http.status_code)){
-				session.rhcfcstries[provider]=now(); // set last try
-				local.result.error=http.fileContent?:'';
-				result.status_code=404;
-				result.lastModified=now();
-				result.provider=uri;
-				return result;
-			}
-
-			// sucessfull
-			if(http.status_code==200) {
-				local.result=deserializeJson(http.fileContent,false);
-				
-				result.lastModified=now();
-				result.provider=uri;
-				result.status_code=http.status_code;
-				session.rhcfcstries[provider]=now();
-				session.rhproviders[provider]=result;
-		        request.rhproviders[provider]=result;
-				return result;
-			}
-			// failed
-			else {
-				session.rhcfcstries[provider]=now(); // set last try
-				local.result.error=http.fileContent;
-				result.status_code=http.status_code;
-				result.lastModified=now();
-				result.provider=uri;
-				return result;
-			}
-	    }
-		catch(e){
-			session.rhcfcstries[provider]=now(); // set last try
-			result={status_code=500};
-			local.result.error=e.message;
-			result.exception=e;
-			result.lastModified=now();
-			result.provider=uri;
-			return result;
 		}
-		return false;
-	}
+		thread action="join" name=arrayToList(names);
 
-
-	function downloadFull(required string provider,required string id, string version=""){
-		return _download("full",provider,id,version);
-	}
-	function downloadTrial(required string provider,required string id, string version=""){
-		return _download("trial",provider,id,version);
-	}
-
-	function _download(String type,required string provider,required string id, string version=""){
-
-		var start=getTickCount();
-
-		// get info from remote
-		admin
-			action="getAPIKey"
-			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
-			returnVariable="apiKey";
-
-		var uri=provider&"/rest/extension/provider/"&type&"/"&id;
-
-		if(provider=="local") { // TODO use version from argument scope
-			admin
-				action="getLocalExtension"
-				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				id="#id#"
-				asBinary=true
-				returnVariable="local.ext";
-			return local.ext;
-		}
-		else {
-			http url="#uri#?type=all&coreVersion=#server.lucee.version##len(arguments.version)?'&version='&arguments.version:''#" result="local.http"  cachedWithin=createTimespan(0,0,5,0) {
-				httpparam type="header" name="accept" value="application/cfml";
-				if(!isNull(apiKey))httpparam type="url" name="ioid" value="#apikey#";
-
-			}
 			
-			if(!isNull(http.status_code) && http.status_code==200) {
-				return http.fileContent;
-			}
-			var errorMessage = "Error: Download extension returned #http.status_code# for [#uri#]#len( http.errorDetail ) ? ' [' & http.errorDetail & ']' : ''#";
-			writeLog(type="ERROR", text=errorMessage, log="deploy");
-			writeLog(type="ERROR", text="file-content:"&http.fileContent, log="deploy"); // log the actual error response out for debugging
-			throw encodeForHtml(errorMessage); // rather not encode here, but this is hits a generic error handler
+		loop struct=extensions key="local.artifactId" item="local.data" {
+			if(isNull(data.last) || structCount(data.last)==0) continue;
+			var meta = structKeyExists(data.last, "metadata") ? data.last.metadata : {};
+			if(!len(meta.id ?: "") && !len(meta.name ?: "")) continue;
+			var row=queryAddRow(qry);
+			querySetCell(qry,"groupId",data.groupId ?: groupId);
+			querySetCell(qry,"artifactId",artifactId);
+			querySetCell(qry,"id",meta.id ?: "");
+			querySetCell(qry,"name",meta.name ?: "");
+			querySetCell(qry,"description",meta.description ?: "");
+			querySetCell(qry,"image",meta.image ?: "");
+			querySetCell(qry,"lastModified",meta.buildDate ?: (data.last.lastModified ?: ""));
+			querySetCell(qry,"version",data.last.version?:"");
+			querySetCell(qry,"otherVersions",data.versions);
+			
 		}
+		return qry;
 	}
 
 	function toVersionsSorted(required array versions) localMode=true {

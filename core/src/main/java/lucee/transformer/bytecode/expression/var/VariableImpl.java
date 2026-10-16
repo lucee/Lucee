@@ -30,9 +30,8 @@ import org.objectweb.asm.commons.Method;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
-import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.tag.TagUtil;
 import lucee.runtime.type.Array;
@@ -96,8 +95,12 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 	private static final int THREE2 = 2;
 
 	// Object getCollection (Object,Key[,Object])
-	private final static Method[] GET_COLLECTION = new Method[] { new Method("getCollection", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY }),
-			new Method("getCollection", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY, Types.OBJECT }) };
+	private final static Method[] GET_COLLECTION = new Method[] {
+
+			new Method("getCollection", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY }),
+			new Method("getCollection", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY, Types.OBJECT })
+
+	};
 
 	// Object get (Object,Key)
 	private final static Method[] GET = new Method[] { new Method("get", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY }),
@@ -288,7 +291,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 	private Type _writeOutListener(BytecodeContext bc, int mode, Boolean asCollection) throws TransformerException {
 		GeneratorAdapter ga = bc.getAdapter();
 		TagThread tt = new TagThread(bc.getFactory(), getStart(), listener.getEnd());
-		TagLibTag tlt = TagUtil.getTagLibTag((ConfigPro) ThreadLocalPageContext.getConfig(), "cf", "thread");
+		TagLibTag tlt = TagUtil.getTagLibTag(ConfigUtil.getConfigServerImpl(bc.getConfig()), "cf", "thread");
 		tt.outputName();
 		tt.setTagLibTag(tlt);
 		tt.addAttribute(new Attribute(false, "action", bc.getFactory().createLitString("run"), "string"));
@@ -308,7 +311,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 		final int count = countFM + countDM;
 
 		// count 0
-		if (count == 0) return _writeOutEmpty(bc);
+		if (count == 0) return _writeOutEmpty(bc, asCollection);
 
 		boolean supported = false;
 
@@ -446,7 +449,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 		final int count = countFM + countDM;
 
 		// count 0
-		if (count == 0) return _writeOutEmpty(bc);
+		if (count == 0) return _writeOutEmpty(bc, asCollection);
 
 		// pc
 		adapter.loadArg(0);
@@ -485,27 +488,30 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 	 * outputs an empty Variable, only scope Example: pc.formScope();
 	 * 
 	 * @param adapter
+	 * @param asCollection the scope is only read/written by key (unary op, arrayToList), no reference
+	 *            escapes, so it doesn't need binding
 	 * @throws TemplateException
 	 */
-	private Type _writeOutEmpty(BytecodeContext bc) throws TransformerException {
+	private Type _writeOutEmpty(BytecodeContext bc, Boolean asCollection) throws TransformerException {
 		if (ignoredFirstMember && (scope == Scope.SCOPE_LOCAL || scope == Scope.SCOPE_VAR)) return Types.VOID;
 
 		GeneratorAdapter adapter = bc.getAdapter();
 		adapter.loadArg(0);
 		Method m;
 		Type t = Types.PAGE_CONTEXT;
+		boolean bind = asCollection == null || !asCollection.booleanValue();
 		if (scope == Scope.SCOPE_ARGUMENTS) {
-			getFactory().TRUE().writeOut(bc, MODE_VALUE);
+			getFactory().createLitBoolean(bind).writeOut(bc, MODE_VALUE);
 			m = TypeScope.METHOD_ARGUMENT_BIND;
 		}
 		else if (scope == Scope.SCOPE_LOCAL) {
 			t = Types.PAGE_CONTEXT;
-			getFactory().TRUE().writeOut(bc, MODE_VALUE);
+			getFactory().createLitBoolean(bind).writeOut(bc, MODE_VALUE);
 			m = TypeScope.METHOD_LOCAL_BIND;
 		}
 		else if (scope == Scope.SCOPE_VAR) {
 			t = Types.PAGE_CONTEXT;
-			getFactory().TRUE().writeOut(bc, MODE_VALUE);
+			getFactory().createLitBoolean(bind).writeOut(bc, MODE_VALUE);
 			m = TypeScope.METHOD_VAR_BIND;
 		}
 		else if (scope == Scope.SCOPE_CLUSTER) {
@@ -719,6 +725,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 				else ASMConstants.NULL(adapter);
 				if (bifCD.getVersionAsString() != null) adapter.push(bifCD.getVersionAsString());// bundle version
 				else ASMConstants.NULL(adapter);
+
 				adapter.invokeStatic(Types.FUNCTION_HANDLER_POOL, INVOKE5);
 			}
 			else if (((ClassDefinitionImpl) bifCD).isMaven()) {
@@ -726,7 +733,6 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 
 				adapter.invokeStatic(Types.FUNCTION_HANDLER_POOL, INVOKE4);
 			}
-
 			else adapter.invokeStatic(Types.FUNCTION_HANDLER_POOL, INVOKE3);
 			rtnType = Types.OBJECT;
 		}
@@ -910,9 +916,14 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 		}
 
 		if (doOnlyScope) return rtn;
+		// if (!member.getSafeNavigated() && !_last) {
+		// adapter.loadArg(0);
+		// }
+
 		getFactory().registerKey(bc, member.getName(), false);
 
 		boolean _last = !last && scope == Scope.SCOPE_UNDEFINED;
+
 		if (!member.getSafeNavigated()) {
 			adapter.invokeInterface(TypeScope.SCOPES[scope], _last ? METHOD_SCOPE_GET_COLLECTION_KEY : METHOD_SCOPE_GET_KEY);
 		}

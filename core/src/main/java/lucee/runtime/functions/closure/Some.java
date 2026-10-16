@@ -30,6 +30,8 @@ import java.util.concurrent.Future;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.concurrency.Data;
+import lucee.runtime.concurrency.PageContextPool;
+import lucee.runtime.concurrency.ParallelUtil;
 import lucee.runtime.concurrency.UDFCaller2;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.FunctionException;
@@ -56,34 +58,36 @@ public final class Some extends BIF implements ClosureFunc {
 	private static final long serialVersionUID = -5940580562772523622L;
 
 	public static boolean call(PageContext pc, Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false, Each.DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, "false", 0, TYPE_UNDEFINED);
 	}
 
-	public static boolean call(PageContext pc, Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, Each.DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
+	public static boolean call(PageContext pc, Object obj, UDF udf, String parallel) throws PageException {
+		return _call(pc, obj, udf, parallel, 0, TYPE_UNDEFINED);
 	}
 
-	public static boolean call(PageContext pc, Object obj, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+	public static boolean call(PageContext pc, Object obj, UDF udf, String parallel, Number maxThreads) throws PageException {
 		return _call(pc, obj, udf, parallel, Caster.toIntValue(maxThreads), TYPE_UNDEFINED);
 	}
 
-	public static boolean call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
+	public static boolean call(PageContext pc, Object obj, UDF udf, String parallel, int maxThreads, short type) throws PageException {
 		return _call(pc, obj, udf, parallel, maxThreads, type);
 	}
 
-	private static boolean _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
+	private static boolean _call(PageContext pc, Object obj, UDF udf, String parallel, int maxThreads, short type) throws PageException {
 
 		Thread thread = null;
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;
-		// 0 or less == default
-		if (maxThreads < 1) maxThreads = Each.DEFAULT_MAX_THREAD;
-		// 1 == not parallel
-		else if (maxThreads == 1) parallel = false;
-		if (parallel) {
-			execute = ThreadUtil.createExecutorService(maxThreads);
+		short pm = ParallelUtil.toParallel(parallel);
+		// a concurrency of 1 means one at a time, i.e. not parallel
+		if (maxThreads == 1) pm = ParallelUtil.PARALLEL_NONE;
+		// platform threads need a concrete pool size; virtual threads stay unbounded when no limit is given
+		else if (pm == ParallelUtil.PARALLEL_THREAD && maxThreads < 1) maxThreads = Each.DEFAULT_MAX_THREAD;
+		if (pm != ParallelUtil.PARALLEL_NONE) {
+			execute = ThreadUtil.createExecutorService(maxThreads, pm == ParallelUtil.PARALLEL_VIRTUAL);
 			futures = new ArrayList<Future<Data<Object>>>();
 			thread = ((PageContextImpl) pc).getThread();
+			((PageContextImpl) pc).setParallelPool(new PageContextPool(pc));
 		}
 
 		boolean res;
@@ -138,7 +142,7 @@ public final class Some extends BIF implements ClosureFunc {
 		}
 		else throw new FunctionException(pc, "Some", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
 
-		if (parallel) res = afterCall(pc, futures, execute, thread);
+		if (execute != null) res = afterCall(pc, futures, execute, thread);
 
 		return res;
 	}
@@ -303,30 +307,34 @@ public final class Some extends BIF implements ClosureFunc {
 	}
 
 	public static boolean afterCall(PageContext pc, List<Future<Data<Object>>> futures, ExecutorService es, Thread thread) throws PageException {
+		boolean some = false;
+		Exception first = null;
 		try {
 			Iterator<Future<Data<Object>>> it = futures.iterator();
 			Data<Object> d;
 			while (it.hasNext()) {
-				d = it.next().get();
-				if (Caster.toBooleanValue(d.result)) return true;
-				pc.write(d.output);
+				try {
+					d = it.next().get();
+					if (Caster.toBooleanValue(d.result)) some = true;
+					pc.write(d.output);
+				}
+				catch (Exception e) {
+					if (first == null) first = e;
+				}
 			}
-			return false;
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
 		}
 		finally {
-			((PageContextImpl) pc).setThread(thread);
-			if (es != null) es.shutdown();
+			Each.finishParallelCall(pc, es, thread);
 		}
+		if (first != null) throw Caster.toPageException(first);
+		return some;
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toStruct(args[0]), Caster.toFunction(args[1]));
-		if (args.length == 3) return call(pc, Caster.toStruct(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]));
-		if (args.length == 4) return call(pc, Caster.toStruct(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toNumber(pc, args[3]));
+		if (args.length == 3) return call(pc, Caster.toStruct(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, Caster.toStruct(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toNumber(pc, args[3]));
 
 		throw new FunctionException(pc, "Some", 2, 4, args.length);
 

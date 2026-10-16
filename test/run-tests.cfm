@@ -64,7 +64,10 @@ request.basedir = basedir;
 request.srcall = srcall;
 request.testFolder = test;
 
-request.SERVERADMINPASSWORD = "webweb";
+// the admin password can be defined via env var LUCEE_ADMIN_PASSWORD (system property lucee.admin.password),
+// which takes precedence over the config file and cannot be changed via updatePassword; use it as-is when defined
+envAdminPW = server.system.environment.LUCEE_ADMIN_PASSWORD ?: ( server.system.properties[ "lucee.admin.password" ] ?: "" );
+request.SERVERADMINPASSWORD = len( envAdminPW ) ? envAdminPW : "webweb";
 server.SERVERADMINPASSWORD = request.SERVERADMINPASSWORD;
 
 NL = "
@@ -78,7 +81,7 @@ for (el in ["bundleId", "debugBuffer", "endTime", "error", "failMessage", "failO
 	fixCase[ucase(el)] = el;
 }
 
-systemOutput("Running tests with Java: #server.java.version# (Compiler: #server.java.javaCompilerVersion?:'unknown'#)", true);
+systemOutput("Running tests with Lucee #server.lucee.version# and Java: #server.java.version# (Compiler: #server.java.javaCompilerVersion?:'unknown'#)", true);
 
 try {
 
@@ -173,14 +176,18 @@ try {
 	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
 	setupTestServices = new test._setupTestServices().setup();
 
-	try {
-		admin
-			action="updatePassword"
-			type="server"
-			oldPassword=""
-			newPassword="#request.SERVERADMINPASSWORD#";
+	// set a password for the admin - but only when it is not already defined via env var / system property
+	// (LUCEE_ADMIN_PASSWORD / lucee.admin.password), which takes precedence and cannot be changed here
+	if ( len( envAdminPW ) EQ 0 ) {
+		try {
+			admin
+				action="updatePassword"
+				type="server"
+				oldPassword=""
+				newPassword="#request.SERVERADMINPASSWORD#";
+		}
+		catch(e){}	// may exist from previous execution
 	}
-	catch(e){}	// may exist from previous execution
 
 	systemOutput( "set admin password #dateTimeFormat(now())#", true );
 
@@ -202,7 +209,7 @@ try {
 		else
 			request.testFilter="";
 	}
-	request.testFilter = ListToArray( trim( request.testFilter ) );
+	request.testFilter = ListToArray( trim( request.testFilter ), ",|" );
 	if ( Arraylen( request.testFilter ) gt 0 )
 		systemOutput( NL & "Filtering only tests with filenames containing: " & request.testFilter.toJson() & NL, true );
 	else
@@ -319,11 +326,36 @@ try {
 	systemOutput("--------------------------------------",true);
 
 	// set the testbox mapping
+	param name="testboxArchive" default="";
+	if ( len( testboxArchive ) eq 0 ) {
+		var tbArchiveProp = server._getSystemPropOrEnvVars( "testboxArchive", "", false );
+		if ( structCount( tbArchiveProp ) ) testboxArchive = tbArchiveProp.testboxArchive;
+	}
+	testboxPhysical = replace( testboxArchive, "/archive/testbox.lar", "/testbox/testbox" );
+	if ( directoryExists( testboxPhysical ) ) {
+		admin
+			action="updateMapping"
+			type="server"
+			password="#request.SERVERADMINPASSWORD#"
+			virtual="/testbox"
+			physical="#testboxPhysical#"
+			toplevel="true"
+			archive=""
+			primary="physical"
+			trusted="no";
+	}
+
 	application
 		action="update"
 		componentpaths = "#[{archive:testboxArchive}]#";
 
 	systemOutput( "update componentpaths #dateTimeFormat( now() )#" & NL, true );
+
+	// warm TestBox before parallel bundle filtering loads LuceeTestCase (BaseSpec needs MockBox in init)
+	silent {
+		createObject( "component", "testbox.system.MockBox" );
+		createObject( "component", "testbox.system.Assertion" );
+	}
 
 	// load testbox
 	SystemOut = createObject( "java", "lucee.commons.lang.SystemOut" );

@@ -23,7 +23,7 @@ Maven builds automatically before testing, so do NOT run `ant fast` before `mvn 
 
 - Build requires Java, Maven and Ant
 - Build usually is run with Java 21
-- All artifacts are compiled to bytecode targeting Java 11
+- All artifacts are compiled to bytecode targeting Java 21
 
 ### Issue Tracking
 

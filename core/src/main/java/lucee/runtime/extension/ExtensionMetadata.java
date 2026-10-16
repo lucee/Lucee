@@ -10,12 +10,13 @@ import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.VersionRange;
 import lucee.runtime.type.dt.DateTime;
+import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 
 public final class ExtensionMetadata implements Serializable {
@@ -25,6 +26,8 @@ public final class ExtensionMetadata implements Serializable {
 	private static final String[] EMPTY = new String[0];
 
 	private String id;
+	private String groupId;
+	private String artifactId;
 	private String version;
 	private int releaseType;
 	private String name;
@@ -87,7 +90,7 @@ public final class ExtensionMetadata implements Serializable {
 	private transient List<Map<String, String>> mappings;
 	private String mappingsRaw;
 
-	private transient List<MavenUtil.GAVSO> maven;
+	private transient List<MavenUtil.MavenCoordinate> maven;
 	private String mavenRaw;
 
 	private transient List<Map<String, Object>> eventGatewayInstances;
@@ -135,12 +138,12 @@ public final class ExtensionMetadata implements Serializable {
 		}
 	}
 
-	public List<MavenUtil.GAVSO> getMaven() {
+	public List<MavenUtil.MavenCoordinate> getMaven() {
 		if (maven == null) {
 			if (!StringUtil.isEmpty(mavenRaw, true)) {
-				maven = MavenUtil.toGAVSOs(mavenRaw, null);
+				maven = MavenUtil.toCoordinates(mavenRaw, null);
 			}
-			if (maven == null) maven = new ArrayList<GAVSO>();
+			if (maven == null) maven = new ArrayList<MavenCoordinate>();
 		}
 		return maven;
 	}
@@ -328,6 +331,22 @@ public final class ExtensionMetadata implements Serializable {
 
 	public String _getVersion() {
 		return version;
+	}
+
+	String getGroupId() {
+		return groupId;
+	}
+
+	public void setGroupId(String groupId) {
+		this.groupId = groupId;
+	}
+
+	String getArtifactId() {
+		return artifactId;
+	}
+
+	public void setArtifactId(String artifactId) {
+		this.artifactId = artifactId;
 	}
 
 	public void setVersion(String version, String label) throws ApplicationException {
@@ -556,5 +575,55 @@ public final class ExtensionMetadata implements Serializable {
 
 	protected void setJars(String[] jars) {
 		this.jars = jars;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("ExtensionMetadata{");
+		sb.append("id='").append(id).append('\'');
+		sb.append(", name='").append(name).append('\'');
+		sb.append(", version='").append(version).append('\'');
+		sb.append(", groupId='").append(groupId).append('\'');
+		sb.append(", artifactId='").append(artifactId).append('\'');
+		sb.append(", symbolicName='").append(symbolicName).append('\'');
+		sb.append(", type='").append(type).append('\'');
+		sb.append(", releaseType=").append(releaseType);
+		sb.append(", trial=").append(trial);
+		sb.append(", startBundles=").append(startBundles);
+		sb.append(", description='").append(description).append('\'');
+		sb.append(", image='").append(image).append('\'');
+		sb.append(", builtDate=").append(builtDate);
+		sb.append(", minCoreVersion=").append(minCoreVersion);
+		sb.append(", minLoaderVersion=").append(minLoaderVersion);
+		if (!ArrayUtil.isEmpty(categories)) sb.append(", categories=").append(ListUtil.arrayToList(categories, ", "));
+		// if (!ArrayUtil.isEmpty(bundles)) sb.append(", bundles=").append(ListUtil.arrayToList(bundles, ",
+		// "));
+		if (!ArrayUtil.isEmpty(jars)) sb.append(", jars=").append(ListUtil.arrayToList(jars, ", "));
+		if (!ArrayUtil.isEmpty(flds)) sb.append(", flds=").append(ListUtil.arrayToList(flds, ", "));
+		if (!ArrayUtil.isEmpty(tlds)) sb.append(", tlds=").append(ListUtil.arrayToList(tlds, ", "));
+		if (!ArrayUtil.isEmpty(tags)) sb.append(", tags=").append(ListUtil.arrayToList(tags, ", "));
+		if (!ArrayUtil.isEmpty(functions)) sb.append(", functions=").append(ListUtil.arrayToList(functions, ", "));
+		if (!ArrayUtil.isEmpty(archives)) sb.append(", archives=").append(ListUtil.arrayToList(archives, ", "));
+		if (!ArrayUtil.isEmpty(applications)) sb.append(", applications=").append(ListUtil.arrayToList(applications, ", "));
+		if (!ArrayUtil.isEmpty(components)) sb.append(", components=").append(ListUtil.arrayToList(components, ", "));
+		if (!ArrayUtil.isEmpty(plugins)) sb.append(", plugins=").append(ListUtil.arrayToList(plugins, ", "));
+		if (!ArrayUtil.isEmpty(contexts)) sb.append(", contexts=").append(ListUtil.arrayToList(contexts, ", "));
+		if (!ArrayUtil.isEmpty(configs)) sb.append(", configs=").append(ListUtil.arrayToList(configs, ", "));
+		if (!ArrayUtil.isEmpty(webContexts)) sb.append(", webContexts=").append(ListUtil.arrayToList(webContexts, ", "));
+		if (!ArrayUtil.isEmpty(gateways)) sb.append(", gateways=").append(ListUtil.arrayToList(gateways, ", "));
+		if (caches != null && !caches.isEmpty()) sb.append(", caches=").append(caches);
+		if (cacheHandlers != null && !cacheHandlers.isEmpty()) sb.append(", cacheHandlers=").append(cacheHandlers);
+		if (orms != null && !orms.isEmpty()) sb.append(", orms=").append(orms);
+		if (webservices != null && !webservices.isEmpty()) sb.append(", webservices=").append(webservices);
+		if (monitors != null && !monitors.isEmpty()) sb.append(", monitors=").append(monitors);
+		if (resources != null && !resources.isEmpty()) sb.append(", resources=").append(resources);
+		if (searchs != null && !searchs.isEmpty()) sb.append(", searchs=").append(searchs);
+		if (amfs != null && !amfs.isEmpty()) sb.append(", amfs=").append(amfs);
+		if (jdbcs != null && !jdbcs.isEmpty()) sb.append(", jdbcs=").append(jdbcs);
+		if (startupHooks != null && !startupHooks.isEmpty()) sb.append(", startupHooks=").append(startupHooks);
+		if (!StringUtil.isEmpty(mappingsRaw)) sb.append(", mappingsRaw='").append(mappingsRaw).append('\'');
+		if (!StringUtil.isEmpty(mavenRaw)) sb.append(", mavenRaw='").append(mavenRaw).append('\'');
+		sb.append('}');
+		return sb.toString();
 	}
 }

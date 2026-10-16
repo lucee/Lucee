@@ -32,7 +32,6 @@ import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.component.ComponentLoader;
-import lucee.runtime.config.ConfigPro;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -58,7 +57,7 @@ public final class GetTagData implements Function {
 	private static final long serialVersionUID = -4928080244340202246L;
 
 	public static Struct call(PageContext pc, String nameSpace, String strTagName) throws PageException {
-		TagLibTag tlt = TagUtil.getTagLibTag((ConfigPro) ThreadLocalPageContext.getConfig(pc), nameSpace, strTagName);
+		TagLibTag tlt = TagUtil.getTagLibTag(ThreadLocalPageContext.getConfigServer(pc), nameSpace, strTagName);
 		if (tlt == null) throw new ExpressionException("tag [" + nameSpace + strTagName + "] is not a built in tag");
 
 		// CFML Based Function
@@ -147,7 +146,7 @@ public final class GetTagData implements Function {
 					_attr.set(KeyConstants._description, Caster.toString(src.get(KeyConstants._hint, "")).replaceAll("\\n\\s+", "\n"));
 					_attr.set(KeyConstants._type, src.get(KeyConstants._type, "any"));
 					_attr.set(KeyConstants._required, Caster.toBoolean(src.get(KeyConstants._required, ""), null));
-					_attr.set(KeyConstants._nameWithCase, Caster.toString(src.get(KeyConstants._nameWithCase, ""),""));
+					_attr.set(KeyConstants._nameWithCase, Caster.toString(src.get(KeyConstants._nameWithCase, ""), ""));
 					_attr.set("scriptSupport", "none");
 					_attrs.setEL(e.getKey(), _attr);
 
@@ -219,7 +218,7 @@ public final class GetTagData implements Function {
 
 		// LDEV-5901: Add attribute groups
 		lucee.runtime.type.Array groups = new lucee.runtime.type.ArrayImpl();
-		for (TagLibTagAttrGroup group : tag.getAttributeGroups()) {
+		for (TagLibTagAttrGroup group: tag.getAttributeGroups()) {
 			Struct grp = new StructImpl(StructImpl.TYPE_LINKED);
 			grp.set(KeyConstants._name, group.getName());
 			grp.set("label", group.getLabel());

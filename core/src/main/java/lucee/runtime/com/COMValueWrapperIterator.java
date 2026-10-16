@@ -20,8 +20,7 @@ package lucee.runtime.com;
 
 import java.util.Iterator;
 
-import com.jacob.com.EnumVariant;
-
+import lucee.commons.jacob.com.EnumVariant;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class COMValueWrapperIterator implements Iterator {
@@ -49,6 +48,6 @@ public final class COMValueWrapperIterator implements Iterator {
 
 	@Override
 	public Object next() {
-		return COMUtil.toObject(ThreadLocalPageContext.getConfig(), wrapper, enumVariant.Next(), "", null);
+		return COMUtil.toObject(ThreadLocalPageContext.getConfigServer(), wrapper, enumVariant.Next(), "", null);
 	}
 }

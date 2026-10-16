@@ -24,10 +24,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.w3c.dom.Attr;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -78,6 +74,11 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 
 	private boolean autogenmap = true;
 	private Resource[] cfcLocations;
+	// Lazy cfcLocation resolution: avoids per-request File.isDirectory probes when getCfcLocations()
+	// is not read on the hot path (typical apps use simple entity names).
+	private volatile boolean cfcLocationsResolved;
+	private Object cfcLocationsRaw;
+	private Resource defaultCfcLocation;
 	private Boolean eventHandling = null;
 	private boolean flushAtRequestEnd = true;
 	private boolean logSQL;
@@ -116,10 +117,6 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 		useDBForMapping = true;
 	}
 
-	public static ORMConfiguration load(Config config, ApplicationContext ac, Element el, Resource defaultCFCLocation, ORMConfiguration defaultConfig) {
-		return _load(config, ac, new _GetElement(el), defaultCFCLocation, defaultConfig);
-	}
-
 	public static ORMConfiguration load(Config config, ApplicationContext ac, Struct settings, Resource defaultCFCLocation, ORMConfiguration defaultConfig) {
 		return _load(config, ac, new _GetStruct(settings), defaultCFCLocation, defaultConfig);
 	}
@@ -129,23 +126,14 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 		if (dc == null) dc = new ORMConfigurationImpl();
 		ORMConfigurationImpl c = dc.duplicate();
 		c.config = config;
-		c.cfcLocations = defaultCFCLocation == null ? new Resource[0] : new Resource[] { defaultCFCLocation };
 
 		// autogenmap
 		c.autogenmap = Caster.toBooleanValue(settings.get(AUTO_GEN_MAP, dc.autogenmap()), dc.autogenmap());
 
-		// cfclocation
-		Object obj = settings.get(KeyConstants._cfcLocation, null);
-
-		if (obj != null) {
-			java.util.List<Resource> list = AppListenerUtil.loadResources(config, ac, obj, true);
-
-			if (list != null && list.size() > 0) {
-				c.cfcLocations = list.toArray(new Resource[list.size()]);
-				c.isDefaultCfcLocation = false;
-			}
-		}
-		if (c.cfcLocations == null) c.cfcLocations = defaultCFCLocation == null ? new Resource[0] : new Resource[] { defaultCFCLocation };
+		// cfclocation — lazy: stash raw setting + default; resolved on first getCfcLocations()
+		c.cfcLocationsRaw = settings.get(KeyConstants._cfcLocation, null);
+		c.defaultCfcLocation = defaultCFCLocation;
+		Object obj;
 
 		// catalog
 		obj = settings.get(CATALOG, null);
@@ -322,8 +310,8 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 	private ORMConfigurationImpl duplicate() {
 		ORMConfigurationImpl other = new ORMConfigurationImpl();
 		other.autogenmap = autogenmap;
-		other.cfcLocations = cfcLocations;
-		other.isDefaultCfcLocation = isDefaultCfcLocation;
+		// cfcLocations / isDefaultCfcLocation / cfcLocationsRaw / defaultCfcLocation / cfcLocationsResolved
+		// intentionally NOT copied — set fresh per _load() call (lazy resolution per instance).
 		other.dbCreateMap = dbCreateMap;
 		other.eventHandler = eventHandler;
 		other.namingStrategy = namingStrategy;
@@ -408,8 +396,7 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 				data.append(eng.getSystemUtil().hash64b(eng.getIOUtil().toString(res, null)));
 				return;
 			}
-			catch (IOException e) {
-			}
+			catch (IOException e) {}
 		}
 		data.append(res.getAbsolutePath()).append(':');
 	}
@@ -427,12 +414,35 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 	 */
 	@Override
 	public Resource[] getCfcLocations() {
+		if (!cfcLocationsResolved) resolveCfcLocations();
 		return cfcLocations;
 	}
 
 	@Override
 	public boolean isDefaultCfcLocation() {
+		if (!cfcLocationsResolved) resolveCfcLocations();
 		return isDefaultCfcLocation;
+	}
+
+	private void resolveCfcLocations() {
+		synchronized (this) {
+			if (cfcLocationsResolved) return;
+			Resource[] resolved = null;
+			boolean usingUserPaths = false;
+			if (cfcLocationsRaw != null) {
+				java.util.List<Resource> list = AppListenerUtil.loadResources(config, ac, cfcLocationsRaw, true);
+				if (list != null && list.size() > 0) {
+					resolved = list.toArray(new Resource[list.size()]);
+					usingUserPaths = true;
+				}
+			}
+			if (resolved == null) {
+				resolved = defaultCfcLocation == null ? new Resource[0] : new Resource[] { defaultCfcLocation };
+			}
+			cfcLocations = resolved;
+			isDefaultCfcLocation = !usingUserPaths;
+			cfcLocationsResolved = true;
+		}
 	}
 
 	@Override
@@ -601,6 +611,10 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 		if ("update".equals(dbCreate)) return DBCREATE_UPDATE;
 		if ("dropcreate".equals(dbCreate)) return DBCREATE_DROP_CREATE;
 		if ("drop-create".equals(dbCreate)) return DBCREATE_DROP_CREATE;
+		if ("create".equals(dbCreate)) return DBCREATE_CREATE;
+		if ("createdrop".equals(dbCreate)) return DBCREATE_CREATE_DROP;
+		if ("create-drop".equals(dbCreate)) return DBCREATE_CREATE_DROP;
+		if ("validate".equals(dbCreate)) return DBCREATE_VALIDATE;
 		return DBCREATE_NONE;
 	}
 
@@ -611,6 +625,12 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 			return "dropcreate";
 		case DBCREATE_UPDATE:
 			return "update";
+		case DBCREATE_CREATE:
+			return "create";
+		case DBCREATE_CREATE_DROP:
+			return "createdrop";
+		case DBCREATE_VALIDATE:
+			return "validate";
 		}
 
 		return "none";
@@ -649,43 +669,6 @@ class _GetStruct implements _Get {
 	@Override
 	public String toString() {
 		return "_GetStruct:" + sct.toString();
-	}
-}
-
-class _GetElement implements _Get {
-
-	private Element el;
-
-	public _GetElement(Element el) {
-		this.el = el;
-	}
-
-	@Override
-	public Object get(Collection.Key name, Object defaultValue) {
-		String value = _get(name.getString());
-		if (value == null) value = _get(StringUtil.camelToHypenNotation(name.getString()));
-		if (value == null) value = _get(name.getLowerString());
-		if (value == null) {
-			NamedNodeMap map = el.getAttributes();
-			int len = map.getLength();
-			Attr attr;
-			String n;
-			for (int i = 0; i < len; i++) {
-				attr = (Attr) map.item(i);
-				n = attr.getName();
-				n = StringUtil.replace(n, "-", "", false).toLowerCase();
-				if (n.equalsIgnoreCase(name.getLowerString())) return attr.getValue();
-			}
-
-		}
-
-		if (value == null) return defaultValue;
-		return value;
-	}
-
-	private String _get(String name) {
-		if (el.hasAttribute(name)) return el.getAttribute(name);
-		return null;
 	}
 }
 

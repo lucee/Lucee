@@ -18,8 +18,10 @@
  **/
 package lucee.commons.net.http.httpclient;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -29,30 +31,36 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.net.http.HTTPEngineBasic.HTTPDownloaderHeadResponse;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.HTTPResponseSupport;
 import lucee.commons.net.http.Header;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 
-public final class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPResponse {
+public final class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPResponse, Closeable {
 
 	HttpResponse rsp;
 	HttpUriRequest req;
 	private URL url;
 	private HttpContext context;
+	private CloseableHttpClient client;
+	private boolean pooled;
 
-	public HTTPResponse4Impl(URL url, HttpContext context, HttpUriRequest req, HttpResponse rsp) {
+	public HTTPResponse4Impl(URL url, HttpContext context, CloseableHttpClient client, HttpUriRequest req, HttpResponse rsp, boolean pooled) {
 		this.url = url;
 		this.context = context;
+		this.client = client;
 		this.req = req;
 		this.rsp = rsp;
+		this.pooled = pooled;
 	}
 
 	@Override
@@ -77,7 +85,7 @@ public final class HTTPResponse4Impl extends HTTPResponseSupport implements HTTP
 	public InputStream getContentAsStream() throws IOException {
 		HttpEntity e = rsp.getEntity();
 		if (e == null) return null;
-		return e.getContent();
+		return new HTTPEngineInputStream(this, e.getContent());
 	}
 
 	@Override
@@ -94,7 +102,7 @@ public final class HTTPResponse4Impl extends HTTPResponseSupport implements HTTP
 	}
 
 	public Array getLocations() {
-		if (context instanceof HttpClientContext){
+		if (context instanceof HttpClientContext) {
 			try {
 				List<URI> locations = ((HttpClientContext) context).getRedirectLocations();
 				if (locations != null) {
@@ -160,8 +168,7 @@ public final class HTTPResponse4Impl extends HTTPResponseSupport implements HTTP
 		try {
 			_url = new URL(start.getProtocol(), start.getHost(), start.getPort(), path);
 		}
-		catch (MalformedURLException e) {
-		}
+		catch (MalformedURLException e) {}
 
 		return _url;
 	}
@@ -197,9 +204,106 @@ public final class HTTPResponse4Impl extends HTTPResponseSupport implements HTTP
 		return trg;
 	}
 
-	public void close() {
-		/*
-		 * if(rsp instanceof CloseableHttpResponse) { ((CloseableHttpResponse)rsp).close(); }
-		 */
+	@Override
+	public void close() throws IOException {
+		try {
+			if (rsp instanceof Closeable) {
+				((Closeable) rsp).close();
+			}
+		}
+		finally {
+			if (!pooled) {
+				client.close();
+			}
+		}
+	}
+
+	public static class HTTPEngineInputStream extends InputStream {
+
+		private HTTPResponse rsp;
+		private InputStream is;
+		private HTTPDownloaderHeadResponse meta;
+
+		public HTTPEngineInputStream(HTTPResponse rsp, InputStream is) {
+			this.rsp = rsp;
+			this.is = is;
+		}
+
+		public HTTPDownloaderHeadResponse getHTTPDownloaderHeadResponse() {
+			if (meta == null) meta = new HTTPDownloaderHeadResponse(rsp);
+			return meta;
+		}
+
+		@Override
+		public void close() throws IOException {
+			try {
+				is.close();
+			}
+			finally {
+				if (rsp instanceof HTTPResponse4Impl) {
+					((HTTPResponse4Impl) rsp).close();
+				}
+			}
+		}
+
+		@Override
+		public int read(byte[] b) throws IOException {
+			return is.read(b);
+		}
+
+		@Override
+		public int read(byte[] b, int off, int len) throws IOException {
+			return is.read(b, off, len);
+		}
+
+		@Override
+		public byte[] readAllBytes() throws IOException {
+			return is.readAllBytes();
+		}
+
+		@Override
+		public byte[] readNBytes(int len) throws IOException {
+			return is.readNBytes(len);
+		}
+
+		@Override
+		public int readNBytes(byte[] b, int off, int len) throws IOException {
+			return is.readNBytes(b, off, len);
+		}
+
+		@Override
+		public long skip(long n) throws IOException {
+			return is.skip(n);
+		}
+
+		@Override
+		public int available() throws IOException {
+			return is.available();
+		}
+
+		@Override
+		public synchronized void mark(int readlimit) {
+			is.mark(readlimit);
+		}
+
+		@Override
+		public synchronized void reset() throws IOException {
+			is.reset();
+		}
+
+		@Override
+		public boolean markSupported() {
+			return is.markSupported();
+		}
+
+		@Override
+		public long transferTo(OutputStream out) throws IOException {
+			return is.transferTo(out);
+		}
+
+		@Override
+		public int read() throws IOException {
+			return is.read();
+		}
 	}
 }

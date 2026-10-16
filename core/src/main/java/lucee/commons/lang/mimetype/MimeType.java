@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.commons.io.CharsetUtil;
-import lucee.commons.lang.CharSet;
+import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
@@ -38,7 +38,7 @@ public final class MimeType {
 	private static int DEFAULT_MXB = 100000;
 	private static double DEFAULT_MXT = 5;
 	private static double DEFAULT_QUALITY = 1;
-	private static CharSet DEFAULT_CHARSET = null;
+	private static CharsetX DEFAULT_CHARSET = null;
 
 	public static final MimeType ALL = new MimeType(null, null, null);
 	public static final MimeType APPLICATION_JSON = new MimeType("application", "json", null);
@@ -71,7 +71,7 @@ public final class MimeType {
 	// private double mxt;
 	private Map<String, String> properties;
 	private double q = -1;
-	private CharSet cs;
+	private CharsetX cs;
 	private boolean initCS = true;
 
 	private MimeType(String type, String subtype, Map<String, String> properties) {
@@ -276,7 +276,7 @@ public final class MimeType {
 			if (properties == null) cs = DEFAULT_CHARSET;
 			else {
 				String str = getProperty("charset");
-				cs = StringUtil.isEmpty(str) ? DEFAULT_CHARSET : CharsetUtil.toCharSet(str);
+				cs = StringUtil.isEmpty(str) ? DEFAULT_CHARSET : CharsetUtil.toCharsetX(str);
 			}
 			initCS = false;
 		}

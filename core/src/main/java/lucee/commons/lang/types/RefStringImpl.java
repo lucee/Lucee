@@ -2,7 +2,6 @@ package lucee.commons.lang.types;
 
 import java.util.Date;
 
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Castable;
@@ -75,22 +74,22 @@ public final class RefStringImpl implements RefString, Castable {
 
 	@Override
 	public int compareTo(String other) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), other);
+		return OpUtil.compare(null, castToString(), other);
 	}
 
 	@Override
 	public int compareTo(boolean other) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, other ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, other ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(double other) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(other));
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), Double.valueOf(other));
 	}
 
 	@Override
 	public int compareTo(DateTime other) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) other);
+		return OpUtil.compare(null, (Date) castToDateTime(), (Date) other);
 	}
 
 }

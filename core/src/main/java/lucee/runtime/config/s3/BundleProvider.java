@@ -49,14 +49,11 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.net.http.HTTPDownloader;
-import lucee.commons.net.http.HTTPResponse;
-import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
+import lucee.commons.net.http.HTTPEngine;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.osgi.BundleLoader;
 import lucee.loader.util.Util;
-import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
@@ -97,8 +94,7 @@ public final class BundleProvider extends DefaultHandler {
 			DEFAULT_PROVIDER_DETAIL_MVN = new URL("https://repo1.maven.org/maven2/");
 
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 
 	}
 
@@ -109,8 +105,7 @@ public final class BundleProvider extends DefaultHandler {
 				try {
 					defaultProviderList = new URL(str.trim());
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 			if (defaultProviderList == null) defaultProviderList = DEFAULT_PROVIDER_LIST;
 		}
@@ -124,8 +119,7 @@ public final class BundleProvider extends DefaultHandler {
 				try {
 					defaultProviderDetail = new URL[] { new URL(str.trim()) };
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 			if (defaultProviderDetail == null) defaultProviderDetail = DEFAULT_PROVIDER_DETAILS;
 		}
@@ -139,8 +133,7 @@ public final class BundleProvider extends DefaultHandler {
 				try {
 					defaultProviderDetailMvn = new URL(str.trim());
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 			if (defaultProviderDetailMvn == null) defaultProviderDetailMvn = DEFAULT_PROVIDER_DETAIL_MVN;
 		}
@@ -299,19 +292,11 @@ public final class BundleProvider extends DefaultHandler {
 		throw new IOException("no URL found for bundle [" + bd + "]");
 	}
 
-	public InputStream getBundleAsStream(BundleDefinition bd) throws MalformedURLException, IOException, GeneralSecurityException {
+	public InputStream getBundleAsStream(BundleDefinition bd) throws MalformedURLException, IOException {
 		URL url = getBundleAsURL(bd, true);
 
 		if (url != null) {
-			HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
-			if (rsp != null) {
-				int sc = rsp.getStatusCode();
-				if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + url + "], status code [" + sc + "]");
-			}
-			else {
-				throw new IOException("unable to invoke [" + url + "], no response.");
-			}
-			return rsp.getContentAsStream();
+			return HTTPEngine.get(url);
 		}
 		throw new IOException("no bundle found for bundle [" + bd + "]");
 
@@ -321,8 +306,11 @@ public final class BundleProvider extends DefaultHandler {
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		final File jarDir = eng.getCFMLEngineFactory().getBundleDirectory();
 
+		File jar = new File(jarDir, bd.getName() + "-" + bd.getVersionAsString() + ".jar");
+		if (jar.isFile()) return jar;
+
 		// before we download we check if we have it bundled
-		File jar = deployBundledBundle(jarDir, bd.getName(), bd.getVersionAsString());
+		jar = deployBundledBundle(jarDir, bd.getName(), bd.getVersionAsString());
 		if (jar != null && jar.isFile()) return jar;
 		if (jar != null) {
 			LogUtil.log(Log.LEVEL_INFO, "deploy", "bundle-download",
@@ -344,7 +332,7 @@ public final class BundleProvider extends DefaultHandler {
 				"Downloading bundle [" + bd.getName() + ":" + bd.getVersionAsString() + "] from " + updateUrl + " and copying to " + jar);
 
 		try {
-			HTTPDownloader.downloadToFile(updateUrl, jar, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT);
+			HTTPEngine.downloadToFile(updateUrl, jar, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT);
 			return jar;
 		}
 		catch (GeneralSecurityException e) {
@@ -366,8 +354,11 @@ public final class BundleProvider extends DefaultHandler {
 		String nameAndVersion = symbolicName + "|" + symbolicVersion;
 		String osgiFileName = symbolicName + "-" + symbolicVersion + ".jar";
 
+		File trg = new File(bundleDirectory, osgiFileName);
+		if (trg.isFile()) return trg;
+
 		// first we look for an exact match
-		InputStream is = getClass().getResourceAsStream("bundles/" + osgiFileName);
+		InputStream is = CFMLEngineFactory.class.getResourceAsStream("/bundles/" + osgiFileName);
 		if (is == null) is = getClass().getResourceAsStream("/bundles/" + osgiFileName);
 
 		if (is != null) LogUtil.log(Log.LEVEL_DEBUG, "deploy", "bundle-download", "Found ]/bundles/" + osgiFileName + "] in lucee.jar");
@@ -382,7 +373,6 @@ public final class BundleProvider extends DefaultHandler {
 				Util.copy(new BufferedInputStream(is), new FileOutputStream(temp), true, true);
 
 				// adding bundle
-				File trg = new File(bundleDirectory, osgiFileName);
 				FileUtil.move(temp, trg);
 				LogUtil.log(Log.LEVEL_DEBUG, "deploy", "bundle-download", "Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 				return trg;
@@ -423,7 +413,7 @@ public final class BundleProvider extends DefaultHandler {
 
 							bundleInfo = BundleLoader.loadBundleInfo(temp);
 							if (bundleInfo != null && nameAndVersion.equals(bundleInfo)) {
-								File trg = new File(bundleDirectory, name);
+								trg = new File(bundleDirectory, name);
 								temp.renameTo(trg);
 								LogUtil.log(Log.LEVEL_DEBUG, "deploy", "bundle-download",
 										"Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
@@ -452,7 +442,7 @@ public final class BundleProvider extends DefaultHandler {
 	// 1146:size:305198;bundle:name:xmlgraphics.batik.awt.util;version:version EQ 1.8.0;;last-mod:{ts
 	// '2024-01-14 22:32:05'};
 
-	public List<Element> read(boolean flush) throws IOException, GeneralSecurityException, SAXException {
+	public List<Element> read(boolean flush) throws IOException {
 		if (elementsSorted == null) {
 			synchronized (elements) {
 				if (elementsSorted == null) {
@@ -462,18 +452,14 @@ public final class BundleProvider extends DefaultHandler {
 
 					do {
 						if (url == null) url = isTruncated ? new URL(this.url.toExternalForm() + "?marker=" + this.lastKey) : this.url;
-						HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, BundleProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
-						if (rsp != null) {
-							int sc = rsp.getStatusCode();
-							if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + url + "], status code [" + sc + "]");
-						}
-						else {
-							throw new IOException("unable to invoke [" + url + "], no response.");
-						}
 
 						Reader r = null;
 						try {
-							init(new InputSource(r = IOUtil.getReader(rsp.getContentAsStream(), (Charset) null)));
+							init(new InputSource(r = IOUtil.getReader(HTTPEngine.get(url), (Charset) null)));
+						}
+						catch (Exception e) {
+							LogUtil.log(Log.LEVEL_ERROR, "OSGi", e);
+							isTruncated = false;
 						}
 						finally {
 							url = null;
@@ -481,7 +467,7 @@ public final class BundleProvider extends DefaultHandler {
 						}
 
 					}
-					while (isTruncated || --count == 0);
+					while (isTruncated && --count > 0);
 
 					List<Element> list = new ArrayList<>();
 					for (Element e: elements.values()) {
@@ -576,7 +562,7 @@ public final class BundleProvider extends DefaultHandler {
 	}
 
 	public static URL validate(URL url, URL defaultValue) {
-		if (HTTPDownloader.exists(url, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_HEAD_READ_TIMEOUT)) {
+		if (HTTPEngine.exists(url, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_HEAD_READ_TIMEOUT, true)) {
 			return url;
 		}
 		return defaultValue;
@@ -753,7 +739,7 @@ public final class BundleProvider extends DefaultHandler {
 		return mappings;
 	}
 
-	public void createOSGiMavenMapping() throws IOException, GeneralSecurityException, SAXException {
+	public void createOSGiMavenMapping() throws IOException {
 		Struct sct = new StructImpl();
 		Set<String> has = new HashSet<>();
 		List<Info> infos;
@@ -793,7 +779,7 @@ public final class BundleProvider extends DefaultHandler {
 		}
 	}
 
-	public void whatcanBeRemovedFromS3() throws IOException, GeneralSecurityException, SAXException {
+	public void whatcanBeRemovedFromS3() throws IOException {
 		URL url;
 		for (Element e: read(true)) {
 			url = getBundleAsURL(e.bd, false, null);
@@ -832,18 +818,8 @@ public final class BundleProvider extends DefaultHandler {
 				if (version == null) {
 					try {
 						URL metadata = new URL(base, info.groupId.replace('.', '/') + "/" + info.artifactId + "/maven-metadata.xml");
-						HTTPResponse rsp = HTTPEngine4Impl.get(metadata, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
+						String content = HTTPEngine.getAsString(metadata, null);
 
-						if (rsp != null) {
-							int sc = rsp.getStatusCode();
-							if (sc < 200 || sc >= 300) throw new IOException("cannot create maven endpoint URL for [" + info.toString()
-									+ "], because no explicit version was defined and it cannot be detected via [" + metadata + "].");
-						}
-						else {
-							throw new IOException("unable to invoke [" + metadata + "], no response.");
-						}
-
-						String content = rsp.getContentAsString();
 						// TODO make better
 						int start = content.lastIndexOf("<version>");
 						if (start != -1) {
@@ -856,6 +832,7 @@ public final class BundleProvider extends DefaultHandler {
 						}
 					}
 					catch (Exception e) {
+
 						LogUtil.log(Log.LEVEL_DEBUG, "OSGi", ExceptionUtil.getStacktrace(e, true));
 					}
 				}

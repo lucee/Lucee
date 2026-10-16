@@ -64,10 +64,6 @@ public final class QueryLazy extends BIF {
 	private static int RETURN_TYPE_STRUCT = 3;
 
 	private static final long serialVersionUID = 2886504786460447165L;
-	private static final Key BLOCKFACTOR = KeyConstants._blockfactor;
-	private static final Key MAXROWS = KeyConstants._maxrows;
-	private static final Key COLUMNKEY = KeyConstants._columnkey;
-
 	public static String call(PageContext pc, String sql, UDF listener) throws PageException {
 		return call(pc, sql, listener, null, null);
 	}
@@ -103,15 +99,15 @@ public final class QueryLazy extends BIF {
 		int returntype = getReturntype(pc, options);
 		Collection.Key columnKey = null;
 		if (returntype == RETURN_TYPE_STRUCT) {
-			columnKey = getKey(pc, options, COLUMNKEY, null);
+			columnKey = getKey(pc, options, KeyConstants._columnkey, null);
 			if (StringUtil.isEmpty(columnKey)) throw new ApplicationException("attribute columnKey is required when return type is set to struct");
 		}
 		else {
 
 		}
 
-		int maxrows = getInt(pc, options, MAXROWS, Integer.MIN_VALUE);
-		int blockfactor = getInt(pc, options, BLOCKFACTOR, Integer.MIN_VALUE);
+		int maxrows = getInt(pc, options, KeyConstants._maxrows, Integer.MIN_VALUE);
+		int blockfactor = getInt(pc, options, KeyConstants._blockfactor, Integer.MIN_VALUE);
 
 		if (user == null) pass = null;
 

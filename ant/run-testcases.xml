@@ -91,7 +91,7 @@
 		primary="physical"
 		trusted="no";
 
-		// set deploy and trace logs to TRACE out to console
+		// set deploy logs to TRACE out to console
 	admin
 		action="updateLogSettings"
 		type="server"
@@ -103,12 +103,25 @@
 		layoutClass="lucee.commons.io.log.log4j2.layout.ClassicLayout"
 		layoutArgs={};
 	
+	// set trace logs to TRACE out to console
 	admin
 		action="updateLogSettings"
 		type="server"
 		password="#request.SERVERADMINPASSWORD#"
 		name="trace"
 		level="TRACE"
+		appenderClass="lucee.commons.io.log.log4j2.appender.ConsoleAppender"
+		appenderArgs={streamType: "output"}
+		layoutClass="lucee.commons.io.log.log4j2.layout.ClassicLayout"
+		layoutArgs={};	
+
+// set application logs to INFO out to console
+admin
+		action="updateLogSettings"
+		type="server"
+		password="#request.SERVERADMINPASSWORD#"
+		name="application"
+		level="INFO"
 		appenderClass="lucee.commons.io.log.log4j2.appender.ConsoleAppender"
 		appenderArgs={streamType: "output"}
 		layoutClass="lucee.commons.io.log.log4j2.layout.ClassicLayout"

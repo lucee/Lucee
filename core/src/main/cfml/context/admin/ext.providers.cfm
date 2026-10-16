@@ -1,95 +1,102 @@
 <!--- Action --->
 <cfinclude template="ext.functions.cfm">
 
-<cfset stVeritfyMessages=struct()>
-<cfparam name="error" default="#struct(message:"",detail:"")#">
-<cfparam name="form.mainAction" default="none">
-<cfset error.message="">
+<cfscript>
+function getExtensionGroups() {
+	cfadmin(
+		action="getExtensionGroups",
+		type="#request.adminType#",
+		password="#session["password"&request.adminType]#",
+		returnVariable="local.groupIds");
+		
+	return groupIds;
+}
+
+stVeritfyMessages={};
+
+cfparam(name="error", default={message:"",detail:""});
+cfparam(name="form.mainAction", default="none");
+error.message="";
+
+try {
+
+	if (form.mainAction != "none") {
+		
+		groupIds = getExtensionGroups();
+		existing={};
+		loop array=groupIds item="g" {
+			existing[g]=true;
+		}
+
+		data.groupIds=toArrayFromForm("groupId");
+		data.rows=toArrayFromForm("row");
+		// SAVE
+		if(form.mainAction==stText.Buttons.save) {
+			loop array=data.groupIds index="idx" item="g" {
+				if( !isNull(data.rows[idx]) && !structKeyExists(existing,g)) {
+					cfadmin(
+						action="updateExtensionGroups",
+						type=request.adminType,
+						password=session["password"&request.adminType],
+						groupId=trim(g));
+				}
+			}
+		}
+		// DELETE
+		else if(form.mainAction==stText.Buttons.delete) {
+			loop array=data.groupIds index="idx" item="g" {
+				if(!isNull(data.rows[idx]) && structKeyExists(existing,g)) {
+					cfadmin(
+						action="removeExtensionGroups",
+						type=request.adminType,
+						password=session["password"&request.adminType],
+						groupId=trim(g));
+				}
+			}
+		}
+		// VERIFY
+		else if(form.mainAction==stText.Buttons.verify) {
+			loop array=data.groupIds index="idx" item="g" {
+				if(!isNull(data.rows[idx]) && structKeyExists(existing,g)) {
+					// list extension prom that groupId, throws an exception if there are none
+					try{
+						artifacts=luceeExtension(g);
+						if(arrayLen(artifacts) == 0) {
+							stVeritfyMessages[g] = {
+								label = "Error",
+								message = "No extensions found",
+								detail = "we could connect to the repository but no extensions were found"
+							};
+						}
+						else {
+							stVeritfyMessages[g] = {
+								label = "Ok",
+								message = "OK",
+								detail = "we could connect to the repository and found #arrayLen(artifacts)# extensions"
+							};
+						}
+					}
+					catch(ex) {
+						stVeritfyMessages[g] = {
+							label = "Error",
+							message = ex.message,
+							detail = ex.detail?:""
+						};
+					}
+					artifacts=luceeExtension(g);
+				}
+			}
+		}
+	}
+} 
+catch(any cfcatch) {
+	error.message=cfcatch.message;
+	error.detail=cfcatch.Detail;
+	error.cfcatch=cfcatch;
+}
 
 
-
-<cftry>
-	<cfswitch expression="#form.mainAction#">
-		<cfcase value="#stText.Buttons.verify#">
-			<cfset data.urls=toArrayFromForm("url")>
-			<cfset data.rows=toArrayFromForm("row")>
-			<cfset data.validUrls=[]>
-			<cfloop from="1" to="#arrayLen(data.urls)#" index="idx">
-				<cfif !isNull(data.rows[idx])>
-					<cfset arrayAppend(data.validUrls,data.urls[idx])>
-				</cfif>
-			</cfloop>
-			
-			<cfif arrayLen(data.validUrls)>
-				<cfset datas=getProvidersInfo(data.validUrls,false)>
-			<cfelse>
-				<cfset datas={}>
-			</cfif>
-			
-			<cfloop collection="#datas#" index="provider" item="data">
-				<!--- fails --->
-				<cfif structKeyExists(data,"error")>
-					<cfset stVeritfyMessages[provider].Label = "Error">
-					<cfif data.status_code == 404>
-						<cfset stVeritfyMessages[provider].message = "Was not able to retrieve data from ["&provider&"].">
-						<cfset stVeritfyMessages[provider].detail ="">
-					<cfelse>
-						<cfset stVeritfyMessages[provider].message = "Failed to retrieve data from ["&provider&"].">
-						<cfset stVeritfyMessages[provider].detail = "Message from server: "&data.error>
-					</cfif>
-				<cfelse>
-					<cfset stVeritfyMessages[provider].Label = "OK">
-				</cfif>
-			</cfloop>
-		</cfcase>
-		<cfcase value="#stText.Buttons.save#">
-			<cfset providerUrls = QueryColumnData( query=getProvider(), columnName="url" ) />
-			<cfset data.urls=toArrayFromForm("url")>
-			<cfset data.rows=toArrayFromForm("row")>
-			<cfloop from="1" to="#arrayLen(data.urls)#" index="idx">
-				<cfset uniqUrl = true />
-				<cfloop from="1" to="#arrayLen(providerUrls)#" index="index">
-					<cfif providerUrls[index] EQ data.urls[idx]>
-						<cfset uniqUrl = false />
-					</cfif>
-				</cfloop>
-				<cfif !isNull(data.rows[idx]) && uniqUrl>
-					<cfadmin 
-						action="updateRHExtensionProvider"
-						type="#request.adminType#"
-						password="#session["password"&request.adminType]#"
-						
-						url="#trim(data.urls[idx])#">
-				</cfif>
-			</cfloop>
-		</cfcase>
-		<cfcase value="#stText.Buttons.delete#">
-			<cfset data.urls=toArrayFromForm("url")>
-			<cfset data.rows=toArrayFromForm("row")>
-			
-			<cfloop from="1" to="#arrayLen(data.urls)#" index="idx">
-				<cfif  !isNull(data.rows[idx])>
-					<cfadmin 
-						action="removeRHExtensionProvider"
-						type="#request.adminType#"
-						password="#session["password"&request.adminType]#"
-						
-						url="#trim(data.urls[idx])#">
-				</cfif>
-			</cfloop>
-		</cfcase>
-		<cfcase value="#stText.Buttons.install#">
-			<cfif StructKeyExists(form,"row") and StructKeyExists(data,"ids") and ArrayIndexExists(data.ids,row)>
-				<cflocation url="#request.self#?action=#url.action#&action2=install1&provider=#data.hashProviders[row]#&app=#data.ids[row]#" addtoken="no">
-			</cfif>
-		</cfcase>
-	</cfswitch>
-	<cfcatch>
-		<cfset error.message=cfcatch.message>
-		<cfset error.detail=cfcatch.Detail>
-		<cfset error.cfcatch=cfcatch>
-	</cfcatch>
-</cftry>
+</cfscript>
 
 <!--- Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction neq stText.Buttons.verify>
@@ -99,27 +106,25 @@
 
 <!--- Error Output --->
 <cfset printError(error)>
-<cffunction access="public" name="getProvider" returntype="query">
-	<cfadmin 
-		action="getRHExtensionProviders"
-		type="#request.adminType#"
-		password="#session["password"&request.adminType]#"
-		returnVariable="local.providers">
-		<cfreturn providers/>
-</cffunction>
-<cfset providers = getProvider()/>
+
+
+
+
 <cfscript>
+	groupIds = getExtensionGroups();
+
+
 	hasAccess=true;
-	// thread name="provider:data" {
-	// 	thread.datas=getProvidersInfo(providers:queryColumnData(providers,'url'));
-	// }
-	// thread action="join" name="provider:data" timeout=100;
-	// datas=isNull(cfthread["provider:data"].datas)?{}:cfthread["provider:data"].datas;
-	
-	datas = getProvidersInfo(queryColumnData(providers, 'url'));
-	if (isNull(datas)) {
-		datas = {};
-	}
+
+
+
+	stText.ext.provext.groupIds="Maven GroupId";
+	stText.ext.provext.new="Add Extension Provider";
+	stText.ext.provext.list="List of Maven groupIds Lucee scans for available extensions. Each groupId must host artifacts ending in ""-extension"" (e.g. ""yaml-extension"").";
+	stText.ext.provext.groupIdsDesc="Maven groupId to scan for extensions (e.g. org.lucee, com.rasia)";
+
+	stText.ext.forgeboxTitle = "Forgebox Extensions";
+	stText.ext.forgeboxDescProviders = "To browse and install extensions from Forgebox, add the Maven groupId ""io.forgebox"" below.";
 </cfscript>
 
 
@@ -128,85 +133,52 @@
 list all mappings and display necessary edit fields --->
 
 <cfoutput>
-	
-	<cfset doMode=false>
-	<cfloop query="providers">
-		<cfif 
-			StructKeyExists(datas,providers.url) and 
-			!isSimpleValue(datas[providers.url]) and
-			StructKeyExists(datas[providers.url],"meta") and 
-			StructKeyExists(datas[providers.url].meta,"mode") and 
-			trim(datas[providers.url].meta.mode) EQ "develop">
-			<cfset doMode=true>
-		</cfif>
-	</cfloop>
-	
-	<cfset columns=doMode?5:4>
+
+	<div class="okay collapsible-banner-box" tabindex="0">
+		<div class="collapsible-banner-panel">
+			<div class="collapsible-banner-summary">#stText.ext.forgeboxTitle#</div>
+			<div class="collapsible-banner-body">
+				<div class="comment">#stText.ext.forgeboxDescProviders#</div>
+			</div>
+		</div>
+	</div>
 
 	<div class="itemintro">#stText.ext.prov.IntroText#</div>
+
+	<cfset renderSettings("extensionProviders",{ value:groupIds} )>
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-		
+		<div class="pageintro">#stText.ext.provext.list#</div>
 		<table class="maintbl checkboxtbl">
 			<thead>
 				<tr>
-					<th><input type="checkbox" class="checkbox" name="rro" onclick="selectAll(this)"></th>
-					<th>#stText.ext.prov.url#</th>
-					<th>#stText.ext.prov.title#</th>
-					<cfif doMode>
-						<th>#stText.ext.prov.mode#</th>
-					</cfif>
+					<th width="10px"><input type="checkbox" class="checkbox" name="rro" onclick="selectAll(this)"></th>
+					<th>#stText.ext.provext.groupIds#</th>
 					<th>#stText.Settings.DBCheck#</th>
 				</tr>
 			</thead>
 			<tbody id="extproviderlist">
-				<cfloop query="providers">
+				<cfloop array="#groupIds#" index="index" item="groupId">
 					<tr>
 						<!--- checkbox ---->
 						<td>
-							<cfif not providers.readOnly>
-								<input type="checkbox" class="checkbox" name="row_#providers.currentrow#" value="#providers.currentrow#">
+							<cfset edit=renderEditButton2("extensionProviders","",groupId)>
+							<cfif groupId EQ "org.lucee">
+							<cfelseif len(edit) EQ 0>
+								<input type="checkbox" class="checkbox" name="row_#index#" value="#index#">
+							<cfelse>
+								#edit#
 							</cfif>
 						</td>
-						<!--- url --->
+						<!--- GroupId --->
 						<td>
-							<input type="hidden" name="url_#providers.currentrow#" value="#providers.url#">
-							#providers.url#
+							<input type="hidden" name="groupId_#index#" value="#groupId#">
+							#groupId#
 						</td>
-						<cfset hasData = 
-								StructKeyExists(datas,providers.url) and 
-								!isSimpleValue(datas[providers.url]) and
-								StructKeyExists(datas[providers.url],"meta")/>
-						<cfif hasData>
-							<cfset info=datas[providers.url].meta>
-						</cfif>
-						 
-						<!--- title --->
-						<td>
-							<cfif hasData and StructKeyExists(info,"image")>
-								<cfset dn=getDumpNail(info.image,100,30)>
-								<cfif len(dn)>
-									<img src="#dn#" border="0"/> &nbsp;
-								</cfif>
-							</cfif>
-							<cfif hasData and StructKeyExists(info,"title") and len(trim(info.title))>
-								#info.title#
-							</cfif>
-						</td>
-						<!--- mode --->
-						<cfif doMode>
-							<td>
-								<cfif hasData>
-									<cfif StructKeyExists(info,"mode") and len(trim(info.mode))>
-										#info.mode#
-									<cfelse>
-										production
-									</cfif>
-								</cfif>
-							</td>
-						</cfif>
+						
+		
 						<!--- check --->
-						<cfif StructKeyExists(stVeritfyMessages, providers.url)>
-							<cfset msg=stVeritfyMessages[providers.url]>
+						<cfif StructKeyExists(stVeritfyMessages, groupId)>
+							<cfset msg=stVeritfyMessages[groupId]>
 							<cfset title="">
 							<cfif (structKeyExists(msg,"message") && len(trim(msg.message))) || 
 								  (structKeyExists(msg,"detail")  && len(trim(msg.detail)))>
@@ -215,7 +187,11 @@ list all mappings and display necessary edit fields --->
 								<cfset title=' title="#m# #d#"'>
 							</cfif>
 
-							<td class="tooltipMe favorite_inactive"#title#>#msg.label#</td>
+
+							<td >
+								<span class="Check#msg.label#">#msg.message#</span>
+								<cfif len(trim(msg.detail))><p>#msg.detail#</p></cfif>
+							</td>
 						<cfelse>
 							<td>&nbsp;</td>
 						</cfif>
@@ -225,7 +201,7 @@ list all mappings and display necessary edit fields --->
 			<cfif hasAccess>
 				<tfoot>
 					 <tr>
-						<td colspan="#columns#">
+						<td colspan="3">
 							<input type="submit" class="button submit enablebutton" name="mainAction" value="#stText.Buttons.verify#">
 							<input type="submit" class="button submit enablebutton" name="mainAction" value="#stText.Buttons.Delete#">
 							<input type="reset" class="reset enablebutton" name="cancel" id="clickCancel" value="#stText.Buttons.Cancel#">
@@ -237,19 +213,17 @@ list all mappings and display necessary edit fields --->
 	</cfformClassic>
 	
 	<cfif hasAccess>
-		<h2>#stText.ext.prov.new#</h2>
+		<h2>#stText.ext.provext.new#</h2>
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<input type="hidden" name="row_1" value="1">
 			<table class="maintbl" style="width:75%">
 				<tbody>
 					<tr> 
-						<th scope="row">
-							#stText.ext.prov.host#
-						</th>
+						<th scope="row">#stText.ext.provext.groupIds#</th>
 						<td>
 							<cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
-							name="url_1" value="" required="yes" class="xlarge">
-							<div class="comment">#stText.ext.prov.hostDesc#</div>
+							name="groupId_1" value="" required="yes" class="xlarge">
+							<div class="comment">#stText.ext.provext.groupIdsDesc#</div>
 						</td>
 					</tr>
 				</tbody>

@@ -35,7 +35,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
-import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.security.Credentials;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.Constants;
@@ -120,7 +119,8 @@ class ExecutionThread extends ParentThreasRefThread {
 		// execute
 		if (LogUtil.doesInfo(log)) log.info(logName, "calling URL ->[" + url + "]");
 		try {
-			rsp = HTTPEngine4Impl.get(new URL(url), user, pass, task.getTimeout(), true, charset, null, proxy, headers.toArray(new Header[headers.size()]));
+			rsp = HTTPEngine.get(new URL(url), user, pass, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT,
+					HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, true, charset, null, proxy, headers.toArray(new Header[headers.size()]), true);
 			if (rsp != null) {
 				int sc = rsp.getStatusCode();
 
@@ -146,6 +146,9 @@ class ExecutionThread extends ParentThreasRefThread {
 				LogUtil.logGlobal(config, "scheduler", ee);
 			}
 			hasError = true;
+		}
+		finally {
+			HTTPEngine.closeEL(rsp);
 		}
 
 		// write file

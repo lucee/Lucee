@@ -435,17 +435,17 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>void</type>
@@ -498,17 +498,17 @@ All elements in the array must contain values that can be converted to numeric.<
 		<argument>
 			<name>parallel</name>
 			<default>false</default>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>void</type>
@@ -538,17 +538,17 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>array</type>
@@ -730,17 +730,17 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>object</type>
@@ -770,17 +770,17 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>array</type>
@@ -832,17 +832,17 @@ Remember CFML arrays start at 1 not 0.</description>
 		<argument>
 			<name>parallel</name>
 			<default>false</default>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -874,17 +874,17 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>struct</type>
@@ -922,17 +922,17 @@ Remember CFML arrays start at 1 not 0.</description>
     	</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>query</type>
@@ -2621,6 +2621,84 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
 		</return>
 	</function>
 	
+	<!-- ConfigMerge -->
+	<function>
+	    <name>ConfigMerge</name>
+	    <class>lucee.runtime.functions.system.ConfigMerge</class>
+	    <description>
+	        Merges two Lucee configuration structs (as used in .CFConfig.json) into a new struct,
+	        following Lucee's internal merge rules. The right-hand config takes precedence over the
+	        left-hand config for scalar values, while certain collection types (such as extensions)
+	        are appended rather than replaced. Neither input struct is modified; the result is
+	        returned as a new struct.
+	    </description>
+	    <introduced>7.0.4.5</introduced>
+	    <argument>
+	        <name>left</name>
+	        <type>struct</type>
+	        <required>Yes</required>
+	        <description>
+	            The base configuration struct. Acts as the default/fallback config. This struct is
+	            not modified by the function.
+	        </description>
+	    </argument>
+	    <argument>
+	        <name>right</name>
+	        <type>struct</type>
+	        <required>Yes</required>
+	        <description>
+	            The overriding configuration struct. Scalar values in this struct overwrite
+	            corresponding values in the left struct. Collection types such as extension arrays
+	            are merged by appending to the left struct's values rather than replacing them.
+	            This struct is not modified by the function.
+	        </description>
+	    </argument>
+	    <return>
+	        <type>struct</type>
+	    </return>
+	</function>
+	
+	<!-- ConfigSchema -->
+	<function>
+	    <name>ConfigSchema</name>
+	    <class>lucee.runtime.functions.system.ConfigSchema</class>
+	    <description>
+	        Returns the JSON Schema (Draft 2020-12) describing all supported Lucee configuration 
+	        properties (.CFConfig.json), including types, defaults, and allowed values. Useful for 
+	        validation and IDE autocompletion.
+	    </description>
+	    <introduced>7.2.0.56</introduced>
+	    <argument>
+	        <name>strict</name>
+	        <type>boolean</type>
+	        <required>No</required>
+	        <default>true</default>
+	        <description>
+	            true: canonical Lucee property names only — use when creating or editing a config 
+	            (e.g. in an IDE). false: also includes compatibility aliases for other CFML engines 
+	            (e.g. ACF's "componentPaths" alongside Lucee's "componentMappings") — use when 
+	            reading/validating an existing config that may originate from another engine.
+	        </description>
+	    </argument>
+	    <return>
+	        <type>struct</type>
+	    </return>
+	</function>
+	
+	<!-- EnvVars -->
+	<function>
+	    <name>EnvVars</name>
+	    <class>lucee.runtime.functions.system.EnvVars</class>
+	    <description>
+	        Returns a catalog of all supported Lucee system properties and environment variables,
+	        merged from the static runtime catalog and declarative Prop definitions. Shipped as
+	        env-vars.json with every build.
+	    </description>
+	    <introduced>7.2.0.57</introduced>
+	    <return>
+	        <type>struct</type>
+	    </return>
+	</function>
 	
 	
 	<!-- ConfigTranslate -->
@@ -2684,7 +2762,68 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
 			<type>struct</type>
 		</return>
 	</function>
-
+	
+	<!-- compileToBytecode -->
+	<function>
+		<name>compileToBytecode</name>
+		<class>lucee.runtime.functions.system.CompileToBytecode</class>
+		<description>Compile CFML templates to bytecode and replace the source file in place. Optionally keep a dot-prefixed copy of the source and encrypt the bytecode with an RSA private key.</description>
+		<argument>
+			<name>path</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Path (relative or absolute) to a CFML file or directory to compile.</description>
+		</argument>
+		<argument>
+			<name>keepSource</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>When true, a copy of the source is stored alongside the template using a dot prefix (for example index.cfm becomes .index.cfm).</description>
+		</argument>
+		<argument>
+			<name>privateKey</name>
+			<type>string</type>
+			<required>No</required>
+			<description>RSA private key used to encrypt the bytecode. The matching public key must be configured as PUBLIC_KEY environment variable or system property on the server that executes the template.</description>
+		</argument>
+		<argument>
+			<name>recursive</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>When path is a directory, also compile CFML files in subdirectories.</description>
+		</argument>
+		<return>
+			<type>struct</type>
+			<description>Struct with keys compiled, skipped, errors and warnings.</description>
+		</return>
+	</function>
+	
+	<!-- restoreToSource -->
+	<function>
+		<name>restoreToSource</name>
+		<class>lucee.runtime.functions.system.RestoreToSource</class>
+		<description>Restore CFML source files from dot-prefixed backups created by compileToBytecode. Replaces bytecode templates with their source and deletes the backup file.</description>
+		<argument>
+			<name>path</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Path (relative or absolute) to a CFML file or directory to restore.</description>
+		</argument>
+		<argument>
+			<name>recursive</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>When path is a directory, also restore CFML files in subdirectories.</description>
+		</argument>
+		<return>
+			<type>struct</type>
+			<description>Struct with keys restored, skipped and errors.</description>
+		</return>
+	</function>
+	
 	<!-- compress -->
 	<function>
 		<name>compress</name>
@@ -3169,63 +3308,72 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>datasourceFlushMetaCache</name>
 		<class>lucee.runtime.functions.other.DatasourceFlushMetaCache</class>
-		<description>Flush the meta data stored for a certain datasource used for stored procedures, this is only supported for Oracle datasources</description>
+		<description>Flushes cached stored procedure metadata. Oracle datasources only. Returns true if at least one cache was cleared, false if there was nothing to clear.</description>
 		<argument>
 			<name>datasourceName</name>
 			<type>string</type>
 			<required>no</required>
-			<description>name of the datasource to flush, when not defined all caches are flushed</description>
+			<description>datasource to flush; when omitted, all datasource caches are flushed</description>
 		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
 	<!-- dateAdd -->
-	<function>
-		<name>dateAdd</name>
-		<class>lucee.runtime.functions.dateTime.DateAdd</class>
-		<member-name>add</member-name>
-		<member-position>3</member-position>
-		
-		<description>Adds units of time to a date.
-        [datePart - quickly]
-        yyyy: Year; q: Quarter; m: Month; y: Day of year; d: Day
-        w: Weekday; ww: Week; h: Hour; n: Minute; s: Second;
-        l: Millisecond</description>
-		<argument>
-			<name>datePart</name>
-			<type>string</type>
-			<required>Yes</required>
-		<description>one of the following:
-- yyyy: Year
-- q: Quarter
-- m: Month
-- y: Day of year
-- d: Day
-- w: Weekday
-- ww: Week
-- h: Hour
-- n: Minute
-- s: Second
-- l: Millisecond
-		</description>
+<function>
+    <name>dateAdd</name>
+    <class>lucee.runtime.functions.dateTime.DateAdd</class>
+    <member-name>add</member-name>
+    <member-position>3</member-position>
+
+    <description>Adds units of time to a date, returning a new datetime.
+
+`dateAdd(datePart, number, date)` or member form: `date.add(datePart, number)`
+
+**datePart** — quickly:
+`yyyy`: Year | `q`: Quarter | `m`: Month | `y`: Day of year | `d`: Day |
+`w`: Weekday (Mon–Fri only, weekends skipped) | `ww`: Week | `h`: Hour | `n`: Minute | `s`: Second | `l`: Millisecond</description>
+
+    <argument>
+        <name>datePart</name>
+        <type>string</type>
+        <required>Yes</required>
+        <description>Specifies the unit of time to add. One of the following:
+
+- `yyyy`: Year
+- `q`: Quarter (3 months)
+- `m`: Month
+- `y`: Day of year (equivalent to `d`)
+- `d`: Day
+- `w`: Weekday — only Monday through Friday count; Saturday and Sunday are skipped
+- `ww`: Week (7 calendar days)
+- `h`: Hour
+- `n`: Minute
+- `s`: Second
+- `l`: Millisecond
+        </description>
     </argument>
-		<argument>
-			<name>number</name>
-			<type>number</type>
-			<required>Yes</required>
-		<description>Number of units of datePart to add to date (positive, to get dates in the future; negative, to get dates in the past). Number must be an integer.</description>
+
+    <argument>
+        <name>number</name>
+        <type>number</type>
+        <required>Yes</required>
+        <description>Number of units of `datePart` to add to `date`. Must be an integer.
+Use a positive value to get a date in the future, a negative value to get a date in the past.</description>
     </argument>
-		<argument>
-			<name>date</name>
-			<type>datetime</type>
-			<required>Yes</required>
-		<description>a datetime object</description>
+
+    <argument>
+        <name>date</name>
+        <type>datetime</type>
+        <required>Yes</required>
+        <description>The datetime object to add to.</description>
     </argument>
-		<return>
-			<type>datetime</type>
-		</return>
-	</function>
+
+    <return>
+        <type>datetime</type>
+        <description>A new datetime object with the specified units added. The original date is not modified.</description>
+    </return>
+</function>
 	
 	<!-- dateCompare -->
 	<function>
@@ -5401,19 +5549,19 @@ If omitted, the file's attributes are maintained.</description>
 	<function>
 		<name>fileCopy</name>
 		<class>lucee.runtime.functions.file.FileCopy</class>
-		<description>Copies the specified on-disk or in-memory source file to the specified destination file.</description>
+		<description>Copies the specified on-disk or in-memory source file to the specified destination file. File Attributes are applied to destination file, but read and write are set to true.</description>
 		<argument>
 			<name>source</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>path to copy.</description>
-    </argument>
+			<description>Path to source file to copy.</description>
+    	</argument>
 		<argument>
 			<name>destination</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Pathname of the destination file.</description>
-    </argument>
+			<description>Path to the destination file.</description>
+    	</argument>
 		<return>
 			<type>void</type>
 		</return>
@@ -7353,6 +7501,7 @@ if this attribute is not provided all types are returned.</description>
 	<function>
 		<name>GetSystemPropOrEnvVar</name>
 		<introduced>6.2.1.23</introduced>
+		<status>deprecated</status>
 		<class>lucee.runtime.functions.system.GetSystemPropOrEnvVar</class>
 		<description>Return the list of supported system properties or env vars Lucee supports.</description>
 		<argument>
@@ -7364,6 +7513,22 @@ if this attribute is not provided all types are returned.</description>
 		<return>
 			<type>any</type>
 		</return>
+	</function>
+	
+	<!-- GetSystemPropOrEnvVarInfo -->
+	<function>
+	    <name>GetSystemPropOrEnvVarInfo</name>
+	    <introduced>7.2.0.57</introduced>
+	    <class>lucee.runtime.functions.system.GetSystemPropOrEnvVarInfo</class>
+	    <description>
+	        Returns a query of all system settings supported by Lucee, listing for each entry 
+	        the accepted system property names (-D flags), their equivalent environment variable 
+	        names, and a description of what the setting controls. Useful for discovering how to 
+	        configure Lucee from outside the application at startup.
+	    </description>
+	    <return>
+	        <type>struct</type>
+	    </return>
 	</function>
 
 	<!-- getSystemTotalMemory -->
@@ -7534,6 +7699,23 @@ Use the GetBaseTemplatePath() function instead.</description>
 Default list of delimiters: space character, tab character, newline character; or their codes: "chr(32)", "chr(9)", chr(10).
 Default list delimiter: comma character.</description>
     </argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	<!-- GetTransactionIsolation -->
+	<function>
+		<name>getTransactionIsolation</name>
+		<class>lucee.runtime.functions.query.GetTransactionIsolation</class>
+		<introduced>7.1.0.70</introduced>
+		<keywords>query,datasource,transaction</keywords>
+		<description>Returns the isolation level of the current transaction as a string. If a datasource is provided and no explicit isolation is set, returns the datasource's default isolation level.</description>
+		<argument>
+			<name>datasource</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Datasource name. When provided and no explicit isolation is set on the transaction, returns the datasource's default isolation level.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -7991,7 +8173,11 @@ The following things are considered to be empty:
 		<member-name>int</member-name>
 		<class>lucee.runtime.functions.math.Int</class>
 		<keywords>number</keywords>
-		<description>Calculates the closest integer that is smaller than number.</description>
+		<description>
+			Returns the largest integer less than or equal to the given number (floor). 
+			For negative numbers, this rounds away from zero (e.g., int(-1.7) returns -2). 
+			The result is not limited to a 32-bit integer range and can handle large values such as epoch timestamps.
+		</description>
 		<argument>
 			<name>number</name>
 			<type>number</type>
@@ -9134,17 +9320,17 @@ The following things are considered to be empty:
 		<argument>
 			<name>parallel</name>
 			<default>false</default>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description></description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		
 		<return>
@@ -10202,6 +10388,94 @@ The following things are considered to be empty:
 		</return>
 	</function>
 	
+	<!-- MavenExists -->
+	<function>
+		<name>MavenExists</name>
+		<class>lucee.runtime.functions.mvn.MavenExists</class>
+		<introduced>7.1.0.98</introduced>
+		<keywords>maven,classloading,dependencies,jars</keywords>
+		<description>Checks whether a Maven artifact is present in Lucee's local maven cache directory.
+
+This is a cheap filesystem-only predicate - it does not contact any remote repository and does not resolve transitive dependencies. 
+
+Useful as a quick check or audit, or before calling `mavenLoad` or `mavenInfo` to avoid re-resolving an artifact that is already available locally.
+
+Accepts either three separate arguments (groupId, artifactId, version) or a single gradle-style coordinate string (`"group:artifact"` or `"group:artifact:version"`). If the version is omitted, returns true when any version of the coord is cached locally.</description>
+		<argument>
+			<name>groupId</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>The Maven group identifier, or a gradle-style coordinate string `"group:artifact"` / `"group:artifact:version"` when passed as the only argument.</description>
+		</argument>
+		<argument>
+			<name>artifactId</name>
+			<type>string</type>
+			<required>No</required>
+			<description>The Maven artifact identifier. Omit when passing a gradle-style coordinate as the first argument.</description>
+		</argument>
+		<argument>
+			<name>version</name>
+			<type>string</type>
+			<required>No</required>
+			<description>The specific version to check for. If omitted, the function returns true when any cached version of the coord is present.</description>
+		</argument>
+		<return>
+			<description>Returns true if a jar for the given coord (and version, if provided) exists in the local maven cache, false otherwise.</description>
+			<type>boolean</type>
+		</return>
+	</function>
+
+	<!-- MavenExport -->
+	<function>
+		<name>MavenExport</name>
+		<class>lucee.runtime.functions.mvn.MavenExport</class>
+		<introduced>7.1.0.98</introduced>
+		<keywords>maven,classloading,dependencies,jars</keywords>
+		<description>Walks Lucee's local maven cache directory and returns a pom.xml string listing every cached artifact as a `&lt;dependency&gt;` entry.
+
+The emitted pom uses a synthetic self-identifier (`com.example.lucee:mvn-cache-export:0`) with `&lt;packaging&gt;pom&lt;/packaging&gt;` - it is a manifest of what is cached, not a buildable project. 
+
+Scope is not recorded on disk so no `&lt;scope&gt;` is emitted; classifier is derived from the jar filename when present (e.g. native libraries like `sqlite-jdbc-3.47.0.0-linux-x86_64.jar` are exported with `&lt;classifier&gt;linux-x86_64&lt;/classifier&gt;`).
+
+Pairs with `mavenImport` to snapshot and restore a cache state. Use `fileWrite( path, mavenExport() )` to persist the output.</description>
+		<return>
+			<description>Returns the pom.xml as a string.</description>
+			<type>string</type>
+		</return>
+	</function>
+
+	<!-- MavenImport -->
+	<function>
+		<name>MavenImport</name>
+		<class>lucee.runtime.functions.mvn.MavenImport</class>
+		<introduced>7.1.0.98</introduced>
+		<keywords>maven,classloading,dependencies,jars</keywords>
+		<description>Parses a `pom.xml` and resolves each declared `&lt;dependency&gt;` into Lucee's local maven cache, fetching any that are not already present.
+
+By default only the literal dependencies listed in the pom are resolved - pairs symmetrically with `mavenExport`, which writes the full cache contents as a flat list. 
+
+Pass `includeTransitive = true` to also walk the dependency tree for each entry (same behaviour as `mavenLoad`).
+
+Returns a query with the same shape as `mavenInfo`, showing what was resolved.</description>
+		<argument>
+			<name>pomPath</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Filesystem path to a pom.xml file to import.</description>
+		</argument>
+		<argument>
+			<name>includeTransitive</name>
+			<type>boolean</type>
+			<default>false</default>
+			<required>No</required>
+			<description>If false (default), only the literal `&lt;dependency&gt;` entries in the pom are resolved. If true, the full transitive dependency tree is resolved for each entry.</description>
+		</argument>
+		<return>
+			<description>Returns a query with columns `groupId, artifactId, version, scope, optional, checksum, url, path` describing the resolved artifacts.</description>
+			<type>query</type>
+		</return>
+	</function>
+
 	<!-- MavenInfo -->
 	<function>
 		<name>MavenInfo</name>
@@ -10338,42 +10612,6 @@ mavenLoad([
 	</function>
 
 
-	
-	<!-- MarkdownToHTML -->
-	<function>
-		<name>MarkdownToHTML</name>
-		<member-name>MarkdownToHTML</member-name>
-		<class>lucee.runtime.functions.string.MarkdownToHTML</class>
-	<keywords>string</keywords>
-		<description>Transforms Markdown formatted String into HTML.</description>
-		<introduced>6.0.0.150</introduced>
-		<argument>
-			<name>string</name>
-			<alias>markdown</alias>
-			<type>string</type>
-			<required>Yes</required>
-			<description>A Markdown formatted string or a path to a file containf a markdown formatted string to convert to HTML</description>
-		</argument>
-		<argument>
-			<name>safeMode</name>
-			<type>boolean</type>
-			<alias>safe</alias>
-			<default>false</default>
-			<required>No</required>
-			<description>If set to true it does escape unsafe HTML tags</description>
-		</argument>
-		<argument>
-			<name>encoding</name>
-			<type>string</type>
-			<alias>charset</alias>
-			<required>No</required>
-			<description>Charset, only used in case the argument markdown contains a file path</description>
-		</argument>
-		<return>
-			<type>string</type>
-		</return>
-	</function>
-	
 	<!-- CreateAISession -->
 	<function>
 		<name>CreateAISession</name>
@@ -10396,13 +10634,16 @@ mavenLoad([
 			<alias>aiName,nameAI</alias>
 			<type>string</type>
 			<required>yes</required>
-			<description>Specifies which AI endpoint configuration to use. Can be provided in two formats:
+			<description>Specifies which AI endpoint configuration to use. Can be provided in three formats:
 
 1. Direct endpoint name:
    The name of an endpoint as defined in the Lucee Administrator (similar to how datasource names work)
 
 2. Default reference:
    Using the format "default:category" to use the endpoint configured as the default for that specific category in the Lucee Administrator.
+
+3. Engine ID reference:
+   Using the format "id:uuid" to use an AI engine registered by its unique identifier.
 
 Currently supported default categories:
 - exception: For exception analysis
@@ -10431,9 +10672,10 @@ The system message persists throughout the session and influences all responses.
 			<alias>conversationHistoryLimit</alias>
 			<type>numeric</type>
 			<required>no</required>
-			<default>50</default>
 			<description>Maximum number of question-answer pairs to keep in the conversation history. Once reached, older messages will be removed.
 		
+When omitted or zero, the conversation size limit configured on the AI endpoint is used.
+
 Consider:
 - Higher limits provide more context but consume more memory
 - Lower limits are more memory efficient but may lose important context
@@ -10444,9 +10686,10 @@ Consider:
 			<name>temperature</name>
 			<type>numeric</type>
 			<required>no</required>
-			<default>0.7</default>
 		<description>Controls response randomness (0.0 to 1.0). Lower values make responses more focused and deterministic, higher values make them more creative and varied.
 		
+When omitted or zero, the temperature configured on the AI endpoint is used. Values greater than 1.0 are rejected.
+
 Recommended settings:
 - 0.0-0.3: Technical analysis, debugging, code review
 - 0.3-0.5: Documentation generation, error explanations
@@ -10468,13 +10711,15 @@ For exception analysis and debugging, lower temperatures (0.2-0.3) are recommend
 		<class>lucee.runtime.functions.ai.InquiryAISession</class>
 		<description>Sends a question/message to an AI session and returns the response. The function maintains conversation context from previous interactions within the same session.
 	
-	The response can either be returned as a complete string or streamed in chunks to a listener function for real-time processing.</description>
+The response is returned as a string when it contains only plain text parts. When the AI returns structured data (such as tool calls), binary content (such as images), or a mix of part types, the function returns an array-like object where each element is a struct with `type`, `contenttype`, and `content` keys. That object can also be used as a string containing the concatenated plain text parts.
+
+An optional listener function receives response chunks as they arrive for real-time processing.</description>
 		<argument>
 			<name>session</name>
 			<alias>aiSession</alias>
 			<type>any</type>
 			<required>yes</required>
-			<description>The AI session object returned by LuceeCreateAISession(). This session maintains the conversation history and configuration settings like temperature and system message.</description>
+			<description>The AI session object returned by createAISession(). This session maintains the conversation history and configuration settings like temperature and system message.</description>
 		</argument>
 		<argument>
 			<name>question</name>
@@ -10505,13 +10750,28 @@ The question becomes part of the conversation history and provides context for f
 			<required>no</required>
 			<description>A user-defined function that receives the response in chunks as they arrive from the AI. This enables real-time processing or display of the response.
 	
-	The listener function should accept a single argument which will contain the response chunk.
+The listener is called with six arguments:
+1. `part` - the chunk content (string for text, binary for non-text parts)
+2. `chunkIndex` - the 1-based index of the chunk within the current part
+3. `isComplete` - true when the current part has finished streaming
+4. `type` - `"text"` or `"binary"`
+5. `contentType` - MIME type of the chunk (for example `"text/plain"` or `"image/png"`)
+6. `partIndex` - the 1-based index of the content part in a multipart response
 	
-	When a listener is provided, the function still returns the complete response as a string, but also streams each chunk to the listener as it arrives.</description>
+When a listener is provided, the function still returns the complete response using the same rules as without a listener.</description>
 		</argument>
 		<return>
-			<type>string</type>
-			<description>Returns the complete response from the AI as a string. If a listener was provided, this is the same complete response that was streamed in chunks to the listener.</description>
+			<type>any</type>
+			<description>Returns the complete response from the AI.
+
+When all response parts are plain text, a string is returned. If the response contains multiple text parts, they are concatenated into a single string.
+
+When the response includes structured, binary, or mixed parts, an array-like object is returned. Each element is a struct:
+- `type`: `"text"`, `"struct"`, or `"binary"`
+- `contenttype`: MIME type of the part
+- `content`: string for text parts, struct for structured parts (such as tool calls), binary for non-text parts
+
+That object also behaves as a string containing the concatenated plain text parts.</description>
 		</return>
 	</function>
 	
@@ -10538,18 +10798,22 @@ The question becomes part of the conversation history and provides context for f
 			<type>boolean</type>
 			<required>false</required>
 			<default>false</default>
-			<description>When true, includes additional detailed information:
-	- Models: List of available models with their names, labels, descriptions, and custom settings
-	- Files: For file-capable engines, lists associated files with their IDs, purposes, sizes, creation dates, and status information</description>
+			<description>When true, includes additional detailed information where supported by the engine:
+	- models: Query of available models with their names, labels, descriptions, and custom settings (may be empty for engines that do not expose model lists)
+	- files: For file-capable engines, query of associated files with their IDs, purposes, sizes, creation dates, and status information</description>
 		</argument>
 		<return>
 			<type>struct</type>
-			<description>Returns a structure containing:
+			<description>Returns a structure containing endpoint metadata, including:
 	- label: The display label of the endpoint
 	- model: The current model being used
-	- name: The engine factory name (if available)
-	- models: Query object with model details (if detailed=true)
-	- files: Query object with file information (if detailed=true and engine supports files)</description>
+	- id: The engine identifier
+	- name: The engine factory name
+	- temperature: The configured temperature (when set)
+	- connectTimeout: Connection timeout in milliseconds
+	- conversationSizeLimit: Maximum conversation history size
+	- models: Query of model details (when detailed=true and the engine supports model listing)
+	- files: Query of file information (when detailed=true and the engine supports file storage)</description>
 		</return>
 	</function>
 	
@@ -10601,7 +10865,7 @@ The question becomes part of the conversation history and provides context for f
 Restores an AI session from a serialized JSON string or struct. This function recreates an AI session with:
 
 - Original configuration settings (temperature, limits, timeouts)
-- Complete conversation history
+- Conversation history
 - System message prompt
 
 The function supports loading sessions by:
@@ -10616,13 +10880,16 @@ This function pairs with `SerializeAISession()` to provide persistence for AI co
 			<alias>aiName,nameAI</alias>
 			<type>string</type>
 			<required>yes</required>
-			<description>Specifies which AI endpoint configuration to use. Can be provided in two formats:
+			<description>Specifies which AI endpoint configuration to use. Can be provided in three formats:
 
 1. Direct endpoint name:
    The name of an endpoint as defined in the Lucee Administrator (similar to how datasource names work)
 
 2. Default reference:
    Using the format "default:category" to use the endpoint configured as the default for that specific category in the Lucee Administrator.
+
+3. Engine ID reference:
+   Using the format "id:uuid" to use an AI engine registered by its unique identifier.
 
 Currently supported default categories:
 - exception: For exception analysis
@@ -10647,13 +10914,18 @@ Must contain the following keys:
 - `connectionTimeout`: Connection timeout in milliseconds
 - `socketTimeout`: Socket timeout in milliseconds 
 - `systemMessage`: (Optional) System message that guides AI behavior
-- `history`: Array of conversation exchanges (questions and answers)
+- `history`: Array of conversation exchanges
+
+Each history entry contains:
+- `question`: A string, or an array of part structs for multipart questions (`type`, `contenttype`, `content`)
+- `answer`: A string, or an array of part structs for multipart answers (`type`, `contenttype`, `content`)
 
 Incomplete or improperly formatted data may cause initialization errors.
 			</description>
 		</argument>
 		<return>
-			<type>any</type>
+			<type>object</type>
+			<description>Returns an AI session object restored from the serialized data, with the saved configuration and conversation history.</description>
 		</return>
 	</function>
 	
@@ -10666,7 +10938,9 @@ Incomplete or improperly formatted data may cause initialization errors.
 Serializes an AI session to a JSON string that includes its configuration and conversation history. The serialized content includes:
 
 - Configuration settings (temperature, limits, timeouts, system message)
-- Complete conversation history with questions and answers
+- Conversation history with questions and answers
+
+Multipart questions and answers in the history are stored as arrays of part structs with `type`, `contenttype`, and `content` keys. Text parts use `type: "text"`, binary parts use `type: "binary"` with base64-encoded content, and structured JSON parts use `type: "struct"`.
 
 This function is useful for:
 
@@ -10682,7 +10956,7 @@ Use `LoadAISession()` to restore a serialized session.
 			<alias>aiSession</alias>
 			<type>any</type>
 			<required>yes</required>
-			<description>The AI session object returned by LuceeCreateAISession(). This session maintains the conversation history and configuration settings like temperature and system message.</description>
+			<description>The AI session object returned by createAISession(). This session maintains the conversation history and configuration settings like temperature and system message.</description>
 		</argument>
 		<argument>
 			<name>maxlength</name>
@@ -10700,7 +10974,7 @@ Use `LoadAISession()` to restore a serialized session.
 			<alias>summarize</alias>
 			<type>boolean</type>
 			<required>no</required>
-			<description>Controls whether the conversation history should be condensed before serialization. When set to true, the function will intelligently summarize older parts of the conversation while preserving essential context. This reduces the overall token count and storage requirements while maintaining the important elements of the conversation history. Default is false, which preserves the complete conversation history.</description>
+			<description>Controls whether the conversation history should be condensed before serialization. When set to true, the function uses the same AI engine to summarize the conversation history into a shorter JSON representation. This reduces token count and storage requirements. Default is false, which preserves the complete conversation history.</description>
 		</argument>
 		<return>
 			<type>String</type>
@@ -10838,7 +11112,8 @@ Use `LoadAISession()` to restore a serialized session.
 	- **No arguments** → returns an array of all extension artifact IDs for the default group (`org.lucee`)
 	- **`group` only** → returns an array of artifact IDs for that Maven group
 	- **`group` + `artifact`** → returns an array of version strings for that extension
-	- **`group` + `artifact` + `version`** → returns a struct with artifact details: `lex`, `pom`, `local`, `lastModified`
+	- **`group` + `artifact` + `version`** → returns a struct with artifact details (lex, pom, lastModified, etc.)
+- **`group` + `artifact` + `version` + `detailed=true`** → fetches detailed metadata; downloads the extension file only if POM metadata is unavailable. Returns additional metadata including `MinCoreVersion` and `MinLoaderVersion` when extension is downloaded.
 	    </description>
 	    <argument>
 	        <name>group</name>
@@ -10862,11 +11137,11 @@ Use `LoadAISession()` to restore a serialized session.
 	        <description>The version to retrieve details for. If omitted, all available versions for the artifact are returned.</description>
 	    </argument>
 	    <argument>
-	        <name>download</name>
+	        <name>detailed</name>
 	        <type>boolean</type>
 	        <required>No</required>
 	        <default>false</default>
-	        <description>create a local copy of the extension and at path to resulting struct with the key "local".</description>
+	        <description>When true, fetches detailed metadata for the extension. Attempts to read from POM first; only downloads the extension file if POM metadata is unavailable. When metadata is obtained from POM, the "local" key is not set. When the extension file is downloaded (no POM), additional version requirement metadata is extracted: `MinCoreVersion` and `MinLoaderVersion`.</description>
 	    </argument>
 	    <return>
 	        <type>any</type>
@@ -11963,6 +12238,31 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 
+	<!-- QueryConvertTypes -->
+	<function>
+		<name>QueryConvertTypes</name>
+		<class>lucee.runtime.functions.query.QueryConvertTypes</class>
+		<member-name>convertTypes</member-name>
+		<keywords>query</keywords>
+		<introduced>8.0.0.188</introduced>
+		<description>Converts every value of a query to the type declared by its column (e.g. date/time columns to date objects, numeric columns to numbers, bit/boolean columns to booleans). Columns with a type that has no matching CFML type (e.g. "object"/"other") and values that cannot be converted are left unchanged. By default a new query is returned and the original is left untouched.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>The query whose values should be converted to their column types.</description>
+    </argument>
+		<argument>
+			<name>inline</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>When set to true the given query is modified in place and returned, otherwise a new query with the converted values is returned and the original query is left untouched.</description>
+    </argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
 	<!-- QueryDeleteColumn -->
 	<function>
 		<name>QueryDeleteColumn</name>
@@ -13630,12 +13930,22 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>SessionCommit</name>
 		<introduced>6.2.1.15</introduced>
 		<class>lucee.runtime.functions.system.SessionCommit</class>
-		<description>Force saving the session to storage, useful when sessionCluster is enabled.</description>
+		<description>Force saving the session to storage immediately, useful for cross-request visibility (cluster siblings, parallel AJAX) when sessionCluster is enabled.</description>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
-	
+
+	<!-- SessionTouch -->
+	<function>
+		<name>SessionTouch</name>
+		<class>lucee.runtime.functions.system.SessionTouch</class>
+		<description>Marks the session as needing persistence; the write happens at the natural request-end store path. Deferred sibling of sessionCommit() — use when you don't need synchronous cross-request visibility.</description>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+
 	<!-- SessionStartTime -->
 	<function>
 		<name>SessionStartTime</name>
@@ -13988,6 +14298,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>void</type>
 		</return>
 	</function>
+
+	<!-- SSLCertificateRemove -->
+	<function>
+		<name>SSLCertificateRemove</name>
+		<class>lucee.runtime.functions.other.SSLCertificateRemove</class>
+		<description>Removes a certificate from the custom-cacerts keystore by alias.</description>
+		<argument>
+			<name>alias</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>The alias of the certificate to remove from custom-cacerts.</description>
+		</argument>
+		<return>
+			<type>boolean</type>
+			<description>Returns true if the certificate was successfully removed.</description>
+		</return>
+	</function>
+
 	<!-- stripCr -->
 	<function>
 		<name>stripCr</name>
@@ -14208,17 +14536,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>void</type>
@@ -14248,17 +14576,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>void</type>
@@ -14287,17 +14615,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>void</type>
@@ -14325,17 +14653,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>struct</type>
@@ -14364,17 +14692,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>query</type>
@@ -14595,17 +14923,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>object</type>
@@ -14635,17 +14963,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -14675,17 +15003,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -14737,18 +15065,18 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<default>false</default>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -14778,17 +15106,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -14818,17 +15146,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -14857,17 +15185,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -14898,17 +15226,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -14960,17 +15288,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<argument>
 			<name>parallel</name>
 			<default>false</default>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -15000,17 +15328,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -15040,17 +15368,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none; true uses virtual threads on Java 21+ unless the system property / environment variable "lucee.allow.virtual.threads" is set to false, otherwise regular threads)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -15230,6 +15558,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>Yes</required>
 		<description>Structure to test</description>
     </argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+	<!-- structIsOrdered -->
+	<function>
+		<name>structIsOrdered</name>
+		<class>lucee.runtime.functions.struct.StructIsOrdered</class>
+		<member-name>isOrdered</member-name>
+		<keywords>struct,decision</keywords>
+		<description>Returns true if the structure keeps the order in which its keys were added (an ordered/linked struct), otherwise false.</description>
+		<argument>
+			<name>struct</name>
+			<alias>structure,object</alias>
+			<type>struct</type>
+			<required>Yes</required>
+			<description>Structure to test</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -15661,6 +16007,14 @@ function(key1, key2)
 			it is simply converted to a binary, with help of the given argument. 
 			the value can be a valid charset name, "web" for the web charset defined with this context or "resource" for the resource charset defined in the context.</description>
 		</argument>
+		<argument>
+			<name>precise</name>
+			<introduced>8.0.0.239</introduced>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>If set to true and the first argument is a base64 string, it must be 100% valid base64 (standard alphabet, correct padding, no whitespace), otherwise an exception is thrown. The precise decoder is faster than the default lenient one. Cannot be combined with the argument charset.</description>
+		</argument>
 		<return>
 			<type>binary</type>
 		</return>
@@ -15750,6 +16104,59 @@ function(key1, key2)
 		</return>
 	</function>
 	
+	<!-- throw -->
+	<function>
+		<name>throw</name>
+		<class>lucee.runtime.functions.system.Throw</class>
+		<keywords>exception</keywords>
+		<description>Throws a developer-specified exception, which can be caught with a cfcatch tag.</description>
+		<argument>
+			<name>message</name>
+			<type>any</type>
+			<required>No</required>
+			<description>Message that describes exception event.</description>
+		</argument>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>No</required>
+			<default>application</default>
+			<description>A custom type, or Application. Do not enter another predefined type; types are not generated by CFML applications. If you specify Application, you need not specify a type for cfcatch.</description>
+		</argument>
+		<argument>
+			<name>detail</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Additional detailed description of the exception.</description>
+		</argument>
+		<argument>
+			<name>errorcode</name>
+			<type>string</type>
+			<required>No</required>
+			<description>A custom error code that you supply.</description>
+		</argument>
+		<argument>
+			<name>extendedInfo</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Extended information to the exception.</description>
+		</argument>
+		<argument>
+			<name>object</name>
+			<type>any</type>
+			<required>No</required>
+			<description>Throws a Java exception from a CFML tag. This attribute is mutually exclusive with all other arguments of this function.</description>
+		</argument>
+		<argument>
+			<name>cause</name>
+			<type>any</type>
+			<required>No</required>
+			<description>The cause of the exception created with this tag. This can be a cfcatch block or a native java exception.</description>
+		</argument>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
 	<!-- trim -->
 	<function>
 		<name>trim</name>

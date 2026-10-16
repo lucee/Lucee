@@ -471,6 +471,7 @@ public final class SHA1 {
 	 * 
 	 */
 
+	@SuppressWarnings("removal")
 	@Override
 	public void finalize() {
 

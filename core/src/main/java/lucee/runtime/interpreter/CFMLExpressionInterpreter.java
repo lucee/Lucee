@@ -27,7 +27,8 @@ import lucee.commons.lang.ParserString;
 import lucee.commons.lang.Range;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerPro;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
@@ -168,6 +169,7 @@ public class CFMLExpressionInterpreter {
 
 	protected ParserString cfml;
 	protected PageContext pc;
+	private ConfigServerPro cs;
 	protected boolean allowNullConstant = false;
 
 	protected boolean allowComments = true;
@@ -175,7 +177,7 @@ public class CFMLExpressionInterpreter {
 	private boolean preciseMath;
 	private final boolean isJson;
 	private final boolean limited;
-	private ConfigPro config;
+	private boolean pcValidated;
 
 	public CFMLExpressionInterpreter() {
 		this(true);
@@ -272,22 +274,21 @@ public class CFMLExpressionInterpreter {
 	}
 
 	private void init(PageContext pc) {
-		this.pc = pc = ThreadLocalPageContext.get(pc);
-
-		if (this.pc != null) {
-			this.config = (ConfigPro) this.pc.getConfig();
+		if (pc != null) {
+			this.pc = pc;
+			this.cs = ConfigUtil.getConfigServerImpl(pc.getConfig());
 		}
 		else {
-			this.config = (ConfigPro) ThreadLocalPageContext.getConfig();
-			if (config == null) {
-
+			this.cs = ThreadLocalPageContext.getConfigServer();
+			if (this.cs == null) {
 				try {
-					config = (ConfigPro) CFMLEngineFactory.getInstance().createConfig(null, "localhost", "/index.cfm");// TODO set a context root
+					// TODO set a context root
+					this.cs = ConfigUtil.getConfigServerImpl(CFMLEngineFactory.getInstance().createConfig(null, "localhost", "/index.cfm"));
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 		}
+
 	}
 
 	/*
@@ -1306,6 +1307,7 @@ public class CFMLExpressionInterpreter {
 			if (cfml.isCurrent('(')) {
 				if (!(ref instanceof Set)) throw createSyntaxException("Invalid syntax " + ref.getTypeName() + " can't called as function ", cfml);
 				Set set = (Set) ref;
+				PageContext pc = getPageContext();
 				ref = new UDFCall(set.getParent(pc), set.getKey(pc), functionArg(name, false, null, ')'));
 			}
 		}
@@ -1332,7 +1334,7 @@ public class CFMLExpressionInterpreter {
 
 		// check function
 		if (!limited && cfml.isCurrent('(')) {
-			FunctionLibFunction function = config.getFLDs().getFunction(name);
+			FunctionLibFunction function = cs.getFLDs().getFunction(name);
 			Ref[] arguments = functionArg(name, true, function, ')');
 			if (function != null) return new BIFCall(function, arguments);
 
@@ -1379,7 +1381,7 @@ public class CFMLExpressionInterpreter {
 		comments();
 
 		if (cfml.isCurrent('(')) {
-			FunctionLibFunction function = config.getFLDs().getFunction("_createComponent");
+			FunctionLibFunction function = cs.getFLDs().getFunction("_createComponent");
 			Ref[] arguments = functionArg("_createComponent", true, function, ')');
 			Ref[] args = new Ref[arguments.length + 1];
 			for (int i = 0; i < arguments.length; i++) {
@@ -1414,7 +1416,14 @@ public class CFMLExpressionInterpreter {
 				return new Variable(new lucee.runtime.interpreter.ref.var.Scope(ScopeSupport.SCOPE_VAR), name, limited);
 			}
 		}
-		int scope = limited ? Scope.SCOPE_UNDEFINED : VariableInterpreter.scopeString2Int(pc != null && pc.ignoreScopes(), idStr);
+		int scope;
+		if (limited) {
+			scope = Scope.SCOPE_UNDEFINED;
+		}
+		else {
+			PageContext pc = getPageContext();
+			scope = VariableInterpreter.scopeString2Int(pc != null && pc.ignoreScopes(), idStr);
+		}
 		if (scope == Scope.SCOPE_UNDEFINED) {
 			return new Variable(new lucee.runtime.interpreter.ref.var.Scope(Scope.SCOPE_UNDEFINED), idStr, limited);
 		}
@@ -1435,7 +1444,7 @@ public class CFMLExpressionInterpreter {
 			if (!firstCanBeNumber) return null;
 			else if (!cfml.isCurrentDigit()) return null;
 		}
-		boolean doUpper = !isJson && config.getDotNotationUpperCase();
+		boolean doUpper = !isJson && cs.getDotNotationUpperCase();
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(doUpper ? cfml.getCurrentUpper() : cfml.getCurrent());
@@ -1685,5 +1694,17 @@ public class CFMLExpressionInterpreter {
 		 * print.e(e.getMessage()); print.e("+++++++++++++++++++++++++"); }
 		 */
 
+	}
+
+	private PageContext getPageContext() {
+		if (pc == null && !pcValidated) {
+			synchronized (SystemUtil.createToken("interpreter", "getPageContext")) {
+				if (pc == null && !pcValidated) {
+					pcValidated = true;
+					pc = ThreadLocalPageContext.get();
+				}
+			}
+		}
+		return pc;
 	}
 }

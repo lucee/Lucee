@@ -25,7 +25,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
@@ -37,7 +36,6 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 	private String encoding = null;
 	private int scriptProtected = ScriptProtected.UNDEFINED;
 	private static final URLItem[] empty = new URLItem[0];
-	private static final Collection.Key REQUEST_TIMEOUT = KeyConstants._RequestTimeout;
 	private URLItem[] raw = empty;
 
 	/**
@@ -74,7 +72,7 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 			fillDecoded(raw, encoding, isScriptProtected(), pc.getApplicationContext().getSameFieldAsArray(SCOPE_URL), pc.getApplicationContext().getFormUrlAsStruct());
 
 			if (raw.length > 0 && pc.getConfig().isAllowURLRequestTimeout()) {
-				Object o = get(REQUEST_TIMEOUT, null);
+				Object o = get(KeyConstants._RequestTimeout, null);
 				if (o != null) {
 					long timeout = Caster.toLongValue(o, -1);
 					if (timeout != -1) pc.setRequestTimeout(timeout * 1000);
@@ -82,8 +80,7 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 				Caster.toDoubleValue(o, false, -1);
 			}
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 	}
 
 	@Override

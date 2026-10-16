@@ -31,6 +31,8 @@ import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.concurrency.Data;
+import lucee.runtime.concurrency.PageContextPool;
+import lucee.runtime.concurrency.ParallelUtil;
 import lucee.runtime.concurrency.UDFCaller2;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.FunctionException;
@@ -62,34 +64,36 @@ public final class Filter extends BIF implements ClosureFunc {
 	private static final long serialVersionUID = -5940580562772523622L;
 
 	public static Object call(PageContext pc, Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false, Each.DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, "false", 0, TYPE_UNDEFINED);
 	}
 
-	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, Each.DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
+	public static Object call(PageContext pc, Object obj, UDF udf, String parallel) throws PageException {
+		return _call(pc, obj, udf, parallel, 0, TYPE_UNDEFINED);
 	}
 
-	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+	public static Object call(PageContext pc, Object obj, UDF udf, String parallel, Number maxThreads) throws PageException {
 		return _call(pc, obj, udf, parallel, Caster.toIntValue(maxThreads), TYPE_UNDEFINED);
 	}
 
-	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
+	public static Object call(PageContext pc, Object obj, UDF udf, String parallel, int maxThreads, short type) throws PageException {
 		return _call(pc, obj, udf, parallel, maxThreads, type);
 	}
 
-	private static Collection _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
+	private static Collection _call(PageContext pc, Object obj, UDF udf, String parallel, int maxThreads, short type) throws PageException {
 
 		Thread thread = null;
 		ExecutorService execute = null;
 		List<Future<Data<Pair<Object, Object>>>> futures = null;
-		// 0 or less == default
-		if (maxThreads < 1) maxThreads = Each.DEFAULT_MAX_THREAD;
-		// 1 == not parallel
-		else if (maxThreads == 1) parallel = false;
-		if (parallel) {
-			execute = ThreadUtil.createExecutorService(maxThreads);
+		short pm = ParallelUtil.toParallel(parallel);
+		// a concurrency of 1 means one at a time, i.e. not parallel
+		if (maxThreads == 1) pm = ParallelUtil.PARALLEL_NONE;
+		// platform threads need a concrete pool size; virtual threads stay unbounded when no limit is given
+		else if (pm == ParallelUtil.PARALLEL_THREAD && maxThreads < 1) maxThreads = Each.DEFAULT_MAX_THREAD;
+		if (pm != ParallelUtil.PARALLEL_NONE) {
+			execute = ThreadUtil.createExecutorService(maxThreads, pm == ParallelUtil.PARALLEL_VIRTUAL);
 			futures = new ArrayList<Future<Data<Pair<Object, Object>>>>();
 			thread = ((PageContextImpl) pc).getThread();
+			((PageContextImpl) pc).setParallelPool(new PageContextPool(pc));
 		}
 
 		Collection coll;
@@ -145,7 +149,7 @@ public final class Filter extends BIF implements ClosureFunc {
 		}
 		else throw new FunctionException(pc, "Filter", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
 
-		if (parallel) afterCall(pc, coll, futures, execute, thread);
+		if (execute != null) afterCall(pc, coll, futures, execute, thread);
 
 		return coll;
 	}
@@ -194,8 +198,7 @@ public final class Filter extends BIF implements ClosureFunc {
 
 	private static Collection invoke(PageContext pc, Query qry, UDF udf, ExecutorService es, List<Future<Data<Pair<Object, Object>>>> futures)
 			throws CasterException, PageException {
-		Key[] colNames = qry.getColumnNames();
-		Query rtn = new QueryImpl(colNames, 0, qry.getName());
+		Query rtn = QueryImpl.newInstanceWithSameColumns(qry, 0, qry.getName());
 		final int pid = pc.getId();
 		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
 		int rowNbr;
@@ -334,41 +337,41 @@ public final class Filter extends BIF implements ClosureFunc {
 	}
 
 	public static void afterCall(PageContext pc, Collection coll, List<Future<Data<Pair<Object, Object>>>> futures, ExecutorService es, Thread thread) throws PageException {
+		boolean isArray = coll instanceof Array;
+		boolean isQuery = coll instanceof Query;
+		Exception first = null;
 		try {
-			boolean isArray = false;
-			boolean isQuery = false;
-			if (coll instanceof Array) isArray = true;
-			else if (coll instanceof Query) isQuery = true;
-
 			Iterator<Future<Data<Pair<Object, Object>>>> it = futures.iterator();
 			Data<Pair<Object, Object>> d;
 			while (it.hasNext()) {
-				d = it.next().get();
+				try {
+					d = it.next().get();
 
-				if (Caster.toBooleanValue(d.result)) {
-					if (isArray) ((Array) coll).append(d.passed.getValue());
-					else if (isQuery) addRow((Query) d.passed.getValue(), (Query) coll, Caster.toIntValue(d.passed.getName()));
-					else coll.set(KeyImpl.toKey(d.passed.getName()), d.passed.getValue());
+					if (Caster.toBooleanValue(d.result)) {
+						if (isArray) ((Array) coll).append(d.passed.getValue());
+						else if (isQuery) addRow((Query) d.passed.getValue(), (Query) coll, Caster.toIntValue(d.passed.getName()));
+						else coll.set(KeyImpl.toKey(d.passed.getName()), d.passed.getValue());
+					}
+
+					pc.write(d.output);
 				}
-
-				pc.write(d.output);
+				catch (Exception e) {
+					if (first == null) first = e;
+				}
 			}
 		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
 		finally {
-			((PageContextImpl) pc).setThread(thread);
-			if (es != null) es.shutdown();
+			Each.finishParallelCall(pc, es, thread);
 		}
+		if (first != null) throw Caster.toPageException(first);
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 
 		if (args.length == 2) return call(pc, (args[0]), Caster.toFunction(args[1]));
-		if (args.length == 3) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]));
-		if (args.length == 4) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toNumber(pc, args[3]));
+		if (args.length == 3) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toNumber(pc, args[3]));
 
 		throw new FunctionException(pc, "Filter", 2, 4, args.length);
 	}

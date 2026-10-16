@@ -19,6 +19,7 @@
 package lucee.transformer.cfml.evaluator.impl;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.runtime.config.Config;
@@ -43,7 +44,7 @@ public final class PageEncoding extends EvaluatorSupport {
 
 		Charset cs = CharsetUtil.toCharset(str);
 		PageSourceCode psc = data.srcCode instanceof PageSourceCode ? (PageSourceCode) data.srcCode : null;
-		if (psc == null || cs.equals(psc.getCharset()) || CharsetUtil.UTF8.equals(psc.getCharset())) {
+		if (psc == null || cs.equals(psc.getCharset()) || StandardCharsets.UTF_8.equals(psc.getCharset())) {
 			cs = null;
 		}
 

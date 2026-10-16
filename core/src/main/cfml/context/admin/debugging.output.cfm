@@ -28,23 +28,20 @@
 				<cfadmin action="updateMonitoring"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					debug="#isDefined('form.debug') && form.debug#"
-					doc="#isDefined('form.doc') && form.doc#"
-					metric="#isDefined('form.metric') && form.metric#"
-					test="#isDefined('form.test') && form.test#"
 					
-					remoteClients="#request.getRemoteClients()#">
+					monitoring="#{
+						"showDebug":form.monitoring_showDebug?:false,
+						"showMetric":form.monitoring_showMetric?:false,
+						"showDoc":form.monitoring_showDoc?:false,
+						"showTest":form.monitoring_showTest?:false
+					}#">
 		</cfcase>
 		<cfcase value="#stText.Buttons.resetServerAdmin#">
 
 				<cfadmin action="updateMonitoring"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					debug=""
-					metric=""
-					doc=""
-					test=""
-					remoteClients="#request.getRemoteClients()#">
+					monitoring="#{}#">
 		</cfcase>
 
 	</cfswitch>
@@ -86,20 +83,17 @@ Redirtect to entry --->
 										<tr>
 											<th scope="row">#stText.debug["show"&item]#</th>
 											<td>
+												<cfmodule template="systemSetting.cfm"
+													name="monitoring_show#ucFirst(item)#" 
+													value="#_mon[item]#"
+													access="#hasAccess#"
+													description="#stText.debug["show"&item&"Desc"]#"
+													br=false
+													sp=true
+													descOnTop=false>
 												<cfset lbl = _mon[item] ? stText.general.yes : stText.general.no>
-												<cfif hasAccess>
-													<label><input type="checkbox" class="checkbox" name="#item#" value="true" #_mon[item] ? 'checked="checked"' : ''#>
-													#stText.general.enabled#</label>
-												<cfelse>
-													<b>#_mon[item] ? stText.general.yes : stText.general.no#</b>
-													<input type="hidden" name="#item#" value="#_mon[item]#">
-												</cfif>
-												<div class="comment">#stText.debug["show"&item&"Desc"]#</div>
-												<cfsavecontent variable="codeSample">
-													this.monitoring.show#UCFirst(item)# = #_mon[item]#;
-												</cfsavecontent>
-												<cfset renderCodingTip( codeSample )>
-												<cfset renderSysPropEnvVar( name:"lucee.monitoring.show#ucFirst(item)#",value:_mon[item])>
+												<input type="checkbox" class="checkbox" name="monitoring_show#ucFirst(item)#" value="true" #_mon[item] ? 'checked="checked"' : ''#>
+												</cfmodule>
 											</td>
 										</tr>
 										</cfloop>

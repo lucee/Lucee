@@ -14,15 +14,15 @@
                 action="updateCacheDefaultConnection"
                 type="#request.adminType#"
                 password="#session["password"&request.adminType]#"
-                object="#StructKeyExists(form,'default_object')?form.default_object:''#"
-                template="#StructKeyExists(form,'default_template')?form.default_template:''#"
-                query="#StructKeyExists(form,'default_query')?form.default_query:''#"
-                resource="#StructKeyExists(form,'default_resource')?form.default_resource:''#"
-                function="#StructKeyExists(form,'default_function')?form.default_function:''#"
-                include="#StructKeyExists(form,'default_include')?form.default_include:''#"
-                http="#StructKeyExists(form,'default_http')?form.default_http:''#"
-                file="#StructKeyExists(form,'default_file')?form.default_file:''#"
-                webservice="#StructKeyExists(form,'default_webservice')?form.default_webservice:''#"
+                defaultOobject="#StructKeyExists(form,'default_object')?form.default_object:''#"
+                defaultTemplate="#StructKeyExists(form,'default_template')?form.default_template:''#"
+                defaultQuery="#StructKeyExists(form,'default_query')?form.default_query:''#"
+                defaultResource="#StructKeyExists(form,'default_resource')?form.default_resource:''#"
+                defaultFunction="#StructKeyExists(form,'default_function')?form.default_function:''#"
+                defaultInclude="#StructKeyExists(form,'default_include')?form.default_include:''#"
+                defaultHttp="#StructKeyExists(form,'default_http')?form.default_http:''#"
+                defaultFile="#StructKeyExists(form,'default_file')?form.default_file:''#"
+                defaultWebservice="#StructKeyExists(form,'default_webservice')?form.default_webservice:''#"
                 remoteClients="#request.getRemoteClients()#">				
 		</cfcase>
 	<!--- delete --->
@@ -171,6 +171,11 @@ Redirtect to entry --->
 	<cfif srcLocal.recordcount and access EQ "yes">
 		<h2>#stText.Settings.cache.titleExisting#</h2>
 		<div class="itemintro">#stText.Settings.cache.descExisting#</div>
+		<cfset renderSettings("caches",{columns:[
+			"name",
+			"class","bundleName","bundleVersion","maven","component",
+			"custom","storage"
+			], value:removeCoreBundle(srcLocal)} )>
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
@@ -213,7 +218,11 @@ Redirtect to entry --->
 								</cfif>
 							</td>
 							<td>
-								#renderEditButton("#request.self#?action=#url.action#&action2=create&name=#Hash(srcLocal.name)#")#
+								<cfif qry.readonly?:false>
+									#lockedReadOnly()#
+								<cfelse>
+									#renderEditButton2("caches","name",srcLocal.name,"#request.self#?action=#url.action#&action2=create&name=#Hash(srcLocal.name)#")#
+								</cfif>
 							</td>
 						</tr>
 					</cfloop>
@@ -259,11 +268,17 @@ function defaultValue(field) {
 							<td>
 								<select name="default_#type#" class="small" onchange="defaultValue(this);">
 									<option value="">------</option>
+									<cfset val="">
 									<cfloop query="connections">
-										<option value="#connections.name#" <cfif connections.default EQ type><cfset defaults[type]=connections.name>selected="selected"</cfif>>#connections.name#</option>
+										<option value="#connections.name#" <cfif connections.default EQ type><cfset defaults[type]=connections.name><cfset val=connections.name>selected="selected"</cfif>>#connections.name#</option>
 									</cfloop>
 								</select>
 								<div class="comment">#stText.Settings.cache['defaulttype' &type& 'Desc']#</div>
+<cfsavecontent variable="codeSample">
+this.cache.#type# = "#val#";	
+</cfsavecontent>
+								<cfset renderCodingTip( codeSample )>
+								
 							</td>
 						</tr>
 					</cfloop>
@@ -292,7 +307,7 @@ this.cache.http = "#!hasHTT?"&lt;cache-name>":defaults.http#";
 this.cache.file = "#!hasFil?"&lt;cache-name>":defaults.file#";	
 this.cache.webservice = "#!hasWSe?"&lt;cache-name>":defaults.webservice#";	
 </cfsavecontent>
-<cfset renderCodingTip( codeSample )>
+<!--- <cfset renderCodingTip( codeSample )> --->
 
 						</td>
 						</tr>

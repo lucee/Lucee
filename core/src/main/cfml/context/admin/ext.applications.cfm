@@ -1,4 +1,18 @@
-<cfinclude template="ext.functions.cfm">
+<cfscript>
+	include "ext.functions.cfm";
+	
+	try {
+		external=getLuceeExtensions(getExtensionGroups());
+	}
+	catch(any e) {
+		external=queryNew("id,name,groupId,artifactId,version,lastModified,description,otherVersions,image");
+	}
+
+	stText.ext.forgeboxTitle = "Forgebox Extensions";
+	stText.ext.forgeboxDescApps = "Extensions published on Forgebox are available once you add the Maven groupId ""io.forgebox"" on the Extension Providers page.";
+	stText.ext.forgeboxProvidersAction = "ext.providers";
+	stText.ext.forgeboxProvidersLink = "Extension/Providers";
+</cfscript>
 
 <cfparam name="inc" default="">
 <cfparam name="url.action2" default="list">
@@ -9,20 +23,10 @@
 <cfparam name="session.extFilter.available" default="">
 
 <cfadmin
-	action="getRHExtensionProviders"
-	type="#request.adminType#"
-	password="#session["password"&request.adminType]#"
-	returnVariable="providers">
-<cfset providerURLs=queryColumnData(providers,"url")>
-<cfset request.providers=providers>
-
-
-<cfadmin
-    action="getRHExtensions"
+    action="getExtensions"
     type="#request.adminType#"
     password="#session["password"&request.adminType]#"
     returnVariable="extensions">
-
 
 <cfparam name="error" default="#struct(message:"",detail:"")#">
 
@@ -42,27 +46,36 @@
 </cfscript>
 	<cfswitch expression="#form.mainAction#">
 		<cfcase value="#stText.Buttons.install#">
-        	<cfadmin
-			    action="updateRHExtension"
+			<cfadmin
+			    action="updateExtension"
 			    type="#request.adminType#"
 			    password="#session["password"&request.adminType]#"
-				source="#downloadFull(form.provider,form.id,form.version)#">
+				id="#form.id?:""#"
+				groupId="#form.groupId?:""#"
+				artifactId="#form.artifactId?:""#"
+				version="#form.version#">
 			<cfset application.reloadPlugins = true>
 		</cfcase>
 		<cfcase value="#stText.Buttons.upDown#">
 			<cfadmin
-			    action="updateRHExtension"
+			    action="updateExtension"
 			    type="#request.adminType#"
 			    password="#session["password"&request.adminType]#"
-				source="#downloadFull(form.provider,form.id,form.version)#">
+				id="#form.id?:""#"
+				groupId="#form.groupId?:""#"
+				artifactId="#form.artifactId?:""#"
+				version="#form.version#">
 			<cfset application.reloadPlugins = true>
 		</cfcase>
         <cfcase value="#stText.Buttons.uninstall#">
         	<cfadmin
-			    action="removeRHExtension"
+			    action="removeExtension"
 			    type="#request.adminType#"
 			    password="#session["password"&request.adminType]#"
-				id="#form.id#">
+				id="#form.id?:""#"
+				groupId="#form.groupId?:""#"
+				artifactId="#form.artifactId?:""#"
+				version="#form.versionInstalled#">
 			<cfset application.reloadPlugins = true>
 		</cfcase>
 		<cfdefaultcase>
@@ -118,6 +131,20 @@ Error Output --->
 Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#&reinit=true" addtoken="no">
+</cfif>
+
+<cfif url.action2 eq "list">
+<cfoutput>
+	<div class="okay collapsible-banner-box" tabindex="0">
+		<div class="collapsible-banner-panel">
+			<div class="collapsible-banner-summary">#stText.ext.forgeboxTitle#</div>
+			<div class="collapsible-banner-body">
+				<div class="comment">#stText.ext.forgeboxDescApps#</div>
+				<a href="#request.self#?action=#stText.ext.forgeboxProvidersAction#" style="text-decoration:underline">#stText.ext.forgeboxProvidersLink#</a>
+			</div>
+		</div>
+	</div>
+</cfoutput>
 </cfif>
 
 <cfoutput>#inc#</cfoutput>

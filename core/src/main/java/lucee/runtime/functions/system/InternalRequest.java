@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -13,7 +14,7 @@ import java.util.Map.Entry;
 import jakarta.servlet.http.HttpSession;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.CharSet;
+import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
@@ -28,8 +29,8 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
-import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.other.CreatePageContext;
 import lucee.runtime.net.http.HttpServletResponseDummy;
@@ -106,11 +107,11 @@ public class InternalRequest implements Function {
 					ContentType ct = HTTPUtil.toContentType(strCT, null);
 					if (ct != null) {
 						String strCS = ct.getCharset();
-						if (!StringUtil.isEmpty(strCS)) cs = CharsetUtil.toCharSet(strCS, CharSet.UTF8).toCharset();
+						if (!StringUtil.isEmpty(strCS)) cs = CharsetUtil.toCharsetX(strCS, CharsetX.UTF8).toCharset();
 					}
 				}
 			}
-			if (cs == null) cs = CharsetUtil.UTF8;
+			if (cs == null) cs = StandardCharsets.UTF_8;
 
 			String str = Caster.toString(body);
 			_barr = str.getBytes(cs);
@@ -296,7 +297,7 @@ public class InternalRequest implements Function {
 
 		return ThreadUtil.createPageContext(pc.getConfig(), os, pc.getHttpServletRequest().getServerName(), template, toQueryString(urls, charset),
 				CreatePageContext.toCookies(cookies), CreatePageContext.toPair(headers, true), body, CreatePageContext.toPair(new StructImpl(), true),
-				CreatePageContext.castValuesToString(new StructImpl()), true, -1, session, method);
+				CreatePageContext.castValuesToString(pc, new StructImpl()), true, -1, session, method);
 	}
 
 	private static String toQueryString(Struct urls, Charset charset) throws PageException {

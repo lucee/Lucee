@@ -22,13 +22,14 @@ import java.io.Serializable;
 import java.util.Map;
 
 import lucee.runtime.component.Property;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
+/**
+ * Shared across all duplicates of a prototype (LDEV-6298). Treat as immutable post-init.
+ * Any new post-init mutation will silently leak across every duplicate of the same prototype.
+ */
 public final class ComponentProperties implements Serializable {
-
-	private static final Collection.Key WSDL_FILE = KeyConstants._wsdlfile;
 
 	// Reference fields (8 bytes each) - group together to minimize padding
 	final String dspName;
@@ -87,6 +88,6 @@ public final class ComponentProperties implements Serializable {
 	 */
 	public String getWsdlFile() {
 		if (meta == null) return null;
-		return (String) meta.get(WSDL_FILE, null);
+		return (String) meta.get(KeyConstants._wsdlfile, null);
 	}
 }

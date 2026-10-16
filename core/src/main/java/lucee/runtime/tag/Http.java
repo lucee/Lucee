@@ -79,9 +79,9 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.URLEncoder;
+import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.CachingGZIPInputStream;
-import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
 import lucee.commons.net.http.httpclient.ResourceBody;
 import lucee.runtime.PageContext;
@@ -111,6 +111,7 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.text.csv.CSVParser;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -185,17 +186,6 @@ public final class Http extends BodyTagImpl {
 	private static final short GET_AS_BINARY_YES = 1;
 	private static final short GET_AS_BINARY_AUTO = 2;
 
-	private static final Key STATUSCODE = KeyConstants._statuscode;
-	private static final Key CHARSET = KeyConstants._charset;
-
-	private static final Key ERROR_DETAIL = KeyConstants._errordetail;
-	private static final Key STATUS_CODE = KeyConstants._status_code;
-	private static final Key STATUS_TEXT = KeyConstants._status_text;
-	private static final Key HTTP_VERSION = KeyConstants._http_version;
-	private static final Key LOCATIONS = KeyConstants._locations;
-
-	private static final Key EXPLANATION = KeyConstants._explanation;
-	private static final Key RESPONSEHEADER = KeyConstants._responseheader;
 	private static final Key SET_COOKIE = KeyImpl.getInstance("set-cookie");
 
 	private static final short AUTH_TYPE_BASIC = 0;
@@ -335,6 +325,13 @@ public final class Http extends BodyTagImpl {
 	private String clientCertPassword;
 	private boolean autoCert = false;
 
+	/** Path to a custom trust store (JKS or PKCS12) for SSL certificate validation. */
+	private String trustStore;
+	/** Password for the custom trust store. */
+	private String trustStorePassword;
+	/** When false, disables SSL certificate and hostname verification (like curl -k). */
+	private boolean sslVerify = true;
+
 	@Override
 	public void release() {
 		super.release();
@@ -383,6 +380,9 @@ public final class Http extends BodyTagImpl {
 		cachedWithin = null;
 		usePool = true;
 		autoCert = false;
+		trustStore = null;
+		trustStorePassword = null;
+		sslVerify = true;
 	}
 
 	/**
@@ -730,7 +730,8 @@ public final class Http extends BodyTagImpl {
 		long start = System.nanoTime();
 		boolean safeToMemory = !StringUtil.isEmpty(result, true);
 
-		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(this.usePool, this.clientCert, this.clientCertPassword, this.redirect);
+		HttpClientBuilder builder = HTTPEngine.getHttpClientBuilder(this.usePool, this.clientCert, this.clientCertPassword, this.trustStore, this.trustStorePassword, this.sslVerify, this.redirect)
+				.getName();
 
 		// cookies
 		BasicCookieStore cookieStore = new BasicCookieStore();
@@ -965,7 +966,7 @@ public final class Http extends BodyTagImpl {
 				}
 				// Cookie
 				else if (type == HttpParamBean.TYPE_COOKIE) {
-					HTTPEngine4Impl.addCookie(cookieStore, host, param.getName(), param.getValueAsString(), "/", charset);
+					HTTPEngine.addCookie(cookieStore, host, param.getName(), param.getValueAsString(), "/", charset);
 				}
 				// File
 				else if (type == HttpParamBean.TYPE_FILE) {
@@ -1009,7 +1010,7 @@ public final class Http extends BodyTagImpl {
 					hasContentType = true;
 					req.addHeader("Content-type", mt + "; charset=" + cs);
 					if (eeReq == null) throw new ApplicationException("type xml is only supported for methods get, delete, post, and put");
-					HTTPEngine4Impl.setBody(eeReq, param.getValueAsString(), mt, cs);
+					HTTPEngine.setBody(eeReq, param.getValueAsString(), mt, cs);
 				}
 				// Body
 				else if (type == HttpParamBean.TYPE_BODY) {
@@ -1023,7 +1024,7 @@ public final class Http extends BodyTagImpl {
 
 					hasBody = true;
 					if (eeReq == null) throw new ApplicationException("type body is only supported for methods get, delete, post, and put");
-					HTTPEngine4Impl.setBody(eeReq, param.getValue(), mt, cs);
+					HTTPEngine.setBody(eeReq, param.getValue(), mt, cs);
 
 				}
 				else {
@@ -1112,10 +1113,10 @@ public final class Http extends BodyTagImpl {
 					if (StringUtil.isEmpty(this.workStation, true)) throw new ApplicationException("attribute workstation is required when authentication type is [NTLM]");
 					if (StringUtil.isEmpty(this.domain, true)) throw new ApplicationException("attribute domain is required when authentication type is [NTLM]");
 
-					HTTPEngine4Impl.setNTCredentials(builder, this.username, this.password, this.workStation, this.domain);
+					HTTPEngine.setNTCredentials(builder, this.username, this.password, this.workStation, this.domain);
 				}
 				else {
-					httpContext = HTTPEngine4Impl.setCredentials(builder, httpHost, this.username, this.password, preauth);
+					httpContext = HTTPEngine.setCredentials(builder, httpHost, this.username, this.password, preauth);
 				}
 			}
 
@@ -1129,7 +1130,7 @@ public final class Http extends BodyTagImpl {
 				proxy = ProxyDataImpl.validate(((PageContextImpl) pageContext).getProxyData(), host);
 
 			}
-			HTTPEngine4Impl.setProxy(host, builder, req, proxy);
+			HTTPEngine.setProxy(host, builder, req, proxy);
 
 		}
 		HTTPResponse4Impl rsp = null;
@@ -1138,17 +1139,17 @@ public final class Http extends BodyTagImpl {
 			if (httpContext == null) httpContext = new HttpClientContext();
 
 			HTTPStruct cfhttp = new HTTPStruct(cacheId);
-			cfhttp.setEL(ERROR_DETAIL, "");
+			cfhttp.setEL(KeyConstants._errordetail, "");
 			if (safeToMemory) pageContext.setVariable(result, cfhttp);
 
 			/////////////////////////////////////////// EXECUTE
 			/////////////////////////////////////////// /////////////////////////////////////////////////
 			client = builder.build();
-			Executor4 e = new Executor4(pageContext, this, client, httpContext, req, redirect);
+			Executor4 e = new Executor4(pageContext, this, client, httpContext, req, redirect, this.usePool);
 
 			if (socketTimeout == null || socketTimeout.getMillis() <= 0) {
 				try {
-					rsp = e.execute(httpContext);
+					rsp = e.execute(client, httpContext, this.usePool);
 				}
 
 				catch (Throwable t) {
@@ -1175,7 +1176,8 @@ public final class Http extends BodyTagImpl {
 				}
 				if (e.t != null) {
 					if (!throwonerror) {
-						setUnknownHost(cfhttp, e.t);
+						if (e.t instanceof SocketTimeoutException) setRequestTimeout(cfhttp);
+						else setUnknownHost(cfhttp, e.t);
 						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false, e.t);
 						return;
 					}
@@ -1204,12 +1206,12 @@ public final class Http extends BodyTagImpl {
 			String rspCharset = null;
 
 			// status code
-			cfhttp.set(STATUSCODE, ((rsp.getStatusCode() + " " + rsp.getStatusText()).trim()));
-			cfhttp.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
-			cfhttp.set(STATUS_TEXT, (rsp.getStatusText()));
-			cfhttp.set(HTTP_VERSION, (rsp.getProtocolVersion()));
+			cfhttp.set(KeyConstants._statuscode, ((rsp.getStatusCode() + " " + rsp.getStatusText()).trim()));
+			cfhttp.set(KeyConstants._status_code, Double.valueOf(statCode = rsp.getStatusCode()));
+			cfhttp.set(KeyConstants._status_text, (rsp.getStatusText()));
+			cfhttp.set(KeyConstants._http_version, (rsp.getProtocolVersion()));
 			Array locations = rsp.getLocations();
-			if (locations != null) cfhttp.set(LOCATIONS, locations);
+			if (locations != null) cfhttp.set(KeyConstants._locations, locations);
 
 			// responseHeader
 			lucee.commons.net.http.Header[] headers = rsp.getAllHeaders();
@@ -1263,10 +1265,10 @@ public final class Http extends BodyTagImpl {
 			rspCharset = tmpCharset != null ? tmpCharset[1] : null;
 
 			cfhttp.set(KeyConstants._error, Boolean.FALSE); // default
-			cfhttp.set(RESPONSEHEADER, responseHeader);
+			cfhttp.set(KeyConstants._responseheader, responseHeader);
 			cfhttp.set(KeyConstants._cookies, cookies);
-			responseHeader.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
-			responseHeader.set(EXPLANATION, (rsp.getStatusText()));
+			responseHeader.set(KeyConstants._status_code, Double.valueOf(statCode = rsp.getStatusCode()));
+			responseHeader.set(KeyConstants._explanation, (rsp.getStatusText()));
 			if (setCookie.size() > 0) responseHeader.set(SET_COOKIE, setCookie);
 
 			// is text
@@ -1310,7 +1312,7 @@ public final class Http extends BodyTagImpl {
 			else cfhttp.set(KeyConstants._mimetype, NO_MIMETYPE);
 
 			// charset
-			cfhttp.set(CHARSET, rspCharset != null ? rspCharset : "");
+			cfhttp.set(KeyConstants._charset, rspCharset != null ? rspCharset : "");
 
 			// File
 			Resource file = null;
@@ -1329,7 +1331,9 @@ public final class Http extends BodyTagImpl {
 				}
 
 			}
-			if (file != null) pageContext.getConfig().getSecurityManager().checkFileLocation(file);
+			if (file != null) {
+				SecurityManagerImpl.checkFileLocation(pageContext, file);
+			}
 
 			// filecontent
 
@@ -1386,7 +1390,7 @@ public final class Http extends BodyTagImpl {
 			cfhttp.set(KeyConstants._header, raw.toString());
 			if (!isStatusOK(rsp.getStatusCode())) {
 				String msg = rsp.getStatusCode() + " " + rsp.getStatusText();
-				cfhttp.setEL(ERROR_DETAIL, msg);
+				cfhttp.setEL(KeyConstants._errordetail, msg);
 				if (throwonerror) {
 					URL url = rsp.getURL();
 					String details = getMethodAsVerb(method) + " " + url.toExternalForm();
@@ -1622,29 +1626,29 @@ public final class Http extends BodyTagImpl {
 	}
 
 	private void setUnknownHost(Struct cfhttp, Throwable t) {
-		cfhttp.setEL(CHARSET, "");
-		cfhttp.setEL(ERROR_DETAIL, "Unknown host: " + t.getMessage());
+		cfhttp.setEL(KeyConstants._charset, "");
+		cfhttp.setEL(KeyConstants._errordetail, "Unknown host: " + t.getMessage());
 		cfhttp.setEL(KeyConstants._filecontent, "Connection Failure");
 		cfhttp.setEL(KeyConstants._header, "");
 		cfhttp.setEL(KeyConstants._mimetype, "Unable to determine MIME type of file.");
-		cfhttp.setEL(RESPONSEHEADER, new StructImpl());
-		cfhttp.setEL(STATUSCODE, "Connection Failure. Status code unavailable.");
-		cfhttp.setEL(STATUS_CODE, Double.valueOf(0));
-		cfhttp.setEL(STATUS_TEXT, "Connection Failure");
+		cfhttp.setEL(KeyConstants._responseheader, new StructImpl());
+		cfhttp.setEL(KeyConstants._statuscode, "Connection Failure. Status code unavailable.");
+		cfhttp.setEL(KeyConstants._status_code, Double.valueOf(0));
+		cfhttp.setEL(KeyConstants._status_text, "Connection Failure");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
 		cfhttp.setEL(KeyConstants._error, Boolean.TRUE);
 	}
 
 	private void setRequestTimeout(Struct cfhttp) {
-		cfhttp.setEL(CHARSET, "");
-		cfhttp.setEL(ERROR_DETAIL, "");
+		cfhttp.setEL(KeyConstants._charset, "");
+		cfhttp.setEL(KeyConstants._errordetail, "");
 		cfhttp.setEL(KeyConstants._filecontent, "Connection Timeout");
 		cfhttp.setEL(KeyConstants._header, "");
 		cfhttp.setEL(KeyConstants._mimetype, "Unable to determine MIME type of file.");
-		cfhttp.setEL(RESPONSEHEADER, new StructImpl());
-		cfhttp.setEL(STATUSCODE, "408 Request Time-out");
-		cfhttp.setEL(STATUS_CODE, Double.valueOf(408));
-		cfhttp.setEL(STATUS_TEXT, "Request Time-out");
+		cfhttp.setEL(KeyConstants._responseheader, new StructImpl());
+		cfhttp.setEL(KeyConstants._statuscode, "408 Request Time-out");
+		cfhttp.setEL(KeyConstants._status_code, Double.valueOf(408));
+		cfhttp.setEL(KeyConstants._status_text, "Request Time-out");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
 		cfhttp.setEL(KeyConstants._error, Boolean.TRUE);
 	}
@@ -1680,7 +1684,7 @@ public final class Http extends BodyTagImpl {
 		if (log == null) log = ThreadLocalPageContext.getLog(pc, "application");
 		if (log != null) {
 			if (t != null || LogUtil.doesInfo(log)) {
-				String msg = "httpRequest [" + method + "] to [" + url + "], returned [" + data.get(STATUSCODE) + "] in " + (executionTimeNS / 1000000) + "ms, "
+				String msg = "httpRequest [" + method + "] to [" + url + "], returned [" + data.get(KeyConstants._statuscode) + "] in " + (executionTimeNS / 1000000) + "ms, "
 						+ (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text");
 
 				if (t != null) log.error("cfhttp", msg, t);
@@ -1780,6 +1784,27 @@ public final class Http extends BodyTagImpl {
 	 */
 	public void setClientcertpassword(String clientCertPassword) {
 		this.clientCertPassword = clientCertPassword;
+	}
+
+	/**
+	 * @param trustStore path to custom trust store (JKS or PKCS12)
+	 */
+	public void setTruststore(String trustStore) {
+		this.trustStore = trustStore;
+	}
+
+	/**
+	 * @param trustStorePassword password for the custom trust store
+	 */
+	public void setTruststorepassword(String trustStorePassword) {
+		this.trustStorePassword = trustStorePassword;
+	}
+
+	/**
+	 * @param sslVerify when false, disables SSL certificate verification
+	 */
+	public void setSslverify(boolean sslVerify) {
+		this.sslVerify = sslVerify;
 	}
 
 	/**
@@ -1956,11 +1981,13 @@ class Executor4 extends PageContextThread {
 	HTTPResponse4Impl response;
 	private HttpRequestBase req;
 	private HttpContext context;
+	private boolean pooling;
 
-	public Executor4(PageContext pc, Http http, CloseableHttpClient client, HttpContext context, HttpRequestBase req, String redirect) {
+	public Executor4(PageContext pc, Http http, CloseableHttpClient client, HttpContext context, HttpRequestBase req, String redirect, boolean pooling) {
 		super(pc);
 		this.http = http;
 		this.client = client;
+		this.pooling = pooling;
 		this.context = context;
 		this.redirect = redirect;
 		this.req = req;
@@ -1969,7 +1996,7 @@ class Executor4 extends PageContextThread {
 	@Override
 	public void run(PageContext pc) {
 		try {
-			response = execute(context);
+			response = execute(client, context, pooling);
 			done = true;
 		}
 		catch (Throwable t) {
@@ -1981,8 +2008,8 @@ class Executor4 extends PageContextThread {
 		}
 	}
 
-	public HTTPResponse4Impl execute(HttpContext context) throws IOException {
-		return response = new HTTPResponse4Impl(null, context, req, client.execute(req, context));
+	public HTTPResponse4Impl execute(CloseableHttpClient client, HttpContext context, boolean pooling) throws IOException {
+		return response = new HTTPResponse4Impl(null, context, client, req, client.execute(req, context), pooling);
 	}
 
 }

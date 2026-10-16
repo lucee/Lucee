@@ -30,8 +30,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-
+import lucee.commons.collection.RefMap;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -115,7 +114,8 @@ public final class StructUtil {
 	}
 
 	public static Set<String> keySet(Struct sct) {
-		boolean linked = sct instanceof StructSupport && (((StructSupport) sct).getType() == Struct.TYPE_LINKED || ((StructSupport) sct).getType() == StructImpl.TYPE_LINKED_NOT_SYNC);
+		boolean linked = sct instanceof StructSupport
+				&& (((StructSupport) sct).getType() == Struct.TYPE_LINKED || ((StructSupport) sct).getType() == StructImpl.TYPE_LINKED_NOT_SYNC);
 
 		Iterator<Key> it = sct.keyIterator();
 		Set<String> set = linked ? new LinkedHashSet<String>() : new HashSet<String>();
@@ -126,8 +126,9 @@ public final class StructUtil {
 	}
 
 	public static DumpTable toDumpTable(Struct sct, String title, PageContext pageContext, int maxlevel, DumpProperties dp) {
-		Key[] keys = CollectionUtil.keys(sct);
-		if (!(sct instanceof StructSupport) || (((StructSupport) sct).getType() != Struct.TYPE_LINKED && ((StructSupport) sct).getType() != StructImpl.TYPE_LINKED_NOT_SYNC)) keys = order(sct, CollectionUtil.keys(sct));
+		Key[] keys = CollectionUtil.keys(pageContext, sct);
+		if (!(sct instanceof StructSupport) || (((StructSupport) sct).getType() != Struct.TYPE_LINKED && ((StructSupport) sct).getType() != StructImpl.TYPE_LINKED_NOT_SYNC))
+			keys = order(sct, CollectionUtil.keys(sct));
 		DumpTable table = new DumpTable("struct", "#468faf", "#89c2d9", "#000000");// "#9999ff","#ccccff","#000000"
 
 		int maxkeys = dp.getMaxKeys();
@@ -263,7 +264,7 @@ public final class StructUtil {
 		if (m instanceof LinkedHashMap) return Struct.TYPE_LINKED;
 		if (m instanceof WeakHashMap) return Struct.TYPE_WEAKED;
 		if (m instanceof ConcurrentHashMap) return Struct.TYPE_SYNC;
-		if (m instanceof ReferenceMap) return Struct.TYPE_SOFT;
+		if (m instanceof RefMap) return Struct.TYPE_SOFT;
 
 		return Struct.TYPE_REGULAR;
 	}

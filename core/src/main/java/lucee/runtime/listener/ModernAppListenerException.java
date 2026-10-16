@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -39,8 +40,6 @@ import lucee.runtime.type.util.KeyConstants;
 
 public final class ModernAppListenerException extends PageException {
 
-	private static final Collection.Key ROOT_CAUSE = KeyConstants._rootCause;
-	private static final Collection.Key CAUSE = KeyConstants._cause;
 	private PageException rootCause;
 	private String eventName;
 
@@ -73,7 +72,7 @@ public final class ModernAppListenerException extends PageException {
 	}
 
 	public Struct getCatchBlock() {
-		return getCatchBlock(ThreadLocalPageContext.getConfig());
+		return getCatchBlock(ThreadLocalPageContext.getConfigServer());
 	}
 
 	@Override
@@ -87,8 +86,8 @@ public final class ModernAppListenerException extends PageException {
 		Collection cause = (Collection) Duplicator.duplicate(cb, false);
 		// rtn.setEL("message", getMessage());
 		if (!cb.containsKey(KeyConstants._detail)) cb.setEL(KeyConstants._detail, "Exception thrown while invoking function [" + eventName + "] in application event handler ");
-		cb.setEL(ROOT_CAUSE, cause);
-		cb.setEL(CAUSE, cause);
+		cb.setEL(KeyConstants._rootCause, cause);
+		cb.setEL(KeyConstants._cause, cause);
 		// cb.setEL("stacktrace", getStackTraceAsString());
 		// rtn.setEL("tagcontext", new ArrayImpl());
 		// rtn.setEL("type", getTypeAsString());
@@ -173,11 +172,12 @@ public final class ModernAppListenerException extends PageException {
 		return eventName;
 	}
 
-	public String getLine(Config config) {
+	public String getLine(ConfigWeb config) {
 		return ((PageExceptionImpl) rootCause).getLine(config);
 	}
 
 	// keep this for backward compatibility to jakarta 10 RUNTIME
+	@Override
 	public Throwable getRootCause() {
 		try {
 			return (Throwable) Reflector.callMethod(rootCause, "getRootCause", new Object[] {});

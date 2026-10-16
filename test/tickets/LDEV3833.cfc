@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults,testBox ) {
 		describe("Testcase for LDEV-3833", function() {
 			it( title="Checking runAsnyc() to get the applictionContext and scopes from pageContext", body=function( currentSpec ) {
-				cfapplication (name="LDEV3833", mappings={"/test":expandpath("./test")});
+				cfapplication (name="LDEV3833", mappings={"/testLDEV3833":expandpath("./test")});
 				request.testReq = "testReq";
 				application.testApp = "testApp";
 				url.testURL = "testURL";
@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(structKeyExists(result[2], "testVar")).toBeTrue();
 				expect(result[3].applicationname).toBe("LDEV3833");
 				expect(structKeyExists(result[3], "testApp")).toBeTrue();
-				expect(structKeyExists(result[6].mappings, "/test")).toBeTrue();
+				expect(structKeyExists(result[6].mappings, "/testLDEV3833")).toBeTrue();
 			});
 			it( title="Checking runAsnyc() to get the Form and URL scopes from pageContext", skip=true, body=function( currentSpec ) {		
 				expect(structKeyExists(variables.result[4], "testURL")).toBeTrue();

@@ -178,6 +178,11 @@ public final class StructAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
+	public Object get(PageContext pc, int key, Object defaultValue) {
+		return sct.get(pc, KeyImpl.toKey(key), defaultValue);
+	}
+
+	@Override
 	public int getDimension() {
 		return 1;
 	}
@@ -185,6 +190,11 @@ public final class StructAsArray extends ArraySupport implements Array, List {
 	@Override
 	public Object getE(int key) throws PageException {
 		return sct.get(KeyImpl.toKey(key));
+	}
+
+	@Override
+	public Object getE(PageContext pc, int key) throws PageException {
+		return sct.get(pc, KeyImpl.toKey(key));
 	}
 
 	@Override
@@ -269,6 +279,11 @@ public final class StructAsArray extends ArraySupport implements Array, List {
 	@Override
 	public Object setE(int k, Object value) throws PageException {
 		return set(KeyImpl.toKey(k), value);
+	}
+
+	@Override
+	public Object setE(PageContext pc, int k, Object value) throws PageException {
+		return set(pc, KeyImpl.toKey(k), value);
 	}
 
 	@Override

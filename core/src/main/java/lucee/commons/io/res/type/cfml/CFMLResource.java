@@ -18,11 +18,12 @@
  */
 package lucee.commons.io.res.type.cfml;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.util.ResourceSupport;
@@ -208,7 +209,7 @@ public final class CFMLResource extends ResourceSupport {
 		if (obj instanceof CharSequence) {
 			CharSequence cs = (CharSequence) obj;
 			String str = cs.toString();
-			barr = str.getBytes(CharsetUtil.UTF8);
+			barr = str.getBytes(StandardCharsets.UTF_8);
 		}
 		else {
 			barr = Caster.toBinary(obj);

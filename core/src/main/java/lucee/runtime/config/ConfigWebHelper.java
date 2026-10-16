@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -60,6 +61,13 @@ public final class ConfigWebHelper {
 	private KeyLock<String> contextLock = new KeyLockImpl<String>();
 	private CacheHandlerCollections cacheHandlerCollections;
 	private Map<String, SoftReference<Mapping>> applicationMappings = new ConcurrentHashMap<String, SoftReference<Mapping>>();
+	// Resolution cache for Application.cfc mapping paths. Skips source.exists() syscall on hits.
+	// Engages for NEVER and AUTO modes. Invalidated by: inspectTemplates() (full clear),
+	// application start (per-app clear), AUTO ticker (negative entries re-validated),
+	// admin inspect-mode change (full clear via ConfigWebImpl.resetInspectTemplate override).
+	private final Map<String, ResolvedMapping> resolvedMappingPaths = new ConcurrentHashMap<String, ResolvedMapping>();
+	// Transition-log state — survives cache invalidation so we only log when matched flag flips.
+	private final Map<String, Boolean> lastLoggedMatched = new ConcurrentHashMap<String, Boolean>();
 	private CIPage baseComponentPageCFML;
 	private ComponentImpl baseComponenInstanceExeConstr;
 	private ComponentImpl baseComponenInstanceNonExeConstr;
@@ -70,7 +78,6 @@ public final class ConfigWebHelper {
 	private ClassDefinition<SearchEngine> searchEngineCD;
 	private static final LockManager lockManager = LockManagerImpl.getInstance(false);
 	private AMFEngine amfEngine;
-	protected IdentificationWeb id;
 
 	public ConfigWebHelper(ConfigServerImpl cs, ConfigWebPro cw) {
 		this.cs = cs;
@@ -87,14 +94,6 @@ public final class ConfigWebHelper {
 		tagHandlerPool.reset();
 		contextLock = new KeyLockImpl<String>();
 		baseComponentPageCFML = null;
-	}
-
-	public void setIdentification(IdentificationWeb id) {
-		this.id = id;
-	}
-
-	public IdentificationWeb getIdentification() {
-		return id;
 	}
 
 	public void setAMFEngine(AMFEngine engine) {
@@ -181,10 +180,12 @@ public final class ConfigWebHelper {
 
 	public WSHandler getWSHandler() throws PageException {
 		if (wsHandler == null) {
-			ClassDefinition cd = cw instanceof ConfigImpl ? ((ConfigImpl) cw).getWSHandlerClassDefinition() : null;
-			if (isEmpty(cd)) cd = cs.getWSHandlerClassDefinition();
+			ClassDefinition cd = ConfigUtil.getConfigServerImpl(cw).getWSHandlerClassDefinition();
 			try {
-				if (isEmpty(cd)) return new DummyWSHandler();
+				if (isEmpty(cd)) {
+					wsHandler = new DummyWSHandler();
+					return wsHandler;
+				}
 				Object obj = ClassUtil.newInstance(cd.getClazz());
 				if (obj instanceof WSHandler) wsHandler = (WSHandler) obj;
 				else wsHandler = new WSHandlerReflector(obj);
@@ -198,7 +199,7 @@ public final class ConfigWebHelper {
 
 	public CFMLWriter getCFMLWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
 		if (cw.getCFMLWriterType() == ConfigPro.CFML_WRITER_WS) return new CFMLWriterWS(pc, req, rsp, -1, false, cw.closeConnection(), cw.isShowVersion(), cw.contentLength());
-		else if (cw.getCFMLWriterType() == ConfigPro.CFML_WRITER_REFULAR)
+		else if (cw.getCFMLWriterType() == ConfigPro.CFML_WRITER_REGULAR)
 			return new CFMLWriterImpl(pc, req, rsp, -1, false, cw.closeConnection(), cw.isShowVersion(), cw.contentLength());
 		else return new CFMLWriterWSPref(pc, req, rsp, -1, false, cw.closeConnection(), cw.isShowVersion(), cw.contentLength());
 
@@ -332,6 +333,67 @@ public final class ConfigWebHelper {
 			if (sr != null && mapping.equals(sr.get())) return true;
 		}
 		return false;
+	}
+
+	public ResolvedMapping resolveApplicationMappingPath(Resource source, String rawPath) {
+		String key = source.getAbsolutePath().toLowerCase() + "|" + rawPath;
+		ResolvedMapping cached = resolvedMappingPaths.get(key);
+		if (cached != null) return cached;
+
+		Resource resolved = source.getParentResource().getRealResource(rawPath);
+		boolean matched = resolved.exists();
+		String resolvedPath = matched ? resolved.getAbsolutePath() : rawPath;
+		ResolvedMapping rm = new ResolvedMapping(resolvedPath, matched, source, rawPath);
+		resolvedMappingPaths.put(key, rm);
+		logTransitionIfChanged(key, rawPath, matched, resolvedPath);
+		return rm;
+	}
+
+	public void clearResolvedMappingPaths() {
+		resolvedMappingPaths.clear();
+	}
+
+	// Walk negative entries and re-syscall. If a path now exists, update in place — the ticker
+	// already paid the syscall, no point making the next request pay it too. Positive entries
+	// are left alone (deletions surface as downstream 404s).
+	public void revalidateNegativeMappingPaths() {
+		for (Map.Entry<String, ResolvedMapping> entry: resolvedMappingPaths.entrySet()) {
+			ResolvedMapping cached = entry.getValue();
+			if (cached.matched) continue;
+			Resource resolved = cached.source.getParentResource().getRealResource(cached.rawPath);
+			if (resolved.exists()) {
+				String abs = resolved.getAbsolutePath();
+				ResolvedMapping fresh = new ResolvedMapping(abs, true, cached.source, cached.rawPath);
+				resolvedMappingPaths.put(entry.getKey(), fresh);
+				logTransitionIfChanged(entry.getKey(), cached.rawPath, true, abs);
+			}
+		}
+	}
+
+	private void logTransitionIfChanged(String key, String rawPath, boolean matched, String resolvedPath) {
+		Boolean previous = lastLoggedMatched.put(key, matched);
+		if (previous == null) {
+			LogUtil.log(cw, Log.LEVEL_DEBUG, "mapping",
+					"resolved [" + rawPath + "] -> " + (matched ? resolvedPath : "fallback (not found)"));
+		}
+		else if (previous != matched) {
+			if (matched) LogUtil.log(cw, Log.LEVEL_INFO, "mapping", "now resolves [" + rawPath + "] -> " + resolvedPath);
+			else LogUtil.log(cw, Log.LEVEL_WARN, "mapping", "no longer resolves [" + rawPath + "], falling back");
+		}
+	}
+
+	public static final class ResolvedMapping {
+		public final String path;
+		public final boolean matched;
+		public final Resource source;
+		public final String rawPath;
+
+		public ResolvedMapping(String path, boolean matched, Resource source, String rawPath) {
+			this.path = path;
+			this.matched = matched;
+			this.source = source;
+			this.rawPath = rawPath;
+		}
 	}
 
 	public CFMLCompilerImpl getCompiler() {

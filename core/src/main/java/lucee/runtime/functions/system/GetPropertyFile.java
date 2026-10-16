@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -22,7 +23,7 @@ import lucee.runtime.type.StructImpl;
 public final class GetPropertyFile implements Function {
 
 	public static Struct call(PageContext pc, String fileName, String encoding) throws PageException {
-		Charset cs = StringUtil.isEmpty(encoding, true) ? CharsetUtil.UTF8 : CharsetUtil.toCharset(encoding);
+		Charset cs = StringUtil.isEmpty(encoding, true) ? StandardCharsets.UTF_8 : CharsetUtil.toCharset(encoding);
 		try {
 			Resource res = ResourceUtil.toResourceNotExisting(pc, fileName);
 			if (!res.isFile()) throw new ApplicationException("File ["+ fileName + "] is not a file");

@@ -48,19 +48,25 @@ import org.osgi.framework.BundleException;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.engine.CFMLEngineFactorySupport;
+import lucee.loader.util.ExtensionFilter;
 import lucee.loader.util.Util;
 
 public class BundleLoader {
 
-	public static BundleCollection loadBundles(final CFMLEngineFactory engFac, final File cacheRootDir, final File jarDirectory, final File rc, final BundleCollection old)
+	public static BundleCollection loadBundles(final CFMLEngineFactory engFac, final File resourceRootDir, final File jarDirectory, final File rc, final BundleCollection old)
 			throws IOException, BundleException {
+		return loadBundles(engFac, resourceRootDir, jarDirectory, rc, old, true);
+	}
+
+	private static BundleCollection loadBundles(final CFMLEngineFactory engFac, final File resourceRootDir, final File jarDirectory, final File rc, final BundleCollection old,
+			boolean retry) throws IOException, BundleException {
 		long start = System.currentTimeMillis();
 		final JarFile jf = new JarFile(rc);// TODO this should work in any case, but we should still improve this code
+		final Map<String, Object> config = new HashMap<>();
 		try {
 			// default properties
 			final Properties defProp = loadDefaultProperties(jf);
 			// read the config from default.properties
-			final Map<String, Object> config = new HashMap<>();
 			{
 				final Iterator<Entry<Object, Object>> it = defProp.entrySet().iterator();
 				Entry<Object, Object> e;
@@ -84,13 +90,13 @@ public class BundleLoader {
 				felix = old.felix;
 				// stops felix (wait for it)
 				BundleUtil.stop(felix, false);
-				felix = engFac.getFelix(cacheRootDir, config);
+				felix = engFac.getFelix(resourceRootDir, config);
 				tmp = System.currentTimeMillis();
 				engFac.log(LoggerImpl.LOG_DEBUG, "reloaded Felix in " + (tmp - start) + "ms");
 				start = tmp;
 			}
 			else {
-				felix = engFac.getFelix(cacheRootDir, config);
+				felix = engFac.getFelix(resourceRootDir, config);
 				tmp = System.currentTimeMillis();
 				engFac.log(LoggerImpl.LOG_DEBUG, "loaded Felix in " + (tmp - start) + "ms");
 				start = tmp;
@@ -115,7 +121,10 @@ public class BundleLoader {
 
 			final Map<String, String> requiredBundleFragments = readRequireBundle(rbf); // Require-Bundle-Fragment
 
+			tmp = System.currentTimeMillis();
 			final Map<String, File> availableBundles = loadAvailableBundles(jarDirectory, requiredBundles, requiredBundleFragments);
+			engFac.log(LoggerImpl.LOG_DEBUG, "loadAvailableBundles: " + (System.currentTimeMillis() - tmp) + "ms");
+			start = System.currentTimeMillis();
 
 			// deploys bundled bundles to bundle directory
 			// deployBundledBundles(jarDirectory, availableBundles);
@@ -145,21 +154,35 @@ public class BundleLoader {
 
 			return new BundleCollection(felix, bundle, bundles);
 		}
+		catch (BundleException be) {
+			// PATCH for LDEV-6144: stale felix cache (bundle registered at old path after rename, e.g. from
+			// LDEV-6145).
+			// Clear the cache and retry once with a fresh Felix instance.
+			File felixCacheDir;
+			if (be.getMessage() != null && be.getMessage().contains("not unique") && (felixCacheDir = new File(extractFelixCacheRootdir(config), "felix-cache")).isDirectory()) {
+				Util.deleteContent(felixCacheDir, null);
+				return loadBundles(engFac, resourceRootDir, jarDirectory, rc, old, false);
+			}
+			else throw be;
+		}
 		finally {
 			if (jf != null) try {
 				jf.close();
 			}
-			catch (final IOException ioe) {
-			}
+			catch (final IOException ioe) {}
 		}
+	}
+
+	private static File extractFelixCacheRootdir(Map<String, Object> config) {
+		return new File((String) config.get("felix.cache.rootdir"));
 	}
 
 	public static List<Bundle> addRequiredBundles(final Map<String, String> requiredBundles, final Map<String, File> availableBundles, final JarFile luceeCore, boolean always,
 			CFMLEngineFactory engFac, BundleContext bc) {
+		long start = System.currentTimeMillis();
 		final List<Bundle> bundles = new ArrayList<>();
 		final List<Bundle> bundlesSync = Collections.synchronizedList(bundles);
 		Iterator<Entry<String, String>> it = requiredBundles.entrySet().iterator();
-		// Use regular threads
 		List<CompletableFuture<?>> futures = new ArrayList<>();
 		while (it.hasNext()) {
 			Entry<String, String> e = it.next();
@@ -179,12 +202,13 @@ public class BundleLoader {
 		}
 
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+		engFac.log(LoggerImpl.LOG_DEBUG, "addRequiredBundles (" + requiredBundles.size() + " bundles): " + (System.currentTimeMillis() - start) + "ms");
 		return bundles;
 	}
 
 	private static Map<String, File> loadAvailableBundles(final File jarDirectory, final Map<String, String> requiredBundles, final Map<String, String> requiredBundleFragments) {
 		final Map<String, File> rtn = new ConcurrentHashMap<>();
-		final File[] jars = jarDirectory.listFiles();
+		final File[] jars = jarDirectory.listFiles(new ExtensionFilter(new String[] { ".jar" }));
 
 		if (jars != null && jars.length > 0) {
 			// Create a thread pool with a fixed number of threads
@@ -195,7 +219,7 @@ public class BundleLoader {
 			List<File> remainings = null;
 			boolean has;
 			for (File jar: jars) {
-				if (!jar.isFile() || !jar.getName().endsWith(".jar")) continue;
+				// if (!jar.isFile() || !jar.getName().endsWith(".jar")) continue;
 				String fullname = null;
 				has = false;
 				try {

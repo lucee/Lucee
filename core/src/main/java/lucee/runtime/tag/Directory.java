@@ -57,11 +57,10 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
-import lucee.runtime.security.SecurityManager;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.tag.util.FileUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
@@ -82,11 +81,6 @@ public final class Directory extends TagImpl {
 	public static final ResourceFilter DIRECTORY_FILTER = new DirectoryResourceFilter();
 	public static final ResourceFilter FILE_FILTER = new FileResourceFilter();
 
-	private static final Key MODE = KeyConstants._mode;
-	private static final Key META = KeyConstants._meta;
-	private static final Key DATE_LAST_MODIFIED = KeyConstants._dateLastModified;
-	private static final Key ATTRIBUTES = KeyConstants._attributes;
-	private static final Key DIRECTORY = KeyConstants._directory;
 	private static final boolean IS_WINDOWS = SystemUtil.isWindows();
 	private static final boolean IS_UNIX = SystemUtil.isUnix();
 
@@ -203,7 +197,7 @@ public final class Directory extends TagImpl {
 	}
 
 	public void setFilter(UDF filter) throws PageException {
-		this.filter = UDFFilter.createResourceAndResourceNameFilter(filter);
+		this.filter = UDFFilter.createResourceAndResourceNameFilter(pageContext, filter);
 	}
 
 	public void setFilter(String pattern) {
@@ -428,8 +422,7 @@ public final class Directory extends TagImpl {
 	public static Object actionList(PageContext pageContext, Resource directory, String serverPassword, int type, ResourceFilter filter, int listInfo, boolean recurse, String sort)
 			throws PageException {
 		// check directory
-		SecurityManager securityManager = pageContext.getConfig().getSecurityManager();
-		securityManager.checkFileLocation(pageContext.getConfig(), directory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pageContext, directory, serverPassword);
 
 		if (type != TYPE_ALL) {
 			ResourceFilter typeFilter = (type == TYPE_DIR) ? DIRECTORY_FILTER : FILE_FILTER;
@@ -533,14 +526,13 @@ public final class Directory extends TagImpl {
 
 	public static Struct getInfo(PageContext pc, Resource directory, String serverPassword) throws PageException {
 
-		SecurityManager securityManager = pc.getConfig().getSecurityManager();
-		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, directory, serverPassword);
 
 		if (!directory.exists()) throw new ApplicationException("Directory [" + directory.toString() + "] doesn't exist");
 		if (!directory.isDirectory()) throw new ApplicationException("[" + directory.toString() + "] isn't a directory");
 		if (!directory.canRead()) throw new ApplicationException("No access to read directory [" + directory.toString() + "]");
 
-		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, directory, serverPassword);
 		Struct sct = new StructImpl();
 		sct.setEL("directoryName", directory.getName());
 		sct.setEL(KeyConstants._size, Long.valueOf(directory.length()));
@@ -578,16 +570,16 @@ public final class Directory extends TagImpl {
 				query.setAt(KeyConstants._size, count, Double.valueOf(isDir ? 0 : list[i].length()));
 				query.setAt(KeyConstants._type, count, isDir ? "Dir" : "File");
 				if (modeSupported) {
-					query.setAt(MODE, count, new ModeObjectWrap(list[i]));
+					query.setAt(KeyConstants._mode, count, new ModeObjectWrap(list[i]));
 				}
-				query.setAt(DATE_LAST_MODIFIED, count, new Date(list[i].lastModified()));
-				query.setAt(ATTRIBUTES, count, getFileAttribute(list[i]));
+				query.setAt(KeyConstants._dateLastModified, count, new Date(list[i].lastModified()));
+				query.setAt(KeyConstants._attributes, count, getFileAttribute(list[i]));
 
 				if (hasMeta) {
-					query.setAt(META, count, ((ResourceMetaData) list[i]).getMetaData());
+					query.setAt(KeyConstants._meta, count, ((ResourceMetaData) list[i]).getMetaData());
 				}
 
-				query.setAt(DIRECTORY, count, dir);
+				query.setAt(KeyConstants._directory, count, dir);
 			}
 			return count;
 		}
@@ -609,16 +601,16 @@ public final class Directory extends TagImpl {
 				query.setAt(KeyConstants._size, count, Double.valueOf(isDir ? 0 : list[i].length()));
 				query.setAt(KeyConstants._type, count, isDir ? "Dir" : "File");
 				if (modeSupported) {
-					query.setAt(MODE, count, new ModeObjectWrap(list[i]));
+					query.setAt(KeyConstants._mode, count, new ModeObjectWrap(list[i]));
 				}
-				query.setAt(DATE_LAST_MODIFIED, count, new Date(list[i].lastModified()));
-				query.setAt(ATTRIBUTES, count, getFileAttribute(list[i]));
+				query.setAt(KeyConstants._dateLastModified, count, new Date(list[i].lastModified()));
+				query.setAt(KeyConstants._attributes, count, getFileAttribute(list[i]));
 
 				if (hasMeta) {
-					query.setAt(META, count, ((ResourceMetaData) list[i]).getMetaData());
+					query.setAt(KeyConstants._meta, count, ((ResourceMetaData) list[i]).getMetaData());
 				}
 
-				query.setAt(DIRECTORY, count, dir);
+				query.setAt(KeyConstants._directory, count, dir);
 			}
 			if (recurse && isDir) count = _fillQueryAll(query, list[i], filter, count, hasMeta, recurse);
 		}
@@ -698,8 +690,7 @@ public final class Directory extends TagImpl {
 	public static void actionCreate(PageContext pc, Resource directory, String serverPassword, boolean createPath, int mode, Object acl, String storage, int nameConflict)
 			throws PageException {
 
-		SecurityManager securityManager = pc.getConfig().getSecurityManager();
-		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, directory, serverPassword);
 
 		if (directory.exists()) {
 			if (directory.isDirectory()) {
@@ -719,7 +710,6 @@ public final class Directory extends TagImpl {
 				newDirectories.add(tmp);
 				tmp = tmp.getParentResource();
 			}
-			lucee.aprint.o(newDirectories);
 		}
 
 		try {
@@ -813,8 +803,7 @@ public final class Directory extends TagImpl {
 	 * @throws PageException
 	 */
 	public static void actionDelete(PageContext pc, Resource dir, boolean forceDelete, String serverPassword) throws PageException {
-		SecurityManager securityManager = pc.getConfig().getSecurityManager();
-		securityManager.checkFileLocation(pc.getConfig(), dir, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, dir, serverPassword);
 
 		// directory doesn't exist
 		if (!dir.exists()) {
@@ -848,8 +837,7 @@ public final class Directory extends TagImpl {
 	public static String actionRename(PageContext pc, Resource directory, String strNewdirectory, String serverPassword, boolean createPath, Object acl, String storage)
 			throws PageException {
 		// check directory
-		SecurityManager securityManager = pc.getConfig().getSecurityManager();
-		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, directory, serverPassword);
 
 		if (!directory.exists()) throw new ApplicationException("The directory [" + directory.toString() + "] doesn't exist");
 		if (!directory.isDirectory()) throw new ApplicationException("The file [" + directory.toString() + "] exists, but it isn't a directory");
@@ -860,7 +848,8 @@ public final class Directory extends TagImpl {
 		// real to source
 		Resource newdirectory = toDestination(pc, strNewdirectory, directory);
 
-		securityManager.checkFileLocation(pc.getConfig(), newdirectory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, newdirectory, serverPassword);
+
 		if (newdirectory.exists()) throw new ApplicationException("New directory [" + newdirectory.toString() + "] already exists");
 
 		setS3region(pc, newdirectory, storage);
@@ -885,8 +874,7 @@ public final class Directory extends TagImpl {
 	public static void actionCopy(PageContext pc, Resource directory, String strDestination, String serverPassword, boolean createPath, Object acl, String storage,
 			final ResourceFilter filter, boolean recurse, int nameconflict) throws PageException {
 		// check directory
-		SecurityManager securityManager = pc.getConfig().getSecurityManager();
-		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, directory, serverPassword);
 
 		if (!directory.exists()) throw new ApplicationException("Directory [" + directory.toString() + "] doesn't exist");
 		if (!directory.isDirectory()) throw new ApplicationException("File [" + directory.toString() + "] exists, but isn't a directory");
@@ -898,8 +886,7 @@ public final class Directory extends TagImpl {
 		Resource newdirectory = toDestination(pc, strDestination, directory);
 
 		if (nameconflict == NAMECONFLICT_ERROR && newdirectory.exists()) throw new ApplicationException("New directory [" + newdirectory.toString() + "] already exists");
-
-		securityManager.checkFileLocation(pc.getConfig(), newdirectory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, newdirectory, serverPassword);
 
 		try {
 			boolean clearEmpty = false;

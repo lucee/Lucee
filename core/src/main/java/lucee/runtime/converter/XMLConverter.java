@@ -63,8 +63,6 @@ import lucee.runtime.type.util.KeyConstants;
  * class to serialize and desirilize WDDX Packes
  */
 public final class XMLConverter extends ConverterSupport {
-	private static final Collection.Key REMOTING_FETCH = KeyConstants._remotingFetch;
-
 	private int deep = 1;
 	private char del = '"';
 	private TimeZone timeZone;
@@ -200,7 +198,7 @@ public final class XMLConverter extends ConverterSupport {
 			if (!ignoreRemotingFetch) {
 				p = (Property) props.get(key, null);
 				if (p != null) {
-					remotingFetch = Caster.toBoolean(p.getDynamicAttributes().get(REMOTING_FETCH, null), null);
+					remotingFetch = Caster.toBoolean(p.getDynamicAttributes().get(KeyConstants._remotingFetch, null), null);
 					if (remotingFetch == null) {
 						if (isPeristent && ORMUtil.isRelated(p)) continue;
 					}

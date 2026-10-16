@@ -41,7 +41,8 @@
 		ORMFlush();
 
 		try{
-			ORMExecuteQuery("delete from ActiveUser where id = '#user.getID()#'");
+			// Hibernate 7.3+ HQL is strictly typed — `id` is ormtype="int", so use a bind param rather than a quoted string literal
+			ORMExecuteQuery("delete from ActiveUser where id = :id", { id: user.getID() });
 			ORMFlush();
 
 			// Clear the session just in case to make sure we try and load the deleted entity
@@ -74,7 +75,8 @@
 
 		try{
 			if( structKeyExists( server, "lucee" ) ){ ORMCloseSession(); }
-			ORMExecuteQuery("delete from ActiveUser where userName = 'unitTest'");
+			// Hibernate 7.3+ HQL is case-sensitive on identifiers — must match the CFC property declaration `UserName`
+			ORMExecuteQuery("delete from ActiveUser where UserName = 'unitTest'");
 			ORMFlush();
 			ORMClearSession();
 

@@ -45,9 +45,9 @@ public abstract class EnvUDF extends UDFImpl {
 		super();
 	}
 
-	EnvUDF(UDFProperties properties) {
+	EnvUDF(PageContext pc, UDFProperties properties) {
 		super(properties);
-		PageContext pc = ThreadLocalPageContext.get();
+		pc = ThreadLocalPageContext.get(pc);
 		if (pc.undefinedScope().getCheckArguments()) {
 			this.variables = new ClosureScope(pc, pc.argumentsScope(), pc.localScope(), pc.variablesScope());
 		}
@@ -56,6 +56,10 @@ public abstract class EnvUDF extends UDFImpl {
 			variables.setBind(true);
 		}
 		this.applicationContext = pc.getApplicationContext();
+	}
+
+	EnvUDF(UDFProperties properties) {
+		this(null, properties);
 	}
 
 	EnvUDF(UDFProperties properties, Variables variables) {

@@ -375,7 +375,9 @@ public final class CFMLTransformer {
 			}
 			while (true);
 
-			// call-back of evaluators
+			// call-back of evaluators, a code island shares the evaluator pool with the enclosing template,
+			// its tags are evaluated together with all others once the whole template is transformed
+			if (codeIsland) return;
 			int pos = data.srcCode.getPos();
 			data.ep.run();
 			data.srcCode.setPos(pos);

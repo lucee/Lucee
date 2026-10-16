@@ -107,7 +107,6 @@ public final class DatasourceAppender extends AbstractAppender {
 			Config c = ThreadLocalPageContext.getConfig();
 			if (c != null) {
 				if (c instanceof ConfigWeb) id = ((ConfigWeb) c).getLabel();
-
 				else id = c.getIdentification().getId();
 			}
 

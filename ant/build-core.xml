@@ -16,25 +16,29 @@
     value="https://downloads.ortussolutions.com/ortussolutions/testbox/${testboxVersion}/testbox-${testboxVersion}.zip"/>
   <property name="extURL" value="https://extension.lucee.org/rest/extension/provider/full/"/>
   <property name="extURLMaven" value="https://repo1.maven.org/maven2/"/>
-  <property name="extURLCDN" value="https://cdn.lucee.org/"/>
+  <property name="extURLCDN" value="https://maven.lucee-services.com/"/>
+  <property name="extURLSnapshot" value="https://central.sonatype.com/repository/maven-snapshots/"/>
   
-  <property name="extMongo"     value="org.lucee:mongodb-extension:3.12.13.9"/>
+  <property name="extMongo"     value="org.lucee:mongodb-extension:3.12.13.10"/>
   <property name="extH2"        value="465E1E35-2425-4F4E-8B3FAB638BD7280A;version=2.1.214.0001L"/>
-  <property name="extOracle"    value="org.lucee:oracle-jdbc-extension:23.26.0.0-ojdbc11"/>
-  <property name="extLucene"    value="org.lucee:lucene-search-extension:3.0.0.163"/>
-  <property name="extAxis"      value="org.lucee:axis-extension:1.5.0.5"/>
-  <property name="extChart"     value="org.lucee:chart-extension:2.0.0.2-SNAPSHOT"/>
-  <property name="extRedis"     value="org.lucee:redis-extension:4.0.1.0-SNAPSHOT"/>
-  <property name="extHibernate" value="org.lucee:hibernate-extension:5.4.29.27-BETA"/>
-  <property name="extEHCache"   value="org.lucee:ehcache-extension:2.10.0.38"/>
-  <property name="extJtds"      value="org.lucee:jtds-jdbc-extension:1.3.1"/>
-  <property name="extFtp"      value="org.lucee:ftp-extension:1.0.0.1-BETA"/>
+  <property name="extOracle"    value="org.lucee:oracle-jdbc-extension:23.8.0.25.04-ojdbc11"/>
+  <property name="extLucene"    value="org.lucee:lucene-search-extension:3.0.0.171-SNAPSHOT"/>
+  <property name="extAxis"      value="org.lucee:axis-extension:1.5.0.6"/>
+  <property name="extChart"     value="org.lucee:chart-extension:3.0.0.0-BETA"/>
+  <property name="extRedis"     value="org.lucee:redis-extension:4.1.0.1-RC"/>
+  <property name="extHibernate" value="org.lucee:hibernate-extension:5.6.15.17-SNAPSHOT"/>
+  <property name="extEHCache"   value="org.lucee:ehcache-extension:2.10.9.2-BETA"/>
+  <property name="extJtds"      value="org.lucee:jtds-jdbc-extension:1.3.1.1-SNAPSHOT"/>
+  <property name="extMD"      value="org.lucee:markdown-extension:1.0.0.2"/>
+  <property name="extSMB"     value="org.lucee:smb-extension:1.0.0.10"/>
+  <property name="extFtp"      value="org.lucee:ftp-extension:1.0.0.8"/>
+  <property name="extImage"     value="org.lucee:image-extension:2.0.0.34"/>
 
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
-  <property name="javaVersionCoreDefault" value="11"/>
-  <property name="javaVersionAgent" value="11"/>
-  <property name="javaVersionLoader" value="11"/>
+  <property name="javaVersionCoreDefault" value="21"/>
+  <property name="javaVersionAgent" value="21"/>
+  <property name="javaVersionLoader" value="21"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
   
   <import file="../ant/build-utils.xml"/>
@@ -236,6 +240,22 @@
         </or>
     </condition>
 </fail>
+<fail message="Missing Markdown data from [Require-Extension] inside ${coreManifest}.">
+    <condition>
+        <or>
+            <not><isset property="extMarkdownExtension"/></not>
+            <not><isset property="extMarkdownExtensionVersion"/></not>
+        </or>
+    </condition>
+</fail>
+<fail message="Missing SMB data from [Require-Extension] inside ${coreManifest}.">
+    <condition>
+        <or>
+            <not><isset property="extSmbExtension"/></not>
+            <not><isset property="extSmbExtensionVersion"/></not>
+        </or>
+    </condition>
+</fail>
 
 <echo level="info">  
 
@@ -268,6 +288,7 @@
     <echo message="${name.explanation}"/> -->
     <echo level="info" message="Root: ${rootDir}"/>
     <echo level="info" message="Required-Extensions: ${reqExt.labels}"/>
+    <echo level="info" message="Required-Extensions: ${reqExt.data}"/>
     <echo level="info" message="Java: ${java.version}" />
     <echo level="info" message="Java: ${java.home}" />
     <echo level="info" message="Optional Java Version for tests: ${testJavaVersionExec}" />
@@ -316,7 +337,7 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-s3,check-pdf,check-admin,check-doc,check-image,check-esapi,check-scheduler,check-compress,check-mail,check-ftp,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-s3,check-pdf,check-admin,check-doc,check-image,check-esapi,check-scheduler,check-compress,check-mail,check-ftp,check-markdown,check-smb,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 
@@ -460,7 +481,7 @@
   -->
   <!-- temporary disbled: depends="_loader,java17core,java21core" -->
   <target name="_core" depends="_loader" description="compile the source" >
-    <echots message="compile core, java 11, (default)"/>
+    <echots message="compile core, java ${javaVersionCoreDefault}, (default)"/>
     <!-- set the loader as classpath -->
     <path id="classpath">
       <pathelement location="${temp}/loader" />
@@ -468,11 +489,11 @@
     </path>
     <!-- <pathconvert property="classpathProp" refid="classpath"/> -->
    <echo level="info" message="Using Java version ${ant.java.version}."/>
-    <!-- compile the core for Java 11 -->
+    <!-- compile the core for Java ${javaVersionCoreDefault} -->
     <javac 
       srcdir="${srcCore}" 
-      source="11" 
-      target="11" 
+      source="${javaVersionCoreDefault}" 
+      target="${javaVersionCoreDefault}" 
       destdir="${core}"
       includeantruntime="false"
       debug="true" 
@@ -618,7 +639,7 @@
     <echots message="building different archives that get bundled (admin,doc) with help of the temporary generated lucee.jar"/>
     <echots message="generating lucee bytecode for java ${javaVersionCoreDefault}"/>
     <!-- build the lucee-context.lar -->
-    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc">
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="false" errorproperty="exc" resultproperty="exitcode">
       <classpath path="${java.class.path}">
           <pathelement location="${temp}/lucee.jar"/>
           <pathelement path="${runtime_classpath}"/>
@@ -641,7 +662,7 @@
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
       <!-- this checks to see that all the required bundles are provided, so that none are missing -->
-      <jvmarg value="-Dlucee.enable.bundle.download=false"/><!-- we do always download to make sure this is available -->
+      <jvmarg value="-Dlucee.enable.bundle.download=true"/><!-- we do always download to make sure this is available -->
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
       <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
       <jvmarg value="-Dlucee.compiler.java.version=${javaVersionCoreDefault}"/>
@@ -651,6 +672,13 @@
       -->
 
     </java>
+    <echo level="error" message="Exit code: ${exitcode}"/>
+    <echo level="error" message="Error output: ${exc}"/>
+    <fail message="Archive creation failed with exit code ${exitcode}">
+      <condition>
+        <not><equals arg1="${exitcode}" arg2="0"/></not>
+      </condition>
+    </fail>
     <outputTrimmedString str="${exc}"/>
 </target>
 
@@ -756,7 +784,7 @@
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
       <!-- TODO remove axis, lucene -->
-      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis},${extEHCache},${extJtds},${extFtp}"/>
+      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis},${extHibernate},${extEHCache},${extJtds},${extMD},${extSMB},${extFtp},${extImage}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
@@ -764,6 +792,11 @@
       <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
       <jvmarg value="-DLUCEE_BUILD_ENV=${LUCEE_BUILD_ENV}"/>
       <jvmarg value="-Dlucee.enable.bundle.download=true"/>
+      <!-- some test cases downoad jars, so that is okay, but we wanna see them -->
+      <jvmarg value="-Dlucee.maven.download.policy.startup=warn"/>
+      <jvmarg value="-Dlucee.maven.download.policy.runtime=warn"/>
+      <jvmarg value="-Dlucee.maven.download.policy.log.level=info"/>
+      <jvmarg value="-Dlucee.vdirs.sharedkey=testsecret"/>
 
       <jvmarg value="-XX:+UnlockExperimentalVMOptions" if:true="${UseEpsilonGC}"/>
       <jvmarg value="-XX:+UseEpsilonGC" if:true="${UseEpsilonGC}"/>
@@ -824,6 +857,7 @@
       <jvmarg value="-DluceeCore=${trgLoader}/${version}.lco"/>
       <jvmarg value="-DtrgLoader=${trgLoader}"/>
       <jvmarg value="-DluceeVersion=${version}"/>
+      <jvmarg value="-DluceePom=${rootDir}/loader/.flattened-pom.xml"/>
       <!--
       <jvmarg value="-Dlucee.cascading.write.to.variables.log=deploy"/>
       <jvmarg value="-Dfelix.log.level=debug"/>
@@ -915,6 +949,8 @@
     <copy file="${temp}/archive/lucee-context.lar" tofile="${core}/resource/context/lucee-context.lar"/>
     <copy file="${temp}/archive/lucee-admin.lar" tofile="${core}/resource/context/lucee-admin.lar"/> 
     <copy file="${temp}/archive/lucee-doc.lar" tofile="${core}/resource/context/lucee-doc.lar"/> 
+    <copy file="${temp}/archive/config-schema.json" tofile="${trgLoader}/config-schema.json"/> 
+    <copy file="${temp}/archive/env-vars.json" tofile="${trgLoader}/env-vars.json"/> 
   </target>
   <!--
   MARK: Felix
@@ -984,9 +1020,9 @@
     <!-- create the lucee core with the default Java version -->
     <jar 
         basedir="${core}" 
-        jarfile="${trgLoader}/${version}.jvm11.lco" 
+        jarfile="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco" 
         manifest="${core}/META-INF/MANIFEST.MF"/>
-    <echots message="create lco:${trgLoader}/${version}.jvm11.lco"/>
+    <echots message="create lco:${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco"/>
 
     <!-- temporary disabled -->
     <!--
@@ -997,7 +1033,7 @@
     instead:
     -->
     <move 
-        file="${trgLoader}/${version}.jvm11.lco"
+        file="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco"
         tofile="${trgLoader}/${version}.lco"/>
 
 
@@ -1056,6 +1092,28 @@
     <echots message="create lco:${trgLoader}/${version}.jvm21.lco"/>
   </target>
 
+  <!--
+    copy the maven folder of the bundled (full) extensions into ${goal}/maven
+    (including .sha1 files and .index), they get deployed to the local maven repository on first start
+  -->
+  <target name="addMavenDependencies" if="buildLoaderJar" unless="skipMavenBundle">
+    <echots message="collect maven dependencies of the bundled extensions"/>
+    <delete dir="${goal}/maven" quiet="true"/>
+    <java classname="lucee.runtime.mvn.MavenBundleCollector" fork="true" failonerror="true">
+      <classpath>
+        <pathelement location="${core}"/>
+        <pathelement location="${temp}/loader"/>
+        <pathelement path="${runtime_classpath}"/>
+      </classpath>
+      <arg value="${coreManifest}"/>
+      <arg value="${cache}"/>
+      <arg value="${goal}/maven"/>
+      <arg value="${goal}/extensions"/>
+      <arg value="${extURLMaven}"/>
+      <arg value="${extURLCDN}"/>
+    </java>
+  </target>
+
   <target name="createLoader" if="buildLoaderJar">
      <!-- generates the jar from the loader -->
     <echots message="build loader .jar - ${goal}"/>
@@ -1067,7 +1125,7 @@
     <echots message="build-jar-ant:${goal}/META-INF/MANIFEST.MF"/>  
   </target>
 
-  <target name="_buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addBundles,addFelix,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar">
+  <target name="_buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addMavenDependencies,addBundles,addFelix,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar">
     <!-- version -->
     <currentTime property="ct" />
     <echo file="${outputDir}/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
@@ -1083,7 +1141,7 @@
     <echo level="info">after:${goal}</echo>  
   </target>
 
-  <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar" >
+  <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addMavenDependencies,addBundles,addFelix,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar" >
     <!-- version -->
     <currentTime property="ct" />
     <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
@@ -1092,7 +1150,7 @@
     <echots message="done"/>
   </target>
 
-  <target name="buildLoaderFast" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader" 
+  <target name="buildLoaderFast" depends="__build,setAntEnv,addExtensions,addMavenDependencies,addBundles,addFelix,createCore,createLoader" 
     description="quick/fast generate the loader jar" >
     <!-- version -->
     <currentTime property="ct" />

@@ -18,46 +18,69 @@
 				<tr>
 					<th scope="row">#stText.CustomTags.customTagDeepSearch#</th>
 					<td>
-						<cfif hasAccess>
-							<input type="checkbox" class="checkbox" name="customTagDeepSearchDesc" value="yes" <cfif setting.deepsearch>checked</cfif>>
-						<cfelse>
-							<b>#yesNoFormat(setting.deepsearch)#</b>
-						</cfif>
-						
-						<div class="comment">#stText.CustomTags.customTagDeepSearchDesc#</div>
+						<cfmodule template="systemSetting.cfm" 
+							name="customTagDeepSearch" 
+							value="#setting.customTagDeepSearch#"
+							access="#hasAccess#"
+							description="#stText.CustomTags.customTagDeepSearchDesc#"
+							br=false
+							sp=false
+							descOnTop=false>
+							<input type="checkbox" class="checkbox" name="customTagDeepSearch" value="yes" <cfif setting.customTagDeepSearch>checked</cfif>>
+						</cfmodule>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.CustomTags.customTagLocalSearch#</th>
 					<td>
-						<cfif hasAccess>
-							<input type="checkbox" class="checkbox" name="customTagLocalSearchDesc" value="yes" <cfif setting.localsearch>checked</cfif>>
-						<cfelse>
-							<b>#yesNoFormat(setting.localsearch)#</b>
-						</cfif>
+						<cfmodule template="systemSetting.cfm"
+							name="customTagLocalSearch" 
+							value="#setting.customTagLocalSearch#"
+							access="#hasAccess#"
+							description="#stText.CustomTags.customTagLocalSearchDesc#"
+							br=false
+							sp=false
+							descOnTop=false>
+							<input type="checkbox" class="checkbox" name="customTagLocalSearch" value="yes" <cfif setting.customTagLocalSearch>checked</cfif>>
+						</cfmodule>
 						<div class="comment">#stText.CustomTags.customTagLocalSearchDesc#</div>
+						<cfset renderSettings("customTagLocalSearch",setting.customTagLocalSearch)>
 					</td>
 				</tr>
 				<!--- customtags path cache ---->
 				<tr>
 					<th scope="row">#stText.CustomTags.customTagPathCache#</th>
 					<td>
-						<cfif hasAccess>
-							<input type="checkbox" class="checkbox" name="customTagPathCache" value="yes" <cfif setting.customTagPathCache>checked</cfif>>
-						<cfelse>
-							<b>#yesNoFormat(setting.customTagPathCache)#</b>
-						</cfif>
-						<div class="comment">#stText.CustomTags.customTagPathCacheDesc#</div>
-						<cfif setting.customTagPathCache><input type="submit" class="button submit" name="mainAction" value="#flushName#"></cfif>
+						<cfmodule template="systemSetting.cfm"
+							name="customTagUseCachePath" 
+							value="#setting.customTagUseCachePath#"
+							access="#hasAccess#"
+							description="#stText.CustomTags.customTagPathCacheDesc#"
+							br=false
+							sp=false
+							descOnTop=false>
+							<input type="checkbox" class="checkbox" name="customTagUseCachePath" value="yes" <cfif setting.customTagUseCachePath>checked</cfif>>
+							
+						</cfmodule>
+						
+						<cfif hasAccess and setting.customTagUseCachePath><input type="submit" class="button submit" name="mainAction" value="#flushName#"></cfif>
 					</td>
 				</tr>
 
 				<cfset arrExt=array('cfc','cfm','cfml')>
-				<cfset lstSetExt=ArrayToList(setting.extensions)>
+				<cfset lstSetExt=ArrayToList(setting.customTagExtensions)>
 				<tr>
 					<th scope="row">#stText.CustomTags.extensions#</th>
 					<td>
 					
+						<cfmodule template="systemSetting.cfm"
+							name="customTagExtensions" 
+							value="#lstSetExt#"
+							access="#hasAccess#"
+							description="#stText.CustomTags.extensionsDesc#"
+							br=false
+							sp=false
+							descOnTop=false>
 						<cfset modes=array(
 							struct(mode:'classic',ext:'cfm,cfml'),
 							struct(mode:'mixed',ext:'cfm,cfc,lucee'),
@@ -80,14 +103,15 @@
 									<label>
 										<input type="radio" class="radio" name="extensions" value="custom"<cfif not has> checked="checked"</cfif>>
 									</label>
-									<cfinputClassic type="text" onclick="checkTheRadio(this)" name="extensions_custom" value="#ArrayToList(setting.extensions)#" required="no" class="small" />
+									<cfinputClassic type="text" onclick="checkTheRadio(this)" name="extensions_custom" value="#ArrayToList(setting.customTagExtensions)#" required="no" class="small" />
 									<div class="comment inline">#stText.CustomTags.mode.custom#</div>
 								</li>
 							</ul>
 						<cfelse>
 							<b>#lstSetExt#</b><br />
 						</cfif>
-						<div class="comment">#stText.CustomTags.extensionsDesc#</div>
+						</cfmodule>
+						
 					</td>
 				</tr>
 				<cfif hasAccess>
@@ -275,6 +299,10 @@
 	
 	<h2>#stText.customTags.customtagMappings#</h2>
 	<div class="itemintro">#stText.customTags.customtagMappingsDesc#</div>
+
+	<cfset renderSettings("CustomtagMappings",{columns:["virtual","physical","archive","primary","listenerType","listenerMode","readonly","hidden","toplevel"
+		,"inspect","inspectTemplateIntervalSlow","inspectTemplateIntervalFast"], value:addPrimary(mappings)} )>
+
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl checkboxtbl">
 			<thead>
@@ -344,9 +372,11 @@
 						</td>
 						<!--- edit --->
 						<td>
-							<cfif not mappings.readOnly>
-								#renderEditButton("#request.self#?action=#url.action#&action2=create&virtual=#mappings.virtual#")#
 							
+							<cfif mappings.readOnly>
+								#lockedReadOnly()#
+							<cfelse>
+								#renderEditButton2("customtagMappings","virtual",mappings.virtual,"#request.self#?action=#url.action#&action2=create&virtual=#mappings.virtual#")#
 							</cfif>
 						</td>
 					</tr>

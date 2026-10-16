@@ -18,6 +18,8 @@
  */
 package lucee.transformer.bytecode;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +44,6 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import lucee.commons.digest.HashUtil;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceNameFilter;
@@ -115,10 +116,12 @@ public final class PageImpl extends BodyBase implements Page {
 
 	private static final long MIN_AGE_TO_CLEAR = 5000l;
 
-	// Maximum UDFs per constructor helper method to avoid JVM's 64KB method bytecode limit, chosen value is a safe estimate, size depends on CFC methdod signatures
+	// Maximum UDFs per constructor helper method to avoid JVM's 64KB method bytecode limit, chosen
+	// value is a safe estimate, size depends on CFC methdod signatures
 	private static final int MAX_UDF_PER_CONSTRUCTOR_METHOD = 30;
 
-	// Maximum keys per <cinit> helper method to avoid JVM's 64KB method bytecode limit, each key generates ~30 bytes
+	// Maximum keys per <cinit> helper method to avoid JVM's 64KB method bytecode limit, each key
+	// generates ~30 bytes
 	private static final int MAX_KEYS_PER_CINIT_METHOD = 1000;
 
 	public static final Type NULL = Type.getType(lucee.runtime.type.Null.class);
@@ -236,7 +239,7 @@ public final class PageImpl extends BodyBase implements Page {
 	// boolean getOutput()
 	private static final Method GET_OUTPUT = new Method("getOutput", Types.BOOLEAN_VALUE, new Type[] {});
 
-	private static final Method PUSH_BODY = new Method("pushBody", Types.BODY_CONTENT, new Type[] {});
+	private static final Method PUSH_BODY = new Method("pushBody", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT });
 
 	/*
 	 * / boolean setSilent() private static final Method SET_SILENT = new Method( "setSilent",
@@ -261,8 +264,8 @@ public final class PageImpl extends BodyBase implements Page {
 					Types.STRING, Types.BOOLEAN_VALUE, Types.BOOLEAN_VALUE, Types.INT_VALUE, Types.BOOLEAN_VALUE, Types.STRUCT_IMPL });
 	private static final Method SET_EL = new Method("setEL", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
 	public static final Method UNDEFINED_SCOPE = new Method("us", Types.UNDEFINED, new Type[] {});
-	private static final Method FLUSH_AND_POP = new Method("flushAndPop", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.BODY_CONTENT });
-	private static final Method CLEAR_AND_POP = new Method("clearAndPop", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.BODY_CONTENT });
+	private static final Method FLUSH_AND_POP = new Method("flushAndPop", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT });
+	private static final Method CLEAR_AND_POP = new Method("clearAndPop", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT });
 
 	// Standard property attributes that are handled explicitly (not dynamic)
 	private static final Set<String> STANDARD_PROPERTY_ATTRS = new HashSet<>(
@@ -724,7 +727,8 @@ public final class PageImpl extends BodyBase implements Page {
 		constrAdapter.newArray(Types.UDF_PROPERTIES);
 		constrAdapter.visitFieldInsn(Opcodes.PUTFIELD, getClassName(), "udfs", udfpropsClassName);
 
-		// set item — split into helper methods if there are enough functions to risk MethodTooLargeException (LDEV-6126)
+		// set item — split into helper methods if there are enough functions to risk
+		// MethodTooLargeException (LDEV-6126)
 		if (functions.length > MAX_UDF_PER_CONSTRUCTOR_METHOD) {
 			int batchNum = 0;
 			for (int batchStart = 0; batchStart < functions.length; batchStart += MAX_UDF_PER_CONSTRUCTOR_METHOD) {
@@ -732,8 +736,8 @@ public final class PageImpl extends BodyBase implements Page {
 				String helperMethodName = ASMUtil.createOverfowMethod("_constrUdfs", batchNum++);
 				Method helperMethod = new Method(helperMethodName, Types.VOID, new Type[] { Types.PAGE_SOURCE });
 				GeneratorAdapter helperAdapter = new GeneratorAdapter(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, helperMethod, null, new Type[] { Types.THROWABLE }, cw);
-				BytecodeContext helperBc = new BytecodeContext(config, optionalPS, constr, this, keys, cw, className, helperAdapter, helperMethod, writeLog(),
-						suppressWSbeforeArg, output, returnValue, sourceCode.getSourceOffset());
+				BytecodeContext helperBc = new BytecodeContext(config, optionalPS, constr, this, keys, cw, className, helperAdapter, helperMethod, writeLog(), suppressWSbeforeArg,
+						output, returnValue, sourceCode.getSourceOffset());
 
 				// call helper from constructor
 				constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
@@ -1406,8 +1410,7 @@ public final class PageImpl extends BodyBase implements Page {
 					int batchEnd = Math.min(batchStart + MAX_KEYS_PER_CINIT_METHOD, keyList.size());
 					String helperMethodName = ASMUtil.createOverfowMethod("_cinitKeys", batchNum++);
 					Method helperMethod = new Method(helperMethodName, Type.VOID_TYPE, new Type[] { Types.COLLECTION_KEY_ARRAY });
-					GeneratorAdapter helperAdapter = new GeneratorAdapter(
-						Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_SYNTHETIC, helperMethod, null, null, cw);
+					GeneratorAdapter helperAdapter = new GeneratorAdapter(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_SYNTHETIC, helperMethod, null, null, cw);
 
 					// call helper from <cinit>
 					ga.dup();
@@ -1581,10 +1584,10 @@ public final class PageImpl extends BodyBase implements Page {
 		ASMConstants.NULL(adapter);
 		adapter.storeLocal(oldData);
 
-		// push body
-		int localBC = adapter.newLocal(Types.BODY_CONTENT);
+		// BodyContentUtil.pushBody(pc);
+		final int localBC = adapter.newLocal(Types.OBJECT);
 		adapter.loadArg(0);
-		adapter.invokeVirtual(Types.PAGE_CONTEXT, PUSH_BODY);
+		adapter.invokeStatic(Types.BC_UTIL, PUSH_BODY);
 		adapter.storeLocal(localBC);
 
 		// int oldCheckArgs= pc.undefinedScope().setMode(Undefined.MODE_NO_LOCAL_AND_ARGUMENTS);
@@ -1631,7 +1634,7 @@ public final class PageImpl extends BodyBase implements Page {
 		// BodyContentUtil.flushAndPop(pc,bc);
 		adapter.loadArg(0);
 		adapter.loadLocal(localBC);
-		adapter.invokeStatic(Types.BODY_CONTENT_UTIL, FLUSH_AND_POP);
+		adapter.invokeStatic(Types.BC_UTIL, FLUSH_AND_POP);
 
 		// throw Caster.toPageException(t);
 		adapter.loadLocal(t);
@@ -1641,7 +1644,7 @@ public final class PageImpl extends BodyBase implements Page {
 
 		adapter.loadArg(0);
 		adapter.loadLocal(localBC);
-		adapter.invokeStatic(Types.BODY_CONTENT_UTIL, FLUSH_AND_POP);// TODO why does the body constuctor call clear and it works?
+		adapter.invokeStatic(Types.BC_UTIL, FLUSH_AND_POP);// TODO why does the body constuctor call clear and it works?
 
 		adapter.returnValue();
 		adapter.visitLabel(methodEnd);
@@ -1666,7 +1669,7 @@ public final class PageImpl extends BodyBase implements Page {
 	}
 
 	private int pushBody(BytecodeContext bc, final GeneratorAdapter adapter, boolean store) {
-		int localBC = store ? adapter.newLocal(Types.BODY_CONTENT) : 0;
+		int localBC = store ? adapter.newLocal(Types.OBJECT) : 0;
 		ConditionVisitor cv = new ConditionVisitor();
 		cv.visitBefore();
 		cv.visitWhenBeforeExpr();
@@ -1678,7 +1681,8 @@ public final class PageImpl extends BodyBase implements Page {
 
 		cv.visitOtherviseBeforeBody();
 		adapter.loadArg(0);
-		adapter.invokeVirtual(Types.PAGE_CONTEXT, PUSH_BODY);
+		adapter.invokeStatic(Types.BC_UTIL, PUSH_BODY);
+
 		cv.visitOtherviseAfterBody();
 		cv.visitAfter(bc);
 		if (store) adapter.storeLocal(localBC);
@@ -1767,7 +1771,7 @@ public final class PageImpl extends BodyBase implements Page {
 			// BodyContentUtil.flushAndPop(pc,bc);
 			adapter.loadArg(0);
 			adapter.loadLocal(localBC);
-			adapter.invokeStatic(Types.BODY_CONTENT_UTIL, FLUSH_AND_POP);
+			adapter.invokeStatic(Types.BC_UTIL, FLUSH_AND_POP);
 
 			// throw Caster.toPageException(t);
 			adapter.loadLocal(t);
@@ -1777,7 +1781,7 @@ public final class PageImpl extends BodyBase implements Page {
 
 			adapter.loadArg(0);
 			adapter.loadLocal(localBC);
-			adapter.invokeStatic(Types.BODY_CONTENT_UTIL, CLEAR_AND_POP);
+			adapter.invokeStatic(Types.BC_UTIL, CLEAR_AND_POP);
 		}
 		else {
 			bc.visitLine(component.getStart());
@@ -2371,7 +2375,7 @@ public final class PageImpl extends BodyBase implements Page {
 			off = 0;
 		}
 
-		IOUtil.write(staticTextLocation, str, CharsetUtil.UTF8, append);
+		IOUtil.write(staticTextLocation, str, StandardCharsets.UTF_8, append);
 		Range r = new Range(off, str.length());
 		off += str.length();
 		return r;

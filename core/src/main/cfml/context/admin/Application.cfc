@@ -50,10 +50,10 @@ this.xmlFeatures = {
 };
 
 request.singleMode=getApplicationSettings().singleContext;
-if(request.singleMode) request.adminType="server";
+request.adminType="server";
 public function onRequestStart() {
 	// if not logged in, we only allow access to admin|web|server[.cfm]
-	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
+	if(!structKeyExists(session, "passwordServer")){
 		var path=cgi.request_url;
 		var index=find("?", path);
 		if(index > 0) {
@@ -69,7 +69,7 @@ public function onRequestStart() {
 		}
 		
 		var fileName=listLast(cgi.script_name,"/");
-		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm" && fileName!="index.cfm" && fileName!="restart.cfm") {
+		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm" && fileName!="index.cfm" && fileName!="restart.cfm" && fileName!="mcp.cfm") {
 			writeLog(text="Lucee Admin request to restricted file [#filename#] before login", type="error", log="application");
 			cfsetting(show:false);
 			cfheader(statuscode="404" statustext="Invalid access");

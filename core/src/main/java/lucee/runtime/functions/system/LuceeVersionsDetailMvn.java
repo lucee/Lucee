@@ -22,7 +22,7 @@ public final class LuceeVersionsDetailMvn extends BIF {
 		Struct sct = new StructImpl();
 
 		try {
-			MavenUpdateProvider mup = new MavenUpdateProvider();
+			MavenUpdateProvider mup = new MavenUpdateProvider(pc.getConfig());
 			for (Entry<String, Object> e: mup.detail(Version.parseVersion(version), "jar", true).entrySet()) {
 				sct.set(e.getKey(), e.getValue());
 			}

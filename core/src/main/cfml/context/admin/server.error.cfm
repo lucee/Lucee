@@ -27,7 +27,7 @@ Defaults --->
 					password="#session["password"&request.adminType]#"
 					template500="#form["errorTemplate_"&form.errtype500&500]#"
 					template404="#form["errorTemplate_"&form.errtype404&404]#"
-					statuscode="#isDefined('form.doStatusCode')#"
+					statuscode="#isDefined('form.errorStatusCode')#"
 					
 					remoteClients="#request.getRemoteClients()#">
 				
@@ -111,7 +111,17 @@ Error Output --->
 							<cfelse>
 								<cfset bDisableFile = False>
 							</cfif>
-							<cfif hasAccess>
+							<cfset n=statusCode==404?"errorMissingTemplate":"errorGeneralTemplate">
+							<cfset v=err.str[statusCode]>
+
+							<cfmodule template="systemSetting.cfm" 
+							name="#n#" 
+							value="#v#"
+							access="#hasAccess#"
+							description="#stText.err.errorTemplateDescription[statusCode]#"
+							br=false
+							sp=false
+							descOnTop=true>
 								<cfif structKeyExists(session,"passwordserver")>
 									<cfdirectory action="LIST" directory="../templates/error/" name="err_templates" filter="*.cfm" serverpassword="#session.passwordserver#">
 								<cfelse>
@@ -141,25 +151,24 @@ Error Output --->
 										<input type="text" name="errorTemplate_File#statusCode#" value="#err.str[statusCode]#" id="errorTemplate_File[statusCode]" <cfif isFromTemplate>disabled</cfif> class="large">
 									</li>
 								</ul>
-								<div class="comment">#stText.err.errorTemplateDescription[statusCode]#</div>
-							<cfelse>
-								<b>#err.str[statusCode]#</b>
-								<!---<input type="hidden" name="errorTemplate#statusCode#" value="#err.str[statusCode]#">--->
-							</cfif>
+							</cfmodule>
+						
 						</td>
 					</tr>
 				</cfloop>
 				<tr>
 					<th scope="row">#stText.err.errorStatusCode#</th>
 					<td>
-						<cfif hasAccess>
+					<cfmodule template="systemSetting.cfm" 
+						name="errorStatusCode" 
+						value="#err.doStatusCode#"
+						access="#hasAccess#"
+						description="#stText.err.errorStatusCodeDescription#"
+						br=false
+						sp=false
+						descOnTop=false>
 						<input class="checkbox" type="checkbox" name="doStatusCode" value="yes" <cfif err.doStatusCode>checked</cfif>>
-						<cfelse>
-						<b>#YesNoFormat(err.doStatusCode)#</b><br />
-						</cfif>
-						<div class="comment">#stText.err.errorStatusCodeDescription#</div><br>
-						<cfset renderSysPropEnvVar( "lucee.status.code",err.doStatusCode)>
-						
+					</cfmodule>
 					</td>
 				</tr>
 				<cfif hasAccess>

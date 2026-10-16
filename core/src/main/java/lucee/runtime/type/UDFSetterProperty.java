@@ -21,6 +21,7 @@ package lucee.runtime.type;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
+import lucee.runtime.ComponentImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
@@ -42,7 +43,6 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	 */
 	private static final long serialVersionUID = 378348754607851563L;
 
-	private static final Collection.Key VALIDATE_PARAMS = KeyConstants._validateParams;
 	private final Key propName;
 	private String validate;
 	private Struct validateParams;
@@ -70,7 +70,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 		this.validate = Caster.toString(da.get(KeyConstants._validate, null), null);
 		if (!StringUtil.isEmpty(this.validate, true)) {
 			this.validate = this.validate.trim().toLowerCase();
-			Object o = da.get(VALIDATE_PARAMS, null);
+			Object o = da.get(KeyConstants._validateParams, null);
 			if (o != null) {
 				if (Decision.isStruct(o)) validateParams = Caster.toStruct(o);
 				else {
@@ -89,10 +89,26 @@ public final class UDFSetterProperty extends UDFGSProperty {
 		return new UDFSetterProperty(srcComponent, prop, validate, validateParams);
 	}
 
+	/**
+	 * Direct accessor bypass — called from ComponentImpl._call() to skip UDF dispatch overhead. The
+	 * caller already knows the component, so we skip getComponent(pc) resolution.
+	 */
+	public Object callDirect(ComponentImpl comp, PageContext pc, Object[] args) throws PageException {
+		if (args == null || args.length < 1)
+			throw new ExpressionException("The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in.");
+		validate(pc, validate, validateParams, args[0]);
+		comp.getComponentScope().set(propName, cast(pc, this.arguments[0], args[0], 1));
+
+		ApplicationContext appContext = pc.getApplicationContext();
+		if (appContext.isORMEnabled() && comp.isPersistent()) ORMUtil.getSession(pc);
+
+		return comp;
+	}
+
 	@Override
 	public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
 		if (args.length < 1) throw new ExpressionException("The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in.");
-		validate(validate, validateParams, args[0]);
+		validate(pageContext, validate, validateParams, args[0]);
 		Component c = getComponent(pageContext);
 		c.getComponentScope().set(propName, cast(pageContext, this.arguments[0], args[0], 1));
 
@@ -111,7 +127,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 		Component c = getComponent(pageContext);
 
 		if (value == null) {
-			Key[] keys = CollectionUtil.keys(values);
+			Key[] keys = CollectionUtil.keys(pageContext, values);
 			if (keys.length == 1) {
 				value = values.get(keys[0]);
 			}
@@ -149,6 +165,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 		return null;
 	}
 
+	@Override
 	public Property getProperty() {
 		return prop;
 	}

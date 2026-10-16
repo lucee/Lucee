@@ -15,17 +15,24 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigFactoryImpl;
+import lucee.runtime.config.Prop;
+import lucee.runtime.config.PropFactory;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
-public final class AIEngineFactory {
+public final class AIEngineFactory implements PropFactory<AIEngine> {
 
 	private static final Map<String, SoftReference<AIEngine>> instances = new ConcurrentHashMap<>();
+	private static AIEngineFactory instance;
 
 	public static String createId(ClassDefinition<? extends AIEngine> cd, Struct properties, String name, String _default) {
 		Key[] keys = properties.keys();
@@ -50,6 +57,13 @@ public final class AIEngineFactory {
 		return HashUtil.create64BitHashAsString(sb.toString());
 	}
 
+	public static AIEngineFactory getInstance() {
+		if (instance == null) {
+			instance = new AIEngineFactory();
+		}
+		return instance;
+	}
+
 	public static AIEngine getInstance(Config config, String name, Struct data) throws PageException, ClassException, BundleException {
 
 		ClassDefinition<AIEngine> cd;
@@ -66,7 +80,7 @@ public final class AIEngineFactory {
 		throw new ApplicationException("class defintion is invalid");
 	}
 
-	public static AIEngine getInstance(Config config, ClassDefinition<? extends AIEngine> cd, Struct properties, String name, String _default)
+	private static AIEngine getInstance(Config config, ClassDefinition<? extends AIEngine> cd, Struct properties, String name, String _default)
 			throws PageException, ClassException, BundleException {
 		String id = createId(cd, properties, name, _default);
 		AIEngine aie = getExistingInstance(id, null);
@@ -87,6 +101,52 @@ public final class AIEngineFactory {
 			if (aie != null) return aie;
 		}
 
+		return defaultValue;
+	}
+
+	@Override
+	public AIEngine evaluate(Config config, String name, Object val, short source) throws PageException {
+		try {
+			return getInstance(config, name, Caster.toStruct(val));
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public Struct schema(Prop<AIEngine> prop) {
+		Struct sct = new StructImpl(Struct.TYPE_LINKED);
+		sct.setEL(KeyConstants._type, "object");
+		sct.setEL(KeyConstants._description, "Defines a Lucee AI Engine connection.");
+
+		Struct properties = new StructImpl(Struct.TYPE_LINKED);
+		sct.setEL(KeyConstants._properties, properties);
+
+		// 1. ClassDefinition (No prefix used here as keys are "class", "bundleName", etc.)
+		PropFactory.appendClassDefinitionProps(properties, "");
+
+		// 2. custom (The dynamic configuration block)
+		Struct custom = new StructImpl(Struct.TYPE_LINKED);
+		custom.setEL(KeyConstants._type, "object");
+		custom.setEL(KeyConstants._description, "Engine-specific parameters (e.g. model, temperature, apiKey).");
+		custom.setEL(KeyImpl.init("additionalProperties"), true);
+
+		properties.setEL(KeyConstants._custom, custom);
+
+		// 3. default
+		properties.setEL(KeyConstants._default, PropFactory.createSimple("string", "Optional label for this engine instance."));
+
+		// Required
+		Array required = new ArrayImpl();
+		required.appendEL("class");
+		sct.setEL(KeyImpl.init("required"), required);
+
+		return sct;
+	}
+
+	@Override
+	public Object resolvedValue(AIEngine defaultValue) {
 		return defaultValue;
 	}
 }

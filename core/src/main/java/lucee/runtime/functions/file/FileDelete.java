@@ -25,13 +25,13 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class FileDelete {
 
 	public static String call(PageContext pc, Object oSrc) throws PageException {
 		Resource src = Caster.toResource(pc, oSrc, false);
-
-		pc.getConfig().getSecurityManager().checkFileLocation(src);
+		SecurityManagerImpl.checkFileLocation(pc, src);
 		if (!src.exists()) throw new FunctionException(pc, "FileDelete", 1, "source", "source file [" + src + "] does not exist");
 		try {
 			src.remove(false);

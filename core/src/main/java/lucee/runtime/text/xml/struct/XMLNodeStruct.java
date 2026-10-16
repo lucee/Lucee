@@ -18,7 +18,6 @@
  */
 package lucee.runtime.text.xml.struct;
 
-import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -37,12 +36,9 @@ import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpUtil;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.XMLException;
-import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.text.xml.XMLAttributes;
 import lucee.runtime.text.xml.XMLCaster;
@@ -56,7 +52,6 @@ import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.it.ValueIterator;
-import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.StructSupport;
 
 public class XMLNodeStruct extends StructSupport implements XMLStruct {
@@ -336,6 +331,7 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 		return caseSensitive;
 	}
 
+	// Routes through get(key, null) → XMLUtil's defaultValue overload — intentionally non-throwing.
 	@Override
 	public boolean containsKey(Collection.Key key) {
 		return get(key, null) != null;
@@ -393,22 +389,22 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, castToString(), b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), (Date) dt);
+		return OpUtil.compare(null, castToString(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), Double.valueOf(d));
+		return OpUtil.compare(null, castToString(), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
+		return OpUtil.compare(null, castToString(), str);
 	}
 
 	// used only with java 7, do not set @Override
@@ -473,43 +469,19 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 		return null;
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public Object getUserData(String key) {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = node.getClass().getMethod("getUserData", new Class[] { key.getClass() });
-			return m.invoke(node, new Object[] { key });
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return node.getUserData(key);
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public String getTextContent() throws DOMException {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = node.getClass().getMethod("getTextContent", new Class[] {});
-			return Caster.toString(m.invoke(node, ArrayUtil.OBJECT_EMPTY));
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return node.getTextContent();
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public Object setUserData(String key, Object data, UserDataHandler handler) {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = node.getClass().getMethod("setUserData", new Class[] { key.getClass(), data.getClass(), handler.getClass() });
-			return m.invoke(node, new Object[] { key, data, handler });
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return node.setUserData(key, data, handler);
 	}
 
 	@Override

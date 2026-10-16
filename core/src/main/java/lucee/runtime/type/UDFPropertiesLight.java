@@ -29,6 +29,11 @@ public final class UDFPropertiesLight extends UDFPropertiesBase {
 		this.arguments = arguments;
 		this.functionName = functionName;
 		this.returnType = returnType;
+		if (arguments != null && arguments.length > 0) {
+			this.argumentsSet = new HashSet<Collection.Key>();
+			for (int i = 0; i < arguments.length; i++)
+				argumentsSet.add(arguments[i].getName());
+		}
 	}
 
 	@Override
@@ -84,8 +89,8 @@ public final class UDFPropertiesLight extends UDFPropertiesBase {
 	}
 
 	@Override
-	public int getReturnFormat() {
-		PageContext pc = ThreadLocalPageContext.get();
+	public int getReturnFormat(PageContext pc) {
+		pc = ThreadLocalPageContext.get(pc);
 		if (pc != null) {
 			ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
 			if (acs != null) return acs.getReturnFormat();
@@ -94,8 +99,8 @@ public final class UDFPropertiesLight extends UDFPropertiesBase {
 	}
 
 	@Override
-	public String getReturnFormatAsString() {
-		return UDFUtil.toReturnFormat(getReturnFormat(), "wddx");
+	public String getReturnFormatAsString(PageContext pc) {
+		return UDFUtil.toReturnFormat(getReturnFormat(pc), "wddx");
 	}
 
 	@Override
@@ -145,12 +150,6 @@ public final class UDFPropertiesLight extends UDFPropertiesBase {
 
 	@Override
 	public Set<Key> getArgumentsSet() {
-		if (arguments != null && arguments.length > 0) {
-			this.argumentsSet = new HashSet<Collection.Key>();
-			for (int i = 0; i < arguments.length; i++) {
-				argumentsSet.add(arguments[i].getName());
-			}
-		}
 		return argumentsSet;
 	}
 

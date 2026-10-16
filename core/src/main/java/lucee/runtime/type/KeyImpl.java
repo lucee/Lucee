@@ -29,7 +29,6 @@ import java.util.Map;
 import lucee.commons.digest.WangJenkins;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Castable;
@@ -57,9 +56,8 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	// long field (8 bytes)
 	private transient long h64;
 
-	// int fields (4 bytes each) - group together
+	// int field (4 bytes)
 	private transient int wjh;
-	private transient int sfm = -1;
 
 	// static field
 	private static Map<String, Key> keys = new HashMap<String, Key>();
@@ -119,16 +117,6 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 			wjh = h ^ (h >>> 16);
 		}
 		return wjh;
-	}
-
-	public int slotForMap() {
-		if (sfm == -1) {
-			int h = 0;
-			h ^= hashCode();
-			h ^= (h >>> 20) ^ (h >>> 12);
-			sfm = h ^ (h >>> 7) ^ (h >>> 4);
-		}
-		return sfm;
 	}
 
 	@Override
@@ -320,28 +308,28 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), key, b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, key, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), key, (Date) dt);
+		return OpUtil.compare(null, key, (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), key, Double.valueOf(d));
+		return OpUtil.compare(null, key, Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), key, str);
+		return OpUtil.compare(null, key, str);
 	}
 
 	@Override
 	public int compareTo(Object o) {
 		try {
-			return OpUtil.compare(ThreadLocalPageContext.get(), key, o);
+			return OpUtil.compare(null, key, o);
 		}
 		catch (PageException e) {
 			ClassCastException cce = new ClassCastException(e.getMessage());

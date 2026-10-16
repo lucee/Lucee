@@ -68,6 +68,10 @@ Redirtect to entry --->
 	<cfif connections.recordcount and access EQ "yes">
 		<h1>#stText.Settings.ai.titleExisting#</h1>
 		<div class="itemintro">#stText.Settings.ai.descExisting#</div>
+
+		<cfset renderSettings("ai",{columns:["name","class","bundleName","bundleVersion","maven","component","custom","default"], value:removeCoreBundle(connections)} )>
+
+
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
@@ -95,7 +99,7 @@ Redirtect to entry --->
 							<td nowrap>#connections.custom.model?:"-"#</td>
 							<td nowrap><cfif structKeyExists(sctDefaults, connections.default)> #stText.Settings.ai["defaultType"&connections.default]?:(ucFirst(connections.default?:"-"))#</cfif></td>
 							<td>
-								#renderEditButton("#request.self#?action=#url.action#&action2=create&name=#Hash(connections.name)#")#
+								#renderEditButton2("ai","name",connections.name,"#request.self#?action=#url.action#&action2=create&name=#Hash(connections.name)#")#
 							</td>
 						</tr>
 					<cfif StructKeyExists(stVeritfyMessages, connections.name)>

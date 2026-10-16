@@ -19,7 +19,7 @@ public final class ImageUtil {
 
 	private static Class getImageClass() {
 		try {
-			Config config = ThreadLocalPageContext.getConfig();
+			Config config = ThreadLocalPageContext.getConfigServer();
 			Identification id = config == null ? null : config.getIdentification();
 			return ClassUtil.loadClassByBundle("org.lucee.extension.image.Image", "image.extension", (Version) null, id, null);
 		}
@@ -30,7 +30,7 @@ public final class ImageUtil {
 
 	private static Class getImageUtilClass() {
 		try {
-			Config config = ThreadLocalPageContext.getConfig();
+			Config config = ThreadLocalPageContext.getConfigServer();
 			Identification id = config == null ? null : config.getIdentification();
 			return ClassUtil.loadClassByBundle("org.lucee.extension.image.ImageUtil", "image.extension", (Version) null, id, null);
 		}
@@ -89,8 +89,7 @@ public final class ImageUtil {
 				return (boolean) m.invoke(null, new Object[] { pc, obj });
 			}
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 		return false;
 	}
 
@@ -102,8 +101,7 @@ public final class ImageUtil {
 				return (boolean) m.invoke(null, new Object[] { obj });
 			}
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 		return false;
 	}
 }

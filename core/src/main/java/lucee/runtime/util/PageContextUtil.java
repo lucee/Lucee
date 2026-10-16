@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -231,8 +232,7 @@ public final class PageContextUtil {
 		long suspendedMillis = (pc instanceof PageContextImpl) ? ((PageContextImpl) pc).getDebuggerTotalSuspendedMillis() : 0;
 		long ms = pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime() - suspendedMillis);
 		if (ms > 0) {
-			if (ms < 5) {
-			}
+			if (ms < 5) {}
 			else if (ms < 10) ms = ms - 1;
 			else if (ms < 50) ms = ms - 5;
 			else if (ms < 200) ms = ms - 10;
@@ -289,7 +289,8 @@ public final class PageContextUtil {
 	public static boolean hasDebugOptions(PageContext pc, int option) {
 		pc = ThreadLocalPageContext.get(pc);
 		if (pc instanceof PageContextImpl) return ((PageContextImpl) pc).hasDebugOptions(option);
-		Config c = ThreadLocalPageContext.getConfig();
+
+		Config c = ThreadLocalPageContext.getConfigServer();
 		if (c instanceof ConfigPro) return ((ConfigPro) c).hasDebugOptions(option);
 		return false;
 	}
@@ -322,8 +323,8 @@ public final class PageContextUtil {
 	}
 
 	/**
-	 * Decodes a base64-encoded bitmap of executable line numbers back to an int array. Used by generated Page classes to
-	 * return executable lines without hitting bytecode limits.
+	 * Decodes a base64-encoded bitmap of executable line numbers back to an int array. Used by
+	 * generated Page classes to return executable lines without hitting bytecode limits.
 	 *
 	 * @param encoded base64-encoded bitmap where each bit represents whether that line is executable
 	 * @param maxLine the highest line number in the bitmap
@@ -347,8 +348,8 @@ public final class PageContextUtil {
 	}
 
 	/**
-	 * Encodes an array of executable line numbers as a base64 bitmap. Used at compile time to generate compact
-	 * representation of executable lines.
+	 * Encodes an array of executable line numbers as a base64 bitmap. Used at compile time to generate
+	 * compact representation of executable lines.
 	 *
 	 * @param lines array of executable line numbers
 	 * @return base64-encoded bitmap, or null if lines is empty
@@ -371,7 +372,8 @@ public final class PageContextUtil {
 	}
 
 	/**
-	 * Gets the maximum line number from an array of line numbers. Used at compile time alongside encodeExecutableLines.
+	 * Gets the maximum line number from an array of line numbers. Used at compile time alongside
+	 * encodeExecutableLines.
 	 *
 	 * @param lines array of line numbers
 	 * @return the maximum line number, or 0 if empty
@@ -383,5 +385,18 @@ public final class PageContextUtil {
 			if (line > max) max = line;
 		}
 		return max;
+	}
+
+	public static PageContext createPageContext() throws PageException {
+		try {
+			return CFMLEngineFactory.getInstance().createPageContext(null, "getThreadPageContext:boolean", null, null, null, null, null, null, null, -1L, true);
+		}
+		catch (ServletException e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	public static void popBody(PageContext pc) {
+		pc.popBody();
 	}
 }

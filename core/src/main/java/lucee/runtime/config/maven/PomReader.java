@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -16,9 +15,8 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.net.http.HTTPDownloader;
+import lucee.commons.net.http.HTTPEngine;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.transformer.library.function.FunctionLibEntityResolver;
 import lucee.transformer.library.function.FunctionLibException;
@@ -35,20 +33,19 @@ public final class PomReader extends DefaultHandler {
 		this.url = url;
 	}
 
-	public Map<String, Object> read() throws IOException, GeneralSecurityException, SAXException {
+	public Map<String, Object> read() throws IOException, SAXException {
 
 		// Use HTTPDownloader with DEBUG logging for Maven POM reads
 		Reader r = null;
 		try {
-			r = IOUtil.getReader(HTTPDownloader.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, null, Log.LEVEL_TRACE),
-					(Charset) null);
+			r = IOUtil.getReader(HTTPEngine.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, null, null, true), (Charset) null);
 			init(new InputSource(r));
 		}
 		finally {
 			IOUtil.close(r);
 		}
 
-		// Note: We lose response headers with HTTPDownloader.get() returning InputStream
+		// Note: We lose response headers with HTTPEngine.get() returning InputStream
 		// If headers are critical, we'd need to add a method that returns HTTPResponse
 		// For now, POM metadata works without headers
 

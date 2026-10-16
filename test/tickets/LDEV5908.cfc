@@ -345,6 +345,32 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 		});
 
+		describe( "ConcurrentHashMapNullSupport - Serialization", function() {
+
+			it( "null values survive objectSave/objectLoad round-trip", function() {
+				withNullSupport( true, function() {
+					var sct = { key: nullValue(), other: "value" };
+					var bytes = objectSave( sct );
+					var restored = objectLoad( bytes );
+					expect( structKeyExists( restored, "key" ) ).toBeTrue();
+					expect( isNull( local.restored[ "key" ] ) ).toBeTrue( "null value should survive serialization round-trip" );
+					expect( restored.other ).toBe( "value" );
+				});
+			});
+
+			it( "non-null values survive objectSave/objectLoad round-trip", function() {
+				withNullSupport( true, function() {
+					var sct = { a: "hello", b: 42, c: true };
+					var bytes = objectSave( sct );
+					var restored = objectLoad( bytes );
+					expect( restored.a ).toBe( "hello" );
+					expect( restored.b ).toBe( 42 );
+					expect( restored.c ).toBe( true );
+				});
+			});
+
+		});
+
 		describe( "ConcurrentHashMapNullSupport - Edge cases and regressions", function() {
 
 			it( "handles comparison with null values", function() {

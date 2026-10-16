@@ -11,6 +11,17 @@
         
         returnVariable="logs"
         remoteClients="#request.getRemoteClients()#">
+<cfadmin 
+        action="getMainLog" 
+        type="#request.adminType#"
+        password="#session["password"&request.adminType]#"
+        
+        returnVariable="mainLog"
+        remoteClients="#request.getRemoteClients()#">
+
+		
+
+
 <cfscript>
 	function doSortedStruct(arr) {
 		arraySort(arguments.arr,function(l,r) {

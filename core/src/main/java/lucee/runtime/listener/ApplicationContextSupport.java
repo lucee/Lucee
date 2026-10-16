@@ -24,17 +24,14 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogReference;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j2.LogAdapter;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
@@ -45,6 +42,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLib;
@@ -127,6 +125,22 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		this.cookiedomain = cookiedomain;
 		this.idletimeout = idletimeout;
 
+	}
+
+	public TimeSpan getSessionCommitInterval() {
+		return null;
+	}
+
+	public TimeSpan getClientCommitInterval() {
+		return null;
+	}
+
+	public void setSessionCommitInterval(TimeSpan sessionCommitInterval) {
+		// override in subclass
+	}
+
+	public void setClientCommitInterval(TimeSpan clientCommitInterval) {
+		// override in subclass
 	}
 
 	@Override
@@ -311,10 +325,11 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			// appender
 			Struct sctApp = Caster.toStruct(v.get("appender", null), null);
 			ClassDefinition cdApp = null;
-			if (sctApp != null ){
+			if (sctApp != null) {
 				cdApp = ClassDefinitionImpl.toClassDefinitionImpl(sctApp, null, false, config.getIdentification());
 				if (!cdApp.isBundle()) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdApp.getClassName());
-			} else {
+			}
+			else {
 				String appender = Caster.toString(v.get("appender", null), null);
 				if (appender != null) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(appender);
 			}
@@ -322,10 +337,11 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			// layout
 			Struct sctLay = Caster.toStruct(v.get("layout", null), null);
 			ClassDefinition cdLay = null;
-			if (sctLay != null){
+			if (sctLay != null) {
 				cdLay = ClassDefinitionImpl.toClassDefinitionImpl(sctLay, null, false, config.getIdentification());
 				if (!cdLay.isBundle()) cdLay = ((ConfigPro) config).getLogEngine().layoutClassDefintion(cdLay.getClassName());
-			} else {
+			}
+			else {
 				String layout = Caster.toString(v.get("layout", null), null);
 				if (layout != null) cdLay = ((ConfigPro) config).getLogEngine().layoutClassDefintion(layout);
 			}
@@ -356,8 +372,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 					}
 					else las = addLogger(config, name, level, cdApp, appArgs, null, null, readOnly);
 
-					rtn.put(name,
-							new Pair<Log, Struct>(config instanceof ConfigWebPro ? new LogReference((ConfigWebPro) config, (LogAdapter) las.getLog(false)) : las.getLog(false), v));
+					rtn.put(name, new Pair<Log, Struct>(las.getLog(false), v));
 				}
 			}
 		}
@@ -388,7 +403,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			existing.close();
 		}
 
-		LoggerAndSourceData las = new LoggerAndSourceData(config, id, name.getLowerString(), appender, appenderArgs, layout, layoutArgs, level, readOnly, true);
+		LoggerAndSourceData las = new LoggerAndSourceData(config, id, name.getLowerString(), appender, appenderArgs, layout, layoutArgs, level, readOnly, true).init();
 		_loggers.put(name, las);
 		return las;
 	}

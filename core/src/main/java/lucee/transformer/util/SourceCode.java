@@ -205,8 +205,7 @@ public class SourceCode {
 	 * @param right upper value.
 	 */
 	public boolean isCurrentBetween(char left, char right) {
-		if (!isValidIndex()) return false;
-		return lcText[pos] >= left && lcText[pos] <= right;
+		return pos < lcText.length && lcText[pos] >= left && lcText[pos] <= right;
 	}
 
 	/**
@@ -219,7 +218,7 @@ public class SourceCode {
 
 	/**
 	 * returns if the current character is a letter (a-z,A-Z)
-	 * 
+	 *
 	 * @return is a letter
 	 */
 	public boolean isCurrentLetter() {
@@ -229,7 +228,7 @@ public class SourceCode {
 
 	/**
 	 * returns if the current character is a number (0-9)
-	 * 
+	 *
 	 * @return is a letter
 	 */
 	public boolean isCurrentNumber() {
@@ -287,6 +286,16 @@ public class SourceCode {
 		return is;
 	}
 
+	public boolean isCurrentKeyword(String str) {
+		return isCurrent(str);
+	}
+
+	public boolean forwardIfCurrentKeyword(String str) {
+		if (!isCurrentKeyword(str)) return false;
+		pos += str.length();
+		return true;
+	}
+
 	/**
 	 * @param str string to check against current position
 	 * @param startWithSpace if true there must be whitespace at the current position
@@ -317,7 +326,7 @@ public class SourceCode {
 		int start = pos;
 		if (startWithSpace && !removeSpace()) return false;
 
-		if (!forwardIfCurrent(str)) {
+		if (!forwardIfCurrentKeyword(str)) {
 			pos = start;
 			return false;
 		}
@@ -334,7 +343,7 @@ public class SourceCode {
 	 */
 	public boolean forwardIfCurrentAndNoWordAfter(String str) {
 		int c = pos;
-		if (forwardIfCurrent(str)) {
+		if (forwardIfCurrentKeyword(str)) {
 			if (!isCurrentBetween('a', 'z') && !isCurrent('_')) return true;
 		}
 		pos = c;
@@ -347,7 +356,7 @@ public class SourceCode {
 	 */
 	public boolean forwardIfCurrentAndNoVarExt(String str) {
 		int c = pos;
-		if (forwardIfCurrent(str)) {
+		if (forwardIfCurrentKeyword(str)) {
 			if (!isCurrentBetween('a', 'z') && !isCurrentBetween('0', '9') && !isCurrent('_')) return true;
 		}
 		pos = c;
@@ -398,7 +407,7 @@ public class SourceCode {
 	 */
 	public boolean forwardIfCurrent(String first, char second) {
 		int start = pos;
-		if (!forwardIfCurrent(first)) return false;
+		if (!forwardIfCurrentKeyword(first)) return false;
 		removeSpace();
 		boolean rtn = forwardIfCurrent(second);
 		if (!rtn) pos = start;
@@ -776,17 +785,9 @@ public class SourceCode {
 					currentLine++;
 				}
 			}
-			// Moving backward - need to rescan (rare case)
+			// Moving backward - binary search
 			else {
-				// Could optimize this with backward scan, but backward movement is rare
-				// Just recalculate from start
-				currentLine = 1;
-				for (int i = 0; i < lines.length; i++) {
-					if (pos <= lines[i]) {
-						currentLine = i + 1;
-						break;
-					}
-				}
+				currentLine = getLine(pos);
 			}
 		}
 		this.pos = pos;

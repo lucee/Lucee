@@ -116,12 +116,17 @@ public final class FunctionLib implements Lib {
 	public synchronized void setFunction(FunctionLibFunction function) {
 		// alias
 		if (function.getAlias() != null) {
-			FunctionLibFunction dbl = function.duplicate();
-			dbl.setName(function.getAlias());
-			dbl.setAlias(null);
-
-			dbl.setFunctionLib(this);
-			functions.put(dbl.getName(), dbl);
+			for (String alias : function.getAlias().split(",")) {
+				alias = alias.trim();
+				if (!alias.isEmpty()) {
+					FunctionLibFunction dbl = function.duplicate();
+					dbl.setName(alias);
+					dbl.clearAlias();
+					dbl.setAliasOf(function.getNameWithCase());
+					dbl.setFunctionLib(this);
+					functions.put(dbl.getName(), dbl);
+				}
+			}
 		}
 
 		function.setFunctionLib(this);

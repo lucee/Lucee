@@ -19,7 +19,6 @@ public final class BundleActivatorImpl implements BundleActivator {
 	 **/
 	@Override
 	public void start(BundleContext context) {
-		System.out.println("BundleActivatorImpl:Starting to listen for service events.");
 		// context.addServiceListener(this);
 	}
 
@@ -32,9 +31,7 @@ public final class BundleActivatorImpl implements BundleActivator {
 	@Override
 	public void stop(BundleContext context) {
 		// context.removeServiceListener(this);
-		System.out.println("BundleActivatorImpl:Stopped listening for service events.");
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
-		System.out.println("engine:" + (engine != null));
 		// if (engine != null) engine.reset();
 	}
 }

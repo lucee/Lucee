@@ -36,7 +36,7 @@ public final class ResourcesImpl implements Resources {
 	private static ResourceProvider frp = new FileResourceProvider();
 	private static Resources global = new ResourcesImpl();
 	private ResourceProvider defaultResource = frp;
-	private ResourceProviderFactory[] resources = new ResourceProviderFactory[0];
+	private InnerResourceProviderFactory[] resources = new InnerResourceProviderFactory[0];
 
 	/**
 	 * adds a default factory, this factory is used, when sheme can't be mapped to another factory
@@ -60,24 +60,24 @@ public final class ResourcesImpl implements Resources {
 		String scheme = provider.getScheme();
 		if (StringUtil.isEmpty(scheme)) return;
 
-		ResourceProviderFactory[] tmp = new ResourceProviderFactory[resources.length + 1];
+		InnerResourceProviderFactory[] tmp = new InnerResourceProviderFactory[resources.length + 1];
 		for (int i = 0; i < resources.length; i++) {
 			if (scheme.equalsIgnoreCase(resources[i].getScheme())) {
-				resources[i] = new ResourceProviderFactory(this, provider);
+				resources[i] = new InnerResourceProviderFactory(this, provider);
 				return;
 			}
 			tmp[i] = resources[i];
 		}
-		tmp[resources.length] = new ResourceProviderFactory(this, provider);
+		tmp[resources.length] = new InnerResourceProviderFactory(this, provider);
 		resources = tmp;
 	}
 
-	public void registerResourceProvider(ResourceProviderFactory rpf) {
+	public void registerResourceProvider(InnerResourceProviderFactory rpf) {
 		rpf = rpf.duplicate(this);
 		String scheme = rpf.getScheme();
 		if (StringUtil.isEmpty(scheme)) return;
 
-		ResourceProviderFactory[] tmp = new ResourceProviderFactory[resources.length + 1];
+		InnerResourceProviderFactory[] tmp = new InnerResourceProviderFactory[resources.length + 1];
 		for (int i = 0; i < resources.length; i++) {
 			if (scheme.equalsIgnoreCase(resources[i].getScheme())) {
 				resources[i] = rpf;
@@ -92,41 +92,41 @@ public final class ResourcesImpl implements Resources {
 	public void registerResourceProvider(String scheme, ClassDefinition cd, Map arguments) {
 		if (StringUtil.isEmpty(scheme)) return;
 
-		ResourceProviderFactory[] tmp = new ResourceProviderFactory[resources.length + 1];
+		InnerResourceProviderFactory[] tmp = new InnerResourceProviderFactory[resources.length + 1];
 		for (int i = 0; i < resources.length; i++) {
 			if (scheme.equalsIgnoreCase(resources[i].getScheme())) {
-				resources[i] = new ResourceProviderFactory(this, scheme, cd, arguments);
+				resources[i] = new InnerResourceProviderFactory(this, scheme, cd, arguments);
 				return;
 			}
 			tmp[i] = resources[i];
 		}
-		tmp[resources.length] = new ResourceProviderFactory(this, scheme, cd, arguments);
+		tmp[resources.length] = new InnerResourceProviderFactory(this, scheme, cd, arguments);
 		resources = tmp;
 	}
 
-	public static class ResourceProviderFactory {
+	public static class InnerResourceProviderFactory {
 		private Resources reses;
 		private final String scheme;
 		private final ClassDefinition cd;
 		private final Map arguments;
 		private ResourceProvider instance;
 
-		private ResourceProviderFactory(Resources reses, String scheme, ClassDefinition cd, Map arguments) {
+		private InnerResourceProviderFactory(Resources reses, String scheme, ClassDefinition cd, Map arguments) {
 			this.reses = reses;
 			this.scheme = scheme;
 			this.cd = cd;
 			this.arguments = arguments;
 		}
 
-		public ResourceProviderFactory(Resources reses, ResourceProvider provider) {
+		public InnerResourceProviderFactory(Resources reses, ResourceProvider provider) {
 			this.reses = reses;
 			this.scheme = provider.getScheme();
 			this.cd = new ClassDefinitionImpl(provider.getClass());
 			this.arguments = provider.getArguments();
 		}
 
-		public ResourceProviderFactory duplicate(ResourcesImpl reses) {
-			return new ResourceProviderFactory(reses, scheme, cd, arguments);
+		public InnerResourceProviderFactory duplicate(ResourcesImpl reses) {
+			return new InnerResourceProviderFactory(reses, scheme, cd, arguments);
 		}
 
 		public String getScheme() {
@@ -174,7 +174,7 @@ public final class ResourcesImpl implements Resources {
 
 				// create exception
 				StringBuilder sb = new StringBuilder();
-				for (ResourceProviderFactory rpf: resources) {
+				for (InnerResourceProviderFactory rpf: resources) {
 					if (sb.length() > 0) sb.append(", ");
 					sb.append(rpf.instance().getScheme());
 				}
@@ -224,8 +224,8 @@ public final class ResourcesImpl implements Resources {
 		return tmp;
 	}
 
-	public ResourceProviderFactory[] getResourceProviderFactories() {
-		ResourceProviderFactory[] tmp = new ResourceProviderFactory[resources.length];
+	public InnerResourceProviderFactory[] getResourceProviderFactories() {
+		InnerResourceProviderFactory[] tmp = new InnerResourceProviderFactory[resources.length];
 		for (int i = 0; i < tmp.length; i++) {
 			tmp[i] = resources[i];
 		}
@@ -243,6 +243,6 @@ public final class ResourcesImpl implements Resources {
 
 	@Override
 	public void reset() {
-		resources = new ResourceProviderFactory[0];
+		resources = new InnerResourceProviderFactory[0];
 	}
 }

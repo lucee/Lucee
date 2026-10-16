@@ -24,6 +24,10 @@ public final class Lambda extends EnvUDF {
 		super(properties);
 	}
 
+	public Lambda(PageContext pc, UDFProperties properties) {
+		super(pc, properties);
+	}
+
 	private Lambda(UDFProperties properties, Variables variables) { // used for duplicate
 		super(properties, variables);
 	}

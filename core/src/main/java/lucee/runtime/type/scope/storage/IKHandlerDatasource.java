@@ -37,7 +37,7 @@ public final class IKHandlerDatasource implements IKHandler {
 
 	@Override
 	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException {
-		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
+		ConfigPro config = ThreadLocalPageContext.getConfigServer(pc);
 		DatasourceConnection dc = null;
 		try {
 			DatasourceConnPool pool = config.getDatasourceConnectionPool(pc.getDataSource(name), null, null);
@@ -52,13 +52,15 @@ public final class IKHandlerDatasource implements IKHandler {
 	/**
 	 * Load data using an existing connection (to avoid nested connection borrows that can deadlock)
 	 */
-	private IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log, DatasourceConnection dc, boolean checkStorage) throws PageException {
+	private IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log, DatasourceConnection dc, boolean checkStorage)
+			throws PageException {
 		Query query;
 		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		try {
 			SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
 
-			if (checkStorage && !dc.getDatasource().isStorage()) throw new ApplicationException("storage usage for this datasource is disabled, you can enable this in the Lucee administrator.");
+			if (checkStorage && !dc.getDatasource().isStorage())
+				throw new ApplicationException("storage usage for this datasource is disabled, you can enable this in the Lucee administrator.");
 			query = executor.select(config, pc.getCFID(), pc.getApplicationContext().getName(), dc, type, log, true);
 		}
 		catch (SQLException se) {
@@ -75,7 +77,7 @@ public final class IKHandlerDatasource implements IKHandler {
 
 		boolean _isNew = query.getRecordcount() == 0;
 		if (_isNew) {
-			ScopeContext.debug(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in datasource [" + name + "]");
+			ScopeContext.debug(log, "Create new " + strType + " scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in datasource [" + name + "]");
 			return null;
 		}
 		String str = Caster.toString(query.getAt(KeyConstants._data, 1));
@@ -101,8 +103,8 @@ public final class IKHandlerDatasource implements IKHandler {
 
 		try {
 			IKStorageValue data = (IKStorageValue) JavaConverter.deserialize(str);
-			ScopeContext.info(log, "load existing data from [" + name + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
-					+ pc.getApplicationContext().getName() + "/" + pc.getCFID());
+			ScopeContext.trace(log, "Load existing data from [" + name + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for ["
+					+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + "]");
 			return data;
 		}
 		catch (Exception e) {
@@ -163,9 +165,12 @@ public final class IKHandlerDatasource implements IKHandler {
 				IKStorageValue sv = new IKStorageValue(
 						IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(), storageScope.lastModifiedAtInit(), log, type));
 				executor.update(ci, pc.getCFID(), appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(), log);
+				storageScope.markStored();
+				ScopeContext.trace(log, "Store scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in datasource [" + name + "]");
 			}
 			else if (existingVal != null) {
 				executor.delete(ci, pc.getCFID(), appName, dc, storageScope.getType(), log);
+				ScopeContext.debug(log, "Remove scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] from datasource [" + name + "]");
 			}
 		}
 		catch (Exception e) {

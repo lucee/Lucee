@@ -19,10 +19,11 @@
 package lucee.commons.io;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.SortedMap;
 
-import lucee.commons.lang.CharSet;
+import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -30,23 +31,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class CharsetUtil {
-	public static final Charset UTF8;
-	public static final Charset ISO88591;
-	public static final Charset UTF16BE;
-	public static final Charset UTF16LE;
-	public static final Charset UTF32BE;
-	public static final Charset UTF32LE;
-
-	static {
-		UTF8 = toCharset("utf-8", null);
-		ISO88591 = toCharset("iso-8859-1", null);
-
-		UTF16BE = toCharset("utf-16BE", null);
-		UTF16LE = toCharset("utf-16LE", null);
-
-		UTF32BE = toCharset("utf-32BE", null);
-		UTF32LE = toCharset("utf-32LE", null);
-	}
 
 	public static Charset toCharset(String charset) {
 		if (StringUtil.isEmpty(charset, true)) return null;
@@ -64,15 +48,15 @@ public final class CharsetUtil {
 		}
 	}
 
-	public static CharSet toCharSet(String charset) {
+	public static CharsetX toCharsetX(String charset) {
 		if (StringUtil.isEmpty(charset, true)) return null;
-		return new CharSet(Charset.forName(charset.trim()));
+		return new CharsetX(Charset.forName(charset.trim()));
 	}
 
-	public static CharSet toCharSet(String charset, CharSet defaultValue) {
+	public static CharsetX toCharsetX(String charset, CharsetX defaultValue) {
 		if (StringUtil.isEmpty(charset)) return defaultValue;
 		try {
-			return new CharSet(Charset.forName(charset));
+			return new CharsetX(Charset.forName(charset));
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -80,12 +64,12 @@ public final class CharsetUtil {
 		}
 	}
 
-	public static CharSet toCharSet(Charset charset) {
+	public static CharsetX toCharsetX(Charset charset) {
 		if (charset == null) return null;
-		return new CharSet(charset);
+		return new CharsetX(charset);
 	}
 
-	public static Charset toCharset(CharSet charset) {
+	public static Charset toCharset(CharsetX charset) {
 		if (charset == null) return null;
 		return charset.toCharset();
 	}
@@ -93,10 +77,10 @@ public final class CharsetUtil {
 	public static Charset getWebCharset() {
 		PageContext pc = ThreadLocalPageContext.get();
 		if (pc != null) return pc.getWebCharset();
-		Config config = ThreadLocalPageContext.getConfig();
+		Config config = ThreadLocalPageContext.getConfigServer();
 		if (config != null) return config.getWebCharset();
 
-		return CharsetUtil.ISO88591;
+		return StandardCharsets.ISO_8859_1;
 	}
 
 	public static String[] getAvailableCharsets() {

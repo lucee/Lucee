@@ -41,12 +41,12 @@ public final class FunctionHandlerPool {
 		return use(pc, className, bundleName, bundleVersion).invoke(pc, args);
 	}
 
-	public static Object invoke(PageContext pc, Object[] args, String className) throws PageException {
-		return use(pc, className).invoke(pc, args);
-	}
-
 	public static Object invoke(PageContext pc, Object[] args, String className, String maven) throws PageException {
 		return use(pc, className, maven).invoke(pc, args);
+	}
+
+	public static Object invoke(PageContext pc, Object[] args, String className) throws PageException {
+		return use(pc, className).invoke(pc, args);
 	}
 
 	/**

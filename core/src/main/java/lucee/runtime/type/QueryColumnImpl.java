@@ -18,6 +18,7 @@
  */
 package lucee.runtime.type;
 
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -39,6 +40,7 @@ import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
@@ -57,16 +59,16 @@ import lucee.runtime.util.ArrayIterator;
 /**
  * implementation of the query column
  */
-public class QueryColumnImpl implements QueryColumnPro, Objects {
+public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 
 	private static final long serialVersionUID = -5544446523204021493L;
 	private static final int CAPACITY = 32;
 
-	protected int type;
+	protected volatile int type;
 	protected AtomicInteger size = new AtomicInteger(0);
 	protected Object[] data;
 
-	protected boolean typeChecked = false;
+	protected volatile boolean typeChecked = false;
 	protected QueryImpl query;
 	protected Collection.Key key;
 	private final Object sync = new SerializableObject();
@@ -83,6 +85,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		this.type = type;
 		this.key = key;
 		this.query = query;
+		this.typeChecked = (type != Types.OTHER);
 	}
 
 	/**
@@ -98,6 +101,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		this.type = type;
 		this.query = query;
 		this.key = key;
+		this.typeChecked = (type != Types.OTHER);
 	}
 
 	/**
@@ -111,13 +115,13 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		this.size = new AtomicInteger(size);
 		this.query = query;
 		this.key = key;
+		this.typeChecked = (type != Types.OTHER);
 	}
 
 	/**
 	 * Constructor of the class for internal usage only
 	 */
-	public QueryColumnImpl() {
-	}
+	public QueryColumnImpl() {}
 
 	@Override
 	public int size() {
@@ -408,6 +412,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public int getType() {
+		if (typeChecked) return type;
 		reOrganizeType();
 		return type;
 	}
@@ -520,15 +525,24 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public String castToString() throws PageException {
-		return Caster.toString(get(query.getCurrentrow(ThreadLocalPageContext.getId()), null));
+		return castToString((PageContext) null);
 	}
 
 	@Override
 	public String castToString(String defaultValue) {
-		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
-		if (value == _null) return defaultValue;
-		return Caster.toString(value, defaultValue);
+		return castToString((PageContext) null, defaultValue);
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws PageException {
+		return Caster.toString(pc, get(query.getCurrentrow(ThreadLocalPageContext.getId(pc)), null));
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId(pc)), Null.NULL);
+		if (NullSupportHelper.isNull(value)) return defaultValue;
+		return Caster.toString(pc, value, defaultValue);
 	}
 
 	@Override
@@ -538,9 +552,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Boolean castToBoolean(Boolean defaultValue) {
-		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
-		if (value == _null) return defaultValue;
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), Null.NULL);
+		if (NullSupportHelper.isNull(value)) return defaultValue;
 		return Caster.toBoolean(value, defaultValue);
 	}
 
@@ -551,9 +564,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public double castToDoubleValue(double defaultValue) {
-		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
-		if (value == _null) return defaultValue;
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), Null.NULL);
+		if (NullSupportHelper.isNull(value)) return defaultValue;
 		return Caster.toDoubleValue(value, true, defaultValue);
 	}
 
@@ -564,30 +576,29 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public DateTime castToDateTime(DateTime defaultValue) {
-		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
-		if (value == _null) return defaultValue;
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), Null.NULL);
+		if (NullSupportHelper.isNull(value)) return defaultValue;
 		return DateCaster.toDateAdvanced(value, DateCaster.CONVERTING_TYPE_OFFSET, null, defaultValue);
 	}
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
+		return lucee.runtime.op.OpUtil.compare(null, castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) dt);
+		return lucee.runtime.op.OpUtil.compare(null, (Date) castToDateTime(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
+		return lucee.runtime.op.OpUtil.compare(null, Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
+		return lucee.runtime.op.OpUtil.compare(null, castToString(), str);
 	}
 
 	@Override
@@ -659,14 +670,12 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public boolean containsKey(Collection.Key key) {
-		Object _null = NullSupportHelper.NULL();
-		return get(key, _null) != _null;
+		return !NullSupportHelper.isNull(get(key, Null.NULL));
 	}
 
 	@Override
 	public boolean containsKey(PageContext pc, Collection.Key key) {
-		Object _null = NullSupportHelper.NULL();
-		return get(pc, key, _null) != _null;
+		return !NullSupportHelper.isNull(pc, get(pc, key, Null.NULL));
 	}
 
 	public Iterator iterator() {
@@ -774,10 +783,9 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	public int indexOf(Object o) {
 		for (int i = 0; i < size(); i++) {
 			try {
-				if (lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), o, data[i]) == 0) return i;
+				if (lucee.runtime.op.OpUtil.compare(null, o, data[i]) == 0) return i;
 			}
-			catch (PageException e) {
-			}
+			catch (PageException e) {}
 		}
 		return -1;
 	}
@@ -785,10 +793,9 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	public int lastIndexOf(Object o) {
 		for (int i = size() - 1; i >= 0; i--) {
 			try {
-				if (lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), o, data[i]) == 0) return i;
+				if (lucee.runtime.op.OpUtil.compare(null, o, data[i]) == 0) return i;
 			}
-			catch (PageException e) {
-			}
+			catch (PageException e) {}
 		}
 		return -1;
 	}
@@ -944,7 +951,6 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public boolean containsKey(int key) {
-		Object _null = NullSupportHelper.NULL();
-		return get(key, _null) != _null;
+		return !NullSupportHelper.isNull(get(key, Null.NULL));
 	}
 }

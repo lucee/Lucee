@@ -1,54 +1,74 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
-	function run( testResults , testBox ) {
-		describe( "Test suite for checkVersionGTE", function() {
-			it( title='test build lucee version checking service', body=function( currentSpec ) {
-				var versions = {
-					"6.2.1.25": {
-						"5": false,
-						"5.4": false,
-						"5.4.7": false,
-						"5.4.7.3": false,
-						"6": true,
-						"7": false,
-						"6.1": false,
-						"6.2.1.24": false,
-						"6.2.1.25": true,
-						"6.2.1.26": true,
-						"6.2.0": false,
-						"6.2.1": true,
-						"6.2.2": false,
-						"6.2": true,
-						"6.3": false,
-						"7.0": false
-					},
-					"5.4.7.3": {
-						"5": true,
-						"5.4": true,
-						"5.4.6": false,
-						"5.4.7.2": false,
-						"5.4.7.3": true,
-						"5.4.7.4": true,
-						"5.4.7": true,
-						"6": false,
-						"6.1": false,
-						"6.2.1.25": false,
-						"6.3": false,
-						"7.0": false,
-						"7": false
-					}
-				};
-				structEach( versions, function( vk, vv ){
-					structEach( vv, function( tk, tv ){
-						var args = ListToArray (tk, "." );
-						arrayPrepend( args, vk) ;
-						var result = server.checkVersionGTE( argumentCollection=args );
-						expect( result ).toBe( tv, args.toJson() );
-					});
-				});
+	function run( testResults, testBox ) {
+		describe( "Test checkVersionGTE()", function() {
 
-				expect(server.checkVersionGTE( "5.4.7.3", 6, 2, 1, 25 )).toBeFalse();
+			describe( "major version comparisons", function() {
+				it( "higher major returns true", function(){
+					expect( server.checkVersionGTE( "6.2.1.25", 5 ) ).toBeTrue( "6.2.1.25 >= 5" );
+					expect( server.checkVersionGTE( "7.0.0.1", 6 ) ).toBeTrue( "7.0.0.1 >= 6" );
+				});
+				it( "equal major returns true", function(){
+					expect( server.checkVersionGTE( "6.2.1.25", 6 ) ).toBeTrue( "6.2.1.25 >= 6" );
+				});
+				it( "lower major returns false", function(){
+					expect( server.checkVersionGTE( "5.4.7.3", 6 ) ).toBeFalse( "5.4.7.3 >= 6" );
+					expect( server.checkVersionGTE( "5.4.7.3", 7 ) ).toBeFalse( "5.4.7.3 >= 7" );
+				});
 			});
+
+			describe( "minor version comparisons", function() {
+				it( "higher minor returns true", function(){
+					expect( server.checkVersionGTE( "6.2.1.25", 6, 1 ) ).toBeTrue( "6.2.1.25 >= 6.1" );
+					expect( server.checkVersionGTE( "5.4.7.3", 5, 4 ) ).toBeTrue( "5.4.7.3 >= 5.4" );
+				});
+				it( "lower minor returns false", function(){
+					expect( server.checkVersionGTE( "6.2.1.25", 6, 3 ) ).toBeFalse( "6.2.1.25 >= 6.3" );
+					expect( server.checkVersionGTE( "5.4.7.3", 6, 1 ) ).toBeFalse( "5.4.7.3 >= 6.1" );
+				});
+			});
+
+			describe( "patch version comparisons", function() {
+				it( "higher patch returns true", function(){
+					expect( server.checkVersionGTE( "6.2.1.25", 6, 2, 0 ) ).toBeTrue( "6.2.1.25 >= 6.2.0" );
+					expect( server.checkVersionGTE( "5.4.7.3", 5, 4, 6 ) ).toBeTrue( "5.4.7.3 >= 5.4.6" );
+				});
+				it( "equal patch returns true", function(){
+					expect( server.checkVersionGTE( "6.2.1.25", 6, 2, 1 ) ).toBeTrue( "6.2.1.25 >= 6.2.1" );
+					expect( server.checkVersionGTE( "5.4.7.3", 5, 4, 7 ) ).toBeTrue( "5.4.7.3 >= 5.4.7" );
+				});
+				it( "lower patch returns false", function(){
+					expect( server.checkVersionGTE( "6.2.1.25", 6, 2, 2 ) ).toBeFalse( "6.2.1.25 >= 6.2.2" );
+				});
+			});
+
+			describe( "build version comparisons", function() {
+				it( "higher build returns true", function(){
+					expect( server.checkVersionGTE( "6.2.1.25", 6, 2, 1, 24 ) ).toBeTrue( "6.2.1.25 >= 6.2.1.24" );
+					expect( server.checkVersionGTE( "5.4.7.3", 5, 4, 7, 2 ) ).toBeTrue( "5.4.7.3 >= 5.4.7.2" );
+				});
+				it( "exact match returns true", function(){
+					expect( server.checkVersionGTE( "6.2.1.25", 6, 2, 1, 25 ) ).toBeTrue( "6.2.1.25 >= 6.2.1.25" );
+					expect( server.checkVersionGTE( "5.4.7.3", 5, 4, 7, 3 ) ).toBeTrue( "5.4.7.3 >= 5.4.7.3" );
+				});
+				it( "lower build returns false", function(){
+					expect( server.checkVersionGTE( "6.2.1.25", 6, 2, 1, 26 ) ).toBeFalse( "6.2.1.25 >= 6.2.1.26" );
+					expect( server.checkVersionGTE( "5.4.7.3", 5, 4, 7, 4 ) ).toBeFalse( "5.4.7.3 >= 5.4.7.4" );
+				});
+			});
+
+			describe( "cross-component comparisons", function() {
+				it( "higher major trumps lower minor/patch/build", function(){
+					expect( server.checkVersionGTE( "6.2.1.25", 5, 4, 7, 3 ) ).toBeTrue( "6.2.1.25 >= 5.4.7.3" );
+				});
+				it( "higher patch trumps lower build", function(){
+					expect( server.checkVersionGTE( "7.0.4.17", 7, 0, 0, 115 ) ).toBeTrue( "7.0.4.17 >= 7.0.0.115" );
+				});
+				it( "lower major fails regardless of other components", function(){
+					expect( server.checkVersionGTE( "5.4.7.3", 6, 2, 1, 25 ) ).toBeFalse( "5.4.7.3 >= 6.2.1.25" );
+				});
+			});
+
 		});
 	}
 }

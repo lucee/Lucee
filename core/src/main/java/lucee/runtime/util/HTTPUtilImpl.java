@@ -24,15 +24,12 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.GeneralSecurityException;
 
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLEncoder;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
-import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.proxy.ProxyDataImpl;
@@ -41,8 +38,7 @@ public final class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 
 	private static lucee.runtime.util.HTTPUtil instance = new HTTPUtilImpl();
 
-	private HTTPUtilImpl() {
-	}
+	private HTTPUtilImpl() {}
 
 	public static lucee.runtime.util.HTTPUtil getInstance() {
 		return instance;
@@ -69,13 +65,8 @@ public final class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 	@Override
 	public HTTPResponse delete(URL url, String username, String password, int timeout, String charset, String useragent, String proxyserver, int proxyport, String proxyuser,
 			String proxypassword, Header[] headers) throws IOException {
-		try {
-			return HTTPEngine4Impl.delete(url, username, password, timeout, true, charset, useragent, ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword),
-					headers);
-		}
-		catch (GeneralSecurityException e) {
-			throw ExceptionUtil.toIOException(e);
-		}
+		return HTTPEngine.delete(url, username, password, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, timeout, true, charset, useragent,
+				ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), headers, false);
 	}
 
 	/**
@@ -97,13 +88,8 @@ public final class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 	@Override
 	public HTTPResponse head(URL url, String username, String password, int timeout, String charset, String useragent, String proxyserver, int proxyport, String proxyuser,
 			String proxypassword, Header[] headers) throws IOException {
-		try {
-			return HTTPEngine4Impl.head(url, username, password, timeout, true, charset, useragent, ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword),
-					headers);
-		}
-		catch (GeneralSecurityException e) {
-			throw ExceptionUtil.toIOException(e);
-		}
+		return HTTPEngine.head(url, username, password, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, timeout, true, charset, useragent,
+				ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), headers, false);
 	}
 
 	/**
@@ -114,13 +100,8 @@ public final class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 	@Override
 	public HTTPResponse get(URL url, String username, String password, int timeout, String charset, String useragent, String proxyserver, int proxyport, String proxyuser,
 			String proxypassword, Header[] headers) throws IOException {
-		try {
-			return HTTPEngine4Impl.get(url, username, password, timeout, true, charset, useragent, ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword),
-					headers);
-		}
-		catch (GeneralSecurityException e) {
-			throw ExceptionUtil.toIOException(e);
-		}
+		return HTTPEngine.get(url, username, password, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, timeout, true, charset, useragent,
+				ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), headers, false);
 	}
 
 	@Override
@@ -132,13 +113,8 @@ public final class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 	@Override
 	public HTTPResponse put(URL url, String username, String password, int timeout, String mimetype, String charset, String useragent, String proxyserver, int proxyport,
 			String proxyuser, String proxypassword, Header[] headers, Object body) throws IOException {
-		try {
-			return HTTPEngine4Impl.put(url, username, password, timeout, true, mimetype, charset, useragent,
-					ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), headers, body);
-		}
-		catch (GeneralSecurityException e) {
-			throw ExceptionUtil.toIOException(e);
-		}
+		return HTTPEngine.put(url, username, password, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, timeout, true, mimetype, charset, useragent,
+				ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), headers, body, false);
 	}
 
 	@Override

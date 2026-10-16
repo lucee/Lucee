@@ -61,7 +61,7 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 	 * constructor of the class
 	 */
 	public JSession() {
-		super("session", SCOPE_SESSION, Struct.TYPE_LINKED);
+		super("session", SCOPE_SESSION, Struct.TYPE_SYNC);
 		setDisplayName("Scope Session (Type JEE)");
 		this.created = System.currentTimeMillis();
 	}

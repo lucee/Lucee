@@ -90,8 +90,7 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 			localAddress = addr.getHostAddress();
 			localHost = addr.getHostName();
 		}
-		catch (UnknownHostException uhe) {
-		}
+		catch (UnknownHostException uhe) {}
 	}
 
 	private transient HttpServletRequest req;
@@ -238,7 +237,7 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 						if (pc == null) pc = ThreadLocalPageContext.get();
 						return pc.getCFID();
 					}
-					if (key.equals(KeyConstants._cf_template_path)) return store(key, getPathTranslated());
+					if (key.equals(KeyConstants._cf_template_path)) return store(key, getPathTranslated(pc));
 				}
 				else if (first == 'h') {
 
@@ -278,7 +277,7 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 					if (key.equals(KeyConstants._local_host)) return store(key, toString(localHost));
 				}
 				else if (first == 's') {
-					if (key.equals(KeyConstants._script_name)) return store(key, ReqRspUtil.getScriptName(null, req));
+					if (key.equals(KeyConstants._script_name)) return store(key, ReqRspUtil.getScriptName(pc, req));
 					if (key.equals(KeyConstants._server_name)) return store(key, toString(req.getServerName()));
 					if (key.equals(KeyConstants._server_protocol)) return store(key, toString(req.getProtocol()));
 					if (key.equals(KeyConstants._server_port)) return store(key, Caster.toString(req.getServerPort()));
@@ -300,7 +299,7 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 						if (!StringUtil.isEmpty(pathInfo, true)) return store(key, pathInfo);
 						return "";
 					}
-					if (key.equals(KeyConstants._path_translated)) return store(key, getPathTranslated());
+					if (key.equals(KeyConstants._path_translated)) return store(key, getPathTranslated(pc));
 				}
 				else if (first == 'q') {
 					if (key.equals(KeyConstants._query_string)) return store(key, doScriptProtect(toString(ReqRspUtil.getQueryString(req))));
@@ -313,15 +312,10 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 
 		// check servlet request attributes
 		/*
-		Enumeration<String> names = req.getAttributeNames();
-		String k;
-		while (names.hasMoreElements()) {
-			k = names.nextElement();
-			if (k.equalsIgnoreCase(key.getString())) {
-				return toString(req.getAttribute(k));
-			}
-		}
-		*/
+		 * Enumeration<String> names = req.getAttributeNames(); String k; while (names.hasMoreElements()) {
+		 * k = names.nextElement(); if (k.equalsIgnoreCase(key.getString())) { return
+		 * toString(req.getAttribute(k)); } }
+		 */
 
 		return other(key, defaultValue);
 	}
@@ -336,9 +330,9 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 		return defaultValue;
 	}
 
-	private String getPathTranslated() {
+	private String getPathTranslated(PageContext pc) {
 		try {
-			PageContext pc = ThreadLocalPageContext.get();
+			pc = ThreadLocalPageContext.get(pc);
 			return pc.getBasePageSource().getResourceTranslated(pc).toString();
 		}
 		catch (Throwable t) {

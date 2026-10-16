@@ -53,44 +53,51 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	function testfileAction() localmode=true {
 		
-		testFile = "#path#\test.txt";
+		srcFile = "#path#\test.txt";
 
 		// file write
-		file action="write" file=testFile output="susi" addnewline="no";
-		assertEquals("susi",fileRead(testFile));
-		
+		file action="write" file=srcFile output="susi" addnewline="no";
+		assertEquals("susi",fileRead(srcFile));
+
 		// file append
-		file action="append" file=testFile output="john" addnewline="no";
-		assertEquals("susijohn",fileRead(testFile));
+		file action="append" file=srcFile output="john" addnewline="no";
+		assertEquals("susijohn",fileRead(srcFile));
 
 		// file read
-		file action="read" file=testFile variable="appendRes";
+		file action="read" file=srcFile variable="appendRes";
 		assertEquals("susijohn",trim(appendRes));
 
 		// file readBinary
-		file action="readBinary" file=testFile variable="readBinaryRes";
+		file action="readBinary" file=srcFile variable="readBinaryRes";
 		assertTrue(isBinary(readBinaryRes));
 
 		// file info
-		file action="info" file=testFile variable="res2";
+		file action="info" file=srcFile variable="res2";
 		assertEquals(8,res2.size);
 
 		// file copy
-		file action="copy"  source=testFile destination=path;
-		assertTrue(fileExists(testFile));
+		trgCopy = "#path#\test-copy.txt";
+		file action="copy" source=srcFile destination=trgCopy;
+		assertTrue(fileExists(srcFile));
+		assertTrue(fileExists(trgCopy));
 
 		//file rename
-		file action="rename" source=testFile destination="#path#\testFile.txt";
-		assertTrue(fileExists("#path#\testFile.txt"));
+		trgRename = "#path#\test-rename.txt";
+		file action="rename" source=trgCopy destination=trgRename;
+		assertFalse(fileExists(trgCopy));
+		assertTrue(fileExists(trgRename));
 
 		// file move
-		file action="move" source="#path#\testFile.txt" destination="#path#\movefile.txt";
-		assertTrue(fileExists("#path#\movefile.txt"));
-		assertFalse(fileExists(testFile));
-		
+		trgMove = "#path#\test-move.txt";
+		file action="move" source=trgRename destination=trgMove;
+		assertTrue(fileExists(trgMove));
+		assertFalse(fileExists(trgRename));
+
 		// file delete
-		file action="delete" file="#path#\movefile.txt";
-		assertFalse(fileExists("#path#\movefile.txt"));	
+		file action="delete" file=trgMove;
+		assertFalse(fileExists(trgMove));
+		file action="delete" file=srcFile;
+		assertFalse(fileExists(srcFile));
 	}
 
 	function afterAll() {

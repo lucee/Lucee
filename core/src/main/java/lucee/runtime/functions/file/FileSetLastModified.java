@@ -24,13 +24,14 @@ import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.type.dt.DateTime;
 
 public final class FileSetLastModified {
 
 	public static String call(PageContext pc, Object oSrc, DateTime date) throws PageException {
 		Resource src = Caster.toResource(pc, oSrc, false);
-		pc.getConfig().getSecurityManager().checkFileLocation(src);
+		SecurityManagerImpl.checkFileLocation(pc, src);
 		if (!src.exists() || !src.isFile()) throw Caster.toPageException(new FileNotFoundException(src.getAbsolutePath()));
 
 		src.setLastModified(date.getTime());

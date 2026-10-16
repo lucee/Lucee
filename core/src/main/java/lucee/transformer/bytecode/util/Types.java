@@ -30,9 +30,6 @@ import java.util.TimeZone;
 import org.objectweb.asm.Type;
 import org.w3c.dom.Node;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.jsp.JspWriter;
-import jakarta.servlet.jsp.tagext.BodyContent;
 import jakarta.servlet.jsp.tagext.BodyTag;
 import jakarta.servlet.jsp.tagext.Tag;
 import lucee.commons.color.ConstantsDouble;
@@ -95,7 +92,7 @@ import lucee.runtime.util.CallerUtil;
 import lucee.runtime.util.NumberRange;
 import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.VariableUtilImpl;
-import lucee.runtime.writer.BodyContentUtil;
+import lucee.runtime.writer.BCUtil;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 
@@ -199,8 +196,8 @@ public final class Types {
 	public static final Type CASTER = Type.getType(Caster.class);
 
 	public static final Type COLLECTION = Type.getType(Collection.class);
-	public static final Type COOKIE = Type.getType(Cookie.class);
-	public static final Type COOKIE_ARRAY = Type.getType(Cookie[].class);
+	// public static final Type COOKIE = Type.getType(Cookie.class);
+	// public static final Type COOKIE_ARRAY = Type.getType(Cookie[].class);
 
 	public static final Type STRING = Type.getType(String.class);
 	public static final Type STRING_ARRAY = Type.getType(String[].class);
@@ -226,7 +223,6 @@ public final class Types {
 	public static final Type LIST_UTIL = Type.getType(ListUtil.class);
 	public static final Type VARIABLE_INTERPRETER = Type.getType(VariableInterpreter.class);
 	public static final Type VARIABLE_REFERENCE = Type.getType(VariableReference.class);
-	public static final Type JSP_WRITER = Type.getType(JspWriter.class);
 	public static final Type TAG = Type.getType(Tag.class);
 	public static final Type NUMBER_RANGE = Type.getType(NumberRange.class);
 	public static final Type NULL_SUPPORT_HELPER = Type.getType(NullSupportHelper.class);
@@ -258,8 +254,8 @@ public final class Types {
 	public static final Type MAP_ENTRY = Type.getType(Map.Entry.class);
 	public static final Type CHAR_ARRAY = Type.getType(char[].class);
 	public static final Type IOUTIL = Type.getType(IOUtil.class);
-	public static final Type BODY_CONTENT = Type.getType(BodyContent.class);
-	public static final Type BODY_CONTENT_UTIL = Type.getType(BodyContentUtil.class);
+
+	public static final Type BC_UTIL = Type.getType(BCUtil.class);
 	public static final Type IMPORT_DEFINITIONS = Type.getType(ImportDefintion.class);
 	public static final Type IMPORT_DEFINITIONS_IMPL = Type.getType(ImportDefintionImpl.class);
 	public static final Type IMPORT_DEFINITIONS_ARRAY = Type.getType(ImportDefintion[].class);

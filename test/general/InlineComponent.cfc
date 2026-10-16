@@ -70,23 +70,55 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(variables.cfcBody.subTest()).toBe("inline");
 			});
 			it(title="test inline component inside inline component", body=function() {
-				
+
 				var outer=new component {
 
-					variables.inner=new component {   
+					variables.inner=new component {
 						function i() {
 							return "i";
-						}  
-					};  
+						}
+					};
 
 					function o(){
 						return variables.inner.i();
-					}  
+					}
 				};
 				expect(outer.o()).toBe("i");
 			});
 
+		});
 
+		describe( "inline metadata flag", function(){
+			// `setInline()` flips ComponentProperties.inline = true once during
+			// ComponentLoader.loadInline. The flag must surface via getMetaData and
+			// must not leak to non-inline siblings of the same class.
+			it( title="inline CFC reports inline=true in metadata", body=function( currentSpec ){
+				var inlineCfc = new component {
+					function hello() { return "inline-hi"; }
+				};
+				expect( getMetaData( inlineCfc ).inline ).toBeTrue();
+			});
+			it( title="regular file-backed CFC reports inline=false", body=function( currentSpec ){
+				var c = new static.StaticHolder();
+				expect( getMetaData( c ).inline ).toBeFalse();
+			});
+			it( title="duplicate of an inline CFC preserves inline=true", body=function( currentSpec ){
+				var inlineCfc = new component {
+					function hello() { return "inline-hi"; }
+				};
+				var d = duplicate( inlineCfc );
+				expect( getMetaData( d ).inline ).toBeTrue();
+				expect( d.hello() ).toBe( "inline-hi" );
+			});
+			it( title="creating a regular CFC after an inline CFC doesn't flip the regular's inline flag", body=function( currentSpec ){
+				var inlineCfc = new component {
+					function hello() { return "inline-hi"; }
+				};
+				expect( getMetaData( inlineCfc ).inline ).toBeTrue();
+				var regular = new static.StaticHolder();
+				expect( getMetaData( regular ).inline ).toBeFalse();
+				expect( getMetaData( inlineCfc ).inline ).toBeTrue();
+			});
 		});
 	}
 }

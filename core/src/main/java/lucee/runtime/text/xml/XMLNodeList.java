@@ -199,6 +199,7 @@ public final class XMLNodeList extends ArraySupport implements NodeList, XMLObje
 		return getE(null, key);
 	}
 
+	@Override
 	public Object getE(PageContext pc, int key) throws ExpressionException {
 		Object rtn = item(key - 1);
 		if (rtn == null) throw new ExpressionException("invalid index [" + key + "] for XML Node List , indexes goes from [0-" + size() + "]");
@@ -224,6 +225,13 @@ public final class XMLNodeList extends ArraySupport implements NodeList, XMLObje
 
 	@Override
 	public Object get(int key, Object defaultValue) {
+		Object rtn = item(key - 1);
+		if (rtn == null) return defaultValue;
+		return rtn;
+	}
+
+	@Override
+	public Object get(PageContext pc, int key, Object defaultValue) {
 		Object rtn = item(key - 1);
 		if (rtn == null) return defaultValue;
 		return rtn;
@@ -266,6 +274,11 @@ public final class XMLNodeList extends ArraySupport implements NodeList, XMLObje
 		}
 
 		return value;
+	}
+
+	@Override
+	public Object setE(PageContext pc, int index, Object value) throws PageException {
+		return setE(index, value);
 	}
 
 	@Override

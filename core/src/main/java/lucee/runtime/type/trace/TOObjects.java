@@ -25,7 +25,6 @@ import lucee.runtime.debug.Debugger;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpUtil;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
@@ -100,25 +99,25 @@ public class TOObjects extends TraceObjectSupport implements Objects {
 	@Override
 	public int compareTo(boolean b) throws PageException {
 		log();
-		return OpUtil.compare(ThreadLocalPageContext.get(), o, b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, o, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
 		log();
-		return OpUtil.compare(ThreadLocalPageContext.get(), o, (Date) dt);
+		return OpUtil.compare(null, o, (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
 		log();
-		return OpUtil.compare(ThreadLocalPageContext.get(), o, Double.valueOf(d));
+		return OpUtil.compare(null, o, Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
 		log();
-		return OpUtil.compare(ThreadLocalPageContext.get(), o, str);
+		return OpUtil.compare(null, o, str);
 	}
 
 	@Override

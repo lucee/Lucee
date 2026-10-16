@@ -18,13 +18,15 @@
  **/
 package lucee.commons.io.log;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.File;
 import java.util.Date;
 
 import lucee.aprint;
 import lucee.commons.i18n.FormatUtil;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -44,6 +46,11 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 public final class LogUtil {
 
 	public static Resource ERR, OUT;
+	private static int MIN_LEVEL;
+
+	static {
+		MIN_LEVEL = LogUtil.toLevel(SystemUtil.getSystemPropOrEnvVar("lucee.system.log.level", null), Log.LEVEL_WARN);
+	}
 
 	public static int toLevel(String strLevel, int defaultValue) {
 		if (strLevel == null) return defaultValue;
@@ -143,7 +150,7 @@ public final class LogUtil {
 			if (Log.LEVEL_ERROR == logLevel) log.error(type, t);
 			else log.log(logLevel, type, t);
 		}
-		else logGlobal(ThreadLocalPageContext.getConfig(), logLevel, type, ExceptionUtil.getStacktrace(t, true));
+		else logGlobal(logLevel, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
 	@Deprecated
@@ -167,7 +174,7 @@ public final class LogUtil {
 			if (Log.LEVEL_ERROR == logLevel) log.error(type, t);
 			else log.log(logLevel, type, t);
 		}
-		else logGlobal(ThreadLocalPageContext.getConfig(config), logLevel, type, ExceptionUtil.getStacktrace(t, true));
+		else logGlobal(ThreadLocalPageContext.getConfigServer(config), logLevel, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
 	public static void log(PageContext pc, String logName, String type, Throwable t, int logLevel) {
@@ -176,7 +183,7 @@ public final class LogUtil {
 			if (Log.LEVEL_ERROR == logLevel) log.error(type, t);
 			else log.log(logLevel, type, t);
 		}
-		else logGlobal(ThreadLocalPageContext.getConfig(pc), logLevel, type, ExceptionUtil.getStacktrace(t, true));
+		else logGlobal(ThreadLocalPageContext.getConfigServer(pc), logLevel, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
 	public static void log(PageContext pc, String type, Throwable t, int logLevel, String... logNames) {
@@ -190,7 +197,7 @@ public final class LogUtil {
 			if (Log.LEVEL_ERROR == logLevel) log.error(type, t);
 			else log.log(logLevel, type, t);
 		}
-		else logGlobal(ThreadLocalPageContext.getConfig(pc), logLevel, type, ExceptionUtil.getStacktrace(t, true));
+		else logGlobal(ThreadLocalPageContext.getConfigServer(pc), logLevel, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
 	//////////
@@ -198,7 +205,7 @@ public final class LogUtil {
 		Log log = ThreadLocalPageContext.getLog(logName);
 		if (log != null) log.log(level, type, msg);
 		else {
-			logGlobal(ThreadLocalPageContext.getConfig(), level, logName + ":" + type, msg);
+			logGlobal(level, logName + ":" + type, msg);
 		}
 	}
 
@@ -210,7 +217,7 @@ public final class LogUtil {
 		}
 		if (log != null) log.log(level, type, msg);
 		else {
-			logGlobal(ThreadLocalPageContext.getConfig(config), level, logNames[0] + ":" + type, msg);
+			logGlobal(ThreadLocalPageContext.getConfigServer(config), level, logNames[0] + ":" + type, msg);
 		}
 	}
 
@@ -229,7 +236,7 @@ public final class LogUtil {
 			}
 		}
 
-		logGlobal(ThreadLocalPageContext.getConfig(config), level, logName + ":" + type, msg);
+		logGlobal(ThreadLocalPageContext.getConfigServer(config), level, logName + ":" + type, msg);
 
 	}
 
@@ -237,14 +244,26 @@ public final class LogUtil {
 		Log log = ThreadLocalPageContext.getLog(pc, logName);
 		if (log != null) log.log(level, type, msg);
 		else {
-			logGlobal(ThreadLocalPageContext.getConfig(pc), level, logName + ":" + type, msg);
+			logGlobal(ThreadLocalPageContext.getConfigServer(pc), level, logName + ":" + type, msg);
 		}
+	}
+
+	public static void logGlobal(int level, String type, String msg) {
+		CFMLEngineFactory factory = null;
+		try {
+			factory = ConfigUtil.getCFMLEngineFactory();
+		}
+		catch (RuntimeException re) {
+			aprint.e(levelToString(level, "unknown") + ":" + type + ":" + msg);
+			return;
+		}
+		logGlobal(factory, level, type, msg);
 	}
 
 	public static void logGlobal(Config config, int level, String type, String msg) {
 		CFMLEngineFactory factory = null;
 		try {
-			factory = ConfigUtil.getCFMLEngineFactory(config);
+			factory = ConfigUtil.getCFMLEngineFactory();
 		}
 		catch (RuntimeException re) {
 			aprint.e(levelToString(level, "unknown") + ":" + type + ":" + msg);
@@ -254,6 +273,9 @@ public final class LogUtil {
 	}
 
 	public static void logGlobal(CFMLEngineFactory factory, int level, String type, String msg) {
+
+		if (level < MIN_LEVEL) return;
+
 		try {
 			Resource log;
 			boolean check = false;
@@ -283,7 +305,7 @@ public final class LogUtil {
 				log.getParentResource().mkdirs();
 				log.createNewFile();
 			}
-			IOUtil.write(log, FormatUtil.format(SystemOut.FORMAT, new Date(System.currentTimeMillis()), null) + " " + type + " " + msg + "\n", CharsetUtil.UTF8, true);
+			IOUtil.write(log, FormatUtil.format(SystemOut.FORMAT, new Date(System.currentTimeMillis()), null) + " " + type + " " + msg + "\n", StandardCharsets.UTF_8, true);
 		}
 		catch (Exception e) {
 			ERR = null;
@@ -297,8 +319,16 @@ public final class LogUtil {
 		logGlobal(factory, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
+	public static void logGlobal(String type, Throwable t) {
+		logGlobal(Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(t, true));
+	}
+
 	public static void logGlobal(Config config, String type, Throwable t) {
 		logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(t, true));
+	}
+
+	public static void logGlobal(String type, String msg, Throwable t) {
+		logGlobal(Log.LEVEL_ERROR, type, msg + ";" + ExceptionUtil.getStacktrace(t, true));
 	}
 
 	public static void logGlobal(Config config, String type, String msg, Throwable t) {
@@ -313,16 +343,25 @@ public final class LogUtil {
 		return (log != null && log.getLogLevel() <= logLevel);
 	}
 
+	// Loader's Log.java level constants are not in standard severity order —
+	// LEVEL_INFO=1 sits below LEVEL_DEBUG=2, opposite of every other Java
+	// logger. doesDebug/doesInfo cannot be a single inequality against the
+	// raw constants and must enumerate. The other four work as <= because
+	// only DEBUG/INFO are swapped relative to standard ordering.
 	public static boolean doesTrace(Log log) {
 		return (log != null && log.getLogLevel() <= Log.LEVEL_TRACE);
 	}
 
 	public static boolean doesInfo(Log log) {
-		return (log != null && log.getLogLevel() <= Log.LEVEL_INFO);
+		if (log == null) return false;
+		int cur = log.getLogLevel();
+		return cur == Log.LEVEL_INFO || cur == Log.LEVEL_DEBUG || cur == Log.LEVEL_TRACE;
 	}
 
 	public static boolean doesDebug(Log log) {
-		return (log != null && log.getLogLevel() <= Log.LEVEL_DEBUG);
+		if (log == null) return false;
+		int cur = log.getLogLevel();
+		return cur == Log.LEVEL_DEBUG || cur == Log.LEVEL_TRACE;
 	}
 
 	public static boolean doesWarn(Log log) {
@@ -338,17 +377,17 @@ public final class LogUtil {
 	}
 
 	public static String caller(PageContext pc, String defaultValue) {
-		Exception t = new Exception("Stack trace");
-		StackTraceElement[] traces = t.getStackTrace();
-
-		String template;
-		for (StackTraceElement trace: traces) {
-			template = trace.getFileName();
-			if (trace.getLineNumber() <= 0 || template == null || ResourceUtil.getExtension(template, "").equals("java")) continue;
-
-			return abs(pc, template) + ":" + trace.getLineNumber();
-		}
-		return defaultValue;
+		// walk the live stack via StackWalker — findFirst short-circuits at the
+		// first CFML frame, so the JVM never materialises deeper frames.
+		return StackWalker.getInstance().walk(frames -> frames
+				.filter(f -> {
+					String tpl = f.getFileName();
+					int line = f.getLineNumber();
+					return tpl != null && line > 0 && !"java".equals(ResourceUtil.getExtension(tpl, ""));
+				})
+				.findFirst()
+				.map(f -> abs(pc, f.getFileName()) + ":" + f.getLineNumber())
+				.orElse(defaultValue));
 	}
 
 	private static String abs(PageContext pc, String template) {
@@ -366,8 +405,7 @@ public final class LogUtil {
 			}
 			else return res.getAbsolutePath();
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 		return template;
 	}
 

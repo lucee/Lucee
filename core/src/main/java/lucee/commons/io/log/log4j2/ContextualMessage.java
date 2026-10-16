@@ -4,15 +4,11 @@ import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.SimpleMessage;
 
 import lucee.commons.io.SystemUtil;
-import lucee.commons.lang.StringUtil;
-import lucee.runtime.CFMLFactoryImpl;
-import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.net.http.ReqRspUtil;
 
 public class ContextualMessage extends SimpleMessage {
 	private static final long serialVersionUID = 3106308000640632352L;
+
+	private static String label;
 
 	private final String context;
 	private final String application;
@@ -28,8 +24,8 @@ public class ContextualMessage extends SimpleMessage {
 
 	}
 
-	public static Message create(ConfigWeb config, String application, String message, Throwable throwable) {
-		return new ContextualMessage(getWebContextLabel(config), application, message, throwable);
+	public static Message create(String application, String message, Throwable throwable) {
+		return new ContextualMessage(getLabel(), application, message, throwable);
 	}
 
 	public String getContext() {
@@ -50,22 +46,15 @@ public class ContextualMessage extends SimpleMessage {
 		return getFormattedMessage(); // Uses parent's implementation
 	}
 
-	public static String getWebContextLabel(ConfigWeb config) {
-		if (config == null) {
-			Config tmp = ThreadLocalPageContext.getConfig();
-			if (tmp instanceof ConfigWeb) config = (ConfigWeb) tmp;
-			else return null;
+	public static String getLabel() {
+		if (label == null) {
+			synchronized (SystemUtil.createToken("ContextualMessage", "getLabel")) {
+				if (label == null) {
+					label = System.getenv(SystemUtil.isWindows() ? "COMPUTERNAME" : "HOSTNAME");
+					if (label == null) label = "";
+				}
+			}
 		}
-		// get URL
-		CFMLFactoryImpl factory = (CFMLFactoryImpl) config.getFactory();
-		if (factory.getURL() != null) return factory.getURL().toExternalForm();
-		// if no URL, get webroot
-		String path = ReqRspUtil.getRootPath(factory.getConfig().getServletContext(), null);
-		if (path != null) return path;
-		// if no webroot, get the label
-		if (!StringUtil.isEmpty(factory.getLabel(), true)) return factory.getLabel().toString();
-		// if no label, get the hash
-		return SystemUtil.hash(factory.getConfig().getServletContext());
-
+		return label;
 	}
 }

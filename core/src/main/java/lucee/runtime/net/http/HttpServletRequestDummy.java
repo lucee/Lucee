@@ -18,6 +18,8 @@
  */
 package lucee.runtime.net.http;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Serializable;
@@ -48,7 +50,6 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpUpgradeHandler;
 import jakarta.servlet.http.Part;
 import lucee.commons.collection.MapFactory;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -600,7 +601,7 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 
 	@Override
 	public BufferedReader getReader() throws IOException {
-		return IOUtil.toBufferedReader(IOUtil.getReader(getInputStream(), CharsetUtil.ISO88591));
+		return IOUtil.toBufferedReader(IOUtil.getReader(getInputStream(), StandardCharsets.ISO_8859_1));
 	}
 
 	@Override
@@ -688,7 +689,28 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 	public static HttpServletRequestDummy clone(PageContext pc, Resource rootDirectory, HttpServletRequest req) {
 		byte[] inputData = null;
 		try {
-			inputData = IOUtil.toBytes(req.getInputStream(), true, null);
+			// Use Content-Length when available — most cfthread spawns from GET handlers
+			// have empty bodies; pre-LDEV-6367 BAOS + LDEV-6367 readAllBytes both wasted
+			// kilobytes per call on these. Servlet API gives us the size for free.
+			long len = req.getContentLengthLong();
+			if (len == 0) {
+				inputData = IOUtil.EMPTY_BYTE_ARRAY;
+			}
+			else if (len > 0 && len <= Integer.MAX_VALUE) {
+				ServletInputStream is = req.getInputStream();
+				try {
+					byte[] buf = new byte[(int) len];
+					int read = is.readNBytes(buf, 0, (int) len);
+					inputData = (read == buf.length) ? buf : java.util.Arrays.copyOf(buf, read);
+				}
+				finally {
+					IOUtil.closeEL(is);
+				}
+			}
+			else {
+				// Content-Length unknown (-1, chunked encoding) — fall back to default path.
+				inputData = IOUtil.toBytes(req.getInputStream(), true, null);
+			}
 		}
 		catch (IOException e) {
 		}

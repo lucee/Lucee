@@ -1,6 +1,5 @@
 package lucee.transformer.interpreter.op;
 
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.op.OpUtil;
@@ -40,20 +39,20 @@ public final class OpDecision extends ExpressionBase implements ExprBoolean {
 		Boolean b;
 
 		if (op == Factory.OP_DEC_CT) {
-			b = OpUtil.ct(ThreadLocalPageContext.get(ic.getPageContext()), ic.getValue(left), ic.getValue(right));
+			b = OpUtil.ct(ic.getPageContext(), ic.getValue(left), ic.getValue(right));
 		}
 		else if (op == Factory.OP_DEC_NCT) {
-			b = OpUtil.nct(ThreadLocalPageContext.get(ic.getPageContext()), ic.getValue(left), ic.getValue(right));
+			b = OpUtil.nct(ic.getPageContext(), ic.getValue(left), ic.getValue(right));
 		}
 		else if (op == Factory.OP_DEC_EEQ) {
-			b = OpUtil.eeq(ThreadLocalPageContext.get(ic.getPageContext()), ic.getValue(left), ic.getValue(right));
+			b = OpUtil.eeq(ic.getPageContext(), ic.getValue(left), ic.getValue(right));
 		}
 		else if (op == Factory.OP_DEC_NEEQ) {
-			b = OpUtil.neeq(ThreadLocalPageContext.get(ic.getPageContext()), ic.getValue(left), ic.getValue(right));
+			b = OpUtil.neeq(ic.getPageContext(), ic.getValue(left), ic.getValue(right));
 		}
 
 		else {
-			int i = OpUtil.compare(ThreadLocalPageContext.get(ic.getPageContext()), ic.getValue(left), ic.getValue(right));
+			int i = OpUtil.compare(ic.getPageContext(), ic.getValue(left), ic.getValue(right));
 			if (Factory.OP_DEC_LT == op) b = i < 0;
 			else if (Factory.OP_DEC_LTE == op) b = i <= 0;
 			else if (Factory.OP_DEC_GT == op) b = i > 0;

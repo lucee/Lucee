@@ -15,7 +15,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.io.retirement.RetireOutputStream;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
 public final class ResourceAppender extends AbstractAppender {
@@ -56,7 +55,7 @@ public final class ResourceAppender extends AbstractAppender {
 			setFile(append, true);
 		}
 		catch (IOException ioe) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Unable to write to" + res, ioe);
+			LogUtil.logGlobal("log-loading", "Unable to write to" + res, ioe);
 		}
 
 		start();
@@ -68,7 +67,7 @@ public final class ResourceAppender extends AbstractAppender {
 						rollOver();
 					}
 					catch (IOException e) {
-						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Log rollover failed for [" + res + "]", e);
+						LogUtil.logGlobal("log-loading", "Log rollover failed for [" + res + "]", e);
 					}
 				}
 			}
@@ -86,7 +85,7 @@ public final class ResourceAppender extends AbstractAppender {
 							size += str.length();
 						}
 						catch (IOException ioe) {
-							LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Unable to write to" + res, ioe);
+							LogUtil.logGlobal("log-loading", "Unable to write to" + res, ioe);
 							closeFile();
 							setFile(append, true);
 							writer.write(str);
@@ -98,7 +97,7 @@ public final class ResourceAppender extends AbstractAppender {
 			}
 		}
 		catch (Exception e) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Unable to write to log [" + res + "]", e);
+			LogUtil.logGlobal("log-loading", "Unable to write to log [" + res + "]", e);
 			synchronized (token) {
 				closeFile();
 			}
@@ -139,7 +138,7 @@ public final class ResourceAppender extends AbstractAppender {
 					writer = new OutputStreamWriter(new RetireOutputStream(res, append, timeout, listener), charset);
 					if (writeHeader) {
 						byte[] layoutHeader = getLayout().getHeader();
-						if (layoutHeader != null){
+						if (layoutHeader != null) {
 							String header = new String(layoutHeader, charset);
 							size += header.length();
 							writer.write(header);
@@ -196,7 +195,7 @@ public final class ResourceAppender extends AbstractAppender {
 							this.setFile(true, false);
 						}
 						catch (IOException e) {
-							LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "setFile([" + res + "], true) call failed.", e);
+							LogUtil.logGlobal("log-loading", "setFile([" + res + "], true) call failed.", e);
 						}
 					}
 				}
@@ -211,7 +210,7 @@ public final class ResourceAppender extends AbstractAppender {
 					this.setFile(false, false);
 				}
 				catch (IOException e) {
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "setFile([" + res + "], false) call failed.", e);
+					LogUtil.logGlobal("log-loading", "setFile([" + res + "], false) call failed.", e);
 				}
 			}
 		}
@@ -229,7 +228,7 @@ public final class ResourceAppender extends AbstractAppender {
 						writer = null;
 					}
 					catch (java.io.IOException e) {
-						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Could not close [" + res + "]", e);
+						LogUtil.logGlobal("log-loading", "Could not close [" + res + "]", e);
 					}
 				}
 			}

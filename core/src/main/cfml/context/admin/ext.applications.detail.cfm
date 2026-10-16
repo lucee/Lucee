@@ -1,4 +1,22 @@
 <cfscript>
+
+	struct function getDataByGav(required string groupId,required string artifactId,required query extensions) {
+		var rtn={};
+		loop query="#arguments.extensions#" {
+			if(arguments.extensions.groupId EQ arguments.groupId && arguments.extensions.artifactId EQ arguments.artifactId && (rtn.count()==0 || rtn.version LT arguments.extensions.version) ) {
+				 rtn=queryRowData(arguments.extensions,arguments.extensions.currentrow);
+			}
+		}
+		return rtn;
+	}
+	struct function getDataBy(required query extensions) {
+		if(structKeyExists(url, "id")) {
+			return getDataById(url.id,arguments.extensions);
+		} else {
+			return getDataByGav(url.groupId,url.artifactId,arguments.extensions);
+		}
+	}
+
 	function toOrderedArray(array arr, boolean desc=false) {
 		arraySort(arr,function(l,r) {
 			if(desc) {
@@ -20,10 +38,9 @@
 		}
 	}
 
-	available=getDataByid(url.id,getExternalData(providerURLs));
-	installed=getDataByid(url.id,extensions);
+	available=getDataBy(external);
+	installed=getDataBy(extensions);
 	isInstalled=installed.count() GT 0;
-
 
 // all version that can be installed
 
@@ -72,17 +89,8 @@
 </cfscript>
 
 
-<!--- get informatioj to the provider of this extension --->
-<cfif !isNull(available.provider)>
-	<cfset provider=getProviderInfo(available.provider).meta>
-</cfif>
 
 <cfset isInstalled=installed.count() GT 0><!--- if there are records it is installed --->
-<cfset isServerInstalled=false>
-<cfif !isNull(serverExtensions)>
-	<cfset serverInstalled=getDataByid(url.id,serverExtensions)>
-	<cfset isServerInstalled=serverInstalled.count()>
-</cfif>
 
 
 <cfset hasExternalInfo=available.count() GT 0>
@@ -98,28 +106,32 @@
 </cfif>
 <cfif structCount(app) eq 0>
 	<cfheader statuscode="404">
-	<cfthrow message="Extension [#url.id#] not found">
+	<cfthrow message="Extension [#url.groupId#:#url.artifactId#] not found">
 </cfif>
-<cfset lasProvider=(app.provider?:"")=="local" || findNoCase("lucee.org",app.provider?:'') GT 0>
+<cfset lasProvider=(app.groupId?:"")=="org.lucee" >
 <cfoutput>
 	<!--- title and description --->
 	<div class="modheader">
-		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelseif isServerInstalled>#stText.ext.installedServer#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
+		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
 				
 		<cfif !lasProvider>
 		<div class="warning" style="color:##C93">#stText.ext.providerWarning#</div>
 		</cfif>
 
-		<cfif !isInstalled && isServerInstalled><div class="error">#stText.ext.installedServerDesc#</div></cfif>
 		<cfset ESAPIExtension = getDataByid('37C61C0A-5D7E-4256-8572639BE0CF5838',extensions)>
 		<cfif structCount(ESAPIExtension) && toVersionSortable(ESAPIExtension.version) GTE toVersionSortable('2.2.4.5')>
-			#sanitizehtml(replace(trim(app.description),chr(10),"<br />","all"),'FORMATTING')#
+			<cftry>
+				#sanitizehtml(replace(trim(app.description),chr(10),"<br />","all"),'FORMATTING')#
+				<cfcatch>
+					#replace(trim(app.description),chr(10),"<br />","all")#
+				</cfcatch>
+			</cftry>
+			
 		<cfelse>
 			#replace(replace(trim(app.description),'<','&lt;',"all"), chr(10),"<br />","all")#
 		</cfif>
 		<br /><br />
 	</div>
-
 	<table class="contentlayout">
 		<tbody>
 			<tr>
@@ -136,10 +148,6 @@
 				<td valign="top">
 					<table class="maintbl">
 						<tbody>
-							<tr class="extension">
-								<th scope="row">#stText.ext.releaseStatus#</th>
-								<td class="extension-status">#ext_status#</td>
-							</tr>
 							<!--- Extension Version --->
 							<cfif isInstalled>
 								<tr>
@@ -152,10 +160,6 @@
 									<td>#arrayToList(all,', ')#</td>
 								</tr>
 								</cfif>
-								<tr>
-									<th scope="row">Type</th>
-									<td>#installed.trial?"Trial":"Full"# Version</td>
-								</tr>
 							<cfelse>
 								<tr>
 									<th scope="row">#stText.ext.availableVersion#</th>
@@ -163,19 +167,11 @@
 								</tr>
 							</cfif>
 						
-							
-							<!--- price --->
-							<cfif !isNull(available.price) && len(trim(available.price))>
-								<tr>
-									<th scope="row">#stText.ext.price#</th>
-									<td><cfif available.price GT 0>#available.price# <cfif !isNull(available.currency)>#available.currency#<cfelse>USD</cfif><cfelse>#stText.ext.free#</cfif></td>
-								</tr>
-							</cfif>
 							<!--- category --->
-							<cfif !isNull(available.category) && len(trim(available.category))>
+							<cfif !isNull(app.category) && len(trim(app.category))>
 								<tr>
 									<th scope="row">#stText.ext.category#</th>
-									<td>#available.category#</td>
+									<td>#app.category#</td>
 								</tr>
 							<cfelseif structKeyExists(installed, "categories") and arrayLen(installed.categories)>
 								<tr>
@@ -184,32 +180,40 @@
 								</tr>
 							</cfif>
 							<!--- author --->
-							<cfif !isNull(available.author) && len(trim(available.author))>
+							<cfif !isNull(app.author) && len(trim(app.author))>
 								<tr>
 									<th scope="row">#stText.ext.author#</th>
-									<td>#available.author#</td>
+									<td>#app.author#</td>
 								</tr>
 							</cfif>
-							<!--- created --->
-							<cfif !isNull(available.created) && len(trim(available.created))>
+							
+							<!--- maven --->
+							<cfset hasMaven=false>
+							<cfif !isNull(app.groupId) && len(trim(app.groupId))>
+								<cfset hasMaven=true>
 								<tr>
-									<th scope="row">#stText.ext.created#</th>
-									<td>#LSDateFormat(available.created)#</td>
+									<th scope="row">Maven</th>
+									<td>
+										<a href="https://mvnrepository.com/artifact/#app.groupId#/#app.artifactId#" target="_blank" rel="noopener"><!---
+										--->#app.groupId# » #app.artifactId#</a>
+									</td>
 								</tr>
 							</cfif>
 							<!--- id --->
+							<cfif structKeyExists(app, "lastModified") or structKeyExists(app, "buildDate")>
+							<tr>
+								<th scope="row">Last Modified</th>
+								<td>#dateFormat(app.lastModified?:app.buildDate,"long")#</td>
+							</tr>	
+							</cfif>
+							<!--- id --->
+							<cfif not hasMaven>
 							<tr>
 								<th scope="row">Id</th>
 								<td>#app.id#</td>
 							</tr>
-							
-							<!--- provider --->
-							<cfif !isNull(provider.title) && len(trim(provider.title))>
-								<tr>
-									<th scope="row">#stText.ext.provider#</th>
-									<td><cfif !isNull(provider.url)><a href="#provider.url#" target="_blank" rel="noopener"></cfif>#provider.title#<cfif !isNull(provider.url)></a></cfif></td>
-								</tr>
 							</cfif>
+							
 							<!--- bundles --->
 							<cfset stText.ext.reqbundles="Required Bundles (Jars)">
 							<cfif isInstalled && !isNull(installed.bundles) && installed.bundles.recordcount()>
@@ -246,16 +250,17 @@
 
 if(isInstalled) installedVersion=toVersionSortable(installed.version);
 
-
-
 </cfscript>
 	<div class="msg"></div>
 	<h2>#isInstalled?stText.ext.upDown:stText.ext.install#</h2>
 	#isInstalled?stText.ext.upDownDesc:stText.ext.installDesc#
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" id="versionForm" method="post">
-			<input type="hidden" name="id" value="#url.id#">
+			<input type="hidden" name="id" value="#app.id?:""#">
+			<input type="hidden" name="groupId" value="#app.groupId?:""#">
+			<input type="hidden" name="artifactId" value="#app.artifactId?:""#">
+			<input type="hidden" name="versionInstalled" value="#app.version#">
 			<input type="hidden" name="mainAction_" value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
-			<input type="hidden" name="provider" value="#isNull(available.provider)?"":available.provider#">
+			<input type="hidden" name="provider" value="#isNull(app.provider)?"":app.provider#">
 			
 		<table class="maintbl autowidth version-selector">
 		<tbody>
@@ -323,7 +328,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 
 		</tbody>
 		</table>
-
+		
 		</cfformclassic>
 </cfif>
 
@@ -373,7 +378,6 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 	}
 	</script>	
 </cfhtmlbody>
-
 
 </cfoutput>
 <!---

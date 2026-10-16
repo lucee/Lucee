@@ -435,7 +435,7 @@ public final class Select extends BodyTagImpl {
 					if (str.compareTo(selected[i]) == 0) return " selected";
 				}
 				else {
-					if (OpUtil.compare(ThreadLocalPageContext.get(), str, selected[i]) == 0) return " selected";
+					if (OpUtil.compare(null, str, selected[i]) == 0) return " selected";
 				}
 				// if(Operator.compare(str,selected[i])==0) return " selected";
 			}

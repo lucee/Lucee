@@ -25,9 +25,9 @@ component {
 	} else if (url.sessionStorage eq "memcached" ){
 		variables.memcached = server.getDatasource("memcached");
 		this.cache.connections[ "memcachedSession" ] = {
-			class: 'org.lucee.extension.io.cache.memcache.MemCacheRaw'
-			, bundleName: 'memcached.extension'
-			, bundleVersion: '3.0.2.29'
+			class: 'org.lucee.extension.cache.mc.MemcachedCache'
+			, bundleName: 'org.lucee.memcached.extension'
+			, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.memcached.extension', '4.0.0.14' )
 			, storage: true
 			, custom: {
 				"socket_timeout":"3",

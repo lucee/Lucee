@@ -1,6 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
 		variables.Dir = "#GetDirectoryFromPath(getCurrentTemplatePath())#LDEV2159";
+		if(directoryExists(variables.Dir)) directorydelete( variables.Dir, true );
 		directoryCreate(variables.Dir);
 	}
 

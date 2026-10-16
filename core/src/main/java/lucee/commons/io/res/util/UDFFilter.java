@@ -22,6 +22,7 @@ import java.io.File;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -31,8 +32,11 @@ import lucee.runtime.type.UDF;
 
 public final class UDFFilter extends UDFFilterSupport implements ResourceAndResourceNameFilter {
 
-	public UDFFilter(UDF udf) throws ExpressionException {
+	private PageContext pc;
+
+	public UDFFilter(PageContext pc, UDF udf) throws ExpressionException {
 		super(udf);
+		this.pc = pc;
 	}
 
 	public boolean accept(String path) {
@@ -54,7 +58,8 @@ public final class UDFFilter extends UDFFilterSupport implements ResourceAndReso
 		args1[1] = file.isDirectory() ? "directory" : "file";
 		args1[2] = file.isDirectory() ? "" : ResourceUtil.getExtension(file, null);
 		try {
-			return Caster.toBooleanValue(udf.call(ThreadLocalPageContext.get(), args1, true));
+
+			return Caster.toBooleanValue(udf.call(pc != null ? pc : ThreadLocalPageContext.get(), args1, true));
 		}
 		catch (PageException e) {
 			throw new PageRuntimeException(e);
@@ -74,13 +79,13 @@ public final class UDFFilter extends UDFFilterSupport implements ResourceAndReso
 		return "UDFFilter:" + udf;
 	}
 
-	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(Object filter) throws PageException {
-		if (filter instanceof UDF) return createResourceAndResourceNameFilter((UDF) filter);
+	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(PageContext pc, Object filter) throws PageException {
+		if (filter instanceof UDF) return createResourceAndResourceNameFilter(pc, (UDF) filter);
 		return createResourceAndResourceNameFilter(Caster.toString(filter));
 	}
 
-	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(UDF filter) throws PageException {
-		return new UDFFilter(filter);
+	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(PageContext pc, UDF filter) throws PageException {
+		return new UDFFilter(pc, filter);
 	}
 
 	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(String pattern) {

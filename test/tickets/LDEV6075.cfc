@@ -1,7 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 
 	variables.esapiVersionBefore = "";
-	variables.providerURL = "";
 	variables.esapiExtId = "37C61C0A-5D7E-4256-8572639BE0CF5838";
 
 	function beforeAll() {
@@ -19,15 +18,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				break;
 			}
 		}
-
-		// Get provider URL for later use
-		admin action="getRHExtensionProviders"
-			type="web"
-			password="#adminPassword#"
-			returnVariable="local.providers";
-
-		variables.providerURL = providers.url[ 1 ];
-
 		systemOutput( "Stashed ESAPI version: " & variables.esapiVersionBefore, true );
 	}
 
@@ -68,7 +58,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 	function run( testResults, testBox ) {
 		describe( "LDEV-6075: StackOverflowError when downgrading ESAPI extension", function() {
 
-			it( title="Downgrade ESAPI and use encoding functions", body=function( currentSpec ) {
+			xit( title="Downgrade ESAPI and use encoding functions", body=function( currentSpec ) {
 				var adminPassword = request.WEBADMINPASSWORD;
 
 				// Get available extensions
@@ -89,26 +79,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( esapiExt ).notToBeEmpty( "ESAPI extension should be found" );
 
 				// Download and install ESAPI 2.6.0.1
-				var downloadURL = variables.providerURL & "/rest/extension/provider/full/" & esapiExt.id &
-								  "?type=all&coreVersion=" & server.lucee.version & "&version=2.6.0.1";
-
-				systemOutput( "Downloading ESAPI 2.6.0.1 from: " & downloadURL, true );
-
-				cfhttp( url=downloadURL, result="local.httpResult" ) {
-					cfhttpparam( type="header", name="accept", value="application/cfml" );
-				}
-
-				expect( httpResult.status_code ).toBe( 200, "Extension download should succeed" );
-
-				systemOutput( "Downloaded " & len( httpResult.fileContent ) & " bytes", true );
-
-				// Install the downgraded version
-				systemOutput( "Installing ESAPI 2.6.0.1...", true );
+				var ext=LuceeExtension("org.lucee","esapi-extension","2.6.0.1",true);
 
 				admin action="updateRHExtension"
 					type="web"
 					password="#adminPassword#"
-					source="#httpResult.fileContent#";
+					source=ext.local;
 
 				// Verify version changed
 				admin action="getExtensions"

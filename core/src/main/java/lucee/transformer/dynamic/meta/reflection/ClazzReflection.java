@@ -1,15 +1,12 @@
 package lucee.transformer.dynamic.meta.reflection;
 
 import java.io.IOException;
-import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.objectweb.asm.Type;
 
 import lucee.commons.io.log.Log;
-import lucee.commons.lang.Pair;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.Constructor;
 import lucee.transformer.dynamic.meta.Method;
@@ -19,7 +16,6 @@ public final class ClazzReflection extends Clazz {
 	private static final long serialVersionUID = -9046348146944695783L;
 
 	private String id;
-	private Map<String, SoftReference<Pair<Method, Boolean>>> cachedMethods;
 
 	public ClazzReflection(Class clazz, Log log) {
 		super(clazz, log);

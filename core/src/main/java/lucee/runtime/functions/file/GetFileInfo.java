@@ -26,6 +26,7 @@ import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTimeImpl;
@@ -37,7 +38,7 @@ public final class GetFileInfo {
 		Resource src = Caster.toResource(pc, oSrc, true);
 		File file = new File(Caster.toString(oSrc));
 		BasicFileAttributes attr;
-		pc.getConfig().getSecurityManager().checkFileLocation(src);
+		SecurityManagerImpl.checkFileLocation(pc, src);
 
 		Struct sct = new StructImpl();
 
@@ -49,8 +50,7 @@ public final class GetFileInfo {
 			attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
 			sct.set(KeyConstants._fileCreated, new DateTimeImpl(attr.creationTime().toMillis()));
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 		sct.set(KeyConstants._name, src.getName());
 		sct.set(KeyConstants._parent, src.getParent());
 		sct.set(KeyConstants._path, src.getAbsolutePath());

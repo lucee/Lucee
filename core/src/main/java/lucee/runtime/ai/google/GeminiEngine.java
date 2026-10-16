@@ -52,7 +52,6 @@ public final class GeminiEngine extends AIEngineSupport {
 	private static final String DEFAULT_LOCATION = "us-central1";
 	private static final int DEFAULT_CONVERSATION_SIZE_LIMIT = 100;
 
-	Struct properties;
 	String apikey;
 	private int socketTimeout;
 	private int connectTimeout;
@@ -66,21 +65,30 @@ public final class GeminiEngine extends AIEngineSupport {
 	private int conversationSizeLimit = DEFAULT_CONVERSATION_SIZE_LIMIT;
 	public Double temperature = null;
 	Struct generationConfig;
+	Struct custom;
+	Map<String, String> headers;
 
 	@Override
 	public AIEngine init(ClassDefinition<? extends AIEngine> cd, Struct properties, String name, String _default, String id) throws PageException {
 		super.init(cd, properties, name, _default, id);
-		this.properties = properties;
+		Struct props = (Struct) properties.duplicate(true);
 
 		// base URL
-		String str = Caster.toStringTrim(properties.get(KeyConstants._URL, null), null);
-		if (!Util.isEmpty(str, true)) {
-			baseURL = str;
+		String type = Caster.toStringTrim(props.remove(KeyConstants._type, null), null);
+		String urlStr = Caster.toStringTrim(props.remove(KeyConstants._URL, null), null);
+		if (Util.isEmpty(type, true)) type = "gemini";
+		else if (!type.equalsIgnoreCase("gemini") && !type.equalsIgnoreCase("other")) {
+			throw new ApplicationException("only [gemini] and [other] are supported for the property [type] for Gemini");
+		}
+
+		if (type.equalsIgnoreCase("other")) {
+			if (Util.isEmpty(urlStr, true)) throw new ApplicationException("the property [url] is required when [type] is [other] for Gemini");
+			baseURL = urlStr;
 			if (!baseURL.endsWith("/")) baseURL += '/';
+			props.remove(KeyConstants._beta, null);
 		}
 		else {
-			// beta?
-			if (Caster.toBooleanValue(Caster.toStringTrim(properties.get("beta", null), null), false)) {
+			if (Caster.toBooleanValue(Caster.toStringTrim(props.remove(KeyConstants._beta, null), null), false)) {
 				baseURL = DEFAULT_URL_BETA;
 			}
 			else {
@@ -90,38 +98,39 @@ public final class GeminiEngine extends AIEngineSupport {
 		}
 
 		// api key
-		str = Caster.toStringTrim(properties.get("apikey", null), null);
+		String str = Caster.toStringTrim(props.remove(KeyConstants._apikey, null), null);
+		if (Util.isEmpty(str, true)) str = Caster.toStringTrim(props.remove(KeyConstants._apiKey, null), null);
 		if (Util.isEmpty(str, true)) {
 			throw new ApplicationException("the property [apikey] is required for the AI Engine Gemini!");
 		}
 		apikey = str;
 
 		// conversation Size Limit
-		conversationSizeLimit = Caster.toIntValue(properties.get("conversationSizeLimit", null), DEFAULT_CONVERSATION_SIZE_LIMIT);
+		conversationSizeLimit = Caster.toIntValue(props.remove(KeyConstants._conversationSizeLimit, null), DEFAULT_CONVERSATION_SIZE_LIMIT);
 
 		// temperature
-		temperature = Caster.toDouble(properties.get(KeyConstants._temperature, null), null);
+		temperature = Caster.toDouble(props.remove(KeyConstants._temperature, null), null);
 		if (temperature != null && (temperature < 0D || temperature > 1D)) {
 			throw new ApplicationException("temperature has to be a number between 0 and 1, now it is [" + temperature + "]");
 		}
 
 		// location
-		location = Caster.toStringTrim(properties.get(KeyConstants._location, null), DEFAULT_LOCATION);
+		location = Caster.toStringTrim(props.remove(KeyConstants._location, null), DEFAULT_LOCATION);
 		if (Util.isEmpty(location, true)) location = DEFAULT_LOCATION;
 
 		// timeout
-		connectTimeout = Caster.toIntValue(properties.get("connectTimeout", null), DEFAULT_CONNECT_TIMEOUT);
+		connectTimeout = Caster.toIntValue(props.remove(KeyConstants._connectTimeout, null), DEFAULT_CONNECT_TIMEOUT);
 		if (connectTimeout <= 0) connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-		socketTimeout = Caster.toIntValue(properties.get("socketTimeout", null), DEFAULT_SOCKET_TIMEOUT);
+		socketTimeout = Caster.toIntValue(props.remove(KeyConstants._socketTimeout, null), DEFAULT_SOCKET_TIMEOUT);
 		if (socketTimeout <= 0) socketTimeout = DEFAULT_SOCKET_TIMEOUT;
 
 		// charset
-		charset = Caster.toStringTrim(properties.get(KeyConstants._charset, null), DEFAULT_CHARSET);
+		charset = Caster.toStringTrim(props.remove(KeyConstants._charset, null), DEFAULT_CHARSET);
 		if (Util.isEmpty(charset, true)) charset = DEFAULT_CHARSET;
 
 		// model
-		model = Caster.toStringTrim(properties.get(KeyConstants._model, null), null);
+		model = Caster.toStringTrim(props.remove(KeyConstants._model, null), null);
 		if (Util.isEmpty(model, true)) {
 			// nice to have
 			String appendix = "";
@@ -134,11 +143,17 @@ public final class GeminiEngine extends AIEngineSupport {
 		}
 
 		// responseSchema
-		generationConfig = Caster.toStruct(properties.get("generationConfig", null), null);
+		generationConfig = Caster.toStruct(props.remove(KeyConstants._generationConfig, null), null);
 
 		// message
-		systemMessage = Caster.toStringTrim(properties.get(KeyConstants._message, null), null);
+		systemMessage = Caster.toStringTrim(props.remove(KeyConstants._message, null), null);
 
+		// headers
+		headers = toHeaders(Caster.toStruct(props.remove(KeyConstants._headers, null), null));
+
+		props.remove(KeyConstants._timeout, null);
+
+		this.custom = props;
 		return this;
 
 	}

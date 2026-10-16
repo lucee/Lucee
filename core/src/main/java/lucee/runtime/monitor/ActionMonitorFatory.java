@@ -18,13 +18,11 @@
  **/
 package lucee.runtime.monitor;
 
-import java.io.IOException;
-
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigFactoryImpl;
 import lucee.runtime.config.ConfigFactoryImpl.MonitorTemp;
+import lucee.runtime.config.ConfigServer;
 
 public final class ActionMonitorFatory {
 	public static ActionMonitorCollector getActionMonitorCollector() {
@@ -32,7 +30,7 @@ public final class ActionMonitorFatory {
 		return new ActionMonitorCollectorRefImpl();
 	}
 
-	public static ActionMonitorCollector getActionMonitorCollector(ConfigServer cs, ConfigFactoryImpl.MonitorTemp[] temps) throws IOException {
+	public static ActionMonitorCollector getActionMonitorCollector(ConfigServer cs, ConfigFactoryImpl.MonitorTemp[] temps) {
 		// try to load with interface
 		try {
 			ActionMonitorCollector collector = new ActionMonitorCollectorImpl();
@@ -47,7 +45,7 @@ public final class ActionMonitorFatory {
 		}
 	}
 
-	private static void addMonitors(ActionMonitorCollector collector, ConfigServer cs, MonitorTemp[] temps) throws IOException {
+	private static void addMonitors(ActionMonitorCollector collector, ConfigServer cs, MonitorTemp[] temps) {
 		MonitorTemp temp;
 		for (int i = 0; i < temps.length; i++) {
 			temp = temps[i];

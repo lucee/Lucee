@@ -32,7 +32,7 @@ public final class IdentificationWebImpl extends IdentificationImpl implements I
 
 	@Override
 	public IdentificationServer getServerIdentification() {
-		return ((ConfigWebImpl) ThreadLocalPageContext.getConfig(cw)).getConfigServerImpl().getIdentification();
+		return ThreadLocalPageContext.getConfigServer(cw).getIdentification();
 	}
 
 	@Override

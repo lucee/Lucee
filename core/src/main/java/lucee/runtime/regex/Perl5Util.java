@@ -67,17 +67,18 @@ final class Perl5Util {
 		if (offset <= strInput.length()) input.setCurrentOffset(offset - 1);
 
 		if (offset <= strInput.length()) {
-			Array matches = new ArrayImpl();
+			Array matches = null;
 			while (matcher.contains(input, pattern)) {
 				int match = matcher.getMatch().beginOffset(0) + 1;
 				if (!matchAll) {
 					return Double.valueOf(match);
 				}
 
+				if (matches == null) matches = new ArrayImpl();
 				matches.appendEL(match);
 			}
 
-			if (matches.size() != 0) {
+			if (matches != null) {
 				return matches;
 			}
 		}
@@ -96,7 +97,7 @@ final class Perl5Util {
 		Pattern pattern = getPattern(strPattern, compileOptions);
 		if (offset <= strInput.length()) input.setCurrentOffset(offset - 1);
 
-		Array rtn = new ArrayImpl();
+		Array rtn = matchAll ? new ArrayImpl() : null;
 		MatchResult result;
 		while (matcher.contains(input, pattern)) {
 			result = matcher.getMatch();
@@ -121,7 +122,7 @@ final class Perl5Util {
 	public static Object find(String strPattern, String strInput, int offset, boolean caseSensitive, boolean matchAll, boolean multiLine) throws MalformedPatternException {
 		Perl5Matcher matcher = new Perl5Matcher();
 		PatternMatcherInput input = new PatternMatcherInput(strInput);
-		Array matches = new ArrayImpl();
+		Array matches = null;
 
 		int compileOptions = caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK;
 		compileOptions += multiLine ? Perl5Compiler.MULTILINE_MASK : Perl5Compiler.SINGLELINE_MASK;
@@ -138,27 +139,29 @@ final class Perl5Util {
 					return matchStruct;
 				}
 
+				if (matches == null) matches = new ArrayImpl();
 				matches.appendEL(matchStruct);
 			}
 
-			if (matches.size() != 0) {
+			if (matches != null) {
 				return matches;
 			}
 		}
 
-		Array posArray = new ArrayImpl();
-		Array lenArray = new ArrayImpl();
-		Array matchArray = new ArrayImpl();
+		Array posArray = new ArrayImpl(1);
+		Array lenArray = new ArrayImpl(1);
+		Array matchArray = new ArrayImpl(1);
 		posArray.appendEL(Constants.INTEGER_0);
 		lenArray.appendEL(Constants.INTEGER_0);
 		matchArray.appendEL("");
 
-		Struct struct = new StructImpl(StructImpl.TYPE_LINKED);
+		Struct struct = new StructImpl(StructImpl.TYPE_LINKED, 4);
 		struct.setEL("pos", posArray);
 		struct.setEL("len", lenArray);
 		struct.setEL("match", matchArray);
 
 		if (matchAll) {
+			matches = new ArrayImpl(1);
 			matches.appendEL(struct);
 			return matches;
 		}
@@ -169,9 +172,9 @@ final class Perl5Util {
 	public static Struct getMatchStruct(MatchResult result, String input) {
 		int groupCount = result.groups();
 
-		Array posArray = new ArrayImpl();
-		Array lenArray = new ArrayImpl();
-		Array matchArray = new ArrayImpl();
+		Array posArray = new ArrayImpl(groupCount);
+		Array lenArray = new ArrayImpl(groupCount);
+		Array matchArray = new ArrayImpl(groupCount);
 		int beginOff;
 		int endOff;
 		for (int i = 0; i < groupCount; i++) {
@@ -188,7 +191,7 @@ final class Perl5Util {
 			matchArray.appendEL(input.substring(beginOff, endOff));
 		}
 
-		Struct struct = new StructImpl(StructImpl.TYPE_LINKED);
+		Struct struct = new StructImpl(StructImpl.TYPE_LINKED, 4);
 		struct.setEL("pos", posArray);
 		struct.setEL("len", lenArray);
 		struct.setEL("match", matchArray);
@@ -257,10 +260,21 @@ final class Perl5Util {
 	}
 
 	private static String escape(String replacement) throws MalformedPatternException {
+		// no char the steps below act on: all three would return the input unchanged
+		if (!hasEscapable(replacement)) return replacement;
 		replacement = _replace(replacement, "\\\\", "\\\\\\\\", false, true, false);
 		replacement = _escape(replacement);
 		replacement = _replace(replacement, "\\\\\\\\(\\d)", "\\$$1", false, true, false);
 		return replacement;
+	}
+
+	private static boolean hasEscapable(String str) {
+		char c;
+		for (int i = 0, len = str.length(); i < len; i++) {
+			c = str.charAt(i);
+			if ('\\' == c || '+' == c || '?' == c || '$' == c || '^' == c) return true;
+		}
+		return false;
 	}
 
 	public static String quotemeta(String str){

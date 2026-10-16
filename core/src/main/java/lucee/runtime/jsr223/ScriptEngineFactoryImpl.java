@@ -24,7 +24,6 @@ import javax.script.ScriptEngineFactory;
 
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
-import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.type.util.ListUtil;
@@ -119,7 +118,7 @@ public final class ScriptEngineFactoryImpl implements ScriptEngineFactory {
 	}
 
 	private String getSetTagName() {
-		String prefix = ((ConfigPro) ThreadLocalPageContext.getConfig()).getCoreTagLib().getNameSpaceAndSeparator();
+		String prefix = ThreadLocalPageContext.getConfigServer().getCoreTagLib().getNameSpaceAndSeparator();
 		return prefix + (Constants.CFML_SET_TAG_NAME);
 
 	}

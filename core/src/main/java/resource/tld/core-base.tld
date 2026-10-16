@@ -2537,6 +2537,30 @@ If not specified, falls back to the `timeout` attribute value.</description>
 			<description>Password used to decrypt the client certificate.</description>
 		</attribute>
 		<attribute>
+			<type>string</type>
+			<name>trustStore</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.1</introduced>
+			<description>Path to a custom trust store (JKS or PKCS12) for SSL certificate validation. When specified, certificates in this store are trusted in addition to the JVM's default cacerts.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>trustStorePassword</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.1</introduced>
+			<description>Password for the custom trust store. Defaults to 'changeit' if not specified.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>sslVerify</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.1</introduced>
+			<description>When set to false, disables SSL certificate and hostname verification (equivalent to curl -k). Default is true. Use with caution as this makes connections vulnerable to man-in-the-middle attacks.</description>
+		</attribute>
+		<attribute>
 			<type>boolean</type>
 			<name>pooling</name>
 			<required>false</required>
@@ -3327,6 +3351,20 @@ To use cached data, the function must be called with the exact same arguments.
 			<description>Specifies the character that cfldap uses to separate multiple attribute name/value pairs when more than one attribute is specified in the attribute attribute or the attribute that you want to use has the default delimiter character, which is the semicolon (;), such as mgrpmsgrejecttext;lang-en. The delimiter character is used by the query, add, and
 		modify action attributes, and is used by cfldap to output multi-value attributes</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>clientCert</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Full path to the PKCS12 keystore file containing the client certificate. Used with secure="CFSSL_CLIENT_AUTH".</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>clientCertPassword</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Password for the client certificate keystore. Used with secure="CFSSL_CLIENT_AUTH".</description>
+		</attribute>
 	</tag>
 	<!-- Location -->
 	<tag>
@@ -3478,6 +3516,7 @@ To use cached data, the function must be called with the exact same arguments.
 		<name>Log</name>
 		<tag-class>lucee.runtime.tag.Log</tag-class>
 		<tte-class>lucee.transformer.cfml.evaluator.impl.Log</tte-class>
+		<ttt-class>lucee.transformer.bytecode.statement.tag.TagLog</ttt-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<description>Writes a message to a log file.</description>
@@ -5625,7 +5664,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 				<name>run</name>
 				<label>Run Thread</label>
 				<description>`action="run"` - Create and execute a new thread with custom processing (supports dynamic attributes)</description>
-				<attributes>name,type,priority,retryInterval,separateScopes</attributes>
+				<attributes>name,type,priority,retryInterval,separateScopes,virtual</attributes>
 			</group>
 			<group>
 				<name>join</name>
@@ -5793,6 +5832,25 @@ To use cached data, the current query must use the same SQL statement, data sour
 				* When `false`: The thread directly accesses the caller's scopes. Changes made in the thread are immediately visible to the parent context. Use with caution as this can lead to race conditions and thread safety issues.
 
 				This attribute is useful when you need threads to share state, but requires careful synchronization to avoid data corruption.
+			</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>virtual</name>
+			<required>false</required>
+			<default-value>false</default-value>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.0.0.334</introduced>
+			<description>
+				Only applicable with `action="run"` and `type="daemon"`. Controls whether the thread runs on a Java virtual thread instead of a platform (operating system) thread. Defaults to `false`.
+
+				* When `true`: The thread body runs on a Java virtual thread. Virtual threads are lightweight and well suited to high-concurrency, I/O-bound workloads (for example many parallel HTTP calls or queries), allowing far more concurrent threads at a much lower cost than platform threads.
+
+				* When `false` (default): The thread runs on a regular platform thread, as in previous versions.
+
+				Requires Java 21 or newer. On older JVMs `virtual="true"` is ignored and the thread falls back to a platform thread (a warning is logged once). The global default can be changed with the system property `lucee.thread.virtual` (environment variable `LUCEE_THREAD_VIRTUAL`); this attribute always overrides that default.
+
+				Note that the `priority` attribute has no effect on virtual threads, as the JVM does not apply thread priorities to them.
 			</description>
 		</attribute>
 	</tag>
@@ -7979,13 +8037,13 @@ Valid only for cfinput type="text".</description>
 			<name>session</name>
 			<label>Session Management</label>
 			<description>Configure session scope behavior and storage</description>
-			<attributes>sessionManagement,sessionType,sessionStorage,sessionTimeout,sessionCluster,sessionCookie</attributes>
+			<attributes>sessionManagement,sessionType,sessionStorage,sessionTimeout,sessionCommitInterval,sessionCluster,sessionCookie</attributes>
 		</group>
 		<group>
 			<name>client</name>
 			<label>Client Management</label>
 			<description>Configure client scope behavior and storage</description>
-			<attributes>clientManagement,clientStorage,clientTimeout,clientCluster,setClientCookies,authCookie</attributes>
+			<attributes>clientManagement,clientStorage,clientTimeout,clientCommitInterval,clientCluster,setClientCookies,authCookie</attributes>
 		</group>
 		<group>
 			<name>cache</name>
@@ -8247,12 +8305,31 @@ Suport for cookie was removed in Lucee 7
 		</attribute>
 		<attribute>
 			<type>timespan</type>
+			<name>sessionCommitInterval</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>For storage-backed sessions (cache/Redis/datasource), controls how often an unmodified session
+		is re-persisted to refresh its storage TTL or expires column. Without this, a read-heavy session
+		silently evicts at the original TTL boundary. Defaults to sessionTimeout/2. Set to createTimespan(0,0,0,0)
+		to disable the periodic refresh.</description>
+		</attribute>
+		<attribute>
+			<type>timespan</type>
 			<name>clientTimeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Enter the CreateTimeSpan function and values in days, hours, minutes, and seconds, separated
 		by commas, to specify the lifespan of client variables. The default value is specified in the
 		Variables page of the Lucee Administrator.</description>
+		</attribute>
+		<attribute>
+			<type>timespan</type>
+			<name>clientCommitInterval</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>For storage-backed client scopes, controls how often an unmodified scope is re-persisted to refresh
+		its storage TTL or expires column. Defaults to clientTimeout/2. Set to createTimespan(0,0,0,0) to disable
+		the periodic refresh.</description>
 		</attribute>
 		<attribute>
 			<type>timespan</type>
@@ -8747,8 +8824,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>regex</name>
 			<type>any</type>
 			<required>false</required>
-			<description>allow to define a struct containing the configuration for regular expressions,
-			ATM only the key "engine" is supported, with the possible values [java,perl] to choose the regex dialect.</description>
+			<description>Struct containing the configuration for regular expressions. Supported key: "type" (aliases: "engine", "dialect") with values [perl, java, compat]. "perl" (default) uses the Apache ORO engine; "java" uses the raw JVM regex engine; "compat" uses the JVM engine with a Perl-compatible replacement translator (backref and case modifier support).</description>
 			<introduced>5.3.8.23</introduced>
 		</attribute>
 		<attribute>
@@ -10067,6 +10143,7 @@ dWord: creates a value of 0 (zero)</description>
 			<default>keyword</default>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.0.0.221</introduced>
 		<description>Specifies the search algorithm to use when querying this collection. Options:
 - `keyword`: Traditional term-based search using Lucene (default)
 - `vector`: Pure semantic search using vector embeddings
@@ -10080,6 +10157,7 @@ When set to `keyword`, the `embedding` attribute is ignored. Vector and hybrid m
 			<alias>embeddingService</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.0.0.218</introduced>
 		<description>Specifies the embedding service to use for creating vector representations of documents,
 enabling semantic search capabilities. Default is "TF-IDF" if not specified.
 This attribute is ignored when `mode="keyword"`. Valid options:
@@ -10094,6 +10172,7 @@ This attribute is ignored when `mode="keyword"`. Valid options:
 			<required>false</required>
 			<default>0.5</default>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.0.0.221</introduced>
 			<description>When `mode="hybrid"`, this value controls the balance between keyword and vector search components. Value range is 0.0 to 1.0, where:
 - 0.5: Equal weight given to both keyword and vector search (default)
 - Values greater than 0.5: Greater emphasis on vector search (semantic matching)
@@ -10433,6 +10512,7 @@ Permits searching collections by title or displaying a separate title from the k
 		</attribute>
 		<attribute>
 		    <type>number</type>
+		    <introduced>7.0.3.30</introduced>
 		    <name>contextPassages</name>
 		    <required>false</required>
 		    <default>0</default>
@@ -10445,6 +10525,7 @@ Permits searching collections by title or displaying a separate title from the k
 		
 		<attribute>
 		    <type>number</type>
+		    <introduced>7.0.3.30</introduced>
 		    <name>contextPassageLength</name>
 		    <required>false</required>
 		    <default>150</default>
@@ -10456,6 +10537,7 @@ Permits searching collections by title or displaying a separate title from the k
 		
 		<attribute>
 		    <type>number</type>
+		    <introduced>7.0.3.30</introduced>
 		    <name>contextBytes</name>
 		    <required>false</required>
 		    <default>1000</default>
@@ -10467,6 +10549,7 @@ Permits searching collections by title or displaying a separate title from the k
 		
 		<attribute>
 		    <type>string</type>
+		    <introduced>7.0.3.30</introduced>
 		    <name>contextHighlightBegin</name>
 		    <required>false</required>
 		    <rtexprvalue>true</rtexprvalue>
@@ -10477,6 +10560,7 @@ Permits searching collections by title or displaying a separate title from the k
 		
 		<attribute>
 		    <type>string</type>
+		    <introduced>7.0.3.30</introduced>
 		    <name>contextHighlightEnd</name>
 		    <required>false</required>
 		    <rtexprvalue>true</rtexprvalue>

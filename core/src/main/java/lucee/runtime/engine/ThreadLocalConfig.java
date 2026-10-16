@@ -28,10 +28,13 @@ import lucee.runtime.config.ConfigPro;
 public final class ThreadLocalConfig {
 
 	private static InheritableThreadLocal<Config> cThreadLocal = new InheritableThreadLocal<Config>();
+	// CCL_UNSET sentinel distinguishes "never saved" from "saved a null CCL"; some boot/gateway threads legitimately have a null context classloader.
+	private static final ClassLoader CCL_UNSET = new ClassLoader(null) {};
+	private static ThreadLocal<ClassLoader> prevCCL = ThreadLocal.withInitial(() -> CCL_UNSET);
 
 	/**
 	 * register a Config for he current thread
-	 * 
+	 *
 	 * @param config Config to register
 	 */
 	public static void register(Config config) {
@@ -40,12 +43,20 @@ public final class ThreadLocalConfig {
 			return;
 		}
 		Thread t = Thread.currentThread();
-		t.setContextClassLoader(((ConfigPro) config).getClassLoaderEnv());
+		ClassLoader target = ((ConfigPro) config).getClassLoaderEnv();
+		ClassLoader current = t.getContextClassLoader();
+		// fast path: re-entrant register where the CCL already matches (e.g. Controler.run's 4x register cycle)
+		if (current == target) return;
+		// first register on this thread captures the pre-Lucee CCL; nested register with a different target keeps the original save
+		if (prevCCL.get() == CCL_UNSET) {
+			prevCCL.set(current);
+		}
+		t.setContextClassLoader(target);
 	}
 
 	/**
 	 * returns Config registered for the current thread
-	 * 
+	 *
 	 * @return Config for the current thread or null
 	 */
 	static Config get() {
@@ -57,5 +68,10 @@ public final class ThreadLocalConfig {
 	 */
 	public static void release() {
 		cThreadLocal.set(null);
+		ClassLoader prev = prevCCL.get();
+		if (prev != CCL_UNSET) {
+			Thread.currentThread().setContextClassLoader(prev);
+			prevCCL.remove();
+		}
 	}
 }

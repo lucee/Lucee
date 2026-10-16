@@ -1,5 +1,7 @@
 package lucee.runtime.regex;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -7,7 +9,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -15,9 +16,7 @@ import lucee.runtime.type.util.KeyConstants;
 class JavaRegex implements Regex {
 
 	private static final Double ZERO = Double.valueOf(0);
-	private static final Key LEN = KeyConstants._len;
-	private static final Key POS = KeyConstants._pos;
-	private static final Key MATCH = KeyConstants._match;
+	private static final Map<String, Pattern> cache = new ConcurrentHashMap<>();
 
 	@Override
 	public boolean matches(String strPattern, String strInput) throws PageException {
@@ -151,7 +150,13 @@ class JavaRegex implements Regex {
 	@Override
 	public String replace(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			return toPattern(strPattern, caseSensitive, multiLine).matcher(strInput).replaceFirst(replacement);
+			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			if (!m.find()) return strInput;
+			// Matcher.replaceFirst starts from a 16-char builder and regrows it to the input's length
+			StringBuilder sb = new StringBuilder(strInput.length());
+			m.appendReplacement(sb, replacement);
+			m.appendTail(sb);
+			return sb.toString();
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -161,79 +166,105 @@ class JavaRegex implements Regex {
 	@Override
 	public String replaceAll(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			return toPattern(strPattern, caseSensitive, multiLine).matcher(strInput).replaceAll(replacement);
+			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			if (!m.find()) return strInput;
+			// Matcher.replaceAll starts from a 16-char builder and regrows it to the input's length
+			StringBuilder sb = new StringBuilder(strInput.length());
+			do {
+				m.appendReplacement(sb, replacement);
+			}
+			while (m.find());
+			m.appendTail(sb);
+			return sb.toString();
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	static String translateReplacement(String repl) {
+		if (repl == null || (repl.indexOf('\\') < 0 && repl.indexOf('$') < 0)) return repl;
+		StringBuilder out = new StringBuilder(repl.length());
+		int i = 0, n = repl.length();
+		while (i < n) {
+			char c = repl.charAt(i);
+			if (c == '$') { out.append("\\$"); i++; }
+			else if (c == '\\' && i + 1 < n) {
+				char next = repl.charAt(i + 1);
+				if (next >= '0' && next <= '9') { out.append('$').append(next); i += 2; }
+				else if (next == 'E') { i += 2; }
+				else { out.append(c).append(next); i += 2; }
+			}
+			else { out.append(c); i++; }
+		}
+		return out.toString();
 	}
 
 	@Override
 	public String escape(String strInput) throws PageException {
 		try {
 			StringBuilder strEscape = new StringBuilder();
-			for (char c : strInput.toCharArray()) {
+			for (char c: strInput.toCharArray()) {
 				if (!Character.isLetterOrDigit(c)) {
 					strEscape.append("\\");
 				}
 				strEscape.append(c);
 			}
 			return strEscape.toString();
-			/* 
-			// Pattern.quote just wraps the string with \Q \E
-			return removeQE(Pattern.compile(Pattern.quote(strInput)).toString());
-			*/
+			/*
+			 * // Pattern.quote just wraps the string with \Q \E return
+			 * removeQE(Pattern.compile(Pattern.quote(strInput)).toString());
+			 */
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 	/*
-	private static String removeQE(String input) {
-		if (input.startsWith("\\Q") && input.endsWith("\\E")) {
-			return input.substring(2, input.length() - 2);
-		}
-		return input;
-	}
-	*/
+	 * private static String removeQE(String input) { if (input.startsWith("\\Q") &&
+	 * input.endsWith("\\E")) { return input.substring(2, input.length() - 2); } return input; }
+	 */
 
 	private Struct findEmpty() {
-		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
-		Array a = new ArrayImpl();
+		Struct sct = new StructImpl(StructImpl.TYPE_LINKED, 4);
+		Array a = new ArrayImpl(1);
 		a.appendEL(ZERO);
-		sct.setEL(LEN, a);
-		a = new ArrayImpl();
+		sct.setEL(KeyConstants._len, a);
+		a = new ArrayImpl(1);
 		a.appendEL(ZERO);
-		sct.setEL(POS, a);
-		a = new ArrayImpl();
+		sct.setEL(KeyConstants._pos, a);
+		a = new ArrayImpl(1);
 		a.appendEL("");
-		sct.setEL(MATCH, a);
+		sct.setEL(KeyConstants._match, a);
 		return sct;
 	}
 
 	private Struct toStruct(Matcher matcher, String input) {
-		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
-		Array lenArray = new ArrayImpl();
-		Array posArray = new ArrayImpl();
-		Array matchArray = new ArrayImpl();
+		Struct sct = new StructImpl(StructImpl.TYPE_LINKED, 4);
+		int groups = matcher.groupCount() + 1;
+		Array lenArray = new ArrayImpl(groups);
+		Array posArray = new ArrayImpl(groups);
+		Array matchArray = new ArrayImpl(groups);
 
-		for (int i = 0; i <= matcher.groupCount(); i++) {
+		for (int i = 0; i < groups; i++) {
 			lenArray.appendEL(matcher.end(i) - matcher.start(i));
 			posArray.appendEL(matcher.start(i) + 1);
 			matchArray.appendEL(matcher.group(i));
 		}
 
-		sct.setEL(POS, posArray);
-		sct.setEL(LEN, lenArray);
-		sct.setEL(MATCH, matchArray);
+		sct.setEL(KeyConstants._pos, posArray);
+		sct.setEL(KeyConstants._len, lenArray);
+		sct.setEL(KeyConstants._match, matchArray);
 		return sct;
 	}
 
-	private Pattern toPattern(String strPattern, boolean caseSensitive, boolean multiLine) {
-		int flags = 0;
-		if (!caseSensitive) flags += Pattern.CASE_INSENSITIVE;
-		if (multiLine) flags += Pattern.MULTILINE;
-		return Pattern.compile(strPattern, flags);
+	protected Pattern toPattern(String strPattern, boolean caseSensitive, boolean multiLine) {
+		int f = 0;
+		if (!caseSensitive) f += Pattern.CASE_INSENSITIVE;
+		if (multiLine) f += Pattern.MULTILINE;
+		final int flags = f;
+		String key = flags + "\0" + strPattern;
+		return cache.computeIfAbsent(key, k -> Pattern.compile(strPattern, flags));
 	}
 
 	@Override

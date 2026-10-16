@@ -83,17 +83,22 @@ END;
 		}
 	}
 
+	public function tearDown(){
+		if(!variables.has) return;
+		getTimeZone().setDefault(variables.originalTz);
+	}
+
 	private boolean function defineDatasource(){
 		var orcl = server.getDatasource("oracle");
 		if(orcl.count()==0) return false;
 
 		// otherwise we get the following on travis ORA-00604: error occurred at recursive SQL level 1 / ORA-01882: timezone region not found
+		// stash + restore (tearDown) so the JVM-wide mutation doesn't leak into other tests
 		var tz=getTimeZone();
-		//var d1=tz.getDefault();
+		variables.originalTz=tz.getDefault();
 		tz.setDefault(tz);
-		//throw d1&":"&tz.getDefault();
 
-		application action="update" datasource="#orcl#";	
+		application action="update" datasource="#orcl#";
 		return true;
 	}
 

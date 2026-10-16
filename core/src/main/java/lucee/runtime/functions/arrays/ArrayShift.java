@@ -13,11 +13,11 @@ public final class ArrayShift extends BIF {
 	private static final long serialVersionUID = -9214780740665463790L;
 
 	public static Object call(PageContext pc, Array array) throws PageException {
-		return ArrayUtil.toArrayPro(array).shift();
+		return ArrayUtil.toArrayPro(array, null).shift();
 	}
 
 	public static Object call(PageContext pc, Array array, Object defaultValue) {
-		return ArrayUtil.toArrayPro(array).shift(defaultValue);
+		return ArrayUtil.toArrayPro(array, null).shift(defaultValue);
 	}
 
 	@Override

@@ -26,12 +26,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.RandomUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -98,6 +100,11 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	private Struct attrs;
 	private boolean separateScopes = true;
 	private boolean throwonerror = false;
+	private Boolean virtual;
+
+	// global default for the "virtual" attribute, overridable via system property / env var
+	private static final boolean DEFAULT_VIRTUAL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.thread.virtual", "false"), false);
+	private static final java.util.concurrent.atomic.AtomicBoolean virtualWarned = new java.util.concurrent.atomic.AtomicBoolean(false);
 
 	@Override
 	public void release() {
@@ -113,6 +120,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		pc = null;
 		separateScopes = true;
 		throwonerror = false;
+		virtual = null;
 	}
 
 	/**
@@ -127,8 +135,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		else if ("sleep".equals(lcAction)) this.action = ACTION_SLEEP;
 		else if ("terminate".equals(lcAction)) this.action = ACTION_TERMINATE;
 		else if ("interrupt".equals(lcAction)) this.action = ACTION_INTERRUPT;
-		else throw new ApplicationException("Invalid value [" + strAction + "] for attribute [action]",
-				"Supported values are: [interrupt, join, run, sleep, terminate]");
+		else throw new ApplicationException("Invalid value [" + strAction + "] for attribute [action]", "Supported values are: [interrupt, join, run, sleep, terminate]");
 	}
 
 	/**
@@ -140,6 +147,13 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 
 	public void setSeparatescopes(boolean separateScopes) {
 		this.separateScopes = separateScopes;
+	}
+
+	/**
+	 * @param virtual when true and supported, run the thread body on a Java virtual thread
+	 */
+	public void setVirtual(boolean virtual) {
+		this.virtual = virtual ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	/**
@@ -159,7 +173,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	}
 
 	private Collection.Key name(boolean create) {
-		if (name == null && create) name = KeyImpl.init("thread" + RandomUtil.createRandomStringLC(5));
+		if (name == null && create) name = KeyImpl.init("thread" + RandomUtil.createRandomStringLC(8));
 		return name;
 	}
 
@@ -323,15 +337,15 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			Threads ts = ThreadTag.getThreadScope(pc, name); // pc.getThreadScope(name);
 
 			if (type == TYPE_DAEMON) {
-				if (ts != null) throw new ApplicationException("Unable to create thread [" + name.getString() + "], as a thread with this name already exists, threads names must be unique within a request");
+				if (ts != null) throw new ApplicationException(
+						"Unable to create thread [" + name.getString() + "], as a thread with this name already exists, threads names must be unique within a request");
 				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc, currentPage, name.getString(), threadIndex, attrs, false, separateScopes);
 				ThreadsImpl t = new ThreadsImpl(ct);
 				PageContextImpl root = (PageContextImpl) getRootPageContext(pc);
 				root.setAllThreadScope(name, t);
 				pc.setThreadScope(name, t);
-				ct.setPriority(priority);
-				ct.setDaemon(false);
-				ct.start();
+				ct.setVirtual(useVirtual(pc));
+				ct.startThread(priority);
 			}
 			else {
 				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc, currentPage, name.getString(), threadIndex, attrs, true, separateScopes);
@@ -391,9 +405,9 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 
 		PageContext root = getRootPageContext(current);
 
-		// now we get all threads and filter out ancestors
+		// snapshot under root's lock so we can iterate without racing concurrent writers
 		java.util.Collection<Threads> result = new HashSet<Threads>();
-		Map<Key, Threads> threads = ((PageContextImpl) root).getAllThreadScope();
+		Map<Key, Threads> threads = ((PageContextImpl) root).snapshotAllThreadScope();
 		if (threads != null) {
 			Iterator<Entry<Key, Threads>> it = threads.entrySet().iterator();
 			Entry<Key, Threads> e;
@@ -407,16 +421,10 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	}
 
 	public static Threads getThreadScope(PageContext pc, Key name) {
-		Threads t = null;
-
-		// get from root
+		// read via synchronised accessor on root to avoid racing concurrent writers
+		// from parallel iteration closures spawning cfthread
 		PageContext root = getRootPageContext(pc);
-		Map<Key, Threads> scopes = ((PageContextImpl) root).getAllThreadScope();
-		if (scopes != null) {
-			t = scopes.get(name);
-			if (t != null) return t;
-		}
-		return null;
+		return ((PageContextImpl) root).getAllThreadScope(name);
 	}
 
 	private void doSleep() throws ExpressionException {
@@ -425,6 +433,23 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		}
 		else throw new ExpressionException("The attribute [duration] must be greater or equal than 0, was [" + duration + "]");
 
+	}
+
+	private boolean useVirtual(PageContext pc) {
+		boolean requested = virtual != null ? virtual.booleanValue() : DEFAULT_VIRTUAL;
+		if (!requested) return false;
+		if (SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_21) return true;
+		// virtual threads require Java 21+, fall back to a platform thread and warn once
+		if (virtualWarned.compareAndSet(false, true)) {
+			Log log = ThreadLocalPageContext.getLog(pc.getConfig(), "application");
+			if (log != null) log.log(Log.LEVEL_WARN, "thread", "cfthread attribute [virtual=true] requires Java 21 or newer, the current JVM is ["
+					+ System.getProperty("java.version") + "]. Falling back to a platform thread.");
+		}
+		return false;
+	}
+
+	private static boolean isAlive(ChildThread ct) {
+		return ct instanceof ChildThreadImpl ? ((ChildThreadImpl) ct).isThreadAlive() : ct.isAlive();
 	}
 
 	private void doJoin() throws ApplicationException, PageException {
@@ -436,7 +461,8 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		else names = ListUtil.listToList(name.getLowerString(), ',', true);
 		ChildThread ct;
 		Threads ts;
-		long start = System.currentTimeMillis(), _timeout = timeout > 0 ? timeout : -1;
+		long start = timeout > 0 ? System.currentTimeMillis() : 0;
+		long remining = 0;
 
 		Iterator<String> it = names.iterator();
 		String n;
@@ -444,31 +470,40 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		while (it.hasNext()) {
 			n = it.next();
 			if (StringUtil.isEmpty(n, true)) continue;
-			// PageContextImpl mpc=(PageContextImpl)getMainPageContext(pc);
 			ts = ThreadTag.getThreadScope(pc, KeyImpl.init(n));// , ThreadTag.LEVEL_CURRENT + ThreadTag.LEVEL_KIDS
+
 			if (ts == null) {
 				if (all == null) all = ThreadTag.getTagNames(ThreadTag.getAllNoneAncestorThreads(pc));
 
 				throw new ApplicationException("There is no thread running with the name [" + n + "], ",
-					 "The existing threads are [" + ListUtil.listToListEL(all, ", ")
-						+ "] ->" + ListUtil.toList(all, ", "));
+						"The existing threads are [" + ListUtil.listToListEL(all, ", ") + "] ->" + ListUtil.toList(all, ", "));
 			}
 			ct = ts.getChildThread();
 
-			if (ct.isAlive()) {
+			if (timeout > 0) {
+				// do we already have reached the timeout?
+				remining = (start + timeout) - System.currentTimeMillis();
+				if (remining <= 0) {
+					break;
+				}
+
+			}
+
+			if (isAlive(ct)) {
 				try {
-					if (_timeout != -1) ct.join(_timeout);
-					else ct.join();
+					if (ct instanceof ChildThreadImpl) {
+						if (remining > 0) ((ChildThreadImpl) ct).joinThread(remining);
+						else ((ChildThreadImpl) ct).joinThread();
+					}
+					else {
+						if (remining > 0) ct.join(remining);
+						else ct.join();
+					}
 				}
-				catch (InterruptedException e) {
-				}
+				catch (InterruptedException e) {}
 			}
-			if (throwonerror && threadError == null && ts.containsKey(KeyConstants._error)) {
-				threadError = lucee.runtime.tag.Throw.toPageException(ts.get(KeyConstants._error), null);
-			}
-			if (_timeout != -1) {
-				_timeout = _timeout - (System.currentTimeMillis() - start);
-				if (_timeout < 1) break;
+			if (throwonerror && threadError == null && ts.containsKey(pageContext, KeyConstants._error)) {
+				threadError = lucee.runtime.tag.Throw.toPageException(ts.get(pageContext, KeyConstants._error), null);
 			}
 		}
 		if (throwonerror && threadError != null) throw threadError;
@@ -481,9 +516,9 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		if (ts == null) throw new ApplicationException("Terminate thread failed, there is no thread running with the name [" + nameAsString(false) + "]");
 		ChildThread ct = ts.getChildThread();
 
-		if (ct.isAlive()) {
+		if (isAlive(ct)) {
 			ct.terminated();
-			SystemUtil.stop(ct);
+			SystemUtil.stop(ct instanceof ChildThreadImpl ? ((ChildThreadImpl) ct).getExecutionThread() : ct);
 		}
 
 	}
@@ -500,7 +535,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		Threads ts = ThreadTag.getThreadScope(pc, name);
 		if (ts == null) throw new ApplicationException("Interrupt thread failed, there is no thread running with the name [" + nameAsString(false) + "]");
 		ChildThread ct = ts.getChildThread();
-		if (ct.isAlive()) {
+		if (isAlive(ct)) {
 			ct.interrupt();
 		}
 	}

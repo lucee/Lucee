@@ -50,6 +50,8 @@ public final class Beat implements Function {
 
 		long millisInDay = DateTimeUtil.getInstance().getMilliSecondsInDay(BMD, time);
 		double res = (millisInDay / day) * 1000;
+
+		// print.e(time);
 		return ((int) (res * 1000)) / 1000D;
 	}
 }

@@ -26,7 +26,9 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.QueryColumn;
+import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArrayToList extends BIF {
 
@@ -44,12 +46,14 @@ public final class ArrayToList extends BIF {
 		if (len == 0) return "";
 		if (len == 1) return Caster.toString(array.get(1, ""));
 
-		Object o = array.get(1, null);
+		ArrayPro arr = ArrayUtil.toArrayPro(array, null);
+
+		Object o = arr.get(pc, 1, null);
 		StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
 		sb.ensureCapacity(len * 2);
 		for (int i = 2; i <= len; i++) {
 			sb.append(delimiter);
-			o = array.get(i, null);
+			o = arr.get(pc, i, null);
 			sb.append(o == null ? "" : Caster.toString(o));
 		}
 		return sb.toString();
@@ -61,12 +65,14 @@ public final class ArrayToList extends BIF {
 		if (len == 0) return "";
 		if (len == 1) return Caster.toString(array.get(1, ""));
 
-		Object o = array.get(1, null);
+		ArrayPro arr = ArrayUtil.toArrayPro(array, null);
+
+		Object o = arr.get(pc, 1, null);
 		StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
 		sb.ensureCapacity(len * 2);
 		for (int i = 2; i <= len; i++) {
 			sb.append(delimiter);
-			o = array.get(i, null);
+			o = arr.get(pc, i, null);
 			sb.append(o == null ? "" : Caster.toString(o));
 		}
 		return sb.toString();
@@ -78,11 +84,13 @@ public final class ArrayToList extends BIF {
 		if (len == 0) return "";
 		if (len == 1) return Caster.toString(array.get(1, ""));
 
-		Object o = array.get(1, null);
+		ArrayPro arr = ArrayUtil.toArrayPro(array, null);
+
+		Object o = arr.get(pc, 1, null);
 		StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
 		sb.ensureCapacity(len);
 		for (int i = 2; i <= len; i++) {
-			o = array.get(i, null);
+			o = arr.get(pc, i, null);
 			sb.append(o == null ? "" : Caster.toString(o));
 		}
 		return sb.toString();

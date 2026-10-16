@@ -20,6 +20,7 @@ package lucee.runtime.type;
 
 import lucee.commons.lang.CFTypes;
 import lucee.runtime.Component;
+import lucee.runtime.ComponentImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
@@ -44,6 +45,14 @@ public final class UDFGetterProperty extends UDFGSProperty {
 	@Override
 	public UDF duplicate() {
 		return new UDFGetterProperty(srcComponent, prop);
+	}
+
+	/**
+	 * Direct accessor bypass — called from ComponentImpl._call() to skip UDF dispatch overhead.
+	 * The caller already knows the component, so we skip getComponent(pc) resolution.
+	 */
+	public Object callDirect( ComponentImpl comp, PageContext pc ) {
+		return comp.getComponentScope().get( pc, propName, null );
 	}
 
 	@Override

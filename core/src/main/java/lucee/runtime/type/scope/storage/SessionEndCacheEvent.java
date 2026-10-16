@@ -22,7 +22,6 @@ import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CacheEventListener;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.CFMLFactoryImpl;
-import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExceptionHandler;
@@ -50,9 +49,9 @@ public final class SessionEndCacheEvent implements CacheEventListener {
 		index = key.indexOf(':', last);
 		String appName = key.substring(last);
 
-		Config config = ThreadLocalPageContext.getConfig();
+		ConfigWeb config = ThreadLocalPageContext.getConfigWeb();
 
-		_doEnd((CFMLFactoryImpl) (((ConfigWeb) config).getFactory()), appName, cfid);
+		_doEnd((CFMLFactoryImpl) (config.getFactory()), appName, cfid);
 	}
 
 	private void _doEnd(CFMLFactoryImpl factory, String appName, String cfid) {

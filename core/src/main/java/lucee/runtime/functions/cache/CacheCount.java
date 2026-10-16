@@ -19,6 +19,7 @@
 package lucee.runtime.functions.cache;
 
 import java.io.IOException;
+import java.util.List;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
@@ -39,7 +40,8 @@ public final class CacheCount extends BIF {
 
 	public static Number call(PageContext pc, String cacheName) throws PageException {
 		try {
-			return Caster.toNumber(pc, CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT).keys().size());
+			List<String> keys = CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT).keys();
+			return Caster.toNumber(pc, keys == null ? -1 : keys.size());
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);

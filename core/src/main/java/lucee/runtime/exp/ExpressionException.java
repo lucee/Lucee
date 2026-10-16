@@ -20,7 +20,6 @@
 package lucee.runtime.exp;
 
 import lucee.runtime.config.Config;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
@@ -30,8 +29,6 @@ import lucee.runtime.type.util.KeyConstants;
  * Generation>Code and Comments
  */
 public class ExpressionException extends PageExceptionImpl {
-
-	private static final Collection.Key ERR_NUMBER = KeyConstants._ErrNumber;
 
 	/**
 	 * Class Constuctor
@@ -57,7 +54,7 @@ public class ExpressionException extends PageExceptionImpl {
 	public CatchBlock getCatchBlock(Config config) {
 		if (catchBlock == null) {
 			CatchBlock sct = super.getCatchBlock(config);
-			sct.setEL(ERR_NUMBER, Double.valueOf(0));
+			sct.setEL(KeyConstants._ErrNumber, Double.valueOf(0));
 		}
 		return catchBlock;
 	}

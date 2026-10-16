@@ -30,6 +30,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.rest.Mapping;
 import lucee.runtime.rest.RestUtil;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class RestDeleteApplication {
 	public static String call(PageContext pc, String dirPath) throws PageException {
@@ -50,7 +51,7 @@ public final class RestDeleteApplication {
 				mapping = mappings[i];
 				if (RestUtil.isMatch(pc, mapping, dir)) {
 					admin.removeRestMapping(mapping.getVirtual());
-					admin.storeAndReload();
+					admin.store();
 					config.resetRestMappings();
 				}
 			}
@@ -64,7 +65,7 @@ public final class RestDeleteApplication {
 
 	static Resource toResource(PageContext pc, String dirPath) throws PageException {
 		Resource dir = ResourceUtil.toResourceNotExisting(pc.getConfig(), dirPath);
-		pc.getConfig().getSecurityManager().checkFileLocation(dir);
+		SecurityManagerImpl.checkFileLocation(pc, dir);
 		if (!dir.isDirectory()) throw new FunctionException(pc, "RestInitApplication", 1, "dirPath", "argument value [" + dirPath + "] must contain an existing directory");
 
 		return dir;

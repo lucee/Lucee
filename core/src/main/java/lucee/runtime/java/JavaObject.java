@@ -34,6 +34,7 @@ import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
@@ -52,7 +53,7 @@ import lucee.runtime.util.VariableUtilImpl;
 /**
  * class to handle initialising and call native object from lucee
  */
-public class JavaObject implements Objects, ObjectWrap {
+public class JavaObject implements Objects, ObjectWrap, CastablePro {
 
 	private static final long serialVersionUID = -3716657460843769960L;
 	private static final Object[] EMPTY = new Object[0];
@@ -144,8 +145,7 @@ public class JavaObject implements Objects, ObjectWrap {
 			try {
 				return fields[0].get(null);
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 		// Getter
 		MethodInstance mi = Reflector.getGetterEL(clazz, propertyName, false);
@@ -155,8 +155,7 @@ public class JavaObject implements Objects, ObjectWrap {
 					try {
 						return mi.invoke(null);
 					}
-					catch (Exception e) {
-					}
+					catch (Exception e) {}
 				}
 			}
 			catch (PageException e) {
@@ -225,8 +224,7 @@ public class JavaObject implements Objects, ObjectWrap {
 			try {
 				fields[0].set(null, value);
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 			return value;
 		}
 		// Getter
@@ -237,8 +235,7 @@ public class JavaObject implements Objects, ObjectWrap {
 					return mi.invoke(null);
 				}
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 
 		try {
@@ -372,6 +369,21 @@ public class JavaObject implements Objects, ObjectWrap {
 	}
 
 	@Override
+	public String castToString(PageContext pc) throws PageException {
+		return Caster.toString(pc, getEmbededObject());
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		try {
+			return Caster.toString(pc, getEmbededObject(), defaultValue);
+		}
+		catch (PageException e) {
+			return defaultValue;
+		}
+	}
+
+	@Override
 	public boolean castToBooleanValue() throws PageException {
 		return Caster.toBooleanValue(getEmbededObject());
 	}
@@ -431,22 +443,22 @@ public class JavaObject implements Objects, ObjectWrap {
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) dt);
+		return OpUtil.compare(null, (Date) castToDateTime(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToDoubleValue(), Double.valueOf(d));
+		return OpUtil.compare(null, castToDoubleValue(), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
+		return OpUtil.compare(null, castToString(), str);
 	}
 
 }

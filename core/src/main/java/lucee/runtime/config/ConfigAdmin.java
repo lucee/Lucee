@@ -70,16 +70,13 @@ import lucee.commons.io.res.type.file.FileResourceProvider;
 import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
-import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.IPRange;
 import lucee.commons.net.URLEncoder;
-import lucee.commons.net.http.HTTPDownloader;
 import lucee.commons.net.http.HTTPEngine;
-import lucee.commons.net.http.HTTPResponse;
-import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
+import lucee.commons.net.http.HTTPEngineBasic.HTTPDownloaderHeadResponse;
 import lucee.commons.security.Credentials;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -96,6 +93,7 @@ import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.DataSourceFactory;
 import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -113,8 +111,9 @@ import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.gateway.GatewayEntryImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.monitor.Monitor;
+import lucee.runtime.mvn.MavenDeployer;
 import lucee.runtime.mvn.MavenUtil;
-import lucee.runtime.mvn.MavenUtil.GAVSO;
+import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -127,7 +126,6 @@ import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
-import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.schedule.ScheduleTask;
 import lucee.runtime.schedule.ScheduleTaskImpl;
 import lucee.runtime.search.SearchEngine;
@@ -212,11 +210,11 @@ public final class ConfigAdmin {
 		return new ConfigAdmin((ConfigPro) config, password);
 	}
 
-	public static ConfigAdmin newInstance(Config config, Password password, boolean optionalPW) throws IOException, PageException {
+	public static ConfigAdmin newInstance(Config config, Password password, boolean optionalPW) {
 		return new ConfigAdmin((ConfigPro) config, password, optionalPW);
 	}
 
-	private void checkWriteAccess() throws SecurityException {
+	public void checkWriteAccess() throws SecurityException {
 		if (!optionalPW) ConfigUtil.checkGeneralWriteAccess(config, password);
 	}
 
@@ -231,7 +229,7 @@ public final class ConfigAdmin {
 	 */
 	public void setPassword(Password password) throws SecurityException, IOException {
 		checkWriteAccess();
-		PasswordImpl.writeToStruct(root, password, false);
+		PasswordImpl.writeToStruct(root, password);
 	}
 
 	/*
@@ -272,63 +270,52 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private ConfigAdmin(ConfigPro config, Password password) throws IOException, PageException {
+	private ConfigAdmin(ConfigPro config, Password password) {
 		this.config = ConfigUtil.getConfigServerImpl(config);
 		this.password = password;
-		root = ConfigFactoryImpl.loadDocument(config, config.getConfigFile());
+		root = this.config.raw();
 	}
 
-	private ConfigAdmin(ConfigPro config, Password password, boolean optionalPW) throws IOException, PageException {
+	private ConfigAdmin(ConfigPro config, Password password, boolean optionalPW) {
 		this.config = ConfigUtil.getConfigServerImpl(config);
 		this.password = password;
-		root = ConfigFactoryImpl.loadDocument(config, config.getConfigFile());
+		root = this.config.raw();
 		this.optionalPW = optionalPW;
 	}
 
 	public static void checkForChangesInConfigFile(Config config) {
-		ConfigPro ci = (ConfigPro) config;
-		if (!ci.checkForChangesInConfigFile()) return;
+		ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
+		if (!cs.checkForChangesInConfigFile() || !wasConfigFileChangedOutside(cs)) return;
 
 		Resource file = config.getConfigFile();
-		long diff = file.lastModified() - ci.lastModified();
+		long diff = file.lastModified() - cs.configLastModified();
 		if (diff < 10 && diff > -10) return;
 		// reload
 		try {
-			ConfigAdmin admin = ConfigAdmin.newInstance(ci, null);
-			admin.storeAndReload(false, false, true, false);
-			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, "deploy", ConfigAdmin.class.getName(), "reloaded the configuration [" + file + "] automatically");
+			cs.load(file);
+			LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, "deploy", ConfigAdmin.class.getName(),
+					"reloaded the configuration [" + file + "] automatically");
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
 	}
 
-	protected static void _storeAndReload(ConfigPro config)
-			throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null, true);
-		admin.storeAndReload(false, true, true, false);
+	public static boolean wasConfigFileChangedOutside(ConfigServerImpl cs) {
+		Resource file = cs.getConfigFile();
+		long diff = file.lastModified() - cs.configLastModified();
+
+		return diff > 10 && diff < -10;
 	}
 
-	protected void _storeAndReload() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
-		storeAndReload(false, true, true, false);
+	public void store() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, ConverterException {
+		store(true);
 	}
 
-	public void storeAndReload() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
-		storeAndReload(true, true, true, false);
-	}
-
-	public void storeAndReload(boolean checkWriteAccess, boolean store, boolean reload, boolean refreshSchedulerWhenReload)
-			throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
-		if (!checkWriteAccess && !store && !reload) return;
+	public void store(boolean checkWriteAccess) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, ConverterException {
 		if (checkWriteAccess) checkWriteAccess();
-		if (store) _store();
-		if (reload) _reload(refreshSchedulerWhenReload);
+		_store();
 
-	}
-
-	public void storeAndReload(boolean refreshScheduler)
-			throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
-		storeAndReload(true, true, true, refreshScheduler);
 	}
 
 	private synchronized void _cleanup() {
@@ -347,16 +334,26 @@ public final class ConfigAdmin {
 
 	private void _store() throws ConverterException, IOException {
 		_cleanup();
-		ConfigFile.write(config.getConfigFile(), root);
+		config.update();
 
 	}
 
-	private void _reload(boolean refreshScheduler) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
+	protected static void _store(ConfigPro config) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null, true);
+		admin.store(false);
+	}
+
+	private void _reloadOLd(boolean refreshScheduler) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
 
 		// if(storeInMemoryData)XMLCaster.writeTo(doc,config.getConfigFile());
 		CFMLEngine engine = ConfigUtil.getCFMLEngine(config);
 		ConfigServerImpl cs = config;
-		ConfigFactoryImpl.reloadInstance(engine, cs);
+		try {
+			ConfigFactoryImpl.reloadInstance(engine, cs);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 		ConfigWeb[] webs = cs.getConfigWebs();
 		for (ConfigWeb web: webs) {
 			ConfigFactoryImpl.reloadInstance(engine, config, (ConfigWebImpl) web, true);
@@ -564,37 +561,34 @@ public final class ConfigAdmin {
 
 	protected static void updateMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
 			int inspectTemplateIntervalFast, boolean toplevel, int listenerMode, int listenerType, boolean listenerSingleton, boolean readonly, boolean reload)
-			throws IOException, PageException, BundleException, ConverterException {
+			throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._updateMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast, toplevel, listenerMode, listenerType,
 				listenerSingleton, readonly);
-		admin.storeAndReload(false, true, false, false);
+		admin.store(false);
 		ConfigUtil.getConfigWebIfPossible(config).resetMappings();
-		admin.storeAndReload(false, false, reload, false);
 	}
 
 	protected static void updateComponentMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
-			int inspectTemplateIntervalFast, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+			int inspectTemplateIntervalFast, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._updateComponentMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast);
-		admin.storeAndReload(false, true, false, false);
+		admin.store(false);
 		ConfigUtil.getConfigServerImpl(config).resetComponentMappings();
-		admin.storeAndReload(false, false, reload, false);
 	}
 
 	protected static void updateCustomTagMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
-			int inspectTemplateIntervalFast, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+			int inspectTemplateIntervalFast, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._updateCustomTag(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast);
-		admin.storeAndReload(false, true, false, false);
+		admin.store(false);
 		ConfigUtil.getConfigServerImpl(config).resetCustomTagMappings();
-		admin.storeAndReload(false, false, reload, false);
 	}
 
-	public static Array updateScheduledTask(ConfigPro config, ScheduleTask task, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+	public static Array updateScheduledTask(ConfigPro config, ScheduleTask task, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
 		admin._updateScheduledTask(task);
-		admin.storeAndReload(false, true, reload, false);
+		admin.store(false);
 		return admin._getScheduledTasks();
 	}
 
@@ -653,7 +647,7 @@ public final class ConfigAdmin {
 	}
 
 	public static void pauseScheduledTask(ConfigPro config, String name, boolean pause, boolean throwWhenNotExist, boolean reload)
-			throws PageException, IOException, ConverterException, BundleException {
+			throws PageException, IOException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
 		Struct data = null;
 		try {
@@ -664,14 +658,15 @@ public final class ConfigAdmin {
 			return;
 		}
 		data.setEL("paused", pause);
-
-		admin.storeAndReload(false, true, reload, false);
+		admin.store(false);
+		ConfigUtil.getConfigServerImpl(config).resetScheduledTasks();
 	}
 
-	public static void removeScheduledTask(ConfigPro config, String name, boolean reload) throws PageException, IOException, ConverterException, BundleException {
+	public static void removeScheduledTask(ConfigPro config, String name, boolean reload) throws PageException, IOException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
 		admin._removeScheduledTask(name);
-		admin.storeAndReload(false, true, reload, false);
+		admin.store(false);
+		ConfigUtil.getConfigServerImpl(config).resetScheduledTasks();
 	}
 
 	/**
@@ -698,36 +693,36 @@ public final class ConfigAdmin {
 				listenerSingleton, readOnly);
 	}
 
-	private void _updateMaven(GAVSO mvnEntry) throws PageException {
+	private void _updateMaven(MavenCoordinate coordinate) throws PageException {
 		Struct javasettings = _getRootElement("javasettings");
 		Array maven = ConfigUtil.getAsArray(config, javasettings, false, "maven", "mvn");
 
 		// update
-		GAVSO ex;
+		MavenCoordinate existingCoordinate;
 		Struct sct;
 		Iterator<Object> it = maven.valueIterator();
 		Version exVersion, newVersion;
 
 		while (it.hasNext()) {
 			sct = Caster.toStruct(it.next());
-			ex = MavenUtil.toGAVSO(sct);
+			existingCoordinate = MavenUtil.toCoordinate(sct);
 
 			// same GAV
-			if (ex.equals(mvnEntry)) {
-				LogUtil.logx(config, Log.LEVEL_INFO, "config", "Maven endpoint [" + mvnEntry + "] already exists", "deploy", "application");
+			if (existingCoordinate.equals(coordinate)) {
+				LogUtil.logx(config, Log.LEVEL_INFO, "config", "Maven endpoint [" + coordinate + "] already exists", "deploy", "application");
 				return;
 			}
 
 			// same GA, but different V
-			if (ex.same(mvnEntry)) {
-				newVersion = OSGiUtil.toVersion(mvnEntry.v, null);
+			if (existingCoordinate.same(coordinate)) {
+				newVersion = OSGiUtil.toVersion(coordinate.version, null);
 				if (newVersion == null) {
-					LogUtil.logx(config, Log.LEVEL_WARN, "config", "Skipping update for [" + mvnEntry + "], invalid version format", "deploy", "application");
+					LogUtil.logx(config, Log.LEVEL_WARN, "config", "Skipping update for [" + coordinate + "], invalid version format", "deploy", "application");
 					return;
 				}
 
 				try {
-					exVersion = OSGiUtil.toVersion(ex.v);
+					exVersion = OSGiUtil.toVersion(existingCoordinate.version);
 				}
 				catch (BundleException e) {
 					throw Caster.toPageException(e);
@@ -736,23 +731,23 @@ public final class ConfigAdmin {
 				// new version is bigger
 				int com = OSGiUtil.compare(newVersion, exVersion);
 				if (com > 0) {
-					LogUtil.logx(config, Log.LEVEL_INFO, "config", "Upgrading Maven endpoint from [" + ex + "] to [" + mvnEntry + "]", "deploy", "application");
-					sct.set(KeyConstants._version, mvnEntry.v);
+					LogUtil.logx(config, Log.LEVEL_INFO, "config", "Upgrading Maven endpoint from [" + existingCoordinate + "] to [" + coordinate + "]", "deploy", "application");
+					sct.set(KeyConstants._version, coordinate.version);
 				}
 				else if (com == 0) {
-					LogUtil.logx(config, Log.LEVEL_INFO, "config", "version [" + ex + "] already installed", "deploy", "application");
+					LogUtil.logx(config, Log.LEVEL_INFO, "config", "version [" + existingCoordinate + "] already installed", "deploy", "application");
 				}
 				else {
-					LogUtil.logx(config, Log.LEVEL_INFO, "config", "Skipping downgrade for [" + ex + "],newer version already installed", "deploy", "application");
+					LogUtil.logx(config, Log.LEVEL_INFO, "config", "Skipping downgrade for [" + existingCoordinate + "],newer version already installed", "deploy", "application");
 				}
 				return;
 			}
 		}
 
-		maven.append(mvnEntry.populate(new StructImpl(Struct.TYPE_LINKED)));
+		maven.append(coordinate.populate(new StructImpl(Struct.TYPE_LINKED)));
 	}
 
-	private void _removeMaven(MavenUtil.GAVSO gavso) {
+	private void _removeMaven(MavenUtil.MavenCoordinate coordinate) {
 		// MUST not sure if we really should remove them
 	}
 
@@ -1316,14 +1311,14 @@ public final class ConfigAdmin {
 		Version version = bf.getVersion();
 		if (version == null) version = OSGiUtil.toVersion(extVersion);
 
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
+		LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
 		BundleBuilderFactory bbf = new BundleBuilderFactory(resJar, name);
 		bbf.setVersion(version);
 		bbf.setIgnoreExistingManifest(false);
 		bbf.build();
 
 		bf = BundleFile.getInstance(resJar);
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "converted  [" + resJar + "] to an OSGi Bundle");
+		LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "converted  [" + resJar + "] to an OSGi Bundle");
 		return installBundle(config, bf);
 	}
 
@@ -1556,6 +1551,8 @@ public final class ConfigAdmin {
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name can't be an empty value");
 
+		cd = DataSourceFactory.resolveJDBCDriverClassDefinition(config, cd, id, dbdriver);
+
 		Struct children = ConfigUtil.getAsStruct("dataSources", root);
 		Key[] keys = children.keys();
 
@@ -1683,15 +1680,18 @@ public final class ConfigAdmin {
 
 	}
 
-	protected static void removeJDBCDriver(ConfigPro config, ClassDefinition cd, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+	protected static void removeJDBCDriver(ConfigServerImpl config, ClassDefinition cd, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._removeJDBCDriver(cd);
-		admin.storeAndReload(false, true, reload, false);
+		admin.store(false);
+		ConfigUtil.getConfigServerImpl(config).resetJDBCDrivers();
 	}
 
 	private void _removeJDBCDriver(ClassDefinition cd) throws PageException {
 
-		if (!cd.isBundle()) throw new ApplicationException("missing bundle name");
+		if (!cd.isBundle() && !(cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven())) {
+			throw new ApplicationException("missing bundle name or maven coordinates");
+		}
 
 		Struct children = ConfigUtil.getAsStruct("jdbcDrivers", root);
 		Key[] keys = children.keys();
@@ -1765,7 +1765,7 @@ public final class ConfigAdmin {
 	}
 
 	private void unloadStartupIfNecessary(ConfigPro config, ClassDefinition<?> cd, boolean force) {
-		ConfigBase.Startup startup = config.getStartups().get(cd.getClassName());
+		Startup startup = config.getStartups().get(cd.getClassName());
 		if (startup == null) return;
 		if (startup.cd.equals(cd) && !force) return;
 
@@ -1789,7 +1789,9 @@ public final class ConfigAdmin {
 		// check if label exists
 		if (StringUtil.isEmpty(label)) throw new ApplicationException("missing label for jdbc driver [" + cd.getClassName() + "]");
 		// check if it is a bundle
-		if (!cd.isBundle()) throw new ApplicationException("missing bundle name for [" + label + "]");
+		if (!cd.isBundle() && !(cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven())) {
+			throw new ApplicationException("missing OSGi bundle or Maven coordinates for [" + label + "]");
+		}
 
 		Struct children = ConfigUtil.getAsStruct("jdbcDrivers", root);
 		Key[] keys = children.keys();
@@ -1835,7 +1837,9 @@ public final class ConfigAdmin {
 	private void _updateStartupHook(ClassDefinitionImpl cd) throws PageException {
 		unloadStartupIfNecessary(config, cd, false);
 		// check if it is a bundle or maven
-		if (!cd.isBundle() && !cd.isMaven()) throw new ApplicationException("Cannot register extension startup hook [" + cd + "]: missing bundle name or maven coordinates");
+		if (!cd.isBundle() && !cd.isMaven()) {
+			throw new ApplicationException("Cannot register extension startup hook [" + cd + "]: missing bundle name or maven coordinates");
+		}
 
 		Array children = ConfigUtil.getAsArray("startupHooks", root);
 
@@ -1940,12 +1944,11 @@ public final class ConfigAdmin {
 		el.setEL("readOnly", Caster.toString(readOnly));
 	}
 
-	protected static void removeSearchEngine(ConfigPro config, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+	protected static void removeSearchEngine(ConfigPro config, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._removeSearchEngine();
-		admin.storeAndReload(false, true, false, false);
+		admin.store(false);
 		ConfigUtil.getConfigServerImpl(config).resetSearchEngineClassDefinition().resetSearchEngineDirectory();
-		admin.storeAndReload(false, false, reload, false);
 	}
 
 	private void _removeSearchEngine() {
@@ -1972,12 +1975,11 @@ public final class ConfigAdmin {
 
 	}
 
-	protected static void removeORMEngine(ConfigPro config, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+	protected static void removeORMEngine(ConfigPro config, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._removeORMEngine();
-		admin.storeAndReload(false, true, false, false);
+		admin.store(false);
 		ConfigUtil.getConfigServerImpl(config).resetORMEngineClassDefintion().resetORMConfig();
-		admin.storeAndReload(false, false, reload, false);
 	}
 
 	private void _removeORMEngine() {
@@ -2086,15 +2088,11 @@ public final class ConfigAdmin {
 		// following names are reserved words [object,template]");
 
 		try {
-			Class clazz;
-			if (cd.getClassName() != null && cd.getClassName().endsWith(".EHCacheLite"))
-				clazz = ClassUtil.loadClass(config.getClassLoader(), "org.lucee.extension.cache.eh.EHCache");
-			else clazz = ClassUtil.loadClass(config.getClassLoader(), cd.getClassName());
-
+			Class clazz = cd.getClazz();
 			if (!Reflector.isInstaneOf(clazz, Cache.class, false)) throw new ExpressionException("class [" + clazz.getName() + "] is not of type [" + Cache.class.getName() + "]");
 		}
-		catch (ClassException e) {
-			throw new ExpressionException(e.getMessage());
+		catch (ClassException | BundleException e) {
+			throw Caster.toPageException(e);
 		}
 
 		Struct parent = _getRootElement("cache");
@@ -2201,42 +2199,6 @@ public final class ConfigAdmin {
 		}
 		else if (type == ConfigPro.CACHE_TYPE_WEBSERVICE) {
 			rem(parent, "defaultWebservice");
-		}
-	}
-
-	public void updateCacheDefaultConnection(int type, String name) throws PageException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
-
-		if (!hasAccess) throw new SecurityException("no access to update cache default connections");
-
-		Struct parent = _getRootElement("cache");
-		if (type == ConfigPro.CACHE_TYPE_OBJECT) {
-			parent.setEL("defaultObject", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_TEMPLATE) {
-			parent.setEL("defaultTemplate", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_QUERY) {
-			parent.setEL("defaultQuery", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_RESOURCE) {
-			parent.setEL("defaultResource", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_FUNCTION) {
-			parent.setEL("defaultFunction", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_INCLUDE) {
-			parent.setEL("defaultInclude", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_HTTP) {
-			parent.setEL("defaultHttp", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_FILE) {
-			parent.setEL("defaultFile", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_WEBSERVICE) {
-			parent.setEL("defaultWebservice", name);
 		}
 	}
 
@@ -2384,7 +2346,7 @@ public final class ConfigAdmin {
 		String cn = ConfigUtil.getAsString("class", p, null);
 		String name = ConfigUtil.getAsString("bundleName", p, null);
 		String version = ConfigUtil.getAsString("bundleVersion", p, null);
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(p, null, false, ThreadLocalPageContext.getConfig().getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(p, null, false, ThreadLocalPageContext.getConfigServer().getIdentification());
 		String scheme = Caster.toString(p.get("scheme", null), null);
 		if (StringUtil.isEmpty(scheme)) {
 			try {
@@ -2448,6 +2410,7 @@ public final class ConfigAdmin {
 
 			if (key.getString().equalsIgnoreCase(name)) {
 				children.removeEL(key);
+				config.removeDatasourceConnectionPool(name);
 			}
 		}
 	}
@@ -2583,75 +2546,6 @@ public final class ConfigAdmin {
 	}
 
 	/**
-	 * update PSQ State
-	 * 
-	 * @param psq Preserver Single Quote
-	 * @throws SecurityException
-	 */
-	public void updatePSQ(Boolean psq) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DATASOURCE);
-
-		if (!hasAccess) throw new SecurityException("no access to update datasource connections");
-
-		root.setEL("preserveSingleQuote", Caster.toBooleanValue(psq, true));
-	}
-
-	public void updateInspectTemplate(String inspectTemplate, int inspectTemplateIntervalSlow, int inspectTemplateIntervalFast) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update");
-
-		root.setEL("inspectTemplate", inspectTemplate);
-		root.setEL("inspectTemplateIntervalSlow", inspectTemplateIntervalSlow);
-		root.setEL("inspectTemplateIntervalFast", inspectTemplateIntervalFast);
-
-	}
-
-	public void updateTypeChecking(Boolean typeChecking) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update");
-
-		if (typeChecking == null) rem(root, "typeChecking");
-		else root.setEL("typeChecking", Caster.toString(typeChecking.booleanValue()));
-
-	}
-
-	public void updateCachedAfterTimeRange(TimeSpan ts) throws SecurityException, ApplicationException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update");
-
-		if (ts == null) rem(root, "cachedAfter");
-		else {
-			if (ts.getMillis() < 0) throw new ApplicationException("value cannot be a negative number");
-			root.setEL("cachedAfter", ts.getDay() + "," + ts.getHour() + "," + ts.getMinute() + "," + ts.getSecond());
-		}
-	}
-
-	/**
-	 * sets the scope cascading type
-	 * 
-	 * @param type (SCOPE_XYZ)
-	 * @throws SecurityException
-	 */
-	public void updateScopeCascadingType(String type) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		if (type.equalsIgnoreCase("strict")) root.setEL("scopeCascading", "strict");
-		else if (type.equalsIgnoreCase("small")) root.setEL("scopeCascading", "small");
-		else if (type.equalsIgnoreCase("standard")) root.setEL("scopeCascading", "standard");
-		else root.setEL("scopeCascading", "standard");
-
-	}
-
-	/**
 	 * sets the scope cascading type
 	 * 
 	 * @param type (SCOPE_XYZ)
@@ -2668,52 +2562,6 @@ public final class ConfigAdmin {
 
 	}
 
-	/**
-	 * sets if allowed implicid query call
-	 * 
-	 * @param allow
-	 * @throws SecurityException
-	 */
-	public void updateAllowImplicidQueryCall(Boolean allow) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("cascadeToResultset", allow);
-
-	}
-
-	public void updateMergeFormAndUrl(Boolean merge) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("mergeUrlForm", merge);
-
-	}
-
-	/**
-	 * updates request timeout value
-	 * 
-	 * @param span
-	 * @throws SecurityException
-	 * @throws ApplicationException
-	 */
-	public void updateRequestTimeout(TimeSpan span) throws SecurityException, ApplicationException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		if (span != null) {
-			if (span.getMillis() <= 0) throw new ApplicationException("value must be a positive number");
-			root.setEL("requestTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		}
-		else rem(root, "requestTimeout");
-	}
-
 	public void updateApplicationPathTimeout(TimeSpan span) throws SecurityException, ApplicationException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
@@ -2725,138 +2573,6 @@ public final class ConfigAdmin {
 			root.setEL("applicationPathTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
 		}
 		else rem(root, "applicationPathTimeout");
-	}
-
-	/**
-	 * updates session timeout value
-	 * 
-	 * @param span
-	 * @throws SecurityException
-	 */
-	public void updateSessionTimeout(TimeSpan span) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		if (span != null) root.setEL("sessiontimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else rem(root, "sessiontimeout");
-	}
-
-	public void updateClientStorage(String storage) throws SecurityException, ApplicationException {
-		updateStorage("client", storage);
-	}
-
-	public void updateSessionStorage(String storage) throws SecurityException, ApplicationException {
-		updateStorage("session", storage);
-	}
-
-	private void updateStorage(String storageName, String storage) throws SecurityException, ApplicationException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-		storage = validateStorage(storage);
-
-		if (!StringUtil.isEmpty(storage, true)) root.setEL(storageName + "Storage", storage);
-		else rem(root, storageName + "Storage");
-	}
-
-	private String validateStorage(String storage) throws ApplicationException {
-		storage = storage.trim().toLowerCase();
-
-		// empty
-		if (StringUtil.isEmpty(storage, true)) return "";
-
-		// standard storages
-		if ("cookie".equals(storage) || "memory".equals(storage) || "file".equals(storage)) return storage;
-
-		// aliases
-		if ("ram".equals(storage)) return "memory";
-		if ("registry".equals(storage)) return "file";
-
-		// datasource
-		DataSource ds = config.getDataSource(storage, null);
-		if (ds != null) {
-			if (ds.isStorage()) return storage;
-			throw new ApplicationException("datasource [" + storage + "] is not enabled to be used as session/client storage");
-		}
-
-		// cache
-		CacheConnection cc = CacheUtil.getCacheConnection(ThreadLocalPageContext.get(config), storage, null);
-		if (cc != null) {
-			if (cc.isStorage()) return storage;
-			throw new ApplicationException("cache [" + storage + "] is not enabled to be used as session/client storage");
-		}
-
-		String sdx = StringUtil.soundex(storage);
-
-		// check if a datasource has a similar name
-		DataSource[] sources = config.getDataSources();
-		for (int i = 0; i < sources.length; i++) {
-			if (StringUtil.soundex(sources[i].getName()).equals(sdx))
-				throw new ApplicationException("no matching storage for [" + storage + "] found, did you mean [" + sources[i].getName() + "]");
-		}
-
-		// check if a cache has a similar name
-		Iterator<String> it = config.getCacheConnections().keySet().iterator();
-		String name;
-		while (it.hasNext()) {
-			name = it.next();
-			if (StringUtil.soundex(name).equals(sdx)) throw new ApplicationException("no matching storage for [" + storage + "] found, did you mean [" + name + "]");
-		}
-
-		throw new ApplicationException("no matching storage for [" + storage + "] found");
-	}
-
-	/**
-	 * updates session timeout value
-	 * 
-	 * @param span
-	 * @throws SecurityException
-	 */
-	public void updateClientTimeout(TimeSpan span) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		if (span != null) root.setEL("clientTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else rem(root, "clientTimeout");
-	}
-
-	public void updateCFMLWriterType(String writerType) throws SecurityException, ApplicationException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		writerType = writerType.trim();
-
-		// remove
-		if (StringUtil.isEmpty(writerType)) {
-			if (root.containsKey("cfmlWriter")) rem(root, "cfmlWriter");
-			return;
-		}
-
-		if ("smart".equalsIgnoreCase(writerType)) writerType = "white-space-pref";
-		else if (Decision.isBoolean(writerType)) {
-			writerType = Caster.toBooleanValue(writerType, false) ? "white-space" : "regular";
-		}
-
-		// update
-		if (!"white-space".equalsIgnoreCase(writerType) && !"white-space-pref".equalsIgnoreCase(writerType) && !"regular".equalsIgnoreCase(writerType))
-			throw new ApplicationException("invalid writer type definition [" + writerType + "], valid types are [white-space, white-space-pref, regular]");
-
-		root.setEL("cfmlWriter", writerType.toLowerCase());
-	}
-
-	public void updateSuppressContent(Boolean value) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("suppressContent", Caster.toString(value, ""));
 	}
 
 	public void updateShowVersion(Boolean value) throws SecurityException {
@@ -2884,31 +2600,6 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		root.setEL("showContentLength", Caster.toString(value, ""));
-	}
-
-	public void updateBufferOutput(Boolean value) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("bufferTagBodyOutput", value);
-	}
-
-	/**
-	 * updates request timeout value
-	 * 
-	 * @param span
-	 * @throws SecurityException
-	 */
-	public void updateApplicationTimeout(TimeSpan span) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		if (span != null) root.setEL("applicationTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else rem(root, "applicationTimeout");
 	}
 
 	public void updateApplicationListener(String type, String mode, Boolean singleton) throws SecurityException {
@@ -2965,21 +2656,6 @@ public final class ConfigAdmin {
 	}
 
 	/**
-	 * enable or desable client management
-	 * 
-	 * @param clientManagement
-	 * @throws SecurityException
-	 */
-	public void updateClientManagement(Boolean clientManagement) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("clientManagement", Caster.toString(clientManagement, ""));
-	}
-
-	/**
 	 * set if client cookies are enabled or not
 	 * 
 	 * @param clientCookies
@@ -2993,48 +2669,6 @@ public final class ConfigAdmin {
 		root.setEL("clientCookies", clientCookies);
 	}
 
-	/**
-	 * set if it's develop mode or not
-	 * 
-	 * @param developmode
-	 * @throws SecurityException
-	 */
-	public void updateMode(Boolean developmode) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("developMode", Caster.toString(developmode, ""));
-	}
-
-	/**
-	 * set if domain cookies are enabled or not
-	 * 
-	 * @param domainCookies
-	 * @throws SecurityException
-	 */
-	public void updateDomaincookies(Boolean domainCookies) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("domainCookies", Caster.toString(domainCookies, ""));
-	}
-
-	/**
-	 * update the locale
-	 * 
-	 * @param locale
-	 * @throws SecurityException
-	 */
-	public void updateLocale(String locale) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update regional setting");
-
-		root.setEL("locale", locale.trim());
-	}
-
 	public void updateMonitorEnabled(boolean updateMonitorEnabled) throws SecurityException {
 		checkWriteAccess();
 		_updateMonitorEnabled(updateMonitorEnabled);
@@ -3043,52 +2677,6 @@ public final class ConfigAdmin {
 	void _updateMonitorEnabled(boolean updateMonitorEnabled) {
 		Struct monitoring = ConfigUtil.getAsStruct("monitoring", root);
 		monitoring.setEL(KeyConstants._enabled, updateMonitorEnabled);
-	}
-
-	public void updateScriptProtect(String strScriptProtect) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update script protect");
-
-		root.setEL("scriptProtect", strScriptProtect.trim());
-	}
-
-	public void updateAllowURLRequestTimeout(Boolean allowURLRequestTimeout) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update AllowURLRequestTimeout");
-
-		root.setEL("requestTimeoutInURL", Caster.toString(allowURLRequestTimeout, ""));
-	}
-
-	public void updateScriptProtect(int scriptProtect) throws SecurityException {
-		updateScriptProtect(AppListenerUtil.translateScriptProtect(scriptProtect));
-	}
-
-	/**
-	 * update the timeZone
-	 * 
-	 * @param timeZone
-	 * @throws SecurityException
-	 */
-	public void updateTimeZone(String timeZone) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update regional setting");
-
-		root.setEL("timezone", timeZone.trim());
-
-	}
-
-	public void updateComponentDeepSearch(Boolean deepSearch) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update component setting");
-		if (deepSearch != null) root.setEL("componentDeepSearch", Caster.toString(deepSearch.booleanValue()));
-		else {
-			if (root.containsKey("componentDeepSearch")) rem(root, "componentDeepSearch");
-		}
-
 	}
 
 	public void updateComponentDefaultImport(String componentDefaultImport) throws SecurityException {
@@ -3126,51 +2714,12 @@ public final class ConfigAdmin {
 		}
 	}
 
-	/**
-	 * update the Component Data Member default access type
-	 * 
-	 * @param triggerDataMember
-	 * @throws SecurityException
-	 */
-	public void updateTriggerDataMember(Boolean triggerDataMember) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update trigger-data-member");
-
-		root.setEL("componentImplicitNotation", Caster.toString(triggerDataMember, ""));
-	}
-
-	public void updateComponentUseShadow(Boolean useShadow) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update use-shadow");
-
-		root.setEL("componentUseVariablesScope", Caster.toString(useShadow, ""));
-	}
-
 	public void updateComponentLocalSearch(Boolean componentLocalSearch) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component Local Search");
 
 		root.setEL("componentLocalSearch", Caster.toString(componentLocalSearch, ""));
-	}
-
-	public void updateComponentPathCache(Boolean componentPathCache) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update component Cache Path");
-
-		if (!Caster.toBooleanValue(componentPathCache, false)) config.clearComponentCache();
-		root.setEL("componentUseCachePath", Caster.toString(componentPathCache, ""));
-	}
-
-	public void updateCTPathCache(Boolean ctPathCache) throws SecurityException {
-		checkWriteAccess();
-		if (!ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("no access to update custom tag setting");
-
-		if (!Caster.toBooleanValue(ctPathCache, false)) config.clearCTCache();
-		root.setEL("customTagUseCachePath", Caster.toString(ctPathCache, ""));
 	}
 
 	public void updateSecurity(String varUsage, Boolean limitEvaluation) throws SecurityException {
@@ -3185,113 +2734,6 @@ public final class ConfigAdmin {
 			else rem(el, "limitEvaluation");
 		}
 
-	}
-
-	/**
-	 * updates if debugging or not
-	 * 
-	 * @param debug if value is null server setting is used
-	 * @throws SecurityException
-	 */
-	public void updateDebug(Boolean debug, Boolean template, Boolean database, Boolean exception, Boolean tracing, Boolean dump, Boolean timer, Boolean implicitAccess,
-			Boolean queryUsage, Boolean thread) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
-		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
-
-		if (debug != null) root.setEL("debuggingEnabled", debug.booleanValue());
-		else rem(root, "debuggingEnabled");
-
-		if (database != null) root.setEL("debuggingDatabase", database.booleanValue());
-		else rem(root, "debuggingDatabase");
-
-		if (template != null) root.setEL("debuggingTemplate", template.booleanValue());
-		else rem(root, "debuggingTemplate");
-
-		if (exception != null) root.setEL("debuggingException", exception.booleanValue());
-		else rem(root, "debuggingException");
-
-		if (tracing != null) root.setEL("debuggingTracing", tracing.booleanValue());
-		else rem(root, "debuggingTracing");
-
-		if (dump != null) root.setEL("debuggingDump", dump.booleanValue());
-		else rem(root, "debuggingDump");
-
-		if (timer != null) root.setEL("debuggingTimer", timer.booleanValue());
-		else rem(root, "debuggingTimer");
-
-		if (implicitAccess != null) root.setEL("debuggingImplicitAccess", implicitAccess.booleanValue());
-		else rem(root, "debuggingImplicitAccess");
-
-		if (queryUsage != null) root.setEL("debuggingQueryUsage", queryUsage.booleanValue());
-		else rem(root, "debuggingQueryUsage");
-
-		if (thread != null) root.setEL("debuggingThread", thread.booleanValue());
-		else rem(root, "debuggingThread");
-	}
-
-	public void updateMonitoring(Boolean debug, Boolean metric, Boolean doc, Boolean test) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
-		if (!hasAccess) throw new SecurityException("no access to change monitoring settings");
-
-		if (debug != null) root.setEL("showDebug", debug.booleanValue());
-		else rem(root, "showDebug");
-
-		if (metric != null) root.setEL("showMetric", metric.booleanValue());
-		else rem(root, "showMetric");
-
-		if (doc != null) root.setEL("showDoc", doc.booleanValue());
-		else rem(root, "showDoc");
-
-		if (test != null) root.setEL("showTest", test.booleanValue());
-		else rem(root, "showTest");
-	}
-
-	/**
-	 * updates the ErrorTemplate
-	 * 
-	 * @param template
-	 * @throws SecurityException
-	 */
-	public void updateErrorTemplate(int statusCode, String template) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to change error settings");
-
-		if (statusCode == 404) root.setEL("errorMissingTemplate", template);
-		else root.setEL("errorGeneralTemplate", template);
-	}
-
-	public void updateErrorStatusCode(Boolean doStatusCode) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to change error settings");
-
-		root.setEL("errorStatusCode", Caster.toString(doStatusCode, ""));
-	}
-
-	public void updateRegexType(String type) throws PageException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to change regex settings");
-
-		if (StringUtil.isEmpty(type)) rem(root, "regexType");
-		else root.setEL("regexType", RegexFactory.toType(RegexFactory.toType(type), "perl"));
-	}
-
-	/**
-	 * updates the DebugTemplate
-	 * 
-	 * @param template
-	 * @throws SecurityException
-	 */
-	public void updateComponentDumpTemplate(String template) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update component setting");
-
-		root.setEL("componentDumpTemplate", template);
 	}
 
 	private Struct _getRootElement(String name) {
@@ -3476,70 +2918,6 @@ public final class ConfigAdmin {
 	}
 
 	/**
-	 * @return returns the default password
-	 * @throws SecurityException
-	 */
-	public Password getDefaultPassword() throws SecurityException {
-		checkReadAccess();
-		return config.getDefaultPassword();
-	}
-
-	/**
-	 * @param password
-	 * @throws SecurityException
-	 * @throws IOException
-	 * @throws DOMException
-	 */
-	public void updateDefaultPassword(String password) throws SecurityException, IOException {
-		// MUST this is not very good, make it better
-		checkWriteAccess();
-		config.setDefaultPassword(PasswordImpl.writeToStruct(root, password, true));
-	}
-
-	public void removeDefaultPassword() throws SecurityException {
-		checkWriteAccess();
-		PasswordImpl.removeFromStruct(root, true);
-		config.resetDefaultPassword();
-	}
-
-	/**
-	 * session type update
-	 * 
-	 * @param type
-	 * @throws SecurityException
-	 */
-	public void updateSessionType(String type) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		type = type.toLowerCase().trim();
-
-		root.setEL("sessionType", type);
-	}
-
-	public void updateLocalMode(String mode) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		mode = mode.toLowerCase().trim();
-		root.setEL("localScopeMode", mode);
-	}
-
-	public void updateRestList(Boolean list) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = true;
-		if (!hasAccess) throw new SecurityException("no access to update rest setting");
-
-		Struct rest = _getRootElement("rest");
-		if (list == null) {
-			if (rest.containsKey("list")) rem(rest, "list");
-		}
-		else rest.setEL("list", Caster.toString(list.booleanValue()));
-	}
-
-	/**
 	 * updates update settingd for Lucee
 	 * 
 	 * @param type
@@ -3647,7 +3025,7 @@ public final class ConfigAdmin {
 
 		synchronized (factory) {
 			try {
-				cleanUp(factory);
+				cleanUp(factory, cs);
 				factory.update(cs.getPassword(), cs.getIdentification());
 			}
 			catch (Exception e) {
@@ -3697,7 +3075,7 @@ public final class ConfigAdmin {
 
 		try {
 			CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
-			cleanUp(factory);
+			cleanUp(factory, cs);
 			// do we have the core file?
 			final File patchDir = factory.getPatchDirectory();
 			File localPath = new File(version.toString() + ".lco");
@@ -3754,7 +3132,7 @@ public final class ConfigAdmin {
 
 		try {
 			CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
-			cleanUp(factory);
+			cleanUp(factory, cs);
 			// do we have the core file?
 			final File patchDir = factory.getPatchDirectory();
 			File localPath = new File(version.toString() + ".lco");
@@ -3796,7 +3174,8 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private void cleanUp(CFMLEngineFactory factory) throws IOException {
+	private void cleanUp(CFMLEngineFactory factory, ConfigServerImpl cs) throws IOException {
+		cs.shutdown();
 		final File patchDir = factory.getPatchDirectory();
 		final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
 		for (final File patch: patches) {
@@ -3819,7 +3198,7 @@ public final class ConfigAdmin {
 		// copy it to local directory
 		if (newLucee.createNewFile()) {
 			try {
-				HTTPDownloader.downloadToFile(updateUrl, newLucee, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT);
+				HTTPEngine.downloadToFile(updateUrl, newLucee, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT);
 
 				// when it is a loader extract the core from it
 				File tmp = CFMLEngineFactory.extractCoreIfLoader(newLucee);
@@ -3849,7 +3228,7 @@ public final class ConfigAdmin {
 
 		;
 		try {
-			IOUtil.copy(new MavenUpdateProvider().getCore(version), new FileOutputStream(newLucee), true, true);
+			IOUtil.copy(new MavenUpdateProvider(config).getCore(version), new FileOutputStream(newLucee), true, true);
 		}
 		catch (PageException e) {
 			throw e;
@@ -3876,7 +3255,7 @@ public final class ConfigAdmin {
 
 		synchronized (factory) {
 			try {
-				cleanUp(factory);
+				cleanUp(factory, cs);
 				factory.restart(cs.getPassword());
 			}
 			catch (Exception e) {
@@ -3890,6 +3269,8 @@ public final class ConfigAdmin {
 
 		synchronized (factory) {
 			try {
+				cs.shutdown();
+
 				// Get a lookup instance for accessing private methods
 				MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(factory.getClass(), MethodHandles.lookup());
 
@@ -3984,20 +3365,13 @@ public final class ConfigAdmin {
 		IOUtil.write(storage, wddx, "UTF-8", false);
 	}
 
-	public Object storageGet(Config config, String key) throws ConverterException, IOException, SecurityException {
+	public Object storageGet(PageContext pc, Config config, String key) throws ConverterException, IOException, SecurityException {
 		checkReadAccess();
 		Resource storageDir = getStoragDir(config);
 		Resource storage = storageDir.getRealResource(key + ".wddx");
 		if (!storage.exists()) throw new IOException("There is no storage named [" + key + "]");
 		WDDXConverter converter = new WDDXConverter(config.getTimeZone(), true, true);
-		return converter.deserialize(IOUtil.toString(storage, "UTF-8"), true);
-	}
-
-	public void updateCustomTagDeepSearch(boolean customTagDeepSearch) throws SecurityException {
-		checkWriteAccess();
-		if (!ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
-
-		root.setEL("customTagDeepSearch", Caster.toString(customTagDeepSearch));
+		return converter.deserialize(pc, IOUtil.toString(storage, "UTF-8"), true);
 	}
 
 	public void resetId() throws PageException {
@@ -4010,25 +3384,6 @@ public final class ConfigAdmin {
 			throw Caster.toPageException(e);
 		}
 
-	}
-
-	public void updateCustomTagLocalSearch(boolean customTagLocalSearch) throws SecurityException {
-		checkWriteAccess();
-		if (!ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
-		root.setEL("customTagLocalSearch", Caster.toString(customTagLocalSearch));
-	}
-
-	public void updateCustomTagExtensions(String extensions) throws PageException {
-		checkWriteAccess();
-		if (!ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
-
-		// check
-		Array arr = ListUtil.listToArrayRemoveEmpty(extensions, ',');
-		ListUtil.trimItems(arr);
-		// throw new ApplicationException("you must define at least one extension");
-
-		// update charset
-		root.setEL("customTagExtensions", ListUtil.arrayToList(arr, ","));
 	}
 
 	public void updateRemoteClient(String label, String url, String type, String securityKey, String usage, String adminPassword, String serverUsername, String serverPassword,
@@ -4242,12 +3597,11 @@ public final class ConfigAdmin {
 		IOUtil.closeEL(monitor);
 	}
 
-	protected static void removeCacheHandler(ConfigPro config, String id, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+	protected static void removeCacheHandler(ConfigPro config, String id, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._removeCacheHandler(id);
-		admin.storeAndReload(false, true, false, false);
+		admin.store(false);
 		ConfigUtil.getConfigServerImpl(config).resetCacheHandlers();
-		admin.storeAndReload(false, false, reload, false);
 	}
 
 	private void _removeCache(ClassDefinition cd) {
@@ -4377,51 +3731,41 @@ public final class ConfigAdmin {
 		root.setEL("extensionEnabled", enabled);
 	}
 
-	public void updateRHExtensionProvider(String strUrl) throws MalformedURLException, PageException {
-		updateExtensionProvider(strUrl);
-	}
-
-	public void updateExtensionProvider(String strUrl) throws MalformedURLException, PageException {
+	public void updateExtensionGroups(String groupId) throws PageException {
 		Array children = ConfigUtil.getAsArray("extensionProviders", root);
-		strUrl = strUrl.trim();
-
-		URL _url = HTTPUtil.toURL(strUrl, HTTPUtil.ENCODED_NO);
-		strUrl = _url.toExternalForm();
+		groupId = groupId.trim();
 
 		// Update
-		String url;
+		String g;
 		for (int i = 1; i <= children.size(); i++) {
-			url = Caster.toString(children.get(i, null), null);
-			if (url == null) continue;
+			g = Caster.toString(children.get(i, null), null);
+			if (g == null) continue;
 
-			if (url.trim().equalsIgnoreCase(strUrl)) {
+			if (g.trim().equalsIgnoreCase(groupId)) {
 				return;
 			}
 		}
 
 		// Insert
-		children.prepend(strUrl);
+		children.prepend(groupId);
 	}
 
-	public void removeExtensionProvider(String strUrl) {
+	public void removeExtensionGroups(String groupId) {
 		Array children = ConfigUtil.getAsArray("extensionProviders", root);
 		Key[] keys = children.keys();
-		strUrl = strUrl.trim();
-		String url;
+		groupId = groupId.trim();
+		String g;
+
 		for (int i = keys.length - 1; i >= 0; i--) {
 			Key key = keys[i];
-			url = Caster.toString(children.get(key, null), null);
-			if (url == null) continue;
+			g = Caster.toString(children.get(key, null), null);
+			if (g == null) continue;
 
-			if (url.trim().equalsIgnoreCase(strUrl)) {
+			if (g.trim().equalsIgnoreCase(groupId)) {
 				children.removeEL(key);
 				return;
 			}
 		}
-	}
-
-	public void removeRHExtensionProvider(String strUrl) {
-		removeExtensionProvider(strUrl);
 	}
 
 	public void resetORMSetting() throws SecurityException {
@@ -4478,7 +3822,7 @@ public final class ConfigAdmin {
 		try {
 			ConfigAdmin admin = new ConfigAdmin(config, null);
 			admin.updateArchive(config, arc);
-			admin.storeAndReload(false, true, reload, false);
+			admin.store(false);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -4602,84 +3946,50 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public static RHExtension _updateRHExtension(ConfigPro config, ExtensionDefintion ext, ResetFilter filter, boolean reload, boolean force, short action) throws PageException {
+	public static RHExtension _updateRHExtension(ConfigPro config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force, short action, Log log)
+			throws PageException {
 		try {
 			ConfigAdmin admin = new ConfigAdmin(config, null, true);
-			return admin.updateRHExtension(config, ext, filter, reload, force, action);
+			return admin.updateExtension(config, rhext, filter, reload, force, action, log);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	public static RHExtension _updateRHExtension(ConfigPro config, Resource ext, ResetFilter filter, boolean reload, boolean force, short action) throws PageException {
-		try {
-			ConfigAdmin admin = new ConfigAdmin(config, null, true);
-			return admin.updateRHExtension(config, ext, filter, reload, force, action);
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
-	}
-
-	protected static void _updateRHExtension(ConfigPro config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force) throws PageException {
-		try {
-			ConfigAdmin admin = new ConfigAdmin(config, null, true);
-			admin.updateExtension(config, rhext, filter, reload, force);
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
-	}
-
-	public RHExtension updateRHExtension(Config config, ExtensionDefintion ext, ResetFilter filter, boolean reload, boolean force, short action) throws PageException {
-		RHExtension rhext = RHExtension.getInstance(config, ext);
+	private RHExtension updateExtension(Config config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force, short action, Log log) throws PageException {
 		synchronized (SystemUtil.createToken("updateExtension", rhext.getId())) {
+			// install
 			try {
-				rhext = RHExtension.getInstance(config, ext);
-				if (RHExtension.ACTION_COPY == action) rhext.copyToInstalled(config);
-				else if (RHExtension.ACTION_MOVE == action) rhext.moveToInstalled(config);
-				rhext.validate(config);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				throw Caster.toPageException(t);
-			}
-			unSyncUpdateExtension(config, rhext, filter, reload, force);
-		}
-		return rhext;
-	}
 
-	public RHExtension updateRHExtension(Config config, Resource ext, ResetFilter filter, boolean reload, boolean force, short action) throws PageException {
-		RHExtension rhext = RHExtension.getInstance(config, ext);
-		synchronized (SystemUtil.createToken("updateExtension", rhext.getId())) {
+				unSyncUpdateExtension(config, rhext, filter, reload, force, log);
+			}
+			catch (Exception ex) {
+				RHExtension.flush(rhext);
+				throw Caster.toPageException(ex);
+			}
+
 			try {
-				if (RHExtension.ACTION_COPY == action) rhext.copyToInstalled(config);
-				else if (RHExtension.ACTION_MOVE == action) rhext.moveToInstalled(config);
-				rhext.validate(config);
+				rhext.addToAvailable(config);
+				if (RHExtension.ACTION_COPY == action) rhext.act(config, RHExtension.ACTION_COPY);
+				else if (RHExtension.ACTION_MOVE == action) rhext.act(config, RHExtension.ACTION_MOVE);
 			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				if (ext != null) DeployHandler.moveToFailedFolder(ext.getParentResource(), ext);
-				throw Caster.toPageException(t);
+			catch (Exception ex) {
+				throw Caster.toPageException(ex);
 			}
-			unSyncUpdateExtension(config, rhext, filter, reload, force);
-		}
-		return rhext;
-	}
-
-	private void updateExtension(Config config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force) throws PageException {
-		synchronized (SystemUtil.createToken("updateExtension", rhext.getId())) {
-			unSyncUpdateExtension(config, rhext, filter, reload, force);
+			return rhext;
 		}
 	}
 
-	private void unSyncUpdateExtension(Config config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force) throws PageException {
+	private void unSyncUpdateExtension(Config config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force, Log log) throws PageException {
+		if (LogUtil.doesDebug(log)) {
+			log.debug("extension", "install extension [" + rhext.toExtensionDefinition() + "] ");
+		}
 
+		rhext.validate(config);
 		// MUST 7 rest all values set
 		try {
-			if (!force && _hasRHExtensionInstalled((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
-
+			if (!force && rhext.installed()) {
 				throw new AlreadyInstalledExtension(rhext);
 			}
 		}
@@ -4687,20 +3997,19 @@ public final class ConfigAdmin {
 			throw Caster.toPageException(e);
 		}
 
+		filter.add("resetExtensionDefinitions", "resetRHExtensions");
+
 		ConfigPro ci = (ConfigPro) config;
 		Log logger = ThreadLocalPageContext.getLog(ci, "deploy");
 		String type = ci instanceof ConfigWeb ? "web" : "server";
-		// load already installed previous version and uninstall the parts no longer needed
-		String installedVersion = getInstalledExtensionVersion(ci, rhext.getId(), null);
 
-		if (installedVersion != null && installedVersion.compareTo(rhext.getVersion()) != 0) {
+		// is there a existing extension with a different version?
+		RHExtension other = RHExtension.getInstalledDifferentVersion(config, rhext.toExtensionDefinition(), log);
+		if (other != null) {
 			try {
-				RHExtension existingRH = RHExtension.getInstance(config, rhext.getId(), installedVersion);
-				synchronized (SystemUtil.createToken("updateExtension", existingRH.getId())) {
-					unSyncRemoveExtension(config, existingRH, rhext, filter, true);
+				synchronized (SystemUtil.createToken("updateExtension", other.getId())) {
+					unSyncRemoveExtension(config, other, rhext, filter, true, log);
 				}
-				filter.add("resetExtensionDefinitions", "resetRHExtensions");
-
 			}
 			catch (Exception e) {
 				logger.error("extension", e);
@@ -4870,7 +4179,7 @@ public final class ConfigAdmin {
 				while (itl.hasNext()) {
 					map = itl.next();
 					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
-					if (cd != null && cd.isBundle()) {
+					if (cd != null && (cd.isBundle() || (cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven()))) {
 						_updateCache(cd);
 						filter.add("resetCacheDefinitions");
 						filter.add("resetCacheAll");
@@ -4917,16 +4226,16 @@ public final class ConfigAdmin {
 
 			// update Maven
 			if (!ArrayUtil.isEmpty(rhext.getMetadata().getMaven())) {
-				Iterator<GAVSO> itl = rhext.getMetadata().getMaven().iterator();
-				GAVSO gavso;
+				Iterator<MavenCoordinate> itl = rhext.getMetadata().getMaven().iterator();
+				MavenCoordinate coordinate;
 				while (itl.hasNext()) {
-					gavso = itl.next();
-					if (gavso != null) {
-						_updateMaven(gavso);
+					coordinate = itl.next();
+					if (coordinate != null) {
+						_updateMaven(coordinate);
 						filter.add("resetJavaSettings");
 						reloadNecessary = true;
 					}
-					logger.info("extension", "Update maven endpoint [" + gavso + "] from extension [" + rhext.getMetadata().getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update maven endpoint [" + coordinate + "] from extension [" + rhext.getMetadata().getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -5013,12 +4322,12 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					ClassDefinitionImpl cd = (ClassDefinitionImpl) ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					String _label = map.get("label");
 					String _id = map.get("id");
 					String _dsn = map.get("connectionString");
 					if (StringUtil.isEmpty(_dsn, true)) _dsn = map.get("dsn");
-					if (cd != null && cd.isBundle()) {
+					if (cd != null && (cd.isBundle() || cd.isMaven())) {
 						_updateJDBCDriver(_label, _id, cd, _dsn);
 						filter.add("resetJDBCDrivers");
 						reloadNecessary = true;
@@ -5061,12 +4370,12 @@ public final class ConfigAdmin {
 			}
 
 			// update maven
-			List<GAVSO> mavens = rhext.getMetadata().getMaven();
+			List<MavenCoordinate> mavens = rhext.getMetadata().getMaven();
 			if (!ArrayUtil.isEmpty(mavens)) {
-				for (MavenUtil.GAVSO gavso: mavens) {
-					_updateMaven(gavso);
+				for (MavenUtil.MavenCoordinate coordinate: mavens) {
+					_updateMaven(coordinate);
 					reloadNecessary = true;
-					logger.debug("extension", "Update Maven [" + gavso + "]");
+					logger.debug("extension", "Update Maven [" + coordinate + "]");
 				}
 			}
 
@@ -5184,24 +4493,17 @@ public final class ConfigAdmin {
 			// reload
 			// if(reloadNecessary){
 			reloadNecessary = true;
-			storeAndReload(false, true, reload && reloadNecessary, false);
+			store(false);
 
 			// Trigger startup hooks if they were added/updated (LDEV-5955)
 			if (filter.allow("resetStartups")) {
-				((ConfigImpl) config).resetStartups().getStartups();
+				ConfigUtil.getConfigServerImpl(config).resetStartups().getStartups();
 			}
 
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception ex) {
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(), rhext.getExtensionFile());
-			try {
-				ConfigAdmin.removeRHExtensions((ConfigPro) config, ThreadLocalPageContext.getLog(config, "deploy"), new String[] { rhext.getId() }, false);
-			}
-			catch (Throwable t2) {
-				ExceptionUtil.rethrowIfNecessary(t2);
-			}
-			throw Caster.toPageException(t);
+			throw Caster.toPageException(ex);
 		}
 	}
 
@@ -5219,45 +4521,42 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public void removeRHExtension(String id) throws PageException {
-		checkWriteAccess();
-		if (StringUtil.isEmpty(id, true)) return;
-
-		Array children = ConfigUtil.getAsArray("extensions", root);
-		int[] keys = children.intKeys();
-		Struct child;
-		RHExtension rhe;
-		int key;
-		for (int i = keys.length - 1; i >= 0; i--) {
-			key = keys[i];
-			child = Caster.toStruct(children.get(key, null), null);
-			if (child == null) continue;
-
-			try {
-				rhe = RHExtension.getInstance(config, Caster.toString(child.get(KeyConstants._id), null), Caster.toString(child.get(KeyConstants._version), null));
+	protected static void _removeRHExtensions(ConfigPro config, RHExtension rhext, RHExtension replacementRH, ResetFilter filter, boolean deleteExtension, Log log)
+			throws PageException {
+		try {
+			ConfigAdmin admin = new ConfigAdmin(config, null, true);
+			synchronized (SystemUtil.createToken("updateExtension", rhext.getId())) {
+				admin.unSyncRemoveExtension(config, rhext, replacementRH, filter, deleteExtension, log);
 			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				continue;
-			}
-
-			if (id.equalsIgnoreCase(rhe.getId()) || id.equalsIgnoreCase(rhe.getMetadata().getSymbolicName())) {
-				ResetFilter filter = new ResetFilter();
-				try {
-					synchronized (SystemUtil.createToken("updateExtension", rhe.getId())) {
-						unSyncRemoveExtension(config, rhe, null, filter, true);
-					}
-				}
-				finally {
-					filter.resetThrowPageException(config);
-				}
-				children.removeEL(key);
-			}
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
 		}
 	}
 
-	public void removeExtension(String provider, String id) throws PageException {
-		removeRHExtension(id);
+	public void removeRHExtension(ExtensionDefintion ed, Log log) throws PageException {
+		checkWriteAccess();
+
+		if (ed == null) return;
+
+		ResetFilter filter = new ResetFilter();
+		try {
+			RHExtension ext = ed.toRHExtension(config);
+			synchronized (SystemUtil.createToken("updateExtension", ext.getId())) {
+				unSyncRemoveExtension(config, ext, null, filter, true, log);
+			}
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+		finally {
+			try {
+				if (filter != null) filter.reset(config);
+			}
+			catch (Exception e) {
+				LogUtil.log("deploy", "start-bundles", e);
+			}
+		}
 	}
 
 	/**
@@ -5269,13 +4568,14 @@ public final class ConfigAdmin {
 	 *            defined in this extension.
 	 * @throws PageException
 	 */
-	private void unSyncRemoveExtension(Config config, RHExtension rhe, RHExtension replacementRH, ResetFilter filter, boolean deleteExtension) throws PageException {
+	private void unSyncRemoveExtension(Config config, RHExtension rhe, RHExtension replacementRH, ResetFilter filter, boolean deleteExtension, Log log) throws PageException {
 		ConfigPro ci = ((ConfigPro) config);
 		Log logger = ThreadLocalPageContext.getLog(ci, "deploy");
-
+		filter.add("resetExtensionDefinitions", "resetRHExtensions");
 		// MUST check replacementRH everywhere
 
 		try {
+
 			// remove the bundles
 			BundleDefinition[] candidatesToRemove = OSGiUtil.toBundleDefinitions(rhe.getMetadata().getBundles(EMPTY));
 			if (replacementRH != null) {
@@ -5446,8 +4746,8 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
-					if (cd != null && cd.isBundle()) {
+					ClassDefinitionImpl cd = (ClassDefinitionImpl) ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					if (cd != null && (cd.isBundle() || cd.isMaven())) {
 						_removeJDBCDriver(cd);
 					}
 					logger.info("extension", "Remove JDBC Driver [" + cd + "] from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");
@@ -5477,11 +4777,11 @@ public final class ConfigAdmin {
 			}
 
 			// remove maven
-			List<GAVSO> mavens = rhe.getMetadata().getMaven();
+			List<MavenCoordinate> mavens = rhe.getMetadata().getMaven();
 			if (!ArrayUtil.isEmpty(mavens)) {
-				for (GAVSO gavso: mavens) {
-					_removeMaven(gavso);
-					logger.info("extension", "remove Maven [" + gavso + "]");
+				for (MavenCoordinate coordinate: mavens) {
+					_removeMaven(coordinate);
+					logger.info("extension", "remove Maven [" + coordinate + "]");
 				}
 			}
 
@@ -5491,9 +4791,15 @@ public final class ConfigAdmin {
 				Iterator<Map<String, String>> itl = mappings.iterator();
 				Map<String, String> map;
 				String virtual;
+				Set<String> usedByOthers = getMappingsUsedByOtherExtensions(ci, rhe);
 				while (itl.hasNext()) {
 					map = itl.next();
 					virtual = map.get("virtual");
+					// LDEV-6462 do not remove a mapping another installed extension still declares
+					if (usedByOthers.contains(toMappingKey(virtual))) {
+						logger.info("extension", "keep Mapping [" + virtual + "], it is also used by another extension");
+						continue;
+					}
 					_removeMapping(virtual);
 					logger.info("extension", "remove Mapping [" + virtual + "]");
 				}
@@ -5543,8 +4849,29 @@ public final class ConfigAdmin {
 			}
 
 			// now we can delete the extension
-			if (deleteExtension) rhe.getExtensionFile().delete();
+			if (deleteExtension) {
+				rhe.delete(this.config, log);
+			}
 
+			{
+				Array children = ConfigUtil.getAsArray("extensions", root);
+				Struct el;
+				// remove record in json
+				for (int key: children.intKeys()) {
+					try {
+						el = Caster.toStruct(children.get(key, null), null);
+						if (el == null) continue;
+
+						if (rhe.same(el)) {
+							children.removeEL(key);
+							break;
+						}
+					}
+					catch (Exception e) {
+						throw Caster.toPageException(e);
+					}
+				}
+			}
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -5579,10 +4906,11 @@ public final class ConfigAdmin {
 	}
 
 	public void verifyExtensionProvider(String strUrl) throws PageException {
-		HTTPResponse method = null;
+		HTTPDownloaderHeadResponse rsp;
+		URL url = null;
 		try {
-			URL url = HTTPUtil.toURL(strUrl + "?wsdl", HTTPUtil.ENCODED_AUTO);
-			method = HTTPEngine4Impl.get(url, null, null, 2000, true, null, null, null, null);
+			url = HTTPUtil.toURL(strUrl + "?wsdl", HTTPUtil.ENCODED_AUTO);
+			rsp = HTTPEngine.head(url);
 		}
 		catch (MalformedURLException e) {
 			ApplicationException ae = new ApplicationException("Url definition [" + strUrl + "] is invalid");
@@ -5594,20 +4922,14 @@ public final class ConfigAdmin {
 			ExceptionUtil.initCauseEL(ae, e);
 			throw ae;
 		}
-		catch (GeneralSecurityException e) {
-			ApplicationException ae = new ApplicationException("Can't invoke [" + strUrl + "]");
-			ExceptionUtil.initCauseEL(ae, e);
-		}
 
-		if (method.getStatusCode() != 200) {
-			int code = method.getStatusCode();
-			String text = method.getStatusText();
+		if (rsp.getStatusCode() != 200) {
+			int code = rsp.getStatusCode();
+			String text = rsp.getStatusText();
 			String msg = code + " " + text;
-			throw new HTTPException(msg, null, code, text, method.getURL());
+			throw new HTTPException(msg, null, code, text, url);
 		}
-		// Object o =
 		CreateObject.doWebService(null, strUrl + "?wsdl");
-		HTTPEngine.closeEL(method);
 	}
 
 	public void updateTLD(Resource resTld) throws IOException {
@@ -5793,13 +5115,6 @@ public final class ConfigAdmin {
 
 	}
 
-	public void updateAdminSyncClass(ClassDefinition cd) throws PageException {
-
-		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(AdminSyncNotSupported.class.getName());
-
-		setClass(root, AdminSync.class, "adminSync", cd);
-	}
-
 	public void removeRemoteClientUsage(String code) {
 		Struct usage = config.getRemoteClientUsage();
 		usage.removeEL(KeyImpl.init(code));
@@ -5881,15 +5196,6 @@ public final class ConfigAdmin {
 		return true;
 	}
 
-	public void updateDebugSetting(int maxLogs) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
-		if (!hasAccess) throw new SecurityException("Access denied to change debugging settings");
-
-		if (maxLogs == -1) rem(root, "debuggingMaxRecordsLogged");
-		else root.setEL("debuggingMaxRecordsLogged", maxLogs);
-	}
-
 	public void updateDebugEntry(String type, String iprange, String label, String path, String fullname, Struct custom) throws SecurityException, IOException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
@@ -5957,12 +5263,6 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public void updateLoginSettings(boolean captcha, boolean rememberMe, int delay) {
-		root.setEL("loginCaptcha", captcha);
-		root.setEL("loginRememberme", rememberMe);
-		root.setEL("loginDelay", delay);
-	}
-
 	public void updateLogSettings(String name, int level, ClassDefinition appenderCD, Struct appenderArgs, ClassDefinition layoutCD, Struct layoutArgs) throws PageException {
 		checkWriteAccess();
 
@@ -6010,18 +5310,12 @@ public final class ConfigAdmin {
 		if (el.containsKey("layout")) rem(el, "layout");
 	}
 
-	public void updateCompilerSettings(Boolean dotNotationUpperCase, Boolean suppressWSBeforeArg, Boolean nullSupport, Boolean handleUnQuotedAttrValueAsString,
-			Integer externalizeStringGTE, Boolean preciseMath) throws PageException {
+	public void updateCompilerSettings(Boolean suppressWSBeforeArg, Boolean nullSupport, Boolean handleUnQuotedAttrValueAsString, Integer externalizeStringGTE, Boolean preciseMath)
+			throws PageException {
 
 		// Struct element = _getRootElement("compiler");
 
 		checkWriteAccess();
-		if (dotNotationUpperCase == null) {
-			if (root.containsKey("dotNotationUpperCase")) rem(root, "dotNotationUpperCase");
-		}
-		else {
-			root.setEL("dotNotationUpperCase", dotNotationUpperCase);
-		}
 
 		if (suppressWSBeforeArg == null) {
 			if (root.containsKey("suppressWhitespaceBeforeArgument")) rem(root, "suppressWhitespaceBeforeArgument");
@@ -6064,21 +5358,19 @@ public final class ConfigAdmin {
 	}
 
 	void updateMaven(InputStream is, String realpath, boolean closeStream, boolean store, Log log) throws IOException {
-		Resource dir = config.getMavenDir();
-		Resource localFile = write(config.getMavenDir(), is, realpath, closeStream, false);
+		Resource localFile = MavenDeployer.deploy(config.getMavenDir(), is, realpath, closeStream, false);
 		if (localFile != null) {
 			log.info("extension", "created file [" + localFile + "] provided by the extension");
 		}
 	}
 
-	Resource[] updateConfigs(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, BundleException, ConverterException {
+	Resource[] updateConfigs(InputStream is, String realpath, boolean closeStream, boolean store) throws IOException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
 		_updateConfigs(config, is, realpath, closeStream, filesDeployed, store);
 		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
 	}
 
-	private static void _updateConfigs(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store)
-			throws PageException, IOException, BundleException, ConverterException {
+	private static void _updateConfigs(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store) throws IOException {
 		Resource configs = config.getConfigDir(); // MUST get that dynamically
 		Resource trg = configs.getRealResource(realpath);
 		if (trg.exists()) trg.remove(true);
@@ -6086,17 +5378,15 @@ public final class ConfigAdmin {
 		if (!p.isDirectory()) p.createDirectory(true);
 		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
 		filesDeployed.add(trg);
-		if (store) _storeAndReload((ConfigPro) config);
 	}
 
-	Resource[] updateComponent(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, BundleException, ConverterException {
+	Resource[] updateComponent(InputStream is, String realpath, boolean closeStream, boolean store) throws IOException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
 		_updateComponent(config, is, realpath, closeStream, filesDeployed, store);
 		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
 	}
 
-	private static void _updateComponent(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store)
-			throws PageException, IOException, BundleException, ConverterException {
+	private static void _updateComponent(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store) throws IOException {
 		Resource comps = config.getConfigDir().getRealResource("components"); // MUST get that dynamically
 		Resource trg = comps.getRealResource(realpath);
 		if (trg.exists()) trg.remove(true);
@@ -6104,67 +5394,24 @@ public final class ConfigAdmin {
 		if (!p.isDirectory()) p.createDirectory(true);
 		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
 		filesDeployed.add(trg);
-		if (store) _storeAndReload((ConfigPro) config);
 	}
 
-	Resource[] updateContext(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, BundleException, ConverterException {
+	Resource[] updateContext(InputStream is, String realpath, boolean closeStream, boolean store) throws IOException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
 		_updateContext(config, is, realpath, closeStream, filesDeployed, store);
 		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
 	}
 
-	private static void _updateContext(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store)
-			throws PageException, IOException, BundleException, ConverterException {
+	private static void _updateContext(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store) throws IOException {
 		Resource trg = config.getConfigDir().getRealResource("context").getRealResource(realpath);
 		if (trg.exists()) trg.remove(true);
 		Resource p = trg.getParentResource();
 		if (!p.isDirectory()) p.createDirectory(true);
 		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
 		filesDeployed.add(trg);
-		if (store) _storeAndReload((ConfigPro) config);
 	}
 
-	@Deprecated
-	static Resource[] updateContextClassic(ConfigPro config, InputStream is, String realpath, boolean closeStream)
-			throws PageException, IOException, BundleException, ConverterException {
-		List<Resource> filesDeployed = new ArrayList<Resource>();
-		ConfigAdmin._updateContextClassic(config, is, realpath, closeStream, filesDeployed);
-		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
-	}
-
-	@Deprecated
-	private static void _updateContextClassic(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed)
-			throws PageException, IOException, BundleException, ConverterException {
-		if (config instanceof ConfigServer) {
-			ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
-			if (webs.length == 0) return;
-			if (webs.length == 1) {
-				_updateContextClassic(webs[0], is, realpath, closeStream, filesDeployed);
-				return;
-			}
-			try {
-				byte[] barr = IOUtil.toBytes(is);
-				for (int i = 0; i < webs.length; i++) {
-					_updateContextClassic(webs[i], new ByteArrayInputStream(barr), realpath, true, filesDeployed);
-				}
-			}
-			finally {
-				if (closeStream) IOUtil.close(is);
-			}
-			return;
-		}
-
-		// ConfigWeb
-		Resource trg = config.getConfigDir().getRealResource("context").getRealResource(realpath);
-		if (trg.exists()) trg.remove(true);
-		Resource p = trg.getParentResource();
-		if (!p.isDirectory()) p.createDirectory(true);
-		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
-		filesDeployed.add(trg);
-		_storeAndReload((ConfigPro) config);
-	}
-
-	public boolean removeConfigs(Config config, boolean store, String... realpathes) throws PageException, IOException, BundleException, ConverterException {
+	public boolean removeConfigs(Config config, boolean store, String... realpathes) throws IOException {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force = false;
 		for (int i = 0; i < realpathes.length; i++) {
@@ -6173,20 +5420,19 @@ public final class ConfigAdmin {
 		return force;
 	}
 
-	private boolean _removeConfigs(Config config, String realpath, boolean _store) throws PageException, IOException, BundleException, ConverterException {
+	private boolean _removeConfigs(Config config, String realpath, boolean _store) throws IOException {
 
 		Resource context = config.getConfigDir(); // MUST get dyn
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
 			trg.remove(true);
-			if (_store) ConfigAdmin._storeAndReload((ConfigPro) config);
 			ResourceUtil.removeEmptyFolders(context, null);
 			return true;
 		}
 		return false;
 	}
 
-	public boolean removeComponents(Config config, boolean store, String... realpathes) throws PageException, IOException, BundleException, ConverterException {
+	public boolean removeComponents(Config config, boolean store, String... realpathes) throws IOException {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force = false;
 		for (int i = 0; i < realpathes.length; i++) {
@@ -6195,20 +5441,19 @@ public final class ConfigAdmin {
 		return force;
 	}
 
-	private boolean _removeComponent(Config config, String realpath, boolean _store) throws PageException, IOException, BundleException, ConverterException {
+	private boolean _removeComponent(Config config, String realpath, boolean _store) throws IOException {
 
 		Resource context = config.getConfigDir().getRealResource("components"); // MUST get dyn
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
 			trg.remove(true);
-			if (_store) ConfigAdmin._storeAndReload((ConfigPro) config);
 			ResourceUtil.removeEmptyFolders(context, null);
 			return true;
 		}
 		return false;
 	}
 
-	public boolean removeContext(Config config, boolean store, Log logger, String... realpathes) throws PageException, IOException, BundleException, ConverterException {
+	public boolean removeContext(Config config, boolean store, Log logger, String... realpathes) throws PageException, IOException, ConverterException {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force = false;
 		for (int i = 0; i < realpathes.length; i++) {
@@ -6218,21 +5463,20 @@ public final class ConfigAdmin {
 		return force;
 	}
 
-	private boolean _removeContext(Config config, String realpath, boolean _store) throws PageException, IOException, BundleException, ConverterException {
+	private boolean _removeContext(Config config, String realpath, boolean _store) throws PageException, IOException, ConverterException {
 
 		Resource context = config.getConfigDir().getRealResource("context");
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
 			LogUtil.log(config, Log.LEVEL_INFO, "deploy", "_removeContext() removing: " + trg.getAbsolutePath());
 			trg.remove(true);
-			if (_store) ConfigAdmin._storeAndReload((ConfigPro) config);
-			ResourceUtil.removeEmptyFolders(context, null);
+			if (_store) ConfigAdmin._store((ConfigPro) config);
 			return true;
 		}
 		return false;
 	}
 
-	public boolean removeWebContexts(Config config, boolean store, Log logger, String... realpathes) throws PageException, IOException, BundleException, ConverterException {
+	public boolean removeWebContexts(Config config, boolean store, Log logger, String... realpathes) throws PageException, IOException, ConverterException {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 
 		if (config instanceof ConfigWeb) {
@@ -6247,7 +5491,7 @@ public final class ConfigAdmin {
 		return force;
 	}
 
-	private boolean _removeWebContexts(Config config, String realpath, boolean _store) throws PageException, IOException, BundleException, ConverterException {
+	private boolean _removeWebContexts(Config config, String realpath, boolean _store) throws PageException, IOException, ConverterException {
 
 		if (config instanceof ConfigServer) {
 			ConfigServer cs = ((ConfigServer) config);
@@ -6344,11 +5588,12 @@ public final class ConfigAdmin {
 		if (trg.exists()) trg.remove(true);
 	}
 
-	protected static void _removeRHExtension(ConfigPro config, RHExtension rhext, RHExtension replacementRH, ResetFilter filter, boolean deleteExtension) throws PageException {
+	protected static void _removeRHExtension(ConfigPro config, RHExtension rhext, RHExtension replacementRH, ResetFilter filter, boolean deleteExtension, Log log)
+			throws PageException {
 		try {
 			ConfigAdmin admin = new ConfigAdmin(config, null, true);
 			synchronized (SystemUtil.createToken("updateExtension", rhext.getId())) {
-				admin.unSyncRemoveExtension(config, rhext, replacementRH, filter, deleteExtension);
+				admin.unSyncRemoveExtension(config, rhext, replacementRH, filter, deleteExtension, log);
 			}
 		}
 		catch (Exception e) {
@@ -6356,114 +5601,18 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public static void removeRHExtensions(ConfigPro config, Log log, String[] extensionIDs, boolean removePhysical)
-			throws IOException, PageException, BundleException, ConverterException {
+	public static void removeRHExtensions(ConfigPro config, Log log, java.util.Collection<RHExtension> rhexs, boolean removePhysical, ResetFilter filter) {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
-		Map<String, BundleDefinition> oldMap = new HashMap<>();
-		BundleDefinition[] bds;
-		for (String extensionID: extensionIDs) {
+		for (RHExtension rhe: rhexs) {
 			try {
-				synchronized (SystemUtil.createToken("updateExtension", extensionID)) {
-					bds = admin.removeExtensionX(config, extensionID, removePhysical);
-				}
-				if (bds != null) {
-					for (BundleDefinition bd: bds) {
-						if (bd == null) continue;// TODO why are they Null?
-						oldMap.put(bd.toString(), bd);
-					}
+				synchronized (SystemUtil.createToken("updateExtension", rhe.getId())) {
+					admin.unSyncRemoveExtension(config, rhe, null, filter, removePhysical, log);
 				}
 			}
 			catch (Exception e) {
 				log.log(Log.LEVEL_ERROR, ConfigAdmin.class.getName(), e);
 			}
 		}
-
-		admin._storeAndReload();
-
-		if (!oldMap.isEmpty() && config instanceof ConfigServer) {
-			ConfigServer cs = (ConfigServer) config;
-			ConfigWeb[] webs = cs.getConfigWebs();
-			for (int i = 0; i < webs.length; i++) {
-				try {
-					admin._storeAndReload((ConfigPro) webs[i]);
-				}
-				catch (Exception e) {
-					log.log(Log.LEVEL_ERROR, ConfigAdmin.class.getName(), e);
-				}
-			}
-		}
-		cleanBundles(null, config, oldMap.values().toArray(new BundleDefinition[oldMap.size()])); // clean after populating the new ones
-
-	}
-
-	private BundleDefinition[] removeExtensionX(ConfigPro config, String extensionID, boolean removePhysical)
-			throws IOException, PageException, BundleException, ConverterException {
-		if (!Decision.isUUId(extensionID)) throw new IOException("id [" + extensionID + "] is invalid, it has to be a UUID");
-
-		Array children = ConfigUtil.getAsArray("extensions", root);
-		int[] keys = children.intKeys();
-
-		// Update
-		Struct el;
-		String id;
-		String[] arr;
-		boolean storeChildren = false;
-		BundleDefinition[] bundles;
-		Log log = ThreadLocalPageContext.getLog(config, "deploy");
-		int key;
-		for (int i = keys.length - 1; i >= 0; i--) {
-			key = keys[i];
-			el = Caster.toStruct(children.get(key, null), null);
-			if (el == null) continue;
-
-			id = Caster.toString(el.get(KeyConstants._id, null), null);
-			if (extensionID.equalsIgnoreCase(id)) {
-				bundles = RHExtension.toBundleDefinitions(ConfigUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
-
-				// bundles
-				arr = _removeExtensionCheckOtherUsage(children, el, "bundles");
-				// removeBundles(arr,removePhysical);
-				// flds
-				arr = _removeExtensionCheckOtherUsage(children, el, "flds");
-				removeFLDs(log, arr);
-				// tlds
-				arr = _removeExtensionCheckOtherUsage(children, el, "tlds");
-				removeTLDs(log, arr);
-				// contexts
-				arr = _removeExtensionCheckOtherUsage(children, el, "contexts");
-				storeChildren = removeContext(config, false, log, arr);
-
-				// webcontexts
-				arr = _removeExtensionCheckOtherUsage(children, el, "webcontexts");
-				storeChildren = removeWebContexts(config, false, log, arr);
-
-				// applications
-				arr = _removeExtensionCheckOtherUsage(children, el, "applications");
-				removeApplications(config, log, arr);
-
-				// components
-				arr = _removeExtensionCheckOtherUsage(children, el, "components");
-				removeComponents(config, false, arr);
-
-				// configs
-				arr = _removeExtensionCheckOtherUsage(children, el, "config");
-				removeConfigs(config, false, arr);
-
-				// plugins
-				arr = _removeExtensionCheckOtherUsage(children, el, "plugins");
-				removePlugins(config, log, arr);
-				children.removeEL(key);
-
-				// remove files
-				String version = Caster.toString(el.get(KeyConstants._version, null), null);
-				Resource file = RHExtension.getMetaDataFile(config, id, version);
-				if (file.isFile()) file.delete();
-				RHExtension.removeExtensionInstalledFile(config, id, version);
-
-				return bundles;
-			}
-		}
-		return null;
 	}
 
 	public static void cleanBundles(RHExtension rhe, ConfigPro config, BundleDefinition[] candiatesToRemove) {
@@ -6483,10 +5632,15 @@ public final class ConfigAdmin {
 		}
 
 		// all extension
-		Iterator<RHExtension> itt = config.getAllRHExtensions().iterator();
 		RHExtension _rhe;
-		while (itt.hasNext()) {
-			_rhe = itt.next();
+		// because this method is called indirectly by getRHExtensions, we cannot use that method
+		for (ExtensionDefintion ed: ConfigUtil.getConfigServerImpl(config).getExtensionDefinitions()) {
+			try {
+				_rhe = ed.toRHExtension(config);
+			}
+			catch (PageException e) {
+				continue;
+			}
 			if (rhe != null && rhe.equals(_rhe)) continue;
 			BundleInfo[] bundles = _rhe.getMetadata().getBundles(null);
 			if (bundles != null) {
@@ -6516,6 +5670,28 @@ public final class ConfigAdmin {
 				}
 			}
 		}
+	}
+
+	// virtual paths (see toMappingKey) of the mappings declared by all installed extensions except the given one
+	private static Set<String> getMappingsUsedByOtherExtensions(ConfigPro config, RHExtension rhe) {
+		Set<String> used = new HashSet<>();
+		List<Map<String, String>> mappings;
+		for (RHExtension other: config.getAllRHExtensions()) {
+			if (other == null || rhe.getId().equalsIgnoreCase(other.getId())) continue;
+			mappings = other.getMetadata().getMappings();
+			if (ArrayUtil.isEmpty(mappings)) continue;
+			for (Map<String, String> map: mappings) {
+				used.add(toMappingKey(map.get("virtual")));
+			}
+		}
+		return used;
+	}
+
+	private static String toMappingKey(String virtual) {
+		if (virtual == null) return "";
+		virtual = virtual.trim().toLowerCase();
+		while (virtual.length() > 1 && virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
+		return virtual;
 	}
 
 	private String[] _removeExtensionCheckOtherUsage(Array children, Struct curr, String type) {
@@ -6555,13 +5731,12 @@ public final class ConfigAdmin {
 	 * @throws PageException
 	 */
 	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, BundleException, PageException {
-		if (!Decision.isUUId(ext.getId())) throw new IOException("id [" + ext.getId() + "] is invalid, it has to be a UUID");
 		Array children = ConfigUtil.getAsArray("extensions", root);
 		int[] keys = children.intKeys();
 		int key;
 		// Update
 		Struct el;
-		String id;
+		String id, gav;
 		BundleDefinition[] old;
 		boolean hasNoneId = false;
 
@@ -6572,8 +5747,9 @@ public final class ConfigAdmin {
 				el = Caster.toStruct(children.get(key, null), null);
 				if (el == null) continue;
 				id = Caster.toString(el.get(KeyConstants._id, null), null);
+				gav = Caster.toString(el.get(KeyConstants._maven, null), null);
 				if (StringUtil.isEmpty(id)) hasNoneId = true;
-				if (ext.getId().equalsIgnoreCase(id)) {
+				if (ext.same(el)) {
 					old = RHExtension.toBundleDefinitions(ConfigUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 					ext.populate(el, false);
 					old = minus(old, OSGiUtil.toBundleDefinitions(ext.getMetadata().getBundles()));
@@ -6599,8 +5775,8 @@ public final class ConfigAdmin {
 					Resource r;
 					if (!StringUtil.isEmpty(res) && (r = ResourceUtil.toResourceExisting(config, res, null)) != null) {
 						try {
-							RHExtension _ext = RHExtension.getInstance(config, r);// TODO not load it again!
-							if (_ext != null && _ext.getId().equalsIgnoreCase(ext.getId())) {
+							RHExtension _ext = RHExtension.getInstance(config, r, config.getLog("deploy"));// TODO not load it again!
+							if (_ext != null && _ext.same(ext)) {
 								old = RHExtension.toBundleDefinitions(ConfigUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 								ext.populate(el, false);
 								old = minus(old, OSGiUtil.toBundleDefinitions(ext.getMetadata().getBundles()));
@@ -6640,30 +5816,6 @@ public final class ConfigAdmin {
 		return list.toArray(new BundleDefinition[list.size()]);
 	}
 
-	private String getInstalledExtensionVersion(final ConfigPro config, final String id, final String defaultValue) {
-		Array children = ConfigUtil.getAsArray("extensions", root);
-
-		if (children != null) {
-			int[] keys = children.intKeys();
-			for (int i: keys) {
-
-				Struct tmp = Caster.toStruct(children.get(i, null), null);
-				if (tmp == null) continue;
-
-				String _id = Caster.toString(tmp.get(KeyConstants._id, null), null);
-				if (!id.equals(_id)) continue;
-
-				String _version = Caster.toString(tmp.get(KeyConstants._version, null), null);
-				if (_version == null) continue;
-
-				Resource res = RHExtension.getExtensionInstalledFile(config, _id, _version, null);
-				if (res != null) return _version;
-
-			}
-		}
-		return defaultValue;
-	}
-
 	/**
 	 * returns the version if the extension is available
 	 * 
@@ -6673,33 +5825,24 @@ public final class ConfigAdmin {
 	 * @throws PageException
 	 * @throws IOException
 	 */
-	public static RHExtension hasRHExtensionInstalled(ConfigPro config, ExtensionDefintion ed) throws PageException, IOException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
-		return admin._hasRHExtensionInstalled(config, ed);
-	}
-
-	private RHExtension _hasRHExtensionInstalled(ConfigPro config, ExtensionDefintion ed) throws PageException {
-
-		Array children = ConfigUtil.getAsArray("extensions", root);
-		int[] keys = children.intKeys();
-		RHExtension tmp;
-		try {
-			String id, v;
-			for (int key: keys) {
-				Struct sct = Caster.toStruct(children.get(key, null), null);
-				if (sct == null) continue;
-				id = Caster.toString(sct.get(KeyConstants._id, null), null);
-				v = Caster.toString(sct.get(KeyConstants._version, null), null);
-				if (!RHExtension.isInstalled(config, id, v)) continue;
-
-				if (ed.equals(new ExtensionDefintion(id, v))) return RHExtension.getInstance(config, id, v);
-			}
-			return null;
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
-	}
+	/*
+	 * public static RHExtension hasRHExtensionInstalledX(ConfigPro config, ExtensionDefintion ed)
+	 * throws PageException, IOException { ConfigAdmin admin = new ConfigAdmin(config, null); return
+	 * admin._hasRHExtensionInstalled(config, ed); }
+	 * 
+	 * private RHExtension _hasRHExtensionInstalled(ConfigPro config, ExtensionDefintion ed) throws
+	 * PageException {
+	 * 
+	 * Array children = ConfigUtil.getAsArray("extensions", root); int[] keys = children.intKeys();
+	 * RHExtension tmp; try { String id, v; for (int key: keys) { Struct sct =
+	 * Caster.toStruct(children.get(key, null), null); if (sct == null) continue; id =
+	 * Caster.toString(sct.get(KeyConstants._id, null), null); v =
+	 * Caster.toString(sct.get(KeyConstants._version, null), null); if (!RHExtension.isInstalled(config,
+	 * id, v)) continue;
+	 * 
+	 * if (ed.equals(new ExtensionDefintion(id, v))) return RHExtension.getInstance(config, id, v); }
+	 * return null; } catch (Exception e) { throw Caster.toPageException(e); } }
+	 */
 
 	public void updateAuthKey(String key) throws PageException {
 		checkWriteAccess();
@@ -6796,7 +5939,7 @@ public final class ConfigAdmin {
 		boolean hp = !prefix.isEmpty();
 		// validate class
 		try {
-			Class clazz = cd.getClazz();
+			Class clazz = cd instanceof ClassDefinitionImpl ? ((ClassDefinitionImpl) cd).getClazz(false) : cd.getClazz();
 
 			if (instanceOfClass != null && !Reflector.isInstaneOf(clazz, instanceOfClass, false))
 				throw new ApplicationException("Class [" + clazz.getName() + "] is not of type [" + instanceOfClass.getName() + "]");
@@ -6844,30 +5987,6 @@ public final class ConfigAdmin {
 
 	}
 
-	public void updateQueue(Integer max, Integer timeout, Boolean enable) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("Accces Denied to update queue settings");
-
-		// max
-		if (max == null) rem(root, "requestQueueMax");
-		else root.setEL("requestQueueMax", max);
-		// total
-		if (timeout == null) rem(root, "requestQueueTimeout");
-		else root.setEL("requestQueueTimeout", timeout);
-		// enable
-		if (enable == null) rem(root, "requestQueueEnable");
-		else root.setEL("requestQueueEnable", enable);
-	}
-
-	public void updateCGIReadonly(Boolean cgiReadonly) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("Accces Denied to update scope setting");
-
-		root.setEL("cgiScopeReadOnly", Caster.toString(cgiReadonly, ""));
-	}
-
 	public void updateFormUrlAsStruct(Boolean formUrlAsStruct) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
@@ -6887,4 +6006,5 @@ public final class ConfigAdmin {
 			super("the extension " + ext.getMetadata().getName() + " (id: " + ext.getId() + ") in version " + ext.getVersion() + " is already installed");
 		}
 	}
+
 }

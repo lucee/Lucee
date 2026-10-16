@@ -5,6 +5,7 @@ import java.io.Reader;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,7 +20,6 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import lucee.aprint;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
@@ -80,6 +80,17 @@ public final class POMReader extends DefaultHandler {
 		return pr;
 	}
 
+	/**
+	 * Parses {@code file} directly, no caching. Use this for user-supplied poms whose contents may
+	 * change between calls — {@link #getInstance(Resource)} is keyed on absolute path alone and
+	 * can return stale data.
+	 */
+	public static POMReader parse(Resource file) throws IOException, SAXException {
+		POMReader pr = new POMReader(file);
+		pr.read();
+		return pr;
+	}
+
 	private POMReader(Resource file) {
 		this.file = file;
 	}
@@ -98,7 +109,7 @@ public final class POMReader extends DefaultHandler {
 				String str = IOUtil.toString(file, (Charset) null);
 				// TODO PATCH make a better solution for that
 				str = StringUtil.replace(str, "&oslash;", "ø", false);// (str, "oslash");// &oslash;
-				IOUtil.write(file, str.getBytes(CharsetUtil.UTF8), false);
+				IOUtil.write(file, str.getBytes(StandardCharsets.UTF_8), false);
 				init(new InputSource(r = IOUtil.getReader(file.getInputStream(), (Charset) null)));
 
 			}
@@ -205,6 +216,8 @@ public final class POMReader extends DefaultHandler {
 				else if ("version".equals(name)) dependency.version = content.toString().trim();
 				else if ("scope".equals(name)) dependency.scope = content.toString().trim();
 				else if ("optional".equals(name)) dependency.optional = content.toString().trim();
+				else if ("classifier".equals(name)) dependency.classifier = content.toString().trim();
+				else if ("type".equals(name)) dependency.type = content.toString().trim();
 				else if (debug) aprint.e("!!!!!!! ==>" + name + ":" + content.toString().trim());
 			}
 			else if (insideRepositories && repository != null) {
@@ -221,6 +234,8 @@ public final class POMReader extends DefaultHandler {
 				else if ("version".equals(name)) dependencyManagement.version = content.toString().trim();
 				else if ("scope".equals(name)) dependencyManagement.scope = content.toString().trim();
 				else if ("optional".equals(name)) dependencyManagement.optional = content.toString().trim();
+				else if ("classifier".equals(name)) dependencyManagement.classifier = content.toString().trim();
+				else if ("type".equals(name)) dependencyManagement.type = content.toString().trim();
 				else if (debug) aprint.e("xxxxxx ==>" + name + ":" + content.toString().trim());
 			}
 		}
@@ -293,10 +308,12 @@ public final class POMReader extends DefaultHandler {
 		public String version;
 		public String scope;
 		public String optional;
+		public String classifier;
+		public String type;
 
 		@Override
 		public String toString() {
-			return "groupId:" + groupId + ";artifactId:" + artifactId + ";version:" + version + ";scope:" + scope + ";optional:" + optional;
+			return "groupId:" + groupId + ";artifactId:" + artifactId + ";version:" + version + ";classifier:" + classifier + ";scope:" + scope + ";optional:" + optional;
 		}
 	}
 

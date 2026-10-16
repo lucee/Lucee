@@ -37,8 +37,13 @@ mssqls=["com.microsoft.jdbc.sqlserver.SQLServerDriver","com.microsoft.sqlserver.
 
 
 function getDbDriverTypeName(required className,required dsn) {
+	systemOutput("++++++++++++++++++++++++",1,1);
+	systemOutput("- "&className,1,1);
+	systemOutput("- "&dsn,1,1);
+	systemOutput(variables.drivers.keyList(),1,1);
 	// find matching driver
 	loop collection=variables.drivers item="local.key" {
+		systemOutput("- "&key,1,1);	
 		if(variables.drivers[key].equals(arguments.className,arguments.dsn)) {
 			return variables.drivers[key].getName();		
 		}

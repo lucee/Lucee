@@ -30,6 +30,7 @@ import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class ObjectLoad {
 	public static Object call(PageContext pc, Object input) throws PageException {
@@ -44,7 +45,7 @@ public final class ObjectLoad {
 		}
 		else {
 			Resource res = ResourceUtil.toResourceExisting(pc, Caster.toString(input));
-			pc.getConfig().getSecurityManager().checkFileLocation(res);
+			SecurityManagerImpl.checkFileLocation(pc, res);
 			try {
 				is = res.getInputStream();
 			}

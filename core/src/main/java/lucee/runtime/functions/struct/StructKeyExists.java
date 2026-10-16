@@ -51,7 +51,7 @@ public final class StructKeyExists extends BIF {
 		if (!struct.containsKey(pc, key)) return false;
 
 		if (NullSupportHelper.full(pc)) return true;
-		return struct.get(key, null) != null;// do not change, this has do be this way
+		return struct.get(pc, key, null) != null;// do not change, this has do be this way
 	}
 
 	@Override

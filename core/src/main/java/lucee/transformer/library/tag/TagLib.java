@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -229,7 +229,7 @@ public class TagLib implements Cloneable, Lib {
 		tags.put(tag.getName(), tag);
 
 		if (tag.hasAppendix()) appendixTags.put(tag.getName(), tag);
-		else appendixTags.remove(tag.getName());  // no-op if not present
+		else appendixTags.remove(tag.getName()); // no-op if not present
 	}
 
 	/**
@@ -460,9 +460,9 @@ public class TagLib implements Cloneable, Lib {
 		tlts.setType(TagLibTagScript.TYPE_MULTIPLE);
 		unknownTagHandler.setScript(tlts);
 
-		Config config = ThreadLocalPageContext.getConfig();
-		if (config != null) {
-			unknownTagHandler.setTagClassDefinition("lucee.runtime.tag.CFTagCore", config.getIdentification(), null);
+		ConfigServerPro cs = ThreadLocalPageContext.getConfigServer();
+		if (cs != null) {
+			unknownTagHandler.setTagClassDefinition("lucee.runtime.tag.CFTagCore", cs.getIdentification(), null);
 		}
 		// setTag(unknownTagHandler);
 

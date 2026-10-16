@@ -18,11 +18,12 @@
  **/
 package lucee.runtime.security;
 
+import java.nio.charset.StandardCharsets;
+
 import java.io.IOException;
 import java.util.Set;
 
 import lucee.commons.digest.MD5;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
@@ -82,7 +83,7 @@ public final class CredentialImpl implements Credential {
 	}
 
 	private static byte[] toSalt(String salt) {
-		byte[] barr = salt.trim().getBytes(CharsetUtil.UTF8);
+		byte[] barr = salt.trim().getBytes(StandardCharsets.UTF_8);
 		if (barr.length == 8) return barr;
 		// we only take the first 8 bytes
 		if (barr.length > 8) {
@@ -215,7 +216,7 @@ public final class CredentialImpl implements Credential {
 			try {
 				if (!rolesDir.exists()) rolesDir.mkdirs();
 				String md5 = MD5.getDigestAsString(raw);
-				IOUtil.write(rolesDir.getRealResource(md5), raw, CharsetUtil.UTF8, false);
+				IOUtil.write(rolesDir.getRealResource(md5), raw, StandardCharsets.UTF_8, false);
 				return encrypt(username + ONE + password + ONE + "md5:" + md5, privateKey, salt, iter, true);
 			}
 			catch (IOException e) {
@@ -230,7 +231,7 @@ public final class CredentialImpl implements Credential {
 	}
 
 	private static String encrypt(String input, String privateKey, byte[] salt, int iter, boolean precise) throws PageException {
-		if (StringUtil.isEmpty(privateKey, true)) return Caster.toB64(input.getBytes(CharsetUtil.UTF8));
+		if (StringUtil.isEmpty(privateKey, true)) return Caster.toB64(input.getBytes(StandardCharsets.UTF_8));
 		try {
 			return Cryptor.encrypt(input, privateKey, ALGO, salt, iter, "Base64", Cryptor.DEFAULT_CHARSET, precise);
 		}
@@ -292,7 +293,7 @@ public final class CredentialImpl implements Credential {
 				str = str.substring(4);
 				Resource md5 = rolesDir.getRealResource(str);
 				try {
-					str = IOUtil.toString(md5, CharsetUtil.UTF8);
+					str = IOUtil.toString(md5, StandardCharsets.UTF_8);
 				}
 				catch (IOException e) {
 					str = "";

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" {
 
 	function run( testResults , testBox ) {
 		describe( "Testcase for LDEV-4685", function() {
@@ -12,6 +12,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 					var result = e.message;
 				}
 				expect( trim(result) ).toBe("2");
+			});
+
+			it( title="Checking tag-island with a condition loop in a function", body=function() {
+				expect( new LDEV4685.Island().run() ).toBe( "123" );
 			});
 		});
 	}

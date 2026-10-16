@@ -18,7 +18,6 @@
  */
 package lucee.runtime.monitor;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,7 +37,7 @@ public final class ActionMonitorCollectorRefImpl implements ActionMonitorCollect
 	private Method logpc;
 
 	@Override
-	public void addMonitor(ConfigServer cs, ActionMonitor monitor, String name, boolean log) throws IOException {
+	public void addMonitor(ConfigServer cs, ActionMonitor monitor, String name, boolean log) {
 		monitor = init(monitor, cs, name, log);
 		if (monitor != null) monitors.add(monitor);
 	}

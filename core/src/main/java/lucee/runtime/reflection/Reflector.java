@@ -288,7 +288,8 @@ public final class Reflector {
 	 */
 	public static boolean like(Class src, Class trg) {
 		if (src == trg) return true;
-		return isInstaneOf(src, trg, true);
+		if (trg.isAssignableFrom(src)) return true;
+		return isInstaneOf(src, trg, false);
 	}
 
 	public static Object convert(Object src, Class trgClass, RefInteger rating, Object defaultValue) {
@@ -387,7 +388,7 @@ public final class Reflector {
 		}
 
 		// component as class
-		PageContext pc;
+		PageContext pc = null;
 		if (src instanceof Component && trgClass.isInterface() && (pc = ThreadLocalPageContext.get()) != null) {
 			return componentToClass(pc, rating, (Component) src, null, trgClass);
 		}
@@ -436,7 +437,7 @@ public final class Reflector {
 		}
 
 		if (trgClass == Calendar.class && Decision.isDate(src, true)) {
-			TimeZone tz = ThreadLocalPageContext.getTimeZone();
+			TimeZone tz = ThreadLocalPageContext.getTimeZone(pc);
 			return Caster.toCalendar(Caster.toDate(src, tz), tz, Locale.US);
 		}
 
@@ -483,6 +484,8 @@ public final class Reflector {
 	}
 
 	private static Object componentToClass(PageContext pc, RefInteger rating, Component src, Class trgClass, Class... interfaces) throws PageException {
+		if (pc == null) throw new ApplicationException("cannot convert component [" + (src == null ? "" : src.getName())
+				+ "] to a Java class, because there is no PageContext available for the current thread");
 		try {
 			JavaAnnotation ja = getJavaAnnotation(pc, trgClass != null ? trgClass.getClassLoader() : SystemUtil.getCoreClassLoader(), src);
 			Class<?> _extends = ja != null && ja.extend != null ? ja.extend : null;
@@ -967,20 +970,66 @@ public final class Reflector {
 
 	/**
 	 * to get a Getter Method of an Object
-	 * 
+	 *
 	 * @param clazz Class to invoke method from
 	 * @param prop Name of the Method without get
 	 * @return return Value of the getter Method
 	 */
 	public static MethodInstance getGetterEL(Class clazz, String prop, boolean nameCaseSensitive) {
-		prop = "get" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstance(clazz, KeyImpl.init(prop), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
-		if (!mi.hasMethod()) return null;
+		String getterName = "get" + StringUtil.ucFirst(prop);
+		MethodInstance mi = getMethodInstance(clazz, KeyImpl.init(getterName), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
+
+		if (!mi.hasMethod()) {
+			String isName = "is" + StringUtil.ucFirst(prop);
+			mi = getMethodInstance(clazz, KeyImpl.init(isName), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
+			if (mi.hasMethod()) {
+				try {
+					lucee.transformer.dynamic.meta.Method m = mi.getMethod();
+					Class rtn = m.getReturnClass();
+					if (rtn != Boolean.class && rtn != boolean.class) return null;
+				}
+				catch (PageException e) {
+					return null;
+				}
+			}
+			else {
+				return null;
+			}
+		}
+
 		try {
 			if (mi.getMethod().getReturnClass() == void.class) return null;
 		}
 		catch (PageException e) {
 			return null;
+		}
+		return mi;
+	}
+
+	public static MethodInstance getGetter(Class clazz, final String prop, boolean nameCaseSensitive, boolean inclueIs, boolean includeEmpty, MethodInstance defaultValue) {
+		MethodInstance mi = getMethodInstance(clazz, KeyImpl.init("get" + StringUtil.ucFirst(prop)), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
+		boolean isIs = false;
+		if (!mi.hasMethod()) {
+			if (!inclueIs) return defaultValue;
+			mi = getMethodInstance(clazz, KeyImpl.init("is" + StringUtil.ucFirst(prop)), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
+			if (!mi.hasMethod()) {
+				if (!includeEmpty) return defaultValue;
+				mi = getMethodInstance(clazz, KeyImpl.init(prop), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
+				if (!mi.hasMethod()) {
+					return defaultValue;
+				}
+			}
+			else {
+				isIs = true;
+			}
+		}
+
+		try {
+			Class rtn = mi.getMethod().getReturnClass();
+			if (rtn == void.class || (isIs && rtn != boolean.class)) return defaultValue;
+		}
+		catch (PageException e) {
+			return defaultValue;
 		}
 		return mi;
 	}

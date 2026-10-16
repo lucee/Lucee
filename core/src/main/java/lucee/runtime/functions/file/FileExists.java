@@ -22,6 +22,7 @@ import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class FileExists {
 
@@ -34,7 +35,8 @@ public final class FileExists {
 
 		Resource res = Caster.toResource(pc, obj, false, Caster.toBooleanValue(oAllowRealPath));
 		if (res == null) return false;
-		pc.getConfig().getSecurityManager().checkFileLocation(res);
+		SecurityManagerImpl.checkFileLocation(pc, res);
+
 		return res.isFile();
 	}
 }
