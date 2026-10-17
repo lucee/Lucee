@@ -44,7 +44,7 @@ public final class DynAssign extends RefSupport implements Ref {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
+		if (limited) throw new SecurityInterpreterException(SecurityInterpreterException.LIMIT_EVALUATION_MESSAGE);
 		return pc.setVariable(Caster.toString(key.getValue(pc)), value.getValue(pc));
 	}
 
