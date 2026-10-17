@@ -381,9 +381,10 @@ public abstract class AbstrCFMLExprTransformer {
 
 				if (expr instanceof ExprBoolean) return expr;
 
-				if (!(expr instanceof Variable)) throw new TemplateException(data.srcCode, "left operand of the Elvis operator has to be a variable or a function call");
+				// LDEV-2672: any expression can be the left operand, a literal (other than null) is never null
+				if (expr instanceof Literal && !data.factory.isNull(expr)) return expr;
 
-				Variable left = (Variable) expr;
+				Expression left = expr;
 				/// LDEV-1201
 				/*
 				 * List<Member> members = left.getMembers(); Member last=null; for(Member m:members) { last=m;
@@ -864,6 +865,11 @@ public abstract class AbstrCFMLExprTransformer {
 			comments(data);
 			Expression value = assignOp(data);
 
+			// LDEV-3020: there is no unary integer division, so "x \= y" is written as "x = x \ y" (like "x %= y")
+			if (iOp == Factory.OP_DBL_INTDIV) {
+				ExprNumber res = data.factory.opNumber(expr, value, Factory.OP_DBL_INTDIV);
+				return new OpVariable((Variable) expr, res, data.srcCode.getPosition());
+			}
 			return data.factory.opUnaryNumber((Variable) expr, value, Factory.OP_UNARY_PRE, iOp, expr.getStart(), data.srcCode.getPosition());
 		}
 		comments(data);
@@ -1451,18 +1457,31 @@ public abstract class AbstrCFMLExprTransformer {
 
 	private Expression lambda(Data data) throws TemplateException {
 		int pos = data.srcCode.getPos();
-		if (!data.srcCode.forwardIfCurrent("(")) return null;
 		ArrayList<lucee.transformer.statement.Argument> args = null;
-
-		args = getScriptFunctionArguments(data, null);
-		if (args == null) {
-			data.srcCode.setPos(pos);
-			return null;
+		if (!data.srcCode.forwardIfCurrent("(")) {
+			// LDEV-2417: a single argument does not need parentheses (`x => x * 2`)
+			String argName = identifier(data, false);
+			if (argName == null) return null;
+			data.srcCode.removeSpace();
+			if (!data.srcCode.isCurrent("=>")) {
+				data.srcCode.setPos(pos);
+				return null;
+			}
+			args = new ArrayList<lucee.transformer.statement.Argument>();
+			args.add(new lucee.transformer.statement.Argument(data.factory.createLitString(argName), data.factory.createLitString("any"), data.factory.createLitBoolean(false),
+					null, data.factory.TRUE(), data.factory.EMPTY(), data.factory.EMPTY(), null));
 		}
+		else {
+			args = getScriptFunctionArguments(data, null);
+			if (args == null) {
+				data.srcCode.setPos(pos);
+				return null;
+			}
 
-		if (!data.srcCode.forwardIfCurrent(")")) {
-			data.srcCode.setPos(pos);
-			return null;
+			if (!data.srcCode.forwardIfCurrent(")")) {
+				data.srcCode.setPos(pos);
+				return null;
+			}
 		}
 
 		data.srcCode.removeSpace();

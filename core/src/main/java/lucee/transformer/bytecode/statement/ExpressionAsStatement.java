@@ -25,6 +25,10 @@ import lucee.runtime.type.Struct;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
+import lucee.transformer.bytecode.expression.FunctionAsExpression;
+import lucee.transformer.bytecode.statement.udf.Closure;
+import lucee.transformer.bytecode.statement.udf.Function;
+import lucee.transformer.bytecode.statement.udf.Lambda;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.Expression;
@@ -58,6 +62,15 @@ public final class ExpressionAsStatement extends StatementBaseNoFinal {
 			bc.getAdapter().storeLocal(rtn);
 		}
 		else {
+			// LDEV-4286: a closure or lambda written as a statement is never used (same as ACF, we do not allow this).
+			// checked here and not in the parser, because a parse error would also break the speculative tag based parsing of script components
+			if (expr instanceof FunctionAsExpression) {
+				Function func = ((FunctionAsExpression) expr).getFunction();
+				if (func instanceof Closure || func instanceof Lambda) {
+					throw new TransformerException(bc, "Invalid construct: a " + (func instanceof Lambda ? "lambda" : "closure")
+							+ " written as a statement is never used; assign it to a variable or pass it as an argument", getStart());
+				}
+			}
 			if (!(expr instanceof Literal)) {
 				Type type = expr.writeOutAsType(bc, Expression.MODE_VALUE);
 				if (!type.equals(Types.VOID)) {

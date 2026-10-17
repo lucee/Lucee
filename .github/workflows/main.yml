@@ -46,6 +46,9 @@ jobs:
       issues: read
     env:
       DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/7.1') }}"
+      # bucket behind cdn.lucee.org (ant/upload_to_s3.cfm uploads the build there, see LDEV-6537 for the cut-off)
+      S3_DOWNLOAD_BUCKET: lucee-downloads
+      S3_DOWNLOAD_REGION: us-east-1
       LUCEE_BUILD_JAVA_VERSION: 25
       LUCEE_TEST_JAVA_VERSION: ''
     services:
@@ -432,6 +435,19 @@ jobs:
           gh release create "$TAG" "${ARGS[@]}"
         fi
         gh release upload "$TAG" release-assets/* --clobber
+
+    - name: Regenerate org/lucee index.html and group maven-metadata.xml on S3
+      # LDEV-XXXX: what organize-artifacts.yml did after organizing a version, now on every build that was published to S3
+      if: ${{ success() && env.DID_DEPLOY == 'true' && env.S3_PUBLISHED == 'true' }}
+      run: |
+        cd .github/scripts
+        npm ci
+        node rebuild-group-metadata.js
+      env:
+        INPUT_S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
+        INPUT_S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
+        INPUT_S3_BUCKET: ${{ env.S3_DOWNLOAD_BUCKET }}
+        INPUT_S3_REGION: ${{ env.S3_DOWNLOAD_REGION }}
 
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
