@@ -192,8 +192,8 @@ public final class ScheduledTaskThread extends ParentThreasRefThread {
 			}
 			if (!task.isPaused()) {
 				if (hasEndDatePassed(endDate, endTime, todayDate, todayTime)) {
-					log(Log.LEVEL_ERROR, String.format("End date %s has passed; now: %s", DateTimeUtil.format(endDate + endTime, null, timeZone),
-							DateTimeUtil.format(todayDate + todayTime, null, timeZone)));
+					log(Log.LEVEL_ERROR, String.format("End date %s has passed; now: %s", DateTimeUtil.format(endDate + endTime, null, LogUtil.getTimeZone(config)),
+							DateTimeUtil.format(todayDate + todayTime, null, LogUtil.getTimeZone(config))));
 					break;
 				}
 				execute();
@@ -204,7 +204,7 @@ public final class ScheduledTaskThread extends ParentThreasRefThread {
 			}
 			today = System.currentTimeMillis();
 			execution = calculateNextExecution(today, true);
-			if (!task.isPaused()) log(Log.LEVEL_DEBUG, "next execution runs at " + DateTimeUtil.format(execution, null, timeZone));
+			if (!task.isPaused()) log(Log.LEVEL_DEBUG, "next execution runs at " + DateTimeUtil.format(execution, null, LogUtil.getTimeZone(config)));
 			// sleep=execution-today;
 		}
 	}
