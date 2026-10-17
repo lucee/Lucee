@@ -304,6 +304,7 @@ public final class PageImpl extends BodyBase implements Page {
 	private int hash;
 	private List<JavaFunction> javaFunctions;
 	private Set<String> javaFunctionNames;
+	private boolean forAST;
 
 	/**
 	 * @param factory
@@ -2288,6 +2289,15 @@ public final class PageImpl extends BodyBase implements Page {
 	@Override
 	public boolean isPage() {
 		return getTagCFObject(null) == null;
+	}
+
+	@Override
+	public boolean isAST() {
+		return forAST;
+	}
+
+	public void setAST(boolean forAST) {
+		this.forAST = forAST;
 	}
 
 	/**

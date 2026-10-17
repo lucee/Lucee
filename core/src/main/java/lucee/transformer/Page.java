@@ -11,6 +11,8 @@ public interface Page extends Root {
 
 	public boolean isComponent();
 
+	public boolean isAST();
+
 	public SourceCode getSourceCode();
 
 	public Config getConfig();
