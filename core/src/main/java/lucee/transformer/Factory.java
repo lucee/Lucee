@@ -176,7 +176,7 @@ public abstract class Factory {
 
 	public abstract ExprBoolean opDecision(Expression left, Expression concatOp, int operation);
 
-	public abstract Expression opElvis(Variable left, Expression right);
+	public abstract Expression opElvis(Expression left, Expression right);
 
 	public abstract Expression removeCastString(Expression expr);
 	// TODO more removes?

@@ -101,7 +101,9 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	private String storage;
 	private Struct tokens = new StructImpl(Struct.TYPE_SYNC, 4);
 	private long lastModified;
-	private final long lastModifiedAtInit;
+	private long lastModifiedAtInit;
+	// false when the last store had to merge with a newer storage copy, local data0 is then not what is in storage
+	private boolean inSyncWithStorage = true;
 	private long lastStored;
 
 	private IKHandler handler;
@@ -155,7 +157,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 			if (existing instanceof IKStorageScopeSupport) {
 				IKStorageScopeSupport tmp = ((IKStorageScopeSupport) existing);
-				if (tmp.lastModified() >= time && name.equalsIgnoreCase(tmp.getStorage())) {
+				if (tmp.inSyncWithStorage && tmp.lastModifiedAtInit() >= time && name.equalsIgnoreCase(tmp.getStorage())) {
 
 					if (LogUtil.doesDebug(log)) {
 						ScopeContext.debug(log, "use the existing " + (Scope.SCOPE_SESSION == scope ? "session" : "client") + " scope for " + pc.getApplicationContext().getName()
@@ -320,6 +322,14 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if (ac != null && (this.tokens == null || this.tokens.isEmpty()) && ac.getSessionCluster() && isSessionStorage(pc)) {
 			data0.remove(KeyConstants._csrf_token);
 		}
+		else if (ac != null && ac.getSessionCluster() && isSessionStorage(pc)) {
+			// make sure tokens generated in this request are persisted, even if the entry was removed in the meantime
+			IKStorageScopeItem csrf = data0.get(KeyConstants._csrf_token);
+			if (csrf == null || csrf.removed() || csrf.getValue() != this.tokens) {
+				hasChanges = true;
+				data0.put(KeyConstants._csrf_token, new IKStorageScopeItem(this.tokens));
+			}
+		}
 		store(pc);
 	}
 
@@ -355,6 +365,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		Key k;
 		while (it.hasNext()) {
 			k = it.next();
+			// csrf tokens are held separately from the scope keys (like in StorageScopeImpl), clearing the scope does not drop them
+			if (KeyConstants._csrf_token.equals(k)) continue;
 			removeEL(k);
 		}
 	}
@@ -582,6 +594,21 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	void markStored() {
 		lastStored = System.currentTimeMillis();
 		hasChanges = false;
+	}
+
+	/**
+	 * called after the scope was written to storage; storedLastModified is the timestamp of the value now in storage.
+	 * merged=false: what is in storage is exactly our data0, so storage written by us is no longer a "foreign" change.
+	 */
+	void markStored(long storedLastModified, boolean merged) {
+		markStored();
+		if (merged) {
+			inSyncWithStorage = false;
+		}
+		else {
+			inSyncWithStorage = true;
+			lastModifiedAtInit = storedLastModified;
+		}
 	}
 
 	@Override

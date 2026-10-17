@@ -756,6 +756,7 @@
       <jvmarg value="-DindividualStorageKeys=false"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
+      <jvmarg value="-Dlucee.cli.contextRoot=${test}"/>
       <!-- TODO remove axis, lucene -->
       <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis},${extHibernate},${extEHCache},${extJtds},${extFtp},${extImage}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
@@ -825,6 +826,7 @@
       <jvmarg value="-DluceeCore=${trgLoader}/${version}.lco"/>
       <jvmarg value="-DtrgLoader=${trgLoader}"/>
       <jvmarg value="-DluceeVersion=${version}"/>
+      <jvmarg value="-DluceePom=${rootDir}/loader/.flattened-pom.xml"/>
       <!--
       <jvmarg value="-Dlucee.cascading.write.to.variables.log=deploy"/>
       <jvmarg value="-Dfelix.log.level=debug"/>

@@ -106,7 +106,7 @@ Lucee has a lot of testcases, there are a number of handy [build flags](https://
 
 Lucee uses [TestBox](https://testbox.ortusbooks.com/) as our test framework, we have a customised CFML wrapper around TestBox which can be found in the root directory under [/test](https://github.com/lucee/Lucee/tree/6.0/test). 
 
-The test suites use a range of Test Services, like s3, database, ftp, etc. You can see how they are configured in [_setupTestServices.cfc](https://github.com/lucee/Lucee/blob/6.0/test/_setupTestServices.cfc) via the source code.
+The test suites use a range of Test Services, like S3, database, FTP, etc. You can see how they are configured in [_setupTestServices.cfc](https://github.com/lucee/Lucee/blob/6.0/test/_setupTestServices.cfc) via the source code.
 
 ## Getting Help
 
@@ -155,14 +155,14 @@ Our Release approach follows the [The Tip & Tail Model of Library Development](h
 ## Contributors
 
 This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
-<a href="https://github.com/lucee/Lucee/graphs/contributors"><img src="https://opencollective.com/Lucee/contributors.svg?width=890&button=false" /></a>
+<a href="https://github.com/lucee/Lucee/graphs/contributors"><img src="https://opencollective.com/Lucee/contributors.svg?width=890&button=false" alt="Lucee Contributors"></a>
 
 
 ## Backers
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/Lucee#backer)]
 
-<a href="https://opencollective.com/Lucee#backers" target="_blank"><img src="https://opencollective.com/Lucee/backers.svg?width=890"></a>
+<a href="https://opencollective.com/Lucee#backers" target="_blank"><img src="https://opencollective.com/Lucee/backers.svg?width=890" alt="Lucee Backers"></a>
 
 
 ## Sponsors
@@ -186,7 +186,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 Copyright 2006-2014 Various contributing authors
 Copyright 2015-2021 Lucee Association Switzerland
 
-The Lucee code base was forked from the [Railo Server Project](https://en.wikipedia.org/wiki/Railo) (Version 4.2) in January 2015. The Lucee Association Switzerland  (LAS) is the legal custodian of the code base, and contributors are required accept the [LAS Contributor License Agreement (CLA)](https://dev.lucee.org/t/las-contributor-license-agreement-cla/181).
+The Lucee code base was forked from the [Railo Server Project](https://en.wikipedia.org/wiki/Railo) (Version 4.2) in January 2015. The Lucee Association Switzerland  (LAS) is the legal custodian of the code base, and contributors are required to accept the [LAS Contributor License Agreement (CLA)](https://dev.lucee.org/t/las-contributor-license-agreement-cla/181).
 
 Lucee Server is licensed under the Lesser GNU General Public License Version 2.1 (or later); you may not use this work except in compliance with the License. You may obtain a copy of the License in the LICENSE file, or at:
 [http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt)

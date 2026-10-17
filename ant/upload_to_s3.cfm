@@ -2,16 +2,22 @@
 	// firstly, check are we even deploying to s3
 	DO_DEPLOY = server.system.environment.DO_DEPLOY ?: false;
 
-	// LDEV-6537 cdn.lucee.org is retired, from 2027-03-01 00:00 UTC nothing is uploaded to the S3 bucket behind it anymore.
-	// Builds are still published to Maven (Sonatype snapshots / Maven Central) and GitHub releases,
-	// light and zero are still built here because the maven build attaches them.
-	CDN_RETIRED = now() GTE createDateTime( 2027, 3, 1, 0, 0, 0, 0, "UTC" );
-	PUBLISH_TO_S3 = DO_DEPLOY && !CDN_RETIRED;
+	// LDEV-6537 / LDEV-XXXX: the one and only cut-off date for S3 uploads (bucket lucee-downloads = cdn.lucee.org).
+	// until the cut-off: every build (incl. SNAPSHOT) goes to the bucket root (legacy names) AND the Maven layout org/lucee/lucee/<version>/
+	// from the cut-off:  SNAPSHOTs are not uploaded to S3 at all (they live on Sonatype snapshots),
+	//                    RC/BETA/final builds only go to the Maven layout, the bucket root is no longer written.
+	S3_CUTOFF = createDateTime( 2027, 3, 1, 0, 0, 0, 0, "UTC" );
+	CDN_RETIRED = now() GTE S3_CUTOFF;
+	IS_SNAPSHOT = findNoCase( "-SNAPSHOT", server.system.properties.luceeVersion ?: listLast( server.system.properties.luceeCore, "\/" ) ) GT 0;
+	PUBLISH_TO_S3 = DO_DEPLOY && ( !CDN_RETIRED || !IS_SNAPSHOT );
+	PUBLISH_TO_S3_ROOT = PUBLISH_TO_S3 && !CDN_RETIRED;
 
 	_logger( "" );
 	_logger( " #### Publish Builds to S3" );
-	if ( DO_DEPLOY && CDN_RETIRED ) {
-		_logger( "Not publishing to S3, cdn.lucee.org is retired since 2027-03-01 (LDEV-6537), only building Light and Zero" );
+	if ( DO_DEPLOY && !PUBLISH_TO_S3 ) {
+		_logger( "Not publishing SNAPSHOT to S3, since #dateTimeFormat( S3_CUTOFF, "yyyy-mm-dd", "UTC" )# snapshots are only on Sonatype (LDEV-6537), only building Light and Zero" );
+	} else if ( PUBLISH_TO_S3 && !PUBLISH_TO_S3_ROOT ) {
+		_logger( "Publishing to the Maven layout only, the bucket root is retired since #dateTimeFormat( S3_CUTOFF, "yyyy-mm-dd", "UTC" )# (LDEV-6537)" );
 	}
 
 	// secondly, do we have the s3 extension?
@@ -51,7 +57,10 @@
 	src.mvnJarLightName = "lucee-"&src.version&"-light.jar";
 	src.mvnJarZeroName = "lucee-"&src.version&"-zero.jar";
 	src.mvnLCOName = "lucee-"&src.version&".lco";
+	src.mvnPomName = "lucee-"&src.version&".pom";
 	src.mvnMetadataName = "maven-metadata.xml";
+	// flattened pom (${revision} resolved) written by flatten-maven-plugin
+	src.pom = server.system.properties.luceePom ?: "";
 	// lucee-6.2.2.78-SNAPSHOT.jar
 	if ( ! FileExists( src.jar ) || ! FileExists( src.core ) ){
 		_logger( src.jar & " exists: " & FileExists( src.jar ) );
@@ -63,7 +72,7 @@
 
 	// test s3 access
 	if ( PUBLISH_TO_S3 ) {
-		s3_bucket = "lucee-downloads";
+		s3_bucket = server.system.environment.S3_DOWNLOAD_BUCKET ?: "lucee-downloads"; // set in .github/workflows/main.yml
 		trg.dir = "s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/#s3_bucket#/";
 		trg.mvnRootDir = trg.dir & "org/lucee/lucee/";
 		trg.mvnDir = trg.dir & "org/lucee/lucee/#src.version#/";
@@ -87,19 +96,19 @@
 
 	// we only upload / publish artifacts once LDEV-3921
 	buildExistsOnS3 = false;
-	if ( PUBLISH_TO_S3 && fileExists( trg.jar ) && fileExists( trg.core ) && fileExists( trg.mvnDir & src.mvnJarName ) ){
+	if ( PUBLISH_TO_S3 && fileExists( trg.mvnDir & src.mvnJarName ) && ( !PUBLISH_TO_S3_ROOT || ( fileExists( trg.jar ) && fileExists( trg.core ) ) ) ){
 		_logger( "Build artifacts have already been uploaded to s3 for this version" );
 		buildExistsOnS3 = true;
 	}
 
 	if ( PUBLISH_TO_S3 && !buildExistsOnS3 ){
 		// copy jar
-		publishToS3( src.jar, trg.jar, "Publish [#src.jar#] to S3: ");
+		if ( PUBLISH_TO_S3_ROOT ) publishToS3( src.jar, trg.jar, "Publish [#src.jar#] to S3: ");
 		publishToS3( src.jar, trg.mvnDir & src.mvnJarName, "Publish [#src.jar#] to [#trg.mvnDirRel & src.mvnJarName#] on S3: ");
 
 
 		// copy core
-		publishToS3( src.core, trg.core, "Publish [#src.core#] to S3: ");
+		if ( PUBLISH_TO_S3_ROOT ) publishToS3( src.core, trg.core, "Publish [#src.core#] to S3: ");
 		publishToS3( src.core, trg.mvnDir & src.mvnLCOName, "Publish [#src.core#] to [#trg.mvnDirRel & src.mvnLCOName#] on S3: ");
 	}
 
@@ -119,7 +128,7 @@
 	createLight( src.jar,src.light,src.version, false );
 	if ( PUBLISH_TO_S3 && !buildExistsOnS3 ){
 		trg.light = trg.dir & src.lightName;
-		publishToS3( src.light, trg.light, "Publish Light build to s3: ");
+		if ( PUBLISH_TO_S3_ROOT ) publishToS3( src.light, trg.light, "Publish Light build to s3: ");
 		publishToS3( src.light, trg.mvnDir & src.mvnJarLightName, "Publish [#src.light#] to [#trg.mvnDirRel & src.mvnJarLightName#] on S3: ");
 	}
 
@@ -140,13 +149,27 @@
 
 	if ( PUBLISH_TO_S3 && !buildExistsOnS3 ) {
 		trg.zero = trg.dir & src.zeroName;
-		publishToS3( src.zero, trg.zero, "Publish Zero build to s3: " );
+		if ( PUBLISH_TO_S3_ROOT ) publishToS3( src.zero, trg.zero, "Publish Zero build to s3: " );
 		publishToS3( src.zero, trg.mvnDir & src.mvnJarZeroName, "Publish [#src.zero#] to [#trg.mvnDirRel & src.mvnJarZeroName#] on S3");
+	}
+
+	// pom (LDEV-XXXX), so Maven builds can resolve org.lucee:lucee from the Maven layout
+	if ( PUBLISH_TO_S3 && !buildExistsOnS3 ) {
+		if ( len( src.pom ) && fileExists( src.pom ) ) {
+			publishToS3( src.pom, trg.mvnDir & src.mvnPomName, "Publish [#src.pom#] to [#trg.mvnDirRel & src.mvnPomName#] on S3: " );
+		} else {
+			_logger( "WARNING: flattened pom [#src.pom#] not found, no pom uploaded to S3" );
+		}
 	}
 
 	// metadata
 	if ( PUBLISH_TO_S3 ) {
 		publishMetadataToS3( src.version ,trg.mvnDir & src.mvnMetadataName ,trg.mvnRootDir& src.mvnMetadataName,"Publish Metadata to S3: ");
+	}
+
+	if ( PUBLISH_TO_S3 && len( server.system.environment.GITHUB_ENV ?: "" ) ) {
+		// main.yml regenerates org/lucee/index.html + org/lucee/maven-metadata.xml only when this is set
+		fileAppend( server.system.environment.GITHUB_ENV, "S3_PUBLISHED=true" & chr( 10 ) );
 	}
 
 	if ( !DO_DEPLOY ){
@@ -307,6 +330,11 @@
       <snapshotVersion>
         <classifier>zero</classifier>
         <extension>jar</extension>
+        <value>#arguments.version#</value>
+        <updated>#dateStr#</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
         <value>#arguments.version#</value>
         <updated>#dateStr#</updated>
       </snapshotVersion>

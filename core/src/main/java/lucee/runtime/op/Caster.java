@@ -33,6 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
+import java.math.RoundingMode;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.sql.Blob;
@@ -1006,8 +1007,10 @@ public final class Caster {
 	}
 
 	private static String toDecimal(double value, char decDel, char thsDel) {
-		// TODO Caster toDecimal bessere impl.
-		String str = Caster.toBigDecimal((StrictMath.round(value * 100) / 100D)).toPlainString();
+		// LDEV-4776 round half up on the decimal value (512.925 -> 512.93), like round() and numberFormat(),
+		// value * 100 does not work for every value (512.925 * 100 = 51292.49999999999)
+		String str = Double.isNaN(value) || Double.isInfinite(value) ? Caster.toBigDecimal((StrictMath.round(value * 100) / 100D)).toPlainString()
+				: BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).toPlainString();
 		// str=toDouble(value).toString();
 		String[] arr = str.split("\\.");
 

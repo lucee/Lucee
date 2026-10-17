@@ -313,7 +313,7 @@ public final class DateCaster {
 
 	public static DateTime toDateTimeNew(Locale locale, String str, TimeZone tz, DateTime defaultValue, boolean useCommomDateParserAsWell) {
 		countCheck++;
-		str = StringUtil.normalize(str.trim());
+		str = StringUtil.normalizeDateWhitespace(str.trim());
 		tz = ThreadLocalPageContext.getTimeZone(tz);
 		List<FormatterWrapper> all = FormatUtil.getAllFormats(locale, tz, true);
 		Long time;
