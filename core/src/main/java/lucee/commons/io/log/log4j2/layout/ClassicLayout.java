@@ -31,6 +31,8 @@ import lucee.commons.io.log.log4j2.LogAdapter;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.util.Util;
+import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 
 public final class ClassicLayout extends AbstractStringLayout { // TODO <Serializable>
@@ -40,20 +42,58 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 	// quotes, commas, date (10), time (8), line separator, plus slack for doubled quotes
 	private static final int FIXED_OVERHEAD = 64;
 
-	private final DatePatternConverter date;
-	private final DatePatternConverter time;
+	// date and time converters for one timezone
+	private static final class Converters {
+		final String tz;
+		final DatePatternConverter date;
+		final DatePatternConverter time;
 
+		Converters(String tz) {
+			this.tz = tz;
+			this.date = DatePatternConverter.newInstance(new String[] { "MM/dd/yyyy", tz, "en-US" });
+			this.time = DatePatternConverter.newInstance(new String[] { "HH:mm:ss", tz, "en-US" });
+		}
+	}
+
+	// config this layout belongs to, the timezone comes from it (null = resolve from the current thread)
+	private final Config config;
+
+	// converters for the current config timezone, rebuilt only when the admin timezone changes
+	private volatile Converters converters;
+
+	/**
+	 * fallback for code that creates the layout by class name, resolves the config from the current
+	 * thread
+	 */
 	public ClassicLayout() {
+		this(null);
+	}
+
+	public ClassicLayout(Config config) {
 		// TODO custom charset?
 		super(StandardCharsets.UTF_8, (LogAdapter.logWebContextInfo ?
 
 				"\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Context\",\"Application\",\"Message\"" + LINE_SEPARATOR
 				: "\"Severity\",\"ThreadID\",\"Date\",\"Time\",\"Application\",\"Message\"" + LINE_SEPARATOR).getBytes(StandardCharsets.UTF_8), new byte[0]);
+		this.config = config;
+	}
 
-		// zone resolved once for the life of the layout, log4j caches everything above second precision
-		String tz = TimeZone.getDefault().getID();
-		date = DatePatternConverter.newInstance( new String[] { "MM/dd/yyyy", tz, "en-US" } );
-		time = DatePatternConverter.newInstance( new String[] { "HH:mm:ss", tz, "en-US" } );
+	// a log file is shared by all applications, so the timestamp always uses the timezone of the server
+	// config (admin), never the timezone of the current request/application (this.timezone,
+	// setTimeZone()), otherwise one log file would mix timezones. The JVM default is only used when
+	// there is no config at all.
+	private Converters converters() {
+		TimeZone tz = null;
+		Config config = this.config != null ? this.config : ThreadLocalPageContext.getConfig();
+		if (config != null) tz = config.getTimeZone();
+		if (tz == null) tz = TimeZone.getDefault();
+		String id = tz.getID();
+		Converters c = converters;
+		if (c == null || !c.tz.equals(id)) {
+			c = new Converters(id);
+			converters = c;
+		}
+		return c;
 	}
 
 	@Override
@@ -80,8 +120,12 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 
 		Throwable t = event.getThrown();
 		String level = event.getLevel().toString();
-		String thread = event.getThreadName();
+		String thread = String.valueOf(event.getThreadName());
 		msg = getFormattedMessage( t, msg );
+		// null values are written as empty strings
+		if (msg == null) msg = "";
+		if (application == null) application = "";
+		if (context == null) context = "";
 		String stacktrace = t != null ? ExceptionUtil.getStacktrace( t, false, true ) : "";
 
 		StringBuilder data = new StringBuilder( FIXED_OVERHEAD + level.length() + thread.length() + context.length() + application.length() + msg.length() + stacktrace.length() );
@@ -91,15 +135,17 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 		data.append('"').append( thread ).append('"');
 		data.append(',');
 
+		Converters c = converters();
+
 		// Date
 		data.append('"');
-		date.format( event, data );
+		c.date.format( event, data );
 		data.append('"');
 		data.append(',');
 
 		// Time
 		data.append('"');
-		time.format( event, data );
+		c.time.format( event, data );
 		data.append('"');
 		data.append(',');
 
