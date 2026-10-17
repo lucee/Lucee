@@ -1135,6 +1135,25 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	/**
+	 * like isPrivate, but code of another component defined in the same file (parent/sub component)
+	 * does not count as private, so implicit accessors are invoked
+	 * 
+	 * @param pc
+	 * @return returns if is private for implicit accessors
+	 */
+	private boolean isPrivateForAccessor(PageContext pc) {
+		if (!isPrivate(pc)) return false;
+		pc = ThreadLocalPageContext.get(pc);
+		if (pc == null) return true;
+		Component ac = pc.getActiveComponent();
+		if (ac == null || ac == this) return true;
+		String acSub = ((ComponentImpl) ac).top.properties.subName;
+		String mySub = this.top.properties.subName;
+		if (StringUtil.isEmpty(acSub)) return StringUtil.isEmpty(mySub);
+		return acSub.equalsIgnoreCase(mySub);
+	}
+
+	/**
 	 * @param pc
 	 * @return returns if is package
 	 */
@@ -1447,6 +1466,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			if (type.equalsIgnoreCase(c.properties.callPath)) return true;
 			if (type.equalsIgnoreCase(c.properties.name)) return true;
 			if (type.equalsIgnoreCase(c._getName())) return true;
+			// sub component referenced by its short name (LDEV-6571)
+			if (!c.properties.inline && !StringUtil.isEmpty(c.properties.subName) && type.equalsIgnoreCase(c.properties.subName)) return true;
 
 			// check interfaces
 			if (c.absFin != null) {
@@ -2025,6 +2046,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 			}
 
+			// LDEV-3672 "final this.x = 1;" has a modifier but no access (-1), use the default access then
+			if (access < Component.ACCESS_REMOTE || access > Component.ACCESS_PRIVATE) access = dataMemberDefaultAccess;
 			_data.put(key, new DataMember(existing != null ? existing.getAccess() : access, existing != null ? existing.getModifier() : modifier, value));
 
 		}
@@ -2108,7 +2131,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	public Object set(PageContext pc, Collection.Key key, Object value) throws PageException {
 		if (pc == null) pc = ThreadLocalPageContext.get();
 		if (triggerDataMember(pc) && isInit) {
-			if (!isPrivate(pc)) {
+			if (!isPrivateForAccessor(pc)) {
 				return callSetter(pc, key, value);
 			}
 		}
@@ -2119,7 +2142,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	public Object set(PageContext pc, Collection.Key key, Object value, int access, int modifier) throws PageException {
 		if (pc == null) pc = ThreadLocalPageContext.get();
 		if (triggerDataMember(pc) && isInit) {
-			if (!isPrivate(pc)) {
+			if (!isPrivateForAccessor(pc)) {
 				return callSetter(pc, key, value);
 			}
 		}
@@ -2162,7 +2185,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		if (member != null) return member.getValue();
 
 		// trigger
-		if (triggerDataMember(pc) && !isPrivate(pc)) {
+		if (triggerDataMember(pc) && !isPrivateForAccessor(pc)) {
 			return callGetter(pc, key);
 		}
 		throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]",
@@ -2231,7 +2254,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		// Trigger
 		PageContext pc = ThreadLocalPageContext.get();
-		if (triggerDataMember(pc) && !isPrivate(pc)) {
+		if (triggerDataMember(pc) && !isPrivateForAccessor(pc)) {
 			return callGetter(pc, key);
 		}
 		throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]");
@@ -2243,7 +2266,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		if (member != null) return member.getValue();
 
 		// trigger
-		if (triggerDataMember(pc) && !isPrivate(pc)) {
+		if (triggerDataMember(pc) && !isPrivateForAccessor(pc)) {
 			return callGetter(pc, key, defaultValue);
 		}
 		return defaultValue;
@@ -2273,7 +2296,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		// trigger
 		PageContext pc = ThreadLocalPageContext.get();
-		if (triggerDataMember(pc) && !isPrivate(pc)) {
+		if (triggerDataMember(pc) && !isPrivateForAccessor(pc)) {
 			return callGetter(pc, key, defaultValue);
 		}
 		return defaultValue;

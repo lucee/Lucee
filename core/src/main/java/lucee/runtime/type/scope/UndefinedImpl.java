@@ -45,6 +45,7 @@ import lucee.runtime.functions.system.CFFunction;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.thread.ThreadsImpl;
 import lucee.runtime.type.BIF;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -253,6 +254,9 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 
 		// thread scopes
 		if (pc.hasFamily()) {
+			// LDEV-2773 inside a thread, the thread scope of the current thread
+			rtn = getFromCurrentThread(pc, key, _null);
+			if (rtn != _null) return rtn;
 			rtn = // ThreadTag.getThreadScope(pc, key, ThreadTag.LEVEL_CURRENT+ThreadTag.LEVEL_KIDS);
 					((PageContextImpl) pc).getThreadScope(key, _null);
 			if (rtn != _null) {
@@ -277,6 +281,19 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		}
 
 		throw new ExpressionException("variable [" + key.getString() + "] doesn't exist");
+	}
+
+	/**
+	 * inside a thread, an unscoped variable can come from the thread scope of the current thread (like
+	 * "thread.x"), only the values set by the code, not the thread metadata
+	 */
+	private Object getFromCurrentThread(PageContext pc, Collection.Key key, Object defaultValue) {
+		if (!(pc instanceof PageContextImpl)) return defaultValue;
+		ThreadsImpl curr = ((PageContextImpl) pc).getCurrentThreadScope();
+		if (curr == null) return defaultValue;
+		Object rtn = curr.getContent(pc, key, defaultValue);
+		if (rtn != defaultValue && debug) debugCascadedAccess(pc, "thread", key);
+		return rtn;
 	}
 
 	public static void debugCascadedAccess(PageContext pc, Variables var, Object value, Collection.Key key) {
@@ -446,6 +463,9 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 
 		// thread scopes
 		if (pc.hasFamily()) {
+			// LDEV-2773 inside a thread, the thread scope of the current thread
+			rtn = getFromCurrentThread(pc, key, _null);
+			if (rtn != _null) return rtn;
 			rtn = pc.getThreadScope(key, _null);
 			if (rtn != _null) {
 				if (debug && !pc.isThreads(rtn)) debugCascadedAccess(pc, "thread", key);
@@ -511,6 +531,9 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 
 		// thread scopes
 		if (pc.hasFamily()) {
+			// LDEV-2773 inside a thread, the thread scope of the current thread
+			rtn = getFromCurrentThread(pc, key, _null);
+			if (rtn != _null) return rtn;
 			rtn = ((PageContextImpl) pc).getThreadScope(key, _null);
 			if (rtn != _null) {
 				if (debug && checkArguments && !((PageContextImpl) pc).isThreads(rtn)) debugCascadedAccess(pc, "thread", key);
@@ -547,10 +570,16 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		return defaultValue;
 	}
 
+	private boolean isCaptured(Collection.Key key) {
+		return variable instanceof ClosureScope && ((ClosureScope) variable).containsCapturedKey(key);
+	}
+
 	@Override
 	public Object setEL(Collection.Key key, Object value) {
 		if (checkArguments) {
-			if (localAlways || local.containsKey(key)) return local.setEL(key, value);
+			if (local.containsKey(key)) return local.setEL(key, value);
+			// LDEV-2213: in a closure, update a variable of the enclosing function instead of creating a new local
+			if (localAlways) return isCaptured(key) ? variable.setEL(key, value) : local.setEL(key, value);
 			if (argument.containsFunctionArgumentKey(key)) {
 				if (debug) debugCascadedAccess(pc, argument.getTypeAsString(), key);
 				return argument.setEL(key, value);
@@ -568,7 +597,9 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 	@Override
 	public Object set(Collection.Key key, Object value) throws PageException {
 		if (checkArguments) {
-			if (localAlways || local.containsKey(key)) return local.set(key, value);
+			if (local.containsKey(key)) return local.set(key, value);
+			// LDEV-2213: in a closure, update a variable of the enclosing function instead of creating a new local
+			if (localAlways) return isCaptured(key) ? variable.set(key, value) : local.set(key, value);
 			if (argument.containsFunctionArgumentKey(key)) {
 				if (debug) debugCascadedAccess(pc, argument.getTypeAsString(), key);
 				return argument.set(key, value);
