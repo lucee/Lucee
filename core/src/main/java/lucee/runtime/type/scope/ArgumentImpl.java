@@ -173,7 +173,16 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 	@Override
 	public Object getFunctionArgument(Collection.Key key, Object defaultValue) {
 		if ( !useHashMap ) {
-			return get( key, defaultValue );
+			// same semantics as StructImpl.get(key, default): a null value (e.g. an argument that was not passed)
+			// counts as missing without full null support, so the undefined scope falls through to variables
+			for ( int i = 0; i < argCount; i++ ) {
+				if ( argArray[i * 2].equals( key ) ) {
+					Object val = argArray[i * 2 + 1];
+					if ( val == null && !NullSupportHelper.full() ) return defaultValue;
+					return val;
+				}
+			}
+			return defaultValue;
 		}
 		return super.get(key, defaultValue);
 	}
