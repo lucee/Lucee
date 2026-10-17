@@ -226,9 +226,9 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 			}
 		}
 
-		// LDEV-4771: ClosureScope (captured outer args/local/variables) before query columns
+		// LDEV-4771: captured outer arguments/local of a closure before query columns (variables stay after the queries)
 		if (variable instanceof ClosureScope) {
-			rtn = variable.get(pc, key, _null);
+			rtn = ((ClosureScope) variable).getCaptured(pc, key, _null);
 			if (rtn != _null) {
 				if (debug && checkArguments) debugCascadedAccess(pc, variable, rtn, key);
 				return rtn;
@@ -504,9 +504,9 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 			}
 		}
 
-		// LDEV-4771: ClosureScope (captured outer args/local/variables) before query columns
+		// LDEV-4771: captured outer arguments/local of a closure before query columns (variables stay after the queries)
 		if (variable instanceof ClosureScope) {
-			rtn = variable.get(pc, key, _null);
+			rtn = ((ClosureScope) variable).getCaptured(pc, key, _null);
 			if (rtn != _null) {
 				if (debug && checkArguments) debugCascadedAccess(pc, variable, rtn, key);
 				return rtn;
