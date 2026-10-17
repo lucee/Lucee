@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
+component extends = "org.lucee.cfml.test.LuceeTestCase"{
     function run( testResults, textbox ) {
         describe("testcase for LDEV-2734", function(){
             it(title="Tag island inside script-based try/catch", body=function( currentSpec ){
