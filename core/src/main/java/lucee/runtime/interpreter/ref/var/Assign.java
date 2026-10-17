@@ -48,7 +48,7 @@ public final class Assign extends RefSupport implements Ref {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (limited) throw new SecurityInterpreterException("Invalid syntax, variables are not supported.");
+		if (limited) throw new SecurityInterpreterException(SecurityInterpreterException.LIMIT_EVALUATION_MESSAGE);
 		return coll.setValue(pc, value.getValue(pc));
 	}
 
