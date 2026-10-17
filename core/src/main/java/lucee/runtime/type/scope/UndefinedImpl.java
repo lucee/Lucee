@@ -226,6 +226,15 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 			}
 		}
 
+		// LDEV-4771: captured outer arguments/local of a closure before query columns (variables stay after the queries)
+		if (variable instanceof ClosureScope) {
+			rtn = ((ClosureScope) variable).getCaptured(pc, key, _null);
+			if (rtn != _null) {
+				if (debug && checkArguments) debugCascadedAccess(pc, variable, rtn, key);
+				return rtn;
+			}
+		}
+
 		// get data from queries
 		if (this.pc.allowImplicidQueryCall() && !qryStack.isEmpty()) {
 			rtn = qryStack.getDataFromACollection(pc, key, _null);
@@ -491,6 +500,15 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 			rtn = argument.getFunctionArgument(key, _null);
 			if (rtn != _null) {
 				if (debug) debugCascadedAccess(pc, argument.getTypeAsString(), key);
+				return rtn;
+			}
+		}
+
+		// LDEV-4771: captured outer arguments/local of a closure before query columns (variables stay after the queries)
+		if (variable instanceof ClosureScope) {
+			rtn = ((ClosureScope) variable).getCaptured(pc, key, _null);
+			if (rtn != _null) {
+				if (debug && checkArguments) debugCascadedAccess(pc, variable, rtn, key);
 				return rtn;
 			}
 		}
