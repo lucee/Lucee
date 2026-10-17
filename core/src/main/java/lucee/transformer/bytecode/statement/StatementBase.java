@@ -83,8 +83,9 @@ public abstract class StatementBase implements BytecodeStatement {
 		BytecodeContext bc = (BytecodeContext) c;
 		bc.visitLine(start);
 		_writeOut(bc);
-		bc.visitLine(end);
-
+		// Skip emitting end line - it causes bytecode position conflicts when the next statement's
+		// start line is emitted before any bytecode is generated. The start position is sufficient
+		// for debugging and breakpoints. The end position (closing brace) isn't executable anyway.
 	}
 
 	/**
@@ -133,26 +134,22 @@ public abstract class StatementBase implements BytecodeStatement {
 
 	@Override
 	public void dump(Struct sct) {
-		// start
-		if (start != null) {
+		// start - use getter to allow subclasses to override
+		Position s = getStart();
+		if (s != null) {
 			Struct sctStart = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
-			sctStart.setEL(KeyConstants._line, start.line);
-			sctStart.setEL(KeyConstants._column, start.displayColumn());
-			sctStart.setEL(KeyConstants._offset, start.displayPosition());
-			// sctStart.setEL("_pos", start.pos);
-			// sctStart.setEL("_col", start.column);
-			// sctStart.setEL("_off", start.offset);
+			sctStart.setEL(KeyConstants._line, s.line);
+			sctStart.setEL(KeyConstants._column, s.displayColumn());
+			sctStart.setEL(KeyConstants._offset, s.displayPosition());
 			sct.setEL(KeyConstants._start, sctStart);
 		}
-		// end
-		if (end != null) {
+		// end - use getter to allow subclasses to override
+		Position e = getEnd();
+		if (e != null) {
 			Struct sctEnd = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
-			sctEnd.setEL(KeyConstants._line, end.line);
-			sctEnd.setEL(KeyConstants._column, end.displayColumn());
-			sctEnd.setEL(KeyConstants._offset, end.displayPosition());
-			// sctEnd.setEL("_pos", end.pos);
-			// sctEnd.setEL("_col", end.column);
-			// sctEnd.setEL("_off", end.offset);
+			sctEnd.setEL(KeyConstants._line, e.line);
+			sctEnd.setEL(KeyConstants._column, e.displayColumn());
+			sctEnd.setEL(KeyConstants._offset, e.displayPosition());
 			sct.setEL(KeyConstants._end, sctEnd);
 		}
 	}
