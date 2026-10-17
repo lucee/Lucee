@@ -1,0 +1,109 @@
+# Reusable workflow (LDEV-XXXX): uploads one extension build into the Maven layout on the lucee-downloads bucket (cdn.lucee.org)
+#   org/lucee/<artifactId>/<version>/<artifactId>-<version>.lex (+ -lite.lex, .pom, .sha1) and updates the version,
+#   artifact and org/lucee group metadata + index.html, like organize-extensions.yml does by hand.
+# The cut-off (2027-03-01, LDEV-6537) is defined once, in .github/scripts/upload-extension-to-s3.js:
+#   before: every build incl. SNAPSHOT; from then on: SNAPSHOT skipped, RC/BETA/ALPHA/final Maven layout only.
+#
+# Caller (in an extension repo, after the Maven deploy job):
+#   s3:
+#     needs: [build, deploy]
+#     uses: lucee/lucee/.github/workflows/extension-s3-upload.yml@7.1
+#     with:
+#       artifact-name: <name of an upload-artifact holding target/*.lex and .flattened-pom.xml>
+#       version: ${{ needs.build.outputs.version }}
+#     secrets: inherit
+name: Extension S3 upload
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        description: 'actions/upload-artifact name containing the built .lex (and .lite.lex) plus .flattened-pom.xml'
+        required: true
+        type: string
+      version:
+        description: 'Published extension version, e.g. 1.0.0.7, 1.0.0.8-RC or 1.0.0.9-SNAPSHOT'
+        required: true
+        type: string
+      artifact-id:
+        description: 'Maven artifactId; read from the POM when empty'
+        required: false
+        type: string
+        default: ''
+      scripts-ref:
+        description: 'lucee/lucee ref to load .github/scripts from; keep it equal to the @ref of the uses: line'
+        required: false
+        type: string
+        default: '7.1'
+      dry-run:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      S3_ACCESS_ID_DOWNLOAD:
+        required: false
+      S3_SECRET_KEY_DOWNLOAD:
+        required: false
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # one upload at a time per extension repo, so the artifact maven-metadata.xml is never written by two runs at once.
+    # GitHub concurrency groups are per repository; the cross-repo group metadata race is handled in the script (re-check + rebuild).
+    concurrency:
+      group: lucee-downloads-maven-metadata-${{ github.repository }}
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - name: Check S3 credentials
+        id: creds
+        env:
+          K: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
+        run: |
+          if [ -z "$K" ]; then
+            echo "::warning::S3_ACCESS_ID_DOWNLOAD / S3_SECRET_KEY_DOWNLOAD not available to this repository, skipping the S3 upload"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # the upload script (and its cut-off) comes from lucee/lucee
+      - name: Checkout upload scripts
+        if: steps.creds.outputs.ok == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: lucee/lucee
+          ref: ${{ inputs.scripts-ref }}
+          sparse-checkout: .github/scripts
+          path: lucee-scripts
+
+      - name: Download extension artifact
+        if: steps.creds.outputs.ok == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ext
+
+      - uses: actions/setup-node@v4
+        if: steps.creds.outputs.ok == 'true'
+        with:
+          node-version: '20'
+
+      - name: Upload to S3 (Maven layout)
+        if: steps.creds.outputs.ok == 'true'
+        working-directory: lucee-scripts/.github/scripts
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_ARTIFACT_ID: ${{ inputs.artifact-id }}
+          INPUT_DIR: ${{ github.workspace }}/ext
+          INPUT_DRY_RUN: ${{ inputs.dry-run }}
+          INPUT_S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
+          INPUT_S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
+          INPUT_S3_BUCKET: lucee-downloads
+          INPUT_S3_REGION: us-east-1
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+          ls -la "$INPUT_DIR"
+          node upload-extension-to-s3.js

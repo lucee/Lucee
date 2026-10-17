@@ -62,6 +62,8 @@ function LuceeForms(form,onError) {
 	pub.check=function() {
 		for(var key in prv.elements) {
 			var el=prv.elements[key];
+			// a field can be removed from the page after it was defined (e.g. an inactive tab), there is nothing to check then
+			if(!document.forms[prv.form][el.name]) continue;
 			if(pub.TYPE_TEXT==el.type) prv.checkText(el,true);
 			else if(pub.TYPE_BUTTON==el.type) prv.checkText(el,true);
 			else if(pub.TYPE_FILE==el.type) prv.checkText(el,true);

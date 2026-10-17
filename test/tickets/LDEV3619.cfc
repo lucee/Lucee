@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
+component extends = "org.lucee.cfml.test.LuceeTestCase"{
     function run ( testResults , testBox ) {
         describe("Testcase for LDEV-3619", function(){
             it(title="Single space between param and name with dot notation", body=function( currentSpec ){
@@ -19,6 +19,17 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
                     result.filecontent = e.message;
                 }
                 expect(trim(result.filecontent)).toBe("Lucee");
+            });
+            it(title="Multiple spaces between param, type and name, and spaces around the equal sign", body=function( currentSpec ){
+                try {
+                    local.result = _internalRequest(
+                        template : "#createURI("LDEV3619")#/test2.cfm"
+                    );
+                }
+                catch(any e) {
+                    result.filecontent = e.message;
+                }
+                expect(trim(result.filecontent)).toBe("12345");
             });
         });
     }

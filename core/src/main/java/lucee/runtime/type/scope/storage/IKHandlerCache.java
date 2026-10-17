@@ -60,12 +60,11 @@ public final class IKHandlerCache implements IKHandler {
 				Object existingVal = cache.getValue(key, null);
 
 				if (storageScope.hasContent()) {
-					cache.put(key, deserializeIKStorageValueSupported(cache)
-							? new IKStorageValue(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(), storageScope.lastModifiedAtInit(), log, type))
-							: IKStorageValue.toByteRepresentation(
-									IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(), storageScope.lastModifiedAtInit(), log, type)),
-							Long.valueOf(storageScope.getTimeSpan()), null);
-					storageScope.markStored();
+					Map<Collection.Key, IKStorageScopeItem> toStore = IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(),
+							storageScope.lastModifiedAtInit(), log, type);
+					IKStorageValue sv = new IKStorageValue(toStore);
+					cache.put(key, deserializeIKStorageValueSupported(cache) ? sv : IKStorageValue.toByteRepresentation(sv), Long.valueOf(storageScope.getTimeSpan()), null);
+					storageScope.markStored(sv.lastModified(), toStore != data);
 				}
 				else if (existingVal != null) {
 					cache.remove(key);

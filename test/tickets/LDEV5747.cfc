@@ -1,7 +1,9 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	
 	function beforeAll() {
+		variables.n = 100;
 		variables.urlPath = "http://"&cgi.SERVER_NAME & createURI("LDEV5747/index.cfm");
+		cleanup(); // remove leftovers from an earlier aborted run, so the count check is accurate
 	}
 
 	function run( testResults, textbox ) {
@@ -18,26 +20,41 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true {
 				);
 			});
 			it(title = "Concurrent updating of Scheduled tasks", body = function ( currentSpec ){
+
+				cfschedule( action="list", returnvariable="local.tasks_before");
+
 				var arr = [];
-				arraySet(arr, 1, 100, "");
+				arraySet(arr, 1, n, "");
 				arrayEach(arr, function(el, idx){
 					systemOutput("LDEV-5747 updating scheduled tasks #idx#", true);
 					cfschedule(
 						action="update",
 						url="#urlPath#",
-						task="LDEV-5747",
+						task="LDEV-5747-#idx#",
 						interval="daily",
 						paused="true",
 						startdate="#dateformat(now())#",
 						starttime="#timeFormat(now()+1)#"
 					);
 				}, true);
+
+				cfschedule( action="list", returnvariable="local.tasks_after");
+				expect( local.tasks_before.recordcount+ n ).toBe( local.tasks_after.recordcount );
 			});
 		});
 	}
 
 	function afterAll() {
-		cfschedule( action="delete", task="LDEV-5747");
+		cleanup();
+	}
+
+	private function cleanup() {
+		cfschedule( action="list", returnvariable="local.tasks" );
+		loop query=local.tasks {
+			if ( local.tasks.task == "LDEV-5747" || left( local.tasks.task, 10 ) == "LDEV-5747-" ) {
+				cfschedule( action="delete", task=local.tasks.task );
+			}
+		}
 	}
 
 	private string function createURI(string calledName){

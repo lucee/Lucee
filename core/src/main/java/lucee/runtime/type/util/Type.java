@@ -38,7 +38,11 @@ public final class Type {
 		else if (o instanceof Number) return "Number";
 		else if (o instanceof TimeSpan) return "TimeSpan";
 		else if (o instanceof Array) return "Array";
-		else if (o instanceof Component) return "Component " + ((Component) o).getAbsName();
+		else if (o instanceof Component) {
+			Component c = (Component) o;
+			String sub = (c instanceof lucee.runtime.ComponentImpl && !((lucee.runtime.ComponentImpl) c).getInline()) ? ((lucee.runtime.ComponentImpl) c).getSubName() : null;
+			return "Component " + c.getAbsName() + (sub == null || sub.isEmpty() ? "" : "$" + sub);
+		}
 		else if (o instanceof Scope) return ((Scope) o).getTypeAsString();
 		else if (o instanceof Struct) {
 			if (o instanceof XMLStruct) return "XML";

@@ -475,7 +475,7 @@
   <dependency>
     <groupId>org.apache.commons</groupId>
     <artifactId>commons-lang3</artifactId>
-    <version>3.12.0</version>
+    <version>3.21.0</version>
   </dependency>
   <dependency>
     <groupId>commons-lang</groupId>
@@ -485,7 +485,7 @@
   <dependency>
     <groupId>org.apache.commons</groupId>
     <artifactId>commons-text</artifactId>
-    <version>1.10.0</version>
+    <version>1.15.0</version>
   </dependency>
   <dependency>
     <groupId>org.lucee</groupId>
@@ -668,13 +668,15 @@
       <dependency>
           <groupId>org.apache.tomcat.embed</groupId>
           <artifactId>tomcat-embed-core</artifactId>
-          <version>9.0.118</version>
+          <version>9.0.123</version>
+          <scope>provided</scope>
       </dependency>
       <!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-annotations-api -->
       <dependency>
           <groupId>org.apache.tomcat</groupId>
           <artifactId>tomcat-annotations-api</artifactId>
-          <version>9.0.118</version>
+          <version>9.0.123</version>
+          <scope>provided</scope>
       </dependency>
 
     <dependency>
