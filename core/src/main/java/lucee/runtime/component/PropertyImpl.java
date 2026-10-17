@@ -63,6 +63,7 @@ public final class PropertyImpl extends MemberSupport implements Property, ASMPr
 	private boolean setter = true;
 	private boolean getter = true;
 	private boolean axisType;
+	private boolean accessExplicit; // LDEV-5822: only expose access in metadata when explicitly set
 
 	public PropertyImpl() {
 		this(true);
@@ -71,6 +72,23 @@ public final class PropertyImpl extends MemberSupport implements Property, ASMPr
 	public PropertyImpl(boolean axisType) {
 		super(Component.ACCESS_REMOTE);
 		this.axisType = axisType;
+	}
+
+	@Override
+	public void setAccess(int access) {
+		super.setAccess(access);
+		this.accessExplicit = true;
+	}
+
+	@Override
+	public void setAccess(String access) throws lucee.runtime.exp.ApplicationException {
+		super.setAccess(access);
+		this.accessExplicit = true;
+	}
+
+	private void setAccessInternal(int access, boolean explicit) {
+		super.setAccess(access);
+		this.accessExplicit = explicit;
 	}
 
 	@Override
@@ -296,6 +314,15 @@ public final class PropertyImpl extends MemberSupport implements Property, ASMPr
 		if (!StringUtil.isEmpty(displayname, true)) sct.setEL(KeyConstants._displayname, displayname);
 		if (!StringUtil.isEmpty(type, true)) sct.setEL(KeyConstants._type, type);
 		if (_default != null) sct.setEL(KeyConstants._default, _default);
+		// LDEV-5822: only include access when it was explicitly set on the property
+		if (accessExplicit) {
+			try {
+				sct.setEL(KeyConstants._access, lucee.runtime.type.util.ComponentUtil.toStringAccess(getAccess()));
+			}
+			catch (lucee.runtime.exp.ApplicationException e) {
+				// ignore invalid access value
+			}
+		}
 
 		// dyn attributes (includes 'required' when explicitly set)
 		if (dynAttrs != null) StructUtil.copy(dynAttrs, sct, true);
@@ -424,6 +451,7 @@ public final class PropertyImpl extends MemberSupport implements Property, ASMPr
 		other.required = required;
 		other.setter = setter;
 		other.type = type;
+		other.setAccessInternal(getAccess(), accessExplicit);
 		// Copy cached keys and names to avoid recalculation
 		other.nameAsKey = nameAsKey;
 		other.getterKey = getterKey;
