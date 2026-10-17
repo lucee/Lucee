@@ -67,8 +67,11 @@ public final class OpBigDecimal extends ExpressionBase {
 
 	public Type writeOutNumber(BytecodeContext bc, int mode) throws TransformerException {
 
+		// LDEV-3020: BigDecimal has no exponent operation, the result of the number operation needs to be converted to a BigDecimal (that is what the caller expects)
 		if (operation == Factory.OP_DBL_EXP) {
-			return new OpNumber(left, right, operation).writeOutNumber(bc, mode);
+			new OpNumber(left, right, operation).writeOutNumber(bc, MODE_REF);
+			bc.getAdapter().invokeStatic(Types.CASTER, TO_BIG_DECIMAL);
+			return Types.BIG_DECIMAL;
 		}
 
 		GeneratorAdapter adapter = bc.getAdapter();

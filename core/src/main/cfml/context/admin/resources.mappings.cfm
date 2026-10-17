@@ -103,10 +103,12 @@ Defaults --->
 							remoteClients="#request.getRemoteClients()#">
 						<cfset errorContext = "creating archive. The archive was not created">
 						<cfinclude template="resources.mapping.compileError.cfm">
-					<cfelseif not doDownload>
-
-					<cfelse><cfheader name="Content-Disposition" value="inline; filename=#filename#"><!---
-					 ---><cfcontent file="#target#" deletefile="yes" type="application/unknow">
+						<!--- download only an archive that was created without errors, otherwise the errors above are shown --->
+						<cfset hasCompileErrors = isStruct( request.compileErrors ?: "" ) && structCount( request.compileErrors ) GT 0>
+						<cfif doDownload && !hasCompileErrors && fileExists( target )>
+							<cfheader name="Content-Disposition" value="inline; filename=#filename#"><!---
+							 ---><cfcontent file="#target#" deletefile="yes" type="application/unknow">
+						</cfif>
 					</cfif>
 				</cfloop>
 			</cfif>

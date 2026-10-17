@@ -775,10 +775,18 @@
 	{
 		"sysprop": "lucee.mvn.repo.releases",
 		"envvar": "LUCEE_MVN_REPO_RELEASES",
-		"desc": "Comma-separated Maven repository URLs used by Lucee to load release versions. When unset, defaults to Maven Central and the Google Cloud Maven Central mirror.",
+		"desc": "Comma-separated Maven repository URLs used by Lucee to load release versions. When unset, defaults to Maven Central.",
 		"category": "osgi",
 		"type": "string",
-		"default": "https://repo1.maven.org/maven2/,https://maven-central.storage-download.googleapis.com/maven2/"
+		"default": "https://repo1.maven.org/maven2/"
+	},
+	{
+		"sysprop": "lucee.mvn.repo.mixed",
+		"envvar": "LUCEE_MVN_REPO_MIXED",
+		"desc": "Comma-separated Maven repository URLs checked after the release/snapshot repositories, for artifacts provided by Lucee (e.g. RC/BETA versions not published to Maven Central).",
+		"category": "osgi",
+		"type": "string",
+		"default": "https://maven.lucee-services.com/"
 	},
 	{
 		"sysprop": "lucee.mvn.repo.snapshots",

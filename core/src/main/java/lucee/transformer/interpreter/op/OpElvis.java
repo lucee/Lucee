@@ -8,16 +8,16 @@ import lucee.transformer.interpreter.expression.ExpressionBase;
 
 public final class OpElvis extends ExpressionBase {
 
-	private Variable left;
+	private Expression left;
 	private Expression right;
 
-	private OpElvis(Variable left, Expression right) {
+	private OpElvis(Expression left, Expression right) {
 		super(left.getFactory(), left.getStart(), right.getEnd());
 		this.left = left;
 		this.right = right;
 	}
 
-	public static Expression toExpr(Variable left, Expression right) {
+	public static Expression toExpr(Expression left, Expression right) {
 		return new OpElvis(left, right);
 	}
 

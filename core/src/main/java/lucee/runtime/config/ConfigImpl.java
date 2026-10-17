@@ -3582,7 +3582,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		String id = DatasourceConnectionFactory.createId(ds, user, pass);
 		DatasourceConnPool pool = pools.get(id);
 		if (pool == null) {
-			synchronized (id) {
+			synchronized (SystemUtil.createToken("dsPool", id)) {
 				pool = pools.get(id);
 				if (pool == null) {// TODO add config but from where?
 					DataSourcePro dsp = (DataSourcePro) ds;
