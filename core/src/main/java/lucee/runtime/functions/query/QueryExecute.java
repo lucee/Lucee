@@ -22,16 +22,23 @@
  */
 package lucee.runtime.functions.query;
 
+import java.util.Iterator;
+import java.util.Map.Entry;
+
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.tag.TagUtil;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.transformer.library.tag.TagLibTag;
 
 public final class QueryExecute extends BIF {
@@ -61,7 +68,7 @@ public final class QueryExecute extends BIF {
 				// set attributes
 				qry.setReturnVariable(true);
 				qry.setName(StringUtil.isEmpty(name) ? "QueryExecute" : name);
-				if (options != null) TagUtil.setAttributeCollection(pc, qry, null, options, TagLibTag.ATTRIBUTE_TYPE_FIXED);
+				if (options != null) TagUtil.setAttributeCollection(pc, qry, null, toQueryAttributes(pc, options), TagLibTag.ATTRIBUTE_TYPE_FIXED);
 				qry.setParams(params);
 
 				int res = qry.doStartTag();
@@ -90,6 +97,21 @@ public final class QueryExecute extends BIF {
 			pci.reuse(qry);
 		}
 
+	}
+
+	// only cfquery attributes (incl. aliases) are passed on, other keys (e.g. a datasource definition) must not reach a Query setter
+	private static Struct toQueryAttributes(PageContext pc, Struct options) {
+		TagLibTag tlt = TagUtil.getTagLibTag((ConfigPro) ThreadLocalPageContext.getConfig(pc), "cf", "query");
+		if (tlt == null) return options;
+
+		Struct attrs = new StructImpl();
+		Iterator<Entry<Key, Object>> it = options.entryIterator();
+		Entry<Key, Object> e;
+		while (it.hasNext()) {
+			e = it.next();
+			if (tlt.getAttribute(e.getKey().getLowerString(), true) != null) attrs.setEL(e.getKey(), e.getValue());
+		}
+		return attrs;
 	}
 
 	@Override
