@@ -418,6 +418,15 @@ public final class Controler extends ParentThreasRefThread {
 						if (log != null) log.error("controler", e);
 					}
 					checkStopWatch(config, stopwatch, "clearUnusedDBConnections");
+
+					stopwatch.start();
+					try {
+						((ConfigPro) config).cleanDatasourceConnectionPools();
+					}
+					catch (Exception e) {
+						if (log != null) log.error("controler", e);
+					}
+					checkStopWatch(config, stopwatch, "cleanDatasourceConnectionPools");
 				}
 
 				if (doit) {

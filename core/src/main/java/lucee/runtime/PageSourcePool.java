@@ -32,12 +32,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.watch.PageSourcePoolWatcher;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.SerializableObject;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
+import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
@@ -59,8 +58,6 @@ public final class PageSourcePool implements Dumpable {
 	// TODO must not be thread safe, is used in sync block only
 	private final Map<String, SoftReference<PageSource>> pageSources = new ConcurrentHashMap<String, SoftReference<PageSource>>();
 	private int maxSize_min = 767;
-	private PageSourcePoolWatcher watcher;
-	private Object token = new SerializableObject();
 	private MappingImpl mapping;
 
 	// max size of the pool cache
@@ -113,16 +110,9 @@ public final class PageSourcePool implements Dumpable {
 		if (pageSources.size() > MAXSIZE) {
 			cleanLoaders();
 		}
-		if ((mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO) && (watcher == null || pageSources.size() == 0)) {
-			synchronized (token) {
-				if ((mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO) && (watcher == null || pageSources.size() == 0)) {
-					if (watcher != null) {
-						watcher.stopIfNecessary();
-					}
-					watcher = new PageSourcePoolWatcher(mapping, this, pageSources);
-					watcher.startIfNecessary();
-				}
-			}
+		if (mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO && mapping.getPhysical() != null) {
+			ConfigServerImpl cs = ConfigServerImpl.getConfigServerImpl(mapping.getConfig());
+			if (cs != null) cs.ensureInspectTickerStarted();
 		}
 
 		ps.setLastAccessTime();
@@ -252,8 +242,6 @@ public final class PageSourcePool implements Dumpable {
 			}
 			System.gc();
 		}
-
-		resetWatcherWhenEmpty(false, true);
 	}
 
 	@Override
@@ -359,7 +347,6 @@ public final class PageSourcePool implements Dumpable {
 			pageSources.clear();
 		}
 
-		resetWatcherWhenEmpty(false, true);
 		return count;
 	}
 
@@ -377,12 +364,6 @@ public final class PageSourcePool implements Dumpable {
 			if (cl != null) psi.clear(cl);
 			else psi.resetLoaded();
 		}
-
-		resetWatcherWhenEmpty(false, true);
-	}
-
-	public void stopWatcher() {
-		resetWatcherWhenEmpty(true, true);
 	}
 
 	public void clear() {
@@ -416,16 +397,5 @@ public final class PageSourcePool implements Dumpable {
 			return;
 		}
 		catch (Exception e) {}
-	}
-
-	private void resetWatcherWhenEmpty(boolean force, boolean set2null) {
-		if (watcher != null && (force || pageSources.isEmpty())) {
-			synchronized (token) {
-				if (watcher != null && (force || pageSources.isEmpty())) {
-					watcher.stopIfNecessary();
-					if (set2null) watcher = null;
-				}
-			}
-		}
 	}
 }

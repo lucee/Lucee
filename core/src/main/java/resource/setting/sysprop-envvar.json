@@ -458,5 +458,10 @@
         "sysprop": "lucee.query.result.threshold",
         "envvar": "LUCEE_QUERY_RESULT_THRESHOLD",
         "desc": "When set, when query result sets exceed this integer threshold, an warning is logged to the datasource log. Default is 0 which is disabled"
+    },
+    {
+        "sysprop": "lucee.query.floatasdouble",
+        "envvar": "LUCEE_QUERY_FLOATASDOUBLE",
+        "desc": "A boolean value that changes cfqueryparam binding for cfsqltype=\"cf_sql_float\" to use JDBC setDouble() instead of setFloat(), avoiding 32-bit precision loss that can cause WHERE-clause mismatches (e.g. with MSSQL). Default is false, preserving the old setFloat() behavior"
     }
 ]

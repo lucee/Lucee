@@ -261,8 +261,20 @@ public abstract class Clazz implements Serializable {
 	}
 
 	public static Constructor getConstructor(Class clazz, Constructor[] constructors, Object[] args, boolean convertArgument, boolean convertComparsion, Constructor defaultValue) {
-		// like
 		Class[] parameterTypes;
+
+		// LDEV-5519: exact match - parameter type must equal argument type exactly
+		outer: for (Constructor fm: constructors) {
+			if ((args.length == fm.getArgumentCount()) && clazz.getName().equals(fm.getDeclaringClassName())) {
+				parameterTypes = fm.getArgumentClasses();
+				for (int y = 0; y < parameterTypes.length; y++) {
+					if (args[y] == null || Reflector.toReferenceClass(parameterTypes[y]) != args[y].getClass()) continue outer;
+				}
+				return fm;
+			}
+		}
+
+		// like (assignable) - fallback if no exact match
 		outer: for (Constructor fm: constructors) {
 			if ((args.length == fm.getArgumentCount()) && clazz.getName().equals(fm.getDeclaringClassName())) {
 				parameterTypes = fm.getArgumentClasses();

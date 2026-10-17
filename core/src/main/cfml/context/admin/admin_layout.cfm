@@ -14,7 +14,7 @@
 		ad=request.adminType;
 		hasNavigation = len(attributes.navigation) GT 0;
 		home = request.singlemode ? "index.cfm" : request.adminType & ".cfm";
-		homeQS = URL.keyExists("action") ? "?action=" & url.action : "";
+		homeQS = URL.keyExists("action") ? "?action=" & encodeForURL( url.action ) : "";
 		request.mode = "full";
 		resNameAppendix = hash(server.lucee.version & server.lucee["release-date"], "quick");
 	</cfscript>
@@ -40,8 +40,8 @@
 								<a id="logo" class="sprite" href="#home#"></a>
 							<cfif not request.singleMode>
 								<div id="admin-tabs" class="clearfix">
-									<a href="server.cfm#homeQS#" class="sprite server"></a>
-									<a href="web.cfm#homeQS#" class="sprite web"></a>
+									<a href="server.cfm#encodeForHTMLAttribute( homeQS )#" class="sprite server"></a>
+									<a href="web.cfm#encodeForHTMLAttribute( homeQS )#" class="sprite web"></a>
 								</div>
 							</cfif>
 						</div>	<!--- #header !--->
@@ -80,9 +80,9 @@
 										<cfif url.action eq "">
 											<a href="##" class="sprite favorite tooltipMe" title="Go to your favorite pages"></a>
 										<cfelseif pageIsFavorite>
-											<a href="#request.self#?action=internal.savedata&action2=removefavorite&favorite=#url.action#" class="sprite favorite tooltipMe" title="Remove this page from your favorites"></a>
+											<a href="#request.self#?action=internal.savedata&action2=removefavorite&favorite=#encodeForURL( url.action )#" class="sprite favorite tooltipMe" title="Remove this page from your favorites"></a>
 										<cfelse>
-											<a href="#request.self#?action=internal.savedata&action2=addfavorite&favorite=#url.action#" class="sprite tooltipMe favorite_inactive" title="Add this page to your favorites"></a>
+											<a href="#request.self#?action=internal.savedata&action2=addfavorite&favorite=#encodeForURL( url.action )#" class="sprite tooltipMe favorite_inactive" title="Add this page to your favorites"></a>
 										</cfif>
 										<ul>
 											<cfif attributes.favorites neq "">

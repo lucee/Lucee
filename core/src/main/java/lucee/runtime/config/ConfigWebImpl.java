@@ -24,6 +24,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.writer.CFMLWriter;
+import lucee.runtime.net.mail.Server;
 
 public class ConfigWebImpl implements ConfigWebPro {
 	private ConfigWebInner instance;
@@ -339,6 +340,16 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public void removeDatasourceConnectionPool(lucee.runtime.db.DataSource arg0) {
 		instance.removeDatasourceConnectionPool(arg0);
+	}
+
+	@Override
+	public void removeDatasourceConnectionPool(String name) {
+		instance.removeDatasourceConnectionPool(name);
+	}
+
+	@Override
+	public void cleanDatasourceConnectionPools() {
+		instance.cleanDatasourceConnectionPools();
 	}
 
 	@Override
@@ -1868,6 +1879,12 @@ public class ConfigWebImpl implements ConfigWebPro {
 			this.instance.reset();
 		}
 		this.instance = instance;
+		if (instance instanceof MultiContextConfigWeb) {
+			MultiContextConfigWeb mcw = (MultiContextConfigWeb) instance;
+			mcw.setDebugEntries(new DebugEntry[0]);
+			mcw.setMailServers(new Server[0]);
+			mcw.setRestMappings(new lucee.runtime.rest.Mapping[0]);
+		}
 		return this;
 	}
 

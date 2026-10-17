@@ -2484,6 +2484,7 @@ public final class ConfigAdmin {
 
 			if (key.getString().equalsIgnoreCase(name)) {
 				children.removeEL(key);
+				config.removeDatasourceConnectionPool(name);
 			}
 		}
 	}
@@ -3704,7 +3705,7 @@ public final class ConfigAdmin {
 
 		synchronized (factory) {
 			try {
-				cleanUp(factory);
+				cleanUp(factory, cs);
 				factory.update(cs.getPassword(), cs.getIdentification());
 			}
 			catch (Exception e) {
@@ -3754,7 +3755,7 @@ public final class ConfigAdmin {
 
 		try {
 			CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
-			cleanUp(factory);
+			cleanUp(factory, cs);
 			// do we have the core file?
 			final File patchDir = factory.getPatchDirectory();
 			File localPath = new File(version.toString() + ".lco");
@@ -3804,7 +3805,7 @@ public final class ConfigAdmin {
 
 		try {
 			CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
-			cleanUp(factory);
+			cleanUp(factory, cs);
 			// do we have the core file?
 			final File patchDir = factory.getPatchDirectory();
 			File localPath = new File(version.toString() + ".lco");
@@ -3846,7 +3847,8 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private void cleanUp(CFMLEngineFactory factory) throws IOException {
+	private void cleanUp(CFMLEngineFactory factory, ConfigServerImpl cs) throws IOException {
+		cs.shutdown();
 		final File patchDir = factory.getPatchDirectory();
 		final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
 		for (final File patch: patches) {
@@ -3979,7 +3981,7 @@ public final class ConfigAdmin {
 
 		synchronized (factory) {
 			try {
-				cleanUp(factory);
+				cleanUp(factory, cs);
 				factory.restart(cs.getPassword());
 			}
 			catch (Exception e) {
@@ -3993,6 +3995,8 @@ public final class ConfigAdmin {
 
 		synchronized (factory) {
 			try {
+				cs.shutdown();
+
 				// Get a lookup instance for accessing private methods
 				MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(factory.getClass(), MethodHandles.lookup());
 

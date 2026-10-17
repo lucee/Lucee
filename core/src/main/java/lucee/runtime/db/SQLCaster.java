@@ -60,8 +60,10 @@ import lucee.runtime.type.sql.ClobImpl;
  */
 public final class SQLCaster {
 	private static final boolean allowEmptyAsNull;
+	private static final boolean floatAsDouble;
 	static {
 		allowEmptyAsNull = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.query.allowemptyasnull", null), false);
+		floatAsDouble = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.query.floatasdouble", null), false);
 	}
 
 	private SQLCaster() {
@@ -235,7 +237,10 @@ public final class SQLCaster {
 		case Types.DOUBLE:
 		case Types.FLOAT:
 			try {
-				if (type == Types.FLOAT) stat.setFloat(parameterIndex, Caster.toFloatValue(value));
+				if (type == Types.FLOAT) {
+					if (floatAsDouble) stat.setDouble(parameterIndex, Caster.toDoubleValue(value));
+					else stat.setFloat(parameterIndex, Caster.toFloatValue(value));
+				}
 				else if (type == Types.DOUBLE) stat.setDouble(parameterIndex, Caster.toDoubleValue(value));
 				else stat.setObject(parameterIndex, Caster.toDouble(value), type);
 			}

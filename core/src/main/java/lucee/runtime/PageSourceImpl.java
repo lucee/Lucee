@@ -41,6 +41,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.compiler.CFMLCompilerImpl.Result;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
@@ -334,6 +335,7 @@ public final class PageSourceImpl implements PageSource {
 							LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because loaded page has changed");
 							pcn.set(page = compile(config, mapping.getClassRootDirectory(), page, false, pci != null && pci.ignoreScopes()));
 							page.setPageSource(this);
+							signalRecompileToInspectTicker();
 						}
 					}
 				}
@@ -369,7 +371,20 @@ public final class PageSourceImpl implements PageSource {
 							done = true;
 						}
 						catch (ClassNotFoundException cnfe) {
-							LogUtil.log(config, "compile", cnfe);
+							LogUtil.log(config, "compile", cnfe, Log.LEVEL_DEBUG, "application");
+						}
+					}
+					// when classFile is at least as fresh as source, try loading by name first;
+					// avoids the defineClass rename storm when pcn.className was reset (e.g. by clear())
+					// but the underlying class is still loaded in the PhysicalClassLoader.
+					if (!done && classFile.exists() && classFile.lastModified() >= srcLastModified) {
+						try {
+							LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader (class file is current) [" + getDisplayPath() + "]");
+							pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName())));
+							done = true;
+						}
+						catch (ClassNotFoundException cnfe) {
+							LogUtil.log(config, "compile", cnfe, Log.LEVEL_DEBUG, "application");
 						}
 					}
 					if (!done) {
@@ -1075,7 +1090,7 @@ public final class PageSourceImpl implements PageSource {
 
 	public void clear() {
 		mapping.clear(pcn.className);
-		pcn.page = null;
+		pcn.reset();
 	}
 
 	/**
@@ -1086,7 +1101,7 @@ public final class PageSourceImpl implements PageSource {
 	public boolean clear(ClassLoader cl) {
 		Page page = pcn.page;
 		if (page != null && page.getClass().getClassLoader().equals(cl)) {
-			pcn.page = null;
+			pcn.reset();
 			return true;
 		}
 		return false;
@@ -1185,6 +1200,12 @@ public final class PageSourceImpl implements PageSource {
 	public int getSourceOffset() {
 		// lucee.aprint.o("sourceOffset:"+ sourceOffset);
 		return sourceOffset;
+	}
+
+	private void signalRecompileToInspectTicker() {
+		if (mapping.getInspectTemplate() != ConfigPro.INSPECT_AUTO) return;
+		ConfigServerImpl cs = ConfigServerImpl.getConfigServerImpl(mapping.getConfig());
+		if (cs != null) cs.requestFastTick();
 	}
 
 }

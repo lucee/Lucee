@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql" skip="true" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 
 	function beforeAll() {
 		variables.uri = createURI("LDEV3022");
@@ -11,7 +11,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql" skip="tru
 					template : "#uri#\test.cfm",
 					form : { scene = 'float' }
 				);
-				expect( result.filecontent ).toBe( "1,11.97" ); // fails returns [0,]
+				expect( result.filecontent ).toBe( "1,11.97" );
 			});
 			it( title = "Checked with 'decimal' sql type ", skip=notHasMsSQL(), body = function( currentSpec ) {
 				local.result = _InternalRequest(

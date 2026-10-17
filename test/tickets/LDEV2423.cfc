@@ -6,7 +6,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 
 	function run( testResults, testBox ){
 		describe( "Test case for LDEV2423 MSSQL", function(){
-			it(title = "cfqueryparam not working with CF_SQL_FLOAT for negative exponent numbers (mssql)", skip=true, body = function(){ //skip=notHas("mssql")
+			it(title = "cfqueryparam not working with CF_SQL_FLOAT for negative exponent numbers (mssql)", skip=notHas("mssql"), body = function(){
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {
@@ -14,7 +14,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 						db: "mssql"
 					}
 				);
-				expect(trim(result.filecontent)).tobe("1");  // TODO this returns 0
+				expect(trim(result.filecontent)).tobe("1");
 			});
 
 			it(title = "cfqueryparam not working with CF_SQL_NUMERIC for negative exponent numbers (mssql)", skip=notHas("mssql"), body = function(){

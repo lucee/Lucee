@@ -645,6 +645,7 @@
       <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
       <jvmarg value="-DLUCEE_BUILD_ENV=${LUCEE_BUILD_ENV}"/>
       <jvmarg value="-Dlucee.enable.bundle.download=true"/>
+      <jvmarg value="-Dlucee.query.floatasdouble=true"/>
 
       <jvmarg value="-XX:+UnlockExperimentalVMOptions" if:true="${UseEpsilonGC}"/>
       <jvmarg value="-XX:+UseEpsilonGC" if:true="${UseEpsilonGC}"/>

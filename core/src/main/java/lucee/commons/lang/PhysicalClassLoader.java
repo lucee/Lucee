@@ -153,6 +153,9 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 	}
 
 	static PhysicalClassLoader flushIfNecessary(PhysicalClassLoader existing, Config config) {
+		// RPC classloaders have no rename pressure, skip threshold checks
+		if (existing.rpc) return null;
+
 		double all;
 
 		if (existing.allLoadedClasses.size() == 0) {
