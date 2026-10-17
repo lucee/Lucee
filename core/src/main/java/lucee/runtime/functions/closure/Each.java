@@ -181,12 +181,11 @@ public final class Each extends BIF implements ClosureFunc {
 	}
 
 	public static void invoke(PageContext pc, Array array, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
-		Iterator it = (array instanceof ArrayPro ? ((ArrayPro) array).entryArrayIterator() : array.entryIterator());
-		Entry e;
+		// LDEV-4023: visit every index, null elements included (ACF compat)
 		ParentException parentException = execute != null ? new ParentException() : null;
-		while (it.hasNext()) {
-			e = (Entry) it.next();
-			_call(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), array }, execute, futures);
+		int len = array.size();
+		for (int i = 1; i <= len; i++) {
+			_call(pc, parentException, udf, new Object[] { array.get(i, null), Caster.toDouble(i), array }, execute, futures);
 		}
 	}
 
