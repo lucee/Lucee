@@ -129,7 +129,7 @@ public final class Condition extends StatementBaseNoFinal implements HasBodies {
 			cv.visitWhenAfterExprBeforeBody(bc);
 			pair.body.writeOut(bc);
 			cv.visitWhenAfterBody(bc);
-			if (pair.end != null) bc.visitLine(pair.end);
+			// Don't emit end line - it causes bytecode position conflicts with the next elseif/else start
 		}
 		// else
 		if (_else != null && _else.body != null) {
