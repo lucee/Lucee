@@ -19,9 +19,11 @@
 package lucee.runtime.type.scope;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 import lucee.commons.io.log.LogUtil;
-import lucee.commons.lang.StringList;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLItem;
@@ -54,6 +56,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 	private static int _id = 0;
 	private int id = 0;
 	private static final byte[] EMPTY = "".getBytes();
+	private static final boolean BRACKET_NOTATION_ENABLED = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.formUrlAsStruct.bracket.notation", null), true);
 
 	/**
 	 * Field <code>isInit</code>
@@ -187,20 +190,93 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 				}
 			}
 
-			if (formUrlAsStruct && name.indexOf('.') != -1) {
+			if (formUrlAsStruct && (name.indexOf('.') != -1 || name.indexOf('[') != -1)) {
+				// If bracket notation is disabled and the name contains brackets, treat as literal
+				if (!BRACKET_NOTATION_ENABLED && name.indexOf('[') != -1) {
+					_fill(this, name, value, true, scriptProteced, sameAsArray);
+				}
+				else {
+					List<String> segments = parseFormUrlName(name);
 
-				StringList list = ListUtil.listToStringListRemoveEmpty(name, '.');
-				if (list.size() > 0) {
-					Struct parent = this;
-					while (list.hasNextNext()) {
-						parent = _fill(parent, list.next(), new CastableStruct(Struct.TYPE_LINKED), false, scriptProteced, sameAsArray);
+					if (segments == null || segments.isEmpty()) {
+						// Malformed brackets or no segments, treat as literal key
+						_fill(this, name, value, true, scriptProteced, sameAsArray);
 					}
-					_fill(parent, list.next(), value, true, scriptProteced, sameAsArray);
+					else {
+						// Process segments into nested structure
+						Struct parent = this;
+						for (int j = 0; j < segments.size() - 1; j++) {
+							parent = _fill(parent, segments.get(j), new CastableStruct(Struct.TYPE_LINKED), false, scriptProteced, sameAsArray);
+						}
+						_fill(parent, segments.get(segments.size() - 1), value, true, scriptProteced, sameAsArray);
+					}
 				}
 			}
-			// else
-			_fill(this, name, value, true, scriptProteced, sameAsArray);
+			else {
+				_fill(this, name, value, true, scriptProteced, sameAsArray);
+			}
 		}
+	}
+
+	/**
+	 * Parse form/URL parameter name with bracket notation into segments.
+	 * Examples:
+	 *   user[name] -> ["user", "name"]
+	 *   user[address][city] -> ["user", "address", "city"]
+	 *   user.address[city] -> ["user", "address", "city"]
+	 *
+	 * @param name The parameter name to parse
+	 * @return List of segments, or null if malformed brackets detected
+	 */
+	private static List<String> parseFormUrlName( String name ) {
+		List<String> segments = new ArrayList<>();
+		int len = name.length();
+		int start = 0;
+		boolean inBracket = false;
+
+		for (int i = 0; i < len; i++) {
+			char c = name.charAt(i);
+
+			if (c == '[') {
+				// Save segment before bracket (skip empty segments)
+				if (i > start) {
+					segments.add(name.substring(start, i));
+				}
+				inBracket = true;
+				start = i + 1;
+			}
+			else if (c == ']') {
+				if (!inBracket) {
+					// Closing bracket without opening - malformed
+					return null;
+				}
+				// Save segment inside brackets (skip empty segments like [])
+				if (i > start) {
+					segments.add(name.substring(start, i));
+				}
+				inBracket = false;
+				start = i + 1;
+			}
+			else if (c == '.' && !inBracket) {
+				// Save segment before dot (skip empty segments)
+				if (i > start) {
+					segments.add(name.substring(start, i));
+				}
+				start = i + 1;
+			}
+		}
+
+		// Check for unclosed brackets
+		if (inBracket) {
+			return null;
+		}
+
+		// Add final segment if exists (skip empty trailing segments)
+		if (start < len) {
+			segments.add(name.substring(start, len));
+		}
+
+		return segments;
 	}
 
 	private Struct _fill(final Struct parent, String name, Object value, boolean isLast, boolean scriptProteced, boolean sameAsArray) {
