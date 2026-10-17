@@ -27,6 +27,8 @@ public final class IsClosure {
 		if (obj instanceof ObjectWrap) {
 			return call(pc, ((ObjectWrap) obj).getEmbededObject(null));
 		}
-		return Decision.isClosure(obj);
+		// LDEV-4709: arrow functions (lambdas) are closures for isClosure(), matching ACF.
+		// Decision.isClosure() stays strict, isValid("closure") and isCustomFunction(f, "closure") still tell them apart.
+		return Decision.isClosure(obj) || Decision.isLambda(obj);
 	}
 }
