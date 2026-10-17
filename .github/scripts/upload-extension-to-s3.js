@@ -6,8 +6,8 @@
 // Called by .github/workflows/extension-s3-upload.yml (workflow_call) from every extension build (LDEV-XXXX).
 import { S3Client, ListObjectsV2Command, GetBucketLocationCommand, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { join, basename } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join, basename, relative } from 'node:path';
 import { DEFAULT_ORG_LUCEE_PREFIX, GROUP_METADATA_KEY, mavenTimestamp, sortVersions, findLatestRelease, xmlEscape, rebuildCdnGroupIndex } from './maven-group-metadata.js';
 
 // The one place the extension cut-off is defined (same date as core S3_CUTOFF in ant/upload_to_s3.cfm, LDEV-6537):
@@ -72,6 +72,42 @@ ${sorted.map(v => `      <version>${xmlEscape(v)}</version>`).join('\n')}
 </metadata>`;
 }
 
+// upload-artifact keeps the common ancestor path, so the .lex files usually sit in target/ below the POM.
+// Walk the input dir recursively (skipping node_modules/.git) and pick the files for this version.
+function walk(dir, out = []) {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === 'node_modules' || e.name === '.git') continue;
+    const p = join(dir, e.name);
+    if (e.isDirectory()) walk(p, out); else if (e.isFile()) out.push(p);
+  }
+  return out;
+}
+
+function isLite(f) { return /[.-]lite\.lex$/i.test(f); }
+
+function pickOne(cands, what, dir) {
+  if (cands.length === 0) return null;
+  // prefer the shallowest match, but two at the same depth are ambiguous
+  const depth = p => relative(dir, p).split(/[\\/]/).length;
+  const min = Math.min(...cands.map(depth));
+  const best = cands.filter(p => depth(p) === min);
+  if (best.length > 1) throw new Error(`ambiguous ${what} in ${dir}: ${best.map(p => relative(dir, p)).join(', ')}`);
+  return best[0];
+}
+
+export function findInputs(dir, version) {
+  const all = walk(dir);
+  const lex = all.filter(p => p.toLowerCase().endsWith('.lex'));
+  const matching = lex.filter(p => basename(p).includes(version));
+  for (const p of lex) if (!matching.includes(p)) log(`skipping ${relative(dir, p)}, not version ${version}`, 'WARN');
+  const full = pickOne(matching.filter(p => !isLite(p)), `${version} .lex`, dir);
+  if (!full) throw new Error(`no ${version} .lex found in ${dir} (searched recursively, found: ${lex.map(p => relative(dir, p)).join(', ') || 'none'})`);
+  const lite = pickOne(matching.filter(isLite), `${version} lite .lex`, dir);
+  const pom = pickOne(all.filter(p => basename(p) === '.flattened-pom.xml'), '.flattened-pom.xml', dir)
+    || pickOne(all.filter(p => basename(p) === 'pom.xml'), 'pom.xml', dir);
+  return { full, lite, pom };
+}
+
 async function client(accessKeyId, secretAccessKey, bucket, region) {
   let c = new S3Client({ region, credentials: { accessKeyId, secretAccessKey } });
   try { await c.send(new ListObjectsV2Command({ Bucket: bucket, MaxKeys: 1 })); return c; }
@@ -99,23 +135,19 @@ async function run() {
   const d = decide(version);
   if (!d.upload) { log(d.reason); return; }
 
+  const found = findInputs(dir, version);
   // the flattened POM tells us the artifactId, unless the caller passes one
-  const pomPath = [join(dir, '.flattened-pom.xml'), join(dir, 'pom.xml')].find(existsSync);
-  let pom = pomPath ? readFileSync(pomPath, 'utf8') : null;
+  let pom = found.pom ? readFileSync(found.pom, 'utf8') : null;
   let artifactId = (process.env.INPUT_ARTIFACT_ID || '').trim();
   if (!artifactId && pom) artifactId = (pom.replace(/<parent>[\s\S]*?<\/parent>/, '').match(/<artifactId>([^<]+)<\/artifactId>/) || [])[1];
   if (!artifactId) throw new Error('could not resolve artifactId (pass artifact-id or include .flattened-pom.xml)');
   if (pom) pom = pom.replace(/\$\{revision\}/g, version);
 
   // map built files to Maven names
-  const files = [];
-  for (const f of readdirSync(dir)) {
-    if (!f.endsWith('.lex')) continue;
-    const lite = f.endsWith('.lite.lex');
-    if (!f.includes(version)) { log(`skipping ${f}, not version ${version}`, 'WARN'); continue; }
-    files.push({ src: join(dir, f), name: `${artifactId}-${version}${lite ? '-lite' : ''}.lex`, type: 'application/octet-stream' });
-  }
-  if (!files.some(f => !f.name.endsWith('-lite.lex'))) throw new Error(`no ${version} .lex found in ${dir}`);
+  const files = [{ src: found.full, name: `${artifactId}-${version}.lex`, type: 'application/octet-stream' }];
+  if (found.lite) files.push({ src: found.lite, name: `${artifactId}-${version}-lite.lex`, type: 'application/octet-stream' });
+  files.forEach(f => log(`using ${relative(dir, f.src)} as ${f.name}`));
+  if (found.pom) log(`using ${relative(dir, found.pom)} as POM`);
 
   const base = `${DEFAULT_ORG_LUCEE_PREFIX}${artifactId}/`;
   const vbase = `${base}${version}/`;

@@ -67,9 +67,9 @@ function checkServletEnv() {
 msg=checkServletEnv();
 </cfscript>
 <cfif not isNull(msg)>
-<div class="warning nofocus">
-	<cfoutput>#msg#</cfoutput>
-</div>
+	<div class="warning nofocus">
+		<cfoutput>#msg#</cfoutput>
+	</div>
 </cfif>
 <cfset lucee_version = "UNKNOWN">
 <cfinclude template="version.cfm">
@@ -242,32 +242,23 @@ Error Output --->
 	max:[server.java.totalMemory],
 	init:[0]
 )>
-<cfoutput>
-	<div class="pageintro">
-		#stText.Overview.introdesc[request.adminType]#
-	</div>
-	
 
-
-
-
-	<cfadmin
-		action="getInfo"
-		type="#request.adminType#"
-		password="#session["password"&request.adminType]#"
-		returnVariable="info">
-	<cfadmin
-		action="getAPIKey"
-		type="#request.adminType#"
-		password="#session["password"&request.adminType]#"
-		returnVariable="apiKey">
+<cfadmin
+	action="getInfo"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="info">
+<cfadmin
+	action="getAPIKey"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="apiKey">
 
 <cfadmin
 	action="getCompilerSettings"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="compiler">
-
 
 <cfadmin
 	action="getScope"
@@ -295,6 +286,11 @@ Error Output --->
     type="web"
     returnVariable="docsWeb">
 
+<cfoutput>
+	<div class="pageintro">
+		#stText.Overview.introdesc[request.adminType]#
+	</div>
+
 	<cfif request.adminType EQ "server">
 		<cfset names=StructKeyArray(info.servlets)>
 		<cfif len(names) and !ArrayContainsNoCase(names,"Rest",true)>
@@ -314,28 +310,25 @@ Error Output --->
 
 	<cfset systemInfo=GetSystemMetrics()>
 
-
 	<!--- installed libs --->
-	<cfif request.adminType EQ "web" or request.singlemode >	
-		<cfadmin
-			action="getTLDs"
-			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
-			returnVariable="tlds">
-		<cfadmin
-			action="getFLDs"
-			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
-			returnVariable="flds">
+	<cfadmin
+		action="getTLDs"
+		type="#request.adminType#"
+		password="#session["password"&request.adminType]#"
+		returnVariable="tlds">
+	<cfadmin
+		action="getFLDs"
+		type="#request.adminType#"
+		password="#session["password"&request.adminType]#"
+		returnVariable="flds">
 
-		<cfif isQuery(tlds)>
-			<cfset tlds=listToArray(valueList(tlds.displayname))>
-		</cfif>
-		<cfif isQuery(flds)>
-			<cfset flds=listToArray(valueList(flds.displayname))>
-		</cfif>
+	<cfif isQuery(tlds)>
+		<cfset tlds=listToArray(valueList(tlds.displayname))>
 	</cfif>
-
+	<cfif isQuery(flds)>
+		<cfset flds=listToArray(valueList(flds.displayname))>
+	</cfif>
+	
 	<table style="width:100%">
 		<tr>
 			<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
@@ -514,14 +507,11 @@ Error Output --->
 									<th nowrap="nowrap" scope="row">#stText.Overview.ReleaseDate#</th>
 									<td>#lsDateFormat(server.lucee['release-date'])#</td>
 								</tr>
-								<cfif request.singleMode or request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.label#</th>
 									<td>#info.label?:""#</td>
 								</tr>
-								</cfif>
-
-								<cfif request.singlemode or  request.adminType EQ "web">
+								
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledTLs#</th>
 									<td>
@@ -530,8 +520,6 @@ Error Output --->
 										</cfloop>
 									</td>
 								</tr>
-								</cfif>
-								<cfif request.singlemode or request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledFLs#</th>
 									<td>
@@ -540,7 +528,6 @@ Error Output --->
 										</cfloop>
 									</td>
 								</tr>
-								</cfif>
 
 							</tbody>
 						</table>

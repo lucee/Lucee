@@ -91,24 +91,6 @@ Redirtect to entry --->
 <cfset stText.debug.settings.generalNo="Lucee does not log any debug information at all.">
 
 
-<cfhtmlbody>
-	<script type="text/javascript">
-		function sp_clicked(event)
-		{
-			var iscustom = $('#sp_radio_debug')[0].checked;
-			var tbl = $('#debugoptionstbl').css('opacity', (iscustom ? 1:.5));
-			var inputs = $('input', tbl).prop('disabled', !iscustom);
-			if(event !== undefined && $(event.target).attr('id') === 'resetBtn'){
-				$('#debugoptionstbl').css('opacity',.5);
-				$('input', tbl).prop('disabled', true);
-			}
-		}
-		$(function(){
-			$('#sp_options input.radio').bind('click change', sp_clicked);
-			sp_clicked();
-		});
-	</script>
-</cfhtmlbody>
 
 <cfoutput>
 	<cfset stText.Debug.settingsDesc="On this page, you can configure the specific information that Lucee should log during a request. Please note that enabling extensive logging can impact performance, as logging operations require additional processing time.">
@@ -208,7 +190,7 @@ Redirtect to entry --->
 					<tr>
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
-							<input type="reset" class="<cfif request.adminType EQ 'web'>bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#" onclick="return sp_clicked(event)" id="resetBtn">
+							<input type="reset" class="<cfif request.adminType EQ 'web'>bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#" id="resetBtn">
 							<cfif not request.singleMode && request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
