@@ -37,9 +37,12 @@ import lucee.runtime.functions.other.Dump;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
+import lucee.commons.io.SystemUtil;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.trace.TraceObjectSupport;
+import lucee.runtime.jfr.JfrUtil;
+import lucee.runtime.jfr.TraceEvent;
 
 public final class Trace extends BodyTagImpl {
 
@@ -51,6 +54,7 @@ public final class Trace extends BodyTagImpl {
 	private int type = Log.LEVEL_INFO;
 	private String var;
 	private Struct caller;
+	private boolean jfr = false;
 
 	@Override
 	public void release() {
@@ -63,6 +67,7 @@ public final class Trace extends BodyTagImpl {
 		var = null;
 		caller = null;
 		follow = false;
+		jfr = false;
 	}
 
 	/**
@@ -142,6 +147,10 @@ public final class Trace extends BodyTagImpl {
 		this.var = var;
 	}
 
+	public void setJfr(boolean jfr) {
+		this.jfr = jfr;
+	}
+
 	@Override
 	public int doStartTag() {
 		return EVAL_BODY_INCLUDE;
@@ -194,6 +203,19 @@ public final class Trace extends BodyTagImpl {
 
 		}
 		DebugTrace trace = ((DebuggerImpl) pageContext.getDebugger()).addTrace(type, category, text, ps, var, varValue);
+
+		if( jfr && JfrUtil.isEnabled() ) {
+			TraceEvent event = new TraceEvent();
+			event.type = DebugTraceImpl.toType( type, "INFO" );
+			event.category = category;
+			event.text = text;
+			event.template = ps != null ? ps.getDisplayPath() : "unknown";
+			event.line = SystemUtil.getCurrentContext( null ).line;
+			event.variable = var;
+			event.variableValue = varValue;
+			event.commit();
+		}
+
 		DebugTrace[] traces = pageContext.getDebugger().getTraces(pageContext);
 
 		String total = "(1st trace)";
