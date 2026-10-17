@@ -20,6 +20,7 @@ package lucee.commons.io.log;
 
 import java.io.File;
 import java.util.Date;
+import java.util.TimeZone;
 
 import lucee.aprint;
 import lucee.commons.i18n.FormatUtil;
@@ -49,6 +50,32 @@ public final class LogUtil {
 
 	static {
 		MIN_LEVEL = LogUtil.toLevel(SystemUtil.getSystemPropOrEnvVar("lucee.system.log.level", null), Log.LEVEL_WARN);
+	}
+
+	private static final ThreadLocal<Boolean> insideGetTimeZone = new ThreadLocal<Boolean>();
+
+	/**
+	 * the timezone used for timestamps in the logs, this is always the timezone of the server config
+	 * (admin setting) and never the request/application timezone, because a log file is shared by all
+	 * applications.
+	 */
+	public static TimeZone getTimeZone(Config config) {
+		// loading the config timezone can log itself, do not end up in a loop
+		if (insideGetTimeZone.get() == null) {
+			insideGetTimeZone.set(Boolean.TRUE);
+			try {
+				config = ThreadLocalPageContext.getConfig(config);
+				if (config != null) {
+					TimeZone tz = config.getTimeZone();
+					if (tz != null) return tz;
+				}
+			}
+			finally {
+				insideGetTimeZone.remove();
+			}
+		}
+		// no config available (yet), the JVM default is the only timezone left
+		return TimeZone.getDefault();
 	}
 
 	public static int toLevel(String strLevel, int defaultValue) {
@@ -292,7 +319,7 @@ public final class LogUtil {
 				log.getParentResource().mkdirs();
 				log.createNewFile();
 			}
-			IOUtil.write(log, FormatUtil.format(SystemOut.FORMAT, new Date(System.currentTimeMillis()), null) + " " + type + " " + msg + "\n", CharsetUtil.UTF8, true);
+			IOUtil.write(log, FormatUtil.format(SystemOut.FORMAT, new Date(System.currentTimeMillis()), getTimeZone(null)) + " " + type + " " + msg + "\n", CharsetUtil.UTF8, true);
 		}
 		catch (Exception e) {
 			ERR = null;
