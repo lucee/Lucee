@@ -29,6 +29,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.ComponentImpl;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -43,10 +44,12 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.CFFunction;
 import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.BIF;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.FunctionArgument;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Query;
@@ -58,6 +61,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructSupport;
+import lucee.runtime.type.util.UDFUtil;
 import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.QueryStack;
 import lucee.runtime.util.QueryStackImpl;
@@ -819,7 +823,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 			return bif.call(pc, methodName, args, false);
 		}
 
-		throw new ExpressionException("No matching function [" + methodName + "] found");
+		return onMissingFunction(pc, methodName, args, null);
 	}
 
 	@Override
@@ -836,7 +840,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		if (bif != null) {
 			return bif.callWithNamedValues(pc, methodName, args, false);
 		}
-		throw new ExpressionException("No matching function [" + methodName + "] found");
+		return onMissingFunction(pc, methodName, null, args);
 	}
 
 	private UDF getUDF(PageContext pc, Key methodName) throws PageException {
@@ -875,5 +879,31 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 
 	public short getScopeCascadingType() {
 		return type;
+	}
+
+	private Object onMissingFunction(PageContext pc, final Key methodName, Object[] _args, Struct _namedArgs) throws PageException {
+		ApplicationContextSupport ac = (ApplicationContextSupport) pc.getApplicationContext();
+		if (ac instanceof ModernApplicationContext) {
+			ComponentImpl appcfc = (ComponentImpl) ((ModernApplicationContext) ac).getComponent();
+			if (appcfc != null && appcfc.contains(pc, KeyConstants._onmissingfunction)) {
+				Argument args = new ArgumentImpl();
+				if (_args != null) {
+					for (int i = 0; i < _args.length; i++) {
+						args.setEL(ArgumentIntKey.init(i + 1), _args[i]);
+					}
+				}
+				else if (_namedArgs != null) {
+					UDFUtil.argumentCollection(_namedArgs, new FunctionArgument[] {});
+					Iterator<java.util.Map.Entry<Key, Object>> it = _namedArgs.entryIterator();
+					java.util.Map.Entry<Key, Object> e;
+					while (it.hasNext()) {
+						e = it.next();
+						args.setEL(e.getKey(), e.getValue());
+					}
+				}
+				return appcfc.call(pc, KeyConstants._onmissingfunction, new Object[] { methodName.getString(), args });
+			}
+		}
+		throw new ExpressionException("No matching function [" + methodName + "] found");
 	}
 }
