@@ -128,13 +128,6 @@ public class Component extends EvaluatorSupport {
 
 		// Attributes
 
-		// Check for unsupported initMethod attribute
-		Attribute initMethodAttr = tag.getAttribute("initmethod");
-		if (initMethodAttr == null) initMethodAttr = tag.getAttribute("initMethod");
-		if (initMethodAttr != null) {
-			throw new EvaluatorException("Attribute [initMethod] is not supported in Lucee. Refactor your code to use the default init() method.");
-		}
-
 		// Name
 		String name = null;
 		if (!main) {
@@ -279,6 +272,16 @@ public class Component extends EvaluatorSupport {
 					throw new EvaluatorException("Invalid JSON in javasettings attribute: " + e.getMessage()
 							+ ". Ensure the JSON is valid: javasettings='{maven:[\"groupId:artifactId:version\"]}'");
 				}
+			}
+		}
+
+		// initmethod
+		if (isComponent) {
+			attr = tag.getAttribute("initmethod");
+			if (attr != null) {
+				Expression expr = tag.getFactory().toExprString(attr.getValue());
+				if (!(expr instanceof LitString))
+					throw new EvaluatorException("Attribute [initmethod] of the tag [" + tlt.getFullName() + "], must contain a literal string value");
 			}
 		}
 	}

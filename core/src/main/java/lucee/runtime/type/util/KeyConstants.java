@@ -468,6 +468,7 @@ public final class KeyConstants {
 	public static final Key _indexOf = init("indexOf");
 	public static final Key _init = init("init");
 	public static final Key _index = init("index");
+	public static final Key _initmethod = init("initmethod");
 	public static final Key _innerJoin = init("innerJoin");
 	public static final Key _insert = init("insert");
 	public static final Key _instance = init("instance");

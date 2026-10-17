@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 import lucee.runtime.component.Property;
+import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
@@ -53,9 +54,10 @@ public final class ComponentProperties implements Serializable {
 	final boolean persistent;
 	final boolean accessors;
 	public boolean inline;
+	final Collection.Key initKey;
 
 	public ComponentProperties(String name, String dspName, String extend, String implement, String hint, Boolean output, String callPath, boolean realPath, String subName,
-			boolean _synchronized, Class javaAccessClass, boolean persistent, boolean accessors, int modifier, Struct meta) {
+			boolean _synchronized, Class javaAccessClass, boolean persistent, boolean accessors, int modifier, Struct meta, Collection.Key initKey) {
 		this.name = name;
 		this.dspName = dspName;
 		this.extend = extend;
@@ -71,11 +73,12 @@ public final class ComponentProperties implements Serializable {
 		this.persistent = persistent;
 		this.accessors = accessors;
 		this.modifier = modifier;
+		this.initKey = initKey;
 	}
 
 	public ComponentProperties duplicate() {
 		ComponentProperties cp = new ComponentProperties(name, dspName, extend, implement, hint, output, callPath, realPath, subName, _synchronized, javaAccessClass, persistent,
-				accessors, modifier, meta);
+				accessors, modifier, meta, initKey);
 		cp.properties = properties;
 		cp.inline = inline;
 		return cp;
@@ -83,11 +86,22 @@ public final class ComponentProperties implements Serializable {
 
 	/**
 	 * returns null if there is no wsdlFile defined
-	 * 
+	 *
 	 * @return the wsdlFile
 	 */
 	public String getWsdlFile() {
 		if (meta == null) return null;
 		return (String) meta.get(KeyConstants._wsdlfile, null);
+	}
+
+	/**
+	 * Returns the initialization method Key specified by the initmethod component attribute.
+	 * This allows components to specify a custom initialization method instead of the default "init()".
+	 *
+	 * @return the Key for the method to call during initialization (defaults to KeyConstants._init)
+	 * @since Lucee 7.0
+	 */
+	public Collection.Key getInitKey() {
+		return initKey;
 	}
 }
