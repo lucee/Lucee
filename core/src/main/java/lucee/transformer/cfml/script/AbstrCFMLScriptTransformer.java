@@ -68,6 +68,7 @@ import lucee.transformer.bytecode.statement.For;
 import lucee.transformer.bytecode.statement.ForEach;
 import lucee.transformer.bytecode.statement.Return;
 import lucee.transformer.bytecode.statement.Switch;
+import lucee.transformer.bytecode.statement.TagIsland;
 import lucee.transformer.bytecode.statement.TryCatchFinally;
 import lucee.transformer.bytecode.statement.While;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
@@ -962,17 +963,34 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			// name
 			// String idName=identifier(data,false,true);
 			boolean required = false;
+			boolean argFinal = false;
 
 			String idName = variableDec(data, false);
-			// required
-			if ("required".equalsIgnoreCase(idName)) {
-				comments(data);
-				String idName2 = variableDec(data, false);
-				if (idName2 != null) {
-					idName = idName2;
-					required = true;
+			// required / final modifiers (order: any combination of required and final before type/name)
+			// LDEV-3671: "final" was previously treated as the type, shifting the real name
+			for (int _mod = 0; _mod < 2 && idName != null; _mod++) {
+				if ("required".equalsIgnoreCase(idName) && !required) {
+					comments(data);
+					String idName2 = variableDec(data, false);
+					if (idName2 != null) {
+						idName = idName2;
+						required = true;
+						continue;
+					}
+					if (idName == null) return defaultValue;
+					break;
 				}
-				if (idName == null) return defaultValue;
+				if ("final".equalsIgnoreCase(idName) && !argFinal) {
+					comments(data);
+					String idName2 = variableDec(data, false);
+					if (idName2 != null) {
+						idName = idName2;
+						argFinal = true;
+						continue;
+					}
+					break;
+				}
+				break;
 			}
 
 			String typeName = "any";
@@ -1040,6 +1058,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				}
 			}
 
+			if (argFinal) {
+				if (meta == null) meta = new HashMap<String, Attribute>();
+				meta.put("final", new Attribute(true, "final", data.factory.EMPTY(), "boolean"));
+			}
 			result.add(new Argument(data.factory.createLitString(idName), data.factory.createLitString(typeName), data.factory.createLitBoolean(required), defVal, passByRef,
 					displayName, hint, meta));
 
@@ -1080,8 +1102,12 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		comments(data);
 
+		// LDEV-1818: in an interface, a function signature can end with a line feed instead of a semicolon
+		boolean endsWithLineFeed = !closure && data.isInterface && data.srcCode.hasNLBefore() && !data.srcCode.isCurrent('{')
+				&& !data.srcCode.isCurrent(';') && !isAttributeNext(data);
+
 		// attributes
-		Attribute[] attrs = attributes(null, null, data, SEMI_BLOCK, data.factory.EMPTY(), Boolean.TRUE, null, false, NO_ATTR_SEP, true);
+		Attribute[] attrs = endsWithLineFeed ? new Attribute[0] : attributes(null, null, data, SEMI_BLOCK, data.factory.EMPTY(), Boolean.TRUE, null, false, NO_ATTR_SEP, true);
 		boolean isJava = false;
 		for (Attribute attr: attrs) {
 			// check type
@@ -1202,7 +1228,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 			else {
 				func.register(data.page);
-				statement(data, body, CTX_FUNCTION);
+				if (!endsWithLineFeed) statement(data, body, CTX_FUNCTION);
 			}
 			data.setParent(prior);
 		}
@@ -1214,6 +1240,22 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if (closure) comments(data);
 
 		return func;
+	}
+
+	/**
+	 * checks if the next token is an attribute with a value ({@code name=...} or {@code name:...})
+	 */
+	private boolean isAttributeNext(Data data) throws TemplateException {
+		int pos = data.srcCode.getPos();
+		try {
+			String id = identifier(data, false);
+			if (id == null) return false;
+			comments(data);
+			return (data.srcCode.isCurrent('=') && !data.srcCode.isCurrent("==")) || data.srcCode.isCurrent(':');
+		}
+		finally {
+			data.srcCode.setPos(pos);
+		}
 	}
 
 	private Literal extract(Attribute[] attrs, String name) {
@@ -1256,12 +1298,23 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			throw new TemplateException(data.srcCode, e.getMessage());
 		}
 
-		PageSourceCode psc = (PageSourceCode) data.srcCode;// TODO get PS in an other way
-		PageSource ps = psc.getPageSource();
+		// In AST mode (no PageSourceCode), we can't compile Java functions
+		// but we still need to parse past the function body
+		PageSource ps = null;
+		if (data.srcCode instanceof PageSourceCode) {
+			ps = ((PageSourceCode) data.srcCode).getPageSource();
+		}
 
 		SourceCode sc = data.srcCode;
 		Position start = sc.getPosition();
 		findTheEnd(data, start.line);
+
+		// In AST mode without PageSource, we can't compile - just return null
+		// The function body has already been parsed past by findTheEnd
+		if (ps == null) {
+			return null;
+		}
+
 		Position end = sc.getPosition();
 		String javaCode = sc.substring(start.pos, end.pos - start.pos);
 		try {
@@ -1364,6 +1417,11 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 				data.setParent(prior);
 			}
+			// LDEV-4062: a lambda without a body (`() =>;`) returns null
+			else if (!data.srcCode.isValidIndex() || isFinish(data) || data.srcCode.isCurrent(';') || data.srcCode.isCurrent(')') || data.srcCode.isCurrent(',') || data.srcCode.isCurrent('}')
+					|| data.srcCode.isCurrent(']')) {
+				data.docComment = null;
+			}
 			else {
 				if (data.srcCode.forwardIfCurrent("return ")) {
 					comments(data);
@@ -1465,7 +1523,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Tag tag = getTag(data, parent, tlt, line, null);
 		tag.setTagLibTag(tlt);
 		tag.setScriptBase(true);
-		if (!StringUtil.isEmpty(appendix)) tag.setAppendix(appendix);
+		if (!StringUtil.isEmpty(appendix)) {
+			tag.setAppendix(appendix);
+			tag.setFullname(type.concat(appendix));
+		}
+		else {
+			tag.setFullname(type);
+		}
 
 		// add component meta data
 		if (data.isCFC) {
@@ -1706,7 +1770,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Attribute attr;
 
 		// first fill all regular attribute -> name="value"
-		for (int i = attrs.length - 1; i >= 0; i--) {
+		// LDEV-6027: iterate forward to preserve declaration order in AST
+		for (int i = 0; i < attrs.length; i++) {
 			attr = attrs[i];
 			if (!isNull(attr.getValue())) {
 				if (attr.getName().equalsIgnoreCase("name")) {
@@ -1817,6 +1882,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private Tag _paramStatement(Data data, Body parent) throws TemplateException {
 		if (!data.srcCode.forwardIfCurrent("param ")) return null;
 		Position line = data.srcCode.getPosition();
+		// LDEV-3619 skip additional white space (and comments) before the name/type, "param  a.b=1;"
+		comments(data);
 
 		TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode, "param", data.config.getIdentification());
 		TagParam param = new TagParam(data.factory, line, null);
@@ -1855,7 +1922,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						if (attr == null) {
 							param.addAttribute(new Attribute(false, "name", data.factory.createLitString(tmp2), "string"));
 							param.addAttribute(new Attribute(false, "type", data.factory.createLitString(tmp), "string"));
+							comments(data);
 							if (data.srcCode.forwardIfCurrent('=')) {
+								comments(data);
 								Expression v = attributeValue(data, true);
 								param.addAttribute(new Attribute(false, "default", v, "string"));
 							}
@@ -1884,6 +1953,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		Attribute attr;
 
+		// LDEV-4366: detect an explicit name= before handling dynamic attrs (order-independent)
+		boolean hasExplicitName = hasName;
+		for (int i = 0; i < attrs.length; i++) {
+			if ("name".equalsIgnoreCase(attrs[i].getName()) && !isNull(attrs[i].getValue())) {
+				hasExplicitName = true;
+				break;
+			}
+		}
+
 		// first fill all regular attribute -> name="value"
 		boolean hasDynamic = false;
 		for (int i = attrs.length - 1; i >= 0; i--) {
@@ -1898,6 +1976,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 					param.addAttribute(attr);
 				}
 				else if (attr.isDynamicType()) {
+					// LDEV-4366: when name= is present, unknown attrs are not allowed (ACF/tag parity)
+					if (hasExplicitName) throw attrNotSupported(data.srcCode, tlt, attr.getName());
 					hasName = true;
 					if (hasDynamic) throw attrNotSupported(data.srcCode, tlt, attr.getName());
 					hasDynamic = true;
@@ -1983,6 +2063,30 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			rtn.append("[]");
 		}
 
+		// LDEV-69: associative array syntax URL["number"] / form['x']
+		while (data.srcCode.forwardIfCurrent('[')) {
+			data.srcCode.removeSpace();
+			String key = null;
+			if (data.srcCode.isCurrent('"') || data.srcCode.isCurrent('\'')) {
+				char quote = data.srcCode.getCurrent();
+				data.srcCode.next();
+				int start = data.srcCode.getPos();
+				while (data.srcCode.isValidIndex() && !data.srcCode.isCurrent(quote)) {
+					data.srcCode.next();
+				}
+				key = data.srcCode.substring(start, data.srcCode.getPos() - start);
+				if (!data.srcCode.forwardIfCurrent(quote)) return null;
+			}
+			else {
+				key = identifier(data, true);
+				if (key == null) return null;
+			}
+			data.srcCode.removeSpace();
+			if (!data.srcCode.forwardIfCurrent(']')) return null;
+			rtn.append("[\"").append(key).append("\"]");
+			data.srcCode.removeSpace();
+		}
+
 		data.srcCode.revertRemoveSpace();
 
 		return rtn.toString();
@@ -2017,11 +2121,21 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private final boolean islandStatement(Data data, Body parent) throws TemplateException {
 
 		if (!data.srcCode.forwardIfCurrent(TAG_ISLAND_INDICATOR)) return false;
-		// now we have to jump into the tag parser
+
+		Position start = data.srcCode.getPosition();
+
+		// Create a TagIsland wrapper to hold the tag content
+		TagIsland island = new TagIsland(data.factory, start, null);
+
+		// now we have to jump into the tag parser, parsing into the TagIsland body
 		CFMLTransformer tag = new CFMLTransformer(true);
-		tag.transform(data, parent);
+		tag.transform(data, island);
 
 		if (!data.srcCode.forwardIfCurrent(TAG_ISLAND_INDICATOR)) throw new TemplateException(data.srcCode, "missing closing tag indicator [" + TAG_ISLAND_INDICATOR + "]");
+
+		island.setEnd(data.srcCode.getPosition());
+		parent.addStatement(island);
+
 		comments(data);
 
 		return true;
@@ -2041,6 +2155,16 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				return expressionStatement(data, parent);
 			}
 			catch (TemplateException e1) {
+				// LDEV-2133 neither a single value nor an expression, maybe named attributes, "throw message='a' type='b';"
+				if (data.ep != null) {
+					data.srcCode.setPos(pos);
+					try {
+						Statement child = __multiAttrStatement(parent, data, tlt);
+						if (child != null) return child;
+					}
+					catch (TemplateException e2) {
+					}
+				}
 				throw e;
 			}
 		}
@@ -2049,7 +2173,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private final Statement __singleAttrStatement(Body parent, Data data, TagLibTag tlt, boolean allowTwiceAttr) throws TemplateException {
 		String tagName = tlt.getName();
 		if (data.srcCode.forwardIfCurrent(tagName)) {
-			if (!data.srcCode.isCurrent(' ') && !data.srcCode.isCurrent(';')) {
+			// the name has to be followed by a space, a line feed, a semicolon or the end of the block
+			if (!data.srcCode.isAfterLast() && !Character.isWhitespace(data.srcCode.getCurrent()) && !data.srcCode.isCurrent(';') && !data.srcCode.isCurrent('}')) {
 				data.srcCode.setPos(data.srcCode.getPos() - tagName.length());
 				return null;
 			}
@@ -2064,8 +2189,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Tag tag = getTag(data, parent, tlt, line, null);
 		tag.setScriptBase(true);
 		tag.setTagLibTag(tlt);
+		tag.setFullname(tagName);
 
 		comments(data);
+
+		// LDEV-2133 a named attribute other than the single attribute, "abort type='page';", is not an expression for the single attribute
+		if (data.ep != null && isOtherNamedAttribute(data, tlt)) {
+			data.srcCode.setPos(pos);
+			return __multiAttrStatement(parent, data, tlt);
+		}
 
 		// attribute
 		TagLibTagAttr attr = tlt.getScript().getSingleAttr();
@@ -2075,7 +2207,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if (attr != null) {
 			attrType = attr.getScriptSupport();
 			char c = data.srcCode.getCurrent();
-			if (ATTR_TYPE_REQUIRED == attrType || (!data.srcCode.isCurrent(';') && ATTR_TYPE_OPTIONAL == attrType)) {
+			// an optional attribute has to be on the same line, a line feed or the end of the block ends the statement (like with return)
+			boolean end = data.srcCode.isCurrent(';') || data.srcCode.isCurrent('}') || data.srcCode.isAfterLast() || data.srcCode.getPosition().line != line.line;
+			if (ATTR_TYPE_REQUIRED == attrType || (!end && ATTR_TYPE_OPTIONAL == attrType)) {
 				if (data.srcCode.isCurrent('{')) {// this can be only a json string
 					int p = data.srcCode.getPos();
 					try {
@@ -2121,6 +2255,27 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		tag.setEnd(data.srcCode.getPosition());
 		eval(tlt, data, tag);
 		return tag;
+	}
+
+	/**
+	 * checks if the code at the current position starts with "<attribute-name>=" (not "==") for an
+	 * attribute of the tag that is not its single attribute, the position is not changed
+	 */
+	private boolean isOtherNamedAttribute(Data data, TagLibTag tlt) throws TemplateException {
+		int p = data.srcCode.getPos();
+		try {
+			String id = CFMLTransformer.identifier(data.srcCode, false, false);
+			if (StringUtil.isEmpty(id)) return false;
+			TagLibTagAttr attr = tlt.getAttribute(id.toLowerCase(), true);
+			if (attr == null) return false;
+			TagLibTagAttr single = tlt.getScript().getSingleAttr();
+			if (single != null && single.getName().equalsIgnoreCase(attr.getName())) return false;
+			data.srcCode.removeSpace();
+			return data.srcCode.isCurrent('=') && !data.srcCode.isNext('=');
+		}
+		finally {
+			data.srcCode.setPos(p);
+		}
 	}
 
 	private boolean isSimpleValue(String type) {
@@ -2259,7 +2414,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			if (_final) ((Assign) expr).setModifier(Member.MODIFIER_FINAL);
 		}
 
-		if (expr instanceof FunctionAsExpression) return ((FunctionAsExpression) expr).getFunction();
+		// LDEV-4286: a closure or lambda used as a statement stays an expression statement, ExpressionAsStatement rejects it with a compile error when the value is not used
+		if (expr instanceof FunctionAsExpression && !(((FunctionAsExpression) expr).getFunction() instanceof Closure)
+				&& !(((FunctionAsExpression) expr).getFunction() instanceof Lambda))
+			return ((FunctionAsExpression) expr).getFunction();
 
 		return new ExpressionAsStatement(expr);
 	}
@@ -2532,18 +2690,47 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if (oAllowExpression instanceof String) allowExpression = ((String) oAllowExpression).equalsIgnoreCase(nameLC);
 
 		Expression value = null;
+		boolean hasValue = false;
 
 		comments(data);
 
-		// value
-		boolean hasValue = data.srcCode.forwardIfCurrent('=') || (allowColonSeparator && data.srcCode.forwardIfCurrent(':'));
-		if (hasValue) {
+		// LDEV-3963: function metadata (tlt==null): "secured:api" is a compound attribute name
+		// (not name=value). Known attrs still use colon as '='.
+		if (allowColonSeparator && tlt == null && data.srcCode.isCurrent(':') && !isKnownFunctionAttribute(nameLC)) {
+			int peekPos = data.srcCode.getPos();
+			data.srcCode.next();
 			comments(data);
-			value = attributeValue(data, allowExpression);
-
+			String idPart = CFMLTransformer.identifier(data.srcCode, false, false);
+			if (idPart != null) {
+				data.srcCode.removeSpace();
+				if (!data.srcCode.isCurrent('=') && !data.srcCode.isCurrent(':')) {
+					args.remove(args.size() - 1);
+					name = name + ":" + idPart;
+					nameLC = name.toLowerCase();
+					args.add(nameLC);
+					value = defaultValue;
+					hasValue = false;
+				}
+				else {
+					data.srcCode.setPos(peekPos);
+				}
+			}
+			else {
+				data.srcCode.setPos(peekPos);
+			}
 		}
-		else {
-			value = defaultValue;
+
+		if (value == null) {
+			hasValue = data.srcCode.forwardIfCurrent('=') || (allowColonSeparator && data.srcCode.forwardIfCurrent(':'));
+			if (hasValue) {
+				comments(data);
+				value = attributeValue(data, allowExpression);
+				// LDEV-3963: coerce bare identifier to a string literal (access=remote)
+				if (tlt == null) value = asLiteralIdentifier(data, value);
+			}
+			else {
+				value = defaultValue;
+			}
 		}
 		comments(data);
 
@@ -2602,6 +2789,49 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final Expression attributeValue(Data data, boolean allowExpression) throws TemplateException {
 		return allowExpression ? super.expression(data) : transformAsString(data, new String[] { " ", ";", "{" });
+	}
+
+
+	/** LDEV-3963: attributes that keep colon as name=value on function declarations */
+	private static boolean isKnownFunctionAttribute(String nameLC) {
+		if (nameLC == null) return false;
+		switch (nameLC) {
+		case "access":
+		case "output":
+		case "returntype":
+		case "returnformat":
+		case "roles":
+		case "securejson":
+		case "verifyclient":
+		case "restpath":
+		case "httpmethod":
+		case "producer":
+		case "consumes":
+		case "description":
+		case "displayname":
+		case "hint":
+		case "modifier":
+		case "localmode":
+		case "bufferedoutput":
+		case "bufferoutput":
+		case "cachedwithin":
+		case "type":
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	/** LDEV-3963: turn a single-member Variable into a LitString so access=remote works */
+	private Expression asLiteralIdentifier(Data data, Expression value) {
+		if (!(value instanceof lucee.transformer.expression.var.Variable)) return value;
+		lucee.transformer.expression.var.Variable var = (lucee.transformer.expression.var.Variable) value;
+		java.util.List<lucee.transformer.expression.var.Member> members = var.getMembers();
+		if (members != null && members.size() == 1 && members.get(0) instanceof lucee.transformer.expression.var.DataMember) {
+			lucee.transformer.expression.var.DataMember dm = (lucee.transformer.expression.var.DataMember) members.get(0);
+			if (dm.getName() instanceof LitString) return dm.getName();
+		}
+		return value;
 	}
 
 	public static interface EndCondition {

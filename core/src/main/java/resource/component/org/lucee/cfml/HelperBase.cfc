@@ -167,31 +167,8 @@
 
 			<!--- cfmail --->
 			<cfcase value="mail">
-				<cfthrow message="not supported in 7.1 OOTB">
-				<cfset local.body = "">
-				<cfif StructKeyExists(tagAttributes, "body")>
-					<cfset local.body = tagAttributes.body>
-					<cfset Structdelete(tagAttributes, "body")>
-				</cfif>
-				<cfscript>
-				/*
-				<cfmail attributeCollection="#tagAttributes#">#body#<!---
-				---><cfloop array="#tagParams#" index="local.param"><!---
-                        ---><cfmailparam attributeCollection="#param#"><!---
-                  ---></cfloop><!---
-
-				---><cfloop array="#variables.parts#" index="local.part"><!---
-					---><cfset partbody = ""><!---
-                        ---><cfif structkeyexists(part,"body")><!---
-                             ---><cfset partbody = part["body"]><!---
-                             ---><cfset structdelete(part,"body")><!---
-                        ---></cfif><!---
-                        ---><cfmailpart attributeCollection="#part#">#partbody#</cfmailpart><!---
-                    ---></cfloop><!---
-				---></cfmail>
-				*/
-				</cfscript>
-				<cfreturn this/>
+				<!--- LDEV-6484 the mail extension ships its own org.lucee.cfml.Mail with send(), this is only reached by an outdated Mail.cfc --->
+				<cfthrow type="application" message="new mail() requires the Mail extension (212BA548-F15A-4EBD-8B1EEDF8DD8A844D) to be installed">
 			</cfcase>
 
 			<!--- feed --->

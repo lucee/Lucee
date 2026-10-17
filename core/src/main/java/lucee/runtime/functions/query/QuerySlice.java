@@ -64,9 +64,9 @@ public final class QuerySlice extends BIF {
 	}
 
 	private static Query get(Query qry, int from, int to) throws PageException {
-		Collection.Key[] columns;
+		Collection.Key[] columns = qry.getColumnNames();
 		// print.out(from+"::"+to);
-		Query nq = new QueryImpl(columns = qry.getColumnNames(), 0, qry.getName());
+		Query nq = QueryImpl.newInstanceWithSameColumns(qry, 0, qry.getName());
 
 		int row = 1;
 		for (int i = from; i <= to; i++) {

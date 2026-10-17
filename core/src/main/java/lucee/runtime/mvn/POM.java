@@ -35,11 +35,10 @@ public final class POM {
 	public static final List<Repository> REPOSITORIES = new ArrayList<>();
 
 	public static final Repository REPOSITORY_MAVEN_CENTRAL = new Repository("maven-central", "Maven Central", "https://repo1.maven.org/maven2/", true, false);
-	public static final Repository REPOSITORY_SONATYPE = new Repository("sonatype", "Sonatype", "https://oss.sonatype.org/content/repositories/releases/", true, false);
+	public static final Repository REPOSITORY_GOOGLE_CENTRAL_MIRROR = new Repository("google-maven-central", "Google Cloud Maven Central mirror",
+			"https://maven-central.storage-download.googleapis.com/maven2/", true, false);
 	public static final Repository REPOSITORY_JCENTER = new Repository("jcenter", "JCenter", "https://jcenter.bintray.com/", true, false);
 
-	// only google specific stuff
-	public static final Repository REPOSITORY_GOOGLE = new Repository("google", "Google Maven", "https://maven.google.com/", true, false);
 	// only apache specific stuff
 	public static final Repository REPOSITORY_APACHE = new Repository("apache", "Apache Repository", "https://repository.apache.org/content/repositories/releases/", true, false);
 	// only spring specific stuff
@@ -64,10 +63,9 @@ public final class POM {
 		}
 
 		REPOSITORIES.add(REPOSITORY_MAVEN_CENTRAL);
-		REPOSITORIES.add(REPOSITORY_SONATYPE);
+		REPOSITORIES.add(REPOSITORY_GOOGLE_CENTRAL_MIRROR);
 		// REPOSITORIES.add(REPOSITORY_JCENTER);
 		// REPOSITORIES.add(REPOSITORY_APACHE);
-		// REPOSITORIES.add(REPOSITORY_GOOGLE);
 		// REPOSITORIES.add(REPOSITORY_SPRING);
 		// REPOSITORIES.add(REPOSITORY_ALIYUN);
 

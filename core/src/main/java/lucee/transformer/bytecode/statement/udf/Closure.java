@@ -19,6 +19,7 @@
 package lucee.transformer.bytecode.statement.udf;
 
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.Body;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -53,5 +54,7 @@ public final class Closure extends Function {
 	@Override
 	public void dump(Struct sct) {
 		dump(sct, "ClosureDeclaration");
+		// Remove auto-generated name - anonymous closures shouldn't expose internal names
+		sct.removeEL(KeyConstants._name);
 	}
 }

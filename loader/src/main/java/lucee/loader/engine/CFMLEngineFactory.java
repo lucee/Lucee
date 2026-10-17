@@ -817,11 +817,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		extend(config, "felix.service.urlhandlers", null, false);
 		extend(config, "felix.startlevel.bundle", null, false);
 
-		int processors = Runtime.getRuntime().availableProcessors();
-		String parallelism = Math.max(4, processors * 2) + ""; // Use more threads
-		extend(config, "felix.resolver.parallelism", parallelism, false);
-		extend(config, "felix.resolver.parallel", "true", false); // Enable parallel resolution
-		extend(config, "felix.systembundle.activators.start.parallelism", parallelism, false);
+		// Felix bundle resolution parallelism: enable parallel resolution with virtual threads.
+		// With virtual threads (Java 21+), parallelism is now beneficial for dependency graph traversal.
+		// Default: Math.min(CPU cores, 8) to balance parallelism without excessive lock contention.
+		// Override via -Dfelix.resolver.parallelism=N
+		int parallelism = Math.min(Math.max(1, Runtime.getRuntime().availableProcessors()), 8);
+		extend(config, "felix.resolver.parallelism", "" + parallelism, false);
+		extend(config, "felix.resolver.parallel", "true", false);
 
 		// Skip waiting for service events to be delivered
 		extend(config, "felix.service.timeout", null, false);
@@ -1050,8 +1052,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 		final File jarDir = getBundleDirectory();
 
+		File jar = new File(jarDir, symbolicName + "-" + symbolicVersion + ".jar");
+		if (jar.isFile()) return jar;
+
 		// before we download we check if we have it bundled
-		File jar = deployBundledBundle(jarDir, symbolicName, symbolicVersion);
+		jar = deployBundledBundle(jarDir, symbolicName, symbolicVersion);
 		if (jar != null && jar.isFile()) return jar;
 		if (jar != null) {
 			log(org.apache.felix.resolver.Logger.LOG_INFO, jar + " should exist but does not (exist?" + jar.exists() + ";file?" + jar.isFile() + ";hidden?" + jar.isHidden() + ")");
@@ -1143,6 +1148,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		String nameAndVersion = symbolicName + "|" + symbolicVersion;
 		String osgiFileName = symbolicName + "-" + symbolicVersion + ".jar";
 
+		File trg = new File(bundleDirectory, osgiFileName);
+		if (trg.isFile()) return trg;
+
 		// first we look for an exact match
 		InputStream is = getClass().getResourceAsStream("bundles/" + osgiFileName);
 		if (is == null) is = getClass().getResourceAsStream("/bundles/" + osgiFileName);
@@ -1159,7 +1167,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				Util.copy(new BufferedInputStream(is), new FileOutputStream(temp), true, true);
 
 				// adding bundle
-				File trg = new File(bundleDirectory, osgiFileName);
 				Util.fileMove(temp, trg);
 				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 				return trg;
@@ -1199,7 +1206,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 							bundleInfo = BundleLoader.loadBundleInfo(temp);
 							if (bundleInfo != null && nameAndVersion.equals(bundleInfo)) {
-								File trg = new File(bundleDirectory, name);
+								trg = new File(bundleDirectory, name);
 								temp.renameTo(trg);
 								log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 

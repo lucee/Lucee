@@ -40,6 +40,14 @@
 		"default": true
 	},
 	{
+		"sysprop": "lucee.allow.virtual.threads",
+		"envvar": "LUCEE_ALLOW_VIRTUAL_THREADS",
+		"desc": "Allow the use of virtual threads on Java 25+. Experimental.",
+		"category": "performance",
+		"type": "boolean",
+		"default": false
+	},
+	{
 		"sysprop": "lucee.application.listener",
 		"envvar": "LUCEE_APPLICATION_LISTENER",
 		"desc": "Which kind of Application Listener is supported? Possible values: `None` - no listener at all, `Classical` - Classic handling. Lucee looks for `Application.cfm` and `OnRequestEnd.cfm`, `Modern` - Modern handling. Lucee only looks for `Application.cfc`, `Mixed` - Mixed handling. Lucee looks for `Application.cfm`/`OnRequestEnd.cfm` as well as `Application.cfc`. This is an alias for lucee.listener.type",
@@ -116,6 +124,15 @@
 		"default": "DEBUG"
 	},
 	{
+		"sysprop": "lucee.cookie.preservecase",
+		"envvar": "LUCEE_COOKIE_PRESERVECASE",
+		"desc": "When set to `true`, cookie names preserve their original casing instead of being uppercased. Defaults to `false` for backwards compatibility. Will default to `true` in a future version to match ACF behaviour (LDEV-970)",
+		"category": "cookie",
+		"type": "boolean",
+		"introduced": "7.1",
+		"default": false
+	},
+	{
 		"sysprop": "lucee.cfid.url.allow",
 		"envvar": "LUCEE_CFID_URL_ALLOW",
 		"desc": "Controls whether Lucee accepts CFID values from URL query strings. Set to `false` to enhance security by requiring CFIDs to be passed via cookies only. Setting this to `false` is strongly recommended for all production environments. Replaces lucee.read.cfid.from.url in Lucee 6.2.1.59",
@@ -161,12 +178,11 @@
 	{
 		"sysprop": "lucee.compiler.block.bytecode",
 		"envvar": "LUCEE_COMPILER_BLOCK_BYTECODE",
-		"desc": "Controls whether Lucee blocks the direct execution of precompiled bytecode files (.cfm). When `true`, only source code CFML files are allowed. Bytecode execution is blocked by default in Lucee 7 for security reasons",
+		"desc": "Controls whether Lucee blocks the direct execution of precompiled bytecode files (.cfm|.cfc|.cfs). When `true`, only source code CFML files are allowed.",
 		"category": "security",
 		"type": "boolean",
 		"introduced": "6.1.1.114",
-		"defaultSince": "7.0",
-		"default": true
+		"default": false
 	},
 	{
 		"sysprop": "lucee.concurrent.map.impl",
@@ -240,6 +256,15 @@
 		"type": "boolean",
 		"deprecated": "6.2",
 		"default": null
+	},
+	{
+		"sysprop": "lucee.datasource.pool.maxIdle",
+		"envvar": "LUCEE_DATASOURCE_POOL_MAXIDLE",
+		"desc": "Window in seconds a datasource pool must be quiet before becoming eligible for background cleanup. The pool is then closed after surviving one Controler bg-sweep tick (one minute). Floored to ~60s effective minimum since the bg sweep runs once per minute.",
+		"category": "datasource",
+		"type": "numeric",
+		"introduced": "7.1.0.167",
+		"default": 60
 	},
 	{
 		"sysprop": "lucee.datasource.timeout.validation",
@@ -438,6 +463,24 @@
 		"category": "compiler",
 		"type": "string",
 		"default": null
+	},
+	{
+		"sysprop": "lucee.io.block.size",
+		"envvar": "LUCEE_IO_BLOCK_SIZE",
+		"desc": "Buffer size in bytes/chars used by IOUtil copy operations and the shared IOUtil byte/char buffer pools. Lower values reduce per-thread memory tax for short-lived threads (e.g. cfthread storm workloads); higher values amortise fewer reads on long-lived threads doing big copies. Range typically 1024-65535.",
+		"category": "performance",
+		"type": "integer",
+		"default": 65535,
+		"introduced": "7.1.0.155"
+	},
+	{
+		"sysprop": "lucee.io.buffer.pool.max",
+		"envvar": "LUCEE_IO_BUFFER_POOL_MAX",
+		"desc": "Maximum number of pooled buffers per IOUtil pool (byte and char tracked separately). Caps memory growth under bursty concurrency (e.g. arrayEach with high parallel max, sustained virtual-thread load). Above the cap, callers allocate per-call rather than reuse a pooled buffer. Default tracks the PageContext pool sizing: max(100, cores * 16).",
+		"category": "performance",
+		"type": "integer",
+		"default": "max(100, cores * 16)",
+		"introduced": "7.1.0.182"
 	},
 	{
 		"sysprop": "lucee.isdefined.limit",
@@ -732,10 +775,18 @@
 	{
 		"sysprop": "lucee.mvn.repo.releases",
 		"envvar": "LUCEE_MVN_REPO_RELEASES",
-		"desc": "Maven repository endpoint used by Lucee >= 6 to load release versions",
+		"desc": "Comma-separated Maven repository URLs used by Lucee to load release versions. When unset, defaults to Maven Central.",
 		"category": "osgi",
 		"type": "string",
-		"default": "https://oss.sonatype.org/service/local/repositories/releases/content/"
+		"default": "https://repo1.maven.org/maven2/"
+	},
+	{
+		"sysprop": "lucee.mvn.repo.mixed",
+		"envvar": "LUCEE_MVN_REPO_MIXED",
+		"desc": "Comma-separated Maven repository URLs checked after the release/snapshot repositories, for artifacts provided by Lucee (e.g. RC/BETA versions not published to Maven Central).",
+		"category": "osgi",
+		"type": "string",
+		"default": "https://maven.lucee-services.com/"
 	},
 	{
 		"sysprop": "lucee.mvn.repo.snapshots",
@@ -871,6 +922,15 @@
 		"default": 10000
 	},
 	{
+		"sysprop": "lucee.pagePool.strongRef",
+		"envvar": "LUCEE_PAGEPOOL_STRONGREF",
+		"desc": "When true (default), PageSource entries for all inspect modes are held by strong reference instead of SoftReference, so they cannot be cleared by GC pressure. Avoids lastModified() syscalls under load and prevents NEVER/ONCE mappings silently degrading to AUTO when SoftRefs clear. Set to false to restore legacy SoftReference behaviour. (NEVER-only variant introduced in 7.1.0.156, extended to all modes here.)",
+		"category": "performance",
+		"type": "boolean",
+		"default": true,
+		"introduced": "7.1.0.190"
+	},
+	{
 		"sysprop": "lucee.password.enc.key",
 		"envvar": "LUCEE_PASSWORD_ENC_KEY",
 		"desc": "The private encryption key used by Lucee to encrypt passwords stored in the configuration, such as for datasources",
@@ -968,6 +1028,17 @@
 		"default": false
 	},
 	{
+		"sysprop": "lucee.query.datetime.jdbcformat",
+		"envvar": "LUCEE_QUERY_DATETIME_JDBCFORMAT",
+		"desc": "By default, Lucee converts DATE/TIME/TIMESTAMP query column values to a string using the ODBC escape format (e.g. `{ts '2017-05-18 19:14:38'}`), while Adobe ColdFusion (ACF) uses the JDBC driver's native `toString()` format (e.g. `2017-05-18 19:14:38.0`). This difference can break legacy code that builds SQL by concatenating a query result date directly into a new SQL string instead of using cfqueryparam. Set this environment variable or SysProp to `true` to make Lucee use the JDBC driver's native string format instead, matching ACF (see LDEV-1344)",
+		"category": "query",
+		"tags": [ "cfquery" ],
+		"functions": [ "queryExecute" ],
+		"type": "boolean",
+		"introduced": "7.0.1",
+		"default": false
+	},
+	{
 		"sysprop": "lucee.query.result.threshold",
 		"envvar": "LUCEE_QUERY_RESULT_THRESHOLD",
 		"desc": "Enables automatic logging of database queries that return large result sets to help proactively identify potential OutOfMemory (OOM) issues. When set to a positive integer, Lucee will log a warning message to the datasource log category whenever a query returns a number of rows greater than or equal to the specified threshold. Set to 0 or leave unset to disable this feature (default behavior). Logs include execution time, row count, column count, threshold value, SQL query, and tag context. Helps identify problematic queries before they cause memory issues in production environments",
@@ -1014,7 +1085,7 @@
 	{
 		"sysprop": "lucee.request.limit.concurrent.maxnormprio",
 		"envvar": "LUCEE_REQUEST_LIMIT_CONCURRENT_MAXNORMPRIO",
-		"desc": "Maximum number of normal priority concurrent requests. Set to 0 to disable",
+		"desc": "When the count of in-flight same-IP requests reaches this value, Lucee lowers the Java thread priority of all such requests to MIN_PRIORITY. Set to 0 (default) to disable. Has no effect when the servlet engine is using virtual threads — VirtualThread.setPriority() is a no-op so Lucee skips this code path entirely under VT. Resolved once at JVM startup; runtime changes require restart.",
 		"category": "request",
 		"type": "numeric",
 		"default": 0
@@ -1022,7 +1093,7 @@
 	{
 		"sysprop": "lucee.request.limit.concurrent.maxnosleep",
 		"envvar": "LUCEE_REQUEST_LIMIT_CONCURRENT_MAXNOSLEEP",
-		"desc": "The maximal number of threads that are allowed to be active on the server. If this is reached, requests get forced into a `nap` (defined by lucee.request.limit.concurrent.sleeptime)",
+		"desc": "When the count of in-flight same-IP requests reaches this value, incoming requests are forced into a nap (length set by lucee.request.limit.concurrent.sleeptime). The first time the throttle fires per JVM lifetime, an ERROR is logged to the `factory` logger naming the remote address, current count, and disable instructions. To disable the throttle, set sleeptime to 0 (preferred) or set maxnosleep to 0. Behind a load balancer / reverse proxy that exposes a single client IP to Lucee, this throttle treats all traffic as same-IP and will fire under normal load — raise maxnosleep substantially or disable in that case. Resolved once at JVM startup.",
 		"category": "request",
 		"type": "numeric",
 		"default": 10
@@ -1030,7 +1101,7 @@
 	{
 		"sysprop": "lucee.request.limit.concurrent.sleeptime",
 		"envvar": "LUCEE_REQUEST_LIMIT_CONCURRENT_SLEEPTIME",
-		"desc": "How long a request should `nap` in milliseconds if it reaches the lucee.request.limit.concurrent.maxnosleep",
+		"desc": "How long (milliseconds) a request naps when the maxnosleep threshold is reached. **Set to 0 to fully disable the throttle** — the entire iteration over running PageContexts in CFMLFactoryImpl.getPageContextImpl is skipped (JIT-folded to dead code). Resolved once at JVM startup.",
 		"category": "request",
 		"type": "timespan",
 		"default": 100

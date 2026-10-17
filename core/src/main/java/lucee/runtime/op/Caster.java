@@ -33,6 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
+import java.math.RoundingMode;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.sql.Blob;
@@ -1006,8 +1007,10 @@ public final class Caster {
 	}
 
 	private static String toDecimal(double value, char decDel, char thsDel) {
-		// TODO Caster toDecimal bessere impl.
-		String str = Caster.toBigDecimal((StrictMath.round(value * 100) / 100D)).toPlainString();
+		// LDEV-4776 round half up on the decimal value (512.925 -> 512.93), like round() and numberFormat(),
+		// value * 100 does not work for every value (512.925 * 100 = 51292.49999999999)
+		String str = Double.isNaN(value) || Double.isInfinite(value) ? Caster.toBigDecimal((StrictMath.round(value * 100) / 100D)).toPlainString()
+				: BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).toPlainString();
 		// str=toDouble(value).toString();
 		String[] arr = str.split("\\.");
 
@@ -2343,15 +2346,17 @@ public final class Caster {
 		return str;
 	}
 
-	private static DecimalFormat pf = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
-	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
-	private static DecimalFormat ff = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
-	static {
+	// DecimalFormat synchronizes internally, so a shared instance serialises all threads (LDEV-6508)
+	private static final ThreadLocal<DecimalFormat> pf = ThreadLocal.withInitial(() -> createDecimalFormat("#.################"));
+	private static final ThreadLocal<DecimalFormat> df = ThreadLocal.withInitial(() -> createDecimalFormat("#.############"));
+	private static final ThreadLocal<DecimalFormat> ff = ThreadLocal.withInitial(() -> createDecimalFormat("#.#######"));
+	// -0.9899924966004454
 
-		pf.applyLocalizedPattern("#.################");
-		df.applyLocalizedPattern("#.############");
-		ff.applyLocalizedPattern("#.#######");
-	}// -0.9899924966004454
+	private static DecimalFormat createDecimalFormat(String pattern) {
+		DecimalFormat format = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
+		format.applyLocalizedPattern(pattern);
+		return format;
+	}
 
 	public static String toString(double d) {
 		long l = (long) d;
@@ -2359,11 +2364,11 @@ public final class Caster {
 
 		if (d > l && (d - l) < 0.000000000001) return toString(l);
 		if (l > d && (l - d) < 0.000000000001) return toString(l);
-		return df.format(d);
+		return df.get().format(d);
 	}
 
 	public static String toStringPercise(double d) {
-		return pf.format(d);
+		return pf.get().format(d);
 	}
 
 	public static String toString(float f) {
@@ -2378,13 +2383,13 @@ public final class Caster {
 		char c;
 		for (int x = str.length() - 1; x >= 0; x--) {
 			c = str.charAt(x);
-			if (c == 'E' || c == 'e') return ff.format(f);
+			if (c == 'E' || c == 'e') return ff.get().format(f);
 		}
 		return str;
 	}
 
 	public static String toString(Number n) {
-		if (n instanceof BigDecimal) return pf.format(n);
+		if (n instanceof BigDecimal) return toString((BigDecimal) n);
 		if (n instanceof Double) return Caster.toString(n.doubleValue());
 		if (n instanceof Long) return Caster.toString(n.longValue());
 		if (n instanceof Float) return Caster.toString(n.floatValue());
@@ -2392,7 +2397,8 @@ public final class Caster {
 	}
 
 	public static String toString(BigDecimal bd) {
-		return pf.format(bd);
+		if (bd.scale() <= 0) return bd.toPlainString();
+		return pf.get().format(bd);
 	}
 
 	/**

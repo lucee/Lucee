@@ -147,6 +147,8 @@ import lucee.runtime.op.OperationImpl;
 import lucee.runtime.op.StringsImpl;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.schedule.SchedulerImpl;
+import lucee.runtime.spooler.SpoolerEngine;
+import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Struct;
@@ -1219,8 +1221,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		boolean exeReqAsync = exeRequestAsync();
 		PageContextImpl pc = factory.getPageContextImpl(servlet, req, rsp, null, false, -1, false, !exeReqAsync, false, -1, true, false, false, null);
 		try {
-			Request r = new Request(pc, type);
 			if (exeReqAsync) {
+				Request r = new Request(pc, type);
 				r.start();
 				long ended = -1;
 				do {
@@ -1366,6 +1368,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			HTTPEngine4Impl.releaseConnectionManager();
 			HTTPDownloader.releaseSharedClient();
 
+			IOUtil.clearBufferPools();
+
 			releaseCache(getConfigServerImpl(null, false, true));
 
 			CFMLFactoryImpl cfmlFactory;
@@ -1391,6 +1395,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 						if (config == null) scheduler.stop();
 						else ConfigUtil.getConfigServerImpl(config).resetScheduler();
 					}
+
+					// spooler (LDEV-6350)
+					stopSpooler(config);
 
 					// scopes
 					try {
@@ -1439,6 +1446,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				}
 			}
 
+			// spooler of the server context (LDEV-6350)
+			if (configId == null) stopSpooler(configServer);
+
 			// release felix itself
 			shutdownFelix();
 
@@ -1460,6 +1470,17 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	 * 
 	 * }
 	 */
+
+	private void stopSpooler(Config config) {
+		if (config == null) return;
+		try {
+			SpoolerEngine se = config.getSpoolerEngine();
+			if (se instanceof SpoolerEngineImpl) ((SpoolerEngineImpl) se).stop();
+		}
+		catch (Exception ee) {
+			LogUtil.log(configServer, "controller", ee);
+		}
+	}
 
 	private void shutdownFelix() {
 		try {

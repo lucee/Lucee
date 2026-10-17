@@ -90,6 +90,7 @@ import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.tag.TagScript;
 import lucee.transformer.bytecode.statement.tag.TagTry;
 import lucee.transformer.bytecode.util.SourceNameClassVisitor.SourceInfo;
+import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
@@ -263,25 +264,20 @@ public final class ASMUtil {
 		else if (FlowControl.CONTINUE == flowType) end = ((FlowControlContinue) fc).getContinueLabel();
 		else end = ((FlowControlRetry) fc).getRetryLabel();
 
-		// first jump to all final labels
-		FlowControlFinal[] arr = finallyLabels.toArray(new FlowControlFinal[finallyLabels.size()]);
-		if (arr.length > 0) {
-			FlowControlFinal fcf;
-			for (int i = 0; i < arr.length; i++) {
-				fcf = arr[i];
-
-				// first
-				if (i == 0) {
-					adapter.visitJumpInsn(Opcodes.GOTO, fcf.getFinalEntryLabel());
-				}
-
-				// last
-				if (arr.length == i + 1) fcf.setAfterFinalGOTOLabel(end);
-				else fcf.setAfterFinalGOTOLabel(arr[i + 1].getFinalEntryLabel());
-			}
-
+		// pass all finally blocks between here and the target, from the outermost to the innermost. every
+		// finally has its own entry per target, so a break and a continue in the same try do not end up at
+		// the same place (LDEV-6510)
+		Label target = end;
+		OnFinally onFinally;
+		for (int i = finallyLabels.size() - 1; i >= 0; i--) {
+			FlowControlFinal fcf = finallyLabels.get(i);
+			// we are already in the finally code of that statement, going through it again would run it
+			// again in an endless loop
+			onFinally = fcf.getOnFinally();
+			if (onFinally != null && bc.insideFinally(onFinally)) continue;
+			target = fcf.getFinalEntryLabel(target);
 		}
-		else bc.getAdapter().visitJumpInsn(Opcodes.GOTO, end);
+		adapter.visitJumpInsn(Opcodes.GOTO, target);
 	}
 
 	public static boolean hasAncestorTryStatement(Statement stat) {
@@ -775,7 +771,50 @@ public final class ASMUtil {
 	}
 
 	public static ClassWriter getClassWriter() {
-		return new ClassWriter(CLASSWRITER_ARGS);
+		return new LuceeClassWriter(CLASSWRITER_ARGS);
+	}
+
+	/**
+	 * ClassWriter that resolves common super classes through Lucee's own class loader instead of the
+	 * ASM bundle's class loader. When {@link ClassWriter#COMPUTE_FRAMES} merges two reference types
+	 * (for example a {@code lucee.runtime.type.Closure} pushed in one branch and a String in the other
+	 * branch of a ternary or of a cfparam "default" attribute), ASM needs to determine their common
+	 * super class by loading them reflectively. The stock implementation uses the class loader of the
+	 * ClassWriter (the ASM bundle), which cannot see {@code lucee.runtime.*}, causing a
+	 * {@code TypeNotPresentException} / {@code ClassNotFoundException}. See LDEV-5352.
+	 */
+	private static class LuceeClassWriter extends ClassWriter {
+
+		public LuceeClassWriter(int flags) {
+			super(flags);
+		}
+
+		@Override
+		protected String getCommonSuperClass(final String type1, final String type2) {
+			// same algorithm as ClassWriter.getCommonSuperClass, but using Lucee's class loader and
+			// falling back to Object when a type cannot be resolved (e.g. a class currently being
+			// generated) rather than aborting the whole compilation.
+			ClassLoader cl = ASMUtil.class.getClassLoader();
+			Class<?> c1;
+			Class<?> c2;
+			try {
+				c1 = Class.forName(type1.replace('/', '.'), false, cl);
+				c2 = Class.forName(type2.replace('/', '.'), false, cl);
+			}
+			catch (ClassNotFoundException | LinkageError e) {
+				return "java/lang/Object";
+			}
+			if (c1.isAssignableFrom(c2)) return type1;
+			if (c2.isAssignableFrom(c1)) return type2;
+			if (c1.isInterface() || c2.isInterface()) {
+				return "java/lang/Object";
+			}
+			do {
+				c1 = c1.getSuperclass();
+			}
+			while (!c1.isAssignableFrom(c2));
+			return c1.getName().replace('.', '/');
+		}
 	}
 
 	public static String createOverfowMethod(String prefix, int id) { // pattern is used in function callstackget

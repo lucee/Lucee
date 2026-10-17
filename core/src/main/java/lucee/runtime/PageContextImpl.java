@@ -260,6 +260,7 @@ public final class PageContextImpl extends PageContext {
 	private HTTPServletRequestWrap req;
 	private HttpServletResponse rsp;
 	private HttpServlet servlet;
+	private String remoteAddr;
 
 	private JspWriter writer;
 	private JspWriter forceWriter;
@@ -297,7 +298,7 @@ public final class PageContextImpl extends PageContext {
 	private Application application;
 
 	private final DebuggerImpl debugger = new DebuggerImpl();
-	private long requestTimeout = -1;
+	private volatile long requestTimeout = -1;
 	private short enablecfoutputonly = 0;
 	private int outputState;
 	private String cfid;
@@ -333,8 +334,8 @@ public final class PageContextImpl extends PageContext {
 
 	private Tag parentTag = null;
 	private Tag currentTag = null;
-	private Thread thread;
-	private long startTime;
+	private volatile Thread thread;
+	private volatile long startTime;
 	private long startTimeNS;
 	private long endTimeNS;
 
@@ -343,8 +344,6 @@ public final class PageContextImpl extends PageContext {
 	private Map<Key, Threads> allThreads;
 	private boolean hasFamily = false;
 	private PageContextImpl parent = null;
-	private PageSource caller = null;
-	private PageSource callerTemplate = null;
 	private PageContextImpl root = null;
 
 	private List<String> parentTags;
@@ -460,8 +459,6 @@ public final class PageContextImpl extends PageContext {
 			boolean autoFlush, boolean isChild, boolean ignoreScopes, PageContextImpl tmplPC) {
 		applicationContext = initApplicationContext;
 		parent = null;
-		caller = null;
-		callerTemplate = null;
 		root = null;
 
 		boolean clone = tmplPC != null;
@@ -490,6 +487,7 @@ public final class PageContextImpl extends PageContext {
 
 		if (req instanceof HTTPServletRequestWrap) this.req = (HTTPServletRequestWrap) req;
 		else this.req = new HTTPServletRequestWrap(req);
+		this.remoteAddr = (CFMLFactoryImpl.THROTTLE_ENABLED && !isChild) ? req.getRemoteAddr() : null;
 
 		this.rsp = rsp;
 		this.servlet = servlet;
@@ -597,8 +595,6 @@ public final class PageContextImpl extends PageContext {
 			tmplPC.hasFamily = true;
 
 			this.parent = tmplPC;
-			this.caller = tmplPC.getCurrentPageSource();
-			this.callerTemplate = tmplPC.getCurrentTemplatePageSource();
 			this.root = tmplPC.root == null ? tmplPC : tmplPC.root;
 			this.tagName = tmplPC.tagName;
 			this.parentTags = tmplPC.parentTags == null ? null : (List) ((ArrayList) tmplPC.parentTags).clone();
@@ -619,7 +615,7 @@ public final class PageContextImpl extends PageContext {
 			while (it.hasNext()) {
 				this.includePathList.add(it.next());
 			}
-			it = pathList.iterator();
+			it = tmplPC.pathList.iterator();
 			while (it.hasNext()) {
 				this.pathList.add(it.next());
 			}
@@ -658,11 +654,9 @@ public final class PageContextImpl extends PageContext {
 		else debugger.resetTraces(); // traces can alo be used when debugging is off
 
 		this.serverPassword = null;
+		this.remoteAddr = null;
 
-		// boolean isChild=parent!=null; // isChild is defined in the class outside this method
 		parent = null;
-		caller = null;
-		callerTemplate = null;
 		root = null;
 		// ORM
 		// if(ormSession!=null)releaseORM();
@@ -696,11 +690,15 @@ public final class PageContextImpl extends PageContext {
 			variables = null;
 			variablesRoot = null;
 			// if(threads!=null && threads.size()>0) threads.clear();
-			threads = null;
-			allThreads = null;
+			// nulled under the same lock that synchronises setAllThreadScope / read accessors so
+			// a long-running daemon or orphan-VT can't race teardown.
+			synchronized (this) {
+				threads = null;
+				allThreads = null;
+			}
 			currentThread = null;
-			cgiR = new CGIImplReadOnly();
-			cgiRW = new CGIImpl();
+			cgiR = null;
+			cgiRW = null;
 			if (lastStanding) cookie.release(this);
 		}
 		else {
@@ -763,12 +761,10 @@ public final class PageContextImpl extends PageContext {
 			lazyStats = null;
 		}
 
-		if (!hasFamily) {
-			pathList.clear();
-			includePathList.clear();
-			// Only clear UDF stack if empty - active UDFs will clean themselves up
-			if (udfs.isEmpty()) udfs.clear();
-		}
+		pathList.clear();
+		includePathList.clear();
+		// Only clear UDF stack if empty - active UDFs will clean themselves up
+		if (udfs.isEmpty()) udfs.clear();
 		executionTime = 0;
 
 		bodyContentStack.release();
@@ -799,7 +795,12 @@ public final class PageContextImpl extends PageContext {
 		gatewayContext = false;
 		listenerContext = false;
 
-		manager.release();
+		try {
+			manager.release();
+		}
+		catch (Exception e) {
+			LogUtil.log(this, "datasource", PageContextImpl.class.getName(), e);
+		}
 		includeOnce.clear();
 		pe = null;
 		this.literalTimestampWithTSOffset = false;
@@ -965,10 +966,8 @@ public final class PageContextImpl extends PageContext {
 
 	public PageSource[] getRelativePageSources(String realPath) {
 		if (StringUtil.startsWith(realPath, '/')) return getPageSources(realPath);
-
-		PageSource ps = getCurrentPageSource(null);
+		PageSource ps = pathList.peekLast();
 		if (ps == null) return null;
-
 		return new PageSource[] { ((PageSourceImpl) ps).getRealPageSource(this, realPath) };
 	}
 
@@ -1205,26 +1204,13 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public PageSource getCurrentPageSource() {
-		PageSource ps = pathList.peekLast();
-		if (ps != null) return ps;
-
-		if (parent != null && parent != this && parent.isInitialized()) { // second comparision should not be necesary, just in case ...
-			return parent.getCurrentPageSource();
-		}
-		else if (caller != null) return caller;
-		return null;
+		return pathList.peekLast();
 	}
 
 	@Override
 	public PageSource getCurrentPageSource(PageSource defaultvalue) {
 		PageSource ps = pathList.peekLast();
-		if (ps != null) return ps;
-
-		if (parent != null && parent != this && parent.isInitialized()) { // second comparision should not be necesary, just in case ...
-			return parent.getCurrentPageSource(defaultvalue);
-		}
-		else if (caller != null) return caller;
-		return defaultvalue;
+		return ps != null ? ps : defaultvalue;
 	}
 
 	/**
@@ -1232,14 +1218,7 @@ public final class PageContextImpl extends PageContext {
 	 */
 	@Override
 	public PageSource getCurrentTemplatePageSource() {
-		if (includePathList.isEmpty()) {
-			if (parent != null && parent != this && parent.isInitialized()) { // second comparision should not be necesary, just in case ...
-				return parent.getCurrentTemplatePageSource();
-			}
-			else if (callerTemplate != null) return callerTemplate;
-			return null;
-		}
-		return includePathList.getLast();
+		return includePathList.peekLast();
 	}
 
 	/**
@@ -2321,6 +2300,22 @@ public final class PageContextImpl extends PageContext {
 		return req;
 	}
 
+	/**
+	 * Returns the remote address captured at request initialization. Read by
+	 * the request-throttle iteration over runningPcs in CFMLFactoryImpl, which
+	 * counts same-IP concurrent requests. Stashing it on the PageContext
+	 * avoids the recycled-request race when iterating from another thread
+	 * (Tomcat may recycle a finished request's facade mid-iteration).
+	 * <p>
+	 * Only populated when the throttle is enabled (CFMLFactoryImpl.THROTTLE_ENABLED)
+	 * and the PageContext is not a child. Returns null otherwise — the iteration's
+	 * null-check then skips this PageContext naturally. Cleared in release() so
+	 * pooled PageContexts can't leak stale addresses.
+	 */
+	public String getRemoteAddr() {
+		return remoteAddr;
+	}
+
 	@Override
 	public ServletResponse getResponse() {
 		return rsp;
@@ -2461,6 +2456,7 @@ public final class PageContextImpl extends PageContext {
 						Struct catchBlock = pe.getCatchBlock(getConfig());
 						variablesScope().setEL(KeyConstants._cfcatch, catchBlock);
 						variablesScope().setEL(KeyConstants._catch, catchBlock);
+						variablesScope().setEL(KeyConstants._error, pe.getErrorBlock(this, new ErrorPageImpl()));
 						doInclude(template, false);
 						return;
 					}
@@ -4191,21 +4187,40 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	/**
-	 * 
-	 * @param name
-	 * @param ct
+	 * Parallel iteration closures (arrayMap/each/filter with parallel=true) spawn cfthread
+	 * from concurrent worker PCs that all share this.root, so writes here must be synchronised
+	 * against the new safe-read accessors below.
 	 */
 	public void setAllThreadScope(Collection.Key name, Threads ct) {
 		hasFamily = true;
-		if (allThreads == null) allThreads = new LinkedHashMap<Collection.Key, Threads>();
-		else if (allThreads.size() >= CFThread.getThreadLimit()) {
-			CFThread.removeOldest(allThreads);
+		synchronized (this) {
+			if (allThreads == null) allThreads = new LinkedHashMap<Collection.Key, Threads>();
+			else if (allThreads.size() >= CFThread.getThreadLimit()) {
+				CFThread.removeOldest(allThreads);
+			}
+			allThreads.put(name, ct);
 		}
-		allThreads.put(name, ct);
 	}
 
+	public Threads getAllThreadScope(Collection.Key name) {
+		synchronized (this) {
+			return allThreads == null ? null : allThreads.get(name);
+		}
+	}
+
+	public Map<Collection.Key, Threads> snapshotAllThreadScope() {
+		synchronized (this) {
+			return allThreads == null ? null : new LinkedHashMap<Collection.Key, Threads>(allThreads);
+		}
+	}
+
+	/**
+	 * Returns a defensive snapshot so external callers can iterate without racing
+	 * concurrent cfthread spawns from parallel iteration. Use the (Key) overload
+	 * for single-name lookups to avoid the copy.
+	 */
 	public Map<Collection.Key, Threads> getAllThreadScope() {
-		return allThreads;
+		return snapshotAllThreadScope();
 	}
 
 	@Override

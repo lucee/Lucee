@@ -29,6 +29,7 @@ import lucee.runtime.op.Caster;
 
 public final class YesNoFormat implements Function {
 	public static String call(PageContext pc, Object object) throws PageException {
+		if (object == null) return "No"; // LDEV-2899 null (e.g. from a?.b) is treated like an empty string
 		if (object instanceof String) {
 			Object str = object;
 			if (StringUtil.isEmpty(str)) return "No";

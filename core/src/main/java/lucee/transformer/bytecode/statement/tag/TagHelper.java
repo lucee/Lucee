@@ -263,10 +263,12 @@ public final class TagHelper {
 
 		// attributeCollection
 		Attribute attrColl = tag.getAttribute("attributecollection");
+		boolean skipAttrColl = false;
 		if (attrColl != null) {
 			int attrType = tag.getTagLibTag().getAttributeType();
 			if (TagLibTag.ATTRIBUTE_TYPE_NONAME != attrType) {
-				tag.removeAttribute("attributecollection");
+				// LDEV-3847 do not remove the attribute from the tag, the same tag can be written more than once (finally block)
+				skipAttrColl = true;
 				// TagUtil.setAttributeCollection(Tag, Struct)
 				adapter.loadArg(0);
 				adapter.loadLocal(currLocal);
@@ -321,7 +323,7 @@ public final class TagHelper {
 		}
 
 		// set attributes
-		setAttributes(bc, tag, currLocal, currType, false, type != TYPE_REG);
+		setAttributes(bc, tag, currLocal, currType, false, type != TYPE_REG, skipAttrColl);
 		// Body
 		if (hasBody) {
 			final int state = adapter.newLocal(Types.INT_VALUE);
@@ -428,6 +430,11 @@ public final class TagHelper {
 	}
 
 	private static void setAttributes(BytecodeContext bc, Tag tag, int currLocal, Type currType, boolean doDefault, boolean interf) throws TransformerException {
+		setAttributes(bc, tag, currLocal, currType, doDefault, interf, false);
+	}
+
+	private static void setAttributes(BytecodeContext bc, Tag tag, int currLocal, Type currType, boolean doDefault, boolean interf, boolean skipAttrColl)
+			throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 		Map<String, Attribute> attributes = tag.getAttributes();
 
@@ -437,6 +444,7 @@ public final class TagHelper {
 		while (it.hasNext()) {
 			attr = it.next();
 			if (doDefault != attr.isDefaultAttribute()) continue;
+			if (skipAttrColl && "attributecollection".equalsIgnoreCase(attr.getName())) continue;
 
 			if (attr.isDynamicType()) {
 				adapter.loadLocal(currLocal);

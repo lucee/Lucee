@@ -31,11 +31,13 @@ import org.apache.commons.collections4.map.ReferenceMap;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.CacheEntry;
+import lucee.commons.io.cache.CacheEntryFilter;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ParentThreasRefThread;
 import lucee.runtime.cache.CacheSupport;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.ram.ref.HardRef;
 import lucee.runtime.cache.ram.ref.Ref;
 import lucee.runtime.cache.ram.ref.SoftRef;
@@ -229,6 +231,32 @@ public final class RamCache extends CacheSupport {
 		}
 		return valid(entry);
 
+	}
+
+	@Override
+	public int remove(CacheEntryFilter filter) throws IOException {
+		if (CacheUtil.allowAll(filter)) return clear();
+
+		int count = 0;
+		Iterator<Entry<String, Ref<RamCacheEntry>>> it = entries.entrySet().iterator();
+		Entry<String, Ref<RamCacheEntry>> e;
+		Ref<RamCacheEntry> ref;
+		RamCacheEntry entry;
+		while (it.hasNext()) {
+			e = it.next();
+			ref = e.getValue();
+			entry = ref == null ? null : ref.get();
+			// cleared soft reference or expired entry: drop it, it is not a match
+			if (!valid(entry)) {
+				entries.remove(e.getKey(), ref);
+				continue;
+			}
+			// raw entry on purpose: filters only read the entry, so no decouple copy is needed
+			if (filter.accept(entry)) {
+				if (entries.remove(e.getKey(), ref)) count++;
+			}
+		}
+		return count;
 	}
 
 	@Override

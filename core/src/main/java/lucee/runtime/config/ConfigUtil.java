@@ -497,8 +497,7 @@ public final class ConfigUtil {
 
 	public static void checkGeneralReadAccess(ConfigPro config, Password password) throws SecurityException {
 		SecurityManager sm = config.getSecurityManager();
-		short access = sm.getAccess(SecurityManager.TYPE_ACCESS_READ);
-		if (config instanceof ConfigServer) access = SecurityManager.ACCESS_PROTECTED;
+		short access = toGeneralAccess(config, sm.getAccess(SecurityManager.TYPE_ACCESS_READ));
 		if (access == SecurityManager.ACCESS_PROTECTED) {
 			checkPassword(config, "read", password);
 		}
@@ -510,15 +509,19 @@ public final class ConfigUtil {
 	public static void checkGeneralWriteAccess(ConfigPro config, Password password) throws SecurityException {
 		SecurityManager sm = config.getSecurityManager();
 		if (sm == null) return;
-		short access = sm.getAccess(SecurityManager.TYPE_ACCESS_WRITE);
-
-		if (config instanceof ConfigServer) access = SecurityManager.ACCESS_PROTECTED;
+		short access = toGeneralAccess(config, sm.getAccess(SecurityManager.TYPE_ACCESS_WRITE));
 		if (access == SecurityManager.ACCESS_PROTECTED) {
 			checkPassword(config, "write", password);
 		}
 		else if (access == SecurityManager.ACCESS_CLOSE) {
 			throw new SecurityException("can't access, write access is disabled");
 		}
+	}
+
+	private static short toGeneralAccess(ConfigPro config, short access) {
+		// there is no higher context left that could reopen a closed server context, so "closed" falls back to "password protected" there
+		if (config instanceof ConfigServer && access == SecurityManager.ACCESS_CLOSE) return SecurityManager.ACCESS_PROTECTED;
+		return access;
 	}
 
 	public static void checkPassword(ConfigPro config, String type, Password password) throws SecurityException {
@@ -1348,10 +1351,17 @@ public final class ConfigUtil {
 			}
 		}
 		Mapping[] thisMappings = config.getMappings();
+		// LDEV-6483 the root mapping is the one with virtual "/", not the last one. The server config has no "/" mapping
+		// and its mappings have no defined order, so the last mapping (e.g. /lucee-server) was never checked
+		Mapping rootMapping = rootApp;
 
 		// config mappings
-		for (int i = 0; i < thisMappings.length - 1; i++) {
+		for (int i = 0; i < thisMappings.length; i++) {
 			mapping = thisMappings[i];
+			if ("/".equals(mapping.getVirtual())) {
+				if (rootMapping == null) rootMapping = mapping;
+				continue;
+			}
 			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
 				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
 				if (onlyPhysicalExisting) {
@@ -1361,9 +1371,8 @@ public final class ConfigUtil {
 			}
 		}
 
-		if (useDefaultMapping) {
-			if (rootApp != null) mapping = rootApp;
-			else mapping = thisMappings[thisMappings.length - 1];
+		if (useDefaultMapping && (rootMapping != null || thisMappings.length > 0)) {
+			mapping = rootMapping != null ? rootMapping : thisMappings[thisMappings.length - 1];
 
 			ps = mapping.getPageSource(realPath);
 			if (onlyPhysicalExisting) {

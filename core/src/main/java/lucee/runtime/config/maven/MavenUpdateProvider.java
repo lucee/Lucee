@@ -61,8 +61,8 @@ public final class MavenUpdateProvider {
 			new Repository("Maven Release Repository", "https://repo1.maven.org/maven2/", Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER) };
 
 	private static final Repository[] DEFAULT_REPOSITORY_MIXED = new Repository[] {
-			// versions provided by Lucee
-			new Repository("Lucee Maven repository", "https://cdn.lucee.org/", Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER) };
+			// versions provided by Lucee (RC/BETA/final releases not published to Maven Central)
+			new Repository("Lucee Maven repository", "https://maven.lucee-services.com/", Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER) };
 
 	public static final String DEFAULT_GROUP = "org.lucee";
 	public static final String DEFAULT_ARTIFACT = "lucee";
@@ -94,7 +94,7 @@ public final class MavenUpdateProvider {
 
 	public static Repository[] getDefaultRepositoryMixed() {
 		if (defaultRepositoryMixed == null) {
-			defaultRepositoryMixed = readReposFromEnvVar("lucee.mvn.repo.snapshots", DEFAULT_REPOSITORY_MIXED);
+			defaultRepositoryMixed = readReposFromEnvVar("lucee.mvn.repo.mixed", DEFAULT_REPOSITORY_MIXED);
 		}
 		return defaultRepositoryMixed;
 	}

@@ -51,6 +51,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
+import lucee.runtime.type.QueryColumnRef;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.scope.AccessModifier;
@@ -768,6 +769,8 @@ public final class VariableUtilImpl implements VariableUtil {
 
 	@Override
 	public Object callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args) throws PageException {
+		// LDEV-2924: query.recordcount, query.currentrow and query.columnlist behave like their value
+		if (coll instanceof QueryColumnRef) coll = ((QueryColumnRef) coll).get(pc);
 		// Objects
 		if (coll instanceof Objects) {
 			return ((Objects) coll).call(pc, key, args);
@@ -853,6 +856,8 @@ public final class VariableUtilImpl implements VariableUtil {
 
 	@Override
 	public Object callFunctionWithNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args) throws PageException {
+		// LDEV-2924: query.recordcount, query.currentrow and query.columnlist behave like their value
+		if (coll instanceof QueryColumnRef) coll = ((QueryColumnRef) coll).get(pc);
 		// Objects
 		if (coll instanceof Objects) {
 			return ((Objects) coll).callWithNamedValues(pc, key, Caster.toFunctionValues(args));

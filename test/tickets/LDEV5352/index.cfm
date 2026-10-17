@@ -1,1 +1,1 @@
-<cfparam name="www" default="#function(value){return value;}#">
+<cfparam name="www" default="#function(value){return value;}#"><cfoutput>ok</cfoutput>

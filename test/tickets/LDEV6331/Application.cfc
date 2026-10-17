@@ -1,17 +1,20 @@
 component {
 	param name="url.sessionStorage" default="ram";
 	param name="url.sessionCluster" default=false;
+	param name="url.sessionCommitInterval" default="";
+	// ttlSeconds is the session timeout used by the test. Default sessionCommitInterval = ttlSeconds/2.
+	// Redis EXPIRE is seconds-precision, so 2s is the practical floor across all backends — bump if flaky on slow CI.
+	param name="url.ttlSeconds" default="2";
 
 	this.name = "ldev-6331-#url.sessionStorage#-cluster#url.sessionCluster#-" & hash( getCurrentTemplatePath() );
 	this.sessionManagement = true;
 	this.setClientCookies = true;
 	this.sessionType = "application";
 	this.sessionCluster = url.sessionCluster;
-	// 2s timeout matches the cache TTL. After sleep > 2s,
-	// purgeExpiredSessions (force=true) detects scope.isExpired()=true and
-	// evicts the in-memory copy.
-	this.sessionTimeout = createTimespan( 0, 0, 0, 2 );
+	this.sessionTimeout = createTimespan( 0, 0, 0, javacast( "int", url.ttlSeconds ) );
 	this.applicationTimeout = createTimespan( 0, 1, 0, 0 );
+	if ( len( url.sessionCommitInterval ) )
+		this.sessionCommitInterval = createTimespan( 0, 0, 0, javacast( "int", url.sessionCommitInterval ) );
 
 	if ( url.sessionStorage eq "redis" ) {
 		// Redis honours per-put TTL (sessionTimeoutMs) as EXPIRE on the key.
@@ -26,19 +29,38 @@ component {
 				"port": redis.port
 			}
 		};
+		this.sessionStorage = "ldev6331cache";
+	} else if ( url.sessionStorage eq "datasource" ) {
+		// MySQL-backed session storage — covers LDEV-4670 (DB expires column never refreshed on read-only).
+		variables.mysql = server.getDatasource( "mysql" );
+		variables.mysql.storage = true;
+		variables.datasourceName = "ldev6331-ds";
+		this.datasources[ datasourceName ] = mysql;
+		this.dataSource = datasourceName;
+		this.sessionStorage = datasourceName;
 	} else {
-		// RAM cache: explicitly set timeToLiveSeconds=2 so the entry's "until"
+		// RAM cache: explicitly set timeToLiveSeconds so the entry's "until"
 		// absolute lifetime is checked independently of read-driven idle resets
 		// — matches Memcached/Redis put-TTL semantics where reads don't refresh.
 		this.cache.connections[ "ldev6331cache" ] = {
 			class: "lucee.runtime.cache.ram.RamCache",
 			storage: true,
 			custom: {
-				timeToLiveSeconds: 2,
+				timeToLiveSeconds: javacast( "int", url.ttlSeconds ),
 				timeToIdleSeconds: 0
 			}
 		};
+		this.sessionStorage = "ldev6331cache";
 	}
 
-	this.sessionStorage = "ldev6331cache";
+	function onApplicationStart() {
+		if ( url.sessionStorage eq "datasource" ) {
+			try {
+				query {
+					echo( "DROP TABLE IF EXISTS cf_session_data" );
+				}
+			}
+			catch ( any e ) { /* ignore */ }
+		}
+	}
 }

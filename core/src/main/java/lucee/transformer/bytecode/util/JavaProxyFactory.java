@@ -72,7 +72,7 @@ import lucee.transformer.bytecode.visitor.ArrayVisitor;
 public final class JavaProxyFactory {
 
 	// !!! for every change in terfaces this version need to be updated TODO generate automatically
-	private static final int VERSION = 3;
+	private static final int VERSION = 4;
 
 	private static final short TYPE_CFC = 1;
 	private static final short TYPE_UDF = 2;
@@ -667,6 +667,8 @@ public final class JavaProxyFactory {
 		adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
 		adapter.invokeInterface(CFML_ENGINE, GET_JAVA_PROXY);
 		// adapter.checkCast(type == TYPE_CFC ? JAVA_PROXY_UTIL : JAVA_PROXY_UTIL_IMPL);
+		// the UDF call() only exists on JavaProxyUtilImpl, not on the loader interface
+		if (type != TYPE_CFC) adapter.checkCast(JAVA_PROXY_UTIL_IMPL);
 
 		// Java Proxy.call(cfc,"add",new Object[]{arg0})
 		// config (first argument)

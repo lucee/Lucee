@@ -260,19 +260,27 @@ public abstract class Clazz implements Serializable {
 	}
 
 	public static Constructor getConstructor(Class clazz, Constructor[] constructors, Object[] args, boolean convertArgument, boolean convertComparsion, Constructor defaultValue) {
-		// like
 		Class[] parameterTypes;
+
+		// LDEV-5519: exact match wins, otherwise the first assignable (like) match, in a single pass
+		Constructor like = null;
+		boolean exact;
 		outer: for (Constructor fm: constructors) {
 			if ((args.length == fm.getArgumentCount()) && clazz.getName().equals(fm.getDeclaringClassName())) {
 				parameterTypes = fm.getArgumentClasses();
+				exact = true;
 				for (int y = 0; y < parameterTypes.length; y++) {
 					Class argClass = args[y] == null ? Object.class : args[y].getClass();
 					Class paramClass = Reflector.toReferenceClass(parameterTypes[y]);
+					if (args[y] != null && paramClass == argClass) continue;
 					if (!paramClass.isAssignableFrom(argClass) && !Reflector.isInstaneOf(argClass, paramClass, false)) continue outer;
+					exact = false;
 				}
-				return fm;
+				if (exact) return fm;
+				if (like == null) like = fm;
 			}
 		}
+		if (like != null) return like;
 
 		// in case there are no arguments the code below will not find any match, nothing to convert
 		if (args.length == 0) return defaultValue;
@@ -317,25 +325,33 @@ public abstract class Clazz implements Serializable {
 
 	public static Method getMethod(Class clazz, Method[] methods, Map<String, SoftReference<Pair<Method, Boolean>>> cachedMethods, String methodName, Object[] args,
 			boolean nameCaseSensitive, boolean convertArgument, boolean convertComparsion, Method defaultValue) {
-
-		// like
 		Class[] parameterTypes;
+
+		// LDEV-5519: exact match wins, otherwise the first assignable (like) match, in a single pass
+		Method like = null;
+		boolean exact;
 		outer: for (Method fm: methods) {
 			if ((args.length == fm.getArgumentCount()) && (nameCaseSensitive ? methodName.equals(fm.getName()) : methodName.equalsIgnoreCase(fm.getName()))) {
 				parameterTypes = fm.getArgumentClasses();
+				exact = true;
 				for (int y = 0; y < parameterTypes.length; y++) {
 					if (args[y] == null) {
 						if (parameterTypes[y].isPrimitive()) continue outer;
+						exact = false;
 					}
 					else {
 						Class argClass = args[y].getClass();
 						Class paramClass = Reflector.toReferenceClass(parameterTypes[y]);
+						if (paramClass == argClass) continue;
 						if (!paramClass.isAssignableFrom(argClass) && !Reflector.isInstaneOf(argClass, paramClass, false)) continue outer;
+						exact = false;
 					}
 				}
-				return fm;
+				if (exact) return fm;
+				if (like == null) like = fm;
 			}
 		}
+		if (like != null) return like;
 
 		// in case there are no arguments the code below will not find any match, nothing to convert
 		if (args.length == 0) return defaultValue;

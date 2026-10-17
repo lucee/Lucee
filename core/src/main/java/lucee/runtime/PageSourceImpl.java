@@ -42,7 +42,6 @@ import lucee.runtime.compiler.CFMLCompilerImpl.Result;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServerImpl;
-import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
@@ -359,7 +358,20 @@ public final class PageSourceImpl implements PageSource {
 							done = true;
 						}
 						catch (ClassNotFoundException cnfe) {
-							LogUtil.log(config, "compile", cnfe);
+							LogUtil.log(config, "compile", cnfe, Log.LEVEL_DEBUG, "application");
+						}
+					}
+					// when classFile is at least as fresh as source, try loading by name first;
+					// avoids the defineClass rename storm when pcn.className was reset (e.g. by clear())
+					// but the underlying class is still loaded in the PhysicalClassLoader.
+					if (!done && classFile.exists() && classFile.lastModified() >= srcLastModified) {
+						try {
+							LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader (class file is current) [" + getDisplayPath() + "]");
+							pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName())));
+							done = true;
+						}
+						catch (ClassNotFoundException cnfe) {
+							LogUtil.log(config, "compile", cnfe, Log.LEVEL_DEBUG, "application");
 						}
 					}
 					if (!done) {
@@ -386,10 +398,13 @@ public final class PageSourceImpl implements PageSource {
 				}
 			}
 
-			// check if version changed or lasMod
-			if (!isNew && (srcLastModified != page.getSourceLastModified() || page.getVersion() != ConfigUtil.getCFMLEngine(config).getInfo().getFullVersionInfo())) {
+			// check if source mtime changed (real source edit during runtime).
+			// version-hash check removed — version drift between boot & current engine is
+			// handled eagerly at engine init via the cfclasses marker (LDEV-NNNN); checking
+			// here per-page-reload only triggered phantom-rename storms.
+			if (!isNew && srcLastModified != page.getSourceLastModified()) {
 				isNew = true;
-				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because unloaded page has changed");
+				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] due to source template timestamp change");
 				pcn.set(page = compile(config, classRootDir, page, false, pci != null && pci.ignoreScopes()));
 			}
 			page.setPageSource(this);
@@ -519,11 +534,15 @@ public final class PageSourceImpl implements PageSource {
 	public String getDisplayPath() {
 		if (dspPath != null) return dspPath;
 
+		Resource physical;
 		if (!mapping.hasArchive()) {
-			return dspPath = StringUtil.toString(getPhyscalFile(), null);
+			physical = getPhyscalFile();
+			if (physical == null) return getUnresolvedDisplayPath();
+			return dspPath = physical.toString();
 		}
 		else if (isLoad(LOAD_PHYSICAL)) {
-			return dspPath = StringUtil.toString(getPhyscalFile(), null);
+			physical = getPhyscalFile();
+			return dspPath = physical != null ? physical.toString() : getArchiveSourcePath();
 		}
 		else if (isLoad(LOAD_ARCHIVE)) {
 			return dspPath = StringUtil.toString(getArchiveSourcePath(), null);
@@ -535,12 +554,25 @@ public final class PageSourceImpl implements PageSource {
 			if (mapping.isPhysicalFirst()) {
 				if (pse) return dspPath = getPhyscalFile().toString();
 				else if (ase) return dspPath = getArchiveSourcePath();
-				return dspPath = getPhyscalFile().toString();
+				physical = getPhyscalFile();
+				return dspPath = physical != null ? physical.toString() : getArchiveSourcePath();
 			}
 			if (ase) return dspPath = getArchiveSourcePath();
 			else if (pse) return dspPath = getPhyscalFile().toString();
 			return dspPath = getArchiveSourcePath();
 		}
+	}
+
+	// the mapping has neither a resolvable physical nor an archive (e.g. missing drive or archive, unknown resource provider),
+	// so show the configured location; not cached, the mapping can still resolve later
+	private String getUnresolvedDisplayPath() {
+		String strPhysical = mapping.getStrPhysical();
+		if (StringUtil.isEmpty(strPhysical, true)) return getRealpathWithVirtual();
+		strPhysical = strPhysical.trim();
+		while (strPhysical.endsWith("/") || strPhysical.endsWith("\\")) {
+			strPhysical = strPhysical.substring(0, strPhysical.length() - 1);
+		}
+		return strPhysical + relPath;
 	}
 
 	public boolean isComponent() {

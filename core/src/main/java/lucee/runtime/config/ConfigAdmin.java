@@ -349,6 +349,10 @@ public final class ConfigAdmin {
 		ConfigFile.write(config.getConfigFile(), root);
 
 	}
+	
+	private static Object getScheduleTaskSyncToken(ConfigPro config) {
+		return SystemUtil.createToken("ConfigAdmin:schedule", ResourceUtil.getNormalizedPathEL(config.getConfigFile()));
+	}
 
 	private void _reload(boolean refreshScheduler) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
 
@@ -591,10 +595,12 @@ public final class ConfigAdmin {
 	}
 
 	public static Array updateScheduledTask(ConfigPro config, ScheduleTask task, boolean reload) throws IOException, PageException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
-		admin._updateScheduledTask(task);
-		admin.storeAndReload(false, true, reload, false);
-		return admin._getScheduledTasks();
+		synchronized (getScheduleTaskSyncToken(config)) {
+			ConfigAdmin admin = new ConfigAdmin(config, null);
+			admin._updateScheduledTask(task);
+			admin.storeAndReload(false, true, reload, false);
+			return admin._getScheduledTasks();
+		}
 	}
 
 	private void _updateScheduledTask(ScheduleTask task) throws ExpressionException {
@@ -653,24 +659,28 @@ public final class ConfigAdmin {
 
 	public static void pauseScheduledTask(ConfigPro config, String name, boolean pause, boolean throwWhenNotExist, boolean reload)
 			throws PageException, IOException, ConverterException, BundleException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
-		Struct data = null;
-		try {
-			data = admin._getScheduledTask(name, true);
-		}
-		catch (ExpressionException ee) {
-			if (throwWhenNotExist) throw ee;
-			return;
-		}
-		data.setEL("paused", pause);
+		synchronized (getScheduleTaskSyncToken(config)) {
+			ConfigAdmin admin = new ConfigAdmin(config, null);
+			Struct data = null;
+			try {
+				data = admin._getScheduledTask(name, true);
+			}
+			catch (ExpressionException ee) {
+				if (throwWhenNotExist) throw ee;
+				return;
+			}
+			data.setEL("paused", pause);
 
-		admin.storeAndReload(false, true, reload, false);
+			admin.storeAndReload(false, true, reload, false);
+		}
 	}
 
 	public static void removeScheduledTask(ConfigPro config, String name, boolean reload) throws PageException, IOException, ConverterException, BundleException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
-		admin._removeScheduledTask(name);
-		admin.storeAndReload(false, true, reload, false);
+		synchronized (getScheduleTaskSyncToken(config)) {
+			ConfigAdmin admin = new ConfigAdmin(config, null);
+			admin._removeScheduledTask(name);
+			admin.storeAndReload(false, true, reload, false);
+		}
 	}
 
 	/**
@@ -1690,7 +1700,9 @@ public final class ConfigAdmin {
 
 	private void _removeJDBCDriver(ClassDefinition cd) throws PageException {
 
-		if (!cd.isBundle()) throw new ApplicationException("missing bundle name");
+		if ( !cd.isBundle() && !( cd instanceof ClassDefinitionImpl && ( (ClassDefinitionImpl) cd ).isMaven() ) ) {
+			throw new ApplicationException( "missing bundle name or maven coordinates" );
+		}
 
 		Struct children = ConfigUtil.getAsStruct("jdbcDrivers", root);
 		Key[] keys = children.keys();
@@ -1787,8 +1799,10 @@ public final class ConfigAdmin {
 
 		// check if label exists
 		if (StringUtil.isEmpty(label)) throw new ApplicationException("missing label for jdbc driver [" + cd.getClassName() + "]");
-		// check if it is a bundle
-		if (!cd.isBundle()) throw new ApplicationException("missing bundle name for [" + label + "]");
+		// check if it is a bundle or maven coordinates
+		if ( !cd.isBundle() && !( cd instanceof ClassDefinitionImpl && ( (ClassDefinitionImpl) cd ).isMaven() ) ) {
+			throw new ApplicationException( "missing bundle name or maven coordinates for [" + label + "]" );
+		}
 
 		Struct children = ConfigUtil.getAsStruct("jdbcDrivers", root);
 		Key[] keys = children.keys();
@@ -2448,6 +2462,7 @@ public final class ConfigAdmin {
 
 			if (key.getString().equalsIgnoreCase(name)) {
 				children.removeEL(key);
+				config.removeDatasourceConnectionPool(name);
 			}
 		}
 	}
@@ -5016,12 +5031,12 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					ClassDefinitionImpl cd = (ClassDefinitionImpl) ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					String _label = map.get("label");
 					String _id = map.get("id");
 					String _dsn = map.get("connectionString");
 					if (StringUtil.isEmpty(_dsn, true)) _dsn = map.get("dsn");
-					if (cd != null && cd.isBundle()) {
+					if (cd != null && (cd.isBundle() || cd.isMaven())) {
 						_updateJDBCDriver(_label, _id, cd, _dsn);
 						filter.add("resetJDBCDrivers");
 						reloadNecessary = true;
@@ -5449,8 +5464,8 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
-					if (cd != null && cd.isBundle()) {
+					ClassDefinitionImpl cd = (ClassDefinitionImpl) ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					if (cd != null && (cd.isBundle() || cd.isMaven())) {
 						_removeJDBCDriver(cd);
 					}
 					logger.info("extension", "Remove JDBC Driver [" + cd + "] from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");
@@ -5494,9 +5509,15 @@ public final class ConfigAdmin {
 				Iterator<Map<String, String>> itl = mappings.iterator();
 				Map<String, String> map;
 				String virtual;
+				Set<String> usedByOthers = getMappingsUsedByOtherExtensions(ci, rhe);
 				while (itl.hasNext()) {
 					map = itl.next();
 					virtual = map.get("virtual");
+					// LDEV-6462 do not remove a mapping another installed extension still declares
+					if (usedByOthers.contains(toMappingKey(virtual))) {
+						logger.info("extension", "keep Mapping [" + virtual + "], it is also used by another extension");
+						continue;
+					}
 					_removeMapping(virtual);
 					logger.info("extension", "remove Mapping [" + virtual + "]");
 				}
@@ -6519,6 +6540,28 @@ public final class ConfigAdmin {
 				}
 			}
 		}
+	}
+
+	// virtual paths (see toMappingKey) of the mappings declared by all installed extensions except the given one
+	private static Set<String> getMappingsUsedByOtherExtensions(ConfigPro config, RHExtension rhe) {
+		Set<String> used = new HashSet<>();
+		List<Map<String, String>> mappings;
+		for (RHExtension other: config.getAllRHExtensions()) {
+			if (other == null || rhe.getId().equalsIgnoreCase(other.getId())) continue;
+			mappings = other.getMetadata().getMappings();
+			if (ArrayUtil.isEmpty(mappings)) continue;
+			for (Map<String, String> map: mappings) {
+				used.add(toMappingKey(map.get("virtual")));
+			}
+		}
+		return used;
+	}
+
+	private static String toMappingKey(String virtual) {
+		if (virtual == null) return "";
+		virtual = virtual.trim().toLowerCase();
+		while (virtual.length() > 1 && virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
+		return virtual;
 	}
 
 	private String[] _removeExtensionCheckOtherUsage(Array children, Struct curr, String type) {

@@ -19,13 +19,10 @@
 package lucee.runtime.db;
 
 import java.io.Serializable;
-import java.lang.ref.SoftReference;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.BundleException;
 
@@ -61,8 +58,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final String password;
 	private final ClassDefinition cd;
 
-	private transient Map<String, SoftReference<ProcMetaCollection>> procedureColumnCache;
-	private transient Driver driver;
+	private transient volatile Driver driver;
 	private transient Log log;
 	private final TagListener listener;
 	private final boolean requestExclusive;
@@ -147,10 +143,13 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	}
 
 	private Driver initialize(Config config) throws Exception {
-		if (driver == null) {
+		Driver d = driver;
+		if (d != null) return d;
+		synchronized (this) {
+			d = driver;
+			if (d != null) return d;
 			return driver = _initializeDriver(cd, config);
 		}
-		return driver;
 	}
 
 	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws Exception {
@@ -173,11 +172,6 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	@Override
 	public Object clone() {
 		return cloneReadOnly();
-	}
-
-	public Map<String, SoftReference<ProcMetaCollection>> getProcedureColumnCache() {
-		if (procedureColumnCache == null) procedureColumnCache = new ConcurrentHashMap<String, SoftReference<ProcMetaCollection>>();
-		return procedureColumnCache;
 	}
 
 	@Override

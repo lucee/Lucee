@@ -20,8 +20,10 @@ package lucee.transformer.bytecode.statement.udf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -216,7 +218,9 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		// register(bc.getPage());
 		bc.visitLine(getStart());
 		_writeOut(bc, type);
-		bc.visitLine(getEnd());
+		// Skip emitting end line - it causes bytecode position conflicts when multiple functions are
+		// registered consecutively (function1 end collides with function2 start at same bytecode label).
+		// The start position is sufficient for debugging and breakpoints.
 	}
 
 	@Override
@@ -377,6 +381,18 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	}
 
 	private final void createArguments(BytecodeContext bc) throws TransformerException {
+		// LDEV-4122: the same argument name cannot be used twice in a function
+		Set<String> argNames = new HashSet<String>();
+		for (Argument a: arguments) {
+			if (a.getName() instanceof LitString) {
+				String argName = ((LitString) a.getName()).getString();
+				if (!argNames.add(argName.toLowerCase())) {
+					String fn = !(this instanceof Closure || this instanceof Lambda) && name instanceof LitString ? ((LitString) name).getString() : null;
+					throw new TransformerException(bc, "The argument [" + argName + "] is defined more than once" + (fn != null ? " in the function [" + fn + "]" : "")
+							+ ", an argument name can only be used once", a.getName().getStart() != null ? a.getName().getStart() : getStart());
+				}
+			}
+		}
 		GeneratorAdapter ga = bc.getAdapter();
 		ga.push(arguments.size());
 		ga.newArray(FUNCTION_ARGUMENT);
@@ -600,13 +616,28 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	private final LitString toLitString(BytecodeContext bc, String name, Expression value) throws TransformerException {
 		ExprString es = value.getFactory().toExprString(value);
-		if (!(es instanceof LitString)) throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		if (!(es instanceof LitString)) {
+			// Handle unquoted identifiers like access=remote - convert Variable to LitString
+			String str = ASMUtil.toString(bc, value, null);
+			if (str != null) {
+				return value.getFactory().createLitString(str);
+			}
+			throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		}
 		return (LitString) es;
 	}
 
 	private final LitBoolean toLitBoolean(BytecodeContext bc, String name, Expression value) throws TransformerException {
 		ExprBoolean eb = value.getFactory().toExprBoolean(value);
-		if (!(eb instanceof LitBoolean)) throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		if (!(eb instanceof LitBoolean)) {
+			// Handle unquoted identifiers like output=false - convert Variable to LitBoolean
+			String str = ASMUtil.toString(bc, value, null);
+			if (str != null) {
+				if ("true".equalsIgnoreCase(str)) return value.getFactory().TRUE();
+				if ("false".equalsIgnoreCase(str)) return value.getFactory().FALSE();
+			}
+			throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		}
 		return (LitBoolean) eb;
 	}
 

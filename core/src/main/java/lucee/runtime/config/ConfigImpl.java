@@ -222,10 +222,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Boolean mergeFormAndURL;
 
-	private Map<String, LoggerAndSourceData> loggers;
+	private volatile Map<String, LoggerAndSourceData> loggers;
 
 	private Integer debugLogOutput;
-	private Integer debugOptions;
+	private volatile Integer debugOptions;
 
 	private boolean suppresswhitespace = false;
 	private Boolean suppressContent;
@@ -321,6 +321,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private ResourceProvider defaultResourceProvider;
 
 	private ProxyData proxy = null;
+	private boolean initProxy = true;
 
 	private Resource clientScopeDir;
 	private Resource sessionScopeDir;
@@ -2253,7 +2254,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					ImportDefintion di = getComponentDefaultImport();
 					String pack = di == null ? null : di.getPackageAsPath();
 					if (StringUtil.isEmpty(pack, true)) pack = "";
-					else if (!pack.endsWith("/")) pack += "";
+					else if (!pack.endsWith("/")) pack += "/";
 					// name
 					String componentName = getBaseComponentTemplate();
 
@@ -2307,7 +2308,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 								Resource a = m.getArchive();
 								String archive = m.getStrArchive();
-								if (p != null) {
+								if (a != null) {
 									try {
 										archive = a.getCanonicalPath() + " (" + m.getStrArchive() + ")";
 									}
@@ -3144,14 +3145,27 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	@Override
 	public ProxyData getProxyData() {
+		if (initProxy) {
+			synchronized (SystemUtil.createToken("ConfigImpl", "getProxyData")) {
+				if (initProxy) {
+					proxy = ConfigFactoryImpl.loadProxy(this, root);
+					initProxy = false;
+				}
+			}
+		}
 		return proxy;
 	}
 
-	/**
-	 * @param proxy the proxyPassword to set
-	 */
-	protected void setProxyData(ProxyData proxy) {
-		this.proxy = proxy;
+	public ConfigImpl resetProxyData() {
+		if (!initProxy) {
+			synchronized (SystemUtil.createToken("ConfigImpl", "getProxyData")) {
+				if (!initProxy) {
+					proxy = null;
+					initProxy = true;
+				}
+			}
+		}
+		return this;
 	}
 
 	@Override
@@ -3271,7 +3285,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	private static final Object dclt = new SerializableObject();
-	private static final long POOL_MAX_IDLE = 60000;
+	private static final long POOL_MAX_IDLE = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.pool.maxIdle", null), 60) * 1000L;
 
 	@Override
 	public PhysicalClassLoader getDirectClassLoader(boolean reload) throws IOException {
@@ -3568,7 +3582,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		String id = DatasourceConnectionFactory.createId(ds, user, pass);
 		DatasourceConnPool pool = pools.get(id);
 		if (pool == null) {
-			synchronized (id) {
+			synchronized (SystemUtil.createToken("dsPool", id)) {
 				pool = pools.get(id);
 				if (pool == null) {// TODO add config but from where?
 					DataSourcePro dsp = (DataSourcePro) ds;
@@ -3600,30 +3614,25 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					pool = new DatasourceConnPool(this, ds, user, pass, "datasource", DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt,
 							maxWaitMillis, minEvictableIdleTimeMillis, 0, 0, 0, null));
 					pools.put(id, pool);
-					cleanConnectionPools(id);
 				}
 			}
 		}
 		return pool;
 	}
 
-	private void cleanConnectionPools(String excludeId) {
-		DatasourceConnPool pool;
-		List<String> keysToRemove = null;
+	// mark-then-sweep across two ticks: any borrow between mark and sweep clears the mark
+	public void cleanDatasourceConnectionPools() {
+		long now = System.currentTimeMillis();
 		for (Entry<String, DatasourceConnPool> e: pools.entrySet()) {
-			if (excludeId.equals(e.getKey())) {
-				continue;
-			}
-			pool = e.getValue();
-			if ((pool.getNumActive() + pool.getNumIdle() + pool.getNumWaiters()) == 0 && (pool.getLastBorrowed() + POOL_MAX_IDLE) < System.currentTimeMillis()) {
-				if (keysToRemove == null) keysToRemove = new ArrayList<>();
-				keysToRemove.add(e.getKey());
-			}
-		}
-
-		if (keysToRemove != null) {
-			for (String k: keysToRemove) {
-				pools.remove(k);
+			DatasourceConnPool pool = e.getValue();
+			if ((pool.getNumActive() + pool.getNumIdle() + pool.getNumWaiters()) == 0 && (pool.getLastBorrowed() + POOL_MAX_IDLE) < now) {
+				if (pool.isEvictionCandidate()) {
+					pool.close();
+					pools.remove(e.getKey(), pool);
+				}
+				else {
+					pool.setEvictionCandidate(true);
+				}
 			}
 		}
 	}
@@ -3640,13 +3649,23 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public void removeDatasourceConnectionPool(DataSource ds) {
+		removeDatasourceConnectionPool(ds.getName());
+	}
+
+	@Override
+	public void removeDatasourceConnectionPool(String name) {
+		List<Entry<String, DatasourceConnPool>> matches = null;
 		for (Entry<String, DatasourceConnPool> e: pools.entrySet()) {
-			if (e.getValue().getFactory().getDatasource().getName().equalsIgnoreCase(ds.getName())) {
-				synchronized (e.getKey()) {
-					pools.remove(e.getKey());
-				}
-				e.getValue().clear();
+			if (e.getValue().getFactory().getDatasource().getName().equalsIgnoreCase(name)) {
+				if (matches == null) matches = new ArrayList<>();
+				matches.add(e);
 			}
+		}
+		if (matches == null) return;
+		// close first, then CAS-remove: if close() throws, entry stays in the map and bg sweep retries
+		for (Entry<String, DatasourceConnPool> e: matches) {
+			e.getValue().close();
+			pools.remove(e.getKey(), e.getValue()); // CAS — only remove if value unchanged
 		}
 	}
 
@@ -4795,7 +4814,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
 		if (applicationPathCache == null) return null;
-		String id = (path + ":" + filename + ":" + mode).toLowerCase();
+		String id = path + ":" + filename + ":" + mode;
 
 		SoftReference<CacheElement> tmp = getApplicationPathCacheTimeout() <= 0 ? null : applicationPathCache.get(id);
 		if (tmp != null) {
@@ -4814,7 +4833,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
 		if (getApplicationPathCacheTimeout() <= 0) return;
 		if (applicationPathCache == null) applicationPathCache = new ConcurrentHashMap<String, SoftReference<CacheElement>>();// MUSTMUST new
-		String id = (path + ":" + filename + ":" + mode).toLowerCase();
+		String id = path + ":" + filename + ":" + mode;
 		applicationPathCache.put(id, new SoftReference<CacheElement>(new CacheElement(ps, isCFC)));
 	}
 

@@ -280,7 +280,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 			return result;
 		}
 		catch (AlreadyClassException ace) {
-			if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.compiler.block.bytecode", null), true)) throw new TemplateException(
+			if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.compiler.block.bytecode", null), false)) throw new TemplateException(
 					"Bytecode execution is disabled by environment configuration. Lucee is configured to prevent the execution of precompiled bytecode files (.cfm|.cfc|.cfs) directly. "
 							+ "To enable bytecode execution, set the system property `-Dlucee.compiler.block.bytecode=false` or the environment variable `LUCEE_COMPILER_BLOCK_BYTECODE=false`.");
 

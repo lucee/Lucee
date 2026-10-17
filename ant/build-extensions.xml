@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="all" basedir="." name="LuceeExtensions">
+<project default="all" basedir="." name="LuceeExtensions" xmlns:unless="ant:unless">
 
 <scriptdef name="readRequiredExtensions" language="javascript" classpath="${nashorn_classpath}">
 	<attribute name="file" />
@@ -183,6 +183,50 @@
 		]]>
 	</scriptdef>
 
+	<!--
+		Downloads an extension (.lex) into the build cache.
+		Tries Maven Central (extURLMaven) first and falls back to cdn.lucee.org (extURLCDN),
+		e.g. for SNAPSHOT builds that are not published to Maven Central.
+		Fails with both URLs in the message if neither has the file.
+	-->
+	<macrodef name="download-extension">
+		<attribute name="groupPath" description="group as path, e.g. org/lucee"/>
+		<attribute name="artifact" description="artifact id, e.g. mail-extension"/>
+		<attribute name="version" description="version, e.g. 1.1.0.9-SNAPSHOT"/>
+		<attribute name="dest" description="target file in the cache"/>
+		<sequential>
+			<local name="ext.downloaded"/>
+			<local name="ext.urlMaven"/>
+			<local name="ext.urlCDN"/>
+			<property name="ext.urlMaven" value="${extURLMaven}@{groupPath}/@{artifact}/@{version}/@{artifact}-@{version}.lex"/>
+			<property name="ext.urlCDN" value="${extURLCDN}@{groupPath}/@{artifact}/@{version}/@{artifact}-@{version}.lex"/>
+
+			<!-- 1. Maven Central -->
+			<echo level="info">download @{artifact}-@{version} from Maven Central: ${ext.urlMaven}</echo>
+			<get src="${ext.urlMaven}" dest="@{dest}" ignoreerrors="true"/>
+			<condition property="ext.downloaded">
+				<and>
+					<available file="@{dest}"/>
+					<length file="@{dest}" when="greater" length="0"/>
+				</and>
+			</condition>
+
+			<!-- 2. fallback: cdn.lucee.org -->
+			<echo unless:set="ext.downloaded" level="warning">@{artifact}-@{version} not available on Maven Central, falling back to CDN: ${ext.urlCDN}</echo>
+			<delete unless:set="ext.downloaded" file="@{dest}" quiet="true"/>
+			<get unless:set="ext.downloaded" src="${ext.urlCDN}" dest="@{dest}" ignoreerrors="true"/>
+			<condition property="ext.downloaded">
+				<and>
+					<available file="@{dest}"/>
+					<length file="@{dest}" when="greater" length="0"/>
+				</and>
+			</condition>
+
+			<delete unless:set="ext.downloaded" file="@{dest}" quiet="true"/>
+			<fail unless="ext.downloaded" message="Could not download extension @{artifact}-@{version}, tried:${line.separator}  - ${ext.urlMaven}${line.separator}  - ${ext.urlCDN}"/>
+		</sequential>
+	</macrodef>
+
 	<target name="check-cache">
 		<available file="${cache}/testbox-${testboxVersion}.zip" property="testbox.present"/>
 
@@ -202,70 +246,96 @@
 	</target>
 
 	<target name="check-mysql" depends="check-cache" unless="mysql.present">
-		<get 
-			src="${extURLMaven}${extMysqlJdbcExtensionGroupPath}/${extMysqlJdbcExtensionArtifact}/${extMysqlJdbcExtensionVersion}/${extMysqlJdbcExtensionArtifact}-${extMysqlJdbcExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extMysqlJdbcExtensionGroupPath}"
+			artifact="${extMysqlJdbcExtensionArtifact}"
+			version="${extMysqlJdbcExtensionVersion}"
 			dest="${cache}/${extMysqlJdbcExtension}-${extMysqlJdbcExtensionVersion}.lex"/>
 	</target> 
 	
 	<target name="check-mssql" depends="check-cache" unless="mssql.present">
-		<get 
-			src="${extURLMaven}${extMssqlJdbcExtensionGroupPath}/${extMssqlJdbcExtensionArtifact}/${extMssqlJdbcExtensionVersion}/${extMssqlJdbcExtensionArtifact}-${extMssqlJdbcExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extMssqlJdbcExtensionGroupPath}"
+			artifact="${extMssqlJdbcExtensionArtifact}"
+			version="${extMssqlJdbcExtensionVersion}"
 			dest="${cache}/${extMssqlJdbcExtension}-${extMssqlJdbcExtensionVersion}.lex"/>
 	</target> 
 
 	<target name="check-postgre" depends="check-cache" unless="postgre.present">
-		<get 
-			src="${extURLMaven}${extPostgresqlJdbcExtensionGroupPath}/${extPostgresqlJdbcExtensionArtifact}/${extPostgresqlJdbcExtensionVersion}/${extPostgresqlJdbcExtensionArtifact}-${extPostgresqlJdbcExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extPostgresqlJdbcExtensionGroupPath}"
+			artifact="${extPostgresqlJdbcExtensionArtifact}"
+			version="${extPostgresqlJdbcExtensionVersion}"
 			dest="${cache}/${extPostgresqlJdbcExtension}-${extPostgresqlJdbcExtensionVersion}.lex"/>
 	</target> 
 	<target name="check-s3" depends="check-cache" unless="s3.present">
-		<get 
-			src="${extURLMaven}${extS3ExtensionGroupPath}/${extS3ExtensionArtifact}/${extS3ExtensionVersion}/${extS3ExtensionArtifact}-${extS3ExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extS3ExtensionGroupPath}"
+			artifact="${extS3ExtensionArtifact}"
+			version="${extS3ExtensionVersion}"
 			dest="${cache}/${extS3Extension}-${extS3ExtensionVersion}.lex"/>
 	</target>
 	<target name="check-pdf" depends="check-cache" unless="pdf.present">
-		<get 
-			src="${extURLCDN}${extPdfExtensionGroupPath}/${extPdfExtensionArtifact}/${extPdfExtensionVersion}/${extPdfExtensionArtifact}-${extPdfExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extPdfExtensionGroupPath}"
+			artifact="${extPdfExtensionArtifact}"
+			version="${extPdfExtensionVersion}"
 			dest="${cache}/${extPdfExtension}-${extPdfExtensionVersion}.lex"/>
 	</target>
 	<target name="check-admin" depends="check-cache" unless="admin.present">
-		<get 
-			src="${extURLMaven}${extAdministratorExtensionGroupPath}/${extAdministratorExtensionArtifact}/${extAdministratorExtensionVersion}/${extAdministratorExtensionArtifact}-${extAdministratorExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extAdministratorExtensionGroupPath}"
+			artifact="${extAdministratorExtensionArtifact}"
+			version="${extAdministratorExtensionVersion}"
 			dest="${cache}/${extAdministratorExtension}-${extAdministratorExtensionVersion}.lex"/>
 	</target>
 	<target name="check-doc" depends="check-cache" unless="doc.present">
-		<get 
-			src="${extURLMaven}${extDocumentationExtensionGroupPath}/${extDocumentationExtensionArtifact}/${extDocumentationExtensionVersion}/${extDocumentationExtensionArtifact}-${extDocumentationExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extDocumentationExtensionGroupPath}"
+			artifact="${extDocumentationExtensionArtifact}"
+			version="${extDocumentationExtensionVersion}"
 			dest="${cache}/${extDocumentationExtension}-${extDocumentationExtensionVersion}.lex"/>
 	</target>
 	<target name="check-image" depends="check-cache" unless="image.present">
-		<get 
-			src="${extURLMaven}${extImageExtensionGroupPath}/${extImageExtensionArtifact}/${extImageExtensionVersion}/${extImageExtensionArtifact}-${extImageExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extImageExtensionGroupPath}"
+			artifact="${extImageExtensionArtifact}"
+			version="${extImageExtensionVersion}"
 			dest="${cache}/${extImageExtension}-${extImageExtensionVersion}.lex"/>
 	</target>
 	<target name="check-esapi" depends="check-cache" unless="esapi.present">
-		<get 
-			src="${extURLMaven}${extEsapiExtensionGroupPath}/${extEsapiExtensionArtifact}/${extEsapiExtensionVersion}/${extEsapiExtensionArtifact}-${extEsapiExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extEsapiExtensionGroupPath}"
+			artifact="${extEsapiExtensionArtifact}"
+			version="${extEsapiExtensionVersion}"
 			dest="${cache}/${extEsapiExtension}-${extEsapiExtensionVersion}.lex"/>
 	</target>
 	<target name="check-scheduler" depends="check-cache" unless="scheduler.present">
-		<get 
-			src="${extURLMaven}${extSchedulerClassicExtensionGroupPath}/${extSchedulerClassicExtensionArtifact}/${extSchedulerClassicExtensionVersion}/${extSchedulerClassicExtensionArtifact}-${extSchedulerClassicExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extSchedulerClassicExtensionGroupPath}"
+			artifact="${extSchedulerClassicExtensionArtifact}"
+			version="${extSchedulerClassicExtensionVersion}"
 			dest="${cache}/${extSchedulerClassicExtension}-${extSchedulerClassicExtensionVersion}.lex"/>
 	</target>
 	<target name="check-compress" depends="check-cache" unless="compress.present">
-		<get 
-			src="${extURLCDN}${extCompressExtensionGroupPath}/${extCompressExtensionArtifact}/${extCompressExtensionVersion}/${extCompressExtensionArtifact}-${extCompressExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extCompressExtensionGroupPath}"
+			artifact="${extCompressExtensionArtifact}"
+			version="${extCompressExtensionVersion}"
 			dest="${cache}/${extCompressExtension}-${extCompressExtensionVersion}.lex"/>
 	</target>
 	<target name="check-mail" depends="check-cache" unless="mail.present">
-		<get 
-			src="${extURLMaven}${extMailExtensionGroupPath}/${extMailExtensionArtifact}/${extMailExtensionVersion}/${extMailExtensionArtifact}-${extMailExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extMailExtensionGroupPath}"
+			artifact="${extMailExtensionArtifact}"
+			version="${extMailExtensionVersion}"
 			dest="${cache}/${extMailExtension}-${extMailExtensionVersion}.lex"/>
 	</target>
 	<target name="check-ftp" depends="check-cache" unless="ftp.present">
-		<get 
-			src="${extURLMaven}${extFtpExtensionGroupPath}/${extFtpExtensionArtifact}/${extFtpExtensionVersion}/${extFtpExtensionArtifact}-${extFtpExtensionVersion}.lex" 
+		<download-extension
+			groupPath="${extFtpExtensionGroupPath}"
+			artifact="${extFtpExtensionArtifact}"
+			version="${extFtpExtensionVersion}"
 			dest="${cache}/${extFtpExtension}-${extFtpExtensionVersion}.lex"/>
 	</target>
 

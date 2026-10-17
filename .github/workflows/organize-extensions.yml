@@ -34,6 +34,7 @@ on:
           - lucee.image.extension
           - lucene-search
           - lucene-search-extension
+          - mail-extension
           - memcached-extension
           - mongodb-extension
           - mssqljdbc4
@@ -88,6 +89,7 @@ on:
           - kinesis-extension
           - lucene-search-extension
           - loganalyzer-extension
+          - mail-extension
           - memcached-extension
           - mongodb-extension
           - mssql-jdbc-extension

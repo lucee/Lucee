@@ -36,7 +36,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Set;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lucee.commons.collection.MapFactory;
@@ -101,10 +100,10 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFGSProperty;
 import lucee.runtime.type.UDFGetterProperty;
-import lucee.runtime.type.UDFSetterProperty;
 import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.UDFProperties;
+import lucee.runtime.type.UDFSetterProperty;
 import lucee.runtime.type.cfc.ComponentEntryIterator;
 import lucee.runtime.type.cfc.ComponentValueIterator;
 import lucee.runtime.type.dt.DateTime;
@@ -186,8 +185,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	/**
 	 * Constructor of the Component, USED ONLY FOR DESERIALIZE
 	 */
-	public ComponentImpl() {
-	}
+	public ComponentImpl() {}
 
 	/**
 	 * constructor of the class
@@ -762,7 +760,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			return Reflector.componentToClass(pc, this).getClass();
 		}
 
-		// When calling via super, use public access for error message since super calls should access inherited methods
+		// When calling via super, use public access for error message since super calls should access
+		// inherited methods
 		int errorAccess = superAccess ? ACCESS_PUBLIC : access;
 		if (member == null) throw ComponentUtil.notFunction(this, KeyImpl.init(name), null, errorAccess);
 		throw ComponentUtil.notFunction(this, KeyImpl.init(name), member.getValue(), errorAccess);
@@ -773,10 +772,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		// LDEV-6236 accessor bypass — skip full UDF dispatch for generated getters/setters
 		if (!((PageContextImpl) pc).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			if (udf instanceof UDFGetterProperty) {
-				return ((UDFGetterProperty) udf).callDirect( this, pc );
+				return ((UDFGetterProperty) udf).callDirect(this, pc);
 			}
 			if (udf instanceof UDFSetterProperty && args != null) {
-				return ((UDFSetterProperty) udf).callDirect( this, pc, args );
+				return ((UDFSetterProperty) udf).callDirect(this, pc, args);
 			}
 		}
 
@@ -1003,21 +1002,21 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		if (_udfs.isEmpty() && _data.isEmpty()) {
 			return new Collection.Key[0];
 		}
-		
+
 		List<Key> orderedKeys = new ArrayList<Key>(_udfs.size() + _data.size());
-		
-		for (Entry<Key, UDF> entry : _udfs.entrySet()) {
+
+		for (Entry<Key, UDF> entry: _udfs.entrySet()) {
 			if (entry.getValue().getAccess() <= access) {
 				orderedKeys.add(entry.getKey());
 			}
 		}
-		for (Entry<Key, Member> entry : _data.entrySet()) {
+		for (Entry<Key, Member> entry: _data.entrySet()) {
 			Member member = entry.getValue();
 			if (member.getAccess() <= access && !(member instanceof UDF)) {
 				orderedKeys.add(entry.getKey());
 			}
 		}
-		
+
 		return orderedKeys.toArray(new Collection.Key[orderedKeys.size()]);
 	}
 
@@ -1136,6 +1135,25 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	/**
+	 * like isPrivate, but code of another component defined in the same file (parent/sub component)
+	 * does not count as private, so implicit accessors are invoked
+	 * 
+	 * @param pc
+	 * @return returns if is private for implicit accessors
+	 */
+	private boolean isPrivateForAccessor(PageContext pc) {
+		if (!isPrivate(pc)) return false;
+		pc = ThreadLocalPageContext.get(pc);
+		if (pc == null) return true;
+		Component ac = pc.getActiveComponent();
+		if (ac == null || ac == this) return true;
+		String acSub = ((ComponentImpl) ac).top.properties.subName;
+		String mySub = this.top.properties.subName;
+		if (StringUtil.isEmpty(acSub)) return StringUtil.isEmpty(mySub);
+		return acSub.equalsIgnoreCase(mySub);
+	}
+
+	/**
 	 * @param pc
 	 * @return returns if is package
 	 */
@@ -1207,8 +1225,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 					try {
 						return DumpUtil.toDumpData(_call(pageContext, KeyConstants.__toDumpData, udf, null, new Object[0]), pageContext, maxlevel, dp);
 					}
-					catch (PageException e) {
-					}
+					catch (PageException e) {}
 				}
 			}
 		}
@@ -1449,6 +1466,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			if (type.equalsIgnoreCase(c.properties.callPath)) return true;
 			if (type.equalsIgnoreCase(c.properties.name)) return true;
 			if (type.equalsIgnoreCase(c._getName())) return true;
+			// sub component referenced by its short name (LDEV-6571)
+			if (!c.properties.inline && !StringUtil.isEmpty(c.properties.subName) && type.equalsIgnoreCase(c.properties.subName)) return true;
 
 			// check interfaces
 			if (c.absFin != null) {
@@ -1962,9 +1981,27 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			udf = it.next();
 			if (udf instanceof UDFGSProperty) continue;
 			if (udf.getAccess() > access) continue;
-			if (udf.getPageSource() != null && !udf.getPageSource().equals(comp._getPageSource())) continue;
+			if (!isMetadataUDFForComponent(udf, comp)) continue;
 			if (udf instanceof UDFImpl) arr.append(ComponentUtil.getMetaData(pc, ((UDFImpl) udf).properties, isStatic));
 		}
+	}
+
+	/**
+	 * LDEV-6469: after LDEV-6056, PageSource.equals() uses the full display path, so same-named CFCs in
+	 * different packages no longer match. GetMetadata().functions used that equals() check to decide
+	 * which inherited methods to include, so those methods disappeared. Keep the display-path equals()
+	 * (needed for super.method()), but still treat a matching file name as declared on this component,
+	 * which is how metadata behaved before LDEV-6056.
+	 */
+	private static boolean isMetadataUDFForComponent(UDF udf, ComponentImpl comp) {
+		PageSource udfPs = udf.getPageSource();
+		if (udfPs == null) return true;
+
+		PageSource compPs = comp._getPageSource();
+		if (udfPs.equals(compPs)) return true;
+
+		String udfFile = udfPs.getFileName();
+		return udfFile != null && udfFile.equals(compPs.getFileName());
 	}
 
 	public boolean isInitalized() {
@@ -2009,6 +2046,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 			}
 
+			// LDEV-3672 "final this.x = 1;" has a modifier but no access (-1), use the default access then
+			if (access < Component.ACCESS_REMOTE || access > Component.ACCESS_PRIVATE) access = dataMemberDefaultAccess;
 			_data.put(key, new DataMember(existing != null ? existing.getAccess() : access, existing != null ? existing.getModifier() : modifier, value));
 
 		}
@@ -2092,7 +2131,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	public Object set(PageContext pc, Collection.Key key, Object value) throws PageException {
 		if (pc == null) pc = ThreadLocalPageContext.get();
 		if (triggerDataMember(pc) && isInit) {
-			if (!isPrivate(pc)) {
+			if (!isPrivateForAccessor(pc)) {
 				return callSetter(pc, key, value);
 			}
 		}
@@ -2103,7 +2142,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	public Object set(PageContext pc, Collection.Key key, Object value, int access, int modifier) throws PageException {
 		if (pc == null) pc = ThreadLocalPageContext.get();
 		if (triggerDataMember(pc) && isInit) {
-			if (!isPrivate(pc)) {
+			if (!isPrivateForAccessor(pc)) {
 				return callSetter(pc, key, value);
 			}
 		}
@@ -2146,7 +2185,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		if (member != null) return member.getValue();
 
 		// trigger
-		if (triggerDataMember(pc) && !isPrivate(pc)) {
+		if (triggerDataMember(pc) && !isPrivateForAccessor(pc)) {
 			return callGetter(pc, key);
 		}
 		throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]",
@@ -2215,7 +2254,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		// Trigger
 		PageContext pc = ThreadLocalPageContext.get();
-		if (triggerDataMember(pc) && !isPrivate(pc)) {
+		if (triggerDataMember(pc) && !isPrivateForAccessor(pc)) {
 			return callGetter(pc, key);
 		}
 		throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]");
@@ -2227,7 +2266,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		if (member != null) return member.getValue();
 
 		// trigger
-		if (triggerDataMember(pc) && !isPrivate(pc)) {
+		if (triggerDataMember(pc) && !isPrivateForAccessor(pc)) {
 			return callGetter(pc, key, defaultValue);
 		}
 		return defaultValue;
@@ -2257,7 +2296,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		// trigger
 		PageContext pc = ThreadLocalPageContext.get();
-		if (triggerDataMember(pc) && !isPrivate(pc)) {
+		if (triggerDataMember(pc) && !isPrivateForAccessor(pc)) {
 			return callGetter(pc, key, defaultValue);
 		}
 		return defaultValue;
@@ -2670,7 +2709,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		this.isRestEnabled = other.isRestEnabled;
 		this.afterConstructor = other.afterConstructor;
 		this.base = other.base;
-		// this.componentPage=other.componentPage;
+		this.cp = other.cp;
 		this.pageSource = other.pageSource;
 		// this.constructorUDFs=other.constructorUDFs;
 		this.dataMemberDefaultAccess = other.dataMemberDefaultAccess;

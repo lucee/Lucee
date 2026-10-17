@@ -18,6 +18,7 @@
  */
 package lucee.runtime.type;
 
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -62,11 +63,11 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	private static final long serialVersionUID = -5544446523204021493L;
 	private static final int CAPACITY = 32;
 
-	protected int type;
+	protected volatile int type;
 	protected AtomicInteger size = new AtomicInteger(0);
 	protected Object[] data;
 
-	protected boolean typeChecked = false;
+	protected volatile boolean typeChecked = false;
 	protected QueryImpl query;
 	protected Collection.Key key;
 	private final Object sync = new SerializableObject();
@@ -83,6 +84,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		this.type = type;
 		this.key = key;
 		this.query = query;
+		this.typeChecked = (type != Types.OTHER);
 	}
 
 	/**
@@ -98,6 +100,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		this.type = type;
 		this.query = query;
 		this.key = key;
+		this.typeChecked = (type != Types.OTHER);
 	}
 
 	/**
@@ -111,6 +114,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		this.size = new AtomicInteger(size);
 		this.query = query;
 		this.key = key;
+		this.typeChecked = (type != Types.OTHER);
 	}
 
 	/**
@@ -408,6 +412,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public int getType() {
+		if (typeChecked) return type;
 		reOrganizeType();
 		return type;
 	}

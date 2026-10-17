@@ -45,6 +45,13 @@ function scrollToEl(selector)
 /* older functions */
 function initMenu() {
 	// $('#menu ul').show();
+	// restore collapsed groups, the group containing the current page stays open
+	$('#menu > li[id]').each(function() {
+		var li = $(this);
+		if (getMenuCollapsed(li.prop('id')) && !li.find('a.menu_active').length) {
+			li.addClass('collapsed').children('ul').hide();
+		}
+	});
 	$('#menu > li > a').click(
 		function(e) {
 			var $this = $(this);
@@ -54,14 +61,29 @@ function initMenu() {
 				ul.slideToggle('normal');
 				var li = $this.parent();
 				li.toggleClass('collapsed');
-				var id = li.prop('id');
-				var collapsed = li.hasClass('collapsed');
-				$.get('?action=internal.savedata&action2=setdata&key=collapsed_'+id+'&data='+collapsed);
+				setMenuCollapsed(li.prop('id'), li.hasClass('collapsed'));
 				e=e||event;
 				e.preventDefault();
 			}
 		}
 	);
+}
+
+// the collapsed state is a per browser preference, storage can be unavailable (e.g. private mode)
+function getMenuCollapsed(id) {
+	try {
+		return localStorage.getItem('lucee.admin.collapsed.' + id) === 'true';
+	}
+	catch (e) {
+		return false;
+	}
+}
+
+function setMenuCollapsed(id, collapsed) {
+	try {
+		localStorage.setItem('lucee.admin.collapsed.' + id, collapsed ? 'true' : 'false');
+	}
+	catch (e) {}
 }
 
 $(".checkbox").change(function () {
@@ -326,11 +348,7 @@ function initTooltips()
 
 function resizelayout(e)
 {
-	var isfull = $('body').hasClass('full') == 0;
 	$('body').toggleClass('full');
 	e.preventDefault();
-	var contentwidth = parseInt($('#innercontent').width(), 10);
-	$.get('?action=internal.savedata&action2=setdata&key=fullscreen&data='+isfull);
-	$.get('?action=internal.savedata&action2=setdata&key=contentwidth&data='+contentwidth);
 	return false;
 };

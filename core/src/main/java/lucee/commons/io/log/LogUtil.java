@@ -20,6 +20,7 @@ package lucee.commons.io.log;
 
 import java.io.File;
 import java.util.Date;
+import java.util.TimeZone;
 
 import lucee.aprint;
 import lucee.commons.i18n.FormatUtil;
@@ -49,6 +50,32 @@ public final class LogUtil {
 
 	static {
 		MIN_LEVEL = LogUtil.toLevel(SystemUtil.getSystemPropOrEnvVar("lucee.system.log.level", null), Log.LEVEL_WARN);
+	}
+
+	private static final ThreadLocal<Boolean> insideGetTimeZone = new ThreadLocal<Boolean>();
+
+	/**
+	 * the timezone used for timestamps in the logs, this is always the timezone of the server config
+	 * (admin setting) and never the request/application timezone, because a log file is shared by all
+	 * applications.
+	 */
+	public static TimeZone getTimeZone(Config config) {
+		// loading the config timezone can log itself, do not end up in a loop
+		if (insideGetTimeZone.get() == null) {
+			insideGetTimeZone.set(Boolean.TRUE);
+			try {
+				config = ThreadLocalPageContext.getConfig(config);
+				if (config != null) {
+					TimeZone tz = config.getTimeZone();
+					if (tz != null) return tz;
+				}
+			}
+			finally {
+				insideGetTimeZone.remove();
+			}
+		}
+		// no config available (yet), the JVM default is the only timezone left
+		return TimeZone.getDefault();
 	}
 
 	public static int toLevel(String strLevel, int defaultValue) {
@@ -292,7 +319,7 @@ public final class LogUtil {
 				log.getParentResource().mkdirs();
 				log.createNewFile();
 			}
-			IOUtil.write(log, FormatUtil.format(SystemOut.FORMAT, new Date(System.currentTimeMillis()), null) + " " + type + " " + msg + "\n", CharsetUtil.UTF8, true);
+			IOUtil.write(log, FormatUtil.format(SystemOut.FORMAT, new Date(System.currentTimeMillis()), getTimeZone(null)) + " " + type + " " + msg + "\n", CharsetUtil.UTF8, true);
 		}
 		catch (Exception e) {
 			ERR = null;
@@ -322,16 +349,25 @@ public final class LogUtil {
 		return (log != null && log.getLogLevel() <= logLevel);
 	}
 
+	// Loader's Log.java level constants are not in standard severity order —
+	// LEVEL_INFO=1 sits below LEVEL_DEBUG=2, opposite of every other Java
+	// logger. doesDebug/doesInfo cannot be a single inequality against the
+	// raw constants and must enumerate. The other four work as <= because
+	// only DEBUG/INFO are swapped relative to standard ordering.
 	public static boolean doesTrace(Log log) {
 		return (log != null && log.getLogLevel() <= Log.LEVEL_TRACE);
 	}
 
 	public static boolean doesInfo(Log log) {
-		return (log != null && log.getLogLevel() <= Log.LEVEL_INFO);
+		if (log == null) return false;
+		int cur = log.getLogLevel();
+		return cur == Log.LEVEL_INFO || cur == Log.LEVEL_DEBUG || cur == Log.LEVEL_TRACE;
 	}
 
 	public static boolean doesDebug(Log log) {
-		return (log != null && log.getLogLevel() <= Log.LEVEL_DEBUG);
+		if (log == null) return false;
+		int cur = log.getLogLevel();
+		return cur == Log.LEVEL_DEBUG || cur == Log.LEVEL_TRACE;
 	}
 
 	public static boolean doesWarn(Log log) {

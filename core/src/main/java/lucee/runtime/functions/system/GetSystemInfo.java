@@ -30,6 +30,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
 
+import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.CFMLFactoryImpl;
@@ -57,6 +58,25 @@ public final class GetSystemInfo implements Function {
 		sct.put("activeRequests", factory.getActiveRequests());
 		sct.put("activeThreads", factory.getActiveThreads());
 		sct.put("queueRequests", config.getThreadQueue().size());
+
+		// PageContext pool depth (running = activeRequests, childRunning = activeThreads)
+		{
+			Struct pcPool = new StructImpl();
+			pcPool.put("idle", factory.getIdlePCCount());
+			pcPool.put("max", CFMLFactoryImpl.PC_POOL_MAX_SIZE);
+			sct.put("pageContextPool", pcPool);
+		}
+
+		// Throttle state (only when active)
+		if (CFMLFactoryImpl.THROTTLE_ENABLED) {
+			Struct throttle = new StructImpl();
+			throttle.put("maxNoSleep", CFMLFactoryImpl.MAX_NO_SLEEP);
+			throttle.put("sleepTime", CFMLFactoryImpl.SLEEP_TIME);
+			throttle.put("maxNormalPriority", CFMLFactoryImpl.MAX_NORMAL_PRIORITY);
+			throttle.put("firedOnce", CFMLFactoryImpl.THROTTLE_FIRED_ONCE.get());
+			throttle.put("firedCount", CFMLFactoryImpl.THROTTLE_FIRED_COUNT.get());
+			sct.put("throttle", throttle);
+		}
 
 		// Datasource connections
 		{
@@ -117,6 +137,37 @@ public final class GetSystemInfo implements Function {
 			sct.put("waitingForHttpConn", httpPending);
 			sct.put("maxHttpConnections", httpMax);
 			sct.put("httpConnections", httpPoolInfo);
+		}
+
+		// IOUtil buffer pools (LDEV-6410)
+		{
+			Struct ioBufferPools = new StructImpl();
+			int blockSize = IOUtil.getDefaultBlockSize();
+			int max = IOUtil.getBufferPoolMax();
+			int byteBufSize = blockSize;
+			int charBufSize = blockSize * 2;
+
+			int byteIdle = IOUtil.byteBufferPoolSize();
+			int byteActive = IOUtil.byteBufferActiveCount();
+			Struct bytePool = new StructImpl();
+			bytePool.put("max", max);
+			bytePool.put("bufferSize", byteBufSize);
+			bytePool.put("idle", byteIdle);
+			bytePool.put("active", byteActive);
+			bytePool.put("bytes", (long) Math.min(byteIdle + byteActive, max) * byteBufSize);
+			ioBufferPools.put("byte", bytePool);
+
+			int charIdle = IOUtil.charBufferPoolSize();
+			int charActive = IOUtil.charBufferActiveCount();
+			Struct charPool = new StructImpl();
+			charPool.put("max", max);
+			charPool.put("bufferSize", charBufSize);
+			charPool.put("idle", charIdle);
+			charPool.put("active", charActive);
+			charPool.put("bytes", (long) Math.min(charIdle + charActive, max) * charBufSize);
+			ioBufferPools.put("char", charPool);
+
+			sct.put("ioBufferPools", ioBufferPools);
 		}
 
 		// tasks

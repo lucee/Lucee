@@ -102,6 +102,31 @@ public final class ClosureScope extends ScopeSupport implements Variables, Exter
 		return rtn;
 	}
 
+	/**
+	 * LDEV-2213: true if the key exists in a scope captured by this closure (the local or arguments scope
+	 * of the enclosing function, also through nested closures). Used so an unscoped assignment inside a
+	 * closure with localMode "modern" updates that variable instead of creating a new closure local (like
+	 * ACF).
+	 */
+	public boolean containsCapturedKey(Key key) {
+		if (local.containsKey(key) || arg.containsKey(key)) return true;
+		return var instanceof ClosureScope && ((ClosureScope) var).containsCapturedKey(key);
+	}
+
+	/**
+	 * LDEV-4771: value from a captured local or arguments scope (also through nested closures), but not
+	 * from the variables scope at the end of the chain. Used so captured function arguments win over
+	 * query columns, while the variables scope keeps its place after the queries.
+	 */
+	public Object getCaptured(PageContext pc, Key key, Object defaultValue) {
+		Object value = local.get(pc, key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) return value;
+		value = arg.get(pc, key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) return value;
+		if (var instanceof ClosureScope) return ((ClosureScope) var).getCaptured(pc, key, defaultValue);
+		return defaultValue;
+	}
+
 	public Argument getArgument() {
 		return arg;
 	}
@@ -236,7 +261,7 @@ public final class ClosureScope extends ScopeSupport implements Variables, Exter
 
 	@Override
 	public Object set(Key key, Object value) throws PageException {
-		if (localAlways || local.containsKey(key)) return local.set(key, value);
+		if (local.containsKey(key)) return local.set(key, value);
 		if (arg.containsKey(key)) {
 			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
 			return arg.set(key, value);
@@ -247,7 +272,7 @@ public final class ClosureScope extends ScopeSupport implements Variables, Exter
 
 	@Override
 	public Object setEL(Key key, Object value) {
-		if (localAlways || local.containsKey(key)) return local.setEL(key, value);
+		if (local.containsKey(key)) return local.setEL(key, value);
 		if (arg.containsKey(key)) {
 			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
 			return arg.setEL(key, value);

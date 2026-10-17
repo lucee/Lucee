@@ -37,6 +37,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentImpl;
 import lucee.runtime.ComponentSpecificAccess;
+import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -307,7 +308,9 @@ public final class TagUtil {
 		if (pc == null) return;
 		try {
 			ConfigWebPro config = (ConfigWebPro) pc.getConfig();
-			PageSource ps = config.getTagMapping(mappingName).getPageSource(filename);
+			Mapping mapping = config.getTagMapping(mappingName);
+			if (mapping == null) return;
+			PageSource ps = mapping.getPageSource(filename);
 
 			// Page p = ps.loadPage(pc);
 			ComponentImpl c = ComponentLoader.loadComponent(pc, ps, filename, true, true);

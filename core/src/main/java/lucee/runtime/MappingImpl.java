@@ -86,6 +86,7 @@ public final class MappingImpl implements Mapping {
 
 	private final String strPhysical;
 	private Resource physical;
+	private boolean physicalUnresolvedLogged;
 
 	private String lcVirtualWithSlash;
 	private Map<String, SoftReference<Object>> customTagPath = new ConcurrentHashMap<String, SoftReference<Object>>();
@@ -179,6 +180,10 @@ public final class MappingImpl implements Mapping {
 				if (physical == null && strPhysical != null) {
 					ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
 					physical = ConfigUtil.getResource(cs, strPhysical, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot, false);
+					if (physical == null && !physicalUnresolvedLogged && !StringUtil.isEmpty(strPhysical, true)) {
+						physicalUnresolvedLogged = true;
+						if (log != null) log.warn("mapping", "physical path [" + strPhysical + "] of mapping [" + virtual + "] cannot be resolved, the mapping has no physical location");
+					}
 					if (strArchive == null) this.physicalFirst = true;
 					else if (physical == null) this.physicalFirst = false;
 				}

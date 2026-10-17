@@ -60,6 +60,7 @@ public final class InfoImpl implements Info {
 	// Mod this
 
 	private Version version;
+	private long fullVersionInfo;
 
 	private long releaseTime;
 	private DateTime releaseDate;
@@ -75,6 +76,7 @@ public final class InfoImpl implements Info {
 
 		// version
 		this.version = bundle.getVersion();
+		this.fullVersionInfo = KeyImpl.createHash64(this.version.toString());
 		this.versionName = headers.get("Minor-Name");
 		if (this.versionName == null) throw new RuntimeException("missing Minor-Name");
 		this.versionNameExplanation = headers.get("Minor-Name-Explanation");
@@ -152,7 +154,7 @@ public final class InfoImpl implements Info {
 
 	@Override
 	public long getFullVersionInfo() {
-		return KeyImpl.createHash64(getVersion().toString());// +state;
+		return fullVersionInfo;
 	}
 
 	@Override

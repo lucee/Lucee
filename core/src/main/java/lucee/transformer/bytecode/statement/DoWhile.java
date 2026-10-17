@@ -53,7 +53,9 @@ public final class DoWhile extends StatementBaseNoFinal implements FlowControlBr
 	 * @param label
 	 */
 	public DoWhile(Expression expr, Body body, Position start, Position end, String label) {
-		super(expr.getFactory(), start, end);
+		// Pass null for start to prevent emitting wrapper line - the body statements have their own lines.
+		// The 'do' keyword doesn't generate bytecode itself, it's just a loop entry point.
+		super(expr.getFactory(), null, end);
 		this.expr = expr.getFactory().toExprBoolean(expr);
 		this.body = body;
 		body.setParent(this);
@@ -62,6 +64,9 @@ public final class DoWhile extends StatementBaseNoFinal implements FlowControlBr
 
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		begin = new Label(); // LDEV-5922 fresh labels per emission, a finally body is written more than once
+		beforeEnd = new Label();
+		end = new Label();
 		GeneratorAdapter adapter = bc.getAdapter();
 		adapter.visitLabel(begin);
 		body.writeOut(bc);

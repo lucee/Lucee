@@ -2720,7 +2720,70 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
 			<type>struct</type>
 		</return>
 	</function>
-
+	
+	<!-- compileToBytecode -->
+	<function>
+		<name>compileToBytecode</name>
+		<class>lucee.runtime.functions.system.CompileToBytecode</class>
+		<description>Compile CFML templates to bytecode and replace the source file in place. Optionally keep a dot-prefixed copy of the source and encrypt the bytecode with an RSA private key.</description>
+		<status>hidden</status>
+		<argument>
+			<name>path</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Path (relative or absolute) to a CFML file or directory to compile.</description>
+		</argument>
+		<argument>
+			<name>keepSource</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>When true, a copy of the source is stored alongside the template using a dot prefix (for example index.cfm becomes .index.cfm).</description>
+		</argument>
+		<argument>
+			<name>privateKey</name>
+			<type>string</type>
+			<required>No</required>
+			<description>RSA private key used to encrypt the bytecode. The matching public key must be configured as PUBLIC_KEY environment variable or system property on the server that executes the template.</description>
+		</argument>
+		<argument>
+			<name>recursive</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>When path is a directory, also compile CFML files in subdirectories.</description>
+		</argument>
+		<return>
+			<type>struct</type>
+			<description>Struct with keys compiled, skipped, errors and warnings.</description>
+		</return>
+	</function>
+	
+	<!-- restoreToSource -->
+	<function>
+		<name>restoreToSource</name>
+		<class>lucee.runtime.functions.system.RestoreToSource</class>
+		<status>hidden</status>
+		<description>Restore CFML source files from dot-prefixed backups created by compileToBytecode. Replaces bytecode templates with their source and deletes the backup file.</description>
+		<argument>
+			<name>path</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Path (relative or absolute) to a CFML file or directory to restore.</description>
+		</argument>
+		<argument>
+			<name>recursive</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>When path is a directory, also restore CFML files in subdirectories.</description>
+		</argument>
+		<return>
+			<type>struct</type>
+			<description>Struct with keys restored, skipped and errors.</description>
+		</return>
+	</function>
+	
 	<!-- compress -->
 	<function>
 		<name>compress</name>
@@ -3205,12 +3268,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>datasourceFlushMetaCache</name>
 		<class>lucee.runtime.functions.other.DatasourceFlushMetaCache</class>
-		<description>Flush the meta data stored for a certain datasource used for stored procedures, this is only supported for Oracle datasources</description>
+		<description>Flushes cached stored procedure metadata. Oracle datasources only. Returns true if at least one cache was cleared, false if there was nothing to clear.</description>
 		<argument>
 			<name>datasourceName</name>
 			<type>string</type>
 			<required>no</required>
-			<description>name of the datasource to flush, when not defined all caches are flushed</description>
+			<description>datasource to flush; when omitted, all datasource caches are flushed</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -5437,19 +5500,19 @@ If omitted, the file's attributes are maintained.</description>
 	<function>
 		<name>fileCopy</name>
 		<class>lucee.runtime.functions.file.FileCopy</class>
-		<description>Copies the specified on-disk or in-memory source file to the specified destination file.</description>
+		<description>Copies the specified on-disk or in-memory source file to the specified destination file. File Attributes are applied to destination file, but read and write are set to true.</description>
 		<argument>
 			<name>source</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>path to copy.</description>
-    </argument>
+			<description>Path to source file to copy.</description>
+    	</argument>
 		<argument>
 			<name>destination</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Pathname of the destination file.</description>
-    </argument>
+			<description>Path to the destination file.</description>
+    	</argument>
 		<return>
 			<type>void</type>
 		</return>
@@ -13775,12 +13838,22 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>SessionCommit</name>
 		<introduced>6.2.1.15</introduced>
 		<class>lucee.runtime.functions.system.SessionCommit</class>
-		<description>Force saving the session to storage, useful when sessionCluster is enabled.</description>
+		<description>Force saving the session to storage immediately, useful for cross-request visibility (cluster siblings, parallel AJAX) when sessionCluster is enabled.</description>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
-	
+
+	<!-- SessionTouch -->
+	<function>
+		<name>SessionTouch</name>
+		<class>lucee.runtime.functions.system.SessionTouch</class>
+		<description>Marks the session as needing persistence; the write happens at the natural request-end store path. Deferred sibling of sessionCommit() — use when you don't need synchronous cross-request visibility.</description>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+
 	<!-- SessionStartTime -->
 	<function>
 		<name>SessionStartTime</name>
@@ -15209,7 +15282,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.struct.StructFind</class>
 		<member-name>find</member-name>
 		<keywords>struct,find</keywords>
-		<description>Determines the value associated with a key in a structure.</description>
+		<description>Determines the value associated with a key in a structure. The key may also be a callback (key, value [, struct]) that returns boolean; then the matching value is returned (LDEV-4495).</description>
 		<argument>
 			<name>struct</name>
 			<alias>structure,object</alias>
@@ -15219,9 +15292,10 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         </argument>
 		<argument>
 			<name>key</name>
-			<type>string</type>
+			<alias>object,value,closure,function,udf,callback</alias>
+			<type>any</type>
 			<required>Yes</required>
-            <description>Key whose value to return</description>
+            <description>Key whose value to return, or a callback function/closure that receives (key, value [, struct]) and returns boolean (LDEV-4495)</description>
         </argument>
 		<argument>
 			<name>defaultValue</name>
