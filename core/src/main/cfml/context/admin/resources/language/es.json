@@ -1028,6 +1028,8 @@
 			"pause": "pausa",
 			"paused": "Pausado",
 			"pausedesc": "Al establecer esta marca, la ejecución de la tarea se pausará.",
+			"autodelete": "Eliminar automáticamente",
+			"autodeletedesc": "Al establecer esta marca, la tarea programada se elimina cuando ya no hay ninguna ejecución futura posible.",
 			"port": "Puerto",
 			"portdescription": "Puerto de la URL a llamar (HTTP predeterminado: 80)",
 			"proxy": "Configuración del proxy",
