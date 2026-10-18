@@ -46,11 +46,18 @@ public final class LSCurrencyFormat extends BIF {
 	}
 
 	public static String call(PageContext pc, Object number, String type, Locale locale) throws PageException {
-		return format(toDouble(number), type, locale == null ? pc.getLocale() : locale, true	);
+		return format(toDouble(number), type, toLocale(pc, locale), true	);
 	}
 
 	public static String call(PageContext pc, Object number, String type, Locale locale, boolean useBrackets) throws PageException {
-		return format(toDouble(number), type, locale == null ? pc.getLocale() : locale, useBrackets);
+		return format(toDouble(number), type, toLocale(pc, locale), useBrackets);
+	}
+
+	// LDEV-5486: an empty locale argument ("") is cast to the root locale, which has no currency (XXX);
+	// treat it like no locale at all
+	private static Locale toLocale(PageContext pc, Locale locale) {
+		if (locale == null || StringUtil.isEmpty(locale.getLanguage())) return pc.getLocale();
+		return locale;
 	}
 
 	@Override
