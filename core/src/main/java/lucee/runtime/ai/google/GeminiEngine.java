@@ -31,6 +31,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
@@ -129,18 +130,8 @@ public final class GeminiEngine extends AIEngineSupport {
 		charset = Caster.toStringTrim(props.remove(KeyConstants._charset, null), DEFAULT_CHARSET);
 		if (Util.isEmpty(charset, true)) charset = DEFAULT_CHARSET;
 
-		// model
-		model = Caster.toStringTrim(props.remove(KeyConstants._model, null), null);
-		if (Util.isEmpty(model, true)) {
-			// nice to have
-			String appendix = "";
-			String models = AIUtil.getModelNamesAsStringList(this);
-			if (!StringUtil.isEmpty(models, true)) {
-				appendix = " Available models for this engine are [" + models + "]";
-			}
-
-			throw new ApplicationException("the property [model] is required for a OpenAI Engine!." + appendix);
-		}
+		// model, "auto" or empty resolves the model from the models the provider has (LDEV-6618)
+		model = readModel(props, true);
 
 		// responseSchema
 		generationConfig = Caster.toStruct(props.remove(KeyConstants._generationConfig, null), null);
@@ -161,7 +152,7 @@ public final class GeminiEngine extends AIEngineSupport {
 	public URL toURL(String base, String scriptName, String cttype) throws PageException {
 		scriptName = StringUtil.replace(scriptName, "{location}", location, false);
 		scriptName = StringUtil.replace(scriptName, "{apikey}", apikey, false);
-		scriptName = StringUtil.replace(scriptName, "{model}", model, false);
+		if (scriptName.indexOf("{model}") != -1) scriptName = StringUtil.replace(scriptName, "{model}", getModel(), false);
 		if (cttype != null) scriptName = StringUtil.replace(scriptName, "{cttype}", cttype, false);
 		try {
 			return new URL(base + scriptName);
@@ -172,7 +163,8 @@ public final class GeminiEngine extends AIEngineSupport {
 	}
 
 	@Override
-	public AISession createSession(String inialMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout) {
+	public AISession createSession(String inialMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout) throws PageException {
+		resolveModel();
 		return new GeminiSession(this, StringUtil.isEmpty(inialMessage, true) ? systemMessage : inialMessage.trim(), history, limit, temp, connectTimeout, socketTimeout);
 	}
 
@@ -183,7 +175,33 @@ public final class GeminiEngine extends AIEngineSupport {
 
 	@Override
 	public String getModel() {
-		return model;
+		return getModel(model);
+	}
+
+	@Override
+	public List<String> getFallbackModels() {
+		List<String> list = new ArrayList<>();
+		list.add("gemini-*-flash");
+		list.add("gemini-*-pro");
+		list.add("gemini-*");
+		return list;
+	}
+
+	@Override
+	public List<String> listModelNames() throws PageException {
+		List<String> names = new ArrayList<>();
+		String name;
+		for (AIModel m: getModels()) {
+			// only models we can chat with
+			if (m instanceof GeminiModel) {
+				Object methods = ((GeminiModel) m).getData().get("supportedGenerationMethods", null);
+				if (methods != null && Decision.isArray(methods) && !Caster.toList(methods).contains("generateContent")) continue;
+			}
+			name = m.getName();
+			if (name != null && name.startsWith("models/")) name = name.substring(7);
+			names.add(name);
+		}
+		return names;
 	}
 
 	@Override

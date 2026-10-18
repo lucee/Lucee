@@ -98,6 +98,23 @@ public final class AIUtil {
 		return sb.toString();
 	}
 
+	/**
+	 * returns the models available for the given engine as a query with the columns name, label, description and custom
+	 */
+	public static Query getModelsAsQuery(AIEngine aie) throws PageException {
+		List<AIModel> models = aie.getModels();
+		Query qry = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._label, KeyConstants._description, KeyConstants._custom }, models.size(), "models");
+		int row = 0;
+		for (AIModel m: models) {
+			row++;
+			qry.setAt(KeyConstants._name, row, m.getName());
+			qry.setAt(KeyConstants._label, row, m.getLabel());
+			qry.setAt(KeyConstants._description, row, m.getDescription());
+			qry.setAt(KeyConstants._custom, row, m.asStruct());
+		}
+		return qry;
+	}
+
 	public static Struct getMetaData(AIEngine aie, boolean addModelsInfo, boolean addFilesInfo) throws PageException {
 
 		Struct meta = new StructImpl();
@@ -112,17 +129,7 @@ public final class AIUtil {
 
 		// models
 		if (addModelsInfo) {
-			List<AIModel> models = aie.getModels();
-			Query qry = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._label, KeyConstants._description, KeyConstants._custom }, models.size(), "models");
-			int row = 0;
-			for (AIModel m: models) {
-				row++;
-				qry.setAt(KeyConstants._name, row, m.getName());
-				qry.setAt(KeyConstants._label, row, m.getLabel());
-				qry.setAt(KeyConstants._description, row, m.getDescription());
-				qry.setAt(KeyConstants._custom, row, m.asStruct());
-			}
-			meta.set(KeyConstants._models, qry);
+			meta.set(KeyConstants._models, getModelsAsQuery(aie));
 		}
 
 		// files

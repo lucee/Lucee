@@ -20,9 +20,16 @@ component extends="AI" {
 		,group("Configuration", "Customize your Claude integration settings.")
 		,field(displayName = "Model",
 			name = "model",
-			defaultValue = "claude-3-sonnet-20240229",
-			required = true,
-			description = "Specify the Claude model to use. See https://docs.anthropic.com/claude/docs/models-overview for available models.",
+			defaultValue = "auto",
+			required = false,
+			description = "Specify the Claude model to use. See https://docs.anthropic.com/claude/docs/models-overview for available models. Use 'auto' to let Lucee pick the newest model the API lists (see 'Model Preference').",
+			type = "text"
+		)
+		,field(displayName = "Model Preference",
+			name = "modelPreference",
+			defaultValue = "",
+			required = false,
+			description = "Only used when the model is 'auto'. Comma separated list of model name patterns (* and ? as wildcards) in order of preference, for example 'claude-sonnet*,claude-opus*'. The first pattern that matches an available model wins, when several models match the one with the highest version is used. When nothing matches, Lucee falls back to a built-in choice.",
 			type = "text"
 		)
 		,field(displayName = "System Message",

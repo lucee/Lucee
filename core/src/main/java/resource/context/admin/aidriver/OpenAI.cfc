@@ -27,9 +27,16 @@ component extends="AI" {
 		,group("Fine-Tune", "Customize settings to fine-tune your AI session.")
 		,field(displayName = "Model",
 			name = "model",
+			defaultValue = "auto",
+			required = false,
+			description = "Specify the model to use, e.g., 'gpt-4o-mini' for OpenAI or 'gemma2' for Ollama. Use 'auto' (or leave it empty) to let Lucee pick a model from the models the provider lists (see 'Model Preference'); with OpenRouter 'auto' uses the OpenRouter auto router. In the edit view of this page, you get a list of all available models.",
+			type = "text"
+		)
+		,field(displayName = "Model Preference",
+			name = "modelPreference",
 			defaultValue = "",
 			required = false,
-			description = "Specify the model to use, e.g., 'gpt-4o-mini' for OpenAI or 'gemma2' for Ollama. If no model is defined, Lucee picks one. in edit view of this page, you get a list of all avilable models.",
+			description = "Only used when the model is 'auto'. Comma separated list of model name patterns (* and ? as wildcards) in order of preference, for example 'gpt-5*,gpt-4.1*'. The first pattern that matches an available model wins, when several models match the one with the highest version is used. When nothing matches, Lucee falls back to a built-in choice.",
 			type = "text"
 		)
 		,field(displayName = "System Message",

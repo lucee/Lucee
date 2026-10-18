@@ -223,21 +223,8 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		charset = Caster.toStringTrim(props.remove(KeyConstants._charset, null), DEFAULT_CHARSET);
 		if (Util.isEmpty(charset, true)) charset = DEFAULT_CHARSET;
 
-		// model
-		model = Caster.toStringTrim(props.remove(KeyConstants._model, null), null);
-		if (Util.isEmpty(model, true)) {
-			// nice to have
-			String appendix = "";
-			List<String> models = AIUtil.getModelNames(this);
-			if (models.size() > 0) {
-				model = models.get(0);
-			}
-			else {
-				appendix = " There are no models available.";
-			}
-
-			if (Util.isEmpty(model, true)) throw new ApplicationException("the property [model] is required for a OpenAI Engine!." + appendix);
-		}
+		// model, "auto" or empty resolves the model from the models the provider has (LDEV-6618)
+		model = readModel(props, true);
 
 		// temperature
 		temperature = Caster.toDouble(props.remove(KeyConstants._temperature, null), null);
@@ -265,7 +252,8 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 	}
 
 	@Override
-	public AISession createSession(String inialMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout) {
+	public AISession createSession(String inialMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout) throws PageException {
+		resolveModel();
 		return new OpenAISession(this, StringUtil.isEmpty(inialMessage, true) ? systemMessage : inialMessage.trim(), history, limit, temp, connectTimeout, socketTimeout);
 	}
 
@@ -276,7 +264,38 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 
 	@Override
 	public String getModel() {
-		return model;
+		return getModel(model);
+	}
+
+	@Override
+	public String getProviderAutoModel() {
+		String host = baseURL == null ? null : baseURL.getHost();
+		if (host != null && host.toLowerCase().endsWith("openrouter.ai")) return "openrouter/auto";
+		return null;
+	}
+
+	@Override
+	public List<String> getFallbackModels() {
+		List<String> list = new ArrayList<>();
+		String host = baseURL == null ? "" : baseURL.getHost().toLowerCase();
+		if (host.endsWith("openai.com")) {
+			list.add("gpt-*");
+		}
+		else if (host.endsWith("groq.com")) {
+			list.add("llama-*-versatile");
+			list.add("openai/gpt-oss-*");
+			list.add("llama-*");
+		}
+		else if (host.endsWith("x.ai")) {
+			list.add("grok-*");
+		}
+		else if (host.endsWith("deepseek.com")) {
+			list.add("deepseek-chat");
+		}
+		else if (host.endsWith("perplexity.ai")) {
+			list.add("sonar");
+		}
+		return list;
 	}
 
 	@Override
@@ -301,8 +320,13 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 	public List<AIModel> getModels() throws PageException {
 		try {
 			HttpGet get = new HttpGet(new URL(baseURL, "models").toExternalForm());
-			get.setHeader("Authorization", "Bearer " + secretKey);
+			if (!Util.isEmpty(secretKey, true)) get.setHeader("Authorization", "Bearer " + secretKey);
 			get.setHeader("Content-Type", AIUtil.createJsonContentType(charset));
+			if (headers != null) {
+				for (Map.Entry<String, String> e: headers.entrySet()) {
+					get.setHeader(e.getKey(), e.getValue());
+				}
+			}
 
 			RequestConfig config = AISessionSupport.setRedirect(AISessionSupport.setTimeout(RequestConfig.custom(), getConnectTimeout(), getSocketTimeout())).build();
 			get.setConfig(config);
