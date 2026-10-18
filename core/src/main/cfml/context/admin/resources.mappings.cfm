@@ -50,6 +50,7 @@ Defaults --->
 						<cfinclude template="resources.mapping.compileError.cfm">
 					</cfif>
 				</cfloop>
+				<cfset mappingsCompiled=true>
 			</cfif>
 			<!--- downloadArchive --->
 			<cfset doDownload=form.subAction EQ stText.Buttons.downloadArchive>
@@ -183,7 +184,16 @@ Redirtect to entry --->
 		</cfif>
 		<cflocation url="#request.self#?action=#url.action#&action2=#url.action2#" addtoken="no">
 	</cfif> --->
-	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
+	<!--- LDEV-4364 pass the compile result on to the redirected page, so a refresh doesn't compile again --->
+	<cfset redirectURL="#request.self#?action=#url.action#">
+	<cfif mappingsCompiled?:false>
+		<cfset redirectURL&="&compiled=true">
+	</cfif>
+	<cflocation url="#redirectURL#" addtoken="no">
+</cfif>
+
+<cfif isBoolean(url.compiled?:"") && url.compiled>
+	<cfoutput><div class="message">#stText.Mappings.compileSuccess#</div></cfoutput>
 </cfif>
 
 <!--- 

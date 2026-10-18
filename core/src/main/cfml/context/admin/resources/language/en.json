@@ -664,6 +664,7 @@
       "compileErrorsTitle": "Compilation Errors",
       "compileErrorsIntro": "The following errors occurred whilst {context}. Please fix these errors and try again.",
       "compileErrorsDesc": "The following compilation errors occurred. Please fix these errors and try again.",
+      "compileSuccess": "The selected mappings were compiled successfully.",
       "editdesc": "Here you can edit a certain mapping or create a Lucee archive out of an existing one.",
       "introtext": "Please note that only pages processed by Lucee are aware of these mappings (cfm, cfml, cfc). If you want to use files not processed by Lucee for these special mapping directories, you have to add virtual mappings to these directories to your application server.",
       "physical": "Resource",

@@ -655,6 +655,7 @@
 			"compileErrorsTitle": "Kompilierungsfehler",
 			"compileErrorsIntro": "Die folgenden Fehler sind beim {context} aufgetreten. Bitte beheben Sie diese Fehler und versuchen Sie es erneut.",
 			"compileErrorsDesc": "Die folgenden Kompilierungsfehler sind aufgetreten. Bitte beheben Sie diese Fehler und versuchen Sie es erneut.",
+			"compileSuccess": "Die ausgewählten Mappings wurden erfolgreich kompiliert.",
 			"editdesc": "Hier können Sie ein einzelnes Mapping bearbeiten oder aus einem bestehenden Mapping ein Lucee Archiv erstellen.",
 			"introtext": "Bitte beachten Sie, dass nur Seiten, die von Lucee verarbeitet werden diese Mappings kennen (cfm, cfml, cfc). Wenn Sie auch Dateien, die nicht von Lucee verarbeitet werden verwenden möchten, müssen Sie virtuelle Mappings auf Ihrem Applikationsserver erstellen.",
 			"physical": "Ressource",

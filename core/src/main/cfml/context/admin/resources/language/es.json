@@ -653,6 +653,7 @@
 			"compileErrorsTitle": "Errores de Compilación",
 			"compileErrorsIntro": "Ocurrieron los siguientes errores mientras {context}. Por favor corrija estos errores e intente nuevamente.",
 			"compileErrorsDesc": "Ocurrieron los siguientes errores de compilación. Por favor corrija estos errores e intente nuevamente.",
+			"compileSuccess": "Los mappings seleccionados se compilaron correctamente.",
 			"editdesc": "Aquí puedes editar un mapeo específico o crear un archivo de Lucee a partir de uno existente.",
 			"introtext": "Ten en cuenta que solo las páginas procesadas por Lucee son conscientes de estos mapeos (cfm, cfml, cfc). Si deseas utilizar archivos no procesados por Lucee en estos directorios de mapeo especiales, debes agregar mapeos virtuales a estos directorios en tu servidor de aplicaciones.",
 			"physical": "Recurso",
