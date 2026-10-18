@@ -24,7 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 			 * Pool is maxTotal=1. If the connection leaks after the flush error,
 			 * the subsequent simple.cfm requests will fail to get a connection.
 			 */
-			it( title="connection returned to pool even when auto-flush throws a constraint violation", body=function( currentSpec ) {
+			it( title="connection returned to pool even when auto-flush throws a constraint violation", skip=noOrm(), body=function( currentSpec ) {
 
 				_InternalRequest( template: "#cfg.uri#/setup.cfm", url: cfg.params );
 
@@ -79,7 +79,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 			 *
 			 * Fix: remove the reconnect block. ConnectionProvider handles the lifecycle.
 			 */
-			it( title="entityLoad succeeds when session isConnected() is forced false via reflection", body=function( currentSpec ) {
+			it( title="entityLoad succeeds when session isConnected() is forced false via reflection", skip=noOrm(), body=function( currentSpec ) {
 
 				_InternalRequest( template: "#cfg.uri#/setup.cfm", url: cfg.params );
 
@@ -107,7 +107,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 			 * The next ORM call then enters the dead reconnect block in getSessionAndConn(),
 			 * which calls s.reconnect() — always throws ResourceClosedException in Hibernate 5.6.
 			 */
-			it( title="entityLoad succeeds after ormFlush() with after_transaction release mode", body=function( currentSpec ) {
+			it( title="entityLoad succeeds after ormFlush() with after_transaction release mode", skip=noOrm(), body=function( currentSpec ) {
 
 				_InternalRequest( template: "#cfg.uri#/setup.cfm", url: { flushAtRequestEnd: false } );
 
@@ -123,6 +123,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 		} );
 
+	}
+
+	private boolean function noOrm() {
+		return ( structCount( server.getTestService( "orm" ) ) eq 0 );
 	}
 
 	private struct function basicConfig() {
