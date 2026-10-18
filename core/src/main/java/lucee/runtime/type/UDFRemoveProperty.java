@@ -73,15 +73,15 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 	}
 
 	@Override
-	public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
+	public Object _call(PageContext pageContext, Component comp, Object[] args) throws PageException {
 		if (args.length < 1)
 			throw new ExpressionException("The parameter [" + this.arguments[0].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 
-		return remove(pageContext, args[0]);
+		return remove(comp, pageContext, args[0]);
 	}
 
 	@Override
-	public Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
+	public Object _callWithNamedValues(PageContext pageContext, Component comp, Struct values) throws PageException {
 		UDFUtil.argumentCollection(values, getFunctionArguments());
 		Key key = arguments[0].getName();
 		Object value = values.get(key, null);
@@ -93,11 +93,10 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 			else throw new ExpressionException("The parameter [" + key + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 		}
 
-		return remove(pageContext, value);
+		return remove(comp, pageContext, value);
 	}
 
-	private boolean remove(PageContext pageContext, Object value) throws PageException {
-		Component c = getComponent(pageContext);
+	private boolean remove(Component c, PageContext pageContext, Object value) throws PageException {
 		Object propValue = c.getComponentScope().get(propName, null);
 		value = cast(pageContext, arguments[0], value, 1);
 

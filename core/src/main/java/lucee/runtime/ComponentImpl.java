@@ -101,12 +101,11 @@ import lucee.runtime.type.Null;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.BoundUDF;
 import lucee.runtime.type.UDFGSProperty;
-import lucee.runtime.type.UDFGetterProperty;
 import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.UDFProperties;
-import lucee.runtime.type.UDFSetterProperty;
 import lucee.runtime.type.cfc.ComponentEntryIterator;
 import lucee.runtime.type.cfc.ComponentValueIterator;
 import lucee.runtime.type.dt.DateTime;
@@ -461,6 +460,18 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 			for (Entry<Key, UDF> e: srcMap.entrySet()) {
 				udf = e.getValue();
 
+				// LDEV-6298 v2: share the flyweight accessor across original + duplicate.
+				// Slow-path dispatch is now bound at extraction time via BoundUDF, so it no longer
+				// trusts srcComponent — sharing is safe. pageSource compare so chained duplicates match.
+				// LDEV-3335: null owner means a stateless class-level flyweight (pool entry) — share unconditionally.
+				if (udf instanceof UDFGSProperty) {
+					Component owner = udf.getOwnerComponent();
+					if (owner == null || owner.getPageSource() == src.getPageSource()) {
+						trgMap.put(e.getKey(), udf);
+					}
+					continue;
+				}
+
 				if (udf.getOwnerComponent() == src) {
 					UDF clone = e.getValue().duplicate();
 					if (clone instanceof UDFPlus) {
@@ -782,14 +793,13 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 
 	Object _call(PageContext pc, Collection.Key calledName, UDF udf, Struct namedArgs, Object[] args) throws PageException {
 
-		// LDEV-6236 accessor bypass — skip full UDF dispatch for generated getters/setters
-		if (!((PageContextImpl) pc).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
-			if (udf instanceof UDFGetterProperty) {
-				return ((UDFGetterProperty) udf).callDirect(this, pc);
-			}
-			if (udf instanceof UDFSetterProperty && args != null) {
-				return ((UDFSetterProperty) udf).callDirect(this, pc, args);
-			}
+		// LDEV-6236 accessor bypass — skip full UDF dispatch for generated getters/setters.
+		// Guard both args paths: setter named-arg dispatch via UDFUtil.argumentCollection NPEs on null values.
+		if (!((PageContextImpl) pc).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE) && udf instanceof UDFGSProperty) {
+			UDFGSProperty gs = (UDFGSProperty) udf;
+			if (args != null) return gs._call(pc, this, args);
+			if (namedArgs != null) return gs._callWithNamedValues(pc, this, namedArgs);
+			// both null — fall through to the slow path which has its own arg handling
 		}
 
 		Object rtn = null;
@@ -2054,6 +2064,8 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 			Member m = (Member) value;
 			if (m instanceof UDF) {
 				UDF udf = (UDF) m;
+				// LDEV-1962: unwrap BoundUDF on mixin assign — host component becomes the receiver.
+				if (udf instanceof BoundUDF) udf = ((BoundUDF) udf).getInner();
 				if (udf.getAccess() > Component.ACCESS_PUBLIC && udf instanceof UDFPlus) ((UDFPlus) udf).setAccess(Component.ACCESS_PUBLIC);
 				_data.put(key, udf);
 				_udfs.put(key, udf);
@@ -2224,7 +2236,7 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 	@Override
 	public Object get(PageContext pc, Collection.Key key) throws PageException {
 		Member member = getMember(pc, key, true, false);
-		if (member != null) return member.getValue();
+		if (member != null) return accessorOrValue(member);
 
 		// trigger
 		if (triggerDataMember(pc) && !isPrivateForAccessor(pc)) {
@@ -2234,6 +2246,12 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 				"enable [trigger data member] in administrator to also invoke getters and setters");
 		// throw new ExpressionException("Component ["+getCallName()+"] has no accessible Member with name
 		// ["+name+"]");
+	}
+
+	// LDEV-6298 v2: bind shared accessor flyweight to this instance for slow-path extraction.
+	private Object accessorOrValue(Member member) {
+		if (member instanceof UDFGSProperty) return new BoundUDF((UDFGSProperty) member, this);
+		return member.getValue();
 	}
 
 	private Object callGetter(PageContext pc, Collection.Key key) throws PageException {
@@ -2292,7 +2310,7 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 	@Override
 	public Object get(int access, Collection.Key key) throws PageException {
 		Member member = getMember(access, key, true, false);
-		if (member != null) return member.getValue();
+		if (member != null) return accessorOrValue(member);
 
 		// Trigger
 		PageContext pc = ThreadLocalPageContext.get();
@@ -2305,7 +2323,7 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 	@Override
 	public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
 		Member member = getMember(pc, key, true, false);
-		if (member != null) return member.getValue();
+		if (member != null) return accessorOrValue(member);
 
 		// trigger
 		if (triggerDataMember(pc) && !isPrivateForAccessor(pc)) {
@@ -2334,7 +2352,7 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 	@Override
 	public Object get(int access, Collection.Key key, Object defaultValue) {
 		Member member = getMember(access, key, true, false);
-		if (member != null) return member.getValue();
+		if (member != null) return accessorOrValue(member);
 
 		// trigger
 		PageContext pc = ThreadLocalPageContext.get();
