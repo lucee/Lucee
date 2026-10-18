@@ -376,8 +376,10 @@ public class CFMLExpressionInterpreter {
 	private Ref contOp() throws PageException {
 		Ref ref = impOp();
 		while (cfml.forwardIfCurrent('?')) {
+			// LDEV-5343 null coalescing operator "??", same as Elvis "?:"
+			boolean nullCoalescing = cfml.forwardIfCurrent('?');
 			comments();
-			if (cfml.forwardIfCurrent(':')) {
+			if (nullCoalescing || cfml.forwardIfCurrent(':')) {
 				comments();
 				Ref right = assignOp();
 				ref = new Elvis(ref, right, limited);
