@@ -250,9 +250,8 @@ public final class SQLCaster {
 		case Types.DOUBLE:
 		case Types.FLOAT:
 			try {
-				if (type == Types.FLOAT) stat.setDouble(parameterIndex, Caster.toDoubleValue(value));
-				else if (type == Types.DOUBLE) stat.setDouble(parameterIndex, Caster.toDoubleValue(value));
-				else stat.setObject(parameterIndex, Caster.toDouble(value), type);
+				// JDBC FLOAT is double precision (like DOUBLE); single precision is REAL (see below)
+				stat.setDouble(parameterIndex, Caster.toDoubleValue(value));
 			}
 			catch (PageException pe) {
 				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
