@@ -53,7 +53,8 @@ public final class ParseDateTime extends BIF {
 
 	private static lucee.runtime.type.dt.DateTime _call(PageContext pc, Object oDate, String popConversion, TimeZone tz) throws PageException {
 		if (!StringUtil.isEmpty(popConversion) && !"standard".equalsIgnoreCase(popConversion = popConversion.trim()) && !"pop".equalsIgnoreCase(popConversion.trim())) {
-			popConversion = DateTimeFormat.convertMask(popConversion);
+			// epoch / epochms are no date masks, LSParseDateTime handles them as they are
+			if (!"epoch".equalsIgnoreCase(popConversion) && !"epochms".equalsIgnoreCase(popConversion)) popConversion = DateTimeFormat.convertMask(popConversion);
 			return LSParseDateTime.call(pc, oDate, Locale.US, tz.getID(), popConversion);
 		}
 		return DateCaster.toDateAdvanced(oDate, DateCaster.CONVERTING_TYPE_YEAR, tz);

@@ -18938,6 +18938,8 @@ The following masks can be used to format the full date and time and may not be 
 - full: equivalent to "dddd, mmmm d, yyyy h:mm:ss tt zz"
 - ISO8601: equivalent to "yyyy-mm-dd'T'HH:nn:ss'Z'Z"
 - ISOMillis/ISOMs/javascript: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSS'Z'Z" 
+- epoch: number of seconds since 1970-01-01 00:00:00 UTC (Example:1567517664)
+- epochms: number of milliseconds since 1970-01-01 00:00:00 UTC (Example:1567517664000)
 </description>
     	</argument>
     	
