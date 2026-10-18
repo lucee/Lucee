@@ -14,6 +14,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				assertEquals('id',myQry.ColumnArray()[1]);
 				assertEquals('name',myQry.ColumnArray()[2]);
 			});
+
+			it( title='LDEV-5748 queryColumnNames() is an alias of queryColumnArray()',body=function( currentSpec ) {
+				expect( queryColumnNames( myQry ) ).toBe( [ "id", "name" ] );
+				expect( queryColumnNames( myQry ) ).toBe( queryColumnArray( myQry ) );
+			});
 		})
 
 	}
