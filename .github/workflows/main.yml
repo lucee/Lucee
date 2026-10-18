@@ -171,7 +171,10 @@ jobs:
     - name: Extract version number
       id: extract-version
       run: |
-        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        # LDEV-6529: 6.2 has no root pom, so evaluate against the loader pom (without -f maven returns "1")
+        VERSION=$(mvn -f loader/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout | tr -d '\r')
+        echo "version: $VERSION"
+        if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+ ]]; then echo "::error::unexpected version [$VERSION]"; exit 1; fi
         echo "VERSION=$VERSION" >> $GITHUB_ENV
     - name: Build Lucee with Maven
       env:
