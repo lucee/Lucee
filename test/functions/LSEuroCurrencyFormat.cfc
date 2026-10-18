@@ -47,6 +47,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="currency" {
 				assertEquals("1,20", "#LSEuroCurrencyFormat(1.2,"none")#");
 				setLocale(orgLocale);
 			});
+
+			// LDEV-5486: an empty locale falls back to the current locale
+			it(title="LSEuroCurrencyFormat() with an empty locale uses the current locale", body = function( currentSpec ) {
+				var orgLocale = getLocale();
+				try {
+					setLocale( "English (United States)" );
+					expect( LSEuroCurrencyFormat( 1.2, "international", "" ) ).toBe( LSEuroCurrencyFormat( 1.2, "international" ) );
+					expect( LSEuroCurrencyFormat( 1.2, "local", "" ) ).toBe( LSEuroCurrencyFormat( 1.2, "local" ) );
+					expect( LSEuroCurrencyFormat( 1.2, "international", "" ) ).notToInclude( "XXX" );
+					expect( LSCurrencyFormat( 1.2, "international", "" ) ).toBe( LSCurrencyFormat( 1.2, "international" ) );
+				}
+				finally {
+					setLocale( orgLocale );
+				}
+			});
 		});
 	}
 
