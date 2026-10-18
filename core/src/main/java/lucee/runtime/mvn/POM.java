@@ -154,6 +154,10 @@ public final class POM {
 		}
 		else this.initRepositories = repositories;
 
+		// LDEV-6612 no version: prefer the highest version already in the local maven directory (for
+		// example deployed by an installed extension) before asking the remote repositories
+		if (version == null && localDirectory != null) version = latestLocalVersion(localDirectory, groupId, artifactId);
+
 		if (version == null) {
 			try {
 				Version v = MavenUpdateProvider.last(initRepositories, groupId, artifactId, MavenUpdateProvider.TYPE_RELEASE);
@@ -512,6 +516,33 @@ public final class POM {
 	/** Pure path resolution for the {@code {mvnDir}/{group}/{artifact}/{version}/} directory. No side effects. */
 	public static Resource localDir(Resource dir, String groupId, String artifactId, String version) {
 		return dir.getRealResource(groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/");
+	}
+
+	/**
+	 * highest version of the artifact available in the local maven directory (a version directory that
+	 * contains the jar or the pom), null if there is none
+	 */
+	static String latestLocalVersion(Resource dir, String groupId, String artifactId) {
+		Resource artifactDir = localArtifactDir(dir, groupId.trim(), artifactId.trim());
+		if (!artifactDir.isDirectory()) return null;
+		Resource[] children = artifactDir.listResources();
+		if (children == null) return null;
+		Version latest = null;
+		String latestRaw = null;
+		Version v;
+		String name;
+		for (Resource child: children) {
+			if (!child.isDirectory()) continue;
+			name = child.getName();
+			if (!child.getRealResource(artifactId.trim() + "-" + name + ".jar").isFile() && !child.getRealResource(artifactId.trim() + "-" + name + ".pom").isFile()) continue;
+			v = Version.parseVersion(name, null);
+			if (v == null) continue;
+			if (latest == null || v.compareTo(latest) > 0) {
+				latest = v;
+				latestRaw = name;
+			}
+		}
+		return latestRaw;
 	}
 
 	/** Pure path resolution for the {@code {mvnDir}/{group}/{artifact}/} directory. No side effects. */
