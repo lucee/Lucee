@@ -17,8 +17,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" {
 			});
 
 			it( title="returns the right side when the left side is null", body=function( currentSpec ) {
-				var value = nullValue();
-				expect( value ?? "lucee" ).toBe( "lucee" );
+				// unique name, without full null support a null local falls through to other scopes
+				var ldev5343_null = nullValue();
+				expect( ldev5343_null ?? "lucee" ).toBe( "lucee" );
 			});
 
 			it( title="works with a missing struct key and without spaces", body=function( currentSpec ) {
