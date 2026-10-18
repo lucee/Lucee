@@ -1264,6 +1264,9 @@ public final class OSGiUtil {
 
 		String preferedName = bf.getSymbolicName() + "-" + bf.getVersionAsString() + ".jar";
 		if (!preferedName.equals(f.getName())) {
+			// LDEV-6145: Felix keeps the location of an installed bundle across restarts; renaming the jar
+			// behind its back makes the next start fail with "Bundle symbolic name and version are not unique"
+			if (isInstalledAt(f, bf.getFile())) return bf;
 			try {
 				File nf = new File(f.getParentFile(), preferedName);
 				if (f.renameTo(nf)) {
@@ -1286,6 +1289,30 @@ public final class OSGiUtil {
 			}
 		}
 		return bf;
+	}
+
+	/**
+	 * checks if Felix has a bundle installed from one of the given files (installed bundles use the
+	 * absolute path of the jar as location)
+	 */
+	private static boolean isInstalledAt(File... files) {
+		try {
+			BundleContext bc = CFMLEngineFactory.getInstance().getBundleContext();
+			if (bc == null) return false;
+			Bundle[] bundles = bc.getBundles();
+			if (bundles == null) return false;
+			for (File file: files) {
+				if (file == null) continue;
+				String location = file.getAbsolutePath();
+				for (Bundle b: bundles) {
+					if (location.equals(b.getLocation())) return true;
+				}
+			}
+		}
+		catch (Exception e) {
+			// engine/OSGi framework not available yet, nothing installed
+		}
+		return false;
 	}
 
 	private static List<Resource> createPossibleNameMatches(Resource dir, List<Resource> addional, BundleRange bundleRange) {
