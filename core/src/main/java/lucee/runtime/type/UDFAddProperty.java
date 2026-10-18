@@ -65,30 +65,27 @@ public final class UDFAddProperty extends UDFGSProperty {
 	}
 
 	@Override
-	public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
-		Component c = getComponent(pageContext);
+	public Object _call(PageContext pageContext, Component comp, Object[] args) throws PageException {
 		// struct
 		if (this.arguments.length == 2) {
 			if (args.length < 2) throw new ExpressionException(
 					"The function [" + getFunctionName() + "] needs 2 arguments, only " + args.length + " argument" + (args.length == 1 ? " is" : "s are") + " passed in.");
-			return _call(pageContext, c, args[0], args[1]);
+			return _call(pageContext, comp, args[0], args[1]);
 		}
 		// array
 		else if (this.arguments.length == 1) {
 			if (args.length < 1)
 				throw new ExpressionException("The parameter [" + this.arguments[0].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
-			return _call(pageContext, c, null, args[0]);
+			return _call(pageContext, comp, null, args[0]);
 		}
 
 		// never reached
-		return c;
-
+		return comp;
 	}
 
 	@Override
-	public Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
+	public Object _callWithNamedValues(PageContext pageContext, Component comp, Struct values) throws PageException {
 		UDFUtil.argumentCollection(values, getFunctionArguments());
-		Component c = getComponent(pageContext);
 
 		// struct
 		if (this.arguments.length == 2) {
@@ -99,7 +96,7 @@ public final class UDFAddProperty extends UDFGSProperty {
 			if (key == null) throw new ExpressionException("The parameter [" + keyName + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 			if (value == null) throw new ExpressionException("The parameter [" + valueName + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 
-			return _call(pageContext, c, key, value);
+			return _call(pageContext, comp, key, value);
 		}
 		// array
 		else if (this.arguments.length == 1) {
@@ -112,11 +109,11 @@ public final class UDFAddProperty extends UDFGSProperty {
 				}
 				else throw new ExpressionException("The parameter [" + valueName + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 			}
-			return _call(pageContext, c, null, value);
+			return _call(pageContext, comp, null, value);
 		}
 
 		// never reached
-		return getComponent(pageContext);
+		return comp;
 	}
 
 	private Object _call(PageContext pageContext, Component c, Object key, Object value) throws PageException {
