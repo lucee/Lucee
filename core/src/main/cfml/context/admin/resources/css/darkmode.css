@@ -171,6 +171,22 @@ body.dark-mode .reset {
   color: var(--button-text);
 }
 
+/* selected Release / Pre-Release / Snapshot button of the extension version selector, red like in light mode */
+body.dark-mode input.button.btn[id^="btn_"] {
+  background: #CC0000;
+  color: #fff;
+}
+
+/* "Show Details" button of an error message keeps its light background */
+body.dark-mode button#error-details {
+  color: #000;
+}
+
+/* the yellow note of the Note plugin */
+body.dark-mode textarea.note {
+  color: #000 !important;
+}
+
 /* Comments and messages */
 body.dark-mode .comment {
   color: var(--comment-color) !important;
