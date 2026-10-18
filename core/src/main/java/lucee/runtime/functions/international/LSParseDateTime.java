@@ -71,6 +71,13 @@ public final class LSParseDateTime implements Function {
 
 		if (oDate instanceof Date) return Caster.toDate(oDate, tz);
 
+		// epoch / epochms: the value is an absolute instant (seconds / milliseconds since 1970-01-01 UTC), so no timezone applies
+		if (format != null) {
+			String f = format.trim();
+			if ("epoch".equalsIgnoreCase(f)) return new DateTimeImpl(Caster.toLongValue(oDate) * 1000L);
+			if ("epochms".equalsIgnoreCase(f)) return new DateTimeImpl(Caster.toLongValue(oDate));
+		}
+
 		String strDate = StringUtil.replaceSpecialWhiteSpace(Caster.toString(oDate));
 
 		// regular parse date time
