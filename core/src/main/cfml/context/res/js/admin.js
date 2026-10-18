@@ -86,18 +86,24 @@ function setMenuCollapsed(id, collapsed) {
 	catch (e) {}
 }
 
+// LDEV-5852: only touch the checkboxes and buttons of the form the change/click happened in
 $(".checkbox").change(function () {
-	$(".enablebutton").attr({ disabled: true, style: "opacity:0.5" });
-	if ($(".checkbox:checked").length) {
-		$(".enablebutton").attr({ disabled: false, style: "opacity:1" });
+	var $form = $(this).closest("form");
+	var $buttons = $form.find(".enablebutton");
+	$buttons.attr({ disabled: true, style: "opacity:0.5" });
+	if ($form.find(".checkbox:checked").length) {
+		$buttons.attr({ disabled: false, style: "opacity:1" });
 	}
 });
-$("#clickCancel").click(function () {
-	if ($('.maintbl').find('input[name="rowreadonly"]').prop("checked"))
-		$('.maintbl').find('input[name="rowreadonly"]').trigger('click')
+// pages with more than one list repeat the id, "#clickCancel" would only bind the first one
+$("[id='clickCancel']").click(function () {
+	var $form = $(this).closest("form");
+	var $readonly = $form.find('.maintbl input[name="rowreadonly"]');
+	if ($readonly.prop("checked"))
+		$readonly.trigger('click')
 	else
-		$('.maintbl').find("input.checkbox").prop("checked", false)
-	$(".enablebutton").attr({ disabled: true, style: "opacity:0.5" });
+		$form.find(".maintbl input.checkbox").prop("checked", false)
+	$form.find(".enablebutton").attr({ disabled: true, style: "opacity:0.5" });
 });
 
 function initMenu2() {
