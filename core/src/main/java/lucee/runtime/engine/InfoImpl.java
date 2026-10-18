@@ -19,6 +19,7 @@ package lucee.runtime.engine;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -112,7 +113,13 @@ public final class InfoImpl implements Info {
 					Integer.parseInt(dateStr.substring(index4 + 1, index5)), // minute
 					Integer.parseInt(dateStr.substring(index5 + 1, index6)) // second
 			);
-			return ldt.atZone(ZoneId.of(dateStr.substring(index6 + 1))).toInstant().toEpochMilli();
+			// short zone names like IST or EST are not region ids, ZoneId.SHORT_IDS maps them (IST -> Asia/Kolkata)
+			try {
+				return ldt.atZone(ZoneId.of(dateStr.substring(index6 + 1), ZoneId.SHORT_IDS)).toInstant().toEpochMilli();
+			}
+			catch (DateTimeException e) {
+				// unknown zone (e.g. CEST), use the fallback below
+			}
 		}
 		// fallback (slower, but more forgiving)
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss z", Locale.ENGLISH);

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="sas" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
     function beforeAll(){
         variables.uri = createURI("LDEV3860");
         cleanup();
@@ -64,7 +64,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="sas" {
             });
         });
         // testcase for LDEV-4211
-        describe(title="Testcase for LDEV-4211", skip=true, body=function() { 
+        describe(title="Testcase for LDEV-4211", body=function() {
             it( title="check error - using invalid entity name in entityNew() without transcation", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ){
                local.res = _InternalRequest(
                    template="#variables.uri#\LDEV3860.cfm",

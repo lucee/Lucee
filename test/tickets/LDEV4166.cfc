@@ -19,12 +19,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				);
 				//dumpResult( "cfmlSessionId: " & cfmlSessionId.filecontent );
 				expect( len( cfmlSessionId.filecontent ) ).toBeGT( 0 );
+				var result = deserializeJSON( cfmlSessionId.filecontent );
 
-				var appName = listFirst( trim( cfmlSessionId.filecontent ), '-' ) & "-" ;
+				var appName = listFirst( result.sessionId, '-' ) & "-" ;
+
+				// onSessionEnd runs synchronously within sessionInvalidate(), which doesn't create a replacement session
+				expect( result.onSessionEndCalls ).toBe( 1 );
+				expect( getSessionCount( appName ) ).toBe( 0 );
 
 				// allow session to expire
-				expect( getSessionCount( appName ) ).toBe( 1 );
-
 				sleep(1001);
 				admin
 					action="purgeExpiredSessions"
@@ -33,7 +36,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				//systemOutput(server.LDEV4166_ended_CFML_Sessions, true);
 				// let's check first that the session actually ended!
 				expect( getSessionCount( appName ) ).toBe( 0 );
-				expect( structKeyExists( server.LDEV4166_ended_CFML_Sessions, trim( cfmlSessionId.filecontent ) ) ).toBeTrue();
+				expect( server.LDEV4166_ended_CFML_Sessions[ result.sessionId ] ).toBe( 1, "onSessionEnd should run exactly once" );
 			});
 
 			it( title='jee session - onSessionEnd with SessionInvalidate()', body=function( currentSpec ) {
@@ -43,10 +46,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				);
 				//dumpResult( "j2eeSessionId: " & j2eeSessionId.filecontent );
 				expect( len( j2eeSessionId.filecontent ) ).toBeGT( 0 );
+				var result = deserializeJSON( j2eeSessionId.filecontent );
 
-				var appName = listFirst( trim( j2eeSessionId.filecontent ), '-' ) & "-" ;
+				var appName = listFirst( result.sessionId, '-' ) & "-" ;
 
-				expect( getSessionCount( appName ) ).toBe( 1 );
+				// onSessionEnd runs synchronously within sessionInvalidate(), which doesn't create a replacement session
+				expect( result.onSessionEndCalls ).toBe( 1 );
+				expect( getSessionCount( appName ) ).toBe( 0 );
+
 				// allow session to expire
 				sleep(1001);
 				admin
@@ -56,7 +63,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				//systemOutput(server.LDEV4166_ended_JEE_Sessions, true);
 				// let's check first that the session actually ended!
 				expect( getSessionCount( appName ) ).toBe( 0 );
-				expect( structKeyExists( server.LDEV4166_ended_JEE_Sessions, trim( j2eeSessionId.filecontent ) ) ).toBeTrue();
+				expect( server.LDEV4166_ended_JEE_Sessions[ result.sessionId ] ).toBe( 1, "onSessionEnd should run exactly once" );
 			});
 		});
 	}
