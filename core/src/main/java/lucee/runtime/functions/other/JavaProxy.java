@@ -32,6 +32,7 @@ import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.WildCardFilter;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ClassLookupCache;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -42,6 +43,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
+import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -56,6 +58,29 @@ import lucee.transformer.bytecode.util.SystemExitScanner;
 public final class JavaProxy implements Function {
 
 	private static final long serialVersionUID = 2696152022196556309L;
+
+	/**
+	 * returns the class for the given name from the class lookup cache of the current RPC classloader,
+	 * or null if not cached
+	 */
+	public static Class<?> tryCachedLoad(PageContext pc, String className) {
+		try {
+			return ClassLookupCache.get(((PageContextImpl) pc).getRPCClassLoader((JavaSettings) null), className);
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
+
+	public static void cacheClassLookup(PageContext pc, String className, Class<?> cls) {
+		if (cls == null) return;
+		try {
+			ClassLookupCache.put(((PageContextImpl) pc).getRPCClassLoader((JavaSettings) null), className, cls);
+		}
+		catch (Exception e) {
+			// ignore, a cache miss is recoverable
+		}
+	}
 
 	public static Object call(PageContext pc, String className) throws PageException {
 		return call(pc, className, null, null, null);
@@ -142,6 +167,38 @@ public final class JavaProxy implements Function {
 	private static Class<?> loadClassByPath(PageContext pc, String className, String[] paths) throws PageException {
 
 		PageContextImpl pci = (PageContextImpl) pc;
+
+		// fast path: no paths means the default RPC classloader resolves this className, so we can cache
+		// the result
+		if (paths == null) {
+			try {
+				ClassLoader cl = pci.getRPCClassLoader((JavaSettings) null);
+				Class<?> cached = ClassLookupCache.get(cl, className);
+				if (cached != null) return cached;
+				Class<?> loaded;
+				try {
+					loaded = ClassUtil.loadClass(cl, className);
+				}
+				catch (ClassException ce) {
+					// try java.lang if no package definition
+					if (className.indexOf('.') == -1) {
+						try {
+							loaded = ClassUtil.loadClass(cl, "java.lang." + className);
+						}
+						catch (ClassException e) {
+							throw ce;
+						}
+					}
+					else throw ce;
+				}
+				ClassLookupCache.put(cl, className, loaded);
+				return loaded;
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+
 		java.util.List<Resource> resources = new ArrayList<Resource>();
 
 		if (paths != null && paths.length > 0) {

@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -2388,12 +2389,26 @@ public final class OSGiUtil {
 		return bootDelegation;
 	}
 
+	// the result only depends on the package and the boot delegation list (loaded once), so we cache by
+	// package name; the number of packages is small, but we still cap the cache to avoid slow growth
+	private static final int BOOTELEGATION_CACHE_MAX = 10_000;
+	private static final ConcurrentHashMap<String, Boolean> BOOTELEGATION_CACHE = new ConcurrentHashMap<>();
+
 	public static boolean isClassInBootelegation(String className) {
-		return isInBootelegation(className, false);
+		int index = className.lastIndexOf('.');
+		if (index == -1) return false;
+		return isPackageInBootelegation(className.substring(0, index));
 	}
 
-	public static boolean isPackageInBootelegation(String className) {
-		return isInBootelegation(className, true);
+	public static boolean isPackageInBootelegation(String packageName) {
+		Boolean cached = BOOTELEGATION_CACHE.get(packageName);
+		if (cached != null) return cached.booleanValue();
+		boolean result = isInBootelegation(packageName, true);
+		// only cache once the boot delegation list is available
+		if (getBootdelegation().length == 0) return result;
+		if (BOOTELEGATION_CACHE.size() >= BOOTELEGATION_CACHE_MAX) BOOTELEGATION_CACHE.clear();
+		BOOTELEGATION_CACHE.put(packageName, result ? Boolean.TRUE : Boolean.FALSE);
+		return result;
 	}
 
 	private static boolean isInBootelegation(String name, boolean isPackage) {

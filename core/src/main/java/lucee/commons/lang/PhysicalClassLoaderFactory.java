@@ -117,7 +117,10 @@ public class PhysicalClassLoaderFactory {
 
 	public static boolean flush(Config c) {
 		String key = key(c, ((ConfigPro) c).getJavaSettings(), null, SystemUtil.getCoreClassLoader());
-		return classLoaders.remove(key) != null;
+		CachedLoader removed = classLoaders.remove(key);
+		if (removed == null) return false;
+		ClassLookupCache.remove(removed.loader);
+		return true;
 	}
 
 	public static PhysicalClassLoader getRPCClassLoader(Config c, BundleClassLoader bcl, boolean reload) throws IOException {

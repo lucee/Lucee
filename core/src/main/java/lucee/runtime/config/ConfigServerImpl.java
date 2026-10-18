@@ -89,6 +89,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ByteSizeParser;
 import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ClassLookupCache;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
@@ -4210,6 +4211,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public void clearRPCClassLoader() {
 		rpcClassLoaders.clear();
+		ClassLookupCache.clear();
 	}
 
 	@Override
@@ -7211,6 +7213,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			synchronized (SystemUtil.createToken("extensions", "javaSettings")) {
 				if (javaSettings != null) {
 					javaSettings = null;
+					ClassLookupCache.clear();
 				}
 			}
 		}
