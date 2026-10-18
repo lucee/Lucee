@@ -1197,6 +1197,7 @@ tbody#extproviderlist td {
     display: block;
     padding: 0px;
     height: 170px;
+    font-size: 12.7px; /* smaller font for the extension name in the fixed-size tile */
     text-decoration: none !important;
     border: 5px solid #dcdad3;
     background-color: #fff;
