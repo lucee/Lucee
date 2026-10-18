@@ -92,6 +92,8 @@
     <property name="testFilter" value=""/>
     <!-- list of labels to filter tests by, comma delimitered -->
     <property name="testLabels" value=""/>
+    <!-- true to hide the java stacktraces in the test output -->
+    <property name="testHideJavaStack" value=""/>
     <!-- a local directory to install additional extensions -->
     <property name="testExtensions" value=""/>
     <!-- a local directory to run additional tests  -->
@@ -739,6 +741,7 @@
       <jvmarg value="-Dtest=${test}"/>
       <jvmarg value="-DtestFilter=${testFilter}"/>
       <jvmarg value="-DtestLabels=${testLabels}"/>
+      <jvmarg value="-DtestHideJavaStack=${testHideJavaStack}"/>
       <jvmarg value="-DtestAdditional=${testAdditional}"/>
       <jvmarg value="-DtestSkip=${testSkip}"/>
       <jvmarg value="-DtestDebug=${testDebug}"/>
