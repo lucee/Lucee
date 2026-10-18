@@ -377,9 +377,11 @@ public abstract class AbstrCFMLExprTransformer {
 
 		Expression expr = impOp(data);
 		if (data.srcCode.forwardIfCurrent('?')) {
+			// LDEV-5343 null coalescing operator "??", same as Elvis "?:"
+			boolean nullCoalescing = data.srcCode.forwardIfCurrent('?');
 			comments(data);
 			// Elvis
-			if (data.srcCode.forwardIfCurrent(':')) {
+			if (nullCoalescing || data.srcCode.forwardIfCurrent(':')) {
 
 				comments(data);
 				Expression right = assignOp(data);
