@@ -1054,6 +1054,8 @@
 			"pause": "pause",
 			"paused": "Pausiert",
 			"pausedesc": "Dieses setting stoppt die Ausführung des Task",
+			"autodelete": "Automatisch löschen",
+			"autodeletedesc": "Ist diese Option gesetzt, wird der Task gelöscht, sobald keine weitere Ausführung mehr möglich ist.",
 			"port": "Port",
 			"portdescription": "Port der aufzurufenden URL (HTTP Standard: 80)",
 			"proxy": "Proxy Einstellungen",

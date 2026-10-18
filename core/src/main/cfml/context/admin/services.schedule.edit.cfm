@@ -122,6 +122,7 @@ ACTIONS --->
 				interval="#nullIfEmpty(form.interval)#"
 				file="#nullIfEmpty(form.file)#"
 				serverpassword="#variables.passwordserver#"
+				autoDelete="#formBool('autoDelete')#"
 				remoteClients="#request.getRemoteClients()#"
 				>
 
@@ -577,6 +578,13 @@ Error Output--->
 					<td>
 						<input type="checkbox" class="checkbox" name="paused" value="true"<cfif task.paused> checked="checked"</cfif> />
 						<div class="comment">#stText.Schedule.pauseDesc#</div>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">#stText.Schedule.autoDelete#</th>
+					<td>
+						<input type="checkbox" class="checkbox" name="autoDelete" value="true"<cfif task.autoDelete?:false> checked="checked"</cfif> />
+						<div class="comment">#stText.Schedule.autoDeleteDesc#</div>
 					</td>
 				</tr>
 				<cfmodule template="remoteclients.cfm" colspan="2">
