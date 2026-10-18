@@ -9018,7 +9018,7 @@ The following things are considered to be empty:
 			<required>No</required>
 			<default>,</default>
 			<description>Characters that separate list elements. The default value is comma.
-			If this string contains more than one character, only the first character is used.</description>
+			If this string contains more than one character, only the first character is used, unless multiCharacterDelimiter is true.</description>
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
@@ -9027,6 +9027,13 @@ The following things are considered to be empty:
 			<default>true</default>
 			<description>if false it cleans up empty fields.</description>
 			<introduced>5.3.5.17</introduced>
+		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listAppend("1, 2", 3, ", ", true, true) returns "1, 2, 3". If false (default), only the first character of delimiters is used.</description>
 		</argument>
 		<return>
 			<type>string</type>
