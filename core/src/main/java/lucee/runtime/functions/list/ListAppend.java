@@ -53,13 +53,31 @@ public final class ListAppend extends BIF {
 		return new StringBuilder(list).append(del).append(value).toString();
 	}
 
+	public static String call(PageContext pc, String list, String value, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
+		// without multiCharacterDelimiter only the first character of the delimiter is used (as before)
+		if (!multiCharacterDelimiter || delimiter.length() <= 1) return call(pc, list, value, delimiter, includeEmptyFields);
+
+		if (!includeEmptyFields) {
+			list = removeEmpty(list, delimiter);
+			value = removeEmpty(value, delimiter);
+		}
+		if (list.length() == 0) return value;
+		return new StringBuilder(list).append(delimiter).append(value).toString();
+	}
+
+	private static String removeEmpty(String list, String delimiter) throws PageException {
+		return ListUtil.arrayToList(ListUtil.listToArray(list, delimiter, false, true), delimiter);
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), ",", true);
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), true);
 		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]));
+		if (args.length == 5)
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), Caster.toBooleanValue(args[4]));
 
-		throw new FunctionException(pc, "ListAppend", 2, 4, args.length);
+		throw new FunctionException(pc, "ListAppend", 2, 5, args.length);
 	}
 
 }
