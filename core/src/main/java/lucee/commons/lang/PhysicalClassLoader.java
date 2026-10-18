@@ -125,6 +125,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 		count += ClazzDynamic.remove(existing);
 
 		ClazzDynamic.flush(existing);
+		ClassLookupCache.remove(existing);
 
 		if (LogUtil.does(Log.LEVEL_TRACE)) {
 			int all = existing.allLoadedClasses.size();

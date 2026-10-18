@@ -67,8 +67,12 @@ public final class _CreateComponent {
 			path = Caster.toString(objArr[objArr.length - 2]);
 		}
 
-		// not store the index to make it faster
-		ComponentImpl cfc = type != TYPE_JAVA ? ComponentLoader.searchComponent(pc, null, path, null, null, false, true, true, type == TYPE_CFML) : null;
+		// FQN fast-path: when the name is unambiguously a JDK fully-qualified name
+		// (java.*, javax.*, sun.*, jdk.*), skip the CFC search entirely.
+		// _search would walk every component mapping looking for e.g. /java/lang/StringBuilder.cfc
+		// and never find one. Only short-circuits when type is TYPE_BOTH (default for new operator).
+		boolean skipCfcSearch = type == TYPE_BOTH && isJavaFqn(path);
+		ComponentImpl cfc = (type != TYPE_JAVA && !skipCfcSearch) ? ComponentLoader.searchComponent(pc, null, path, null, null, false, true, true, type == TYPE_CFML) : null;
 		// if type is TYPE_CFML we do not have to check for it here anymore, because the line above has a
 		// cfc or throws an exception
 		Class cls = cfc == null ? cls = loadClass(pc, path, type) : null;
@@ -142,6 +146,15 @@ public final class _CreateComponent {
 		return rtn;
 	}
 
+	/**
+	 * true for names that can only be JDK classes; packages like jakarta.*, org.w3c.* or org.xml.* are
+	 * not included on purpose, because they could collide with user component packages
+	 */
+	private static boolean isJavaFqn(String path) {
+		if (path == null || path.length() < 5) return false;
+		return path.startsWith("java.") || path.startsWith("javax.") || path.startsWith("sun.") || path.startsWith("jdk.");
+	}
+
 	public static Class loadClass(PageContext pc, String path, int type) throws ApplicationException {
 		Class cls = null;
 		// no package
@@ -162,8 +175,12 @@ public final class _CreateComponent {
 			}
 		}
 		if (cls == null) {
+			// fast path: cached resolution via the class lookup cache of the default RPC classloader
+			cls = JavaProxy.tryCachedLoad(pc, path);
+			if (cls != null) return cls;
 			try {
 				cls = ClassUtil.loadClass(pc, path);
+				JavaProxy.cacheClassLookup(pc, path, cls);
 			}
 			catch (Exception e) {
 				ApplicationException ae = new ApplicationException("could not find " + (type == TYPE_BOTH ? "component or class" : "class") + "  with name [" + path + "]");

@@ -30,11 +30,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -62,6 +64,7 @@ import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.dynamic.DynamicInvoker;
+import lucee.transformer.dynamic.meta.Constructor;
 import lucee.transformer.dynamic.meta.Method;
 
 public final class ClassUtil {
@@ -99,55 +102,41 @@ public final class ClassUtil {
 		Class res = checkPrimaryTypesBytecodeDef(className, null);
 		if (res != null) return res;
 
-		String lcClassName = className.toLowerCase();
+		// length-based fast exits to avoid String allocation on the common path
+		int len = className.length();
+		if (len < 3 || len > 19) return defaultValue; // shortest "int" = 3, longest "java.lang.character" = 19
+
+		String target;
 		boolean isRef = false;
-		if (lcClassName.startsWith("java.lang.")) {
-			lcClassName = lcClassName.substring(10);
+		if (len > 9) {
+			// only "java.lang.X" prefixed form possible
+			if (len < 14) return defaultValue; // "java.lang." + min 4 ("void") = 14
+			if (!className.regionMatches(true, 0, "java.lang.", 0, 10)) return defaultValue;
+			target = className.substring(10);
 			isRef = true;
+			if (target.length() > 9) return defaultValue;
+		}
+		else {
+			target = className;
 		}
 
-		if (lcClassName.length() > 9) return defaultValue; // short circuit longest below match is "character"
+		// equalsIgnoreCase doesn't allocate
+		if (target.equalsIgnoreCase("void")) return void.class;
+		if (target.equalsIgnoreCase("boolean")) return isRef ? Boolean.class : boolean.class;
+		if (target.equalsIgnoreCase("byte")) return isRef ? Byte.class : byte.class;
+		if (target.equalsIgnoreCase("int")) return int.class;
+		if (target.equalsIgnoreCase("long")) return isRef ? Long.class : long.class;
+		if (target.equalsIgnoreCase("float")) return isRef ? Float.class : float.class;
+		if (target.equalsIgnoreCase("double")) return isRef ? Double.class : double.class;
+		if (target.equalsIgnoreCase("char")) return char.class;
+		if (target.equalsIgnoreCase("short")) return isRef ? Short.class : short.class;
 
-		if (lcClassName.equals("void")) {
-			return void.class;
-		}
-		if (lcClassName.equals("boolean")) {
-			if (isRef) return Boolean.class;
-			return boolean.class;
-		}
-		if (lcClassName.equals("byte")) {
-			if (isRef) return Byte.class;
-			return byte.class;
-		}
-		if (lcClassName.equals("int")) {
-			return int.class;
-		}
-		if (lcClassName.equals("long")) {
-			if (isRef) return Long.class;
-			return long.class;
-		}
-		if (lcClassName.equals("float")) {
-			if (isRef) return Float.class;
-			return float.class;
-		}
-		if (lcClassName.equals("double")) {
-			if (isRef) return Double.class;
-			return double.class;
-		}
-		if (lcClassName.equals("char")) {
-			return char.class;
-		}
-		if (lcClassName.equals("short")) {
-			if (isRef) return Short.class;
-			return short.class;
-		}
-
-		if (lcClassName.equals("integer")) return Integer.class;
-		if (lcClassName.equals("character")) return Character.class;
-		if (lcClassName.equals("object")) return Object.class;
-		if (lcClassName.equals("string")) return String.class;
-		if (lcClassName.equals("null")) return Object.class;
-		if (lcClassName.equals("numeric")) return Double.class;
+		if (target.equalsIgnoreCase("integer")) return Integer.class;
+		if (target.equalsIgnoreCase("character")) return Character.class;
+		if (target.equalsIgnoreCase("object")) return Object.class;
+		if (target.equalsIgnoreCase("string")) return String.class;
+		if (target.equalsIgnoreCase("null")) return Object.class;
+		if (target.equalsIgnoreCase("numeric")) return Double.class;
 
 		return defaultValue;
 	}
@@ -393,10 +382,13 @@ public final class ClassUtil {
 	 */
 	public static Class loadClass(ClassLoader cl, String className) throws ClassException {
 
-		Set<Throwable> exceptions = new HashSet<Throwable>();
-		Class clazz = loadClass(cl, className, null, exceptions);
-
+		// fast path: skip the HashSet allocation when the class is found
+		Class clazz = loadClass(cl, className, null, null);
 		if (clazz != null) return clazz;
+
+		// slow path: capture exceptions for diagnostic
+		Set<Throwable> exceptions = new HashSet<Throwable>();
+		loadClass(cl, className, null, exceptions);
 
 		String msg = "cannot load class through its string name, because no definition for the class with the specified name [" + className + "] could be found";
 
@@ -502,6 +494,56 @@ public final class ClassUtil {
 		return defaultValue;
 	}
 
+	// cached no-arg constructor per class; ClassValue stores the value with the class itself, so it does
+	// not keep any classloader alive. null is cached for classes without a usable no-arg constructor, in
+	// that case we use the regular path (that produces the proper exception)
+	private static final ClassValue<Constructor> NO_ARG_CONSTRUCTOR = new ClassValue<Constructor>() {
+		@Override
+		protected Constructor computeValue(Class<?> clazz) {
+			try {
+				DynamicInvoker di = DynamicInvoker.getExistingInstance();
+				if (di == null) return null;
+				return di.toClazz(clazz).getConstructor(EMPTY_OBJ, true, false, null);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				return null;
+			}
+		}
+	};
+
+	// cached single argument constructor per class and argument class. The argument classes are weak
+	// keys, so a JDK class (for example) does not keep an argument class from a RPC classloader alive.
+	// Only constructors found by the exact/assignable match (that only depends on the argument class and
+	// not on the value) are cached, matches that need a conversion comparison (rating) always use the
+	// regular path, so the selected overload is always the same as without the cache.
+	private static final ClassValue<Map<Class, Constructor>> ONE_ARG_CONSTRUCTOR = new ClassValue<Map<Class, Constructor>>() {
+		@Override
+		protected Map<Class, Constructor> computeValue(Class<?> clazz) {
+			return Collections.synchronizedMap(new WeakHashMap<Class, Constructor>());
+		}
+	};
+
+	private static Constructor getOneArgConstructor(Class clazz, Object arg) {
+		if (arg == null) return null;
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
+		if (di == null) return null;
+		Map<Class, Constructor> cache = ONE_ARG_CONSTRUCTOR.get(clazz);
+		Class argClass = arg.getClass();
+		Constructor constr = cache.get(argClass);
+		if (constr != null) return constr;
+		try {
+			// no conversion, only exact or assignable matches, the probe array is not modified
+			constr = di.toClazz(clazz).getConstructor(new Object[] { arg }, false, false, null);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return null;
+		}
+		if (constr != null) cache.put(argClass, constr);
+		return constr;
+	}
+
 	/**
 	 * loads a class from a String classname
 	 * 
@@ -511,6 +553,10 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz) throws ClassException {
 		try {
+			if (DynamicInvoker.getExistingInstance() != null) {
+				Constructor cached = NO_ARG_CONSTRUCTOR.get(clazz);
+				if (cached != null) return cached.newInstance(EMPTY_OBJ);
+			}
 			return Reflector.getConstructorInstance(clazz, EMPTY_OBJ, false).invoke();
 		}
 		catch (InstantiationException e) {
@@ -588,6 +634,12 @@ public final class ClassUtil {
 		if (args == null || args.length == 0) return loadInstance(clazz);
 
 		try {
+			// 1-arg fast path
+			if (args.length == 1) {
+				args = Reflector.cleanArgs(args);
+				Constructor cached = getOneArgConstructor(clazz, args[0]);
+				if (cached != null) return cached.newInstance(args);
+			}
 			return Reflector.getConstructorInstance(clazz, args, false).invoke();
 		}
 		catch (SecurityException e) {
