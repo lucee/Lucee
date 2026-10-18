@@ -30,7 +30,13 @@
 <head>
 	<title>#attributes.title# - Lucee #ucFirst(request.adminType)# Administrator</title>
 	<script>
-	if (localStorage.getItem('darkMode') === 'enabled') {
+	// an explicit choice from the toggle wins, otherwise follow the system/browser setting
+	function isDarkModeEnabled() {
+		const stored = localStorage.getItem('darkMode');
+		if (stored) return stored === 'enabled';
+		return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+	}
+	if (isDarkModeEnabled()) {
 		document.documentElement.classList.add('dark-mode');
 	}
 	</script>
@@ -610,10 +616,10 @@
 			toggleButton.textContent = '☽';
 			document.body.appendChild(toggleButton);
 			
-			// Check for saved preference
-			const darkModeEnabled = localStorage.getItem('darkMode') === 'enabled';
+			// Check for saved preference, falls back to the system setting
+			const darkModeEnabled = isDarkModeEnabled();
 			
-			// Apply dark mode if previously enabled
+			// Apply dark mode if enabled
 			if (darkModeEnabled) {
 				document.documentElement.classList.add('dark-mode');
 				toggleButton.textContent = '☀';
