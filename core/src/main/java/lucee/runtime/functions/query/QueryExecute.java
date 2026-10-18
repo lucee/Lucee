@@ -29,7 +29,6 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -101,7 +100,7 @@ public final class QueryExecute extends BIF {
 
 	// only cfquery attributes (incl. aliases) are passed on, other keys (e.g. a datasource definition) must not reach a Query setter
 	private static Struct toQueryAttributes(PageContext pc, Struct options) {
-		TagLibTag tlt = TagUtil.getTagLibTag((ConfigPro) ThreadLocalPageContext.getConfig(pc), "cf", "query");
+		TagLibTag tlt = TagUtil.getTagLibTag(ThreadLocalPageContext.getConfigServer(pc), "cf", "query");
 		if (tlt == null) return options;
 
 		Struct attrs = new StructImpl();
