@@ -1,12 +1,16 @@
 package lucee.commons.io.log.log4j2.appender;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Types;
+import java.util.TimeZone;
 
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 
+import lucee.commons.db.DBUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -19,6 +23,7 @@ import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.SQL;
+import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItem;
 import lucee.runtime.db.SQLItemImpl;
@@ -135,7 +140,7 @@ public final class DatasourceAppender extends AbstractAppender {
 							, new SQLItemImpl(custom == null ? "" : custom, Types.VARCHAR)
 
 					});
-			new QueryImpl(optionalPC, conn, sql, -1, -1, null, "query");
+			insert(optionalPC, conn, sql, LogUtil.getTimeZone(config));
 		}
 		catch (PageException pe) {
 			LogUtil.logGlobal(config, "log-loading", pe);
@@ -147,6 +152,25 @@ public final class DatasourceAppender extends AbstractAppender {
 			catch (PageException pee) {
 				LogUtil.logGlobal(config, "log-loading", pee);
 			}
+		}
+	}
+
+	// not done with QueryImpl, that binds the time with the request timezone, but the log table is shared by all applications
+	private static void insert(PageContext pc, DatasourceConnection dc, SQL sql, TimeZone tz) throws PageException {
+		PreparedStatement ps = null;
+		try {
+			ps = dc.getPreparedStatement(sql, false, false);
+			SQLItem[] items = sql.getItems();
+			for (int i = 0; i < items.length; i++) {
+				SQLCaster.setValue(pc, tz, ps, i + 1, items[i]);
+			}
+			ps.executeUpdate();
+		}
+		catch (SQLException e) {
+			throw Caster.toPageException(e);
+		}
+		finally {
+			DBUtil.closeEL(ps);
 		}
 	}
 

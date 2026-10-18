@@ -29,6 +29,7 @@ import java.util.Date;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -44,13 +45,13 @@ public final class SystemOut {
 	 */
 	public static void printDate(PrintWriter pw, String value) {
 		long millis = System.currentTimeMillis();
-		pw.write(FormatUtil.format(FORMAT, new Date(millis), null) + " " + value + "\n");
+		pw.write(FormatUtil.format(FORMAT, new Date(millis), LogUtil.getTimeZone(null)) + " " + value + "\n");
 		pw.flush();
 	}
 
 	public static void printDate(PrintWriter pw, Throwable t) {
 		long millis = System.currentTimeMillis();
-		pw.write(FormatUtil.format(FORMAT, new Date(millis), null) + "\n");
+		pw.write(FormatUtil.format(FORMAT, new Date(millis), LogUtil.getTimeZone(null)) + "\n");
 		t.printStackTrace(pw);
 		pw.write("\n");
 		pw.flush();

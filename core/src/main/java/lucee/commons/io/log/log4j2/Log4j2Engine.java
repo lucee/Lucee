@@ -78,7 +78,7 @@ public final class Log4j2Engine extends LogEngine {
 		PrintWriter pw = errorStream ? config.getErrWriter() : config.getOutWriter();
 		if (pw == null) pw = new PrintWriter(errorStream ? System.err : System.out);
 
-		return _getLogger(config, getConsoleAppender(name, pw, PatternLayout.newBuilder().withPattern(DEFAULT_PATTERN).build(), true), name, level);
+		return _getLogger(config, getConsoleAppender(name, pw, PatternLayout.newBuilder().withPattern(getDefaultPattern(config)).build(), true), name, level);
 	}
 
 	@Override
@@ -272,9 +272,9 @@ public final class Log4j2Engine extends LogEngine {
 
 				// pattern
 				String pattern = Caster.toString(layoutArgs.get("pattern"), null);
-				if (!StringUtil.isEmpty(pattern, true)) builder.withPattern(pattern);
+				if (!StringUtil.isEmpty(pattern, true) && !DEFAULT_PATTERN.equals(pattern)) builder.withPattern(pattern);
 				else {
-					builder.withPattern(DEFAULT_PATTERN);
+					builder.withPattern(getDefaultPattern(config));
 					layoutArgs.put("pattern", DEFAULT_PATTERN);
 				}
 
@@ -553,7 +553,12 @@ public final class Log4j2Engine extends LogEngine {
 	@Override
 	public Object getDefaultLayout() {
 
-		return PatternLayout.newBuilder().withPattern("%d{dd.MM.yyyy HH:mm:ss,SSS} %-5p [%c] %m%n").build();
+		return PatternLayout.newBuilder().withPattern(getDefaultPattern(config)).build();
+	}
+
+	// %d without a timezone uses the JVM default, the log has to use the timezone of the server config
+	private static String getDefaultPattern(Config config) {
+		return "%d{dd.MM.yyyy HH:mm:ss,SSS}{" + LogUtil.getTimeZone(config).getID() + "} %-5p [%c] %m%n";
 	}
 
 	@Override
@@ -625,7 +630,7 @@ public final class Log4j2Engine extends LogEngine {
 			PrintWriter pw;
 			if (config.getErrWriter() == null) pw = new PrintWriter(System.err);
 			else pw = config.getErrWriter();
-			fallback = getConsoleAppender("fallback", pw, PatternLayout.newBuilder().withPattern(DEFAULT_PATTERN).build(), true);
+			fallback = getConsoleAppender("fallback", pw, PatternLayout.newBuilder().withPattern(getDefaultPattern(config)).build(), true);
 		}
 		return fallback;
 	}

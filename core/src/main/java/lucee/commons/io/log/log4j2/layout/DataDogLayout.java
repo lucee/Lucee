@@ -64,7 +64,7 @@ public final class DataDogLayout extends AbstractStringLayout {
 
 		StringBuilder data = new StringBuilder();
 
-		data.append(FormatUtil.format(format, System.currentTimeMillis(), null));
+		data.append(FormatUtil.format(format, System.currentTimeMillis(), LogUtil.getTimeZone(null)));
 		data.append(' ');
 		data.append(event.getLevel().toString());
 		data.append(' ');

@@ -46,6 +46,7 @@ import lucee.transformer.Body;
 import lucee.transformer.Factory;
 import lucee.transformer.Page;
 import lucee.transformer.Position;
+import lucee.transformer.bytecode.PageImpl;
 import lucee.transformer.bytecode.statement.StatementBase;
 import lucee.transformer.bytecode.statement.tag.TagFunction;
 import lucee.transformer.cfml.Data;
@@ -338,6 +339,11 @@ public final class CFMLTransformer {
 		// sc.getWriteLog(),config.getSuppressWSBeforeArg(), config.getDefaultFunctionOutput(), returnValue,
 		// ignoreScope);
 
+		// allowUnknownTags is used as ast flag - mark the page for AST mode
+		if (allowUnknownTags && page instanceof PageImpl) {
+			((PageImpl) page).setAST(true);
+		}
+
 		TransfomerSettings settings = new TransfomerSettings(dnuc, config.getHandleUnQuotedAttrValueAsString(), ignoreScope);
 		Data data = new Data(factory, config, page, sc, new EvaluatorPool(), settings, _tlibs, flibs, config.getCoreTagLib().getScriptTags(), false, hasWriteLog, hasUpper,
 				hasCharset, allowUnknownTags);
@@ -404,6 +410,8 @@ public final class CFMLTransformer {
 
 			// Comment
 			comment(data.srcCode, false);
+			// Check if we've reached the end after stripping comments (LDEV-6038)
+			if (!data.srcCode.isValidIndex()) break;
 			// Tag
 			// is Tag Beginning
 			if (data.srcCode.isCurrent('<')) {

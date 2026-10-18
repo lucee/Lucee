@@ -246,6 +246,14 @@ public abstract class PageExceptionImpl extends PageException {
 		return tagContext;
 	}
 
+	/**
+	 * LDEV-4021: restore TagContext when rethrowing a serialized/deserialized catch block.
+	 */
+	public void setTagContext(Array tagContext) {
+		this.tagContext = tagContext != null ? tagContext : new ArrayImpl();
+		this.isInitTagContext = true;
+	}
+
 	public static Array getTagContext(Config config, StackTraceElement[] traces) {
 		Array tagContext = new ArrayImpl();
 		_getTagContext(config, tagContext, traces, new LinkedList<PageSource>());

@@ -68,6 +68,7 @@ import lucee.transformer.bytecode.statement.For;
 import lucee.transformer.bytecode.statement.ForEach;
 import lucee.transformer.bytecode.statement.Return;
 import lucee.transformer.bytecode.statement.Switch;
+import lucee.transformer.bytecode.statement.TagIsland;
 import lucee.transformer.bytecode.statement.TryCatchFinally;
 import lucee.transformer.bytecode.statement.While;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
@@ -1297,12 +1298,23 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			throw new TemplateException(data.srcCode, e.getMessage());
 		}
 
-		PageSourceCode psc = (PageSourceCode) data.srcCode;// TODO get PS in an other way
-		PageSource ps = psc.getPageSource();
+		// In AST mode (no PageSourceCode), we can't compile Java functions
+		// but we still need to parse past the function body
+		PageSource ps = null;
+		if (data.srcCode instanceof PageSourceCode) {
+			ps = ((PageSourceCode) data.srcCode).getPageSource();
+		}
 
 		SourceCode sc = data.srcCode;
 		Position start = sc.getPosition();
 		findTheEnd(data, start.line);
+
+		// In AST mode without PageSource, we can't compile - just return null
+		// The function body has already been parsed past by findTheEnd
+		if (ps == null) {
+			return null;
+		}
+
 		Position end = sc.getPosition();
 		String javaCode = sc.substring(start.pos, end.pos - start.pos);
 		try {
@@ -1511,7 +1523,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Tag tag = getTag(data, parent, tlt, line, null);
 		tag.setTagLibTag(tlt);
 		tag.setScriptBase(true);
-		if (!StringUtil.isEmpty(appendix)) tag.setAppendix(appendix);
+		if (!StringUtil.isEmpty(appendix)) {
+			tag.setAppendix(appendix);
+			tag.setFullname(type.concat(appendix));
+		}
+		else {
+			tag.setFullname(type);
+		}
 
 		// add component meta data
 		if (data.isCFC) {
@@ -1752,7 +1770,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Attribute attr;
 
 		// first fill all regular attribute -> name="value"
-		for (int i = attrs.length - 1; i >= 0; i--) {
+		// LDEV-6027: iterate forward to preserve declaration order in AST
+		for (int i = 0; i < attrs.length; i++) {
 			attr = attrs[i];
 			if (!isNull(attr.getValue())) {
 				if (attr.getName().equalsIgnoreCase("name")) {
@@ -2102,11 +2121,21 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private final boolean islandStatement(Data data, Body parent) throws TemplateException {
 
 		if (!data.srcCode.forwardIfCurrent(TAG_ISLAND_INDICATOR)) return false;
-		// now we have to jump into the tag parser
+
+		Position start = data.srcCode.getPosition();
+
+		// Create a TagIsland wrapper to hold the tag content
+		TagIsland island = new TagIsland(data.factory, start, null);
+
+		// now we have to jump into the tag parser, parsing into the TagIsland body
 		CFMLTransformer tag = new CFMLTransformer(true);
-		tag.transform(data, parent);
+		tag.transform(data, island);
 
 		if (!data.srcCode.forwardIfCurrent(TAG_ISLAND_INDICATOR)) throw new TemplateException(data.srcCode, "missing closing tag indicator [" + TAG_ISLAND_INDICATOR + "]");
+
+		island.setEnd(data.srcCode.getPosition());
+		parent.addStatement(island);
+
 		comments(data);
 
 		return true;
@@ -2160,6 +2189,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Tag tag = getTag(data, parent, tlt, line, null);
 		tag.setScriptBase(true);
 		tag.setTagLibTag(tlt);
+		tag.setFullname(tagName);
 
 		comments(data);
 
