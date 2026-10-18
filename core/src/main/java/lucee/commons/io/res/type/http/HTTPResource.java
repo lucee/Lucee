@@ -20,7 +20,9 @@ package lucee.commons.io.res.type.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 
 import lucee.commons.io.IOUtil;
@@ -58,10 +60,53 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 
 	}
 
+	private URL toURL() throws MalformedURLException {
+		return new URL(provider.getProtocol(), data.host, data.port, encodePath(data.path));
+	}
+
+	/**
+	 * LDEV-5726: percent-encodes the characters that are not allowed in a URL (space, non-ASCII, [ ] { }
+	 * | ...), leaves everything else as is, including existing %XX escapes, so an already encoded path
+	 * does not get encoded twice
+	 */
+	static String encodePath(String path) {
+		if (path == null) return null;
+		int len = path.length();
+		StringBuilder sb = null;
+		char c;
+		for (int i = 0; i < len; i++) {
+			c = path.charAt(i);
+			if (isAllowed(c) || (c == '%' && i + 2 < len && isHex(path.charAt(i + 1)) && isHex(path.charAt(i + 2)))) {
+				if (sb != null) sb.append(c);
+				continue;
+			}
+			if (sb == null) sb = new StringBuilder(len + 16).append(path, 0, i);
+			int cp = path.codePointAt(i);
+			if (Character.charCount(cp) == 2) i++;
+			for (byte b: new String(Character.toChars(cp)).getBytes(StandardCharsets.UTF_8)) {
+				sb.append('%').append(HEX[(b >> 4) & 0xF]).append(HEX[b & 0xF]);
+			}
+		}
+		return sb == null ? path : sb.toString();
+	}
+
+	private static final char[] HEX = "0123456789ABCDEF".toCharArray();
+
+	private static boolean isAllowed(char c) {
+		if (c >= 'a' && c <= 'z') return true;
+		if (c >= 'A' && c <= 'Z') return true;
+		if (c >= '0' && c <= '9') return true;
+		// unreserved, sub-delims and the path/query/fragment delimiters (RFC 3986)
+		return "-._~!$&'()*+,;=:@/?#".indexOf(c) != -1;
+	}
+
+	private static boolean isHex(char c) {
+		return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+	}
+
 	private HTTPResponse getHTTPResponse(boolean create) throws IOException, GeneralSecurityException {
 		if (create || http == null) {
-			// URL url = HTTPUtil.toURL("http://"+data.host+":"+data.port+"/"+data.path);
-			URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
+			URL url = toURL();
 			// TODO Support for proxy
 			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
 
@@ -72,7 +117,7 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 
 	private int getStatusCode() throws IOException, GeneralSecurityException {
 		if (http == null) {
-			URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
+			URL url = toURL();
 			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
 			return HTTPEngine4Impl.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getStatusCode();
 		}
@@ -81,7 +126,7 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 
 	public ContentType getContentType() throws IOException, GeneralSecurityException {
 		if (http == null) {
-			URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
+			URL url = toURL();
 			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
 			return HTTPEngine4Impl.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getContentType();
 		}
