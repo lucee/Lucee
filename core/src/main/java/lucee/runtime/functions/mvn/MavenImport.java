@@ -62,7 +62,7 @@ public final class MavenImport implements Function {
 				POM pom = POM.getInstance(mvnDir, d.groupId.trim(), d.artifactId.trim(), d.version.trim(), log);
 				addRow(qry, pom, d.scope, d.optional);
 				if (includeTransitive) {
-					for (POM child: pom.getAllDependencies(true)) {
+					for (POM child: pom.getAllDependencies(false)) {
 						addRow(qry, child, null, null);
 					}
 				}

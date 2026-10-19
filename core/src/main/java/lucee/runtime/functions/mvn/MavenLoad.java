@@ -51,7 +51,7 @@ public final class MavenLoad implements Function {
 
 			GAVSO gavso = MavenUtil.toGAVSO(it.next());
 			try {
-				for (Resource r: POM.getInstance(dir, gavso.g, gavso.a, gavso.v, MavenUtil.toScope(gavso.s, POM.SCOPES_FOR_RUNTIME), log).getJars()) {
+				for (Resource r: POM.getInstance(dir, gavso.g, gavso.a, gavso.v, MavenUtil.toScope(gavso.s, POM.SCOPES_FOR_RUNTIME), log).getJars(false)) {
 					rtnData.set(r.getAbsolutePath(), "");
 				}
 			}
