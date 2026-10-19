@@ -17,6 +17,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 				expect( str ).toInclude( "select x as [Country/Entity" );
 				expect( sql.toString( true ) ).toInclude( "select x as [Country/Entity" );
 			});
+			it(title = "params with an extra '?' that is not a param marker are converted without error", body = function( currentSpec ) {
+				var conv = createObject( "java", "lucee.runtime.tag.util.QueryParamConverter" );
+				var sql = conv.convert( "select x as [Country/Entity?] from t where id = ?", [ { value: 1, type: "integer" } ] );
+				expect( sql.getSQLString() ).toBe( "select x as [Country/Entity?] from t where id = ?" );
+				expect( arrayLen( sql.getItems() ) ).toBe( 1 );
+			});
 			it(title = "Checking cfquery sql has '?' without params", skip="#notHasMssql()#", body = function( currentSpec ) {
 				expect(testQuery(checkWithParams=false)).toBe('sql with ? works');
 			});

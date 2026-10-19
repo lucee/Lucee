@@ -179,7 +179,14 @@ public final class QueryParamConverter {
 						continue;
 					}
 
-					if (++_qm > initialParamSize) throw new ApplicationException("there are more question marks in the SQL than params defined", "SQL: " + sql + "");
+					// LDEV-4424 more question marks than params, e.g. in an MSSQL identifier like [a?], keep them
+					// as they are and let the driver decide
+					if (++_qm > initialParamSize) {
+						sb.append(c);
+						pp = p;
+						p = c;
+						continue;
+					}
 				}
 				else if (c == ':') {
 
