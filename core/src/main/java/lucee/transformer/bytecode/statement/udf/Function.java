@@ -312,7 +312,8 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		if (light && bufferOutput != null) light = false;
 		if (light && localMode != null) light = false;
 		if (light && modifier != Component.MODIFIER_NONE) light = false;
-		if (light && PageImpl.hasMetaDataStruct(metadata, null)) light = false;
+		Map<String, Attribute> runtimeMeta = getRuntimeMetaData();
+		if (light && PageImpl.hasMetaDataStruct(runtimeMeta, null)) light = false;
 		if (light) {
 			adapter.invokeConstructor(Types.UDF_PROPERTIES_IMPL, INIT_UDF_PROPERTIES_SHORTTYPE_LIGHT);
 			return;
@@ -354,7 +355,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		adapter.push(modifier);
 
 		// meta
-		PageImpl.createMetaDataStruct(bc, metadata, null);
+		PageImpl.createMetaDataStruct(bc, runtimeMeta, null);
 
 		adapter.invokeConstructor(Types.UDF_PROPERTIES_IMPL, sType == -1 ? INIT_UDF_PROPERTIES_STRTYPE : INIT_UDF_PROPERTIES_SHORTTYPE);
 
@@ -561,6 +562,17 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	public final void setMetaData(Map<String, Attribute> metadata) {
 		this.metadata = metadata;
+	}
+
+	/**
+	 * metadata used at runtime: docblock @tags (annotations) plus inline attributes, inline attributes
+	 * win. The AST keeps both separate, the runtime behaves as before LDEV-5990.
+	 */
+	private Map<String, Attribute> getRuntimeMetaData() {
+		if (annotations == null || annotations.isEmpty()) return metadata;
+		Map<String, Attribute> merged = new HashMap<String, Attribute>(annotations);
+		if (metadata != null) merged.putAll(metadata);
+		return merged;
 	}
 
 	public final void setAnnotations(Map<String, Attribute> annotations) {

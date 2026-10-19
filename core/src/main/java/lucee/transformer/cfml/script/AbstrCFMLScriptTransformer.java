@@ -1759,6 +1759,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				if (!filteredParams.isEmpty()) {
 					tb.setAnnotations(filteredParams);
 				}
+				// runtime: docblock @tags stay component/interface metadata as before
+				for (Attribute attr: filteredParams.values()) {
+					tag.addMetaData(attr);
+				}
 			}
 		}
 		data.docComment = null;
