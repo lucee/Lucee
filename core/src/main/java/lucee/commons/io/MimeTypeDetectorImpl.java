@@ -138,6 +138,16 @@ public final class MimeTypeDetectorImpl implements MimeTypeDetector {
 	 * @param name name of the file, can be null
 	 */
 	private static String sniff(byte[] barr, String byName, String name) {
+		// a byte order mark means text, check it before the binary magic (FF FE would match the mp3 frame sync)
+		int bom = bom(barr);
+		if (bom != BOM_NONE) {
+			if (bom == BOM_UTF8) {
+				String magic = magic(barr); // only the text based formats (xml, svg, html) can match after EF BB BF
+				if (magic != null) return magic;
+			}
+			return isTextType(byName) ? byName : TEXT_PLAIN;
+		}
+
 		String magic = barr == null || barr.length == 0 ? null : magic(barr);
 
 		// container formats (docx, jar, ...) are told apart by the extension
@@ -156,7 +166,7 @@ public final class MimeTypeDetectorImpl implements MimeTypeDetector {
 		if (len >= 8 && (b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G') return "image/png";
 		if (len >= 3 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF) return "image/jpeg";
 		if (len >= 6 && b[0] == 'G' && b[1] == 'I' && b[2] == 'F' && b[3] == '8' && (b[4] == '7' || b[4] == '9') && b[5] == 'a') return "image/gif";
-		if (len >= 2 && b[0] == 'B' && b[1] == 'M' && len > 14) return "image/bmp";
+		if (isBMP(b)) return "image/bmp";
 		if (len >= 4 && ((b[0] == 'I' && b[1] == 'I' && b[2] == 42 && b[3] == 0) || (b[0] == 'M' && b[1] == 'M' && b[2] == 0 && b[3] == 42))) return "image/tiff";
 		if (len >= 4 && b[0] == 0 && b[1] == 0 && b[2] == 1 && b[3] == 0) return "image/vnd.microsoft.icon";
 		if (len >= 12 && b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F') {
@@ -173,8 +183,7 @@ public final class MimeTypeDetectorImpl implements MimeTypeDetector {
 		if (len >= 262 && b[257] == 'u' && b[258] == 's' && b[259] == 't' && b[260] == 'a' && b[261] == 'r') return "application/x-tar";
 		if (len >= 4 && (b[0] & 0xFF) == 0xCA && (b[1] & 0xFF) == 0xFE && (b[2] & 0xFF) == 0xBA && (b[3] & 0xFF) == 0xBE) return "application/java-vm";
 		if (len >= 4 && b[0] == 'w' && b[1] == 'O' && b[2] == 'F' && (b[3] == 'F' || b[3] == '2')) return b[3] == 'F' ? "font/woff" : "font/woff2";
-		if (len >= 3 && b[0] == 'I' && b[1] == 'D' && b[2] == '3') return "audio/mpeg";
-		if (len >= 2 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xE0) == 0xE0) return "audio/mpeg";
+		if (isID3(b) || isMPEGAudioFrame(b)) return "audio/mpeg";
 		if (len >= 4 && b[0] == 'O' && b[1] == 'g' && b[2] == 'g' && b[3] == 'S') return "audio/ogg";
 		if (len >= 4 && b[0] == 'f' && b[1] == 'L' && b[2] == 'a' && b[3] == 'C') return "audio/x-flac";
 		if (len >= 12 && b[4] == 'f' && b[5] == 't' && b[6] == 'y' && b[7] == 'p') {
@@ -194,6 +203,67 @@ public final class MimeTypeDetectorImpl implements MimeTypeDetector {
 			if (start.startsWith("<!doctype html") || start.startsWith("<html")) return "text/html";
 		}
 		return null;
+	}
+
+	private static final int BOM_NONE = 0;
+	private static final int BOM_UTF8 = 1;
+	private static final int BOM_UTF16 = 2;
+	private static final int BOM_UTF32 = 3;
+
+	private static int bom(byte[] b) {
+		if (b == null) return BOM_NONE;
+		int len = b.length;
+		if (len >= 3 && (b[0] & 0xFF) == 0xEF && (b[1] & 0xFF) == 0xBB && (b[2] & 0xFF) == 0xBF) return BOM_UTF8;
+		// UTF-32 first, its LE mark starts with the UTF-16LE mark
+		if (len >= 4 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xFE && b[2] == 0 && b[3] == 0) return BOM_UTF32;
+		if (len >= 4 && b[0] == 0 && b[1] == 0 && (b[2] & 0xFF) == 0xFE && (b[3] & 0xFF) == 0xFF) return BOM_UTF32;
+		if (len >= 2 && (((b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xFE) || ((b[0] & 0xFF) == 0xFE && (b[1] & 0xFF) == 0xFF))) return BOM_UTF16;
+		return BOM_NONE;
+	}
+
+	private static boolean isTextType(String mt) {
+		if (mt == null) return false;
+		return mt.startsWith("text/") || mt.endsWith("/xml") || mt.endsWith("+xml") || mt.endsWith("/json") || mt.equals("application/sql");
+	}
+
+	private static int le32(byte[] b, int off) {
+		return (b[off] & 0xFF) | ((b[off + 1] & 0xFF) << 8) | ((b[off + 2] & 0xFF) << 16) | ((b[off + 3] & 0xFF) << 24);
+	}
+
+	/**
+	 * "BM", reserved fields (bytes 6-9) zero, pixel data offset after the headers and a known DIB
+	 * header size, so text like "BMW ..." is not a bitmap
+	 */
+	private static boolean isBMP(byte[] b) {
+		if (b.length < 26 || b[0] != 'B' || b[1] != 'M') return false;
+		if (b[6] != 0 || b[7] != 0 || b[8] != 0 || b[9] != 0) return false;
+		int dib = le32(b, 14);
+		if (dib != 12 && dib != 16 && dib != 40 && dib != 52 && dib != 56 && dib != 64 && dib != 108 && dib != 124) return false;
+		int dataOffset = le32(b, 10);
+		return dataOffset >= 14 + dib;
+	}
+
+	/**
+	 * ID3v2 tag: "ID3", major version 2-4, revision not FF and a syncsafe size (high bit of the 4 size
+	 * bytes clear), so text like "ID3 notes" is not mp3
+	 */
+	private static boolean isID3(byte[] b) {
+		if (b.length < 10 || b[0] != 'I' || b[1] != 'D' || b[2] != '3') return false;
+		if (b[3] < 2 || b[3] > 4 || (b[4] & 0xFF) == 0xFF) return false;
+		return (b[6] & 0x80) == 0 && (b[7] & 0x80) == 0 && (b[8] & 0x80) == 0 && (b[9] & 0x80) == 0;
+	}
+
+	/**
+	 * MPEG audio frame header: 11 bit sync, version not reserved, layer not reserved, bitrate index not
+	 * "bad" (1111) and sample rate not reserved
+	 */
+	private static boolean isMPEGAudioFrame(byte[] b) {
+		if (b.length < 4 || (b[0] & 0xFF) != 0xFF || (b[1] & 0xE0) != 0xE0) return false;
+		int version = (b[1] >> 3) & 0x03;
+		int layer = (b[1] >> 1) & 0x03;
+		int bitrate = (b[2] >> 4) & 0x0F;
+		int sampleRate = (b[2] >> 2) & 0x03;
+		return version != 1 && layer != 0 && bitrate != 0x0F && sampleRate != 0x03;
 	}
 
 	private static String startOfText(byte[] b) {

@@ -134,7 +134,7 @@ public final class ResourceUtil {
 		EXT_MT.put("cfml", "text/html");
 		EXT_MT.put("css", "text/css");
 		EXT_MT.put("doc", "application/msword");
-		EXT_MT.put("docx", "application/msword");
+		EXT_MT.put("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
 		EXT_MT.put("eps", "application/postscript");
 		EXT_MT.put("exe", "application/octet-stream");
 		EXT_MT.put("gif", "image/gif");
@@ -169,7 +169,7 @@ public final class ResourceUtil {
 		EXT_MT.put("pnm", "image/x-portable-anymap");
 		EXT_MT.put("ppm", "image/x-portable-pixmap");
 		EXT_MT.put("ppt", "application/vnd.ms-powerpoint");
-		EXT_MT.put("pptx", "application/vnd.ms-powerpoint");
+		EXT_MT.put("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation");
 		EXT_MT.put("ps", "application/postscript");
 		EXT_MT.put("qt", "video/quicktime");
 		EXT_MT.put("rgb", "image/rgb");
@@ -188,7 +188,7 @@ public final class ResourceUtil {
 		EXT_MT.put("xbm", "image/x-xbitmap");
 		EXT_MT.put("xhtml", "application/xhtml+xml");
 		EXT_MT.put("xls", "application/vnd.ms-excel");
-		EXT_MT.put("xlsx", "application/vnd.ms-excel");
+		EXT_MT.put("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 		EXT_MT.put("xpm", "image/x-xpixmap");
 		EXT_MT.put("zip", "application/zip");
 
