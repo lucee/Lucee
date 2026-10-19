@@ -1288,9 +1288,15 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("Defines the mime type detector used by Lucee, for example to detect the type of uploaded files or for the function fileGetMimeType. "
 					+ "By default, a simple built-in detector is used (file extension map and magic bytes), an extension like the Tika extension can replace it. "
 					+ "This property uses a standard ClassDefinition, allowing the detector to be loaded via OSGi bundles or Maven coordinates.");
-	private ClassDefinition<MimeTypeDetector> mimeTypeDetectorCD;
-	private MimeTypeDetector mimeTypeDetector;
-	private boolean loadingMimeTypeDetector;
+	private volatile ClassDefinition<MimeTypeDetector> mimeTypeDetectorCD;
+	private volatile MimeTypeDetector mimeTypeDetector;
+	// set while the current thread loads the detector (loading can itself need a mime type detection)
+	private static final ThreadLocal<Boolean> loadingMimeTypeDetector = new ThreadLocal<Boolean>();
+	// after a failed load the built-in detector is used, but not cached; the load is retried with a backoff
+	private static final long MIMETYPE_DETECTOR_RETRY_MIN = 1000L;
+	private static final long MIMETYPE_DETECTOR_RETRY_MAX = 60000L;
+	private volatile long mimeTypeDetectorNextRetry;
+	private long mimeTypeDetectorRetryInterval = MIMETYPE_DETECTOR_RETRY_MIN;
 
 	private static Prop<Integer> metaExternalizeStringGTE = Prop.integer().keys("externalizeStringGte").defaultValue(-1)
 			.description("Determines the character length threshold at which strings are moved from generated Java class files into separate external files. "
@@ -3405,45 +3411,67 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	/**
 	 * returns the mime type detector defined by an extension, falls back to the built-in detector if
-	 * none is defined or the defined one cannot be loaded
+	 * none is defined or the defined one cannot be loaded. A failed load is not cached, it is retried
+	 * on a later call (backoff from 1 second up to 1 minute), for example when the Maven artifact of
+	 * the extension is still downloading at startup.
 	 * 
 	 * @return mime type detector
 	 */
 	public MimeTypeDetector getMimeTypeDetector() {
-		if (mimeTypeDetector != null) return mimeTypeDetector;
-		// loading the detector can itself need a mime type detection
-		if (loadingMimeTypeDetector) return MimeTypeDetectorImpl.getInstance();
+		MimeTypeDetector detector = mimeTypeDetector;
+		if (detector != null) return detector;
+		// the current thread is loading the detector and needs a mime type detection for that
+		if (Boolean.TRUE.equals(loadingMimeTypeDetector.get())) return MimeTypeDetectorImpl.getInstance();
+		// a load failed recently, do not try again on every call
+		if (mimeTypeDetectorNextRetry > 0 && System.currentTimeMillis() < mimeTypeDetectorNextRetry) return MimeTypeDetectorImpl.getInstance();
+
 		synchronized (SystemUtil.createToken("config", "getMimeTypeDetector")) {
-			if (mimeTypeDetector == null) {
-				loadingMimeTypeDetector = true;
+			detector = mimeTypeDetector;
+			if (detector != null) return detector;
+			if (mimeTypeDetectorNextRetry > 0 && System.currentTimeMillis() < mimeTypeDetectorNextRetry) return MimeTypeDetectorImpl.getInstance();
+
+			loadingMimeTypeDetector.set(Boolean.TRUE);
+			try {
+				ClassDefinition<MimeTypeDetector> cd = getMimeTypeDetectorClassDefinition();
+				if (cd == DEFAULT_MIMETYPE_DETECTOR) {
+					return mimeTypeDetector = MimeTypeDetectorImpl.getInstance();
+				}
 				try {
-					MimeTypeDetector detector = null;
-					ClassDefinition<MimeTypeDetector> cd = getMimeTypeDetectorClassDefinition();
-					if (cd != DEFAULT_MIMETYPE_DETECTOR) {
-						try {
-							Object o = ClassUtil.loadInstance(cd.getClazz());
-							if (o instanceof MimeTypeDetector) detector = (MimeTypeDetector) o;
-							else LogUtil.log(this, Log.LEVEL_ERROR, "application", "class [" + cd.getClassName() + "] does not implement the interface [" + MimeTypeDetector.class.getName() + "]");
-						}
-						catch (Throwable t) {
-							ExceptionUtil.rethrowIfNecessary(t);
-							LogUtil.log(this, "application", t);
-						}
+					Object o = ClassUtil.loadInstance(cd.getClazz());
+					if (o instanceof MimeTypeDetector) {
+						mimeTypeDetectorNextRetry = 0;
+						mimeTypeDetectorRetryInterval = MIMETYPE_DETECTOR_RETRY_MIN;
+						return mimeTypeDetector = (MimeTypeDetector) o;
 					}
-					mimeTypeDetector = detector != null ? detector : MimeTypeDetectorImpl.getInstance();
+					mimeTypeDetectorLoadFailed(cd, "class does not implement the interface [" + MimeTypeDetector.class.getName() + "]", null);
 				}
-				finally {
-					loadingMimeTypeDetector = false;
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					mimeTypeDetectorLoadFailed(cd, ExceptionUtil.getMessage(t, false), t);
 				}
+				return MimeTypeDetectorImpl.getInstance();
 			}
-			return mimeTypeDetector;
+			finally {
+				loadingMimeTypeDetector.remove();
+			}
 		}
+	}
+
+	private void mimeTypeDetectorLoadFailed(ClassDefinition<MimeTypeDetector> cd, String reason, Throwable t) {
+		long interval = mimeTypeDetectorRetryInterval;
+		mimeTypeDetectorNextRetry = System.currentTimeMillis() + interval;
+		mimeTypeDetectorRetryInterval = Math.min(interval * 2, MIMETYPE_DETECTOR_RETRY_MAX);
+		LogUtil.log(this, Log.LEVEL_ERROR, "application", "mimetype",
+				"failed to load the mime type detector [" + cd.getClassName() + "]: " + reason + "; using the built-in detector, retry in " + (interval / 1000) + " second(s)");
+		if (t != null) LogUtil.log(this, "mimetype", t, Log.LEVEL_ERROR, "application");
 	}
 
 	public ConfigServerImpl resetMimeTypeDetector() {
 		synchronized (SystemUtil.createToken("config", "getMimeTypeDetector")) {
 			mimeTypeDetectorCD = null;
 			mimeTypeDetector = null;
+			mimeTypeDetectorNextRetry = 0;
+			mimeTypeDetectorRetryInterval = MIMETYPE_DETECTOR_RETRY_MIN;
 		}
 		return this;
 	}
