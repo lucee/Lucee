@@ -2316,17 +2316,17 @@ public final class OSGiUtil {
 
 	private static void log(int level, String msg) {
 		try {
-			Log log = ThreadLocalPageContext.getLog("application");
+			Log log = ThreadLocalPageContext.getLog((Config) null, "application");
 			if (log != null) log.log(level, "OSGi", msg);
 		}
 		catch (Exception t) {
-			LogUtil.log(level, BundleBuilderFactory.class.getName(), msg);
+			LogUtil.log((Config) null, level, BundleBuilderFactory.class.getName(), msg);
 		}
 	}
 
 	private static void log(Throwable t) {
 		try {
-			Log log = ThreadLocalPageContext.getLog("application");
+			Log log = ThreadLocalPageContext.getLog((Config) null, "application");
 			if (log != null) log.log(Log.LEVEL_ERROR, "OSGi", t);
 		}
 		catch (Exception _t) {

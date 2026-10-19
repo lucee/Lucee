@@ -54,6 +54,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.osgi.BundleLoader;
 import lucee.loader.util.Util;
+import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
@@ -313,7 +314,7 @@ public final class BundleProvider extends DefaultHandler {
 		jar = deployBundledBundle(jarDir, bd.getName(), bd.getVersionAsString());
 		if (jar != null && jar.isFile()) return jar;
 		if (jar != null) {
-			LogUtil.log(Log.LEVEL_INFO, "deploy", "bundle-download",
+			LogUtil.log((Config) null, Log.LEVEL_INFO, "deploy", "bundle-download",
 					jar + " should exist but does not (exist?" + jar.exists() + ";file?" + jar.isFile() + ";hidden?" + jar.isHidden() + ")");
 
 		}
@@ -328,7 +329,7 @@ public final class BundleProvider extends DefaultHandler {
 
 		final URL updateUrl = getBundleAsURL(bd, true);
 
-		LogUtil.log(Log.LEVEL_INFO, "deploy", "bundle-download",
+		LogUtil.log((Config) null, Log.LEVEL_INFO, "deploy", "bundle-download",
 				"Downloading bundle [" + bd.getName() + ":" + bd.getVersionAsString() + "] from " + updateUrl + " and copying to " + jar);
 
 		try {
@@ -361,20 +362,20 @@ public final class BundleProvider extends DefaultHandler {
 		InputStream is = CFMLEngineFactory.class.getResourceAsStream("/bundles/" + osgiFileName);
 		if (is == null) is = getClass().getResourceAsStream("/bundles/" + osgiFileName);
 
-		if (is != null) LogUtil.log(Log.LEVEL_DEBUG, "deploy", "bundle-download", "Found ]/bundles/" + osgiFileName + "] in lucee.jar");
-		else LogUtil.log(Log.LEVEL_INFO, "deploy", "bundle-download", "Could not find [/bundles/" + osgiFileName + "] in lucee.jar");
+		if (is != null) LogUtil.log((Config) null, Log.LEVEL_DEBUG, "deploy", "bundle-download", "Found ]/bundles/" + osgiFileName + "] in lucee.jar");
+		else LogUtil.log((Config) null, Log.LEVEL_INFO, "deploy", "bundle-download", "Could not find [/bundles/" + osgiFileName + "] in lucee.jar");
 
 		if (is != null) {
 			File temp = null;
 			try {
 				// copy to temp file
 				temp = File.createTempFile("bundle", ".tmp");
-				LogUtil.log(Log.LEVEL_DEBUG, "deploy", "bundle-download", "Copying [lucee.jar!/bundles/" + osgiFileName + "] to [" + temp + "]");
+				LogUtil.log((Config) null, Log.LEVEL_DEBUG, "deploy", "bundle-download", "Copying [lucee.jar!/bundles/" + osgiFileName + "] to [" + temp + "]");
 				Util.copy(new BufferedInputStream(is), new FileOutputStream(temp), true, true);
 
 				// adding bundle
 				FileUtil.move(temp, trg);
-				LogUtil.log(Log.LEVEL_DEBUG, "deploy", "bundle-download", "Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
+				LogUtil.log((Config) null, Log.LEVEL_DEBUG, "deploy", "bundle-download", "Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 				return trg;
 			}
 			catch (IOException ioe) {
@@ -415,7 +416,7 @@ public final class BundleProvider extends DefaultHandler {
 							if (bundleInfo != null && nameAndVersion.equals(bundleInfo)) {
 								trg = new File(bundleDirectory, name);
 								temp.renameTo(trg);
-								LogUtil.log(Log.LEVEL_DEBUG, "deploy", "bundle-download",
+								LogUtil.log((Config) null, Log.LEVEL_DEBUG, "deploy", "bundle-download",
 										"Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 
 								return trg;
@@ -833,7 +834,7 @@ public final class BundleProvider extends DefaultHandler {
 					}
 					catch (Exception e) {
 
-						LogUtil.log(Log.LEVEL_DEBUG, "OSGi", ExceptionUtil.getStacktrace(e, true));
+						LogUtil.log((Config) null, Log.LEVEL_DEBUG, "OSGi", ExceptionUtil.getStacktrace(e, true));
 					}
 				}
 			}

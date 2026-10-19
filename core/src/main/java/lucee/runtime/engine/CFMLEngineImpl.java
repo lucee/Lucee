@@ -426,7 +426,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		CFMLEngineFactory.registerInstance((this));// patch, not really good but it works
 		long tServer = System.currentTimeMillis();
 		ConfigServerImpl cs = getConfigServerImpl(null, quick = true, false);
-		LogUtil.log(Log.LEVEL_DEBUG, LOG_NAME, "getConfigServerImpl: " + (System.currentTimeMillis() - tServer) + "ms");
+		LogUtil.log(cs, Log.LEVEL_DEBUG, LOG_NAME, "getConfigServerImpl: " + (System.currentTimeMillis() - tServer) + "ms");
 
 		boolean isRe = configDir == null ? false : ConfigFactory.isRequiredExtension(this, configDir, null);
 		boolean installExtensions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.install", null), true);
@@ -446,8 +446,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (installExtensions && updateInfo.updateType != ConfigFactory.NEW_NONE) {
 			long tDeploy = System.currentTimeMillis();
 			int count = deployBundledExtension(cs, false);
-			LogUtil.log(Log.LEVEL_DEBUG, LOG_NAME, "deployBundledExtension: " + (System.currentTimeMillis() - tDeploy) + "ms");
-			LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
+			LogUtil.log(cs, Log.LEVEL_DEBUG, LOG_NAME, "deployBundledExtension: " + (System.currentTimeMillis() - tDeploy) + "ms");
+			LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
 					count == 0 ? "No new extension available to add to local extension directory" : "Copied [" + count + "] bundled extension(s) to local extension directory");
 		}
 		// required extensions
@@ -461,7 +461,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (installExtensions && (updateInfo.updateType == ConfigFactory.NEW_FRESH || updateInfo.updateType == ConfigFactory.NEW_FROM4)) {
 			List<ExtensionDefintion> ext = configOnly ? new ArrayList<ExtensionDefintion>() : info.getRequiredExtension();
 			extensions = toSet(null, ext);
-			LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Found Extensions to install (new;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
+			LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Found Extensions to install (new;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
 		}
 		// if we have an update we update the extension that re installed and we have an older version as
 		// defined in the manifest
@@ -492,7 +492,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 								if (installed != null) {
 									installedVersion = OSGiUtil.toVersion(installed.getVersion(), null);
 									if (installedVersion != null && OSGiUtil.isNewerThan(edVersion, installedVersion)) {
-										LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
+										LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
 												"Lucee requires a never version [" + edVersion + "] than the insatlled version [" + installedVersion + "] for Extension [" + ed + "]");
 										extensions.add(ed);
 										add = false;
@@ -509,7 +509,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 							Version since = ed.getSince();
 							if (since == null || updateInfo.oldVersion == null || !OSGiUtil.isNewerThan(since, updateInfo.oldVersion)) continue; // not installed we do not update
 
-							LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Detected newer [" + since + ":" + updateInfo.oldVersion + "] Extension version [" + ed + "]");
+							LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Detected newer [" + since + ":" + updateInfo.oldVersion + "] Extension version [" + ed + "]");
 							extensions.add(ed);
 						}
 
@@ -521,7 +521,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				}
 			}
 			if (!extensions.isEmpty()) {
-				LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Detected Extensions to install (minor;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
+				LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Detected Extensions to install (minor;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
 			}
 		}
 		else {
@@ -535,7 +535,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		this.envExt = null;
 		if (!StringUtil.isEmpty(extensionIds, true)) {
 			this.envExt = extensionIds;
-			LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Extensions to install defined in env variable or system property:" + extensionIds);
+			LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Extensions to install defined in env variable or system property:" + extensionIds);
 			extensions = toSet(extensions, RHExtension.toExtensionDefinitions(extensionIds));
 		}
 
@@ -571,8 +571,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				sucess = false;
 			}
 			if (sucess && configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, null);
-			if (successSB.length() > 0) LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Successfully installed the following extensions: " + successSB);
-			if (failedSB.length() > 0) LogUtil.log(Log.LEVEL_ERROR, LOG_NAME, LOG_TYPE_NAME, "Failed to install the following extensions: " + failedSB);
+			if (successSB.length() > 0) LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Successfully installed the following extensions: " + successSB);
+			if (failedSB.length() > 0) LogUtil.log(cs, Log.LEVEL_ERROR, LOG_NAME, LOG_TYPE_NAME, "Failed to install the following extensions: " + failedSB);
 		}
 		else if (configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, null);
 
@@ -586,7 +586,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				// remove extension that are not valid (to new for current version)
 				for (RHExtension ext: extensionsToRemove) {
 
-					LogUtil.log(Log.LEVEL_ERROR, "deploy", ConfigFactoryImpl.class.getName(),
+					LogUtil.log(cs, Log.LEVEL_ERROR, "deploy", ConfigFactoryImpl.class.getName(),
 							"Uninstall extension [" + ext + "] because it is not supported for the current Lucee version.");
 
 				}
@@ -646,7 +646,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			LogUtil.log(cs, Log.LEVEL_INFO, "startup", "Start CFML Controller");
 			controler.start();
 		}
-		LogUtil.log(Log.LEVEL_DEBUG, LOG_NAME, "CFMLEngineImpl constructor total: " + (System.currentTimeMillis() - constructorStart) + "ms");
+		LogUtil.log(cs, Log.LEVEL_DEBUG, LOG_NAME, "CFMLEngineImpl constructor total: " + (System.currentTimeMillis() - constructorStart) + "ms");
 	}
 
 	private static void checkInvalidExtensions(CFMLEngineImpl eng, ConfigPro config, Set<ExtensionDefintion> extensionsToInstall, Set<RHExtension> extensionsToRemove) {
@@ -670,12 +670,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 						if (ed != null) {
 							extensionsToInstall.add(ed);
-							LogUtil.log(Log.LEVEL_INFO, "debug", "check-invalid-extension",
+							LogUtil.log(config, Log.LEVEL_INFO, "debug", "check-invalid-extension",
 									"Installed extension [" + ext + "] is invalid and get removed and replaced by [" + ed + "]");
 						}
 						else {
 							extensionsToRemove.add(ext);
-							LogUtil.log(Log.LEVEL_INFO, "debug", "check-invalid-extension", "Installed extension [" + ext + "] is invalid and was removed.");
+							LogUtil.log(config, Log.LEVEL_INFO, "debug", "check-invalid-extension", "Installed extension [" + ext + "] is invalid and was removed.");
 
 						}
 					}
