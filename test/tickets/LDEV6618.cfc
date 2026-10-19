@@ -121,6 +121,57 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ai" {
 			});
 		});
 
+		describe( "LDEV-6618 model auto: ranking", function() {
+
+			it( "date and snapshot parts are not part of the version", function() {
+				expect( arrayToList( resolver.version( "gpt-4o-2024-11-20" ) ) ).toBe( "4" );
+				expect( arrayToList( resolver.version( "gpt-4o" ) ) ).toBe( "4" );
+				expect( arrayToList( resolver.version( "gpt-5.4" ) ) ).toBe( "5,4" );
+				expect( arrayToList( resolver.version( "grok-4.20-0309-reasoning" ) ) ).toBe( "4,20" );
+				expect( arrayToList( resolver.version( "claude-sonnet-4-5-20250929" ) ) ).toBe( "4,5" );
+				expect( arrayToList( resolver.version( "gpt-4-0613" ) ) ).toBe( "4" );
+				expect( resolver.undated( "gpt-4o-2024-11-20" ) ).toBe( "gpt-4o" );
+				expect( resolver.isDated( "gpt-4o-2024-11-20" ) ).toBeTrue();
+				expect( resolver.isDated( "gpt-4o" ) ).toBeFalse();
+			});
+
+			it( "the undated alias wins over a dated snapshot of the same model", function() {
+				var models = [ "gpt-4o-2024-08-06", "gpt-4o-2024-11-20", "gpt-4o", "gpt-4o-mini", "gpt-4o-mini-2024-07-18" ];
+				expect( resolver.best( models, "gpt-*", true ) ).toBe( "gpt-4o" );
+				// without the alias, the newest snapshot of the base model wins
+				expect( resolver.best( [ "gpt-4o-2024-08-06", "gpt-4o-2024-11-20", "gpt-4o-mini" ], "gpt-*", true ) ).toBe( "gpt-4o-2024-11-20" );
+			});
+
+			it( "gpt-5 ranks before gpt-4.1 and gpt-4o", function() {
+				var models = [ "gpt-4o-2024-11-20", "gpt-4o", "gpt-4.1", "gpt-4.1-2025-04-14", "gpt-5.4", "gpt-5.4-2026-03-05", "gpt-5.4-mini", "gpt-5.4-pro", "gpt-image-1.5", "gpt-realtime", "gpt-audio" ];
+				expect( resolver.select( models, [], "", [ "gpt-*" ] ) ).toBe( "gpt-5.4" );
+				expect( resolver.best( [ "gpt-4o", "gpt-4.1" ], "gpt-*", true ) ).toBe( "gpt-4.1" );
+			});
+
+			it( "grok: non-reasoning wins over reasoning", function() {
+				var models = [ "grok-4.20-0309-reasoning", "grok-4.20-0309-non-reasoning", "grok-4.20-multi-agent-0309", "grok-4-1-fast-reasoning", "grok-4-1-fast-non-reasoning", "grok-imagine-image" ];
+				expect( resolver.specialVariants( "grok-4.20-0309-reasoning" ) ).toBe( 1 );
+				expect( resolver.specialVariants( "grok-4.20-0309-non-reasoning" ) ).toBe( 0 );
+				expect( resolver.select( models, [], "", [ "grok-*" ] ) ).toBe( "grok-4.20-0309-non-reasoning" );
+				// "grok-*-reasoning" also matches "-non-reasoning", an exact name selects the reasoning model
+				expect( resolver.select( models, [ "grok-*-reasoning" ], "", [ "grok-*" ] ) ).toBe( "grok-4.20-0309-non-reasoning" );
+				expect( resolver.select( models, [ "grok-4.20-0309-reasoning" ], "", [ "grok-*" ] ) ).toBe( "grok-4.20-0309-reasoning" );
+			});
+
+			it( "an empty model list (provider without model listing, e.g. Perplexity) still uses the fallback", function() {
+				expect( resolver.select( [], [], "", [ "sonar" ] ) ).toBe( "sonar" );
+				expect( resolver.select( [], [ "sonar-pro" ], "", [ "sonar" ] ) ).toBe( "sonar-pro" );
+			});
+
+			it( "detects provider errors about an unsupported temperature", function() {
+				var support = createObject( "java", "lucee.runtime.ai.AIEngineSupport" );
+				expect( support.isTemperatureRejected( "temperature is deprecated for this model." ) ).toBeTrue();
+				expect( support.isTemperatureRejected( "Unsupported value: 'temperature' does not support 0.7 with this model. Only the default (1) value is supported." ) ).toBeTrue();
+				expect( support.isTemperatureRejected( "Incorrect API key provided" ) ).toBeFalse();
+				expect( support.isTemperatureRejected( "max_tokens: field required" ) ).toBeFalse();
+			});
+		});
+
 		describe( title="LDEV-6618 model auto: with a mock provider", skip=skipAimock(), body=function() {
 
 			it( "AIGetModels lists the models of an endpoint", function() {

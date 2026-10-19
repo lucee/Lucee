@@ -26,6 +26,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
@@ -359,7 +361,11 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 					}
 					return list;
 				}
-				throw new ApplicationException("OpenAI API returned unsupported mime type [" + t + "], only [application/json] is supported");
+				// some OpenAI compatible providers (e.g. Perplexity) have no model listing and answer with plain text or HTML, we handle this
+				// like an empty list, so "auto" can still use the built-in fallback (LDEV-6618)
+				LogUtil.logx(getConfig(), Log.LEVEL_DEBUG, "ai", "AI connection [" + getName() + "] (" + getLabel() + ") does not list models, the provider answered with [" + t
+						+ "] and status code [" + AIUtil.getStatusCode(response) + "]", "ai", "application");
+				return new ArrayList<>();
 			}
 		}
 		catch (Exception e) {

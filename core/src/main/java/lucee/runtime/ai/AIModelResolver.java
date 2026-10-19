@@ -12,7 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -20,7 +19,7 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.type.util.ListUtil;
 
 /**
- * Resolves the model of an AI endpoint configured with <code>model: "auto"</code> (LDEV-6618).
+ * Resolves the model of an AI connection configured with <code>model: "auto"</code> (LDEV-6618).
  * 
  * Resolution order:
  * <ol>
@@ -30,6 +29,10 @@ import lucee.runtime.type.util.ListUtil;
  * <li>the first chat capable model listed by the provider</li>
  * </ol>
  * When several models match a pattern, the "highest" one wins, see {@link #RANK}.
+ * <p>
+ * The built-in fallback and the last step only select chat models, models for images, speech, embeddings and so on are skipped (see
+ * {@link #isNonChat(String)}). A connection used for image generation should therefore define its model explicitly, or set a
+ * <code>modelPreference</code> like <code>gpt-image-*</code>, preference patterns are not limited to chat models.
  */
 public final class AIModelResolver {
 
@@ -111,21 +114,102 @@ public final class AIModelResolver {
 	}
 
 	/**
-	 * extracts the version of a model name, these are the numeric parts that follow the leading alphabetic part of the name (date like
-	 * parts with 6 or more digits are ignored), for example "gpt-5.1-mini" -> [5,1], "claude-sonnet-4-5-20250929" -> [4,5],
-	 * "gemini-2.5-flash" -> [2,5]
+	 * extracts the version of a model name, these are the numeric parts that follow the leading alphabetic part of the name, for
+	 * example "gpt-5.1-mini" -> [5,1], "gpt-4o" -> [4], "claude-sonnet-4-5-20250929" -> [4,5], "gemini-2.5-flash" -> [2,5],
+	 * "grok-4.20-0309-reasoning" -> [4,20]. Date like parts (see {@link #isDatePart(String)}) end the version, so "gpt-4o-2024-11-20"
+	 * -> [4].
 	 */
 	public static List<Long> version(String name) {
 		List<Long> version = new ArrayList<>();
 		if (name == null) return version;
+		boolean started = false;
+		for (String t: tokens(name)) {
+			if (isDatePart(t)) break;
+			if (isDigits(t)) {
+				started = true;
+				version.add(Long.parseLong(t));
+			}
+			else if (Character.isDigit(t.charAt(0))) {
+				// "4o", "70b": the leading number is part of the version, the rest is a variant
+				int i = 0;
+				while (i < t.length() && Character.isDigit(t.charAt(i)))
+					i++;
+				version.add(Long.parseLong(t.substring(0, i)));
+				break;
+			}
+			else if (started) break;
+		}
+		return version;
+	}
+
+	/**
+	 * a date or snapshot part of a model name, these are numbers with 4 or more digits like "2024" (in "gpt-4o-2024-11-20"), "0309" (in
+	 * "grok-4.20-0309") or "20250929"
+	 */
+	public static boolean isDatePart(String token) {
+		return token.length() >= 4 && isDigits(token);
+	}
+
+	/**
+	 * true if the name contains a date/snapshot part, e.g. "gpt-4o-2024-11-20" but not "gpt-4o"
+	 */
+	public static boolean isDated(String name) {
+		for (String t: tokens(name)) {
+			if (isDatePart(t)) return true;
+		}
+		return false;
+	}
+
+	/**
+	 * the name without vendor prefix and without date/snapshot parts, "gpt-4o-2024-11-20" -> "gpt-4o"; a date part is followed by
+	 * month and day ("2024-11-20"), these 2 digit parts are removed as well
+	 */
+	public static String undated(String name) {
+		StringBuilder sb = new StringBuilder();
+		boolean afterDate = false;
+		for (String t: tokens(name)) {
+			if (isDatePart(t)) {
+				afterDate = true;
+				continue;
+			}
+			if (afterDate && t.length() <= 2 && isDigits(t)) continue;
+			afterDate = false;
+			if (sb.length() > 0) sb.append('-');
+			sb.append(t);
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * variants that are slower, experimental or special purpose, a model without such a part is preferred over one with it on the same
+	 * version, e.g. "grok-4.20-non-reasoning" over "grok-4.20-reasoning"
+	 */
+	private static final String[] SPECIAL_VARIANTS = new String[] { "reasoning", "thinking", "agent", "preview", "exp", "experimental", "research", "codex" };
+
+	/**
+	 * number of special variant parts of the name (see {@link #SPECIAL_VARIANTS}), "non-reasoning" is not counted
+	 */
+	public static int specialVariants(String name) {
+		int count = 0;
+		String prev = null;
+		for (String t: tokens(name)) {
+			String lt = t.toLowerCase(Locale.ENGLISH);
+			for (String v: SPECIAL_VARIANTS) {
+				if (lt.equals(v) && !"non".equals(prev)) count++;
+			}
+			prev = lt;
+		}
+		return count;
+	}
+
+	private static List<String> tokens(String name) {
+		List<String> tokens = new ArrayList<>();
+		if (name == null) return tokens;
 		String n = name;
 		// strip a vendor/namespace prefix like "models/" or "meta-llama/"
 		int index = n.lastIndexOf('/');
 		if (index != -1) n = n.substring(index + 1);
-
-		boolean started = false;
 		StringBuilder token = new StringBuilder();
-		List<String> tokens = new ArrayList<>();
 		for (char c: n.toCharArray()) {
 			if (Character.isLetterOrDigit(c)) token.append(c);
 			else {
@@ -134,16 +218,7 @@ public final class AIModelResolver {
 			}
 		}
 		if (token.length() > 0) tokens.add(token.toString());
-
-		for (String t: tokens) {
-			if (isDigits(t)) {
-				if (t.length() >= 6) continue; // date
-				started = true;
-				version.add(Long.parseLong(t));
-			}
-			else if (started) break;
-		}
-		return version;
+		return tokens;
 	}
 
 	private static boolean isDigits(String str) {
@@ -154,8 +229,14 @@ public final class AIModelResolver {
 	}
 
 	/**
-	 * sorts the best model first: highest version first, on the same version the shorter name (the base model and not a variant like
-	 * "-mini" or "-preview") first, then alphabetically descending
+	 * sorts the best model first:
+	 * <ol>
+	 * <li>highest version first ("gpt-5.4" before "gpt-4o"), dates/snapshots are not part of the version</li>
+	 * <li>fewer special variants first ("grok-4.20-non-reasoning" before "grok-4.20-reasoning")</li>
+	 * <li>the shorter name without its date (the base model and not a variant like "-mini" or "-preview")</li>
+	 * <li>the undated alias before a dated snapshot ("gpt-4o" before "gpt-4o-2024-11-20")</li>
+	 * <li>alphabetically descending, so the newest of several snapshots comes first</li>
+	 * </ol>
 	 */
 	public static final Comparator<String> RANK = new Comparator<String>() {
 		@Override
@@ -169,6 +250,15 @@ public final class AIModelResolver {
 				b = i < r.size() ? r.get(i) : -1L;
 				if (a != b) return a > b ? -1 : 1;
 			}
+			int sl = specialVariants(left), sr = specialVariants(right);
+			if (sl != sr) return sl - sr;
+
+			String ul = undated(left), ur = undated(right);
+			if (ul.length() != ur.length()) return ul.length() - ur.length();
+
+			boolean dl = isDated(left), dr = isDated(right);
+			if (dl != dr) return dl ? 1 : -1;
+
 			if (left.length() != right.length()) return left.length() - right.length();
 			return right.compareToIgnoreCase(left);
 		}
@@ -199,6 +289,9 @@ public final class AIModelResolver {
 	 * @return the selected model, or null if no model could be selected
 	 */
 	public static String select(List<String> available, List<String> preference, String providerAuto, List<String> fallback) {
+		// some providers have no (usable) model listing, an empty list is handled like "could not be listed"
+		if (available != null && available.isEmpty()) available = null;
+
 		// 1. preference
 		if (preference != null) {
 			for (String pattern: preference) {
@@ -263,7 +356,7 @@ public final class AIModelResolver {
 
 		String model = select(available, preference, providerAuto, fallback);
 		if (StringUtil.isEmpty(model, true)) {
-			StringBuilder msg = new StringBuilder("Unable to resolve the model [auto] for the AI endpoint [").append(engine.getName()).append("] (").append(engine.getLabel())
+			StringBuilder msg = new StringBuilder("Unable to resolve the model [auto] for the AI connection [").append(engine.getName()).append("] (").append(engine.getLabel())
 					.append(")");
 			if (listingError != null) msg.append(", listing the available models failed: ").append(listingError.getMessage());
 			else if (available == null || available.isEmpty()) msg.append(", the provider did not list any models");
@@ -274,7 +367,7 @@ public final class AIModelResolver {
 			throw ae;
 		}
 
-		LogUtil.logx(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, "ai", "AI endpoint [" + engine.getName() + "] (" + engine.getLabel() + ") resolved model [auto] to ["
+		LogUtil.logx(engine.getConfig(), Log.LEVEL_INFO, "ai", "AI connection [" + engine.getName() + "] (" + engine.getLabel() + ") resolved model [auto] to ["
 				+ model + "]" + (listingError != null ? " (listing models failed: " + listingError.getMessage() + ")" : ""), "ai", "application");
 
 		if (key != null) cache.put(key, new Cached(model, System.currentTimeMillis() + CACHE_TIMEOUT));

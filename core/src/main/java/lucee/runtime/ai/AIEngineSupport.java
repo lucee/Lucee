@@ -6,9 +6,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.config.Config;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -28,6 +32,9 @@ public abstract class AIEngineSupport implements AIEngine {
 	public static final Key MODEL_PREFERENCE = KeyImpl.init("modelPreference");
 	private List<String> modelPreference;
 	private boolean autoModel;
+	private Config config;
+	/** models that rejected the setting temperature, see {@link #isTemperatureRejected(String)} */
+	private final Set<String> noTemperature = ConcurrentHashMap.newKeySet();
 
 	@Override
 	public AIEngine init(ClassDefinition<? extends AIEngine> cd, Struct properties, String name, String _default, String id) throws PageException {
@@ -172,5 +179,50 @@ public abstract class AIEngineSupport implements AIEngine {
 			names.add(m.getName());
 		}
 		return names;
+	}
+
+	/**
+	 * the config the engine was created with, used for logging, can be null
+	 */
+	public final Config getConfig() {
+		return config;
+	}
+
+	/**
+	 * set by the {@link AIEngineFactory} when the engine is created
+	 */
+	public final void setConfig(Config config) {
+		this.config = config;
+	}
+
+	/**
+	 * false if the given model rejected the setting temperature before
+	 */
+	public final boolean acceptsTemperature(String model) {
+		return model == null || !noTemperature.contains(model.toLowerCase());
+	}
+
+	/**
+	 * Some models reject the setting temperature (e.g. Claude: "temperature is deprecated for this model", OpenAI reasoning models:
+	 * "Unsupported value: 'temperature' does not support ..."). When a request fails with such an error, the session retries the
+	 * request once without temperature and calls this method, so following requests for that model are sent without temperature.
+	 */
+	public final void rejectTemperature(String model) {
+		if (model == null) return;
+		if (noTemperature.add(model.toLowerCase())) {
+			LogUtil.logx(config, Log.LEVEL_INFO, "ai", "AI connection [" + getName() + "] (" + getLabel() + "): the model [" + model
+					+ "] does not accept the setting [temperature], it is no longer sent for this model", "ai", "application");
+		}
+	}
+
+	/**
+	 * true if the given error message from the provider says that the setting temperature is not supported by the model
+	 */
+	public static boolean isTemperatureRejected(String msg) {
+		if (msg == null) return false;
+		String m = msg.toLowerCase();
+		if (m.indexOf("temperature") == -1) return false;
+		return m.indexOf("deprecated") != -1 || m.indexOf("unsupported") != -1 || m.indexOf("not supported") != -1 || m.indexOf("does not support") != -1
+				|| m.indexOf("not allowed") != -1 || m.indexOf("only the default") != -1;
 	}
 }
