@@ -962,7 +962,7 @@ public abstract class AbstrCFMLExprTransformer {
 				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_PLUS);
 			}
 			comments(data);
-			return data.factory.toExprNumber(clip(data));
+			return data.factory.opNegateNumber(clip(data), Factory.OP_NEG_NBR_PLUS, line, data.srcCode.getPosition());
 		}
 		return clip(data);
 	}
@@ -1574,7 +1574,7 @@ public abstract class AbstrCFMLExprTransformer {
 				expr = invoker;
 			}
 
-			// safe navigation
+			// safe navigation: the member before ?. is resolved safely at runtime
 			Member member;
 			if (safeNavigation) {
 				List<Member> members = invoker.getMembers();
@@ -1597,6 +1597,8 @@ public abstract class AbstrCFMLExprTransformer {
 
 			if (safeNavigation) {
 				member.setSafeNavigated(true);
+				// AST: only the member directly after ?. is optional
+				member.setOptional(true);
 			}
 		}
 
