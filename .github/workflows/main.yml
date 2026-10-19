@@ -45,8 +45,8 @@ jobs:
       pull-requests: write
       issues: read
     env:
-      DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/8.0') }}"
-      # Push to 8.0 with "[release]" in the commit message deploys to Maven even when pom version ends with -ALPHA
+      DO_DEPLOY: "${{ github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/8.0') || startsWith(github.ref, 'refs/heads/9.0') || startsWith(github.ref, 'refs/heads/10.0') || startsWith(github.ref, 'refs/heads/11.0')) }}"
+      # Push to 8.0, 9.0, 10.0 or 11.0 with "[release]" in the commit message deploys to Maven even when pom version ends with -ALPHA
       FORCE_RELEASE: "${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[release]') }}"
       # bucket behind cdn.lucee.org (ant/upload_to_s3.cfm uploads the build there, see LDEV-6537 for the cut-off)
       S3_DOWNLOAD_BUCKET: lucee-downloads
@@ -215,10 +215,10 @@ jobs:
       id: resolve-revision
       run: |
         set -euo pipefail
-        # LDEV-6516: on mainline 8.0 push (DO_DEPLOY), allocate next build from tags / Maven metadata.
+        # LDEV-6516: on mainline 8.0/9.0/10.0/11.0 push (DO_DEPLOY), allocate next build from tags / Maven metadata.
         # PRs and forks keep the default POM revision and must not consume production build numbers.
         if [ "${{ env.DO_DEPLOY }}" != "true" ]; then
-          echo "Skipping revision bump (not a mainline 8.0 deploy build)"
+          echo "Skipping revision bump (not a mainline 8.0/9.0/10.0/11.0 deploy build)"
           exit 0
         fi
         # Match build step: without GPG secrets CI only runs tests — do not consume a build number
