@@ -2204,6 +2204,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		String attrName = null;
 		Expression attrValue = null;
 		short attrType = ATTR_TYPE_NONE;
+		boolean handledAsNamedAttrs = false;
 		if (attr != null) {
 			attrType = attr.getScriptSupport();
 			char c = data.srcCode.getCurrent();
@@ -2220,6 +2221,24 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						data.srcCode.setPos(p);
 					}
 				}
+				// Check if this looks like a named attribute (identifier="literal") rather than positional
+				else if (looksLikeNamedAttribute(data, tlt)) {
+					// Parse as named attributes instead
+					// Handle optional parentheses around attributes: throw (message="test")
+					boolean hasParen = data.srcCode.forwardIfCurrent('(');
+					if (hasParen) data.srcCode.removeSpace();
+					Attribute[] attrs = attributes(tag, tlt, data, hasParen ? BRACKED : SEMI_BLOCK, data.factory.EMPTY(), tlt.getScript().getRtexpr() ? Boolean.TRUE : Boolean.FALSE, null, false, ',', false);
+					for (Attribute a : attrs) {
+						tag.addAttribute(a);
+					}
+					if (hasParen) {
+						data.srcCode.removeSpace();
+						if (!data.srcCode.forwardIfCurrent(')')) {
+							throw new TemplateException(data.srcCode, "missing closing parenthesis for tag attributes");
+						}
+					}
+					handledAsNamedAttrs = true;
+				}
 				else attrValue = attributeValue(data, tlt.getScript().getRtexpr());
 
 				if (attrValue != null && isOperator(c)) {
@@ -2234,7 +2253,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			TagLibTagAttr tlta = tlt.getAttribute(attr.getName(), true);
 			tag.addAttribute(new Attribute(false, attrName, data.factory.toExpression(attrValue, tlta.getType()), tlta.getType()));
 		}
-		else if (ATTR_TYPE_REQUIRED == attrType) {
+		else if (ATTR_TYPE_REQUIRED == attrType && !handledAsNamedAttrs) {
 			data.srcCode.setPos(pos);
 			return null;
 		}
@@ -2284,6 +2303,54 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private boolean isOperator(char c) {
 		return c == '=' || c == '+' || c == '-';
+	}
+
+	/**
+	 * Check if current position looks like a named attribute (identifier="literal") for a single-attr tag.
+	 * This prevents "exit method="exitTag"" from being parsed as an assignment expression.
+	 * Only triggers for literal values (quoted strings), NOT for expressions like "include template=var".
+	 * Also handles parenthesized attributes like "throw (message="test")".
+	 */
+	private boolean looksLikeNamedAttribute(Data data, TagLibTag tlt) {
+		int pos = data.srcCode.getPos();
+		try {
+			// Skip opening paren if present (for syntax like "throw (message="test")")
+			boolean hasParen = data.srcCode.isCurrent('(');
+			if (hasParen) {
+				data.srcCode.next();
+				data.srcCode.removeSpace();
+			}
+
+			// Try to read an identifier
+			String id = CFMLTransformer.identifier(data.srcCode, false, true);
+			if (StringUtil.isEmpty(id)) return false;
+
+			// Skip whitespace
+			data.srcCode.removeSpace();
+
+			// Check if followed by =
+			if (!data.srcCode.isCurrent('=')) return false;
+
+			// Check if this identifier is a known attribute for this tag
+			if (tlt == null || tlt.getAttribute(id.toLowerCase(), true) == null) {
+				return false;
+			}
+
+			// Move past the =
+			data.srcCode.next();
+			data.srcCode.removeSpace();
+
+			// Only treat as named attribute if the value is a quoted string literal
+			// This distinguishes "exit method="exitTag"" from "include template=var"
+			char c = data.srcCode.getCurrent();
+			return c == '"' || c == '\'';
+		}
+		catch (TemplateException e) {
+			return false;
+		}
+		finally {
+			data.srcCode.setPos(pos);
+		}
 	}
 
 	/*
@@ -2732,7 +2799,14 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				if (tlt == null) value = asLiteralIdentifier(data, value);
 			}
 			else {
-				value = defaultValue;
+				// Naked attribute (no value) - use TRUE for boolean-like contexts, or defaultValue for positional contexts
+				// When defaultValue is NULL, it indicates positional arguments (like property type/name) that shouldn't be boolean
+				if (defaultValue instanceof Null) {
+					value = defaultValue;
+				}
+				else {
+					value = data.factory.TRUE();
+				}
 			}
 		}
 		comments(data);
