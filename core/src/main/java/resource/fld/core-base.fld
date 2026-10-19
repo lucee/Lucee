@@ -4206,10 +4206,13 @@ Specifies the type of results to return:
 	    </argument>
 	    <argument>
 	        <name>strictMapping</name>
-	        <type>boolean</type>
+	        <type>any</type>
 	        <required>No</required>
 	        <default>true</default>
-	        <description>A Boolean value that specifies whether to convert the JSON strictly. When true, the function will adhere to strict JSON mapping rules.</description>
+	        <description>Specifies how to map the JSON. Possible values are:
+	- **true**: (default) convert the JSON strictly, JSON objects become structs.
+	- **false**: JSON objects that represent a query (as produced by serializeJSON) become queries.
+	- **query**: (since 8.0) the JSON must be an array of objects, it is returned as a query with one row per object and a column for each key. A query in one of the serializeJSON formats is also accepted.</description>
 	    </argument>
 	    <argument>
 	        <name>format</name>

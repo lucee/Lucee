@@ -19,6 +19,9 @@
 package lucee.runtime.functions.conversion;
 
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -36,6 +39,7 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.CollectionUtil;
@@ -52,20 +56,45 @@ public final class DeserializeJSON extends BIF implements Function {
 	static {
 		allowEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.deserializejson.allowempty", null), false);
 	}
+	private static final int MAPPING_STRICT = 0;
+	private static final int MAPPING_LOOSE = 1;
+	private static final int MAPPING_QUERY = 2;
+
 	public static Object call(PageContext pc, String JSONVar) throws PageException {
-		return _call(pc, JSONVar, true, JSONExpressionInterpreter.FORMAT_JSON5); // for backward compatibility we need to allow json5 (most comments are allowed in Lucee 5)
+		return _call(pc, JSONVar, MAPPING_STRICT, JSONExpressionInterpreter.FORMAT_JSON5); // for backward compatibility we need to allow json5 (most comments are allowed in Lucee 5)
+	}
+
+	public static Object call(PageContext pc, String JSONVar, Object strictMapping) throws PageException {
+		return _call(pc, JSONVar, toMapping(pc, strictMapping), JSONExpressionInterpreter.FORMAT_JSON5);// for backward compatibility we need to allow json5 (most comments are allowed in Lucee 5)
+	}
+
+	public static Object call(PageContext pc, String JSONVar, Object strictMapping, String strFormat) throws PageException {
+		int format = StringUtil.isEmpty(strFormat, true) ? JSONExpressionInterpreter.FORMAT_JSON : JSONExpressionInterpreter.toFormat(strFormat);
+		return _call(pc, JSONVar, toMapping(pc, strictMapping), format);
 	}
 
 	public static Object call(PageContext pc, String JSONVar, boolean strictMapping) throws PageException {
-		return _call(pc, JSONVar, strictMapping, JSONExpressionInterpreter.FORMAT_JSON5);// for backward compatibility we need to allow json5 (most comments are allowed in Lucee 5)
+		return _call(pc, JSONVar, strictMapping ? MAPPING_STRICT : MAPPING_LOOSE, JSONExpressionInterpreter.FORMAT_JSON5);
 	}
 
 	public static Object call(PageContext pc, String JSONVar, boolean strictMapping, String strFormat) throws PageException {
-		int format = StringUtil.isEmpty(strFormat, true) ? JSONExpressionInterpreter.FORMAT_JSON : JSONExpressionInterpreter.toFormat(strFormat);
-		return _call(pc, JSONVar, strictMapping, format);
+		return call(pc, JSONVar, (Object) Boolean.valueOf(strictMapping), strFormat);
 	}
 
-	private static Object _call(PageContext pc, String JSONVar, boolean strictMapping, int format) throws PageException {
+	private static int toMapping(PageContext pc, Object strictMapping) throws PageException {
+		if (strictMapping == null) return MAPPING_STRICT;
+		if (strictMapping instanceof CharSequence) {
+			String str = strictMapping.toString().trim();
+			if ("query".equalsIgnoreCase(str)) return MAPPING_QUERY;
+			if (str.isEmpty()) return MAPPING_STRICT;
+			Boolean b = Caster.toBoolean(str, null);
+			if (b == null) throw new FunctionException(pc, "DeserializeJSON", 2, "strictMapping", "invalid value [" + str + "], valid values are [true, false, query]", null);
+			return b.booleanValue() ? MAPPING_STRICT : MAPPING_LOOSE;
+		}
+		return Caster.toBooleanValue(strictMapping) ? MAPPING_STRICT : MAPPING_LOOSE;
+	}
+
+	private static Object _call(PageContext pc, String JSONVar, int mapping, int format) throws PageException {
 		if (StringUtil.isEmpty(JSONVar, true)) {
 			if (allowEmpty) {
 				LogUtil.log(Log.LEVEL_WARN, "application", "conversion",
@@ -75,16 +104,60 @@ public final class DeserializeJSON extends BIF implements Function {
 			throw new FunctionException(pc, "DeserializeJSON", 1, "JSONVar", "input value cannot be empty string.", "Must be the valid JSON string");
 		}
 		Object result = new JSONExpressionInterpreter(false, format).interpret(pc, JSONVar);
-		if (!strictMapping) return toQuery(pc, result);
+		if (mapping == MAPPING_LOOSE) return toQuery(pc, result);
+		if (mapping == MAPPING_QUERY) return toQueryStrict(pc, result);
 		return result;
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]), Caster.toString(args[2]));
-		if (args.length == 2) return _call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]), JSONExpressionInterpreter.FORMAT_JSON5);
-		if (args.length == 1) return _call(pc, Caster.toString(args[0]), true, JSONExpressionInterpreter.FORMAT_JSON5);
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), args[1], Caster.toString(args[2]));
+		if (args.length == 2) return _call(pc, Caster.toString(args[0]), toMapping(pc, args[1]), JSONExpressionInterpreter.FORMAT_JSON5);
+		if (args.length == 1) return _call(pc, Caster.toString(args[0]), MAPPING_STRICT, JSONExpressionInterpreter.FORMAT_JSON5);
 		throw new FunctionException(pc, "DeserializeJSON", 1, 2, args.length);
+	}
+
+	/**
+	 * strictMapping="query": the JSON has to be an array of objects (each object is a row, the keys
+	 * are the columns) or one of the query formats produced by serializeJSON.
+	 */
+	private static Query toQueryStrict(PageContext pc, Object obj) throws PageException {
+		if (obj instanceof Query) return (Query) obj;
+		if (obj instanceof Array) {
+			Array arr = (Array) obj;
+			int rows = arr.size();
+			// columns are the keys of all rows, in the order they first appear
+			Set<Key> columns = new LinkedHashSet<>();
+			Object val;
+			for (int r = 1; r <= rows; r++) {
+				val = arr.get(r, null);
+				if (!(val instanceof Struct)) throw new FunctionException(pc, "DeserializeJSON", 2, "strictMapping",
+						"strictMapping [query] requires a JSON array of objects, but the element at position [" + r + "] is of type [" + Caster.toTypeName(val) + "]",
+						null);
+				Iterator<Key> it = ((Struct) val).keyIterator();
+				while (it.hasNext()) {
+					columns.add(it.next());
+				}
+			}
+			QueryImpl qry = new QueryImpl(columns.toArray(new Key[columns.size()]), rows, "query");
+			Struct row;
+			Entry<Key, Object> e;
+			for (int r = 1; r <= rows; r++) {
+				row = (Struct) arr.get(r, null);
+				Iterator<Entry<Key, Object>> it = row.entryIterator();
+				while (it.hasNext()) {
+					e = it.next();
+					qry.setAt(e.getKey(), r, e.getValue());
+				}
+			}
+			return qry;
+		}
+		if (obj instanceof Struct) {
+			Object res = toQuery(pc, obj);
+			if (res instanceof Query) return (Query) res;
+		}
+		throw new FunctionException(pc, "DeserializeJSON", 2, "strictMapping",
+				"strictMapping [query] requires a JSON array of objects, but the JSON is of type [" + Caster.toTypeName(obj) + "]", null);
 	}
 
 	// {"COLUMNS":["AAA","BBB"],"DATA":[["a","b"],["c","d"]]}
