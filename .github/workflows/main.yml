@@ -274,6 +274,25 @@ jobs:
           NEXT_BUILD=$((MAX_BUILD + 1))
         fi
 
+        # ALPHA builds are not deployed on every push, so there is no tag or Maven version that counts them up:
+        # every commit gets its own number, the number of commits since the commit that introduced the base version.
+        # Never lower than the next number from tags / Maven metadata, so a published version is never reused.
+        if [ "$QUALIFIER" == "-ALPHA" ]; then
+          if [ "$(git rev-parse --is-shallow-repository)" == "true" ]; then
+            git fetch --unshallow --quiet origin || true
+          fi
+          FIRST=$(git log --format=%H -S"<lucee.version.base>${BASE}</lucee.version.base>" -- loader/pom.xml | tail -1)
+          if [ -n "$FIRST" ]; then
+            ALPHA_BUILD=$(git rev-list --count "${FIRST}..HEAD")
+            echo "ALPHA: ${ALPHA_BUILD} commits since ${FIRST} introduced base ${BASE}"
+            if [ "$ALPHA_BUILD" -gt "$NEXT_BUILD" ]; then
+              NEXT_BUILD="$ALPHA_BUILD"
+            fi
+          else
+            echo "ALPHA: no commit found that introduced base ${BASE}, keeping build ${NEXT_BUILD}"
+          fi
+        fi
+
         VERSION="${BASE}.${NEXT_BUILD}${QUALIFIER}"
         # Tag shape matches existing practice: numeric 4-part without -SNAPSHOT
         TAG="${BASE}.${NEXT_BUILD}"
