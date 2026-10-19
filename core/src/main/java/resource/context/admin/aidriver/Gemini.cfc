@@ -28,16 +28,16 @@ component extends="AI" {
 		,group("Fine-Tune", "Customize settings to fine-tune your AI session.")
 		,field(displayName = "Model",
 			name = "model",
-			defaultValue = "auto",
+			defaultValue = "",
 			required = false,
-			description = "Specify the model to use, for example 'gemini-2.5-flash'. Use 'auto' to let Lucee pick a model from the models the API lists (see 'Model Preference').",
+			description = "Specify the model to use, for example 'gemini-2.5-flash'. Leave it empty to let Lucee pick a model from the models the API lists when a session is created (see 'Model Preference'). The model is picked once and used for the whole session, it is not chosen per request.",
 			type = "text"
 		)
 		,field(displayName = "Model Preference",
 			name = "modelPreference",
 			defaultValue = "",
 			required = false,
-			description = "Only used when the model is 'auto'. Comma separated list of model name patterns (* and ? as wildcards) in order of preference, for example 'gemini-*-flash,gemini-*-pro'. The first pattern that matches an available model wins, when several models match the one with the highest version is used. When nothing matches, Lucee falls back to a built-in choice.",
+			description = "Only used when no model is defined. Comma separated list of model name patterns (* and ? as wildcards) in order of preference, for example 'gemini-*-flash,gemini-*-pro'. The first pattern that matches an available model wins, when several models match the one with the highest version is used. When nothing matches, Lucee falls back to a built-in choice.",
 			type = "text"
 		)
 		,field(displayName = "System Message",

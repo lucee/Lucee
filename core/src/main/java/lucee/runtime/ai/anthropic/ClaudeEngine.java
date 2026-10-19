@@ -103,8 +103,8 @@ public final class ClaudeEngine extends AIEngineSupport {
 		// conversation Size Limit
 		conversationSizeLimit = Caster.toIntValue(props.remove(KeyConstants._conversationSizeLimit, null), DEFAULT_CONVERSATION_SIZE_LIMIT);
 
-		// Model, "auto" or empty resolves the model from the models the provider has (LDEV-6618)
-		model = readModel(props, true);
+		// model, when it is missing or empty, the model is resolved from the models the provider has (LDEV-6618)
+		model = readModel(props);
 
 		// System Message
 		systemMessage = Caster.toStringTrim(props.remove(KeyConstants._message, null), null);

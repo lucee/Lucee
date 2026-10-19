@@ -10830,7 +10830,7 @@ That object also behaves as a string containing the concatenated plain text part
 		<class>lucee.runtime.functions.ai.AIGetModels</class>
 		<description>Returns the models available for a configured AI connection, as reported by the provider (for example `GET /models` for OpenAI compatible providers like OpenAI, Groq, OpenRouter or Ollama, and the model list of Gemini and Claude).
 
-This is useful to choose a value for the connection setting `model`, or patterns for the setting `modelPreference` used when `model` is set to `auto`. The model actually used by a connection is returned by `AIGetMetaData(name).model`.</description>
+This is useful to choose a value for the connection setting `model`, or patterns for the setting `modelPreference` used when the connection has no `model` defined (Lucee then picks a model when a session is created and uses it for the whole session). The model actually used by a connection is returned by `AIGetMetaData(name).model`.</description>
 		<argument>
 			<name>name</name>
 			<alias>aiName,nameAI,session</alias>

@@ -31,7 +31,7 @@ public abstract class AIEngineSupport implements AIEngine {
 
 	public static final Key MODEL_PREFERENCE = KeyImpl.init("modelPreference");
 	private List<String> modelPreference;
-	private boolean autoModel;
+	private boolean resolvesModel;
 	private Config config;
 	/** models that rejected the setting temperature, see {@link #isTemperatureRejected(String)} */
 	private final Set<String> noTemperature = ConcurrentHashMap.newKeySet();
@@ -110,24 +110,25 @@ public abstract class AIEngineSupport implements AIEngine {
 
 	/**
 	 * reads the model and the model preference from the given properties and removes both from it. Returns the configured model or
-	 * null if the model is resolved automatically ("auto", or empty when emptyIsAuto is true).
+	 * null if no model is configured (missing or empty), in that case the model is resolved when a session is created (see
+	 * {@link AIModelResolver}).
 	 */
-	protected final String readModel(Struct props, boolean emptyIsAuto) throws PageException {
+	protected final String readModel(Struct props) throws PageException {
 		modelPreference = AIModelResolver.toPatterns(props.remove(MODEL_PREFERENCE, null));
 		String model = Caster.toStringTrim(props.remove(lucee.runtime.type.util.KeyConstants._model, null), null);
-		if (AIModelResolver.isAuto(model) || (emptyIsAuto && StringUtil.isEmpty(model, true))) {
-			autoModel = true;
+		if (StringUtil.isEmpty(model, true)) {
+			resolvesModel = true;
 			return null;
 		}
-		autoModel = false;
-		return StringUtil.isEmpty(model, true) ? null : model.trim();
+		resolvesModel = false;
+		return model.trim();
 	}
 
 	/**
-	 * true if the model is resolved automatically (model "auto")
+	 * true if no model is configured for this AI connection and Lucee resolves it (see {@link AIModelResolver})
 	 */
-	public final boolean isAutoModel() {
-		return autoModel;
+	public final boolean isModelResolved() {
+		return resolvesModel;
 	}
 
 	public final List<String> getModelPreference() {
@@ -135,43 +136,36 @@ public abstract class AIEngineSupport implements AIEngine {
 	}
 
 	/**
-	 * returns the model when it is configured, otherwise it resolves it (see {@link AIModelResolver}), if that fails, "auto" is
-	 * returned and the error is logged
+	 * returns the model when it is configured, otherwise it resolves it (see {@link AIModelResolver}), if that fails, an empty string
+	 * is returned and the error is logged
 	 */
 	protected final String getModel(String configured) {
-		if (!autoModel) return configured;
+		if (!resolvesModel) return configured;
 		try {
 			return AIModelResolver.resolve(this);
 		}
 		catch (Exception e) {
 			log(e);
-			return AIModelResolver.AUTO;
+			return "";
 		}
 	}
 
 	/**
-	 * resolves the model when it is set to "auto", throws an exception if that is not possible
+	 * resolves the model when none is configured, throws an exception if that is not possible
 	 */
 	protected final void resolveModel() throws PageException {
-		if (autoModel) AIModelResolver.resolve(this);
+		if (resolvesModel) AIModelResolver.resolve(this);
 	}
 
 	/**
-	 * the provider's own "auto" model (a router that picks the model on the provider side), null if the provider has none
-	 */
-	public String getProviderAutoModel() {
-		return null;
-	}
-
-	/**
-	 * built-in fallback patterns used for "auto" when no model preference matches
+	 * built-in fallback patterns used to resolve the model when none is configured and no model preference matches
 	 */
 	public List<String> getFallbackModels() {
 		return new ArrayList<>();
 	}
 
 	/**
-	 * names of the models available for chat, used to resolve "auto"
+	 * names of the models available for chat, used to resolve the model when none is configured
 	 */
 	public List<String> listModelNames() throws PageException {
 		List<String> names = new ArrayList<>();

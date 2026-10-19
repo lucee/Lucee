@@ -19,12 +19,12 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.type.util.ListUtil;
 
 /**
- * Resolves the model of an AI connection configured with <code>model: "auto"</code> (LDEV-6618).
+ * Resolves the model of an AI connection that has no model configured (setting <code>model</code> missing or empty), the model is
+ * resolved once when a session is created and then used for the whole session (LDEV-6618). This is no per request routing.
  * 
  * Resolution order:
  * <ol>
  * <li><code>modelPreference</code> patterns (glob, first pattern with a match wins)</li>
- * <li>the provider's own auto router (e.g. OpenRouter)</li>
  * <li>built-in fallback patterns of the engine/provider</li>
  * <li>the first chat capable model listed by the provider</li>
  * </ol>
@@ -36,8 +36,6 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class AIModelResolver {
 
-	public static final String AUTO = "auto";
-
 	/** how long a resolved model is kept before the provider is asked again */
 	public static final long CACHE_TIMEOUT = 60L * 60L * 1000L; // 1 hour
 
@@ -47,10 +45,6 @@ public final class AIModelResolver {
 	private static final Map<String, Cached> cache = new ConcurrentHashMap<>();
 
 	private AIModelResolver() {
-	}
-
-	public static boolean isAuto(String model) {
-		return model != null && AUTO.equalsIgnoreCase(model.trim());
 	}
 
 	/**
@@ -314,11 +308,10 @@ public final class AIModelResolver {
 	 * 
 	 * @param available models available at the provider, null if they could not be listed
 	 * @param preference patterns from the setting "modelPreference", can be null
-	 * @param providerAuto the provider's own auto model (e.g. "openrouter/auto"), can be null
 	 * @param fallback built-in fallback patterns, can be null
 	 * @return the selected model, or null if no model could be selected
 	 */
-	public static String select(List<String> available, List<String> preference, String providerAuto, List<String> fallback) {
+	public static String select(List<String> available, List<String> preference, List<String> fallback) {
 		// some providers have no (usable) model listing, an empty list is handled like "could not be listed"
 		if (available != null && available.isEmpty()) available = null;
 
@@ -335,10 +328,7 @@ public final class AIModelResolver {
 			}
 		}
 
-		// 2. provider auto
-		if (!StringUtil.isEmpty(providerAuto, true)) return providerAuto.trim();
-
-		// 3. built-in fallback
+		// 2. built-in fallback
 		if (fallback != null) {
 			for (String pattern: fallback) {
 				if (available != null) {
@@ -349,7 +339,7 @@ public final class AIModelResolver {
 			}
 		}
 
-		// 4. first chat capable model
+		// 3. first chat capable model
 		if (available != null) {
 			for (String name: available) {
 				if (name != null && !isNonChat(name)) return name;
@@ -368,26 +358,21 @@ public final class AIModelResolver {
 		if (cached != null && cached.expires > System.currentTimeMillis()) return cached.model;
 
 		List<String> preference = engine.getModelPreference();
-		String providerAuto = engine.getProviderAutoModel();
 		List<String> fallback = engine.getFallbackModels();
 
-		// we only list the models when we need them
 		List<String> available = null;
 		PageException listingError = null;
-		boolean hasPreference = preference != null && !preference.isEmpty();
-		if (hasPreference || StringUtil.isEmpty(providerAuto, true)) {
-			try {
-				available = engine.listModelNames();
-			}
-			catch (PageException pe) {
-				listingError = pe;
-			}
+		try {
+			available = engine.listModelNames();
+		}
+		catch (PageException pe) {
+			listingError = pe;
 		}
 
-		String model = select(available, preference, providerAuto, fallback);
+		String model = select(available, preference, fallback);
 		if (StringUtil.isEmpty(model, true)) {
-			StringBuilder msg = new StringBuilder("Unable to resolve the model [auto] for the AI connection [").append(engine.getName()).append("] (").append(engine.getLabel())
-					.append(")");
+			StringBuilder msg = new StringBuilder("No model is defined for the AI connection [").append(engine.getName()).append("] (").append(engine.getLabel())
+					.append(") and Lucee was unable to pick one");
 			if (listingError != null) msg.append(", listing the available models failed: ").append(listingError.getMessage());
 			else if (available == null || available.isEmpty()) msg.append(", the provider did not list any models");
 			else msg.append(", none of the available models [").append(AIUtil.getModelNamesAsStringList(available)).append("] fits");
@@ -397,7 +382,7 @@ public final class AIModelResolver {
 			throw ae;
 		}
 
-		LogUtil.logx(engine.getConfig(), Log.LEVEL_INFO, "ai", "AI connection [" + engine.getName() + "] (" + engine.getLabel() + ") resolved model [auto] to ["
+		LogUtil.logx(engine.getConfig(), Log.LEVEL_INFO, "ai", "AI connection [" + engine.getName() + "] (" + engine.getLabel() + ") has no model defined, resolved model to ["
 				+ model + "]" + (listingError != null ? " (listing models failed: " + listingError.getMessage() + ")" : ""), "ai", "application");
 
 		if (key != null) cache.put(key, new Cached(model, System.currentTimeMillis() + CACHE_TIMEOUT));

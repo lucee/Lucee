@@ -130,8 +130,8 @@ public final class GeminiEngine extends AIEngineSupport {
 		charset = Caster.toStringTrim(props.remove(KeyConstants._charset, null), DEFAULT_CHARSET);
 		if (Util.isEmpty(charset, true)) charset = DEFAULT_CHARSET;
 
-		// model, "auto" or empty resolves the model from the models the provider has (LDEV-6618)
-		model = readModel(props, true);
+		// model, when it is missing or empty, the model is resolved from the models the provider has (LDEV-6618)
+		model = readModel(props);
 
 		// responseSchema
 		generationConfig = Caster.toStruct(props.remove(KeyConstants._generationConfig, null), null);

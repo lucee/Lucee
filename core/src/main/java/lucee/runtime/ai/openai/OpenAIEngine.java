@@ -225,8 +225,8 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		charset = Caster.toStringTrim(props.remove(KeyConstants._charset, null), DEFAULT_CHARSET);
 		if (Util.isEmpty(charset, true)) charset = DEFAULT_CHARSET;
 
-		// model, "auto" or empty resolves the model from the models the provider has (LDEV-6618)
-		model = readModel(props, true);
+		// model, when it is missing or empty, the model is resolved from the models the provider has (LDEV-6618)
+		model = readModel(props);
 
 		// temperature
 		temperature = Caster.toDouble(props.remove(KeyConstants._temperature, null), null);
@@ -270,13 +270,6 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 	}
 
 	@Override
-	public String getProviderAutoModel() {
-		String host = baseURL == null ? null : baseURL.getHost();
-		if (host != null && host.toLowerCase().endsWith("openrouter.ai")) return "openrouter/auto";
-		return null;
-	}
-
-	@Override
 	public List<String> getFallbackModels() {
 		List<String> list = new ArrayList<>();
 		String host = baseURL == null ? "" : baseURL.getHost().toLowerCase();
@@ -296,6 +289,10 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		}
 		else if (host.endsWith("perplexity.ai")) {
 			list.add("sonar");
+		}
+		else if (host.endsWith("openrouter.ai")) {
+			list.add("anthropic/claude-sonnet-*");
+			list.add("google/gemini-*-flash");
 		}
 		return list;
 	}
@@ -362,7 +359,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 					return list;
 				}
 				// some OpenAI compatible providers (e.g. Perplexity) have no model listing and answer with plain text or HTML, we handle this
-				// like an empty list, so "auto" can still use the built-in fallback (LDEV-6618)
+				// like an empty list, so a connection without a model can still use the built-in fallback (LDEV-6618)
 				LogUtil.logx(getConfig(), Log.LEVEL_DEBUG, "ai", "AI connection [" + getName() + "] (" + getLabel() + ") does not list models, the provider answered with [" + t
 						+ "] and status code [" + AIUtil.getStatusCode(response) + "]", "ai", "application");
 				return new ArrayList<>();
