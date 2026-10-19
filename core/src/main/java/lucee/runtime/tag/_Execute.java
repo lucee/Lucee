@@ -112,8 +112,8 @@ public final class _Execute extends PageContextThread {
 		try {
 			CommandResult result;
 			boolean redirectErrorStream = false;
-			if (onProgress != null) {
-				UDFProcessListener progress = new UDFProcessListener(pc, onProgress);
+			if (onProgress != null || onError != null) {
+				UDFProcessListener progress = onProgress == null ? null : new UDFProcessListener(pc, onProgress);
 				UDFProcessListener error = null;
 				if (onError != null) error = new UDFProcessListener(pc, onError);
 				else redirectErrorStream = true;

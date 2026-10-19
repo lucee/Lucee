@@ -136,7 +136,13 @@ public final class Command {
 	public static CommandResult execute(PageContext pc, Process p, long timeout, UDFProcessListener onProgress, UDFProcessListener onError) throws InterruptedException {
 		IOException ioe;
 		ExecutorService executorService = ThreadUtil.createExecutorService(2);
-		executorService.execute(() -> handleStream(pc, p, p.getInputStream(), onProgress));
+		// LDEV-5834 onError can be used without onProgress, the output is then collected as usual
+		StreamGobbler out = null;
+		if (onProgress != null) executorService.execute(() -> handleStream(pc, p, p.getInputStream(), onProgress));
+		else {
+			out = new StreamGobbler(p.getInputStream());
+			out.start();
+		}
 		if (onError != null) {
 			executorService.execute(() -> handleStream(pc, p, p.getErrorStream(), onError));
 		}
@@ -144,6 +150,10 @@ public final class Command {
 
 		executorService.shutdown();
 		executorService.awaitTermination(timeout, TimeUnit.SECONDS);
+		if (out != null) {
+			out.join();
+			return new CommandResult(out.getString(), null, exitCode);
+		}
 		/*
 		 * if (exitCode != 0) { err.join(); if ((ioe = err.getException()) != null) throw new
 		 * IOException(ioe); String str = err.getString(); if (!StringUtil.isEmpty(str)) throw new
