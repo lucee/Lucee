@@ -18,6 +18,7 @@
  */
 package lucee.runtime.db;
 
+import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -45,6 +46,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
@@ -160,7 +162,7 @@ public final class SQLCaster {
 		 */
 		case Types.BIGINT:
 			try {
-				stat.setLong(parameterIndex, Caster.toLongValue(value));
+				stat.setLong(parameterIndex, Caster.toLongValue(checkRange(value, Long.MIN_VALUE, Long.MAX_VALUE, "BIGINT")));
 			}
 			catch (PageException pe) {
 				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
@@ -301,7 +303,7 @@ public final class SQLCaster {
 			return;
 		case Types.TINYINT:
 			try {
-				stat.setObject(parameterIndex, Caster.toByte(value), type);
+				stat.setObject(parameterIndex, Caster.toByte(checkRange(value, Byte.MIN_VALUE, Byte.MAX_VALUE, "TINYINT")), type);
 			}
 			catch (PageException pe) {
 				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
@@ -317,7 +319,7 @@ public final class SQLCaster {
 			return;
 		case Types.SMALLINT:
 			try {
-				stat.setObject(parameterIndex, Caster.toShort(value), type);
+				stat.setObject(parameterIndex, Caster.toShort(checkRange(value, Short.MIN_VALUE, Short.MAX_VALUE, "SMALLINT")), type);
 			}
 			catch (PageException pe) {
 				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
@@ -333,7 +335,7 @@ public final class SQLCaster {
 			return;
 		case Types.INTEGER:
 			try {
-				stat.setObject(parameterIndex, Caster.toInteger(value), type);
+				stat.setObject(parameterIndex, Caster.toInteger(checkRange(value, Integer.MIN_VALUE, Integer.MAX_VALUE, "INTEGER")), type);
 			}
 			catch (PageException pe) {
 				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
@@ -937,5 +939,36 @@ public final class SQLCaster {
 			return defaultValue;
 		}
 
+	}
+
+	private static final BigDecimal LONG_MIN = BigDecimal.valueOf(Long.MIN_VALUE);
+	private static final BigDecimal LONG_MAX = BigDecimal.valueOf(Long.MAX_VALUE);
+
+	/**
+	 * LDEV-3118 a value outside the range of the integer sql type must fail instead of silently
+	 * overflowing, returns the value unchanged
+	 */
+	private static Object checkRange(Object value, long min, long max, String type) throws PageException {
+		if (value instanceof Integer || value instanceof Short || value instanceof Byte || value instanceof Long) {
+			long l = ((Number) value).longValue();
+			if (l < min || l > max) throw invalidData(value, type);
+			return value;
+		}
+		if (value instanceof CharSequence && StringUtil.isEmpty(value.toString().trim())) return value;
+		BigDecimal bd;
+		try {
+			bd = Caster.toBigDecimal(value);
+		}
+		catch (PageException pe) {
+			return value; // not a number, the regular cast reports it
+		}
+		if (bd.compareTo(min == Long.MIN_VALUE ? LONG_MIN : BigDecimal.valueOf(min)) < 0 || bd.compareTo(max == Long.MAX_VALUE ? LONG_MAX : BigDecimal.valueOf(max)) > 0) {
+			throw invalidData(value, type);
+		}
+		return value;
+	}
+
+	private static ExpressionException invalidData(Object value, String type) {
+		return new ExpressionException("Invalid data [" + Caster.toString(value, "") + "] for CFSQLTYPE CF_SQL_" + type, "value is out of the range of the type " + type);
 	}
 }
