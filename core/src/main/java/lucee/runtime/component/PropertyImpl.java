@@ -81,6 +81,8 @@ public final class PropertyImpl extends MemberSupport implements Property, ASMPr
 	@Override
 	public String getDefault() {
 		if (_default == null) return null;
+		// LDEV-6303: an expression default has no static value, it is evaluated per instance
+		if (_default instanceof ExpressionDefault) return null;
 		try {
 			return Caster.toString(_default);
 		}
@@ -92,6 +94,14 @@ public final class PropertyImpl extends MemberSupport implements Property, ASMPr
 	@Override
 	public Object getDefaultAsObject() {
 		return _default;
+	}
+
+	/**
+	 * like getDefaultAsObject, but returns null for an expression default (LDEV-6303), because that
+	 * one is evaluated per instance in the pseudo-constructor and has no static value.
+	 */
+	public Object getLiteralDefaultAsObject() {
+		return _default instanceof ExpressionDefault ? null : _default;
 	}
 
 	/**
