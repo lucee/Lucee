@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 	function beforeAll() { 
 		variables.msSQL = server.getDatasource("mssql");
 		if( structCount(msSQL) ) {
@@ -8,6 +8,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" skip="true"
 
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-4424", function() {
+			it(title = "SQL display with a '?' that is not a param marker does not throw", body = function( currentSpec ) {
+				var item = createObject( "java", "lucee.runtime.db.SQLItemImpl" ).init( javaCast( "int", 0 ), javaCast( "int", 4 ) );
+				var items = createObject( "java", "java.lang.reflect.Array" ).newInstance( createObject( "java", "lucee.runtime.db.SQLItem" ).getClass(), javaCast( "int", 1 ) );
+				items[ 1 ] = item;
+				var sql = createObject( "java", "lucee.runtime.db.SQLImpl" ).init( "select x as [Country/Entity?] from t where id = ? and y = ?", items );
+				var str = sql.toString();
+				expect( str ).toInclude( "select x as [Country/Entity" );
+				expect( sql.toString( true ) ).toInclude( "select x as [Country/Entity" );
+			});
 			it(title = "Checking cfquery sql has '?' without params", skip="#notHasMssql()#", body = function( currentSpec ) {
 				expect(testQuery(checkWithParams=false)).toBe('sql with ? works');
 			});
