@@ -42,7 +42,7 @@ public final class AIModelResolver {
 	public static final long CACHE_TIMEOUT = 60L * 60L * 1000L; // 1 hour
 
 	private static final String[] NON_CHAT = new String[] { "embed", "tts", "whisper", "dall-e", "moderation", "audio", "realtime", "image", "transcribe", "rerank",
-			"search", "imagen", "veo", "aqa", "guard" };
+			"search", "imagen", "veo", "video", "aqa", "guard" };
 
 	private static final Map<String, Cached> cache = new ConcurrentHashMap<>();
 
@@ -113,33 +113,48 @@ public final class AIModelResolver {
 		return false;
 	}
 
+	/** scale of a minor version that follows a dot, so it is compared as a decimal fraction */
+	private static final long DECIMAL_SCALE = 1000000L;
+
 	/**
 	 * extracts the version of a model name, these are the numeric parts that follow the leading alphabetic part of the name, for
-	 * example "gpt-5.1-mini" -> [5,1], "gpt-4o" -> [4], "claude-sonnet-4-5-20250929" -> [4,5], "gemini-2.5-flash" -> [2,5],
-	 * "grok-4.20-0309-reasoning" -> [4,20]. Date like parts (see {@link #isDatePart(String)}) end the version, so "gpt-4o-2024-11-20"
-	 * -> [4].
+	 * example "gpt-5.1-mini" -> [5,1], "gpt-4o" -> [4], "claude-sonnet-4-5-20250929" -> [4,5], "gemini-2.5-flash" -> [2,5]. Date like
+	 * parts (see {@link #isDatePart(String)}) end the version, so "gpt-4o-2024-11-20" -> [4]. A number that follows a dot is a decimal
+	 * fraction, so "grok-4.7" ranks before "grok-4.20" (4.7 > 4.2), these numbers are returned scaled by 1000000 ("4.20" ->
+	 * [4,200000]).
 	 */
 	public static List<Long> version(String name) {
 		List<Long> version = new ArrayList<>();
 		if (name == null) return version;
 		boolean started = false;
-		for (String t: tokens(name)) {
+		String t;
+		for (String raw: rawTokens(name)) {
+			boolean afterDot = raw.charAt(0) == '.';
+			t = raw.substring(1);
 			if (isDatePart(t)) break;
 			if (isDigits(t)) {
+				version.add(started && afterDot ? decimal(t) : Long.parseLong(t));
 				started = true;
-				version.add(Long.parseLong(t));
 			}
 			else if (Character.isDigit(t.charAt(0))) {
 				// "4o", "70b": the leading number is part of the version, the rest is a variant
 				int i = 0;
 				while (i < t.length() && Character.isDigit(t.charAt(i)))
 					i++;
-				version.add(Long.parseLong(t.substring(0, i)));
+				version.add(started && afterDot ? decimal(t.substring(0, i)) : Long.parseLong(t.substring(0, i)));
 				break;
 			}
 			else if (started) break;
 		}
 		return version;
+	}
+
+	private static long decimal(String digits) {
+		if (digits.length() > 6) digits = digits.substring(0, 6);
+		long value = Long.parseLong(digits);
+		for (int i = digits.length(); i < 6; i++)
+			value *= 10;
+		return value;
 	}
 
 	/**
@@ -204,20 +219,34 @@ public final class AIModelResolver {
 
 	private static List<String> tokens(String name) {
 		List<String> tokens = new ArrayList<>();
+		for (String raw: rawTokens(name)) {
+			tokens.add(raw.substring(1));
+		}
+		return tokens;
+	}
+
+	/**
+	 * the alphanumeric parts of the name (without vendor prefix), every part starts with the character that separated it from the
+	 * previous part (a space for the first part)
+	 */
+	private static List<String> rawTokens(String name) {
+		List<String> tokens = new ArrayList<>();
 		if (name == null) return tokens;
 		String n = name;
 		// strip a vendor/namespace prefix like "models/" or "meta-llama/"
 		int index = n.lastIndexOf('/');
 		if (index != -1) n = n.substring(index + 1);
 		StringBuilder token = new StringBuilder();
+		char sep = ' ';
 		for (char c: n.toCharArray()) {
 			if (Character.isLetterOrDigit(c)) token.append(c);
 			else {
-				if (token.length() > 0) tokens.add(token.toString());
+				if (token.length() > 0) tokens.add(sep + token.toString());
 				token.setLength(0);
+				sep = c;
 			}
 		}
-		if (token.length() > 0) tokens.add(token.toString());
+		if (token.length() > 0) tokens.add(sep + token.toString());
 		return tokens;
 	}
 
@@ -231,7 +260,8 @@ public final class AIModelResolver {
 	/**
 	 * sorts the best model first:
 	 * <ol>
-	 * <li>highest version first ("gpt-5.4" before "gpt-4o"), dates/snapshots are not part of the version</li>
+	 * <li>highest version first ("gpt-5.4" before "gpt-4o", "grok-4.7" before "grok-4.20"), dates/snapshots are not part of the
+	 * version</li>
 	 * <li>fewer special variants first ("grok-4.20-non-reasoning" before "grok-4.20-reasoning")</li>
 	 * <li>the shorter name without its date (the base model and not a variant like "-mini" or "-preview")</li>
 	 * <li>the undated alias before a dated snapshot ("gpt-4o" before "gpt-4o-2024-11-20")</li>

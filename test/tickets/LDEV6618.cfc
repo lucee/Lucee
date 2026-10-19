@@ -126,8 +126,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ai" {
 			it( "date and snapshot parts are not part of the version", function() {
 				expect( arrayToList( resolver.version( "gpt-4o-2024-11-20" ) ) ).toBe( "4" );
 				expect( arrayToList( resolver.version( "gpt-4o" ) ) ).toBe( "4" );
-				expect( arrayToList( resolver.version( "gpt-5.4" ) ) ).toBe( "5,4" );
-				expect( arrayToList( resolver.version( "grok-4.20-0309-reasoning" ) ) ).toBe( "4,20" );
+				expect( arrayToList( resolver.version( "gpt-5.4" ) ) ).toBe( "5,400000" );
+				expect( arrayToList( resolver.version( "grok-4.20-0309-reasoning" ) ) ).toBe( "4,200000" );
 				expect( arrayToList( resolver.version( "claude-sonnet-4-5-20250929" ) ) ).toBe( "4,5" );
 				expect( arrayToList( resolver.version( "gpt-4-0613" ) ) ).toBe( "4" );
 				expect( resolver.undated( "gpt-4o-2024-11-20" ) ).toBe( "gpt-4o" );
@@ -146,6 +146,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ai" {
 				var models = [ "gpt-4o-2024-11-20", "gpt-4o", "gpt-4.1", "gpt-4.1-2025-04-14", "gpt-5.4", "gpt-5.4-2026-03-05", "gpt-5.4-mini", "gpt-5.4-pro", "gpt-image-1.5", "gpt-realtime", "gpt-audio" ];
 				expect( resolver.select( models, [], "", [ "gpt-*" ] ) ).toBe( "gpt-5.4" );
 				expect( resolver.best( [ "gpt-4o", "gpt-4.1" ], "gpt-*", true ) ).toBe( "gpt-4.1" );
+			});
+
+			it( "a number after a dot is a decimal fraction", function() {
+				expect( resolver.best( [ "grok-4.20-0309-non-reasoning", "grok-4.3", "grok-4.7", "grok-4.6" ], "grok-*", true ) ).toBe( "grok-4.7" );
+				expect( resolver.best( [ "gemini-2.5-flash", "gemini-3.8-flash", "gemini-3-flash-preview" ], "gemini-*-flash", true ) ).toBe( "gemini-3.8-flash" );
+				expect( resolver.best( [ "claude-sonnet-4-5-20250929", "claude-sonnet-4-6", "claude-sonnet-5" ], "claude-sonnet-*", true ) ).toBe( "claude-sonnet-5" );
 			});
 
 			it( "grok: non-reasoning wins over reasoning", function() {
