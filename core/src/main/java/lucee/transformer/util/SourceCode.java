@@ -41,6 +41,9 @@ public class SourceCode {
 	private int hash;
 	private SourceCode parent;
 	private int sourceOffset;
+	// Set to true when the parser wraps script content in <cfscript> tags for parsing.
+	// Used by AST generation to know it should unwrap the cfscript in the output.
+	private boolean wrappedInScript;
 
 	// Position cache - reduces allocations during parsing
 	private Position cachedPosition;
@@ -1033,5 +1036,13 @@ public class SourceCode {
 
 	public int getSourceOffset() {
 		return sourceOffset;
+	}
+
+	public boolean isWrappedInScript() {
+		return wrappedInScript;
+	}
+
+	public void setWrappedInScript(boolean wrappedInScript) {
+		this.wrappedInScript = wrappedInScript;
 	}
 }

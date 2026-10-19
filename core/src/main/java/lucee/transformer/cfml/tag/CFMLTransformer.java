@@ -48,6 +48,8 @@ import lucee.transformer.Page;
 import lucee.transformer.Position;
 import lucee.transformer.bytecode.PageImpl;
 import lucee.transformer.bytecode.statement.StatementBase;
+import lucee.transformer.bytecode.statement.tag.TagBase;
+import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.tag.TagFunction;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.ExprTransformer;
@@ -143,6 +145,11 @@ public final class CFMLTransformer {
 	 */
 	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib flibs, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
+		return transform(factory, config, ps, tlibs, flibs, returnValue, ignoreScopes, false);
+	}
+
+	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib flibs, boolean returnValue, boolean ignoreScopes, boolean ast)
+			throws TemplateException, IOException {
 		Page p;
 		SourceCode sc;
 
@@ -157,7 +164,7 @@ public final class CFMLTransformer {
 		boolean hasWriteLog = false;
 		boolean hasCharset = false;
 		boolean hasUpper = false;
-		boolean allowUnknownTags = false;
+		boolean allowUnknownTags = ast;
 		while (true) {
 			PageSourceCode psc = null;
 			try {
@@ -187,6 +194,7 @@ public final class CFMLTransformer {
 						text = "<" + scriptTag.getFullName() + ">" + text + "\n</" + scriptTag.getFullName() + ">";
 						int sourceOffset = ("<" + scriptTag.getFullName() + ">").length();
 						sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
+						sc.setWrappedInScript(true);
 						wrapped = true;
 
 					}
@@ -217,7 +225,8 @@ public final class CFMLTransformer {
 		boolean possibleUndetectedComponent = false;
 
 		// we don't have a component or interface
-		if (!wrapped && p.isPage()) {
+		// Also check if component exists inside cfscript body (handles <cfscript>component { }</cfscript>)
+		if (!wrapped && p.isPage() && !containsComponentRecursive(p)) {
 			possibleUndetectedComponent = isCFMLCompExt;
 		}
 
@@ -233,6 +242,7 @@ public final class CFMLTransformer {
 			String text = "<" + scriptTag.getFullName() + ">" + original.getText() + "\n</" + scriptTag.getFullName() + ">";
 			int sourceOffset = ("<" + scriptTag.getFullName() + ">").length();
 			sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
+			sc.setWrappedInScript(true);
 
 			try {
 				while (true) {
@@ -240,6 +250,7 @@ public final class CFMLTransformer {
 						sc = new PageSourceCode(ps, charset, writeLog);
 						text = "<" + scriptTag.getFullName() + ">" + sc.getText() + "\n</" + scriptTag.getFullName() + ">";
 						sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
+						sc.setWrappedInScript(true);
 					}
 					try {
 						_p = transform(factory, config, sc, tlibs, flibs, ps.getResource().lastModified(), dotUpper, returnValue, ignoreScopes, hasWriteLog, hasUpper, hasCharset,
@@ -270,13 +281,31 @@ public final class CFMLTransformer {
 			if (_p != null && !_p.isPage()) return _p;
 		}
 
-		if (isCFMLCompExt && !p.isComponent() && !p.isInterface()) {
+		// In AST mode, component stays inside cfscript so skip this validation
+		if (!ast && isCFMLCompExt && !p.isComponent() && !p.isInterface()) {
 			String msg = "template [" + ps.getDisplayPath() + "] must contain a component or an interface.";
 			if (sc != null) throw new TemplateException(sc, msg);
 			throw new TemplateException(msg);
 		}
 
 		return p;
+	}
+
+	/**
+	 * Check if a body contains a component, recursively searching through tag bodies (e.g., cfscript)
+	 */
+	private static boolean containsComponentRecursive(Body body) {
+		if (body == null) return false;
+		for (Statement s : body.getStatements()) {
+			if (s instanceof TagComponent) return true;
+			if (s instanceof Tag) {
+				Tag tag = (Tag) s;
+				if (tag.getBody() != null && containsComponentRecursive(tag.getBody())) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public static TagLibTag getTLT(SourceCode cfml, String name, Identification id) throws TemplateException {

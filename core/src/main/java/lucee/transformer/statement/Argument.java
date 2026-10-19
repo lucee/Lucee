@@ -32,6 +32,7 @@ public final class Argument {
 
 	private ExprString name;
 	private ExprString type;
+	private boolean typeExplicit; // LDEV-6041: track if type was explicitly specified
 	private ExprBoolean required;
 	private Expression defaultValue;
 	private ExprString displayName;
@@ -122,6 +123,20 @@ public final class Argument {
 
 	public ExprString getType() {
 		return type;
+	}
+
+	/**
+	 * LDEV-6041: Check if type was explicitly specified
+	 */
+	public boolean isTypeExplicit() {
+		return typeExplicit;
+	}
+
+	/**
+	 * LDEV-6041: Set whether type was explicitly specified
+	 */
+	public void setTypeExplicit(boolean explicit) {
+		this.typeExplicit = explicit;
 	}
 
 	public Map getMetaData() {

@@ -43,6 +43,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -86,17 +87,16 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
 		BytecodeFactory factory = BytecodeFactory.getInstance(config);
 		// , cwi.getFLDs()
-		PageImpl page = ((PageImpl) cfmlTagTransformer.transform(factory, config, ps, config.getTLDs(), config.getFLDs(), false, ignoreScopes));
+		PageImpl page = ((PageImpl) cfmlTagTransformer.transform(factory, config, ps, config.getTLDs(), config.getFLDs(), false, ignoreScopes, true));
 		Struct root = new StructImpl(Struct.TYPE_LINKED);
 		page.dump(root);
 
-		// TODO better solution than simply look at the offset from script
-		if (page.getSourceCode().getSourceOffset() == 10) {
+		boolean isCFMLCompExt = Constants.isCFMLComponentExtension(ResourceUtil.getExtension(ps.getResource(), ""));
 
-			boolean isCFMLCompExt = Constants.isCFMLComponentExtension(ResourceUtil.getExtension(ps.getResource(), ""));
+		// If parser wrapped script content in cfscript tags, unwrap it in the AST output
+		if (page.getSourceCode().isWrappedInScript()) {
 			// in case of a component Lucee moves the component to the root, so at the first position is just an
-			// empty script, we simply have to emove this
-			// TODO remove the script after moving in the parser
+			// empty script, we simply have to remove this
 			if (isCFMLCompExt) {
 				removeEmptyScriptTag(root);
 			}
@@ -104,14 +104,18 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 				extractScriptTagInRoot(root);
 			}
 		}
+		// Handle <cfscript>component { }</cfscript> pattern - file wasn't wrapped by parser
+		// but component is inside an explicit cfscript tag that needs unwrapping
+		else if (isCFMLCompExt) {
+			extractComponentFromCfscript(root);
+		}
 		return root;
 	}
 
 	public Struct ast(ConfigPro config, SourceCode sc, boolean ignoreScopes, Boolean script) throws PageException {
 		BytecodeFactory factory = BytecodeFactory.getInstance(config);
-		// TODO auto when script is null
 
-		if (script != null && script) {
+		if (script) {
 			TagLibTag scriptTag = CFMLTransformer.getTLT(sc, Constants.CFML_SCRIPT_TAG_NAME, config.getIdentification());
 
 			sc.setPos(0);
@@ -126,7 +130,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		Struct root = new StructImpl(Struct.TYPE_LINKED);
 		page.dump(root);
 
-		if (script != null && script) {
+		if (script) {
 			extractScriptTagInRoot(root);
 		}
 
@@ -152,14 +156,58 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
 	private void removeEmptyScriptTag(Struct root) {
 		Array body = Caster.toArray(root.get(KeyConstants._body, null), null);
-		if (body != null && body.size() > 1) {
+		if (body != null && body.size() >= 1) {
 			Struct first = Caster.toStruct(body.get(1, null), null);
 			if (first != null) {
 				if ("cfscript".equalsIgnoreCase(Caster.toString(first.get("fullname", null), null))) {
 					Struct body2 = Caster.toStruct(first.get(KeyConstants._body, null), null);
 					Array body3 = Caster.toArray(body2.get(KeyConstants._body, null), null);
-					if (body3 != null && body3.size() == 0) {
-						body.removeEL(1);
+					if (body3 != null) {
+						if (body3.size() == 0) {
+							// Empty cfscript - just remove it
+							body.removeEL(1);
+						}
+						else {
+							// cfscript has content (component) - extract it
+							// Replace root body with cfscript contents
+							root.setEL(KeyConstants._body, body3);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Extract component from explicit <cfscript>component { }</cfscript> wrapper
+	// This handles CFC files where the component is wrapped in cfscript tags by the author
+	private void extractComponentFromCfscript(Struct root) {
+		Array body = Caster.toArray(root.get(KeyConstants._body, null), null);
+		if (body == null || body.size() < 1) return;
+
+		// Look for cfscript tag containing a component
+		for (int i = 1; i <= body.size(); i++) {
+			Struct item = Caster.toStruct(body.get(i, null), null);
+			if (item == null) continue;
+
+			if ("cfscript".equalsIgnoreCase(Caster.toString(item.get("fullname", null), null))) {
+				Struct scriptBody = Caster.toStruct(item.get(KeyConstants._body, null), null);
+				if (scriptBody == null) continue;
+
+				Array scriptContents = Caster.toArray(scriptBody.get(KeyConstants._body, null), null);
+				if (scriptContents == null) continue;
+
+				// Find component inside cfscript body (CFMLTag with name "component" or "interface")
+				for (int j = 1; j <= scriptContents.size(); j++) {
+					Struct child = Caster.toStruct(scriptContents.get(j, null), null);
+					if (child == null) continue;
+
+					String name = Caster.toString(child.get(KeyConstants._name, null), null);
+					if ("component".equalsIgnoreCase(name) || "interface".equalsIgnoreCase(name)) {
+						// Found component - replace root body with just the component
+						Array newBody = new ArrayImpl();
+						newBody.appendEL(child);
+						root.setEL(KeyConstants._body, newBody);
+						return;
 					}
 				}
 			}
