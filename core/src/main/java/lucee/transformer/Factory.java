@@ -160,6 +160,8 @@ public abstract class Factory {
 
 	public abstract ExprString opString(Expression left, Expression right, boolean concatStatic);
 
+	public abstract ExprString opStringInterpolation(Expression left, Expression right);
+
 	public abstract ExprBoolean opBool(Expression left, Expression right, int operation);
 
 	public abstract ExprNumber opNumber(Expression left, Expression right, int operation);

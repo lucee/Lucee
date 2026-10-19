@@ -166,13 +166,13 @@ public final class UDFAddProperty extends UDFGSProperty {
 	@Override
 	public Object getDefaultValue(PageContext pc, int index) throws PageException {
 		// FUTURE getDefaultAsObject was added in Beta pahse of Lucee 7, so we keep the checkcast in place
-		return ((PropertyImpl) prop).getDefaultAsObject();
+		return ((PropertyImpl) prop).getLiteralDefaultAsObject();
 	}
 
 	@Override
 	public Object getDefaultValue(PageContext pc, int index, Object defaultValue) throws PageException {
 		// FUTURE getDefaultAsObject was added in Beta pahse of Lucee 7, so we keep the checkcast in place
-		return ((PropertyImpl) prop).getDefaultAsObject();
+		return ((PropertyImpl) prop).getLiteralDefaultAsObject();
 	}
 
 	@Override

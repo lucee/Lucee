@@ -23,6 +23,7 @@ import java.util.Map;
 
 import lucee.commons.collection.MapFactory;
 import lucee.commons.lang.CFTypes;
+import lucee.runtime.component.DataMember;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
@@ -139,8 +140,7 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 	public Object get(PageContext pc, Key key, Object defaultValue) {
 		// fast path: shadow map lookup (covers 99%+ of property access)
 		Object val = shadow.getOrDefault(key, CollectionUtil.NULL);
-
-		if (val != CollectionUtil.NULL && (val != null || NullSupportHelper.full(pc))) return val;
+		if (val != CollectionUtil.NULL && (val != null || NullSupportHelper.full(pc))) return unwrap(val);
 
 		// slow path: special keys (SUPER/THIS/STATIC can never be in the shadow map — set() blocks them)
 		if (key.equalsIgnoreCase(KeyConstants._SUPER)) {
@@ -196,11 +196,11 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 
 		if (NullSupportHelper.full()) {
 			if (!shadow.containsKey(key)) throw new ExpressionException("can't remove key [" + key.getString() + "] from struct, key doesn't exist");
-			return shadow.remove(key);
+			return unwrap(shadow.remove(key));
 		}
 
 		Object o = shadow.remove(key);
-		if (o != null) return o;
+		if (o != null) return unwrap(o);
 		throw new ExpressionException("can't remove key [" + key.getString() + "] from struct, key doesn't exist");
 	}
 
@@ -208,7 +208,7 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 	public Object removeEL(Key key) {
 		if (key.equalsIgnoreCase(KeyConstants._this) || key.equalsIgnoreCase(KeyConstants._super) || key.equalsIgnoreCase(KeyConstants._static)) return null;
 
-		return shadow.remove(key);
+		return unwrap(shadow.remove(key));
 	}
 
 	@Override
@@ -218,11 +218,18 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 		// LDEV-1962: mirror ComponentImpl._set — unwrap BoundUDF on assign so mixin rebind applies.
 		if (value instanceof BoundUDF) value = ((BoundUDF) value).getInner();
 
-		if (!component.afterConstructor && value instanceof UDF) {
-			component.addConstructorUDF(key, (UDF) value);
+		// final members stored as DataMember must not be overwritten (LDEV-6533)
+		Object existing = shadow.get(key);
+		if (existing instanceof DataMember && ((DataMember) existing).getModifier() == Member.MODIFIER_FINAL) {
+			throw new ApplicationException("can't overwrite final variable [" + key.getString() + "] of component [" + component.getCallName() + "]");
+		}
+
+		if (!component.afterConstructor) {
+			UDF udf = toUDF(value);
+			if (udf != null) component.addConstructorUDF(key, udf);
 		}
 		shadow.put(key, value);
-		return value;
+		return unwrap(value);
 	}
 
 	@Override
@@ -314,10 +321,10 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 
 	@Override
 	public Object call(PageContext pc, Collection.Key key, Object[] arguments) throws PageException {
-		// first check variables
-		Object o = shadow.get(key);
-		if (o instanceof UDF) {
-			return ((UDF) o).call(pc, key, arguments, false);
+		// first check variables (also DataMember holding a UDF — LDEV-6533 / same idea as LDEV-4792)
+		UDF udf = toUDF(shadow.get(key));
+		if (udf != null) {
+			return udf.call(pc, key, arguments, false);
 		}
 
 		// then check in component
@@ -337,10 +344,10 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key key, Struct args) throws PageException {
-		// first check variables
-		Object o = shadow.get(key);
-		if (o instanceof UDF) {
-			return ((UDF) o).callWithNamedValues(pc, key, args, false);
+		// first check variables (also DataMember holding a UDF — LDEV-6533)
+		UDF udf = toUDF(shadow.get(key));
+		if (udf != null) {
+			return udf.callWithNamedValues(pc, key, args, false);
 		}
 
 		Member m = component.getMember(access, key, false, false);
@@ -351,6 +358,25 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 		}
 		return MemberUtil.callWithNamedValues(pc, this, key, args, CFTypes.TYPE_STRUCT, "struct");
 		// throw ComponentUtil.notFunction(component, key, null,access);
+	}
+
+	/**
+	 * Assignments with {@code final} (and access modifiers) are compiled as {@link DataMember}
+	 * wrappers so the modifier is kept (see Assign.writeValue / LDEV-4792). The variables scope
+	 * must unwrap them on read and treat a DataMember holding a UDF as callable (LDEV-6533).
+	 */
+	private static Object unwrap(Object value) {
+		if (value instanceof DataMember) return ((DataMember) value).getValue();
+		return value;
+	}
+
+	private static UDF toUDF(Object value) {
+		if (value instanceof UDF) return (UDF) value;
+		if (value instanceof DataMember) {
+			Object v = ((DataMember) value).getValue();
+			if (v instanceof UDF) return (UDF) v;
+		}
+		return null;
 	}
 
 	@Override
