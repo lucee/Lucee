@@ -5249,7 +5249,7 @@ EntitySave(entity, [forceInsert])</description>
 
 When true, an empty or non existent file will throw an error.
 
-Lucee uses Apache Tika for detection, but only the basic core version and does not include the full suite of tika parsers due to their size.
+Lucee has a built-in detection based on the file extension and the first bytes of the file. When the MimeType extension is installed, Lucee uses Apache Tika for detection instead (only the basic tika-core, not the full suite of tika parsers due to their size).
 			</description>
 		</argument>
 		<return>

@@ -52,21 +52,20 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipFile;
 
-import org.apache.tika.Tika;
-import org.apache.tika.metadata.Metadata;
 
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.input.BOMInputStream;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
-import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.net.URLEncoder;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
+import lucee.runtime.util.MimeTypeDetector;
 
 /**
  * I/O Util
@@ -147,8 +146,6 @@ public final class IOUtil {
 		CHAR_POOL.clear();
 	}
 
-	// Tika.detect is thread-safe; share a single instance across all getMimeType callers
-	private static final Tika TIKA = new Tika();
 
 	/**
 	 * copy an inputstream to an outputstream
@@ -1379,7 +1376,7 @@ public final class IOUtil {
 	 */
 	public static String getMimeType(byte[] barr, String defaultValue) {
 		try {
-			return TIKA.detect(barr);
+			return getMimeTypeDetector().getMimeType(barr, defaultValue);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1393,48 +1390,36 @@ public final class IOUtil {
 
 	public static String getMimeType(String fileName, String defaultValue) {
 		try {
-			return TIKA.detect(fileName);
+			return getMimeTypeDetector().getMimeType(fileName, defaultValue);
 		}
-		catch (Exception e) {
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
 
 	public static String getMimeType(Resource res, String fileName, String defaultValue) {
-		Metadata md = new Metadata();
-
-		String ext = StringUtil.isEmpty(fileName, true) ? null : ResourceUtil.getExtension(fileName.trim(), null);
-
-		md.set(Metadata.RESOURCE_NAME_KEY, ext == null ? res.getName() : fileName.trim());
-		md.set(Metadata.CONTENT_LENGTH, Long.toString(res.length()));
-
-		InputStream is = null;
 		try {
-			String result = TIKA.detect(is = res.getInputStream(), md);
-			if (result.indexOf("tika") != -1) {
-				String tmp = ResourceUtil.EXT_MT.get(ext != null ? ext : ResourceUtil.getExtension(res, "").toLowerCase());
-				if (!StringUtil.isEmpty(tmp)) return tmp;
-				if (!StringUtil.isEmpty(defaultValue)) return defaultValue;
-			}
-			return result;
+			return getMimeTypeDetector().getMimeType(res, fileName, defaultValue);
 		}
-		catch (Exception e) {
-			String tmp = ResourceUtil.EXT_MT.get(ext != null ? ext : ResourceUtil.getExtension(res, "").toLowerCase());
-			if (tmp != null && tmp.indexOf("tika") == -1 && !StringUtil.isEmpty(tmp)) return tmp;
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
-		}
-		finally {
-			IOUtil.closeEL(is);
 		}
 	}
 
 	public static String getMimeType(URL url, String defaultValue) {
 		try {
-			return TIKA.detect(url);
+			return getMimeTypeDetector().getMimeType(url, defaultValue);
 		}
-		catch (Exception e) {
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
+	}
+
+	private static MimeTypeDetector getMimeTypeDetector() {
+		return CFMLEngineFactory.getInstance().getMimeTypeDetector();
 	}
 
 	/**

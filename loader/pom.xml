@@ -463,12 +463,6 @@
     <scope>compile</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>tika-core</artifactId>
-    <version>1.28.4</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
     <groupId>commons-codec</groupId>
     <artifactId>commons-codec</artifactId>
     <version>1.15</version>

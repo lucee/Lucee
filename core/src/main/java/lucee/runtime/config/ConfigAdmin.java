@@ -129,6 +129,7 @@ import lucee.runtime.reflection.Reflector;
 import lucee.runtime.schedule.ScheduleTask;
 import lucee.runtime.schedule.ScheduleTaskImpl;
 import lucee.runtime.search.SearchEngine;
+import lucee.runtime.util.MimeTypeDetector;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.security.SerialNumber;
@@ -1973,6 +1974,16 @@ public final class ConfigAdmin {
 		Struct orm = _getRootElement("search");
 		removeClass(orm, "engine");
 
+	}
+
+	private void _removeMimeTypeDetector() {
+		Struct mimeType = _getRootElement("mimeType");
+		removeClass(mimeType, "detector");
+	}
+
+	private void _updateMimeTypeDetector(ClassDefinition cd) throws PageException {
+		Struct mimeType = _getRootElement("mimeType");
+		setClass(mimeType, MimeTypeDetector.class, "detector", cd);
 	}
 
 	protected static void removeORMEngine(ConfigPro config, boolean reload) throws IOException, PageException, ConverterException {
@@ -4224,6 +4235,23 @@ public final class ConfigAdmin {
 				}
 			}
 
+			// update mime type detector
+			List<Map<String, String>> mimeTypes = rhext.getMetadata().getMimeTypes();
+			if (!ArrayUtil.isEmpty(mimeTypes)) {
+				Iterator<Map<String, String>> itl = mimeTypes.iterator();
+				Map<String, String> map;
+				while (itl.hasNext()) {
+					map = itl.next();
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					if (cd != null && cd.hasClass()) {
+						_updateMimeTypeDetector(cd);
+						filter.add("resetMimeTypeDetector");
+						reloadNecessary = true;
+					}
+					logger.info("extension", "Update mime type detector [" + cd + "] from extension [" + rhext.getMetadata().getName() + ":" + rhext.getVersion() + "]");
+				}
+			}
+
 			// update Maven
 			if (!ArrayUtil.isEmpty(rhext.getMetadata().getMaven())) {
 				Iterator<MavenCoordinate> itl = rhext.getMetadata().getMaven().iterator();
@@ -4666,6 +4694,21 @@ public final class ConfigAdmin {
 						// reload=true;
 					}
 					logger.info("extension", "Remove search engine [" + cd + "] from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");
+				}
+			}
+			// remove mime type detector
+			List<Map<String, String>> mimeTypes = rhe.getMetadata().getMimeTypes();
+			if (!ArrayUtil.isEmpty(mimeTypes)) {
+				Iterator<Map<String, String>> itl = mimeTypes.iterator();
+				Map<String, String> map;
+				while (itl.hasNext()) {
+					map = itl.next();
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					if (cd != null && cd.hasClass()) {
+						_removeMimeTypeDetector();
+						filter.add("resetMimeTypeDetector");
+					}
+					logger.info("extension", "Remove mime type detector [" + cd + "] from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");
 				}
 			}
 			// TODO remove maven?

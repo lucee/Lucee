@@ -67,6 +67,7 @@ import lucee.commons.collection.MapFactory;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.MimeTypeDetectorImpl;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.compress.CompressUtil;
 import lucee.commons.io.log.Log;
@@ -172,6 +173,7 @@ import lucee.runtime.util.IO;
 import lucee.runtime.util.JavaProxyUtil;
 import lucee.runtime.util.ListUtil;
 import lucee.runtime.util.ListUtilImpl;
+import lucee.runtime.util.MimeTypeDetector;
 import lucee.runtime.util.ORMUtil;
 import lucee.runtime.util.ORMUtilImpl;
 import lucee.runtime.util.Operation;
@@ -1719,6 +1721,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	@Override
 	public ORMUtil getORMUtil() {
 		return new ORMUtilImpl();
+	}
+
+	@Override
+	public MimeTypeDetector getMimeTypeDetector() {
+		// the config server is not available very early, the built-in detector is used until then
+		ConfigServerImpl cs = configServer;
+		if (cs == null) return MimeTypeDetectorImpl.getInstance();
+		return cs.getMimeTypeDetector();
 	}
 
 	@Override

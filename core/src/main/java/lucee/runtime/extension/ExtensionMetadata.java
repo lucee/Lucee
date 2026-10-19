@@ -77,6 +77,8 @@ public final class ExtensionMetadata implements Serializable {
 
 	private List<Map<String, String>> searchs;
 	private String searchsRaw;
+	private List<Map<String, String>> mimeTypes;
+	private String mimeTypesRaw;
 
 	private List<Map<String, String>> amfs;
 	private String amfsRaw;
@@ -218,6 +220,22 @@ public final class ExtensionMetadata implements Serializable {
 			searchsRaw = str;
 		}
 		if (searchs == null) searchs = new ArrayList<Map<String, String>>();
+	}
+
+	public List<Map<String, String>> getMimeTypes() {
+		return mimeTypes;
+	}
+
+	public String getMimeTypesRaw() {
+		return mimeTypesRaw;
+	}
+
+	public void setMimeType(String str, Log logger) {
+		if (!StringUtil.isEmpty(str, true)) {
+			mimeTypes = RHExtension.toSettings(logger, str);
+			mimeTypesRaw = str;
+		}
+		if (mimeTypes == null) mimeTypes = new ArrayList<Map<String, String>>();
 	}
 
 	public List<Map<String, String>> getResources() {
@@ -618,6 +636,7 @@ public final class ExtensionMetadata implements Serializable {
 		if (monitors != null && !monitors.isEmpty()) sb.append(", monitors=").append(monitors);
 		if (resources != null && !resources.isEmpty()) sb.append(", resources=").append(resources);
 		if (searchs != null && !searchs.isEmpty()) sb.append(", searchs=").append(searchs);
+		if (mimeTypes != null && !mimeTypes.isEmpty()) sb.append(", mimeTypes=").append(mimeTypes);
 		if (amfs != null && !amfs.isEmpty()) sb.append(", amfs=").append(amfs);
 		if (jdbcs != null && !jdbcs.isEmpty()) sb.append(", jdbcs=").append(jdbcs);
 		if (startupHooks != null && !startupHooks.isEmpty()) sb.append(", startupHooks=").append(startupHooks);

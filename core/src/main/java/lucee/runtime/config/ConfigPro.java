@@ -51,6 +51,11 @@ import lucee.transformer.library.tag.TagLib;
 // FUTURE add to Config not necessary all of them!
 public interface ConfigPro extends Config {
 
+	/**
+	 * @return class definition of the mime type detector defined by an extension, or of the built-in detector
+	 */
+	public ClassDefinition<lucee.runtime.util.MimeTypeDetector> getMimeTypeDetectorClassDefinition();
+
 	public static final int CLIENT_BOOLEAN_TRUE = 0;
 	public static final int CLIENT_BOOLEAN_FALSE = 1;
 	public static final int SERVER_BOOLEAN_FALSE = 3;

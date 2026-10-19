@@ -59,6 +59,7 @@ import lucee.runtime.util.HTTPUtil;
 import lucee.runtime.util.IO;
 import lucee.runtime.util.JavaProxyUtil;
 import lucee.runtime.util.ListUtil;
+import lucee.runtime.util.MimeTypeDetector;
 import lucee.runtime.util.ORMUtil;
 import lucee.runtime.util.Operation;
 import lucee.runtime.util.ResourceUtil;
@@ -248,6 +249,13 @@ public interface CFMLEngine {
 	public Instrumentation getInstrumentation();
 
 	public abstract ORMUtil getORMUtil();
+
+	/**
+	 * returns the mime type detector, this is the built-in detector or the one defined by an extension
+	 * 
+	 * @return mime type detector
+	 */
+	public MimeTypeDetector getMimeTypeDetector();
 
 	/**
 	 * @return return existing PageContext for the current PageContext

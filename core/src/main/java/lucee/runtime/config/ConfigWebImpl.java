@@ -925,6 +925,11 @@ public final class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
+	public ClassDefinition<lucee.runtime.util.MimeTypeDetector> getMimeTypeDetectorClassDefinition() {
+		return cs.getMimeTypeDetectorClassDefinition();
+	}
+
+	@Override
 	public String getSearchEngineDirectory() {
 		return cs.getSearchEngineDirectory();
 	}

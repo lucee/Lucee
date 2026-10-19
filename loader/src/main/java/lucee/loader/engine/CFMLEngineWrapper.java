@@ -59,6 +59,7 @@ import lucee.runtime.util.HTTPUtil;
 import lucee.runtime.util.IO;
 import lucee.runtime.util.JavaProxyUtil;
 import lucee.runtime.util.ListUtil;
+import lucee.runtime.util.MimeTypeDetector;
 import lucee.runtime.util.ORMUtil;
 import lucee.runtime.util.Operation;
 import lucee.runtime.util.ResourceUtil;
@@ -353,6 +354,11 @@ public class CFMLEngineWrapper implements CFMLEngine {
 	@Override
 	public ORMUtil getORMUtil() {
 		return engine.getORMUtil();
+	}
+
+	@Override
+	public MimeTypeDetector getMimeTypeDetector() {
+		return engine.getMimeTypeDetector();
 	}
 
 	@Override

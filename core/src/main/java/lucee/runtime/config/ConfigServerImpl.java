@@ -65,6 +65,7 @@ import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.MimeTypeDetectorImpl;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
@@ -214,6 +215,7 @@ import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.search.DummySearchEngine;
 import lucee.runtime.search.SearchEngine;
+import lucee.runtime.util.MimeTypeDetector;
 import lucee.runtime.security.SecretProvider;
 import lucee.runtime.security.SecretProviderFactory;
 import lucee.runtime.security.SecurityManager;
@@ -290,6 +292,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Integer mode;
 	private static final double DEFAULT_VERSION = 5.0d;
 	private static final ClassDefinition DEFAULT_SEARCH_ENGINE = new ClassDefinitionImpl(DummySearchEngine.class);
+	private static final ClassDefinition DEFAULT_MIMETYPE_DETECTOR = new ClassDefinitionImpl(MimeTypeDetectorImpl.class);
 	private long loadTime;
 	private final Map<String, PhysicalClassLoader> rpcClassLoaders = new ConcurrentHashMap<String, PhysicalClassLoader>();
 	private PhysicalClassLoader directClassLoader;
@@ -1280,6 +1283,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ "By default, no search engine is defined. This property uses a standard ClassDefinition, "
 					+ "allowing the engine to be loaded via OSGi bundles or Maven coordinates (as seen with the " + "modern Maven-based Lucene extension).");
 	private ClassDefinition<SearchEngine> search;
+
+	private static Prop<ClassDefinition> metaMimeTypeDetectorClassDef = Prop.custom(ClassDefinitionFactory.getInstance("detector")).keys("mimeType").defaultValue(null)
+			.description("Defines the mime type detector used by Lucee, for example to detect the type of uploaded files or for the function fileGetMimeType. "
+					+ "By default, a simple built-in detector is used (file extension map and magic bytes), an extension like the Tika extension can replace it. "
+					+ "This property uses a standard ClassDefinition, allowing the detector to be loaded via OSGi bundles or Maven coordinates.");
+	private ClassDefinition<MimeTypeDetector> mimeTypeDetectorCD;
+	private MimeTypeDetector mimeTypeDetector;
+	private boolean loadingMimeTypeDetector;
 
 	private static Prop<Integer> metaExternalizeStringGTE = Prop.integer().keys("externalizeStringGte").defaultValue(-1)
 			.description("Determines the character length threshold at which strings are moved from generated Java class files into separate external files. "
@@ -3374,6 +3385,65 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					searchDirectory = null;
 				}
 			}
+		}
+		return this;
+	}
+
+	@Override
+	public ClassDefinition<MimeTypeDetector> getMimeTypeDetectorClassDefinition() {
+		if (mimeTypeDetectorCD == null) {
+			synchronized (SystemUtil.createToken("config", "getMimeTypeDetectorClassDefinition")) {
+				if (mimeTypeDetectorCD == null) {
+					ClassDefinition cd = metaMimeTypeDetectorClassDef.get(this, root);
+					if (cd == null || !cd.hasClass()) cd = DEFAULT_MIMETYPE_DETECTOR;
+					mimeTypeDetectorCD = cd;
+				}
+			}
+		}
+		return mimeTypeDetectorCD;
+	}
+
+	/**
+	 * returns the mime type detector defined by an extension, falls back to the built-in detector if
+	 * none is defined or the defined one cannot be loaded
+	 * 
+	 * @return mime type detector
+	 */
+	public MimeTypeDetector getMimeTypeDetector() {
+		if (mimeTypeDetector != null) return mimeTypeDetector;
+		// loading the detector can itself need a mime type detection
+		if (loadingMimeTypeDetector) return MimeTypeDetectorImpl.getInstance();
+		synchronized (SystemUtil.createToken("config", "getMimeTypeDetector")) {
+			if (mimeTypeDetector == null) {
+				loadingMimeTypeDetector = true;
+				try {
+					MimeTypeDetector detector = null;
+					ClassDefinition<MimeTypeDetector> cd = getMimeTypeDetectorClassDefinition();
+					if (cd != DEFAULT_MIMETYPE_DETECTOR) {
+						try {
+							Object o = ClassUtil.loadInstance(cd.getClazz());
+							if (o instanceof MimeTypeDetector) detector = (MimeTypeDetector) o;
+							else LogUtil.log(this, Log.LEVEL_ERROR, "application", "class [" + cd.getClassName() + "] does not implement the interface [" + MimeTypeDetector.class.getName() + "]");
+						}
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							LogUtil.log(this, "application", t);
+						}
+					}
+					mimeTypeDetector = detector != null ? detector : MimeTypeDetectorImpl.getInstance();
+				}
+				finally {
+					loadingMimeTypeDetector = false;
+				}
+			}
+			return mimeTypeDetector;
+		}
+	}
+
+	public ConfigServerImpl resetMimeTypeDetector() {
+		synchronized (SystemUtil.createToken("config", "getMimeTypeDetector")) {
+			mimeTypeDetectorCD = null;
+			mimeTypeDetector = null;
 		}
 		return this;
 	}

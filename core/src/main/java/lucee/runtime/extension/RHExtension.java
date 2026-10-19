@@ -909,6 +909,7 @@ public final class RHExtension implements Serializable {
 		metadata.setAMF(StringUtil.unwrap(attr.getValue("amf")), logger);
 		metadata.setResource(StringUtil.unwrap(attr.getValue("resource")), logger);
 		metadata.setSearch(StringUtil.unwrap(attr.getValue("search")), logger);
+		metadata.setMimeType(StringUtil.unwrap(attr.getValue("mimetype")), logger);
 		metadata.setORM(StringUtil.unwrap(attr.getValue("orm")), logger);
 		metadata.setWebservice(StringUtil.unwrap(attr.getValue("webservice")), logger);
 		metadata.setMonitor(StringUtil.unwrap(attr.getValue("monitor")), logger);
@@ -1301,6 +1302,7 @@ public final class RHExtension implements Serializable {
 		coll.setEL(KeyConstants._amf, toArray(md.getAMFs()));
 		coll.setEL(KeyConstants._resource, toArray(md.getResources()));
 		coll.setEL(KeyConstants._search, toArray(md.getSearchs()));
+		coll.setEL(KeyImpl.init("mimeType"), toArray(md.getMimeTypes()));
 		coll.setEL(KeyConstants._orm, toArray(md.getOrms()));
 		coll.setEL(KeyConstants._webservice, toArray(md.getWebservices()));
 		coll.setEL(KeyConstants._monitor, toArray(md.getMonitors()));

@@ -432,7 +432,7 @@
 	{
 		"sysprop": "lucee.fileupload.allow.mimetype.detection",
 		"envvar": "LUCEE_FILEUPLOAD_ALLOW_MIMETYPE_DETECTION",
-		"desc": "Boolean value that enables using Tika to detect the mime type for unknown file uploads",
+		"desc": "Boolean value that enables detecting the mime type for unknown file uploads (using the built-in detector or the one defined by an extension like the MimeType extension)",
 		"category": "security",
 		"tags": [ "cffile" ],
 		"functions": [ "fileUpload", "fileUploadAll" ],
