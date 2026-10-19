@@ -27,6 +27,10 @@ public final class MavenLoad implements Function {
 	private static final long serialVersionUID = -7512374040201658763L;
 
 	public static Array call(PageContext pc, Object input) throws PageException {
+		return call(pc, input, false);
+	}
+
+	public static Array call(PageContext pc, Object input, boolean includeOptional) throws PageException {
 		Array array = null;
 		if (Decision.isArray(input)) {
 			array = Caster.toArray(input);
@@ -51,7 +55,7 @@ public final class MavenLoad implements Function {
 
 			GAVSO gavso = MavenUtil.toGAVSO(it.next());
 			try {
-				for (Resource r: POM.getInstance(dir, gavso.g, gavso.a, gavso.v, MavenUtil.toScope(gavso.s, POM.SCOPES_FOR_RUNTIME), log).getJars()) {
+				for (Resource r: POM.getInstance(dir, gavso.g, gavso.a, gavso.v, MavenUtil.toScope(gavso.s, POM.SCOPES_FOR_RUNTIME), log).getJars(includeOptional)) {
 					rtnData.set(r.getAbsolutePath(), "");
 				}
 			}
