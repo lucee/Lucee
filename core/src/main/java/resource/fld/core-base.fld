@@ -10644,13 +10644,13 @@ mavenLoad([
 			<alias>aiName,nameAI</alias>
 			<type>string</type>
 			<required>yes</required>
-			<description>Specifies which AI endpoint configuration to use. Can be provided in three formats:
+			<description>Specifies which AI connection configuration to use. Can be provided in three formats:
 
-1. Direct endpoint name:
-   The name of an endpoint as defined in the Lucee Administrator (similar to how datasource names work)
+1. Direct connection name:
+   The name of a connection as defined in the Lucee Administrator (similar to how datasource names work)
 
 2. Default reference:
-   Using the format "default:category" to use the endpoint configured as the default for that specific category in the Lucee Administrator.
+   Using the format "default:category" to use the connection configured as the default for that specific category in the Lucee Administrator.
 
 3. Engine ID reference:
    Using the format "id:uuid" to use an AI engine registered by its unique identifier.
@@ -10659,7 +10659,7 @@ Currently supported default categories:
 - exception: For exception analysis
 - documentation: For documentation tasks
 
-The endpoint configurations and their default category assignments are managed in the Lucee Administrator.</description>
+The connection configurations and their default category assignments are managed in the Lucee Administrator.</description>
 		</argument>
 		<argument>
 			<name>systemMessage</name>
@@ -10684,7 +10684,7 @@ The system message persists throughout the session and influences all responses.
 			<required>no</required>
 			<description>Maximum number of question-answer pairs to keep in the conversation history. Once reached, older messages will be removed.
 		
-When omitted or zero, the conversation size limit configured on the AI endpoint is used.
+When omitted or zero, the conversation size limit configured on the AI connection is used.
 
 Consider:
 - Higher limits provide more context but consume more memory
@@ -10698,7 +10698,7 @@ Consider:
 			<required>no</required>
 		<description>Controls response randomness (0.0 to 1.0). Lower values make responses more focused and deterministic, higher values make them more creative and varied.
 		
-When omitted or zero, the temperature configured on the AI endpoint is used. Values greater than 1.0 are rejected.
+When omitted or zero, the temperature configured on the AI connection is used. Values greater than 1.0 are rejected.
 
 Recommended settings:
 - 0.0-0.3: Technical analysis, debugging, code review
@@ -10785,23 +10785,48 @@ That object also behaves as a string containing the concatenated plain text part
 		</return>
 	</function>
 	
+	<!-- AIGetConnections -->
+	<function>
+		<name>AIGetConnections</name>
+		<class>lucee.runtime.functions.ai.AIGetConnections</class>
+		<description>Returns all AI connections available in the current context: the connections defined in the application (for example `this.ai` in the Application.cfc) and the connections configured in the Lucee Administrator. A connection defined in the application with the same name as one in the Administrator replaces it, so it is only listed once.
+
+Secrets like the `secretKey` and the custom settings of a connection are never returned. Use `AIGetMetaData(name)` for the details of a single connection.</description>
+		<return>
+			<type>query</type>
+			<description>Returns a query with one row per AI connection and the columns:
+- name: The name of the connection, as used for example with `CreateAISession(name)`
+- label: The display label of the connection
+- default: The default category the connection is used for (for example "exception"), empty when it is not a default
+- model: The model the connection uses
+- class: The class of the AI engine
+- bundleName: The OSGi bundle of the AI engine, if any
+- bundleVersion: The OSGi bundle version of the AI engine, if any
+- temperature: The configured temperature, empty when not set
+- connectionTimeout: Connection timeout in milliseconds
+- socketTimeout: Socket timeout in milliseconds
+- conversationSizeLimit: Maximum conversation history size
+- source: "application" for connections defined in the application, "server" for connections configured in the Lucee Administrator</description>
+		</return>
+	</function>
+	
 	<!-- AIGetMetaData -->
 	<function>
 		<name>AIGetMetaData</name>
 		<alias>LuceeAIGetMetaData</alias>
 		<class>lucee.runtime.functions.ai.AIGetMetaData</class>
-		<description>Retrieves metadata about a configured AI endpoint. 
-		Returns information about the endpoint's configuration, 
+		<description>Retrieves metadata about a configured AI connection. 
+		Returns information about the connection's configuration, 
 		and optionally detailed information about available models and associated files.</description>
 		<argument>
 			<name>name</name>
 			<alias>aiName,nameAI,session</alias>
 			<type>any</type>
 			<required>yes</required>
-			<description>The name of the AI endpoint to get metadata for. Can be either:
-1. A direct endpoint name as configured in the Lucee Administrator
-2. A default reference (e.g., "default:exception") which will resolve to the configured default endpoint for that category
-3. A AI session object from which to retrieve and analyze AI endpoint metadata</description>
+			<description>The name of the AI connection to get metadata for. Can be either:
+1. A direct connection name as configured in the Lucee Administrator
+2. A default reference (e.g., "default:exception") which will resolve to the configured default connection for that category
+3. A AI session object from which to retrieve and analyze AI connection metadata</description>
 		</argument>
 		<argument>
 			<name>detailed</name>
@@ -10814,8 +10839,8 @@ That object also behaves as a string containing the concatenated plain text part
 		</argument>
 		<return>
 			<type>struct</type>
-			<description>Returns a structure containing endpoint metadata, including:
-	- label: The display label of the endpoint
+			<description>Returns a structure containing connection metadata, including:
+	- label: The display label of the connection
 	- model: The current model being used
 	- id: The engine identifier
 	- name: The engine factory name
@@ -10832,19 +10857,19 @@ That object also behaves as a string containing the concatenated plain text part
 		<name>AIHas</name>
 		<alias>LuceeAIHas</alias>
 		<class>lucee.runtime.functions.ai.AIHas</class>
-		<description>Checks whether a specific AI endpoint is configured and available for use.</description>
+		<description>Checks whether a specific AI connection is configured and available for use.</description>
 		<argument>
 			<name>name</name>
 			<alias>aiName,nameAI</alias>
 			<type>string</type>
 			<required>yes</required>
-			<description>The name of the AI endpoint to check. Can be either:
-	1. A direct endpoint name as configured in the Lucee Administrator
-	2. A default reference (e.g., "default:exception") which will check if a default endpoint is configured for that category</description>
+			<description>The name of the AI connection to check. Can be either:
+	1. A direct connection name as configured in the Lucee Administrator
+	2. A default reference (e.g., "default:exception") which will check if a default connection is configured for that category</description>
 		</argument>
 		<return>
 			<type>boolean</type>
-			<description>Returns true if the specified AI endpoint exists and is available for use, false otherwise.</description>
+			<description>Returns true if the specified AI connection exists and is available for use, false otherwise.</description>
 		</return>
 	</function>
 	
@@ -10890,13 +10915,13 @@ This function pairs with `SerializeAISession()` to provide persistence for AI co
 			<alias>aiName,nameAI</alias>
 			<type>string</type>
 			<required>yes</required>
-			<description>Specifies which AI endpoint configuration to use. Can be provided in three formats:
+			<description>Specifies which AI connection configuration to use. Can be provided in three formats:
 
-1. Direct endpoint name:
-   The name of an endpoint as defined in the Lucee Administrator (similar to how datasource names work)
+1. Direct connection name:
+   The name of a connection as defined in the Lucee Administrator (similar to how datasource names work)
 
 2. Default reference:
-   Using the format "default:category" to use the endpoint configured as the default for that specific category in the Lucee Administrator.
+   Using the format "default:category" to use the connection configured as the default for that specific category in the Lucee Administrator.
 
 3. Engine ID reference:
    Using the format "id:uuid" to use an AI engine registered by its unique identifier.
@@ -10905,7 +10930,7 @@ Currently supported default categories:
 - exception: For exception analysis
 - documentation: For documentation tasks
 
-The endpoint configurations and their default category assignments are managed in the Lucee Administrator.</description>
+The connection configurations and their default category assignments are managed in the Lucee Administrator.</description>
 		</argument>
 		
 		<argument>

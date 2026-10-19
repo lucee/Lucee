@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -809,6 +810,13 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 			if (aie != null) return aie;
 		}
 		return ((ConfigPro) config).getAIEnginePool().getEngine(config, name);
+	}
+
+	@Override
+	public Map<String, AIEngine> getAIEngines() {
+		initAIEngineFactories();
+		if (aiFactories == null) return Collections.emptyMap();
+		return Collections.unmodifiableMap(aiFactories);
 	}
 
 	@Override

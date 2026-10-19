@@ -18,6 +18,7 @@
  */
 package lucee.runtime.listener;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -29,6 +30,7 @@ import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.ai.AIEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
@@ -416,4 +418,14 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		return null;
 	}
 
+
+	/**
+	 * returns the AI connections defined by the application itself (for example "this.ai" in the Application.cfc), the key is
+	 * the name of the connection in lower case. The connections defined in the config are not included.
+	 * 
+	 * @return the AI connections of the application, never null
+	 */
+	public Map<String, AIEngine> getAIEngines() {
+		return Collections.emptyMap();
+	}
 }
