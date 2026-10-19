@@ -58,6 +58,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.java.JavaProxy;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.JavaProxyUtilImpl;
 import lucee.runtime.reflection.Reflector;
@@ -72,7 +73,7 @@ import lucee.transformer.bytecode.visitor.ArrayVisitor;
 public final class JavaProxyFactory {
 
 	// !!! for every change in terfaces this version need to be updated TODO generate automatically
-	private static final int VERSION = 4;
+	private static final int VERSION = 5;
 
 	private static final short TYPE_CFC = 1;
 	private static final short TYPE_UDF = 2;
@@ -82,6 +83,7 @@ public final class JavaProxyFactory {
 	private static final String CONFIG_WEB_NAME = "L" + Types.CONFIG_WEB.getInternalName() + ";";
 
 	// private static final Type JAVA_PROXY = Type.getType(JavaProxy.class);
+	private static final Type JAVA_PROXY = Type.getType(JavaProxy.class);
 
 	private static final Type CFML_ENGINE_FACTORY = Type.getType(CFMLEngineFactory.class);
 	private static final Type CFML_ENGINE = Type.getType(CFMLEngine.class);
@@ -92,6 +94,11 @@ public final class JavaProxyFactory {
 			new Type[] { Types.CONFIG_WEB, Types.COMPONENT, Types.STRING, Types.OBJECT_ARRAY });
 	private static final org.objectweb.asm.commons.Method CALL_UDF = new org.objectweb.asm.commons.Method("call", Types.OBJECT,
 			new Type[] { Types.CONFIG_WEB, Types.UDF, Types.STRING, Types.OBJECT_ARRAY });
+	// JavaProxy.call() overloads that also convert the result to the declared return type
+	private static final org.objectweb.asm.commons.Method CALL_CFC_RTN = new org.objectweb.asm.commons.Method("call", Types.OBJECT,
+			new Type[] { Types.CONFIG_WEB, Types.COMPONENT, Types.STRING, Types.CLASS, Types.OBJECT_ARRAY });
+	private static final org.objectweb.asm.commons.Method CALL_UDF_RTN = new org.objectweb.asm.commons.Method("call", Types.OBJECT,
+			new Type[] { Types.CONFIG_WEB, Types.UDF, Types.STRING, Types.CLASS, Types.OBJECT_ARRAY });
 
 	private static final org.objectweb.asm.commons.Method CONSTRUCTOR_CONFIG_CFC_0 = new org.objectweb.asm.commons.Method("<init>", Types.VOID, new Type[] {});
 	private static final org.objectweb.asm.commons.Method CONSTRUCTOR_CONFIG_CFC_2 = new org.objectweb.asm.commons.Method("<init>", Types.VOID,
@@ -657,6 +664,10 @@ public final class JavaProxyFactory {
 		Label start = adapter.newLabel();
 		adapter.visitLabel(start);
 
+		// reference returns other than Object and String are converted inside JavaProxy.call(), while the
+		// PageContext is still alive
+		final boolean convertRtn = !classRtn.isPrimitive() && classRtn != Object.class && classRtn != String.class;
+
 		// if the result of "call" need castring, we have to do this here
 		if (needCastring(classRtn)) {
 			adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
@@ -664,11 +675,13 @@ public final class JavaProxyFactory {
 			adapter.checkCast(JAVA_PROXY_UTIL);
 		}
 
-		adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
-		adapter.invokeInterface(CFML_ENGINE, GET_JAVA_PROXY);
-		// adapter.checkCast(type == TYPE_CFC ? JAVA_PROXY_UTIL : JAVA_PROXY_UTIL_IMPL);
-		// the UDF call() only exists on JavaProxyUtilImpl, not on the loader interface
-		if (type != TYPE_CFC) adapter.checkCast(JAVA_PROXY_UTIL_IMPL);
+		if (!convertRtn) {
+			adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
+			adapter.invokeInterface(CFML_ENGINE, GET_JAVA_PROXY);
+			// adapter.checkCast(type == TYPE_CFC ? JAVA_PROXY_UTIL : JAVA_PROXY_UTIL_IMPL);
+			// the UDF call() only exists on JavaProxyUtilImpl, not on the loader interface
+			if (type != TYPE_CFC) adapter.checkCast(JAVA_PROXY_UTIL_IMPL);
+		}
 
 		// Java Proxy.call(cfc,"add",new Object[]{arg0})
 		// config (first argument)
@@ -682,6 +695,9 @@ public final class JavaProxyFactory {
 
 		// name (3th argument)
 		adapter.push(src.getName());
+
+		// declared return type
+		if (convertRtn) adapter.push(typeRtn);
 
 		// arguments (4th argument)
 		ArrayVisitor av = new ArrayVisitor();
@@ -707,7 +723,8 @@ public final class JavaProxyFactory {
 			av.visitEndItem(adapter);
 		}
 		av.visitEnd();
-		if (type == TYPE_CFC) adapter.invokeInterface(JAVA_PROXY_UTIL, CALL_CFC);
+		if (convertRtn) adapter.invokeStatic(JAVA_PROXY, type == TYPE_CFC ? CALL_CFC_RTN : CALL_UDF_RTN);
+		else if (type == TYPE_CFC) adapter.invokeInterface(JAVA_PROXY_UTIL, CALL_CFC);
 		else adapter.invokeVirtual(JAVA_PROXY_UTIL_IMPL, CALL_UDF);
 
 		// CFMLEngineFactory.getInstance().getCastUtil().toBooleanValue(o);
