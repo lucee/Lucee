@@ -32,6 +32,7 @@ public abstract class FunctionMember implements NamedMember, Member, Func {
 	private Variable parent;
 	private boolean safeNavigated;
 	private Expression safeNavigatedValue;
+	private boolean optional;
 	private Argument[] sourceArguments; // original arguments before evaluators modify them
 
 	@Override
@@ -112,5 +113,15 @@ public abstract class FunctionMember implements NamedMember, Member, Func {
 	 */
 	public Argument[] getSourceArguments() {
 		return sourceArguments != null ? sourceArguments : arguments;
+	}
+
+	@Override
+	public void setOptional(boolean optional) {
+		this.optional = optional;
+	}
+
+	@Override
+	public boolean isOptional() {
+		return optional;
 	}
 }
