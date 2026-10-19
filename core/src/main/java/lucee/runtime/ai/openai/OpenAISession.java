@@ -30,6 +30,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.util.Util;
+import lucee.runtime.ai.AIEngineSupport;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
 import lucee.runtime.ai.AIUtil;
@@ -148,7 +149,7 @@ public final class OpenAISession extends AISessionSupport {
 
 		// Add temperature if set
 		Double temperature = getTemperature();
-		if (temperature != null) {
+		if (temperature != null && openaiEngine.acceptsTemperature(Caster.toString(request.get(KeyConstants._model, null), null))) {
 			request.set(KeyConstants._temperature, temperature);
 		}
 
@@ -246,6 +247,15 @@ public final class OpenAISession extends AISessionSupport {
 
 					Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);
 					if (err != null) {
+						// the model does not accept temperature, retry once without it (LDEV-6618)
+						String errMsg = Caster.toString(err.get(KeyConstants._message, null), null);
+						if (request.containsKey(KeyConstants._temperature) && AIEngineSupport.isTemperatureRejected(errMsg)) {
+							openaiEngine.rejectTemperature(Caster.toString(request.get(KeyConstants._model, null), null));
+							request.removeEL(KeyConstants._temperature);
+							IOUtil.closeEL(response);
+							response = null;
+							return executeRequest(request, messageText, parts, listener);
+						}
 						throw AIUtil.toException(this.getEngine(), Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
 								Caster.toString(err.get(KeyConstants._code, null), null), response.getStatusLine().getStatusCode());
 					}
