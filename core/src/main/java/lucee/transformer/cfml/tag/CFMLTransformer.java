@@ -278,7 +278,9 @@ public final class CFMLTransformer {
 				throw e.getTemplateException();
 			}
 			// we only use that result if it is a component now
-			if (_p != null && !_p.isPage()) return _p;
+			// In AST mode, isPage() returns true even when component exists inside cfscript
+			// because the component isn't moved to root. Use recursive check instead.
+			if (_p != null && (!_p.isPage() || containsComponentRecursive(_p))) return _p;
 		}
 
 		// In AST mode, component stays inside cfscript so skip this validation
@@ -745,6 +747,11 @@ public final class CFMLTransformer {
 
 			// get Attributes
 			attributes(data, tagLibTag, tag);
+
+			// Snapshot attributes for AST before evaluators modify them
+			if (data.ast && tag instanceof TagBase) {
+				((TagBase) tag).snapshotSourceAttributes();
+			}
 
 			if (tagLibTag.hasAttributeEvaluator()) {
 				try {

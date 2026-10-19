@@ -71,6 +71,7 @@ import lucee.transformer.bytecode.statement.Switch;
 import lucee.transformer.bytecode.statement.TagIsland;
 import lucee.transformer.bytecode.statement.TryCatchFinally;
 import lucee.transformer.bytecode.statement.While;
+import lucee.transformer.bytecode.statement.tag.TagBase;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.tag.TagOther;
 import lucee.transformer.bytecode.statement.tag.TagParam;
@@ -2397,6 +2398,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final void eval(TagLibTag tlt, Data data, Tag tag) throws TemplateException {
 		if (tlt.hasTTE()) {
+			// Snapshot attributes for AST before evaluators modify them
+			if (data.ast && tag instanceof TagBase) {
+				((TagBase) tag).snapshotSourceAttributes();
+			}
 			try {
 				tlt.getEvaluator().execute(data.config, tag, tlt, data.flibs, data);
 			}
@@ -2795,8 +2800,18 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 		}
 
+		// value - track which separator was used
+		char separator = Attribute.SEPARATOR_EQUALS;
 		if (value == null) {
-			hasValue = data.srcCode.forwardIfCurrent('=') || (allowColonSeparator && data.srcCode.forwardIfCurrent(':'));
+			hasValue = false;
+			if (data.srcCode.forwardIfCurrent('=')) {
+				hasValue = true;
+				separator = Attribute.SEPARATOR_EQUALS;
+			}
+			else if (allowColonSeparator && data.srcCode.forwardIfCurrent(':')) {
+				hasValue = true;
+				separator = Attribute.SEPARATOR_COLON;
+			}
 			if (hasValue) {
 				comments(data);
 				int rawStart = data.srcCode.getPos();
@@ -2824,7 +2839,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			tlta = tlt.getAttribute(nameLC, true);
 			if (tlta != null && tlta.getName() != null) nameLC = tlta.getName();
 		}
-		Attribute attr = new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue);
+		Attribute attr = new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue, separator);
 		if (rawValue != null) attr.setRawValue(rawValue);
 		return attr;
 	}

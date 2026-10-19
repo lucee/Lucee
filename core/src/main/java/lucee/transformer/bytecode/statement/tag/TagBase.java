@@ -151,10 +151,18 @@ public abstract class TagBase extends StatementBase implements Tag {
 	@Override
 	public Attribute removeAttribute(String name) {
 		// Save original attributes on first removal (for AST dump)
+		snapshotSourceAttributes();
+		return attributes.remove(name);
+	}
+
+	/**
+	 * Snapshot current attributes for AST dump before evaluators modify them.
+	 * Safe to call multiple times - only first call takes effect.
+	 */
+	public void snapshotSourceAttributes() {
 		if (sourceAttributes == null) {
 			sourceAttributes = new LinkedHashMap<String, Attribute>(attributes);
 		}
-		return attributes.remove(name);
 	}
 
 	@Override
@@ -232,6 +240,7 @@ public abstract class TagBase extends StatementBase implements Tag {
 			arrAttrs.appendEL(sctAttr);
 			sctAttr.setEL(KeyConstants._name, attr.getName());
 			sctAttr.setEL(KeyConstants._type, "Attribute");
+			sctAttr.setEL(KeyConstants._separator, String.valueOf(attr.getSeparator()));
 
 			Struct val = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			attr.getValue().dump(val);

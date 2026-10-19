@@ -46,6 +46,7 @@ import lucee.transformer.bytecode.expression.var.Call;
 import lucee.transformer.bytecode.expression.var.DynAssign;
 import lucee.transformer.bytecode.expression.var.FunctionMember;
 import lucee.transformer.bytecode.expression.var.NamedArgumentImpl;
+import lucee.transformer.expression.var.NamedArgument;
 import lucee.transformer.bytecode.expression.var.UDF;
 import lucee.transformer.bytecode.literal.Identifier;
 import lucee.transformer.bytecode.literal.Null;
@@ -304,15 +305,16 @@ public abstract class AbstrCFMLExprTransformer {
 		try {
 			if (data.srcCode.forwardIfCurrent(":")) {
 				comments(data);
-				return new NamedArgumentImpl(expr, assignOp(data), type, varKeyUpperCase);
+				return new NamedArgumentImpl(expr, assignOp(data), type, varKeyUpperCase, NamedArgument.SEPARATOR_COLON);
 			}
 			else if (expr instanceof DynAssign) {
 				DynAssign da = (DynAssign) expr;
-				return new NamedArgumentImpl(da.getName(), da.getValue(), type, varKeyUpperCase);
+				// Use getSourceName() to preserve original expression type (e.g., NumberLiteral) for AST
+				return new NamedArgumentImpl(da.getSourceName(), da.getValue(), type, varKeyUpperCase, NamedArgument.SEPARATOR_EQUALS);
 			}
 			else if (expr instanceof Assign && !(expr instanceof OpVariable)) {
 				Assign a = (Assign) expr;
-				return new NamedArgumentImpl(a.getVariable(), a.getValue(), type, varKeyUpperCase);
+				return new NamedArgumentImpl(a.getVariable(), a.getValue(), type, varKeyUpperCase, NamedArgument.SEPARATOR_EQUALS);
 			}
 		}
 		catch (TransformerException be) {
@@ -1136,7 +1138,7 @@ public abstract class AbstrCFMLExprTransformer {
 					if (str.length() != 0) {
 						exprStr = data.factory.createLitString(str.toString(), line, data.srcCode.getPosition());
 						if (expr != null) {
-							expr = data.factory.opString(expr, exprStr);
+							expr = data.factory.opStringInterpolation(expr, exprStr);
 						}
 						else expr = exprStr;
 						str = new StringBuilder();
@@ -1145,7 +1147,7 @@ public abstract class AbstrCFMLExprTransformer {
 						expr = inner;
 					}
 					else {
-						expr = data.factory.opString(expr, inner);
+						expr = data.factory.opStringInterpolation(expr, inner);
 					}
 				}
 			}
@@ -1170,7 +1172,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 		if (expr == null) expr = data.factory.createLitString(str.toString(), line, data.srcCode.getPosition());
 		else if (str.length() != 0) {
-			expr = data.factory.opString(expr, data.factory.createLitString(str.toString(), line, data.srcCode.getPosition()));
+			expr = data.factory.opStringInterpolation(expr, data.factory.createLitString(str.toString(), line, data.srcCode.getPosition()));
 		}
 		comments(data);
 
@@ -1579,7 +1581,9 @@ public abstract class AbstrCFMLExprTransformer {
 			}
 
 			// property
-			else invoker.addMember(member = data.factory.createDataMember(namePropUC));
+			else {
+				invoker.addMember(member = data.factory.createDataMember(namePropUC));
+			}
 
 			if (safeNavigation) {
 				member.setSafeNavigated(true);
