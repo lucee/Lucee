@@ -799,7 +799,7 @@ public final class ConfigUtil {
 		if (data == null) return data;
 
 		lucee.runtime.type.Collection repl;
-		if (data instanceof Struct) repl = new StructImpl();
+		if (data instanceof Struct) repl = new StructImpl(Struct.TYPE_LINKED);
 		else if (data instanceof Array) repl = new ArrayImpl();
 		else return data;
 		Iterator<Entry<Key, Object>> it = data.entryIterator();
