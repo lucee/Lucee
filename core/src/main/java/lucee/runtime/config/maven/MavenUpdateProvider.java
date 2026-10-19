@@ -116,7 +116,7 @@ public final class MavenUpdateProvider {
 					repos.add(new Repository(null, new URL(s).toExternalForm(), TYPE_ALL, Repository.TIMEOUT_5MINUTES, Repository.TIMEOUT_NEVER));
 				}
 				catch (Exception e) {
-					LogUtil.log(Log.LEVEL_WARN, "MavenUpdateProvider", "Invalid repository URL [" + s + "] in environment variable [" + envVarName + "]: " + e.getMessage());
+					LogUtil.log((Config) null, Log.LEVEL_WARN, "MavenUpdateProvider", "Invalid repository URL [" + s + "] in environment variable [" + envVarName + "]: " + e.getMessage());
 				}
 			}
 			if (repos.size() > 0) {

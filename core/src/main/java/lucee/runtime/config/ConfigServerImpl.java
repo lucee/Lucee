@@ -7298,7 +7298,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 		List<Method> methods = Reflector.getMethods(this.getClass());
 		if (filter == null) {
-			LogUtil.log(Log.LEVEL_DEBUG, "config", "reset all");
+			LogUtil.log(this, Log.LEVEL_DEBUG, "config", "reset all");
 
 			for (Method method: methods) {
 				if (!method.getName().startsWith("reset") || method.getName().equals("reset") || method.getName().equals("resetAll") || method.getArgumentCount() != 0) continue;
@@ -7307,7 +7307,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		}
 		else {
 			ExceptionUtil.initCauseEL(null, null);
-			LogUtil.log(Log.LEVEL_DEBUG, "config", "reset the following: " + filter);
+			LogUtil.log(this, Log.LEVEL_DEBUG, "config", "reset the following: " + filter);
 
 			for (Method method: methods) {
 				if (method.getArgumentCount() == 0 && filter.allow(method.getName())) {
@@ -7390,7 +7390,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 				Resource configDir = configFile.getParentResource();
 				while ((bugFile = configDir.getRealResource("corrupt-" + (count++) + "-" + ConfigFactory.CONFIG_FILE_NAMES[0] + ".")).exists()) {}
 
-				LogUtil.log(Log.LEVEL_ERROR, ConfigFactory.class.getName(),
+				LogUtil.log(this, Log.LEVEL_ERROR, ConfigFactory.class.getName(),
 						"The configuration file [" + configFile
 								+ "] contained syntax errors and could not be read. A new configuration file has been created, and the invalid file has been renamed to [" + bugFile
 								+ "].");

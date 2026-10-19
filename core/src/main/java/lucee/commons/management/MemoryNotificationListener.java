@@ -48,7 +48,7 @@ public final class MemoryNotificationListener implements NotificationListener {
 			MemoryType type = types.get(poolName);
 			if (type == MemoryType.HEAP) {
 				// clear heap
-				LogUtil.log(Log.LEVEL_INFO, MemoryNotificationListener.class.getName(), "Clear heap!");
+				LogUtil.log((Config) handback, Log.LEVEL_INFO, MemoryNotificationListener.class.getName(), "Clear heap!");
 			}
 			else if (type == MemoryType.NON_HEAP) {
 				// clear none-heap

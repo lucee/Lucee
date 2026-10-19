@@ -634,7 +634,7 @@ public final class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public void setIdentification(IdentificationWeb arg0) {
 		// ignore it, should not happen
-		LogUtil.log(Log.LEVEL_FATAL, "loading", "setting a web id for single context");
+		LogUtil.log(this, Log.LEVEL_FATAL, "loading", "setting a web id for single context");
 	}
 
 	@Override

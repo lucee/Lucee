@@ -366,6 +366,15 @@ public final class LogUtil {
 		return does(ThreadLocalPageContext.getLog("application"), logLevel);
 	}
 
+	/**
+	 * Same as {@link #does(int)}, but checks the "application" log of the given Config instead of
+	 * looking up the PageContext of the current thread. Use this in background code (Controller,
+	 * startup, deploy, ...), where log settings from an Application.cfc do not apply.
+	 */
+	public static boolean does(Config config, int logLevel) {
+		return does(getLog(config, "application"), logLevel);
+	}
+
 	public static boolean does(Log log, int logLevel) {
 		return (log != null && log.getLogLevel() <= logLevel);
 	}

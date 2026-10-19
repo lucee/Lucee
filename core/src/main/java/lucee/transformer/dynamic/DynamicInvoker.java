@@ -46,6 +46,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.SystemOut;
+import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
@@ -92,7 +93,7 @@ public final class DynamicInvoker {
 
 	public Log getLog() {
 		if (_log == null) {
-			_log = ThreadLocalPageContext.getLog("application");
+			_log = ThreadLocalPageContext.getLog((Config) null, "application");
 		}
 		return _log;
 	}

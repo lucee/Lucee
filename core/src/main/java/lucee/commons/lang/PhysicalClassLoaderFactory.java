@@ -198,13 +198,13 @@ public class PhysicalClassLoaderFactory {
 	 * called periodically by the Lucee Controller thread.
 	 */
 	public static void clean(Config config) {
-		boolean doesTrace = LogUtil.does(Log.LEVEL_TRACE);
+		boolean doesTrace = LogUtil.does(config, Log.LEVEL_TRACE);
 		int sizeBefore = classLoaders.size();
-		if (doesTrace) LogUtil.log(Log.LEVEL_TRACE, "physical-classloader",
+		if (doesTrace) LogUtil.log(config, Log.LEVEL_TRACE, "physical-classloader",
 				"clean called, checking " + sizeBefore + " PhysicalClassLoaders for idle timeout (>" + (IDLE_TIMEOUT_MS / 1000) + "s), min size threshold: " + IDLE_MINSIZE);
 
 		if (sizeBefore <= IDLE_MINSIZE) {
-			if (doesTrace) LogUtil.log(Log.LEVEL_TRACE, "physical-classloader", "clean skipped, size " + sizeBefore + " is within min size threshold " + IDLE_MINSIZE);
+			if (doesTrace) LogUtil.log(config, Log.LEVEL_TRACE, "physical-classloader", "clean skipped, size " + sizeBefore + " is within min size threshold " + IDLE_MINSIZE);
 			return;
 		}
 
@@ -220,7 +220,7 @@ public class PhysicalClassLoaderFactory {
 			}
 		}
 
-		if (doesTrace) LogUtil.log(Log.LEVEL_TRACE, "physical-classloader",
+		if (doesTrace) LogUtil.log(config, Log.LEVEL_TRACE, "physical-classloader",
 				"clean finished, evicted " + evicted + " of " + sizeBefore + " PhysicalClassLoaders, remaining: " + classLoaders.size());
 	}
 

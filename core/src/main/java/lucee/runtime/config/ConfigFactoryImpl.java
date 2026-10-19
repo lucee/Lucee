@@ -1315,7 +1315,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 				configFile = ResourcesImpl.getFileResourceProvider().getResource(customCFConfig.trim());
 
 				if (configFile.isFile()) {
-					LogUtil.log(Log.LEVEL_INFO, "deploy", "config", "using config File : " + configFile);
+					LogUtil.log((Config) null, Log.LEVEL_INFO, "deploy", "config", "using config File : " + configFile);
 					return configFile;
 				}
 				throw new IOException(
