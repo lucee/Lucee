@@ -55,6 +55,7 @@ public abstract class TagBase extends StatementBase implements Tag {
 	private boolean scriptBase = false;
 
 	private Map<String, Attribute> metadata;
+	private Map<String, Attribute> sourceAttributes; // original attributes before removeAttribute() calls
 	// private Label finallyLabel;
 
 	public TagBase(Factory factory, Position start, Position end) {
@@ -149,6 +150,10 @@ public abstract class TagBase extends StatementBase implements Tag {
 
 	@Override
 	public Attribute removeAttribute(String name) {
+		// Save original attributes on first removal (for AST dump)
+		if (sourceAttributes == null) {
+			sourceAttributes = new LinkedHashMap<String, Attribute>(attributes);
+		}
 		return attributes.remove(name);
 	}
 
@@ -214,10 +219,11 @@ public abstract class TagBase extends StatementBase implements Tag {
 		if (appendix != null) sct.setEL(KeyConstants._appendix, appendix);
 		if (fullname != null) sct.setEL(KeyConstants._fullname, fullname);
 
-		// attributes
+		// attributes (use sourceAttributes if available, as removeAttribute() may have removed some)
 		Array arrAttrs = new ArrayImpl(8, false);
 		sct.setEL(KeyConstants._attributes, arrAttrs);
-		for (Entry<String, Attribute> entry: attributes.entrySet()) {
+		Map<String, Attribute> attrsToUse = sourceAttributes != null ? sourceAttributes : attributes;
+		for (Entry<String, Attribute> entry: attrsToUse.entrySet()) {
 			Attribute attr = entry.getValue();
 			// Skip default attributes - they weren't in the source
 			if (attr.isDefaultAttribute()) continue;
