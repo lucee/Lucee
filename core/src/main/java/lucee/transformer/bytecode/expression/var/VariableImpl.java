@@ -1245,7 +1245,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 					callee.setEL(KeyConstants._type, "MemberExpression");
 					callee.setEL(KeyConstants._computed, false);
 					// Track safe navigation (?.) as optional=true
-					if (member.getSafeNavigated()) {
+					if (member.isOptional()) {
 						callee.setEL(KeyConstants._optional, Boolean.TRUE);
 					}
 
@@ -1294,7 +1294,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 							|| !(memberName instanceof Literal);
 					newNode.setEL(KeyConstants._computed, isComputed);
 					// Track safe navigation (?.) as optional=true
-					if (member.getSafeNavigated()) {
+					if (member.isOptional()) {
 						newNode.setEL(KeyConstants._optional, Boolean.TRUE);
 					}
 

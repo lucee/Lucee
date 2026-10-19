@@ -1574,7 +1574,15 @@ public abstract class AbstrCFMLExprTransformer {
 				expr = invoker;
 			}
 
+			// safe navigation: the member before ?. is resolved safely at runtime
 			Member member;
+			if (safeNavigation) {
+				List<Member> members = invoker.getMembers();
+				if (members.size() > 0) {
+					member = members.get(members.size() - 1);
+					member.setSafeNavigated(true);
+				}
+			}
 
 			// Method
 			if (data.srcCode.isCurrent('(')) {
@@ -1589,6 +1597,8 @@ public abstract class AbstrCFMLExprTransformer {
 
 			if (safeNavigation) {
 				member.setSafeNavigated(true);
+				// AST: only the member directly after ?. is optional
+				member.setOptional(true);
 			}
 		}
 
