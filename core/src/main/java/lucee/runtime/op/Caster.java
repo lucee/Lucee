@@ -5422,18 +5422,18 @@ public final class Caster {
 
 			if (v != null) v = Caster.castTo(pc, p.getType(), v, false);
 			else {
-				if (!StringUtil.isEmpty(p.getDefaultAsObject())) {
+				if (!StringUtil.isEmpty(p.getLiteralDefaultAsObject())) {
 					try {
-						v = Caster.castTo(pc, p.getType(), p.getDefaultAsObject(), false);
+						v = Caster.castTo(pc, p.getType(), p.getLiteralDefaultAsObject(), false);
 
 					}
 					catch (PageException pe) {
 						try {
-							v = interpreter.interpret(pc, Caster.toString(p.getDefaultAsObject()));
+							v = interpreter.interpret(pc, Caster.toString(p.getLiteralDefaultAsObject()));
 							v = Caster.castTo(pc, p.getType(), v, false);
 						}
 						catch (PageException pe2) {
-							ExpressionException ee = new ExpressionException("can not use default value from type [" + Caster.toTypeName(p.getDefaultAsObject())
+							ExpressionException ee = new ExpressionException("can not use default value from type [" + Caster.toTypeName(p.getLiteralDefaultAsObject())
 									+ "] for property [" + p.getName() + "] with type [" + p.getType() + "]");
 							ExceptionUtil.initCauseEL(ee, pe);
 							throw ee;

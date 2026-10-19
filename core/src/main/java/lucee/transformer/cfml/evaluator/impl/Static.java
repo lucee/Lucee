@@ -18,7 +18,6 @@
  **/
 package lucee.transformer.cfml.evaluator.impl;
 
-import java.util.Iterator;
 import java.util.List;
 
 import lucee.commons.lang.StringUtil;
@@ -40,7 +39,6 @@ public final class Static extends EvaluatorSupport {
 
 	@Override
 	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
-
 		// check parent
 		Body body = null;
 
@@ -48,16 +46,19 @@ public final class Static extends EvaluatorSupport {
 
 		boolean isCompChild = false;
 		Tag p = ASMUtil.getParentTag(tag);
+		Tag containingTag = null; // The tag that directly contains this static in the component body
 
 		if (p != null && (p instanceof TagComponent || getFullname(p, "").equalsIgnoreCase(compName))) {
 			isCompChild = true;
 			body = p.getBody();
+			containingTag = tag; // static tag is directly in component body
 		}
 
 		Tag pp = p != null ? ASMUtil.getParentTag(p) : null;
-		if (!isCompChild && pp != null && (p instanceof TagComponent || getFullname(pp, "").equalsIgnoreCase(compName))) {
+		if (!isCompChild && pp != null && (pp instanceof TagComponent || getFullname(pp, "").equalsIgnoreCase(compName))) {
 			isCompChild = true;
 			body = pp.getBody();
+			containingTag = p; // static is inside another tag (e.g., cfscript) in component body
 		}
 
 		if (!isCompChild) {
@@ -67,10 +68,14 @@ public final class Static extends EvaluatorSupport {
 		// Body body=(Body) tag.getParent();
 		List<Statement> children = tag.getBody().getStatements();
 
+		// Find the index of the containing tag in component body (for AST position preservation)
+		// For direct cfstatic, this is the tag itself. For script static { }, this is cfscript.
+		int tagIndex = containingTag != null ? body.getStatements().indexOf(containingTag) : -1;
+
 		// remove that tag from parent
 		ASMUtil.remove(tag);
 
-		StaticBody sb = getStaticBody(body);
+		StaticBody sb = createStaticBody(body, tag, tagIndex);
 		ASMUtil.addStatements(sb, children);
 	}
 
@@ -84,16 +89,38 @@ public final class Static extends EvaluatorSupport {
 		return defaultValue;
 	}
 
-	static StaticBody getStaticBody(Body body) {
-		Iterator<Statement> it = body.getStatements().iterator();
-		Statement s;
-		while (it.hasNext()) {
-			s = it.next();
-			if (s instanceof StaticBody) return (StaticBody) s;
+	/**
+	 * Creates a new StaticBody and adds it to the component body at the original tag position.
+	 * Each static { } block gets its own StaticBody to preserve AST structure.
+	 *
+	 * @param body The component body to add the StaticBody to
+	 * @param tag The original cfstatic tag (for position info)
+	 * @param tagIndex The original index of the tag in the body (-1 to append at end)
+	 */
+	static StaticBody createStaticBody(Body body, Statement tag, int tagIndex) {
+		StaticBody sb = new StaticBody(body.getFactory(), tag != null ? tag.getStart() : null, tag != null ? tag.getEnd() : null);
+		if (tagIndex >= 0 && tagIndex < body.getStatements().size()) {
+			// Insert at original position
+			body.getStatements().add(tagIndex, sb);
+			sb.setParent(body);
 		}
-		StaticBody sb = new StaticBody(body.getFactory());
-		body.addStatement(sb);
+		else {
+			// Fallback: append at end
+			body.addStatement(sb);
+		}
 		return sb;
+	}
+
+	/**
+	 * Creates a new StaticBody for static functions at the original tag position.
+	 * Each static function gets its own StaticBody to preserve AST structure.
+	 *
+	 * @param body The component body to add the StaticBody to
+	 * @param tag The original cffunction tag (for position info)
+	 * @param tagIndex The original index of the tag in the body (-1 to append at end)
+	 */
+	static StaticBody getStaticBodyForFunction(Body body, Statement tag, int tagIndex) {
+		return createStaticBody(body, tag, tagIndex);
 	}
 
 }

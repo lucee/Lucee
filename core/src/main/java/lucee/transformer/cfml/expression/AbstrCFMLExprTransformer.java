@@ -46,15 +46,19 @@ import lucee.transformer.bytecode.expression.var.Call;
 import lucee.transformer.bytecode.expression.var.DynAssign;
 import lucee.transformer.bytecode.expression.var.FunctionMember;
 import lucee.transformer.bytecode.expression.var.NamedArgumentImpl;
+import lucee.transformer.expression.var.NamedArgument;
 import lucee.transformer.bytecode.expression.var.UDF;
 import lucee.transformer.bytecode.literal.Identifier;
+import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
+import lucee.transformer.bytecode.op.OpString;
 import lucee.transformer.bytecode.op.OpVariable;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.Data;
+import lucee.transformer.cfml.script.DocComment;
 import lucee.transformer.cfml.script.DocCommentTransformer;
 import lucee.transformer.cfml.tag.CFMLTransformer;
 import lucee.transformer.expression.ExprBoolean;
@@ -304,15 +308,16 @@ public abstract class AbstrCFMLExprTransformer {
 		try {
 			if (data.srcCode.forwardIfCurrent(":")) {
 				comments(data);
-				return new NamedArgumentImpl(expr, assignOp(data), type, varKeyUpperCase);
+				return new NamedArgumentImpl(expr, assignOp(data), type, varKeyUpperCase, NamedArgument.SEPARATOR_COLON);
 			}
 			else if (expr instanceof DynAssign) {
 				DynAssign da = (DynAssign) expr;
-				return new NamedArgumentImpl(da.getName(), da.getValue(), type, varKeyUpperCase);
+				// Use getSourceName() to preserve original expression type (e.g., NumberLiteral) for AST
+				return new NamedArgumentImpl(da.getSourceName(), da.getValue(), type, varKeyUpperCase, NamedArgument.SEPARATOR_EQUALS);
 			}
 			else if (expr instanceof Assign && !(expr instanceof OpVariable)) {
 				Assign a = (Assign) expr;
-				return new NamedArgumentImpl(a.getVariable(), a.getValue(), type, varKeyUpperCase);
+				return new NamedArgumentImpl(a.getVariable(), a.getValue(), type, varKeyUpperCase, NamedArgument.SEPARATOR_EQUALS);
 			}
 		}
 		catch (TransformerException be) {
@@ -356,9 +361,10 @@ public abstract class AbstrCFMLExprTransformer {
 		}
 
 		// LDEV-4160: immediate calls and member chaining, e.g. returnAUDF()().toList()
+		// LDEV-6039: Don't treat ( as function call if there's a newline before it
 		comments(data);
 		while (true) {
-			while (data.srcCode.isCurrent('(')) {
+			while (data.srcCode.isCurrent('(') && !data.srcCode.hasNLBefore()) {
 				comments(data);
 				Call call = new Call(expr);
 				getFunctionMemberAttrs(data, null, false, call, null);
@@ -959,7 +965,7 @@ public abstract class AbstrCFMLExprTransformer {
 				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_PLUS);
 			}
 			comments(data);
-			return data.factory.toExprNumber(clip(data));
+			return data.factory.opNegateNumber(clip(data), Factory.OP_NEG_NBR_PLUS, line, data.srcCode.getPosition());
 		}
 		return clip(data);
 	}
@@ -1137,7 +1143,7 @@ public abstract class AbstrCFMLExprTransformer {
 					if (str.length() != 0) {
 						exprStr = data.factory.createLitString(str.toString(), line, data.srcCode.getPosition());
 						if (expr != null) {
-							expr = data.factory.opString(expr, exprStr);
+							expr = data.factory.opStringInterpolation(expr, exprStr);
 						}
 						else expr = exprStr;
 						str = new StringBuilder();
@@ -1146,7 +1152,7 @@ public abstract class AbstrCFMLExprTransformer {
 						expr = inner;
 					}
 					else {
-						expr = data.factory.opString(expr, inner);
+						expr = data.factory.opStringInterpolation(expr, inner);
 					}
 				}
 			}
@@ -1171,13 +1177,21 @@ public abstract class AbstrCFMLExprTransformer {
 
 		if (expr == null) expr = data.factory.createLitString(str.toString(), line, data.srcCode.getPosition());
 		else if (str.length() != 0) {
-			expr = data.factory.opString(expr, data.factory.createLitString(str.toString(), line, data.srcCode.getPosition()));
+			expr = data.factory.opStringInterpolation(expr, data.factory.createLitString(str.toString(), line, data.srcCode.getPosition()));
 		}
 		comments(data);
 
 		if (expr instanceof Variable) {
 			Variable var = (Variable) expr;
 			var.fromHash(true);
+		}
+
+		// Set quoteChar to preserve original quote style for AST dump
+		if (expr instanceof LitStringImpl) {
+			((LitStringImpl) expr).setQuoteChar(quoter);
+		}
+		else if (expr instanceof OpString) {
+			((OpString) expr).setQuoteChar(quoter);
 		}
 
 		return expr;
@@ -1403,6 +1417,9 @@ public abstract class AbstrCFMLExprTransformer {
 		while (data.srcCode.forwardIfCurrent(','));
 		comments(data);
 
+		// Snapshot original arguments before evaluators may modify them
+		bif.snapshotSourceArguments();
+
 		if (!data.srcCode.forwardIfCurrent(end)) throw new TemplateException(data.srcCode, "Invalid Syntax Closing [" + end + "] not found");
 		comments(data);
 
@@ -1432,7 +1449,12 @@ public abstract class AbstrCFMLExprTransformer {
 	private Expression closure(Data data) throws TemplateException {
 		if (!data.srcCode.forwardIfCurrent("function", '(')) return null;
 		data.srcCode.previous();
+		// Save docComment - inline closures (e.g. in default param values) should not consume 
+		// the docblock that belongs to the outer function
+		DocComment savedDocComment = data.docComment;
 		Function func = closurePart(data, "closure_" + CreateUniqueId.invoke(), Component.ACCESS_PUBLIC, Component.MODIFIER_NONE, "any", data.srcCode.getPosition(), true);
+		// Restore docComment after closure parsing (closurePart and statement() may have cleared it)
+		data.docComment = savedDocComment;
 		func.setParent(data.getParent());
 		return new FunctionAsExpression(func);
 	}
@@ -1560,7 +1582,7 @@ public abstract class AbstrCFMLExprTransformer {
 				expr = invoker;
 			}
 
-			// safe navigation
+			// safe navigation: the member before ?. is resolved safely at runtime
 			Member member;
 			if (safeNavigation) {
 				List<Member> members = invoker.getMembers();
@@ -1577,10 +1599,14 @@ public abstract class AbstrCFMLExprTransformer {
 			}
 
 			// property
-			else invoker.addMember(member = data.factory.createDataMember(namePropUC));
+			else {
+				invoker.addMember(member = data.factory.createDataMember(namePropUC));
+			}
 
 			if (safeNavigation) {
 				member.setSafeNavigated(true);
+				// AST: only the member directly after ?. is optional
+				member.setOptional(true);
 			}
 		}
 
@@ -1925,6 +1951,8 @@ public abstract class AbstrCFMLExprTransformer {
 			if (checkLibrary) {
 				BIF bif = new BIF(data.factory, data.settings, flf, data);
 				// TODO data.ep.add(flf, bif, data.srcCode);
+				// LDEV-6041: Store original name for AST round-tripping
+				bif.setOriginalName(name);
 
 				bif.setArgType(flf.getArgType());
 				try {
@@ -1943,6 +1971,8 @@ public abstract class AbstrCFMLExprTransformer {
 					FunctionLibFunctionArg arg;
 					while (it.hasNext()) {
 						arg = it.next();
+						// Skip hidden args (internal metadata like __filename, __mapping) in ast mode only
+						if (data.ast && arg.isHidden()) continue;
 						if (arg.getDefaultValue() != null) bif.addArgument(new NamedArgumentImpl(data.factory.createLitString(arg.getName()),
 								data.factory.createLitString(arg.getDefaultValue()), arg.getTypeAsString(), false));
 					}
@@ -1953,6 +1983,9 @@ public abstract class AbstrCFMLExprTransformer {
 			}
 
 			int count = getFunctionMemberAttrs(data, name, checkLibrary, fm, flf);
+
+			// Snapshot original arguments before evaluators may modify them
+			fm.snapshotSourceArguments();
 
 			if (checkLibrary) {
 				// pre
@@ -2132,7 +2165,16 @@ public abstract class AbstrCFMLExprTransformer {
 		}
 		comments(data);
 
-		return data.factory.createLitString(sb.toString(), line, data.srcCode.getPosition());
+		String value = sb.toString();
+		Position end = data.srcCode.getPosition();
+		// Check for boolean literals (case-insensitive)
+		if (value.equalsIgnoreCase("true")) {
+			return data.factory.createLitBoolean(true, line, end);
+		}
+		if (value.equalsIgnoreCase("false")) {
+			return data.factory.createLitBoolean(false, line, end);
+		}
+		return data.factory.createLitString(value, line, end);
 	}
 
 	/**
@@ -2185,7 +2227,8 @@ public abstract class AbstrCFMLExprTransformer {
 			throw new TemplateException(cfml, "block comment is not closed");
 		}
 		if (isDocComment && !data.insideFunction) {
-			String comment = cfml.substring(pos - 2, cfml.getPos() - pos);
+			// Include the full comment from /** to */ inclusive
+			String comment = cfml.substring(pos - 2, cfml.getPos() - (pos - 2));
 			data.docComment = docCommentTransformer.transform(data.factory, comment);
 		}
 		return true;

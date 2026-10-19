@@ -18,11 +18,14 @@
  */
 package lucee.transformer.cfml.script;
 
+import lucee.commons.io.res.util.ResourceUtil;
+import lucee.runtime.config.Constants;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.Body;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.tag.TagDependentBodyTransformer;
 import lucee.transformer.expression.Expression;
+import lucee.transformer.util.PageSourceCode;
 
 public final class CFMLScriptTransformer extends AbstrCFMLScriptTransformer implements TagDependentBodyTransformer {
 	@Override
@@ -30,6 +33,15 @@ public final class CFMLScriptTransformer extends AbstrCFMLScriptTransformer impl
 
 		boolean isCFC = data.page != null && data.page.isComponent();
 		boolean isInterface = data.page != null && data.page.isInterface();
+
+		// If page isn't already marked as component but we're parsing a .cfc file inside cfscript,
+		// allow component parsing (handles <cfscript>component { }</cfscript> pattern)
+		if (!isCFC && !isInterface && data.srcCode instanceof PageSourceCode) {
+			String ext = ResourceUtil.getExtension( ((PageSourceCode) data.srcCode).getPageSource().getResource(), "" );
+			if (Constants.isCFMLComponentExtension( ext )) {
+				isCFC = true;
+			}
+		}
 
 		Data ed = init(data);
 
