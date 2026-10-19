@@ -431,7 +431,8 @@ jobs:
         fi
     - name: Trigger the Lucee Docker image build
       # LDEV-6536: runs after the maven deploy, so the jar is on Maven already (was in ant/upload_to_s3.cfm)
-      if: success() && env.DID_DEPLOY == 'true' && env.VERSION != ''
+      # alpha versions get no docker images
+      if: success() && env.DID_DEPLOY == 'true' && env.VERSION != '' && !contains(env.VERSION, '-ALPHA')
       continue-on-error: true
       env:
         GH_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
