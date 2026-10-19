@@ -1297,7 +1297,10 @@ public final class CFMLTransformer {
 		Expression expr;
 		try {
 			ExprTransformer transfomer = null;
-			if (parseExpression) {
+			// In AST mode, always use full expression parsing so interpolated expressions like
+			// cfloop condition="#expr#" show the parsed expression structure, not a StringLiteral.
+			// The rtexprvalue=false flag is only relevant for bytecode generation, not AST output.
+			if (parseExpression || data.ast) {
 				transfomer = tag.getTagLib().getExprTransfomer();
 			}
 			else {
