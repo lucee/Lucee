@@ -2691,6 +2691,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		Expression value = null;
 		boolean hasValue = false;
+		String rawValue = null;
 
 		comments(data);
 
@@ -2724,7 +2725,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			hasValue = data.srcCode.forwardIfCurrent('=') || (allowColonSeparator && data.srcCode.forwardIfCurrent(':'));
 			if (hasValue) {
 				comments(data);
+				int rawStart = data.srcCode.getPos();
 				value = attributeValue(data, allowExpression);
+				rawValue = Attribute.sliceSource(data.srcCode, rawStart, data.srcCode.getPos(), value);
 				// LDEV-3963: coerce bare identifier to a string literal (access=remote)
 				if (tlt == null) value = asLiteralIdentifier(data, value);
 			}
@@ -2740,7 +2743,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			tlta = tlt.getAttribute(nameLC, true);
 			if (tlta != null && tlta.getName() != null) nameLC = tlta.getName();
 		}
-		return new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue);
+		Attribute attr = new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue);
+		if (rawValue != null) attr.setRawValue(rawValue);
+		return attr;
 	}
 
 	private final String attributeName(SourceCode cfml, ArrayList<String> args, TagLibTag tag, RefBoolean dynamic, StringBuilder sbType, boolean allowTwiceAttr, boolean allowColon)

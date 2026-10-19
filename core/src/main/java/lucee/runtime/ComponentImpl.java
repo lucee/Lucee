@@ -56,6 +56,7 @@ import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.ComponentPageRef;
 import lucee.runtime.component.DataMember;
+import lucee.runtime.component.ExpressionDefault;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Member;
 import lucee.runtime.component.MetaDataSoftReference;
@@ -2481,9 +2482,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 
 		top.properties.properties.put(propNameLower, propImpl);
-		if (propImpl.getDefaultAsObject() != null) {
+		Object defaultObj = propImpl.getDefaultAsObject();
+		// LDEV-6303: expression defaults are evaluated per instance by the pseudo-constructor (see
+		// TagProperty), only literal defaults are set here
+		if (defaultObj != null && !(defaultObj instanceof ExpressionDefault)) {
 			Key propKey = propImpl.getNameAsKey();
-			scope.setEL(propKey, propImpl.getDefaultAsObject());
+			scope.setEL(propKey, defaultObj);
 			if (ownPropertyDefaults == null) ownPropertyDefaults = new HashSet<>();
 			ownPropertyDefaults.add(propKey);
 		}
