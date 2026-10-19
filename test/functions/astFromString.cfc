@@ -146,6 +146,24 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				assertEquals("loop", result.body[1].name);
 			});
 
+			it( title = 'test mode=tag works explicitly', body = function( currentSpec ) {
+				var result = astFromString("<cfset x = 1>", "tag");
+				assertEquals("Program", result.type);
+				assertTrue(arrayLen(result.body) > 0);
+			});
+
+			it( title = 'test invalid mode throws error', body = function( currentSpec ) {
+				var errorThrown = false;
+				try {
+					astFromString("x = 1;", "banana");
+				}
+				catch( any e ) {
+					errorThrown = true;
+					assertTrue( e.message contains "mode" || e.detail contains "mode", "Error should mention 'mode'" );
+				}
+				assertTrue( errorThrown, "Expected an error for invalid mode 'banana'" );
+			});
+
 			xit( title = 'test unknown script tag in legacy style', body = function( currentSpec ) {
 				var result = astFromString('unknown susi="1" {echo("ddd");}',"script");
 				assertEquals("Program", result.type);

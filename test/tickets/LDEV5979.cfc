@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 			it( "isDefined with 1 argument should have 1 argument in AST", function() {
 				var code = fileRead( variables.testDir & "isDefined.cfm" );
-				var ast = astFromString( code, "cfml" );
+				var ast = astFromString( code );
 
 				// Find the CallExpression for isDefined
 				var callExpr = findCallByName( ast, "ISDEFINED" );
