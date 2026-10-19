@@ -7,11 +7,16 @@ import java.net.URL;
 import java.security.GeneralSecurityException;
 
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.HttpContext;
@@ -22,6 +27,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
 import lucee.runtime.config.Config;
@@ -244,6 +250,76 @@ public final class HTTPDownloader {
 		}
 		catch (Exception e) {
 			throw new IOException("Failed to download from [" + url + "]: " + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * GET request returning the full HTTPResponse whatever the status code, so callers can handle 404 vs
+	 * 429/5xx and read headers like Retry-After (LDEV-6579, used by MavenUtil).
+	 * 
+	 * Uses the shared pooled client and the engine cookie spec (no "Invalid cookie header" warnings
+	 * for RFC 1123 expires, see LDEV-2321). The configured server proxy (incl. proxy credentials) and
+	 * the given credentials are applied per request.
+	 * 
+	 * The caller must read or close the content stream, see {@link #releaseEL(HTTPResponse)}, to give
+	 * the connection back to the pool.
+	 *
+	 * @param url URL to download from
+	 * @param username HTTP Basic Auth username (can be null)
+	 * @param password HTTP Basic Auth password (can be null)
+	 * @param connectTimeout Connection timeout in milliseconds, also used as timeout to get a pooled
+	 *            connection
+	 * @param readTimeout Read (socket) timeout in milliseconds
+	 * @param userAgent User-Agent header (can be null, defaults to "Lucee")
+	 * @return the response, never null
+	 * @throws IOException if the request fails (connection, proxy, timeout)
+	 * @throws GeneralSecurityException if SSL/TLS fails
+	 */
+	public static HTTPResponse getResponse(URL url, String username, String password, long connectTimeout, long readTimeout, String userAgent)
+			throws IOException, GeneralSecurityException {
+		HttpGet request = new HttpGet(url.toString());
+		request.setHeader("User-Agent", userAgent != null ? userAgent : DEFAULT_USER_AGENT);
+
+		RequestConfig.Builder config = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setConnectionRequestTimeout((int) connectTimeout)
+				.setConnectTimeout((int) connectTimeout).setSocketTimeout((int) readTimeout);
+
+		HttpClientContext context = HttpClientContext.create();
+		// cookies only live for this request, nothing is shared through the shared client
+		context.setCookieStore(new BasicCookieStore());
+		CredentialsProvider cp = null;
+
+		// server proxy, the shared client has none, so it is set on the request
+		ProxyData proxy = getProxyData(url.getHost());
+		if (ProxyDataImpl.isValid(proxy, url.getHost())) {
+			int port = proxy.getPort() == -1 ? 80 : proxy.getPort();
+			config.setProxy(new HttpHost(proxy.getServer(), port));
+			if (!StringUtil.isEmpty(proxy.getUsername())) {
+				cp = new BasicCredentialsProvider();
+				cp.setCredentials(new AuthScope(proxy.getServer(), port), new UsernamePasswordCredentials(proxy.getUsername(), proxy.getPassword()));
+			}
+		}
+		// credentials for the target host
+		if (!StringUtil.isEmpty(username, true)) {
+			if (cp == null) cp = new BasicCredentialsProvider();
+			cp.setCredentials(new AuthScope(url.getHost(), url.getPort()), new UsernamePasswordCredentials(username, password == null ? "" : password));
+		}
+		if (cp != null) context.setCredentialsProvider(cp);
+
+		request.setConfig(config.build());
+		return new HTTPResponse4Impl(url, context, request, getSharedClient().execute(request, context));
+	}
+
+	/**
+	 * Gives the connection of a response from {@link #getResponse} back to the pool (drains or closes
+	 * the content stream). Never throws.
+	 */
+	public static void releaseEL(HTTPResponse rsp) {
+		if (rsp == null) return;
+		try {
+			IOUtil.closeEL(rsp.getContentAsStream());
+		}
+		catch (Exception e) {
+			LogUtil.log("download", e);
 		}
 	}
 
