@@ -69,6 +69,7 @@ import lucee.transformer.expression.literal.LitBoolean;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
+import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.statement.Argument;
 import lucee.transformer.statement.HasBody;
 import lucee.transformer.statement.IFunction;
@@ -144,9 +145,12 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	int access = Component.ACCESS_PUBLIC;
 	ExprString displayName;
 	ExprString hint;
+	String rawDocblock; // raw docblock text for AST round-tripping
+	String docblockDescription; // parsed description from docblock for annotations.description
 	Body body;
 	List<Argument> arguments = new ArrayList<Argument>();
-	Map<String, Attribute> metadata;
+	Map<String, Attribute> metadata; // inline attributes (not from docblock)
+	Map<String, Attribute> annotations; // @tags from docblock
 	ExprString returnFormat;
 	ExprString description;
 	ExprBoolean secureJson;
@@ -308,7 +312,8 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		if (light && bufferOutput != null) light = false;
 		if (light && localMode != null) light = false;
 		if (light && modifier != Component.MODIFIER_NONE) light = false;
-		if (light && PageImpl.hasMetaDataStruct(metadata, null)) light = false;
+		Map<String, Attribute> runtimeMeta = getRuntimeMetaData();
+		if (light && PageImpl.hasMetaDataStruct(runtimeMeta, null)) light = false;
 		if (light) {
 			adapter.invokeConstructor(Types.UDF_PROPERTIES_IMPL, INIT_UDF_PROPERTIES_SHORTTYPE_LIGHT);
 			return;
@@ -350,7 +355,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		adapter.push(modifier);
 
 		// meta
-		PageImpl.createMetaDataStruct(bc, metadata, null);
+		PageImpl.createMetaDataStruct(bc, runtimeMeta, null);
 
 		adapter.invokeConstructor(Types.UDF_PROPERTIES_IMPL, sType == -1 ? INIT_UDF_PROPERTIES_STRTYPE : INIT_UDF_PROPERTIES_SHORTTYPE);
 
@@ -559,8 +564,31 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		this.metadata = metadata;
 	}
 
+	/**
+	 * metadata used at runtime: docblock @tags (annotations) plus inline attributes, inline attributes
+	 * win. The AST keeps both separate, the runtime behaves as before LDEV-5990.
+	 */
+	private Map<String, Attribute> getRuntimeMetaData() {
+		if (annotations == null || annotations.isEmpty()) return metadata;
+		Map<String, Attribute> merged = new HashMap<String, Attribute>(annotations);
+		if (metadata != null) merged.putAll(metadata);
+		return merged;
+	}
+
+	public final void setAnnotations(Map<String, Attribute> annotations) {
+		this.annotations = annotations;
+	}
+
 	public final void setHint(Factory factory, String hint) {
 		this.hint = factory.createLitString(hint);
+	}
+
+	public final void setRawDocblock(String rawDocblock) {
+		this.rawDocblock = rawDocblock;
+	}
+
+	public final void setDocblockDescription(String description) {
+		this.docblockDescription = description;
 	}
 
 	public final void addAttribute(BytecodeContext bc, Attribute attr) throws TemplateException {
@@ -585,7 +613,9 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		else if ("output".equals(name)) this.output = toLitBoolean(bc, name, attr.getValue());
 		else if ("bufferoutput".equals(name)) this.bufferOutput = toLitBoolean(bc, name, attr.getValue());
 		else if ("displayname".equals(name)) this.displayName = toLitString(bc, name, attr.getValue());
-		else if ("hint".equals(name)) this.hint = toLitString(bc, name, attr.getValue());
+		else if ("hint".equals(name)) {
+			this.hint = toLitString(bc, name, attr.getValue());
+		}
 		else if ("description".equals(name)) this.description = toLitString(bc, name, attr.getValue());
 		else if ("returnformat".equals(name)) this.returnFormat = toLitString(bc, name, attr.getValue());
 		else if ("securejson".equals(name)) this.secureJson = toLitBoolean(bc, name, attr.getValue());
@@ -735,11 +765,64 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			description.dump(s);
 			sct.setEL(KeyConstants._description, s);
 		}
-		// hint
-		if (hint != null) {
-			Struct s = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
-			hint.dump(s);
-			sct.setEL(KeyConstants._hint, s);
+		// docblock - raw docblock text for round-tripping
+		if (rawDocblock != null) {
+			sct.setEL("docblock", rawDocblock);
+		}
+		// annotations - docblock description + @tags from docblock (@return, @deprecated, etc.)
+		if (docblockDescription != null || (annotations != null && !annotations.isEmpty())) {
+			Struct annot = new StructImpl(Struct.TYPE_LINKED);
+			// description from docblock first line(s)
+			if (docblockDescription != null && !docblockDescription.isEmpty()) {
+				annot.setEL(KeyConstants._description, docblockDescription);
+			}
+			// @tags from docblock
+			if (annotations != null) {
+				for (Map.Entry<String, Attribute> entry: annotations.entrySet()) {
+					String key = entry.getKey();
+					Attribute attr = entry.getValue();
+					Expression val = attr.getValue();
+					if (val instanceof Literal) {
+						annot.setEL(key, ((Literal) val).getString());
+					}
+					else {
+						Struct s = new StructImpl(Struct.TYPE_LINKED);
+						val.dump(s);
+						annot.setEL(key, s);
+					}
+				}
+			}
+			sct.setEL("annotations", annot);
+		}
+		// metadata - inline custom attributes (not from docblock)
+		// Check if hint is from inline attribute (has quoteChar) vs docblock
+		boolean hintFromInlineAttr = false;
+		if (hint instanceof LitStringImpl) {
+			LitStringImpl ls = (LitStringImpl) hint;
+			hintFromInlineAttr = ls.getQuoteChar() != (char) 0;
+		}
+		if ((metadata != null && !metadata.isEmpty()) || hintFromInlineAttr) {
+			Struct meta = new StructImpl(Struct.TYPE_LINKED);
+			// Add inline hint to metadata if from attribute
+			if (hintFromInlineAttr) {
+				meta.setEL(KeyConstants._hint, ((LitString) hint).getString());
+			}
+			if (metadata != null) {
+				for (Map.Entry<String, Attribute> entry: metadata.entrySet()) {
+					String key = entry.getKey();
+					Attribute attr = entry.getValue();
+					Expression val = attr.getValue();
+					if (val instanceof Literal) {
+						meta.setEL(key, ((Literal) val).getString());
+					}
+					else {
+						Struct s = new StructImpl(Struct.TYPE_LINKED);
+						val.dump(s);
+						meta.setEL(key, s);
+					}
+				}
+			}
+			sct.setEL(KeyConstants._metadata, meta);
 		}
 		// secureJson
 		if (secureJson != null) {

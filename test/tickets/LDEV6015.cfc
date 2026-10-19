@@ -70,8 +70,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( templateLiteral.quoteChar ).toBe( "'", "Should preserve single quote for interpolated string" );
 			});
 
-			// enabled with LDEV-5990 (needs its function param hint handling)
-			xit( "should preserve quoteChar in inline function param hint", function() {
+			it( "should preserve quoteChar in inline function param hint", function() {
 				// Inline param hints (hint="...") should have quoteChar
 				var ast = astFromString( 'function test( string name hint="my description" ) {}', "script" );
 				var param = ast.body[1].params[1];

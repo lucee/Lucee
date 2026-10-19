@@ -30,8 +30,17 @@ public final class DocComment {
 
 	private StringBuilder tmpHint = new StringBuilder();
 	private String hint;
+	private String rawText; // raw docblock text for AST round-tripping
 	// private List<DocCommentParam> params=new ArrayList<DocComment.DocCommentParam>();
 	Map<String, Attribute> params = new HashMap<String, Attribute>();
+
+	public void setRawText(String raw) {
+		this.rawText = raw;
+	}
+
+	public String getRawText() {
+		return rawText;
+	}
 
 	public void addHint(char c) {
 		tmpHint.append(c);

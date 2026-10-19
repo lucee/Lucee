@@ -1057,7 +1057,24 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				if (meta == null) meta = new HashMap<String, Attribute>();
 				for (int i = 0; i < _attrs.length; i++) {
 					_attr = _attrs[i];
-					meta.put(_attr.getName(), _attr);
+					String attrName = _attr.getName();
+					// Extract known argument attributes
+					if ("hint".equalsIgnoreCase(attrName)) {
+						hint = data.factory.toExprString(_attr.getValue());
+					}
+					else if ("displayname".equalsIgnoreCase(attrName)) {
+						displayName = data.factory.toExprString(_attr.getValue());
+					}
+					else if ("default".equalsIgnoreCase(attrName) && defVal == null) {
+						defVal = _attr.getValue();
+					}
+					else if ("passbyreference".equalsIgnoreCase(attrName) || "passby".equalsIgnoreCase(attrName)) {
+						ExprBoolean eb = data.factory.toExprBoolean(_attr.getValue());
+						if (eb instanceof LitBoolean) passByRef = (LitBoolean) eb;
+					}
+					else {
+						meta.put(attrName, _attr);
+					}
 				}
 			}
 
@@ -1097,12 +1114,18 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode,"function");
 
-		// doc comment
+		// doc comment - only attach to named functions, not inline closures
 		String hint = null;
-		if (data.docComment != null) {
-			func.setHint(data.factory, hint = data.docComment.getHint());
-			func.setMetaData(data.docComment.getParams());
-			data.docComment = null;
+		if (!closure) {
+			DocComment docComment = data.docComment; // save reference before clearing
+			if (docComment != null) {
+				hint = docComment.getHint();
+				func.setHint(data.factory, hint);
+				func.setDocblockDescription(hint); // store for annotations.description
+				func.setAnnotations(docComment.getParams());
+				func.setRawDocblock(docComment.getRawText());
+				data.docComment = null;
+			}
 		}
 
 		comments(data);
@@ -1420,10 +1443,14 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		try {
 			if (data.srcCode.isCurrent('{')) {
+				// Save docComment - block-style arrow functions shouldn't consume outer docblock (LDEV-5990)
+				DocComment savedDocComment = data.docComment;
 				Body prior = data.setParent(body);
 				statement(data, body, CTX_FUNCTION);
 
 				data.setParent(prior);
+				// Restore docComment - let the outer caller handle it
+				data.docComment = savedDocComment;
 			}
 			// LDEV-4062: a lambda without a body (`() =>;`) returns null
 			else if (!data.srcCode.isValidIndex() || isFinish(data) || data.srcCode.isCurrent(';') || data.srcCode.isCurrent(')') || data.srcCode.isCurrent(',') || data.srcCode.isCurrent('}')
@@ -1442,7 +1469,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				Expression expr = expression(data);
 				Return rtn = new Return(expr, line, data.srcCode.getPosition());
 				body.addStatement(rtn);
-				data.docComment = null;
+				// Don't clear docComment here - arrow functions shouldn't consume outer docblock (LDEV-5990)
+				// The outer caller (closurePart for named functions) handles docComment appropriately
 				data.context = prior;
 
 			}
@@ -1704,18 +1732,38 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		tag.addMetaData(data.docComment.getHintAsAttribute(data.factory));
 
-		Map<String, Attribute> params = data.docComment.getParams();
-		Iterator<Attribute> it = params.values().iterator();
-		Attribute attr;
-		outer: while (it.hasNext()) {
-			attr = it.next();
-			// ignore list
-			if (!ArrayUtil.isEmpty(ignoreList)) {
-				for (int i = 0; i < ignoreList.length; i++) {
-					if (ignoreList[i].equalsIgnoreCase(attr.getName())) continue outer;
+		// Store raw docblock and annotations for AST round-tripping
+		if (tag instanceof TagBase) {
+			TagBase tb = (TagBase) tag;
+			tb.setRawDocblock(data.docComment.getRawText());
+			tb.setDocblockDescription(data.docComment.getHint()); // for annotations.description
+			// Store docblock @tags as annotations (separate from inline metadata)
+			Map<String, Attribute> params = data.docComment.getParams();
+			if (params != null && !params.isEmpty()) {
+				Map<String, Attribute> filteredParams = new HashMap<String, Attribute>();
+				for (Attribute attr: params.values()) {
+					// Apply ignore list
+					boolean ignored = false;
+					if (!ArrayUtil.isEmpty(ignoreList)) {
+						for (int i = 0; i < ignoreList.length; i++) {
+							if (ignoreList[i].equalsIgnoreCase(attr.getName())) {
+								ignored = true;
+								break;
+							}
+						}
+					}
+					if (!ignored) {
+						filteredParams.put(attr.getName(), attr);
+					}
+				}
+				if (!filteredParams.isEmpty()) {
+					tb.setAnnotations(filteredParams);
+				}
+				// runtime: docblock @tags stay component/interface metadata as before
+				for (Attribute attr: filteredParams.values()) {
+					tag.addMetaData(attr);
 				}
 			}
-			tag.addMetaData(attr);
 		}
 		data.docComment = null;
 	}
