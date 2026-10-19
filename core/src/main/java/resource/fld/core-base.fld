@@ -10827,20 +10827,19 @@ That object also behaves as a string containing the concatenated plain text part
 	<!-- AIGetModels -->
 	<function>
 		<name>AIGetModels</name>
-		<alias>LuceeAIGetModels</alias>
 		<class>lucee.runtime.functions.ai.AIGetModels</class>
-		<description>Returns the models available for a configured AI endpoint, as reported by the provider (for example `GET /models` for OpenAI compatible endpoints like OpenAI, Groq, OpenRouter or Ollama, and the model list of Gemini and Claude).
+		<description>Returns the models available for a configured AI connection, as reported by the provider (for example `GET /models` for OpenAI compatible providers like OpenAI, Groq, OpenRouter or Ollama, and the model list of Gemini and Claude).
 
-This is useful to choose a value for the endpoint setting `model`, or patterns for the setting `modelPreference` used when `model` is set to `auto`. The model actually used by an endpoint is returned by `AIGetMetaData(name).model`.</description>
+This is useful to choose a value for the connection setting `model`, or patterns for the setting `modelPreference` used when `model` is set to `auto`. The model actually used by a connection is returned by `AIGetMetaData(name).model`.</description>
 		<argument>
 			<name>name</name>
 			<alias>aiName,nameAI,session</alias>
 			<type>any</type>
 			<required>yes</required>
-			<description>The AI endpoint to list the models for. Can be either:
-1. A direct endpoint name as configured in the Lucee Administrator
-2. A default reference (e.g., "default:exception") which will resolve to the configured default endpoint for that category
-3. A AI session object, the models of the endpoint of the session are returned</description>
+			<description>The AI connection to list the models for. Can be either:
+1. A direct connection name as configured in the Lucee Administrator
+2. A default reference (e.g., "default:exception") which will resolve to the configured default connection for that category
+3. A AI session object, the models of the connection of the session are returned</description>
 		</argument>
 		<return>
 			<type>query</type>

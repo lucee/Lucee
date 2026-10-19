@@ -130,7 +130,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ai" {
 				expect( isQuery( models ) ).toBeTrue();
 				expect( models.recordCount ).toBeGT( 0 );
 				expect( queryColumnData( models, "name" ) ).toInclude( "gpt-4" );
-				expect( LuceeAIGetModels( "ldev6618-openai" ).recordCount ).toBe( models.recordCount );
 			});
 
 			it( "model auto with a modelPreference resolves the model", function() {
