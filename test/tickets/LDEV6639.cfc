@@ -42,6 +42,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( valueArray( q, "artifactId" ) ).toInclude( "commons-codec" );
 			});
 
+			it( "mavenLoad includeOptional=true also loads optional dependencies", function() {
+				var jars = mavenLoad( [ "commons-logging:commons-logging:1.2" ], true );
+				var names = [];
+				arrayEach( jars, function( j ) { arrayAppend( names, listLast( j, "/\" ) ); } );
+				expect( len( jars ) ).toBeGT( 1, serializeJSON( names ) );
+				expect( arrayToList( names ) ).toInclude( "logkit-" );
+				expect( arrayToList( names ) ).toInclude( "avalon-framework-" );
+			});
+
+			it( "mavenLoad includeOptional=true restores the previous jar counts", function() {
+				expect( len( mavenLoad( [ "org.apache.httpcomponents:httpclient:4.5.13" ], true ) ) ).toBe( 10 );
+				expect( len( mavenLoad( [ "ch.qos.logback:logback-classic:1.2.11" ], true ) ) ).toBe( 9 );
+				expect( len( mavenLoad( [ "org.apache.httpcomponents:httpclient:4.5.13" ], false ) ) ).toBe( 4 );
+				expect( len( mavenLoad( [ "ch.qos.logback:logback-classic:1.2.11" ], false ) ) ).toBe( 3 );
+			});
+
+			it( "mavenImport includeOptional=true also returns transitive optional dependencies", function() {
+				var ids = valueArray( mavenImport( variables.pomPath, true, true ), "artifactId" );
+				expect( ids ).toInclude( "commons-logging" );
+				expect( ids ).toInclude( "commons-codec" );
+				expect( ids ).toInclude( "logkit" );
+				expect( ids ).toInclude( "avalon-framework" );
+			});
+
+			it( "mavenImport includeOptional is ignored without includeTransitive", function() {
+				var ids = valueArray( mavenImport( variables.pomPath, false, true ), "artifactId" );
+				expect( ids ).toInclude( "commons-logging" );
+				expect( ids ).notToInclude( "logkit" );
+			});
+
 		});
 	}
 }

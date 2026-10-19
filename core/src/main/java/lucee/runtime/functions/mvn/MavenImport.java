@@ -32,6 +32,10 @@ public final class MavenImport implements Function {
 	}
 
 	public static Query call(PageContext pc, String pomPath, boolean includeTransitive) throws PageException {
+		return call(pc, pomPath, includeTransitive, false);
+	}
+
+	public static Query call(PageContext pc, String pomPath, boolean includeTransitive, boolean includeOptional) throws PageException {
 		if (StringUtil.isEmpty(pomPath, true)) throw new FunctionException(pc, "MavenImport", 1, "pomPath", "argument is empty");
 
 		Resource pomFile = ResourceUtil.toResourceExisting(pc, pomPath);
@@ -62,7 +66,7 @@ public final class MavenImport implements Function {
 				POM pom = POM.getInstance(mvnDir, d.groupId.trim(), d.artifactId.trim(), d.version.trim(), log);
 				addRow(qry, pom, d.scope, d.optional);
 				if (includeTransitive) {
-					for (POM child: pom.getAllDependencies(false)) {
+					for (POM child: pom.getAllDependencies(includeOptional)) {
 						addRow(qry, child, null, null);
 					}
 				}
