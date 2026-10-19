@@ -88,6 +88,7 @@ public final class AIEngineFactory implements PropFactory<AIEngine> {
 
 		aie = (AIEngine) ClassUtil.loadInstance(cd.getClazz());
 		LogUtil.logx(config, Log.LEVEL_TRACE, "ai-factory", "create AI instance [" + cd.toString() + "]", "ai", "application");
+		if (aie instanceof AIEngineSupport) ((AIEngineSupport) aie).setConfig(config);
 		aie.init(cd, properties, name, _default, id);
 		instances.put(id, new SoftReference<AIEngine>(aie));
 		return aie;

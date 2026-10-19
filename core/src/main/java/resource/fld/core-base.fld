@@ -10852,6 +10852,33 @@ Secrets like the `secretKey` and the custom settings of a connection are never r
 		</return>
 	</function>
 	
+	<!-- AIGetModels -->
+	<function>
+		<name>AIGetModels</name>
+		<class>lucee.runtime.functions.ai.AIGetModels</class>
+		<description>Returns the models available for a configured AI connection, as reported by the provider (for example `GET /models` for OpenAI compatible providers like OpenAI, Groq, OpenRouter or Ollama, and the model list of Gemini and Claude).
+
+This is useful to choose a value for the connection setting `model`, or patterns for the setting `modelPreference` used when the connection has no `model` defined (Lucee then picks a model when a session is created and uses it for the whole session). The model actually used by a connection is returned by `AIGetMetaData(name).model`.</description>
+		<argument>
+			<name>name</name>
+			<alias>aiName,nameAI,session</alias>
+			<type>any</type>
+			<required>yes</required>
+			<description>The AI connection to list the models for. Can be either:
+1. A direct connection name as configured in the Lucee Administrator
+2. A default reference (e.g., "default:exception") which will resolve to the configured default connection for that category
+3. A AI session object, the models of the connection of the session are returned</description>
+		</argument>
+		<return>
+			<type>query</type>
+			<description>Returns a query with one row per model and the columns:
+- name: The model name, as used for the setting `model`
+- label: A display label
+- description: A description, when the provider has one
+- custom: A struct with the raw data the provider returned for the model</description>
+		</return>
+	</function>
+
 	<!-- AIHas -->
 	<function>
 		<name>AIHas</name>

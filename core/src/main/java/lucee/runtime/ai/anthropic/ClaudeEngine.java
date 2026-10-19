@@ -2,20 +2,35 @@ package lucee.runtime.ai.anthropic;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.net.HTTPUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.ai.AIEngine;
 import lucee.runtime.ai.AIEngineSupport;
 import lucee.runtime.ai.AIModel;
 import lucee.runtime.ai.AISession;
+import lucee.runtime.ai.AISessionSupport;
+import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Conversation;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
@@ -26,7 +41,6 @@ public final class ClaudeEngine extends AIEngineSupport {
 	private static final int DEFAULT_CONVERSATION_SIZE_LIMIT = 100;
 	private static final String DEFAULT_VERSION = "2023-06-01";
 	private static final String DEFAULT_CHARSET = "UTF-8";
-	private static final String DEFAULT_MODEL = "claude-3-sonnet-20240229";
 
 	private String label = "Claude";
 	private String apiKey;
@@ -89,10 +103,8 @@ public final class ClaudeEngine extends AIEngineSupport {
 		// conversation Size Limit
 		conversationSizeLimit = Caster.toIntValue(props.remove(KeyConstants._conversationSizeLimit, null), DEFAULT_CONVERSATION_SIZE_LIMIT);
 
-		// Model
-		// TODO read available models and throw exception
-		model = Caster.toStringTrim(props.remove(KeyConstants._model, DEFAULT_MODEL), DEFAULT_MODEL);
-		if (StringUtil.isEmpty(model, true)) model = DEFAULT_MODEL;
+		// model, when it is missing or empty, the model is resolved from the models the provider has (LDEV-6618)
+		model = readModel(props);
 
 		// System Message
 		systemMessage = Caster.toStringTrim(props.remove(KeyConstants._message, null), null);
@@ -117,7 +129,8 @@ public final class ClaudeEngine extends AIEngineSupport {
 	}
 
 	@Override
-	public AISession createSession(String initialMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout) {
+	public AISession createSession(String initialMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout) throws PageException {
+		resolveModel();
 		return new ClaudeSession(this, StringUtil.isEmpty(initialMessage, true) ? systemMessage : initialMessage.trim(), history, limit, temp, connectTimeout, socketTimeout);
 	}
 
@@ -128,7 +141,16 @@ public final class ClaudeEngine extends AIEngineSupport {
 
 	@Override
 	public String getModel() {
-		return model;
+		return getModel(model);
+	}
+
+	@Override
+	public List<String> getFallbackModels() {
+		List<String> list = new ArrayList<>();
+		list.add("claude-sonnet-*");
+		list.add("claude-opus-*");
+		list.add("claude-*");
+		return list;
 	}
 
 	@Override
@@ -158,15 +180,57 @@ public final class ClaudeEngine extends AIEngineSupport {
 	}
 
 	@Override
-	public List<AIModel> getModels() {
-		// not supported by Claude YET
-		return new ArrayList<>();
+	public List<AIModel> getModels() throws PageException {
+		try {
+			HttpGet get = new HttpGet(baseURL.toExternalForm() + "models?limit=1000");
+			get.setHeader("x-api-key", apiKey);
+			get.setHeader("anthropic-version", version);
+			if (headers != null) {
+				for (Entry<String, String> e: headers.entrySet()) {
+					get.setHeader(e.getKey(), e.getValue());
+				}
+			}
+			RequestConfig config = AISessionSupport.setTimeout(RequestConfig.custom(), getConnectTimeout(), getSocketTimeout()).build();
+			get.setConfig(config);
 
+			try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(get)) {
+				HttpEntity responseEntity = response.getEntity();
+				Header ct = responseEntity.getContentType();
+				MimeType mt = ct == null ? null : MimeType.getInstance(ct.getValue());
+				String t = mt == null ? null : mt.getType() + "/" + mt.getSubtype();
+				if ("application/json".equals(t)) {
+					String rawStr = EntityUtils.toString(responseEntity, charset);
+					Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, rawStr));
+					Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);
+					if (err != null) {
+						throw new ApplicationException("unable to list the models: " + Caster.toString(err.get(KeyConstants._message, null), "error") + "; type:"
+								+ Caster.toString(err.get(KeyConstants._type, null), null) + "; status-code:" + AIUtil.getStatusCode(response));
+					}
+					List<AIModel> list = new ArrayList<>();
+					Object o = raw.get(KeyConstants._data, null);
+					if (o == null) throw new ApplicationException("unable to read models from response [" + rawStr + "]");
+					Iterator<Object> it = Caster.toArray(o).valueIterator();
+					while (it.hasNext()) {
+						list.add(new ClaudeModel(Caster.toStruct(it.next()), charset));
+					}
+					return list;
+				}
+				throw new ApplicationException("Claude API returned unsupported mime type [" + t + "], only [application/json] is supported");
+			}
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	@Override
 	public List<AIModel> getModels(List<AIModel> defaultValue) {
-		return defaultValue;
+		try {
+			return getModels();
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
 	}
 
 	@Override

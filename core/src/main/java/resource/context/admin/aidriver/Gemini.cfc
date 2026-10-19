@@ -29,8 +29,15 @@ component extends="AI" {
 		,field(displayName = "Model",
 			name = "model",
 			defaultValue = "",
-			required = true,
-			description = "Specify the model to use, for example 'gemini-large' or 'gemini-small' for Google Gemini.",
+			required = false,
+			description = "Specify the model to use, for example 'gemini-2.5-flash'. Leave it empty to let Lucee pick a model from the models the API lists when a session is created (see 'Model Preference'). The model is picked once and used for the whole session, it is not chosen per request.",
+			type = "text"
+		)
+		,field(displayName = "Model Preference",
+			name = "modelPreference",
+			defaultValue = "",
+			required = false,
+			description = "Only used when no model is defined. Comma separated list of model name patterns (* and ? as wildcards) in order of preference, for example 'gemini-*-flash,gemini-*-pro'. The first pattern that matches an available model wins, when several models match the one with the highest version is used. When nothing matches, Lucee falls back to a built-in choice.",
 			type = "text"
 		)
 		,field(displayName = "System Message",

@@ -23,6 +23,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.util.Util;
+import lucee.runtime.ai.AIEngineSupport;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
 import lucee.runtime.ai.AIUtil;
@@ -82,10 +83,10 @@ public final class ClaudeSession extends AISessionSupport {
 		requestBody.set("max_tokens", 4096);
 		requestBody.set("stream", stream);
 
-		// Add temperature if set
+		// Add temperature if set and the model accepts it
 		Double temperature = getTemperature();
-		if (temperature != null) {
-			requestBody.set("temperature", temperature);
+		if (temperature != null && engine.acceptsTemperature(Caster.toString(requestBody.get(KeyConstants._model, null), null))) {
+			requestBody.set(KeyConstants._temperature, temperature);
 		}
 
 		// Set system message at top level if exists
@@ -233,6 +234,14 @@ public final class ClaudeSession extends AISessionSupport {
 				// Check for errors
 				Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);
 				if (err != null) {
+					// newer models reject temperature ("temperature is deprecated for this model"), retry once without it and remember that
+					// for the model (LDEV-6618)
+					String errMsg = Caster.toString(err.get(KeyConstants._message, null), null);
+					if (requestBody.containsKey(KeyConstants._temperature) && AIEngineSupport.isTemperatureRejected(errMsg)) {
+						engine.rejectTemperature(Caster.toString(requestBody.get(KeyConstants._model, null), null));
+						requestBody.removeEL(KeyConstants._temperature);
+						return executeRequest(requestBody, message, parts, listener);
+					}
 					throw AIUtil.toException(this.getEngine(), Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
 							Caster.toString(err.get(KeyConstants._code, null), null), AIUtil.getStatusCode(response));
 				}

@@ -26,6 +26,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
@@ -223,21 +225,8 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		charset = Caster.toStringTrim(props.remove(KeyConstants._charset, null), DEFAULT_CHARSET);
 		if (Util.isEmpty(charset, true)) charset = DEFAULT_CHARSET;
 
-		// model
-		model = Caster.toStringTrim(props.remove(KeyConstants._model, null), null);
-		if (Util.isEmpty(model, true)) {
-			// nice to have
-			String appendix = "";
-			List<String> models = AIUtil.getModelNames(this);
-			if (models.size() > 0) {
-				model = models.get(0);
-			}
-			else {
-				appendix = " There are no models available.";
-			}
-
-			if (Util.isEmpty(model, true)) throw new ApplicationException("the property [model] is required for a OpenAI Engine!." + appendix);
-		}
+		// model, when it is missing or empty, the model is resolved from the models the provider has (LDEV-6618)
+		model = readModel(props);
 
 		// temperature
 		temperature = Caster.toDouble(props.remove(KeyConstants._temperature, null), null);
@@ -265,7 +254,8 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 	}
 
 	@Override
-	public AISession createSession(String inialMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout) {
+	public AISession createSession(String inialMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout) throws PageException {
+		resolveModel();
 		return new OpenAISession(this, StringUtil.isEmpty(inialMessage, true) ? systemMessage : inialMessage.trim(), history, limit, temp, connectTimeout, socketTimeout);
 	}
 
@@ -276,7 +266,35 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 
 	@Override
 	public String getModel() {
-		return model;
+		return getModel(model);
+	}
+
+	@Override
+	public List<String> getFallbackModels() {
+		List<String> list = new ArrayList<>();
+		String host = baseURL == null ? "" : baseURL.getHost().toLowerCase();
+		if (host.endsWith("openai.com")) {
+			list.add("gpt-*");
+		}
+		else if (host.endsWith("groq.com")) {
+			list.add("llama-*-versatile");
+			list.add("openai/gpt-oss-*");
+			list.add("llama-*");
+		}
+		else if (host.endsWith("x.ai")) {
+			list.add("grok-*");
+		}
+		else if (host.endsWith("deepseek.com")) {
+			list.add("deepseek-chat");
+		}
+		else if (host.endsWith("perplexity.ai")) {
+			list.add("sonar");
+		}
+		else if (host.endsWith("openrouter.ai")) {
+			list.add("anthropic/claude-sonnet-*");
+			list.add("google/gemini-*-flash");
+		}
+		return list;
 	}
 
 	@Override
@@ -301,8 +319,13 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 	public List<AIModel> getModels() throws PageException {
 		try {
 			HttpGet get = new HttpGet(new URL(baseURL, "models").toExternalForm());
-			get.setHeader("Authorization", "Bearer " + secretKey);
+			if (!Util.isEmpty(secretKey, true)) get.setHeader("Authorization", "Bearer " + secretKey);
 			get.setHeader("Content-Type", AIUtil.createJsonContentType(charset));
+			if (headers != null) {
+				for (Map.Entry<String, String> e: headers.entrySet()) {
+					get.setHeader(e.getKey(), e.getValue());
+				}
+			}
 
 			RequestConfig config = AISessionSupport.setRedirect(AISessionSupport.setTimeout(RequestConfig.custom(), getConnectTimeout(), getSocketTimeout())).build();
 			get.setConfig(config);
@@ -335,7 +358,11 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 					}
 					return list;
 				}
-				throw new ApplicationException("OpenAI API returned unsupported mime type [" + t + "], only [application/json] is supported");
+				// some OpenAI compatible providers (e.g. Perplexity) have no model listing and answer with plain text or HTML, we handle this
+				// like an empty list, so a connection without a model can still use the built-in fallback (LDEV-6618)
+				LogUtil.logx(getConfig(), Log.LEVEL_DEBUG, "ai", "AI connection [" + getName() + "] (" + getLabel() + ") does not list models, the provider answered with [" + t
+						+ "] and status code [" + AIUtil.getStatusCode(response) + "]", "ai", "application");
+				return new ArrayList<>();
 			}
 		}
 		catch (Exception e) {

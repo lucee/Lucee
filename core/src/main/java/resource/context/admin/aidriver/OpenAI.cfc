@@ -29,7 +29,14 @@ component extends="AI" {
 			name = "model",
 			defaultValue = "",
 			required = false,
-			description = "Specify the model to use, e.g., 'gpt-4o-mini' for OpenAI or 'gemma2' for Ollama. If no model is defined, Lucee picks one. in edit view of this page, you get a list of all avilable models.",
+			description = "Specify the model to use, e.g., 'gpt-4o-mini' for OpenAI or 'gemma2' for Ollama. Leave it empty to let Lucee pick a model from the models the provider lists when a session is created (see 'Model Preference'). The model is picked once and used for the whole session, it is not chosen per request. In the edit view of this page, you get a list of all available models.",
+			type = "text"
+		)
+		,field(displayName = "Model Preference",
+			name = "modelPreference",
+			defaultValue = "",
+			required = false,
+			description = "Only used when no model is defined. Comma separated list of model name patterns (* and ? as wildcards) in order of preference, for example 'gpt-5*,gpt-4.1*'. The first pattern that matches an available model wins, when several models match the one with the highest version is used. When nothing matches, Lucee falls back to a built-in choice.",
 			type = "text"
 		)
 		,field(displayName = "System Message",
