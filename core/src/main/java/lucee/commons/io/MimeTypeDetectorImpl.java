@@ -3,7 +3,9 @@ package lucee.commons.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -24,6 +26,26 @@ public final class MimeTypeDetectorImpl implements MimeTypeDetector {
 	private static final String OLE = "application/x-ole-storage";
 
 	private static final int SNIFF_LENGTH = 1024;
+
+	// common types that are not part of ResourceUtil.EXT_MT
+	private static final Map<String, String> EXT_MT_EXTRA = new HashMap<String, String>();
+	static {
+		String[][] types = new String[][] { { "m4a", "audio/mp4" }, { "m4b", "audio/mp4" }, { "m4v", "video/x-m4v" }, { "aac", "audio/aac" }, { "flac", "audio/x-flac" },
+				{ "ogg", "audio/ogg" }, { "oga", "audio/ogg" }, { "opus", "audio/ogg" }, { "weba", "audio/webm" }, { "mid", "audio/midi" }, { "midi", "audio/midi" },
+				{ "ogv", "video/ogg" }, { "webm", "video/webm" }, { "mkv", "video/x-matroska" }, { "3gp", "video/3gpp" }, { "webp", "image/webp" }, { "svg", "image/svg+xml" },
+				{ "ico", "image/vnd.microsoft.icon" }, { "avif", "image/avif" }, { "heic", "image/heic" }, { "jp2", "image/jp2" }, { "json", "application/json" },
+				{ "xml", "application/xml" }, { "csv", "text/csv" }, { "tsv", "text/tab-separated-values" }, { "md", "text/markdown" }, { "mjs", "text/javascript" },
+				{ "wasm", "application/wasm" }, { "woff", "font/woff" }, { "woff2", "font/woff2" }, { "ttf", "font/ttf" }, { "otf", "font/otf" },
+				{ "eot", "application/vnd.ms-fontobject" }, { "gz", "application/gzip" }, { "tgz", "application/gzip" }, { "bz2", "application/x-bzip2" },
+				{ "7z", "application/x-7z-compressed" }, { "rar", "application/vnd.rar" }, { "jar", "application/java-archive" }, { "class", "application/java-vm" },
+				{ "ics", "text/calendar" }, { "vcf", "text/vcard" }, { "odt", "application/vnd.oasis.opendocument.text" },
+				{ "ods", "application/vnd.oasis.opendocument.spreadsheet" }, { "odp", "application/vnd.oasis.opendocument.presentation" }, { "epub", "application/epub+zip" },
+				{ "rss", "application/rss+xml" }, { "atom", "application/atom+xml" }, { "sql", "application/sql" }, { "log", "text/plain" }, { "ini", "text/plain" },
+				{ "properties", "text/plain" }, { "java", "text/x-java-source" }, { "py", "text/x-python" }, { "cfc", "text/plain" } };
+		for (String[] type: types) {
+			EXT_MT_EXTRA.put(type[0], type[1]);
+		}
+	}
 
 	private static final MimeTypeDetectorImpl INSTANCE = new MimeTypeDetectorImpl();
 
@@ -104,7 +126,9 @@ public final class MimeTypeDetectorImpl implements MimeTypeDetector {
 
 	private static String fromExtension(String ext) {
 		if (StringUtil.isEmpty(ext, true)) return null;
-		String mt = ResourceUtil.EXT_MT.get(ext.trim().toLowerCase(Locale.ROOT));
+		String key = ext.trim().toLowerCase(Locale.ROOT);
+		String mt = ResourceUtil.EXT_MT.get(key);
+		if (StringUtil.isEmpty(mt)) mt = EXT_MT_EXTRA.get(key);
 		return StringUtil.isEmpty(mt) ? null : mt;
 	}
 
