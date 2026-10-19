@@ -145,7 +145,8 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 				this.pc.addParentTag(parent.getTagName());
 				if (!separateScopes) {
 					this.pc.undefinedScope().setMode(((UndefinedImpl) parent.undefinedScope()).getMode());
-					this.pc.setFunctionScopes(parent.localScope(), parent.argumentsScope());
+					// shared with this thread: bind, so they're synchronized and not recycled when the caller returns
+					this.pc.setFunctionScopes(parent.localScope(true), parent.argumentsScope(true));
 				}
 			}
 		}
