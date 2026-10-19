@@ -3613,7 +3613,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 					pool = new DatasourceConnPool(this, ds, user, pass, "datasource", DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt,
 							maxWaitMillis, minEvictableIdleTimeMillis, 0, 0, 0, null));
-					pools.put(id, pool);
+					DatasourceConnPool existing = pools.putIfAbsent(id, pool);
+					if (existing != null) {
+						pool.close();
+						pool = existing;
+					}
 				}
 			}
 		}
