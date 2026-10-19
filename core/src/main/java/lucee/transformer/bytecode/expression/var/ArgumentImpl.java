@@ -31,6 +31,7 @@ public class ArgumentImpl extends ExpressionBase implements Argument {
 
 	private Expression raw;
 	private String type;
+	private Expression sourceRaw;
 
 	public ArgumentImpl(Expression value, String type) {
 		super(value.getFactory(), value.getStart(), value.getEnd());
@@ -90,6 +91,15 @@ public class ArgumentImpl extends ExpressionBase implements Argument {
 
 	@Override
 	public void dump(Struct sct) {
-		raw.dump(sct);
+		getSourceRawValue().dump(sct);
 	}
+
+	public void snapshotSourceValue() { 
+		if (sourceRaw == null) sourceRaw = raw; 
+	}
+
+	public Expression getSourceRawValue() { 
+		return sourceRaw != null ? sourceRaw : raw; 
+	}
+
 }

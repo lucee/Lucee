@@ -1155,14 +1155,25 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 					newNode.setEL(KeyConstants._callee, callee);
 				}
 				else {
-					newNode.setEL(KeyConstants._callee, current);
+					// Method call on object - create MemberExpression for callee
+					Struct callee = new StructImpl(Struct.TYPE_LINKED);
+					callee.setEL(KeyConstants._type, "MemberExpression");
+					callee.setEL(KeyConstants._computed, false);
+					callee.setEL(KeyConstants._object, current);
+
+					Struct property = new StructImpl(Struct.TYPE_LINKED);
+					property.setEL(KeyConstants._type, "Identifier");
+					property.setEL(KeyConstants._name, getName((FunctionMember) member));
+					callee.setEL(KeyConstants._property, property);
+
+					newNode.setEL(KeyConstants._callee, callee);
 				}
 
-				// Add arguments
+				// Add arguments (use source arguments to exclude evaluator modifications)
 				Array arrArgs = new ArrayImpl(8, false);
 				newNode.setEL(KeyConstants._arguments, arrArgs);
 				FunctionMember fm = (FunctionMember) member;
-				for (Argument arg: fm.getArguments()) {
+				for (Argument arg: fm.getSourceArguments()) {
 					Struct sctArg = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 					arrArgs.appendEL(sctArg);
 					arg.dump(sctArg);
