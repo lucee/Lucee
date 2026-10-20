@@ -1,5 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="javacast,cast" skip=true {
-	// skipped until LDEV-5193 is fixed: javaCast to short/byte/int silently wraps or clamps out of range values
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="javacast,cast" {
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-5193 casting to short/byte/int checks for overflow", function() {
