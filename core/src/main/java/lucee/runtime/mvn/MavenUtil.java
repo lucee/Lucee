@@ -70,6 +70,7 @@ public final class MavenUtil {
 	public static final int CONNECTION_TIMEOUT = 5000;
 	public static final int READ_TIMEOUT_HEAD = 5000;
 	public static final int READ_TIMEOUT_GET = 5000;
+	private static final int MAX_DOWNLOAD_ATTEMPTS = 2;
 	public static final long ARTIFACT_UNAVAILABLE_CACHE_DURATION = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.maven.negative.cache.duration", null), 60000L * 15L);
 
 	private static final DateTimeFormatter MAVEN_DATE_FORMATTER = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
@@ -646,6 +647,7 @@ public final class MavenUtil {
 					StringBuilder info = null;
 					StringBuilder failureSummary = null;
 					Exception lastException = null;
+					boolean transientFailure = false;
 					try {
 						if (repositories == null || repositories.isEmpty()) repositories = pom.getRepositories();
 
@@ -675,99 +677,112 @@ public final class MavenUtil {
 
 						for (Repository r: sort(repositories)) {
 							if (!r.handle(version)) continue;
-							url = null;
-							httpClient = null;
+							// LDEV-6663: retry once on a network exception (e.g. read timeout) before moving on
+							for (int attempt = 1;; attempt++) {
+								url = null;
+								httpClient = null;
 
-							try {
-								if (isSnap) {
-									RepoReader repoReader = new RepoReader(r.url, pom.getGroupId(), pom.getArtifactId(), version);
-									Map<String, Object> result = repoReader.read(type, "pom".equalsIgnoreCase(type) ? null : pom.getClassifier());
-									// result is null when the repo has no snapshot metadata for this artifact (404/not found);
-									// leave url null so we fall through to the direct artifact URL (yielding a clean 404, not an NPE)
-									String strUrl = result == null ? null : Caster.toString(result.get(type));
-									if (!StringUtil.isEmpty(strUrl)) url = new URL(strUrl);
-								}
-
-								if (url == null) url = new URL(r.getUrl() + scriptName);
-								httpClient = HttpClients.createDefault();
-
-								HttpGet request = new HttpGet(url.toExternalForm());
-								request.setConfig(DEFAULT_REQUEST_CONFIG);
-								HttpResponse response = httpClient.execute(request);
-								HttpEntity entity = response.getEntity();
-								int sc = response.getStatusLine().getStatusCode();
-								// print.e(type + " >> " + url + " >> " + sc);
-								if (sc == 200) {
-									if (entity != null) {
-										Exception ex = null;
-										InputStream is = null;
-										Resource tmp = SystemUtil.getTempFile(type, false);
-										try {
-											is = entity.getContent();
-											IOUtil.copy(is, tmp, false);
-										}
-										catch (IOException e) {
-											ex = e;
-										}
-										finally {
-											IOUtil.closeEL(is);
-											HTTPUtil.validateDownload(url, response, tmp, pom.getChecksum(), true, ex);
-											res.getParentResource().mkdirs();
-											tmp.moveTo(res);
-										}
-										deleteLastUpdated(res);
-										AtomicInteger rank = ranking.get(r);
-										if (rank != null) rank.incrementAndGet();
-										else {
-											rank = new AtomicInteger(1);
-											ranking.put(r, rank);
-										}
-										return res;
+								try {
+									if (isSnap) {
+										RepoReader repoReader = new RepoReader(r.url, pom.getGroupId(), pom.getArtifactId(), version);
+										Map<String, Object> result = repoReader.read(type, "pom".equalsIgnoreCase(type) ? null : pom.getClassifier());
+										// result is null when the repo has no snapshot metadata for this artifact (404/not found);
+										// leave url null so we fall through to the direct artifact URL (yielding a clean 404, not an NPE)
+										String strUrl = result == null ? null : Caster.toString(result.get(type));
+										if (!StringUtil.isEmpty(strUrl)) url = new URL(strUrl);
 									}
-								}
-								else {
-									String retryAfter = null;
-									if (sc == 429 || sc == 503) {
-										Header h = response.getFirstHeader("Retry-After");
-										if (h != null) retryAfter = h.getValue();
+
+									if (url == null) url = new URL(r.getUrl() + scriptName);
+									httpClient = HttpClients.createDefault();
+
+									HttpGet request = new HttpGet(url.toExternalForm());
+									request.setConfig(DEFAULT_REQUEST_CONFIG);
+									HttpResponse response = httpClient.execute(request);
+									HttpEntity entity = response.getEntity();
+									int sc = response.getStatusLine().getStatusCode();
+									// print.e(type + " >> " + url + " >> " + sc);
+									if (sc == 200) {
+										if (entity != null) {
+											Exception ex = null;
+											InputStream is = null;
+											Resource tmp = SystemUtil.getTempFile(type, false);
+											try {
+												is = entity.getContent();
+												IOUtil.copy(is, tmp, false);
+											}
+											catch (IOException e) {
+												ex = e;
+											}
+											finally {
+												IOUtil.closeEL(is);
+												HTTPUtil.validateDownload(url, response, tmp, pom.getChecksum(), true, ex);
+												res.getParentResource().mkdirs();
+												tmp.moveTo(res);
+											}
+											deleteLastUpdated(res);
+											AtomicInteger rank = ranking.get(r);
+											if (rank != null) rank.incrementAndGet();
+											else {
+												rank = new AtomicInteger(1);
+												ranking.put(r, rank);
+											}
+											return res;
+										}
 									}
+									else {
+										// LDEV-6663: only 404/410 are definitive, anything else is transient and must not be negative-cached
+										if (sc != 404 && sc != 410) transientFailure = true;
+										String retryAfter = null;
+										if (sc == 429 || sc == 503) {
+											Header h = response.getFirstHeader("Retry-After");
+											if (h != null) retryAfter = h.getValue();
+										}
+										if (info == null) info = createInfo();
+										// match Apache Maven Resolver convention: empty .error= for 404 (NOT_FOUND), status code otherwise
+										info.append(r).append(".error=").append(sc == 404 ? "" : String.valueOf(sc)).append('\n');
+										info.append(r).append(".lastUpdated=").append(System.currentTimeMillis()).append('\n');
+										EntityUtils.consume(entity); // Ensure the response entity is fully consumed
+										String detail = String.valueOf(sc) + (retryAfter != null ? " (Retry-After: " + retryAfter + ")" : "");
+										failureSummary = appendFailure(failureSummary, repoLabel(r), detail);
+										if (log != null) {
+											// 404 is "not on this repo" — expected during fallback flows, demote to INFO
+											// other status codes (429 rate-limit, 5xx, 4xx-non-404) are actionable failures
+											String logMsg = "download failed for [" + pom + ":" + type + "] from [" + url + "] - HTTP " + sc
+													+ (retryAfter != null ? ", Retry-After: " + retryAfter : "");
+											if (sc == 404) log.info("maven", logMsg);
+											else log.error("maven", logMsg);
+										}
+									}
+									break;
+								}
+								catch (Exception e) {
+									String safeMsg = e.getMessage() == null ? "" : e.getMessage().replace('\n', ' ').replace('\r', ' ');
+									if (attempt < MAX_DOWNLOAD_ATTEMPTS && e instanceof IOException) {
+										if (log != null) log.warn("maven", "download attempt " + attempt + " for [" + pom + ":" + type + "] from ["
+												+ (url != null ? url : r.getUrl()) + "] failed, retrying - " + e.getClass().getName() + ": " + safeMsg);
+										continue;
+									}
+									transientFailure = true;
+									String exSummary = e.getClass().getSimpleName() + (safeMsg.isEmpty() ? "" : ": " + safeMsg);
 									if (info == null) info = createInfo();
-									// match Apache Maven Resolver convention: empty .error= for 404 (NOT_FOUND), status code otherwise
-									info.append(r).append(".error=").append(sc == 404 ? "" : String.valueOf(sc)).append('\n');
+									info.append(r).append(".error=").append(exSummary).append('\n');
 									info.append(r).append(".lastUpdated=").append(System.currentTimeMillis()).append('\n');
-									EntityUtils.consume(entity); // Ensure the response entity is fully consumed
-									String detail = String.valueOf(sc) + (retryAfter != null ? " (Retry-After: " + retryAfter + ")" : "");
-									failureSummary = appendFailure(failureSummary, repoLabel(r), detail);
+									lastException = e;
+									failureSummary = appendFailure(failureSummary, repoLabel(r), exSummary);
 									if (log != null) {
-										// 404 is "not on this repo" — expected during fallback flows, demote to INFO
-										// other status codes (429 rate-limit, 5xx, 4xx-non-404) are actionable failures
-										String logMsg = "download failed for [" + pom + ":" + type + "] from [" + url + "] - HTTP " + sc
-												+ (retryAfter != null ? ", Retry-After: " + retryAfter : "");
-										if (sc == 404) log.info("maven", logMsg);
-										else log.error("maven", logMsg);
+										log.error("maven", "download failed for [" + pom + ":" + type + "] from [" + (url != null ? url : r.getUrl()) + "] - "
+												+ e.getClass().getName() + ": " + safeMsg);
 									}
+									break;
 								}
-							}
-							catch (Exception e) {
-								String safeMsg = e.getMessage() == null ? "" : e.getMessage().replace('\n', ' ').replace('\r', ' ');
-								String exSummary = e.getClass().getSimpleName() + (safeMsg.isEmpty() ? "" : ": " + safeMsg);
-								if (info == null) info = createInfo();
-								info.append(r).append(".error=").append(exSummary).append('\n');
-								info.append(r).append(".lastUpdated=").append(System.currentTimeMillis()).append('\n');
-								lastException = e;
-								failureSummary = appendFailure(failureSummary, repoLabel(r), exSummary);
-								if (log != null) {
-									log.error("maven", "download failed for [" + pom + ":" + type + "] from [" + (url != null ? url : r.getUrl()) + "] - "
-											+ e.getClass().getName() + ": " + safeMsg);
+								finally {
+									if (httpClient != null) httpClient.close();
 								}
-							}
-							finally {
-								if (httpClient != null) httpClient.close();
 							}
 						}
 					}
 					catch (IOException ioe) {
-						if (info != null) createLastUpdated(res, info);
+						if (info != null && !transientFailure) createLastUpdated(res, info);
 						if (failureSummary == null && lastException == null) throw ioe;
 						StringBuilder m = new StringBuilder("Failed to download Maven artifact [").append(pom.getGroupId()).append(":").append(pom.getArtifactId()).append(":")
 								.append(pom.getVersion()).append("] (type: ").append(type).append("). Check network connectivity and repository availability.");
@@ -777,7 +792,8 @@ public final class MavenUtil {
 						// MUST add again ResourceUtil.deleteEmptyFoldersInside(pom.getLocalDirectory());
 						throw ex;
 					}
-					createLastUpdated(res, info);
+					// LDEV-6663: do not negative-cache transient failures (timeouts, 5xx, 429), only definitive "not found"
+					if (info != null && !transientFailure) createLastUpdated(res, info);
 					StringBuilder m = new StringBuilder("Failed to download Maven artifact [").append(pom.getGroupId()).append(":").append(pom.getArtifactId()).append(":")
 							.append(pom.getVersion()).append("] (type: ").append(type).append(") after checking all ").append(repositories.size())
 							.append(" configured repositories. Verify the artifact coordinates are correct and the repositories are accessible.");
