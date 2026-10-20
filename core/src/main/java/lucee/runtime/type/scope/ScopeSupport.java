@@ -20,6 +20,7 @@ package lucee.runtime.type.scope;
 
 import java.io.UnsupportedEncodingException;
 
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringList;
 import lucee.commons.lang.StringUtil;
@@ -183,7 +184,8 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 					value = URLDecoder.decode(value, encoding, true);
 				}
 				catch (ApplicationException ae) {
-					LogUtil.log("encoding", ae);
+					// invalid encoding comes from the client (e.g. bots), the value is kept as is and the request goes on
+					LogUtil.log(Log.LEVEL_DEBUG, "encoding", ae);
 				}
 			}
 
