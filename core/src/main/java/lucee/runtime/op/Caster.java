@@ -866,6 +866,51 @@ public final class Caster {
 		return n.intValue();
 	}
 
+	/**
+	 * LDEV-5193: like toInteger(Object), but fails instead of silently wrapping or clamping when the
+	 * value does not fit into an int; used when casting to a Java int/Integer (javaCast, castTo)
+	 */
+	public static Integer toIntegerInRange(Object o) throws PageException {
+		if (o instanceof Integer) return (Integer) o;
+		if (o instanceof Number) return Integer.valueOf((int) checkRange((Number) o, Integer.MIN_VALUE, Integer.MAX_VALUE, "int"));
+		if (o instanceof CharSequence) return Integer.valueOf((int) checkRange(toDoubleValue(o.toString()), Integer.MIN_VALUE, Integer.MAX_VALUE, "int"));
+		if (o instanceof Castable) return Integer.valueOf((int) checkRange(((Castable) o).castToDoubleValue(), Integer.MIN_VALUE, Integer.MAX_VALUE, "int"));
+		return toInteger(o);
+	}
+
+	// LDEV-5193: range checks for narrowing casts (a fraction is still truncated, as before)
+	private static boolean inRange(double d, long min, long max) {
+		return d > min - 1d && d < max + 1d; // false for NaN
+	}
+
+	private static boolean inRange(Number n, long min, long max) {
+		if (n instanceof Long || n instanceof Integer || n instanceof Short || n instanceof Byte || n instanceof java.util.concurrent.atomic.AtomicLong
+				|| n instanceof java.util.concurrent.atomic.AtomicInteger) {
+			long l = n.longValue();
+			return l >= min && l <= max;
+		}
+		if (n instanceof BigInteger) {
+			BigInteger bi = (BigInteger) n;
+			return bi.compareTo(BigInteger.valueOf(min)) >= 0 && bi.compareTo(BigInteger.valueOf(max)) <= 0;
+		}
+		return inRange(n.doubleValue(), min, max);
+	}
+
+	private static double checkRange(double d, long min, long max, String type) throws ExpressionException {
+		if (!inRange(d, min, max)) throw rangeException(Caster.toStringPercise(d), min, max, type);
+		return d;
+	}
+
+	private static long checkRange(Number n, long min, long max, String type) throws ExpressionException {
+		if (!inRange(n, min, max)) throw rangeException(n instanceof Double || n instanceof Float ? toStringPercise(n.doubleValue())
+				: (n instanceof BigDecimal ? ((BigDecimal) n).toPlainString() : n.toString()), min, max, type);
+		return n instanceof Long || n instanceof Integer || n instanceof Short || n instanceof Byte ? n.longValue() : (long) n.doubleValue();
+	}
+
+	private static ExpressionException rangeException(String value, long min, long max, String type) {
+		return new ExpressionException("The value [" + value + "] is outside the range of the Java type [" + type + "] (" + min + " to " + max + ")");
+	}
+
 	public static int toIntValueLossless(double d) throws ExpressionException {
 		long l = Math.round(d);
 		// Check if d is within the int range
@@ -1409,10 +1454,10 @@ public final class Caster {
 	 */
 	public static byte toByteValue(Object o) throws PageException {
 		if (o instanceof Byte) return ((Byte) o).byteValue();
-		if (o instanceof Character) return (byte) (((Character) o).charValue());
+		if (o instanceof Character) return (byte) checkRange(((Character) o).charValue(), Byte.MIN_VALUE, Byte.MAX_VALUE, "byte");
 		else if (o instanceof Boolean) return (byte) ((((Boolean) o).booleanValue()) ? 1 : 0);
-		else if (o instanceof Number) return (((Number) o).byteValue());
-		else if (o instanceof String) return (byte) toDoubleValue(o.toString());
+		else if (o instanceof Number) return (byte) checkRange((Number) o, Byte.MIN_VALUE, Byte.MAX_VALUE, "byte");
+		else if (o instanceof String) return (byte) checkRange(toDoubleValue(o.toString()), Byte.MIN_VALUE, Byte.MAX_VALUE, "byte");
 		else if (o instanceof ObjectWrap) {
 			return toByteValue(((ObjectWrap) o).getEmbededObject());
 		}
@@ -1428,7 +1473,7 @@ public final class Caster {
 	 * @throws CasterException
 	 */
 	public static byte toByteValue(String str) throws PageException {
-		return (byte) toDoubleValue(str.toString());
+		return (byte) checkRange(toDoubleValue(str.toString()), Byte.MIN_VALUE, Byte.MAX_VALUE, "byte");
 	}
 
 	/**
@@ -1440,10 +1485,13 @@ public final class Caster {
 	 */
 	public static byte toByteValue(Object o, byte defaultValue) {
 		if (o instanceof Byte) return ((Byte) o).byteValue();
-		if (o instanceof Character) return (byte) (((Character) o).charValue());
+		if (o instanceof Character) return inRange(((Character) o).charValue(), Byte.MIN_VALUE, Byte.MAX_VALUE) ? (byte) (((Character) o).charValue()) : defaultValue;
 		else if (o instanceof Boolean) return (byte) ((((Boolean) o).booleanValue()) ? 1 : 0);
-		else if (o instanceof Number) return (((Number) o).byteValue());
-		else if (o instanceof String) return (byte) toDoubleValue(o.toString(), defaultValue);
+		else if (o instanceof Number) return inRange((Number) o, Byte.MIN_VALUE, Byte.MAX_VALUE) ? ((Number) o).byteValue() : defaultValue;
+		else if (o instanceof String) {
+			double d = toDoubleValue(o.toString(), Double.NaN);
+			return inRange(d, Byte.MIN_VALUE, Byte.MAX_VALUE) ? (byte) d : defaultValue;
+		}
 		else if (o instanceof ObjectWrap) {
 			return toByteValue(((ObjectWrap) o).getEmbededObject(toByte(defaultValue)), defaultValue);
 		}
@@ -1962,11 +2010,11 @@ public final class Caster {
 	 */
 	public static short toShortValue(Object o) throws PageException {
 		if (o instanceof Short) return ((Short) o).shortValue();
-		else if (o instanceof CharSequence) return (short) toDoubleValue(o.toString());
-		else if (o instanceof Character) return (short) (((Character) o).charValue());
+		else if (o instanceof CharSequence) return (short) checkRange(toDoubleValue(o.toString()), Short.MIN_VALUE, Short.MAX_VALUE, "short");
+		else if (o instanceof Character) return (short) checkRange(((Character) o).charValue(), Short.MIN_VALUE, Short.MAX_VALUE, "short");
 		else if (o instanceof Boolean) return (short) ((((Boolean) o).booleanValue()) ? 1 : 0);
-		else if (o instanceof Number) return (((Number) o).shortValue());
-		else if (o instanceof Castable) return (short) ((Castable) o).castToDoubleValue();
+		else if (o instanceof Number) return (short) checkRange((Number) o, Short.MIN_VALUE, Short.MAX_VALUE, "short");
+		else if (o instanceof Castable) return (short) checkRange(((Castable) o).castToDoubleValue(), Short.MIN_VALUE, Short.MAX_VALUE, "short");
 		else if (o instanceof ObjectWrap) return toShortValue(((ObjectWrap) o).getEmbededObject());
 
 		throw new CasterException(o, "short");
@@ -1980,7 +2028,7 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static short toShortValue(String str) throws PageException {
-		return (short) toDoubleValue(str);
+		return (short) checkRange(toDoubleValue(str), Short.MIN_VALUE, Short.MAX_VALUE, "short");
 	}
 
 	/**
@@ -1993,12 +2041,15 @@ public final class Caster {
 	public static short toShortValue(Object o, short defaultValue) {
 		if (o instanceof Short) return ((Short) o).shortValue();
 		else if (o instanceof Boolean) return (short) ((((Boolean) o).booleanValue()) ? 1 : 0);
-		else if (o instanceof Number) return (((Number) o).shortValue());
-		else if (o instanceof CharSequence) return (short) toDoubleValue(o.toString(), defaultValue);
-		else if (o instanceof Character) return (short) (((Character) o).charValue());
+		else if (o instanceof Number) return inRange((Number) o, Short.MIN_VALUE, Short.MAX_VALUE) ? ((Number) o).shortValue() : defaultValue;
+		else if (o instanceof CharSequence) {
+			double d = toDoubleValue(o.toString(), Double.NaN);
+			return inRange(d, Short.MIN_VALUE, Short.MAX_VALUE) ? (short) d : defaultValue;
+		}
+		else if (o instanceof Character) return inRange(((Character) o).charValue(), Short.MIN_VALUE, Short.MAX_VALUE) ? (short) (((Character) o).charValue()) : defaultValue;
 		else if (o instanceof Castable) {
-			return (short) ((Castable) o).castToDoubleValue(defaultValue);
-
+			double d = ((Castable) o).castToDoubleValue(Double.NaN);
+			return inRange(d, Short.MIN_VALUE, Short.MAX_VALUE) ? (short) d : defaultValue;
 		}
 		else if (o instanceof ObjectWrap) return toShortValue(((ObjectWrap) o).getEmbededObject(toShort(defaultValue)), defaultValue);
 
@@ -5129,7 +5180,7 @@ public final class Caster {
 		else if (obj.getClass() == trgClass) return obj;
 
 		else if (trgClass == boolean.class) return Caster.toBoolean(obj);
-		else if (trgClass == int.class) return Caster.toInteger(obj);
+		else if (trgClass == int.class) return toIntegerInRange(obj);
 		else if (trgClass == long.class) return Caster.toLong(obj);
 		else if (trgClass == double.class) return Caster.toDouble(obj);
 		else if (trgClass == byte[].class) return Caster.toBinary(obj);
@@ -5139,7 +5190,7 @@ public final class Caster {
 		else if (trgClass == char.class) return Caster.toCharacter(obj);
 
 		else if (trgClass == Boolean.class) return Caster.toBoolean(obj);
-		else if (trgClass == Integer.class) return Caster.toInteger(obj);
+		else if (trgClass == Integer.class) return toIntegerInRange(obj);
 		else if (trgClass == Long.class) return Caster.toLong(obj);
 		else if (trgClass == Byte.class) return Caster.toByte(obj);
 		else if (trgClass == Short.class) return Caster.toShort(obj);
