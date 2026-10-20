@@ -762,7 +762,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (is == null) is = SystemUtil.getResourceAsStream(null, "/extensions/.index");
 
 		if (is == null) {
-			log.error("extract-extension", "Could not find [/extensions/.index] defined in the index of the lucee.jar");
+			// no index means no bundled extensions (e.g. the light build), nothing to deploy
+			log.debug("extract-extension", "No [/extensions/.index] found in the lucee.jar, no bundled extensions to deploy");
 			return count;
 		}
 
