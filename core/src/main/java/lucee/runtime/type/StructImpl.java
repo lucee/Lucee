@@ -113,7 +113,7 @@ public class StructImpl extends StructSupport {
 		else if (type == TYPE_SOFT) map = Collections.synchronizedMap(new ReferenceMap<Collection.Key, Object>(HARD, SOFT, initialCapacity, 0.75f));
 		else if (type == TYPE_LINKED) map = Collections.synchronizedMap(new LinkedHashMap<Collection.Key, Object>(initialCapacity));
 		else if (type == TYPE_LINKED_NOT_SYNC) map = new LinkedHashMap<Collection.Key, Object>(initialCapacity);
-		else if (type == TYPE_MAX) map = new AccessOrderLimitedSizeMap<Collection.Key, Object>(max, initialCapacity);
+		else if (type == TYPE_MAX) map = Collections.synchronizedMap(new AccessOrderLimitedSizeMap<Collection.Key, Object>(max, initialCapacity));
 		else if (type == TYPE_WEAKED) map = Collections.synchronizedMap(new WeakHashMap<Collection.Key, Object>(initialCapacity));
 		else {
 			map = new HashMap<Collection.Key, Object>(initialCapacity);
