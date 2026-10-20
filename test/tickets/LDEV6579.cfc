@@ -37,7 +37,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven" {
 						msg = "no exception";
 					}
 					catch ( any e ) {
-						msg = e.type & " " & e.message;
+						// HTTPEngine wraps the connect error, the proxy host is in the cause (stacktrace)
+						msg = e.type & " " & e.message & " " & e.stacktrace;
 					}
 					expect( msg ).notToInclude( "UnknownHost", "the proxy was bypassed: " & msg );
 					expect( msg ).toInclude( "127.0.0.1", msg );
