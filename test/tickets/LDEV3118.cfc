@@ -13,7 +13,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 				expectInvalid( "integer", -2147483649 );
 				expectInvalid( "smallint", 32768 );
 				expectInvalid( "smallint", "-32769" );
-				expectInvalid( "tinyint", 260 );
+				expectInvalid( "tinyint", 256 );
+				expectInvalid( "tinyint", "256" );
+				expectInvalid( "tinyint", -129 );
 				expectInvalid( "bigint", "9300000000000000000" );
 				expectInvalid( "bigint", "-9300000000000000000" );
 			});
@@ -23,11 +25,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 				expect( param( "integer", "-2147483648" ) ).toBe( -2147483648 );
 				expect( param( "smallint", 32767 ) ).toBe( 32767 );
 				expect( param( "tinyint", 127 ) ).toBe( 127 );
+				expect( param( "tinyint", -128 ) ).toBe( -128 );
 				expect( param( "bigint", "9223372036854775807" ) ).toBe( "9223372036854775807" );
 				expect( param( "integer", 123 ) ).toBe( 123 );
 			});
 
+			// MSSQL tinyint is unsigned 0..255, Lucee must not reject it (H2 itself is signed, so the driver may still refuse it)
+			it( title="unsigned tinyint values up to 255 pass the Lucee range check", skip=notHasH2(), body=function() {
+				expectNotRejectedByLucee( "tinyint", 200 );
+				expectNotRejectedByLucee( "tinyint", "255" );
+			});
+
 		});
+	}
+
+	private function expectNotRejectedByLucee( required string type, required any value ) {
+		try {
+			param( arguments.type, arguments.value );
+		}
+		catch ( any e ) {
+			expect( e.message ).notToInclude( "Invalid data [" );
+		}
 	}
 
 	private function param( required string type, required any value ) {
