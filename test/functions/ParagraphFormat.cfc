@@ -5,7 +5,7 @@
 		<cfset 
 			assertEquals(
 				"yyxyyyx<P>",
-				rereplace("yy yyy".ParagraphFormat(),"[[:space:]]","x","all")
+				rereplace("yy yyy".ParagraphFormat(),"\s","x","all")
 			)>
 
 	</cffunction>
@@ -15,17 +15,17 @@
 		<cfset 
 			assertEquals(
 				"yyxyyyx<P>",
-				rereplace(ParagraphFormat("yy yyy"),"[[:space:]]","x","all")
+				rereplace(ParagraphFormat("yy yyy"),"\s","x","all")
 		)>
 
 		<cfset assertEquals(
 				"yyxxxxxyyyx<P>",
-				rereplace(ParagraphFormat("yy     yyy"),"[[:space:]]","x","all")
+				rereplace(ParagraphFormat("yy     yyy"),"\s","x","all")
 		)>
 
 		<cfset assertEquals(
 				"yyyyyx<P>",
-				rereplace(ParagraphFormat("yyyyy"),"[[:space:]]","x","all")
+				rereplace(ParagraphFormat("yyyyy"),"\s","x","all")
 		)>
 
 	</cffunction>

@@ -193,9 +193,7 @@ component {
 
 		local.src = fileRead( arguments.cfcPath );
 		src = reReplace(src, "<!---.*?--->", "", "all"); // strip out cfml comments
-		application regex={type="java"};
 		src = reReplace(src, "\/{2}.*|\/\*[\s\S]*?\*\/", "", "all"); // strip out script comments
-		application regex={type="perl"};
 		src = trim(src);
 
 		local.isCfml = findNoCase( "<" & "cf" & "component", src ) || findNoCase( "<" & "cf" & "interface", src );

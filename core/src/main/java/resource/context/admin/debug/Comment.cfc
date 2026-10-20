@@ -253,7 +253,7 @@
 				lengths[i]=len(arguments.labels[i]);
 				for(y=1;y LTE arguments.data.recordcount;y=y+1) {
 				
-					arguments.data[arguments.labels[i]][y]=trim(rereplace(arguments.data[arguments.labels[i]][y],"[[:space:]]+"," ","all"));
+					arguments.data[arguments.labels[i]][y]=trim(rereplace(arguments.data[arguments.labels[i]][y],"\s+"," ","all"));
 				
 					tmp=len(arguments.data[arguments.labels[i]][y]);
 					if(tmp GT lengths[i])lengths[i]=tmp;

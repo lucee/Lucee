@@ -51,7 +51,4 @@ echo( x );
 		});
 	}
 
-	function beforeAll() {
-		application name="LDEV-3690" regex={"type":"perl"}; // again sets to default value(perl) for regex engine
-	}
 }

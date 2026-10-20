@@ -1,7 +1,11 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 
+	function beforeAll() {
+		variables.origRegex = getApplicationSettings().regex;
+	}
+
 	function afterAll() {
-		application action="update" regex={ type: "perl" };
+		application action="update" regex=variables.origRegex;
 	}
 
 	function run( testResults, testBox ) {
@@ -16,8 +20,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 
 			it( title="regex.type reports the AC's actual engine when set to perl", body=function() {
 				application action="update" regex={ type: "perl" };
-				var settings = getApplicationSettings();
-				expect( settings.regex.type ?: "" ).toBe( "perl" );
+				var type = getApplicationSettings().regex.type ?: "";
+				// perl is provided by an extension, switch back before the matchers (which use regex) run
+				application action="update" regex={ type: "java" };
+				expect( type ).toBe( "perl" );
 			});
 
 			it( title="applicationContext key reports the AC class actually serving the request", body=function() {

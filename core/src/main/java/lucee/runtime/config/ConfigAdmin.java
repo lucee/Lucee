@@ -1976,6 +1976,55 @@ public final class ConfigAdmin {
 
 	}
 
+	/**
+	 * the names an engine is registered under: "name" plus the comma separated "names"
+	 */
+	private static List<String> toRegexEngineNames(Map<String, String> map) {
+		List<String> names = new ArrayList<>();
+		for (String key: new String[] { "name", "names" }) {
+			String value = map.get(key);
+			if (StringUtil.isEmpty(value, true)) continue;
+			for (String name: ListUtil.listToStringArray(value, ',')) {
+				name = name.trim().toLowerCase();
+				if (!name.isEmpty() && !names.contains(name)) names.add(name);
+			}
+		}
+		return names;
+	}
+
+	private void _updateRegexEngine(List<String> names, ClassDefinition cd) throws PageException {
+		Struct engines = ConfigUtil.getAsStruct("regexEngines", root);
+		for (String name: names) {
+			Struct existing = Caster.toStruct(engines.get(KeyImpl.init(name), null), null);
+			String existingClass = existing == null ? null : ConfigUtil.getAsString("class", existing, null);
+			if (existingClass != null && !existingClass.equalsIgnoreCase(cd.getClassName())) {
+				LogUtil.log(config, Log.LEVEL_WARN, "extension",
+						"The regex engine [" + name + "] was registered by the class [" + existingClass + "], it is replaced by the class [" + cd.getClassName() + "]");
+			}
+			Struct el = new StructImpl(Struct.TYPE_LINKED);
+			engines.setEL(name, el);
+			setClass(el, null, "", cd);
+		}
+	}
+
+	/**
+	 * removes the names only if they still belong to the removed extension (same class), so removing an
+	 * extension never drops the engine another extension registered under the same name
+	 */
+	private void _removeRegexEngine(List<String> names, ClassDefinition cd) {
+		Struct engines = ConfigUtil.getAsStruct("regexEngines", root);
+		for (String name: names) {
+			Struct existing = Caster.toStruct(engines.get(KeyImpl.init(name), null), null);
+			if (existing == null) continue;
+			String existingClass = ConfigUtil.getAsString("class", existing, null);
+			if (cd != null && existingClass != null && !existingClass.equalsIgnoreCase(cd.getClassName())) {
+				LogUtil.log(config, Log.LEVEL_INFO, "extension", "The regex engine [" + name + "] belongs to the class [" + existingClass + "], not removed");
+				continue;
+			}
+			engines.removeEL(KeyImpl.init(name));
+		}
+	}
+
 	private void _removeMimeTypeDetector() {
 		Struct mimeType = _getRootElement("mimeType");
 		removeClass(mimeType, "detector");
@@ -4252,6 +4301,24 @@ public final class ConfigAdmin {
 				}
 			}
 
+			// update regex engines
+			List<Map<String, String>> regexEngines = rhext.getMetadata().getRegexEngines();
+			if (!ArrayUtil.isEmpty(regexEngines)) {
+				Iterator<Map<String, String>> itl = regexEngines.iterator();
+				Map<String, String> map;
+				while (itl.hasNext()) {
+					map = itl.next();
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					List<String> names = toRegexEngineNames(map);
+					if (cd != null && cd.hasClass() && !names.isEmpty()) {
+						_updateRegexEngine(names, cd);
+						filter.add("resetRegexEngines", "resetRegex");
+						reloadNecessary = true;
+					}
+					logger.info("extension", "Update regex engine " + names + " [" + cd + "] from extension [" + rhext.getMetadata().getName() + ":" + rhext.getVersion() + "]");
+				}
+			}
+
 			// update Maven
 			if (!ArrayUtil.isEmpty(rhext.getMetadata().getMaven())) {
 				Iterator<MavenCoordinate> itl = rhext.getMetadata().getMaven().iterator();
@@ -4709,6 +4776,22 @@ public final class ConfigAdmin {
 						filter.add("resetMimeTypeDetector");
 					}
 					logger.info("extension", "Remove mime type detector [" + cd + "] from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");
+				}
+			}
+			// remove regex engines
+			List<Map<String, String>> regexEngines = rhe.getMetadata().getRegexEngines();
+			if (!ArrayUtil.isEmpty(regexEngines)) {
+				Iterator<Map<String, String>> itl = regexEngines.iterator();
+				Map<String, String> map;
+				while (itl.hasNext()) {
+					map = itl.next();
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					List<String> names = toRegexEngineNames(map);
+					if (!names.isEmpty()) {
+						_removeRegexEngine(names, cd);
+						filter.add("resetRegexEngines", "resetRegex");
+					}
+					logger.info("extension", "Remove regex engine " + names + " from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");
 				}
 			}
 			// TODO remove maven?

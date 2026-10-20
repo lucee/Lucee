@@ -13,14 +13,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 			, "\Qabc\E":"\\Qabc\\E"
 			, " ": "\ "
 		};
-		// edge cases
-		variables.perlSamples = {};
+		variables.origRegex = getApplicationSettings().regex;
 		// For java Lucee manually escapes as Pattern.quote simple wraps a string with \Q and \E
 		variables.javaSamples = {};
 	};
 
 	function afterAll(){
-			application regex={type="perl"};
+			application action="update" regex=variables.origRegex;
 	};
 
 	function run( testResults , testBox ) {
@@ -35,20 +34,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 
 			it(title="Checking with string.reEscape() member function - java", body=function( currentSpec ) {
 				testMember( "java" );
-			});
-		});
-
-		describe( title="Testcase for reEscape - member - perl", body=function() {
-			beforeAll( function( currentSpec, data ){
-				application regex={type="perl"};
-			});
-
-			it(title="Checking with reEscape function BIF - perl", body=function( currentSpec ) {
-				test( "perl" );
-			});
-
-			it(title="Checking with string.reEscape() member function - perl ", body=function( currentSpec ) {
-				testMember( "perl" );
 			});
 		});
 	}

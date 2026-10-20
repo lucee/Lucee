@@ -63,7 +63,7 @@
 		str=trim(str);
 		str=replace(str,'"','','all');
 		str=replace(str,'''','','all');
-		return REReplace(str, "[[:space:]]+", "", "ALL");
+		return REReplace(str, "\s+", "", "ALL");
 	}
 	</cfscript>
 
