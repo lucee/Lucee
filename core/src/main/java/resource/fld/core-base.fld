@@ -10464,7 +10464,7 @@ Pairs with `mavenImport` to snapshot and restore a cache state. Use `fileWrite( 
 
 By default only the literal dependencies listed in the pom are resolved - pairs symmetrically with `mavenExport`, which writes the full cache contents as a flat list. 
 
-Pass `includeTransitive = true` to also walk the dependency tree for each entry (same behaviour as `mavenLoad`).
+Pass `includeTransitive = true` to also walk the dependency tree for each entry (same behaviour as `mavenLoad`). Optional dependencies of dependencies are skipped unless `includeOptional = true`.
 
 Returns a query with the same shape as `mavenInfo`, showing what was resolved.</description>
 		<argument>
@@ -10479,6 +10479,13 @@ Returns a query with the same shape as `mavenInfo`, showing what was resolved.</
 			<default>false</default>
 			<required>No</required>
 			<description>If false (default), only the literal `&lt;dependency&gt;` entries in the pom are resolved. If true, the full transitive dependency tree is resolved for each entry.</description>
+		</argument>
+		<argument>
+			<name>includeOptional</name>
+			<type>boolean</type>
+			<default>false</default>
+			<required>No</required>
+			<description>Only used when `includeTransitive` is true. If false (default), dependencies marked `&lt;optional&gt;true&lt;/optional&gt;` by a dependency are skipped, like Maven does. If true, they are resolved as well. Optional dependencies declared directly in the imported pom are always resolved.</description>
 		</argument>
 		<return>
 			<description>Returns a query with columns `groupId, artifactId, version, scope, optional, checksum, url, path` describing the resolved artifacts.</description>
@@ -10567,6 +10574,7 @@ Returns a query with the same shape as `mavenInfo`, showing what was resolved.</
 		<description>
 Loads all JAR files from one or more Maven endpoints and makes them available for use within the Lucee server environment. 
 This function can be used to load dependencies, including transitive ones, for example at server startup.
+Like Maven, dependencies marked as optional are not loaded, unless `includeOptional` is set to true.
 
 ### Example Usage of MavenLoad Function
 The `MavenLoad` function allows you to load JAR files from Maven repositories, including all transitive dependencies. 
@@ -10589,6 +10597,13 @@ mavenLoad([
 			<type>any</type>
 			<required>Yes</required>
 			<description>A struct or an array of structs specifying the Maven coordinates, including groupId, artifactId, and version.</description>
+		</argument>
+		<argument>
+			<name>includeOptional</name>
+			<type>boolean</type>
+			<default>false</default>
+			<required>No</required>
+			<description>If false (default), dependencies marked `&lt;optional&gt;true&lt;/optional&gt;` by the requested artifacts or their dependencies are not loaded, like Maven does. If true, optional dependencies are loaded as well at every level.</description>
 		</argument>
 		<return>
 			<description>An array containing the file paths of the loaded JARs.</description>

@@ -62,7 +62,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 						"version" : "4.5.13"
 					}
 				]));
-				expect(l).toBe(10);
+				expect(l).toBe(4);
 			});
 
 			it(title="load ch.qos.logback", body=function( currentSpec ) {
@@ -73,7 +73,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 						"version" : "1.2.11"
 					}
 				]));
-				expect(l).toBe(9);
+				expect(l).toBe(3);
 			});
 
 			it(title="load org.hamcrest", body=function( currentSpec ) {

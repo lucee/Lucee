@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="syntax" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" {
     function beforeAll(){
         variables.uri = createURI("LDEV3393");
     }
@@ -37,7 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="syntax
                 expect(res).tobe(arr);
             });
 
-            xit( title="For-loop inside finally{}", body=function( currentSpec ){
+            it( title="For-loop inside finally{}", body=function( currentSpec ){
                 try{
                     local.result = _InternalRequest(
                         template : "#uri#\forLoopFinally.cfm"
@@ -47,6 +47,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="syntax
                     result.fileContent = e.message;
                 }
                 expect(trim(result.fileContent)).tobe(serializeJSON(arr));
+            });
+
+            it( title="for-in with var inside finally{} of a function", body=function( currentSpec ){
+                local.result = _InternalRequest(
+                    template : "#uri#/forInFinallyFunction.cfm"
+                );
+                var res = deserializeJSON( trim( result.fileContent ) );
+                expect( res.struct ).toBe( [ "try", "key1", "key2" ] );
+                expect( res.array ).toBe( [ "try", "a", "b" ] );
             });
 
             it( title="Compiler NPE crash with CFFinally block LDEV-2456", body=function( currentSpec ){
@@ -60,7 +69,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="syntax
                 }
                 expect(trim(result.fileContent)).notToInclude("java.lang.NullPointerException");
             });
-            xit( title="checking Nested try/finally block LDEV-4451", body=function( currentSpec ){
+            it( title="checking Nested try/finally block LDEV-4451", body=function( currentSpec ){
                 try {
                     local.result = _InternalRequest(
                         template : "#uri#\nestedFinallyBlock.cfm"

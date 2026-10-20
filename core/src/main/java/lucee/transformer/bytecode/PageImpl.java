@@ -1258,8 +1258,19 @@ public final class PageImpl extends BodyBase implements Page {
 
 									if (defaultExpr instanceof LitStringImpl) {
 										String value = ((LitStringImpl) defaultExpr).getString();
+										// LDEV-5547: a literal default of a numeric/boolean property is stored typed, the same as
+										// an #expression# default, instead of as a string
+										Object typed = toTypedLiteralDefault(propType, value);
 										ga.loadLocal(propLocal);
-										ga.push(value);
+										if (typed instanceof Double) {
+											ga.push(((Double) typed).doubleValue());
+											ga.box(Type.DOUBLE_TYPE);
+										}
+										else if (typed instanceof Boolean) {
+											ga.push(((Boolean) typed).booleanValue());
+											ga.box(Type.BOOLEAN_TYPE);
+										}
+										else ga.push(value);
 										ga.invokeVirtual(Types.PROPERTY_IMPL, new Method("setDefault", Type.VOID_TYPE, new Type[] { Types.OBJECT }));
 									}
 									else if (defaultExpr instanceof LitNumberImpl) {
@@ -1570,6 +1581,36 @@ public final class PageImpl extends BodyBase implements Page {
 			ga.endMethod();
 		}
 
+	}
+
+	/**
+	 * LDEV-5547: converts a literal (string) property default to the property type for numeric and
+	 * boolean properties, so default=123 / default="123" behave like default="#123#". Returns null
+	 * when no conversion applies, then the default stays a string.
+	 */
+	static Object toTypedLiteralDefault(String propType, String value) {
+		if (propType == null || value == null) return null;
+		String type = propType.trim().toLowerCase();
+		String str = value.trim();
+		if (str.isEmpty()) return null;
+		switch (type) {
+		case "numeric":
+		case "number":
+		case "integer":
+		case "int":
+		case "float":
+		case "double":
+			Double d = Caster.toDouble(str, null);
+			if (d != null && !d.isNaN() && !d.isInfinite()) return d;
+			return null;
+		case "boolean":
+		case "bool":
+			if ("true".equalsIgnoreCase(str) || "yes".equalsIgnoreCase(str)) return Boolean.TRUE;
+			if ("false".equalsIgnoreCase(str) || "no".equalsIgnoreCase(str)) return Boolean.FALSE;
+			return null;
+		default:
+			return null;
+		}
 	}
 
 	private String getTagAttributeValue(Tag tag, String attrName) {
