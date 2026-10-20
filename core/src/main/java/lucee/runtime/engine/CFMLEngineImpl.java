@@ -1981,10 +1981,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			catch (Exception e) {
 				// we simply ignore exceptions, if the template itself throws an error it will be handled by the
 				// error listener
+				// LDEV-6472 log it, otherwise a failing onBuild() during warmup is not visible at all
+				LogUtil.log(config, "application", "on-start", e, Log.LEVEL_ERROR);
 			}
 			finally {
-				CFMLFactory f = pc.getConfig().getFactory();
-				f.releaseLuceePageContext(pc, true);
+				if (pc != null) {
+					CFMLFactory f = pc.getConfig().getFactory();
+					f.releaseLuceePageContext(pc, true);
+				}
 				// ThreadLocalPageContext.register(oldPC);
 			}
 		}
