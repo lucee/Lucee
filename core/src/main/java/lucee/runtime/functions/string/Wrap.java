@@ -40,7 +40,7 @@ public final class Wrap extends BIF {
 
 	public static String call(PageContext pc, String string, Number limit, boolean strip) throws PageException {
 		if (strip) {
-			string = REReplace.call(pc, string, "[[:space:]]", " ", "all");
+			string = REReplace.call(pc, string, "\\s", " ", "all");
 		}
 		int _limit = Caster.toIntValue(limit);
 		if (_limit < 1) throw new FunctionException(pc, "Wrap", 2, "limit", "value mus be a positive number");
