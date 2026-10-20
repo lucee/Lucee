@@ -41,6 +41,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 			try {
 				// Use LuceeExtension to get download URL for the original version
 				var detail = LuceeExtension( "esapi-extension", variables.esapiVersionBefore );
+				// newer releases return an array (full and lite variant), prefer the full one
+				if ( isArray( detail ) ) {
+					var picked = detail[ 1 ];
+					for ( var d in detail ) {
+						if ( isStruct( d ) && structKeyExists( d, "lex" ) && !findNoCase( "-lite", d.lex ) ) { picked = d; break; }
+					}
+					detail = picked;
+				}
 
 				if ( structKeyExists( detail, "lex" ) ) {
 					cfhttp( url=detail.lex, result="local.restoreResult" );
