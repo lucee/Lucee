@@ -14,16 +14,38 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(matches).toBeTypeOf('Array');
 			});
 
-			it(title = "ReMatchNoCase() davoid regression of fix LDEV-1467", body = function( currentSpec ) {
-					
-				var REMatchTest = ArrayLen( REMatch( '.',Chr( 10 ) ) );
-				expect(REMatchTest).toBe(1);
-				var REFindTest = REFind( '.',Chr( 10 ) );
-				expect(REFindTest).toBe(1);
+			// perl engine semantics ("." matches a line break), the engine is provided by the Perl Regex extension (LDEV-6632)
+			it(title = "ReMatchNoCase() davoid regression of fix LDEV-1467", skip=!perlAvailable(), body = function( currentSpec ) {
+				var orig = getApplicationSettings().regex;
+				application action="update" regex={ type: "perl" };
+				try {
+					var REMatchTest = ArrayLen( REMatch( '.',Chr( 10 ) ) );
+					expect(REMatchTest).toBe(1);
+					var REFindTest = REFind( '.',Chr( 10 ) );
+					expect(REFindTest).toBe(1);
+				}
+				finally {
+					application action="update" regex=orig;
+				}
 			});
 		});
 	}
 	
+	private boolean function perlAvailable() {
+		var orig = getApplicationSettings().regex;
+		try {
+			application action="update" regex={ type: "perl" };
+			reFind( "a", "a" );
+			return true;
+		}
+		catch ( any e ) {
+			return false;
+		}
+		finally {
+			application action="update" regex=orig;
+		}
+	}
+
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
