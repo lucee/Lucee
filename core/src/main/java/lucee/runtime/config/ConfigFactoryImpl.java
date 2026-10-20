@@ -340,6 +340,8 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			// admin mode
 			load(config, root, false, doNew, essentialOnly);
 
+			// LDEV-6666 base components must exist before extensions get installed
+			deployEssentialContextFiles(configDir, config, doNew);
 			if (!essentialOnly) {
 				createContextFiles(configDir, config, doNew);
 				((CFMLEngineImpl) ConfigUtil.getEngine(config)).onStart(config, false);
@@ -3994,6 +3996,49 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		return labels;
 	}
 
+	private static final Set<String> essentialContextFilesDeployed = ConcurrentHashMap.newKeySet();
+
+	private static void deployEssentialContextFiles(Resource configDir, ConfigServer config, boolean doNew) {
+		// Allow using system proxies (affects extension downloads, so set it early)
+		if (!SystemUtil.getSystemPropOrEnvVar("lucee.disable.systemProxies", "").equalsIgnoreCase("true")) System.setProperty("java.net.useSystemProxies", "true"); // it
+																																									// defaults
+																																									// to
+																																									// false
+		String path = null;
+		try {
+			ImportDefintion _import = ((ConfigPro) config).getComponentDefaultImport();
+			if (_import != null) path = _import.getPackageAsPath();
+		}
+		catch (Exception e) {
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(config), ConfigFactoryImpl.class.getName(), e);
+		}
+		deployBaseComponents(configDir, path, doNew);
+	}
+
+	/**
+	 * LDEV-6666 extracts the core base components (org.lucee.cfml, Component.cfc ...) and the gateway
+	 * base components, they need to exist before extensions get installed. This is only done once per
+	 * config directory and JVM.
+	 * 
+	 * @param configDir server config directory
+	 * @param componentPackagePath package path of the component default import (null for default)
+	 * @param doNew overwrite existing files
+	 * @return true if the files got deployed with this call, false if already done before
+	 */
+	public static boolean deployBaseComponents(Resource configDir, String componentPackagePath, boolean doNew) {
+		if (!essentialContextFilesDeployed.add(configDir.getAbsolutePath())) return false;
+
+		// gateway
+		Resource gwDir = configDir.getRealResource("components/lucee/extension/gateway/");
+		create("/resource/context/gateway/", new String[] { "TaskGateway.cfc", "DummyGateway.cfc", "DirectoryWatcher.cfc", "DirectoryWatcherListener.cfc", "WatchService.cfc",
+				"MailWatcher.cfc", "MailWatcherListener.cfc", "AsynchronousEvents.cfc", "AsynchronousEventsListener.cfc" }, gwDir, doNew);
+
+		// org.lucee.cfml components
+		if (StringUtil.isEmpty(componentPackagePath, true)) componentPackagePath = Constants.DEFAULT_PACKAGE.replace('.', '/');
+		ComponentFactory.deploy(configDir.getRealResource("components").getRealResource(componentPackagePath), doNew);
+		return true;
+	}
+
 	private static void createContextFiles(Resource configDir, ConfigServer config, boolean doNew) {
 		// context
 		{
@@ -4013,13 +4058,6 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		if (doNew) {
 			Resource ctDir = configDir.getRealResource("customtags");
 			if (!ctDir.exists()) ctDir.mkdirs();
-		}
-
-		// gateway
-		if (doNew) {
-			Resource gwDir = configDir.getRealResource("components/lucee/extension/gateway/");
-			create("/resource/context/gateway/", new String[] { "TaskGateway.cfc", "DummyGateway.cfc", "DirectoryWatcher.cfc", "DirectoryWatcherListener.cfc", "WatchService.cfc",
-					"MailWatcher.cfc", "MailWatcherListener.cfc", "AsynchronousEvents.cfc", "AsynchronousEventsListener.cfc" }, gwDir, doNew);
 		}
 
 		// error
@@ -4060,18 +4098,8 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		Resource res = create("/resource/security/", "cacerts", secDir, false);
 		if (SystemUtil.getSystemPropOrEnvVar("lucee.use.lucee.SSL.TrustStore", "").equalsIgnoreCase("true"))
 			System.setProperty("javax.net.ssl.trustStore", res.toString());/* JAVJAK */
-		// Allow using system proxies
-		if (!SystemUtil.getSystemPropOrEnvVar("lucee.disable.systemProxies", "").equalsIgnoreCase("true")) System.setProperty("java.net.useSystemProxies", "true"); // it defaults
-																																									// to false
-
-		// deploy org.lucee.cfml components
-		if (doNew) {
-			ImportDefintion _import = ((ConfigPro) config).getComponentDefaultImport();
-			String path = _import.getPackageAsPath();
-			Resource components = config.getConfigDir().getRealResource("components");
-			Resource dir = components.getRealResource(path);
-			ComponentFactory.deploy(dir, doNew);
-		}
+		// LDEV-6666 no-op when already done by the quick config
+		deployEssentialContextFiles(configDir, config, doNew);
 
 		createContextFilesAdmin(configDir, config, doNew);
 	}
