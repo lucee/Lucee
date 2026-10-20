@@ -68,17 +68,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 				expect( result.filecontent.trim() ).toBe( "OK:2" );
 			} );
 
-			it( title="Application.cfm selecting perl: it fails with a clear message without the extension", skip=variables.perlAvailable, body=function( currentSpec ) {
-				var result = _InternalRequest( template: fixtureURL( "applicationCfm_perl/index.cfm" ) );
-				expect( result.filecontent.trim() ).toInclude( "ERR:" );
-				expect( result.filecontent.trim() ).toInclude( "not available" );
-			} );
-
-			it( title="Application.cfm selecting perl: it works with the extension", skip=!variables.perlAvailable, body=function( currentSpec ) {
-				var result = _InternalRequest( template: fixtureURL( "applicationCfm_perl/index.cfm" ) );
-				expect( result.filecontent.trim() ).toBe( "OK:2" );
-			} );
-
 		} );
 
 	}

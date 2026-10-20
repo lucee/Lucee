@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var renderedHTML = fileRead(variables.uri &"/test.cfm");
 				var subRGX = "(\/(includes|files)\/)";
 				var domainSubRGX = "(http|https):\/\/(dev|test|staging|www)\." & replaceNoCase("dev.testingsite.com", ".", "\.", "all");
-				var rgxDomain = "(<(a|img)[ \t].{0,}(href|src).{0,})(=(" & '"' & "|')" & domainSubRGX & subRGX & ")(.{0,})";
+				var rgxDomain = "(<(a|img)[[:blank:]].{0,}(href|src).{0,})(=(" & '"' & "|')" & domainSubRGX & subRGX & ")(.{0,})";
 				var matches = ReMatchNoCase(regex:rgxDomain, string:renderedHTML,multiline:true);
 				expect(matches).toBeTypeOf('Array');
 			});

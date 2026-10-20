@@ -45,7 +45,7 @@
 		str=trim(str);
 		str=replace(str,'"','','all');
 		str=replace(str,'''','','all');
-		return REReplace(str, "\s+", "", "ALL");
+		return REReplace(str, "[[:space:]]+", "", "ALL");
 	}
 	</cfscript>
 </cfcomponent>

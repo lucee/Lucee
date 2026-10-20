@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults , testBox ) {
-		describe( title="test suite for LDEV3066", skip=!perlAvailable(), body=function() {
+		describe( "test suite for LDEV3066", function() {
 			it(title = "test reReplace", body = function( currentSpec ) {
 				var string = '---abc---asdasd';
 				var regex = '---(.*)---(.*)';
@@ -33,29 +33,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 		});
-	}
-	// perl engine semantics, the engine is provided by the Perl Regex extension (LDEV-6632)
-	private boolean function perlAvailable() {
-		var orig = getApplicationSettings().regex;
-		try {
-			application action="update" regex={ type: "perl" };
-			reFind( "a", "a" );
-			return true;
-		}
-		catch ( any e ) {
-			return false;
-		}
-		finally {
-			application action="update" regex=orig;
-		}
-	}
-
-	function beforeEach() {
-		variables._origRegex = getApplicationSettings().regex;
-		application action="update" regex={ type: "perl" };
-	}
-
-	function afterEach() {
-		application action="update" regex=variables._origRegex;
 	}
 }

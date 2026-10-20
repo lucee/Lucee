@@ -19,7 +19,7 @@
 	
 <cfscript>
   function replaceWS(string str,string replacement=''){
-    return rereplace(str,"\s+",replacement,"all");
+    return rereplace(str,"[[:space:]]+",replacement,"all");
   }
 </cfscript>
 

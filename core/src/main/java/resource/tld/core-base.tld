@@ -8823,7 +8823,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>regex</name>
 			<type>any</type>
 			<required>false</required>
-			<description>Struct containing the configuration for regular expressions. Supported key: "type" (aliases: "engine", "dialect") with values [java, compat, perl]. "java" (default) uses the raw JVM regex engine; "perl" uses the Apache ORO engine and requires the Perl Regex extension; "compat" uses the JVM engine with a Perl-compatible replacement translator (backref and case modifier support).</description>
+			<description>Struct containing the configuration for regular expressions. Supported key: "type" (aliases: "engine", "dialect") with values [perl, java, compat]. "perl" (default) uses the Apache ORO engine; "java" uses the raw JVM regex engine; "compat" uses the JVM engine with a Perl-compatible replacement translator (backref and case modifier support).</description>
 			<introduced>5.3.8.23</introduced>
 		</attribute>
 		<attribute>

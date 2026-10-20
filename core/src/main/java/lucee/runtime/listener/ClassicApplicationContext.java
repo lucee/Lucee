@@ -54,7 +54,6 @@ import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.regex.Regex;
-import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Collection;
@@ -1178,11 +1177,8 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public Regex getRegex() {
-		Regex r = regex == null ? cp.getRegex() : regex;
-		// same as the modern context: warn once per application when the selected engine (set in
-		// cfapplication or inherited from the server level regexType) is not available
-		RegexFactory.warnIfUnavailableOnce(cp, getName(), r);
-		return r;
+		if (regex == null) return cp.getRegex();
+		return regex;
 	}
 
 	@Override

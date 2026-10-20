@@ -76,18 +76,6 @@ public final class RegexFactory implements PropFactory<Regex> {
 				+ JAVA + ", " + COMPAT + "].");
 	}
 
-	private static final java.util.Set<String> warned = java.util.concurrent.ConcurrentHashMap.newKeySet();
-
-	/**
-	 * same as warnIfUnavailable, but logs only once per application name and engine, for contexts that
-	 * are evaluated on every request (Application.cfm / cfapplication)
-	 */
-	public static void warnIfUnavailableOnce(Config config, String appName, Regex regex) {
-		if (!(regex instanceof NamedRegex) || ((NamedRegex) regex).isAvailable()) return;
-		if (warned.size() > 10000) warned.clear();
-		if (warned.add((appName == null ? "" : appName) + ":" + regex.getTypeName())) warnIfUnavailable(config, regex);
-	}
-
 	private static boolean isLegacyPerl(String name) {
 		for (String legacy: LEGACY_PERL_NAMES) {
 			if (legacy.equals(name)) return true;
