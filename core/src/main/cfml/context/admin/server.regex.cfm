@@ -88,9 +88,9 @@ Redirtect to entry --->
 	stText.regex.type="Dialect (Engine)";
 	stText.regex.typeDesc="Which regular expression dialect should be used.";
 	stText.regex.type_java="Modern";
-	stText.regex.type_perl="Classic (CFML Default)";
+	stText.regex.type_perl="Classic (CFML Default, deprecated)";
 	stText.regex.typedesc_java="Modern type is the dialect used by Java itself.";
-	stText.regex.typedesc_perl="Classic type is the Perl5 dialect used by CFML tradionally.";
+	stText.regex.typedesc_perl="Classic type is the Perl5 dialect used by CFML tradionally. Deprecated as the default: Lucee 9 uses Modern (java) as the default, Classic (perl) is then only available with the Perl Regex extension.";
 </cfscript>
 <!--- 
 Error Output --->
