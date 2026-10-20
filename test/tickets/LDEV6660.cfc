@@ -18,7 +18,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 				var rd = getRegexDeprecation();
 				var pc = getPageContext();
 				var regex = pc.getRegex();
-				// the first regex call of this request already triggered the check
+				// may already have been logged by an earlier regex call of this application
+				rd.warnIfPerl( pc, regex );
 				expect( rd.hasWarned( pc ) ).toBeTrue();
 				expect( rd.warnIfPerl( pc, regex ) ).toBeFalse();
 				expect( rd.warnIfPerl( pc, regex ) ).toBeFalse();

@@ -4696,8 +4696,8 @@ public final class PageContextImpl extends PageContext {
 
 	public Regex getRegex() {
 		Regex regex = applicationContext == null ? config.getRegex() : getApplicationContext().getRegex();
-		// LDEV-6660: perl is deprecated as default, checked once per request, logged once per application
-		if (!regexDeprecationChecked) {
+		// LDEV-6660: perl is deprecated as default, checked once per request when perl is used, logged once per application
+		if (!regexDeprecationChecked && RegexDeprecation.isPerl(regex)) {
 			regexDeprecationChecked = true;
 			RegexDeprecation.warnIfPerl(this, regex);
 		}
