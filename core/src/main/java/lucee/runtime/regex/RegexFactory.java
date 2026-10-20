@@ -90,7 +90,8 @@ public final class RegexFactory implements PropFactory<Regex> {
 		sct.setEL(KeyConstants._type, "string");
 
 		sct.setEL(KeyConstants._description,
-			"The regular expression engine to use. 'java' (modern) is the standard JVM engine, 'perl' (classic) is the Apache ORO engine, 'compat' is java with Perl-style replacement syntax (backref \\N, case modifiers \\u \\l \\U \\L \\E).");
+			"The regular expression engine to use. 'java' (modern) is the standard JVM engine, 'perl' (classic) is the Apache ORO engine, 'compat' is java with Perl-style replacement syntax (backref \\N, case modifiers \\u \\l \\U \\L \\E). "
+				+ "'perl' is the default in Lucee 8 and deprecated: Lucee 9 uses 'java' as the default and 'perl' is only available with the Perl Regex extension.");
 
 		// Define the aliases supported by the toType(String) logic
 		Array enums = new ArrayImpl();

@@ -1031,7 +1031,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public final static Prop<Regex> metaRegex = Prop.custom(RegexFactory.getInstance()).keys("regexType").systemPropEnvVar("lucee.regex.type")
 			.defaultValue(RegexFactory.toRegex(RegexFactory.TYPE_PERL, null))
-			.description("Which regular expression dialect should be used. Modern (Java dialect) or Classic (Perl5 dialect).");
+			.description("Which regular expression dialect should be used. Modern (Java dialect) or Classic (Perl5 dialect). "
+					+ "Deprecated: perl (Classic) as the default, Lucee 9 uses java as the default and perl is only available with the Perl Regex extension.");
 	private final ConfigValue<Regex> regexType = new ConfigValue<>(metaRegex);
 
 	private static Prop<TimeSpan> metaApplicationPathCacheTimeout = Prop.timespan().keys("applicationPathTimeout").systemPropEnvVar("lucee.application.path.cache.timeout")
