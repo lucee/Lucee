@@ -60,9 +60,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 				expect( res.recordcount ).toBe( 1 );
 			});
 
-			// cast in a sub query fails with and without a length: the native QoQ parser doesn't support
-			// sub queries and the HSQLDB fallback can't read the table names of a query with cast()
-			xit( title='QoQ hsqldb cast with data length in sub query' , body=function() {
+			// the native QoQ parser doesn't support sub queries, so this falls back to HSQLDB (LDEV-6543)
+			it( title='QoQ hsqldb cast with data length in sub query' , body=function() {
 
 				query name="local.res" dbtype="query" {
 					echo("

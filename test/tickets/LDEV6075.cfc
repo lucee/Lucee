@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 
 			try {
 				// Use LuceeExtension to get download URL for the original version
-				var detail = LuceeExtension( "esapi-extension", variables.esapiVersionBefore );
+				var detail = LuceeExtension( "org.lucee", "esapi-extension", variables.esapiVersionBefore );
 
 				if ( structKeyExists( detail, "lex" ) ) {
 					cfhttp( url=detail.lex, result="local.restoreResult" );
