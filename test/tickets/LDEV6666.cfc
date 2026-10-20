@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="config" {
 				}
 				var gw = variables.dir & "components/lucee/extension/gateway/";
 				for ( var name in [ "TaskGateway", "DummyGateway", "DirectoryWatcher", "DirectoryWatcherListener", "WatchService",
-						"MailWatcher", "MailWatcherListener", "AsynchronousEvents", "AsynchronousEventsListener" ] ) {
+						"MailWatcherListener", "AsynchronousEvents", "AsynchronousEventsListener" ] ) {
 					expect( fileExists( gw & name & ".cfc" ) ).toBeTrue( name );
 				}
 			});
