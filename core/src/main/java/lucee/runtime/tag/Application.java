@@ -754,7 +754,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 	public void setRegex(Object data) throws PageException {
 		if (Decision.isSimpleValue(data)) {
-			regex = RegexFactory.toRegex(RegexFactory.toType(Caster.toString(data)), null);
+			regex = RegexFactory.toRegex(pageContext.getConfig(), Caster.toString(data));
 		}
 		else {
 			Struct sct = Caster.toStruct(data);
@@ -762,7 +762,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			if (o == null) o = sct.get("engine", null);
 			if (o == null) o = sct.get("dialect", null);
 			if (o != null) {
-				regex = RegexFactory.toRegex(RegexFactory.toType(Caster.toString(o)), null);
+				regex = RegexFactory.toRegex(pageContext.getConfig(), Caster.toString(o));
 			}
 		}
 	}

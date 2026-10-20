@@ -2341,21 +2341,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(KeyConstants._type, null), null);
 				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(KeyConstants._dialect, null), null);
 				if (!StringUtil.isEmpty(str, true)) {
-					int type = RegexFactory.toType(str, -1);
-					if (type != -1) {
-						Regex tmp = RegexFactory.toRegex(type, null);
-						if (tmp != null) {
-							has = true;
-							regex = tmp;
-						}
-					}
-				}
-			}
-
-			if (regex == null) {
-				int type = RegexFactory.toType(Caster.toString(get(component, KeyConstants._regexType, null), null), -1);
-				if (type != -1) {
-					Regex tmp = RegexFactory.toRegex(type, null);
+					Regex tmp = RegexFactory.toRegex(config, str, null);
 					if (tmp != null) {
 						has = true;
 						regex = tmp;
@@ -2363,11 +2349,19 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 				}
 			}
 
+			if (regex == null) {
+				Regex tmp = RegexFactory.toRegex(config, Caster.toString(get(component, KeyConstants._regexType, null), null), null);
+				if (tmp != null) {
+					has = true;
+					regex = tmp;
+				}
+			}
+
 			if (regex == null) regex = ((ConfigPro) config).getRegex();
 
 			if (!has) {
 				Boolean res = Caster.toBoolean(get(component, KeyConstants._useJavaAsRegexEngine, null), null);
-				if (res != null) regex = RegexFactory.toRegex(res.booleanValue());
+				if (res != null) regex = RegexFactory.toRegex(config, res.booleanValue());
 			}
 			initRegex = true;
 		}

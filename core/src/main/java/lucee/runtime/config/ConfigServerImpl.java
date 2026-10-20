@@ -44,6 +44,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -1033,9 +1034,16 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private boolean initCachedAfter = true;
 
 	public final static Prop<Regex> metaRegex = Prop.custom(RegexFactory.getInstance()).keys("regexType").systemPropEnvVar("lucee.regex.type")
-			.defaultValue(RegexFactory.toRegex(RegexFactory.TYPE_PERL, null))
-			.description("Which regular expression dialect should be used. Modern (Java dialect) or Classic (Perl5 dialect).");
+			.defaultValue(RegexFactory.getDefault())
+			.description("Which regular expression engine should be used. 'java' (modern, the default) or 'compat' (Java with Perl style replacement) are built in, other engines like 'perl' (classic, Perl5 dialect) are provided by extensions.");
 	private final ConfigValue<Regex> regexType = new ConfigValue<>(metaRegex);
+
+	private static Prop<ClassDefinition> metaRegexEngines = Prop.custom(ClassDefinitionFactory.getInstance(), Prop.TYPE_MAP).keys("regexEngines").lowerCaseKeys()
+			.description("Registers the regular expression engines provided by extensions (for example the Perl Regex extension). The key is the name of the engine, "
+					+ "it can be selected with the regex type setting (this.regex.type in Application.cfc or regexType in the server configuration). "
+					+ "Lucee has the built-in engines 'java' and 'compat'. An extension registers its engine with the manifest attribute 'regex-engine'.");
+	private volatile Map<String, ClassDefinition> regexEngineDefinitions;
+	private volatile Map<String, Regex> regexEngines;
 
 	private static Prop<TimeSpan> metaApplicationPathCacheTimeout = Prop.timespan().keys("applicationPathTimeout").systemPropEnvVar("lucee.application.path.cache.timeout")
 			.defaultValue(TimeSpanImpl.fromMillis(20000L)) // 20 seconds
@@ -7214,6 +7222,88 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public ConfigServerImpl resetRegex() {
 		regexType.reset();
+		return this;
+	}
+
+	private Map<String, ClassDefinition> getRegexEngineDefinitions() {
+		Map<String, ClassDefinition> defs = regexEngineDefinitions;
+		if (defs == null) {
+			synchronized (SystemUtil.createToken("config", "getRegexEngines")) {
+				defs = regexEngineDefinitions;
+				if (defs == null) {
+					defs = new HashMap<>();
+					for (Entry<String, ClassDefinition> entry: metaRegexEngines.map(this, root).entrySet()) {
+						if (entry.getValue() != null && entry.getValue().hasClass() && !StringUtil.isEmpty(entry.getKey(), true)) {
+							defs.put(entry.getKey().trim().toLowerCase(), entry.getValue());
+						}
+					}
+					regexEngineDefinitions = defs;
+				}
+			}
+		}
+		return defs;
+	}
+
+	/**
+	 * @return the names of the regex engines registered by extensions
+	 */
+	public Set<String> getRegexEngineNames() {
+		return new TreeSet<>(getRegexEngineDefinitions().keySet());
+	}
+
+	public boolean hasRegexEngine(String name) {
+		return !StringUtil.isEmpty(name, true) && getRegexEngineDefinitions().containsKey(name.trim().toLowerCase());
+	}
+
+	/**
+	 * @param name name of the engine, as declared by the extension that provides it
+	 * @return the engine or null if no extension registered an engine with that name (or it cannot be loaded)
+	 */
+	public Regex getRegexEngine(String name) {
+		if (StringUtil.isEmpty(name, true)) return null;
+		name = name.trim().toLowerCase();
+
+		Map<String, Regex> engines = regexEngines;
+		if (engines == null) {
+			synchronized (SystemUtil.createToken("config", "getRegexEngines")) {
+				engines = regexEngines;
+				if (engines == null) {
+					engines = new ConcurrentHashMap<>();
+					// the same class registered under several names is loaded once
+					Map<String, Regex> byClass = new HashMap<>();
+					for (Entry<String, ClassDefinition> entry: getRegexEngineDefinitions().entrySet()) {
+						ClassDefinition cd = entry.getValue();
+						try {
+							String key = cd.getClassName() + "|" + cd.toString();
+							Regex regex = byClass.get(key);
+							if (regex == null) {
+								Object o = ClassUtil.loadInstance(cd.getClazz());
+								if (o instanceof Regex) {
+									regex = (Regex) o;
+									byClass.put(key, regex);
+								}
+								else LogUtil.log(this, Log.LEVEL_ERROR, "application",
+										"class [" + cd.getClassName() + "] registered as regex engine [" + entry.getKey() + "] does not implement the interface [" + Regex.class.getName() + "]");
+							}
+							if (regex != null) engines.put(entry.getKey(), regex);
+						}
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							LogUtil.log(this, "application", t);
+						}
+					}
+					regexEngines = engines;
+				}
+			}
+		}
+		return engines.get(name);
+	}
+
+	public ConfigServerImpl resetRegexEngines() {
+		synchronized (SystemUtil.createToken("config", "getRegexEngines")) {
+			regexEngineDefinitions = null;
+			regexEngines = null;
+		}
 		return this;
 	}
 

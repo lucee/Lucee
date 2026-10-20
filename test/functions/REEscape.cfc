@@ -14,14 +14,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 			, " ": "\ "
 		};
 		// edge cases
+		variables.origRegex = getApplicationSettings().regex;
 		variables.perlSamples = {};
 		// For java Lucee manually escapes as Pattern.quote simple wraps a string with \Q and \E
 		variables.javaSamples = {};
 	};
 
 	function afterAll(){
-			application regex={type="perl"};
+			application action="update" regex=variables.origRegex;
 	};
+
+	// the perl engine is provided by the Perl Regex extension
+	private boolean function isPerlAvailable() {
+		var orig = getApplicationSettings().regex;
+		try {
+			application action="update" regex={type="perl"};
+			reFind( "a", "a" );
+			return true;
+		}
+		catch ( any e ) {
+			return false;
+		}
+		finally {
+			application action="update" regex=orig;
+		}
+	}
 
 	function run( testResults , testBox ) {
 		describe( title="Testcase for reReplace - java", body=function() {
@@ -38,7 +55,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 			});
 		});
 
-		describe( title="Testcase for reEscape - member - perl", body=function() {
+		describe( title="Testcase for reEscape - member - perl", skip=!isPerlAvailable(), body=function() {
 			beforeAll( function( currentSpec, data ){
 				application regex={type="perl"};
 			});

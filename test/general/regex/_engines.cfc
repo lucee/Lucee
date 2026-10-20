@@ -14,9 +14,27 @@ component {
 
 	public function setup( required any testInstance ) {
 		variables._origEngine = getApplicationSettings().regex;
+		// engines provided by extensions (perl, the Perl Regex extension) only run when they are installed
+		variables.ENGINES = variables.ENGINES.filter( function( engine ) {
+			return engineAvailable( engine.config );
+		} );
 		variables._fnMeta = {};
 		for ( var fn in getMetaData( arguments.testInstance ).functions ) {
 			variables._fnMeta[ lcase( fn.name ) ] = fn;
+		}
+	}
+
+	private boolean function engineAvailable( required struct config ) {
+		try {
+			application action="update" regex=arguments.config;
+			reFind( "a", "a" );
+			return true;
+		}
+		catch ( any e ) {
+			return false;
+		}
+		finally {
+			application action="update" regex=variables._origEngine;
 		}
 	}
 
