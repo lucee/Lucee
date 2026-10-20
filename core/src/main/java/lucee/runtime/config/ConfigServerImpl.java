@@ -1042,8 +1042,10 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("Registers the regular expression engines provided by extensions (for example the Perl Regex extension). The key is the name of the engine, "
 					+ "it can be selected with the regex type setting (this.regex.type in Application.cfc or regexType in the server configuration). "
 					+ "Lucee has the built-in engines 'java' and 'compat'. An extension registers its engine with the manifest attribute 'regex-engine'.");
+	private static final long REGEX_ENGINE_RETRY_MS = 10000L;
 	private volatile Map<String, ClassDefinition> regexEngineDefinitions;
-	private volatile Map<String, Regex> regexEngines;
+	private final Map<String, Regex> regexEngines = new ConcurrentHashMap<>();
+	private final Map<String, Long> regexEngineFailures = new ConcurrentHashMap<>();
 
 	private static Prop<TimeSpan> metaApplicationPathCacheTimeout = Prop.timespan().keys("applicationPathTimeout").systemPropEnvVar("lucee.application.path.cache.timeout")
 			.defaultValue(TimeSpanImpl.fromMillis(20000L)) // 20 seconds
@@ -7256,6 +7258,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	/**
+	 * Engines are loaded the first time they are used and then shared by all requests, so an engine of
+	 * an extension has to be thread safe and must not keep state of a call. A failed load is not kept,
+	 * it is tried again (not more than every 10 seconds), for example when the bundle of the extension
+	 * is not yet resolved during startup.
+	 * 
 	 * @param name name of the engine, as declared by the extension that provides it
 	 * @return the engine or null if no extension registered an engine with that name (or it cannot be loaded)
 	 */
@@ -7263,46 +7270,43 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (StringUtil.isEmpty(name, true)) return null;
 		name = name.trim().toLowerCase();
 
-		Map<String, Regex> engines = regexEngines;
-		if (engines == null) {
-			synchronized (SystemUtil.createToken("config", "getRegexEngines")) {
-				engines = regexEngines;
-				if (engines == null) {
-					engines = new ConcurrentHashMap<>();
-					// the same class registered under several names is loaded once
-					Map<String, Regex> byClass = new HashMap<>();
-					for (Entry<String, ClassDefinition> entry: getRegexEngineDefinitions().entrySet()) {
-						ClassDefinition cd = entry.getValue();
-						try {
-							String key = cd.getClassName() + "|" + cd.toString();
-							Regex regex = byClass.get(key);
-							if (regex == null) {
-								Object o = ClassUtil.loadInstance(cd.getClazz());
-								if (o instanceof Regex) {
-									regex = (Regex) o;
-									byClass.put(key, regex);
-								}
-								else LogUtil.log(this, Log.LEVEL_ERROR, "application",
-										"class [" + cd.getClassName() + "] registered as regex engine [" + entry.getKey() + "] does not implement the interface [" + Regex.class.getName() + "]");
-							}
-							if (regex != null) engines.put(entry.getKey(), regex);
-						}
-						catch (Throwable t) {
-							ExceptionUtil.rethrowIfNecessary(t);
-							LogUtil.log(this, "application", t);
-						}
-					}
-					regexEngines = engines;
+		Regex regex = regexEngines.get(name);
+		if (regex != null) return regex;
+
+		ClassDefinition cd = getRegexEngineDefinitions().get(name);
+		if (cd == null) return null;
+
+		Long failed = regexEngineFailures.get(name);
+		if (failed != null && System.currentTimeMillis() - failed.longValue() < REGEX_ENGINE_RETRY_MS) return null;
+
+		synchronized (SystemUtil.createToken("config", "getRegexEngines")) {
+			regex = regexEngines.get(name);
+			if (regex != null) return regex;
+			try {
+				Object o = ClassUtil.loadInstance(cd.getClazz());
+				if (o instanceof Regex) {
+					regex = (Regex) o;
+					regexEngines.put(name, regex);
+					regexEngineFailures.remove(name);
+					return regex;
 				}
+				LogUtil.log(this, Log.LEVEL_ERROR, "application",
+						"class [" + cd.getClassName() + "] registered as regex engine [" + name + "] does not implement the interface [" + Regex.class.getName() + "]");
 			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				LogUtil.log(this, "application", t);
+			}
+			regexEngineFailures.put(name, Long.valueOf(System.currentTimeMillis()));
 		}
-		return engines.get(name);
+		return null;
 	}
 
 	public ConfigServerImpl resetRegexEngines() {
 		synchronized (SystemUtil.createToken("config", "getRegexEngines")) {
 			regexEngineDefinitions = null;
-			regexEngines = null;
+			regexEngines.clear();
+			regexEngineFailures.clear();
 		}
 		return this;
 	}

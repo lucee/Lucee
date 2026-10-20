@@ -28,8 +28,9 @@ final class NamedRegex implements Regex {
 		Regex regex = lookup();
 		if (regex != null) return regex;
 
-		throw new ApplicationException("The regex engine [" + name + "] is not available.",
-				"The engine [" + name + "] is provided by an extension (for example the Perl Regex extension for [perl]), install it, or select one of the built-in engines ["
+		String engine = RegexFactory.toCanonicalLegacyName(name);
+		throw new ApplicationException("The regex engine [" + engine + "] is not available.",
+				"The engine [" + engine + "] is provided by an extension (for example the Perl Regex extension for [perl]), install it, or select one of the built-in engines ["
 						+ RegexFactory.JAVA + ", " + RegexFactory.COMPAT + "] with the setting regex type (this.regex.type in Application.cfc or the regexType setting of the server). "
 						+ "Available engines: " + RegexFactory.availableNames(config) + ".");
 	}
@@ -97,8 +98,18 @@ final class NamedRegex implements Regex {
 		return resolve().escape(strInput);
 	}
 
+	boolean isAvailable() {
+		return lookup() != null;
+	}
+
+	/**
+	 * the canonical name of the engine, an alias like perl5, oro or classic is reported as the engine
+	 * itself reports it (perl), so code that compares with the canonical name keeps working
+	 */
 	@Override
 	public String getTypeName() {
-		return name;
+		Regex regex = lookup();
+		if (regex != null) return regex.getTypeName();
+		return RegexFactory.toCanonicalLegacyName(name);
 	}
 }

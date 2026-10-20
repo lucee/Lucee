@@ -1995,15 +1995,32 @@ public final class ConfigAdmin {
 	private void _updateRegexEngine(List<String> names, ClassDefinition cd) throws PageException {
 		Struct engines = ConfigUtil.getAsStruct("regexEngines", root);
 		for (String name: names) {
+			Struct existing = Caster.toStruct(engines.get(KeyImpl.init(name), null), null);
+			String existingClass = existing == null ? null : ConfigUtil.getAsString("class", existing, null);
+			if (existingClass != null && !existingClass.equalsIgnoreCase(cd.getClassName())) {
+				LogUtil.log(config, Log.LEVEL_WARN, "extension",
+						"The regex engine [" + name + "] was registered by the class [" + existingClass + "], it is replaced by the class [" + cd.getClassName() + "]");
+			}
 			Struct el = new StructImpl(Struct.TYPE_LINKED);
 			engines.setEL(name, el);
 			setClass(el, null, "", cd);
 		}
 	}
 
-	private void _removeRegexEngine(List<String> names) {
+	/**
+	 * removes the names only if they still belong to the removed extension (same class), so removing an
+	 * extension never drops the engine another extension registered under the same name
+	 */
+	private void _removeRegexEngine(List<String> names, ClassDefinition cd) {
 		Struct engines = ConfigUtil.getAsStruct("regexEngines", root);
 		for (String name: names) {
+			Struct existing = Caster.toStruct(engines.get(KeyImpl.init(name), null), null);
+			if (existing == null) continue;
+			String existingClass = ConfigUtil.getAsString("class", existing, null);
+			if (cd != null && existingClass != null && !existingClass.equalsIgnoreCase(cd.getClassName())) {
+				LogUtil.log(config, Log.LEVEL_INFO, "extension", "The regex engine [" + name + "] belongs to the class [" + existingClass + "], not removed");
+				continue;
+			}
 			engines.removeEL(KeyImpl.init(name));
 		}
 	}
@@ -4768,9 +4785,10 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					List<String> names = toRegexEngineNames(map);
 					if (!names.isEmpty()) {
-						_removeRegexEngine(names);
+						_removeRegexEngine(names, cd);
 						filter.add("resetRegexEngines", "resetRegex");
 					}
 					logger.info("extension", "Remove regex engine " + names + " from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");

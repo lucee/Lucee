@@ -2363,6 +2363,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 				Boolean res = Caster.toBoolean(get(component, KeyConstants._useJavaAsRegexEngine, null), null);
 				if (res != null) regex = RegexFactory.toRegex(config, res.booleanValue());
 			}
+			RegexFactory.warnIfUnavailable(config, regex);
 			initRegex = true;
 		}
 		return regex;

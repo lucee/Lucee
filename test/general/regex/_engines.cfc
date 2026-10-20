@@ -1,40 +1,32 @@
 // Composition helper for regex bedrock tests. Underscore-prefixed so the test
 // filter skips it as a non-test. Sub-CFCs hold an instance in variables._regex
 // and dispatch testFoo() bodies through eachEngine() so each test runs once per
-// engine in variables.ENGINES. Methods can declare `unsupportedRegexEngine="perl"`
+// engine in variables.ENGINES (the built in engines, other engines are added by the extension that provides them, see below).
+// Methods can declare `unsupportedRegexEngine="compat"`
 // (csv) as a function attribute to skip listed engines.
 // Bedrock supersedes LDEV-2892's broad perl-vs-java parity sweep.
 component {
 
 	variables.ENGINES = [
-		{ label: "perl",   config: { type: "perl"   } },
 		{ label: "java",   config: { type: "java"   } },
 		{ label: "compat", config: { type: "compat" } }
 	];
 
-	public function setup( required any testInstance ) {
-		variables._origEngine = getApplicationSettings().regex;
-		// engines provided by extensions (perl, the Perl Regex extension) only run when they are installed
-		variables.ENGINES = variables.ENGINES.filter( function( engine ) {
-			return engineAvailable( engine.config );
-		} );
-		variables._fnMeta = {};
-		for ( var fn in getMetaData( arguments.testInstance ).functions ) {
-			variables._fnMeta[ lcase( fn.name ) ] = fn;
+	// Engines that are provided by extensions are not part of the Lucee build, an extension can add its engine
+	// with the environment variable LUCEE_TEST_REGEX_ENGINES (csv), for example "perl" for the Perl Regex
+	// extension, which runs these tests in its own CI. Tests declared with unsupportedRegexEngine="java,compat"
+	// only run for such an engine.
+	if ( structKeyExists( server.system.environment, "LUCEE_TEST_REGEX_ENGINES" ) ) {
+		for ( variables._engineName in listToArray( server.system.environment.LUCEE_TEST_REGEX_ENGINES ) ) {
+			arrayAppend( variables.ENGINES, { label: trim( variables._engineName ), config: { type: trim( variables._engineName ) } } );
 		}
 	}
 
-	private boolean function engineAvailable( required struct config ) {
-		try {
-			application action="update" regex=arguments.config;
-			reFind( "a", "a" );
-			return true;
-		}
-		catch ( any e ) {
-			return false;
-		}
-		finally {
-			application action="update" regex=variables._origEngine;
+	public function setup( required any testInstance ) {
+		variables._origEngine = getApplicationSettings().regex;
+		variables._fnMeta = {};
+		for ( var fn in getMetaData( arguments.testInstance ).functions ) {
+			variables._fnMeta[ lcase( fn.name ) ] = fn;
 		}
 	}
 

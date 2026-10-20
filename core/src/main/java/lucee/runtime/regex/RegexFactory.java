@@ -3,6 +3,8 @@ package lucee.runtime.regex;
 import java.util.ArrayList;
 import java.util.List;
 
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigServerImpl;
@@ -54,6 +56,24 @@ public final class RegexFactory implements PropFactory<Regex> {
 		if (JAVA.equals(name) || "modern".equals(name)) return new JavaRegex();
 		if (COMPAT.equals(name)) return new JavaCompatRegex();
 		return null;
+	}
+
+	/**
+	 * @return "perl" for the legacy names of the former core engine, otherwise the name unchanged
+	 */
+	static String toCanonicalLegacyName(String name) {
+		return isLegacyPerl(name) ? "perl" : name;
+	}
+
+	/**
+	 * logs a warning when the selected engine is provided by an extension that is not installed, called
+	 * when an application is initialized, so the problem shows up before the first regex function fails
+	 */
+	public static void warnIfUnavailable(Config config, Regex regex) {
+		if (!(regex instanceof NamedRegex) || ((NamedRegex) regex).isAvailable()) return;
+		LogUtil.log(config, Log.LEVEL_WARN, "application", "The regex engine [" + regex.getTypeName()
+				+ "] is selected but not available, every regex function will fail. Install the extension that provides it (for [perl] the Perl Regex extension) or select one of the built-in engines ["
+				+ JAVA + ", " + COMPAT + "].");
 	}
 
 	private static boolean isLegacyPerl(String name) {

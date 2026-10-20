@@ -4,6 +4,13 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 
+/**
+ * A regular expression engine. Lucee has the built-in engines java and compat, an extension can
+ * provide more engines (registered with the manifest attribute "regex-engine", selected by name).
+ * <p>
+ * An engine is loaded once and the instance is shared by all requests and applications, so an
+ * implementation has to be thread safe and must not keep state of a call.
+ */
 public interface Regex {
 
 	public boolean matches(String strPattern, String strInput) throws PageException;
