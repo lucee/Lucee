@@ -303,7 +303,10 @@ public final class SQLCaster {
 			return;
 		case Types.TINYINT:
 			try {
-				stat.setObject(parameterIndex, Caster.toByte(checkRange(value, Byte.MIN_VALUE, Byte.MAX_VALUE, "TINYINT")), type);
+				// LDEV-3118 signed (-128..127) and unsigned (MSSQL, 0..255) tinyint are both allowed
+				short s = Caster.toShortValue(checkRange(value, Byte.MIN_VALUE, 255, "TINYINT"));
+				if (s > Byte.MAX_VALUE) stat.setObject(parameterIndex, Short.valueOf(s), type);
+				else stat.setObject(parameterIndex, Byte.valueOf((byte) s), type);
 			}
 			catch (PageException pe) {
 				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
