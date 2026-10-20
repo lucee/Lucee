@@ -826,6 +826,7 @@ public final class OSGiUtil {
 		// if (bundlesThreadLocal.get().contains(bn)) {
 
 		// if not found try to download
+		Exception downloadException = null;
 		if (downloadIfNecessary) {
 			try {
 				Bundle b;
@@ -860,6 +861,7 @@ public final class OSGiUtil {
 			}
 			catch (Exception e) {
 				log(e);
+				downloadException = e;
 			}
 		}
 
@@ -915,7 +917,7 @@ public final class OSGiUtil {
 
 		if (printExceptions == null) printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
 		try {
-			throw new BundleException(bundleError);
+			throw new BundleException(bundleError, downloadException);
 		}
 		catch (BundleException be) {
 			if (printExceptions) be.printStackTrace();
@@ -1010,6 +1012,7 @@ public final class OSGiUtil {
 		if (bf != null) return bf;
 
 		// if not found try to download
+		Throwable downloadException = null;
 		if (downloadIfNecessary && version != null) {
 			try {
 				resetJarsFromBundleDirectory(factory);
@@ -1018,14 +1021,15 @@ public final class OSGiUtil {
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
+				downloadException = t;
 			}
 		}
 
 		if (versionsFound.length() > 0) throw new BundleException("The OSGi Bundle with name [" + name + "] is not available in version [" + version
-				+ "] locally or from the update provider, the following versions are available locally [" + versionsFound + "].");
-		if (version != null)
-			throw new BundleException("The OSGi Bundle with name [" + name + "] in version [" + version + "] is not available locally or from the update provider.");
-		throw new BundleException("The OSGi Bundle with name [" + name + "] is not available locally or from the update provider.");
+				+ "] locally or from the update provider, the following versions are available locally [" + versionsFound + "].", downloadException);
+		if (version != null) throw new BundleException(
+				"The OSGi Bundle with name [" + name + "] in version [" + version + "] is not available locally or from the update provider.", downloadException);
+		throw new BundleException("The OSGi Bundle with name [" + name + "] is not available locally or from the update provider.", downloadException);
 	}
 
 	public static int compare(final String left, final String right) {
