@@ -1336,18 +1336,19 @@ public final class SystemUtil {
 	 * @return - the value of the property referenced by propOrEnv or the defaultValue if not found
 	 */
 	public static String getSystemPropOrEnvVar(String name, String defaultValue) {
+		// LDEV-5425: a value that is set but empty is returned as is, only a missing value falls back to the default
 		// env
 		String value = System.getenv(name);
-		if (!StringUtil.isEmpty(value)) return value;
+		if (value != null) return value;
 
 		// prop
 		value = System.getProperty(name);
-		if (!StringUtil.isEmpty(value)) return value;
+		if (value != null) return value;
 
 		// env 2
 		name = convertSystemPropToEnvVar(name);
 		value = System.getenv(name);
-		if (!StringUtil.isEmpty(value)) return value;
+		if (value != null) return value;
 
 		return defaultValue;
 	}
