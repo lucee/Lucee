@@ -1,5 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="component,property" skip=true {
-	// skipped until LDEV-5547 is fixed: literal defaults of numeric/boolean properties are stored as strings
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="component,property" {
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-5547 property default values are typed by the property type", function() {
