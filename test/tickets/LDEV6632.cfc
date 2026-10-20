@@ -91,10 +91,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 	}
 
 	private string function fixtureURL( required string sub ) {
-		if ( cgi.request_url eq "http://localhost/index.cfm" ) {
-			return "/test/tickets/LDEV6632/" & sub;
-		}
-		return getDirectoryFromPath( cgi.script_name ) & "LDEV6632/" & sub;
+		// always resolve via the /test mapping (like createURI), independent of the calling script
+		return "/test/tickets/LDEV6632/" & sub;
 	}
 
 }

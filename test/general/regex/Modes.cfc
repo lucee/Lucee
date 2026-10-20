@@ -63,14 +63,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 	}
 
 	// Build a server-resolvable URL for an _InternalRequest fixture.
-	// Under script-runner / mvn test, the bootstrap creates a /test mapping at
-	// the test root. Under browser/curl, cgi.script_name carries whatever
-	// mapping is actually serving the request (e.g. /test71 on a dev instance).
 	private string function fixtureURL( required string sub ) {
-		if ( cgi.request_url eq "http://localhost/index.cfm" ) {
-			return "/test/general/regex/Modes/" & sub;
-		}
-		return getDirectoryFromPath( cgi.script_name ) & "Modes/" & sub;
+		// always resolve via the /test mapping (like createURI), independent of the calling script
+		return "/test/general/regex/Modes/" & sub;
 	}
 
 }
