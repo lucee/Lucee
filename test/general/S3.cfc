@@ -37,7 +37,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 					,url:getCredentials());
 				expect(trim(res.filecontent?:"")).toBe("truetrue");
 			});
-			it(title="test access 100 threads at the same time", body=function() {
+			// LDEV-6680 skipped on 9.0 (JDK 21): under parallel load the S3 extension reports "does not exist" when a request
+			// fails with a pool timeout / no response, and caches that answer for other threads.
+			// Re-enable once the S3 extension with the LDEV-6680 fix is bundled.
+			it(title="test access 100 threads at the same time", skip=true, body=function() {
 				var cred=getCredentials();
 				var maxAttempts=3;
 				for ( var attempt=1; attempt <= maxAttempts; attempt++ ) {
