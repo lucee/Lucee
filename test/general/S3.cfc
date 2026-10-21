@@ -39,31 +39,61 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 			});
 			it(title="test access 100 threads at the same time", body=function() {
 				var cred=getCredentials();
-				var dir="s3://#cred.ACCESS_KEY_ID#:#cred.SECRET_KEY#@/#cred.BUCKET_PREFIX#s3-#lcase( hash( CreateGUID() ) )#/";
-				var file=dir&"testmultithread.txt";
-				var error = {};
-				try {
-					if(!directoryExists(dir))directoryCreate(dir);
-					fileWrite(file, "Susi sorglos foehnte Ihr Haar!");
-					
-					var arr=[];
-					loop times=100 {
-						arrayAppend(arr, file);
-					}
+				var maxAttempts=3;
+				for ( var attempt=1; attempt <= maxAttempts; attempt++ ) {
+					var dir="s3://#cred.ACCESS_KEY_ID#:#cred.SECRET_KEY#@/#cred.BUCKET_PREFIX#s3-#lcase( hash( CreateGUID() ) )#/";
+					var file=dir&"testmultithread.txt";
+					var error = {};
+					try {
+						if(!directoryExists(dir))directoryCreate(dir);
+						fileWrite(file, "Susi sorglos foehnte Ihr Haar!");
 
-					arr.each(
-					function(el, ix, arr) localMode=true {
-						var res=fileRead(el);
-					}, true, 100);
-				} catch ( e ){
-					error = e;
-				} finally {
-					if(directoryExists(dir))directoryDelete(dir, true);
+						var arr=[];
+						loop times=100 {
+							arrayAppend(arr, file);
+						}
+
+						arr.each(
+						function(el, ix, arr) localMode=true {
+							var res=fileRead(el);
+						}, true, 100);
+					} catch ( e ){
+						error = e;
+					} finally {
+						try {
+							if(directoryExists(dir))directoryDelete(dir, true);
+						} catch ( cleanupError ) {
+							// cleanup can hit the same connection problem; don't let it mask the result
+							if ( !structCount( error ) && !isTransientConnectionError( cleanupError ) ) error = cleanupError;
+						}
+					}
+					if ( !structCount( error ) ) return;
+					// only connection-level problems (S3 not responding, dropped TLS handshake) are retried / skipped,
+					// anything else is a real failure
+					if ( !isTransientConnectionError( error ) ) throw (message="testcase failed", cause=error);
+					if ( attempt < maxAttempts ) sleep( 1000 * attempt );
 				}
-				if (structCount(error))
-					throw (message="testcase failed", cause=error);
+				skip( "S3 not reachable after #maxAttempts# attempts: #error.message#" );
 			});
 		});
+	}
+
+	// LDEV-6667 connection-level errors from S3 that are not caused by Lucee
+	private boolean function isTransientConnectionError( required any e ) {
+		var patterns = [ "NoHttpResponseException", "failed to respond", "SSLHandshakeException",
+			"Remote host terminated the handshake", "Connection reset", "SocketTimeoutException",
+			"Read timed out", "connect timed out", "Unable to execute HTTP request" ];
+		var current = arguments.e;
+		var depth = 0;
+		while ( !isNull( current ) && depth++ < 10 ) {
+			var text = ( current.type ?: "" ) & " " & ( current.message ?: "" ) & " " & ( current.detail ?: "" );
+			try { text &= " " & current.getClass().getName() & " " & ( current.getMessage() ?: "" ); } catch ( ignore ) {}
+			for ( var p in patterns ) {
+				if ( findNoCase( p, text ) ) return true;
+			}
+			try { current = current.getCause(); } catch ( ignore ) { current = current.cause ?: nullValue(); }
+		}
+		return false;
 	}
 
 	private struct function getCredentials() {
