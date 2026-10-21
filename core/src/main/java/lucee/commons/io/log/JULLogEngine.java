@@ -5,8 +5,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -18,12 +18,14 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.io.retirement.RetireOutputStream;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.db.ClassDefinition;
@@ -138,7 +140,15 @@ public final class JULLogEngine implements LogEngine {
 	public Object getLayout(ClassDefinition cd, Map<String, String> layoutArgs, ClassDefinition cdAppender, String name) throws PageException {
 		String className = cd != null ? cd.getClassName() : null;
 		if (LogLegacyHandler.isClassicLayout(className)) return new ClassicFormatter(null);
-		if (LogLegacyHandler.isPatternLayout(className)) return new PatternFormatter(null);
+		if (LogLegacyHandler.isPatternLayout(className)) {
+			String pattern = null;
+			if (layoutArgs != null) {
+				for (Map.Entry<String, String> e: layoutArgs.entrySet()) {
+					if ("pattern".equalsIgnoreCase(e.getKey())) pattern = e.getValue();
+				}
+			}
+			return new PatternFormatter(null, pattern);
+		}
 		warnOnce("layout:" + className, "The layout [" + className + "] is not supported by the built-in log engine (log [" + name
 				+ "]), the classic layout is used instead. Install the Log4j extension to use it.");
 		return new ClassicFormatter(null);
@@ -382,12 +392,14 @@ public final class JULLogEngine implements LogEngine {
 		return msg;
 	}
 
+	// DateTimeFormatter is immutable and thread safe, so one instance per pattern is shared by all the log entries
+	private static final Map<String, DateTimeFormatter> formatters = new ConcurrentHashMap<>();
+
 	private static String fmt(String pattern, Config config, long time) {
 		config = config != null ? config : ThreadLocalPageContext.getConfig();
 		TimeZone tz = config != null && config.getTimeZone() != null ? config.getTimeZone() : TimeZone.getDefault();
-		SimpleDateFormat sdf = new SimpleDateFormat(pattern, Locale.US);
-		sdf.setTimeZone(tz);
-		return sdf.format(new Date(time));
+		DateTimeFormatter f = formatters.computeIfAbsent(pattern, p -> DateTimeFormatter.ofPattern(p, Locale.US));
+		return f.format(Instant.ofEpochMilli(time).atZone(tz.toZoneId()));
 	}
 
 	// same format as the classic layout of the Log4j extension
@@ -437,26 +449,190 @@ public final class JULLogEngine implements LogEngine {
 		}
 	}
 
-	// dd.MM.yyyy HH:mm:ss,SSS LEVEL [application] message
+	/**
+	 * a subset of the Log4j pattern layout: %d (%d{pattern}), %p/%level, %t/%thread, %c/%logger (the
+	 * application), %m/%msg/%message, %n, %ex/%throwable and %%, with an optional width like %-5p. The
+	 * default is the pattern of the former log4j based engine: "%d{dd.MM.yyyy HH:mm:ss,SSS} %-5p [%c] %m%n".
+	 */
 	private static final class PatternFormatter extends Formatter {
 
+		private static final String DEFAULT_PATTERN = "%d{dd.MM.yyyy HH:mm:ss,SSS} %-5p [%c] %m%n";
+		private static final String DEFAULT_DATE = "yyyy-MM-dd HH:mm:ss,SSS";
+
+		private static final class Token {
+			final String literal; // null for a conversion
+			final char type; // d p t c m n e
+			final String arg;
+			final int width; // negative: left aligned (pad right)
+
+			Token(String literal, char type, String arg, int width) {
+				this.literal = literal;
+				this.type = type;
+				this.arg = arg;
+				this.width = width;
+			}
+		}
+
 		private final Config config;
+		private final Token[] tokens;
+		private final boolean hasThrowable;
 
 		PatternFormatter(Config config) {
+			this(config, null);
+		}
+
+		PatternFormatter(Config config, String pattern) {
 			this.config = config;
+			java.util.List<Token> list = parse(StringUtil.isEmpty(pattern, true) ? DEFAULT_PATTERN : pattern);
+			boolean ht = false;
+			for (Token t: list) {
+				if (t.literal == null && t.type == 'e') ht = true;
+			}
+			this.tokens = list.toArray(new Token[list.size()]);
+			this.hasThrowable = ht;
+		}
+
+		private static java.util.List<Token> parse(String pattern) {
+			java.util.List<Token> list = new java.util.ArrayList<>();
+			StringBuilder lit = new StringBuilder();
+			int len = pattern.length();
+			for (int i = 0; i < len; i++) {
+				char c = pattern.charAt(i);
+				if (c != '%' || i + 1 >= len) {
+					lit.append(c);
+					continue;
+				}
+				if (pattern.charAt(i + 1) == '%') {
+					lit.append('%');
+					i++;
+					continue;
+				}
+				int j = i + 1;
+				int sign = 1;
+				if (pattern.charAt(j) == '-') {
+					sign = -1;
+					j++;
+				}
+				int width = 0;
+				while (j < len && Character.isDigit(pattern.charAt(j))) {
+					width = width * 10 + (pattern.charAt(j) - '0');
+					j++;
+				}
+				int ns = j;
+				while (j < len && Character.isLetter(pattern.charAt(j)))
+					j++;
+				String name = pattern.substring(ns, j);
+				String arg = null;
+				if (j < len && pattern.charAt(j) == '{') {
+					int close = pattern.indexOf('}', j);
+					if (close != -1) {
+						arg = pattern.substring(j + 1, close);
+						j = close + 1;
+					}
+				}
+				char type;
+				switch (name) {
+				case "d":
+				case "date":
+					type = 'd';
+					break;
+				case "p":
+				case "level":
+					type = 'p';
+					break;
+				case "t":
+				case "thread":
+					type = 't';
+					break;
+				case "c":
+				case "logger":
+					type = 'c';
+					break;
+				case "m":
+				case "msg":
+				case "message":
+					type = 'm';
+					break;
+				case "n":
+					type = 'n';
+					break;
+				case "ex":
+				case "throwable":
+				case "exception":
+					type = 'e';
+					break;
+				default:
+					// not supported, written as it is
+					lit.append(pattern, i, j);
+					i = j - 1;
+					continue;
+				}
+				if (lit.length() > 0) {
+					list.add(new Token(lit.toString(), ' ', null, 0));
+					lit.setLength(0);
+				}
+				if (type == 'd') {
+					if (StringUtil.isEmpty(arg, true)) arg = DEFAULT_DATE;
+					try {
+						DateTimeFormatter.ofPattern(arg, Locale.US);
+					}
+					catch (IllegalArgumentException iae) {
+						arg = DEFAULT_DATE;
+					}
+				}
+				list.add(new Token(null, type, arg, sign * width));
+				i = j - 1;
+			}
+			if (lit.length() > 0) list.add(new Token(lit.toString(), ' ', null, 0));
+			return list;
 		}
 
 		@Override
 		public String format(LogRecord r) {
-			StringBuilder sb = new StringBuilder();
-			sb.append(fmt("dd.MM.yyyy HH:mm:ss,SSS", config, r.getMillis())).append(' ');
-			String level = r.getLevel().getName();
-			sb.append(level);
-			for (int i = level.length(); i < 5; i++)
+			StringBuilder sb = new StringBuilder(128);
+			Throwable t = r.getThrown();
+			for (Token tk: tokens) {
+				if (tk.literal != null) {
+					sb.append(tk.literal);
+					continue;
+				}
+				String v;
+				switch (tk.type) {
+				case 'd':
+					v = fmt(tk.arg, config, r.getMillis());
+					break;
+				case 'p':
+					v = r.getLevel().getName();
+					break;
+				case 't':
+					v = thread(r);
+					break;
+				case 'c':
+					v = application(r);
+					break;
+				case 'm':
+					v = message(r);
+					break;
+				case 'n':
+					v = LINE_SEPARATOR;
+					break;
+				default: // 'e'
+					v = t != null ? ExceptionUtil.getStacktrace(t, false, true) : "";
+				}
+				pad(sb, v, tk.width);
+			}
+			// like Log4j, the stacktrace is added when the pattern does not contain it
+			if (t != null && !hasThrowable) sb.append(ExceptionUtil.getStacktrace(t, false, true)).append(LINE_SEPARATOR);
+			return sb.toString();
+		}
+
+		private static void pad(StringBuilder sb, String v, int width) {
+			int w = Math.abs(width);
+			if (width > 0) for (int i = v.length(); i < w; i++)
 				sb.append(' ');
-			sb.append(" [").append(application(r)).append("] ").append(message(r));
-			if (r.getThrown() != null) sb.append(LINE_SEPARATOR).append(ExceptionUtil.getStacktrace(r.getThrown(), false, true));
-			return sb.append(LINE_SEPARATOR).toString();
+			sb.append(v);
+			if (width < 0) for (int i = v.length(); i < w; i++)
+				sb.append(' ');
 		}
 	}
 
@@ -517,6 +693,15 @@ public final class JULLogEngine implements LogEngine {
 			this.head = head;
 		}
 
+		private volatile boolean errorReported;
+
+		// not through the loggers: the failing file can be the one the global log writes to, that would recurse; reported once until a write succeeds again
+		private void reportError(String msg) {
+			if (errorReported) return;
+			errorReported = true;
+			SystemOut.printDate(msg, SystemUtil.ERR);
+		}
+
 		void write(String str) {
 			byte[] data = str.getBytes(charset);
 			synchronized (lock) {
@@ -530,9 +715,10 @@ public final class JULLogEngine implements LogEngine {
 					os.write(data);
 					os.flush();
 					size += data.length;
+					errorReported = false;
 				}
 				catch (IOException ioe) {
-					LogUtil.logGlobal(Log.LEVEL_ERROR, "log-loading", "failed to write to the log file [" + res + "]: " + ioe.getMessage());
+					reportError("failed to write to the log file [" + res + "]: " + ioe.getMessage());
 				}
 			}
 		}
@@ -568,7 +754,7 @@ public final class JULLogEngine implements LogEngine {
 				res.moveTo(parent.getRealResource(base + ".1"));
 			}
 			catch (IOException ioe) {
-				LogUtil.logGlobal(Log.LEVEL_ERROR, "log-loading", "failed to rotate the log file [" + res + "]: " + ioe.getMessage());
+				reportError("failed to rotate the log file [" + res + "]: " + ioe.getMessage());
 			}
 		}
 
