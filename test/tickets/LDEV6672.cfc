@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( tzu.toTimeZone( "EST" ).getID() ).toBe( "US/Eastern" );
 				expect( tzu.toTimeZone( "SST" ).getID() ).toBe( "SST" );
 				expect( tzu.toTimeZone( "America/New_York" ).getID() ).toBe( "America/New_York" );
-				expect( tzu.toTimeZone( "Pacific Standard Time" ).getID() ).toBe( "US/Pacific" );
+				expect( tzu.toTimeZone( "Pacific Standard Time" ).getID() ).toBe( "PST" );
 			});
 		});
 	}
