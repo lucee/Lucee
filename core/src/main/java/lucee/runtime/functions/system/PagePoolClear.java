@@ -23,6 +23,7 @@ package lucee.runtime.functions.system;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSourcePool;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -41,6 +42,8 @@ public final class PagePoolClear extends BIF {
 			return InspectTemplates.call(pc);
 		}
 		PageSourcePool.clearPages(pc.getConfig(), null, false);
+		// also clear the cached Application.cfc/cfm lookups (LDEV-5461)
+		((ConfigPro) pc.getConfig()).clearApplicationCache();
 		return true;
 	}
 

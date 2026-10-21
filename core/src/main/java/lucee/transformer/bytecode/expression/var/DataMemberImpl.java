@@ -27,6 +27,7 @@ public final class DataMemberImpl implements DataMember {
 	private Variable parent;
 	private boolean safeNavigated;
 	private Expression safeNavigatedValue;
+	private boolean optional;
 
 	public DataMemberImpl(ExprString name) {
 		this.name = name;
@@ -63,5 +64,15 @@ public final class DataMemberImpl implements DataMember {
 	@Override
 	public Expression getSafeNavigatedValue() {
 		return safeNavigatedValue;
+	}
+
+	@Override
+	public void setOptional(boolean optional) {
+		this.optional = optional;
+	}
+
+	@Override
+	public boolean isOptional() {
+		return optional;
 	}
 }

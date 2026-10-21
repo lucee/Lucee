@@ -21,15 +21,6 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-
 import lucee.commons.digest.Hash;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -44,6 +35,9 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
+import lucee.commons.net.http.HTTPEngine;
+import lucee.commons.net.http.HTTPResponse;
+import lucee.commons.net.http.Header;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
@@ -66,26 +60,16 @@ public final class MavenUtil {
 	private static Map<String, String> sysprops;
 	private static Object token = new SerializableObject();
 
-	private static final RequestConfig DEFAULT_REQUEST_CONFIG;
 	public static final int CONNECTION_TIMEOUT = 5000;
 	public static final int READ_TIMEOUT_HEAD = 5000;
 	public static final int READ_TIMEOUT_GET = 5000;
 	private static final int MAX_DOWNLOAD_ATTEMPTS = 2;
+	// socket timeout for artifact downloads (pom, jar, lex), max inactivity between data packets
+	public static final int READ_TIMEOUT_DOWNLOAD = 10000;
 	public static final long ARTIFACT_UNAVAILABLE_CACHE_DURATION = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.maven.negative.cache.duration", null), 60000L * 15L);
 
 	private static final DateTimeFormatter MAVEN_DATE_FORMATTER = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
 
-	// Static initialization block
-	static {
-		DEFAULT_REQUEST_CONFIG = RequestConfig.custom()
-
-				.setRedirectsEnabled(true) // allow redirect
-				.setMaxRedirects(5) // max 5 redirects
-				.setSocketTimeout(10000) // The maximum period of inactivity between data packets once the connection is established.
-				.setConnectTimeout(5000) // The time it takes to establish a TCP connection to the server (the initial handshake).
-				.setConnectionRequestTimeout(5000) // The time to wait for a connection from the connection manager/pool.
-				.build();
-	}
 	private static Map<Repository, AtomicInteger> ranking = new ConcurrentHashMap<>();
 	private static boolean initLocalRepository;
 	private static Resource localRepository;
@@ -658,7 +642,7 @@ public final class MavenUtil {
 						// url = pom.getArtifact(type, repositories);
 						//////// if (log != null) log.info("maven", "download [" + url + "]");
 						URL url;
-						CloseableHttpClient httpClient;
+						HTTPResponse response;
 						Version version = Version.parseVersion(pom.getVersion());
 						boolean isSnap = version.is(Version.SNAPSHOT);
 
@@ -680,7 +664,7 @@ public final class MavenUtil {
 							// LDEV-6663: retry once on a network exception (e.g. read timeout) before moving on
 							for (int attempt = 1;; attempt++) {
 								url = null;
-								httpClient = null;
+								response = null;
 
 								try {
 									if (isSnap) {
@@ -693,21 +677,18 @@ public final class MavenUtil {
 									}
 
 									if (url == null) url = new URL(r.getUrl() + scriptName);
-									httpClient = HttpClients.createDefault();
-
-									HttpGet request = new HttpGet(url.toExternalForm());
-									request.setConfig(DEFAULT_REQUEST_CONFIG);
-									HttpResponse response = httpClient.execute(request);
-									HttpEntity entity = response.getEntity();
-									int sc = response.getStatusLine().getStatusCode();
+									// common downloader (LDEV-6579): shared pooled client, server proxy, engine cookie spec
+									long start = System.currentTimeMillis();
+									response = HTTPEngine.getResponse(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT_DOWNLOAD, null);
+									int sc = response.getStatusCode();
+									if (log != null) log.debug("maven", "download [" + url + "] from repository [" + repoLabel(r) + "] - HTTP " + sc + " in " + (System.currentTimeMillis() - start) + "ms");
 									// print.e(type + " >> " + url + " >> " + sc);
 									if (sc == 200) {
-										if (entity != null) {
+										InputStream is = response.getContentAsStream();
+										if (is != null) {
 											Exception ex = null;
-											InputStream is = null;
 											Resource tmp = SystemUtil.getTempFile(type, false);
 											try {
-												is = entity.getContent();
 												IOUtil.copy(is, tmp, false);
 											}
 											catch (IOException e) {
@@ -734,14 +715,13 @@ public final class MavenUtil {
 										if (sc != 404 && sc != 410) transientFailure = true;
 										String retryAfter = null;
 										if (sc == 429 || sc == 503) {
-											Header h = response.getFirstHeader("Retry-After");
+											Header h = response.getLastHeaderIgnoreCase("Retry-After");
 											if (h != null) retryAfter = h.getValue();
 										}
 										if (info == null) info = createInfo();
 										// match Apache Maven Resolver convention: empty .error= for 404 (NOT_FOUND), status code otherwise
 										info.append(r).append(".error=").append(sc == 404 ? "" : String.valueOf(sc)).append('\n');
 										info.append(r).append(".lastUpdated=").append(System.currentTimeMillis()).append('\n');
-										EntityUtils.consume(entity); // Ensure the response entity is fully consumed
 										String detail = String.valueOf(sc) + (retryAfter != null ? " (Retry-After: " + retryAfter + ")" : "");
 										failureSummary = appendFailure(failureSummary, repoLabel(r), detail);
 										if (log != null) {
@@ -776,7 +756,8 @@ public final class MavenUtil {
 									break;
 								}
 								finally {
-									if (httpClient != null) httpClient.close();
+									// releases the pooled connection (the body is drained or already read)
+									HTTPEngine.releaseEL(response);
 								}
 							}
 						}

@@ -169,7 +169,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 					newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
 				}
 				else {
-					newArgs.setEL(funcArgs[i].getName(), castTo(pc, funcArgs[i], d, i + 1));
+					// with full null support a null default (e.g. query q=null) stays null, no cast (LDEV-6610)
+					newArgs.setEL(funcArgs[i].getName(), d == null ? null : castTo(pc, funcArgs[i], d, i + 1));
 				}
 			}
 		}
@@ -221,7 +222,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 				}
 				newArgs.set(name, Argument.NULL);
 			}
-			else newArgs.set(name, castTo(pc, funcArgs[i], defaultValue, i + 1));
+			// with full null support a null default (e.g. query q=null) stays null, no cast (LDEV-6610)
+			else newArgs.set(name, defaultValue == null ? null : castTo(pc, funcArgs[i], defaultValue, i + 1));
 		}
 
 		Iterator<Entry<Key, Object>> it = values.entryIterator();

@@ -32,6 +32,8 @@ public abstract class FunctionMember implements NamedMember, Member, Func {
 	private Variable parent;
 	private boolean safeNavigated;
 	private Expression safeNavigatedValue;
+	private boolean optional;
+	private Argument[] sourceArguments; // original arguments before evaluators modify them
 
 	@Override
 	public final void setParent(Variable parent) {
@@ -87,5 +89,39 @@ public abstract class FunctionMember implements NamedMember, Member, Func {
 	@Override
 	public Expression getSafeNavigatedValue() {
 		return safeNavigatedValue;
+	}
+
+	/**
+	 * Snapshots the current arguments as the source arguments.
+	 * This should be called after parsing but before evaluators modify arguments.
+	 */
+	public void snapshotSourceArguments() {
+		if (sourceArguments == null && arguments.length > 0) {
+			sourceArguments = arguments.clone();
+			// Also snapshot each argument's value in case evaluators modify via setValue()
+			for (Argument arg : sourceArguments) {
+				if (arg instanceof ArgumentImpl) {
+					((ArgumentImpl) arg).snapshotSourceValue();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Returns the source arguments (original arguments before evaluator modifications).
+	 * If no snapshot was taken, returns the current arguments.
+	 */
+	public Argument[] getSourceArguments() {
+		return sourceArguments != null ? sourceArguments : arguments;
+	}
+
+	@Override
+	public void setOptional(boolean optional) {
+		this.optional = optional;
+	}
+
+	@Override
+	public boolean isOptional() {
+		return optional;
 	}
 }

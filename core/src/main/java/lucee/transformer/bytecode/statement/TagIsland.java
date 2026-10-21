@@ -50,7 +50,7 @@ public final class TagIsland extends StatementBaseNoFinal implements Body {
 			stmt.dump(stmtSct);
 			bodyArr.appendEL(stmtSct);
 		}
-		sct.setEL("body", bodyArr);
+		sct.setEL(KeyConstants._body, bodyArr);
 	}
 
 	// Body interface methods - delegate to inner body
