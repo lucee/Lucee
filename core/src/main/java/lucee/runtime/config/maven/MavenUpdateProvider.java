@@ -40,6 +40,7 @@ import lucee.commons.net.http.Header;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.config.Prop;
 import lucee.runtime.config.PropFactory;
 import lucee.runtime.config.maven.extensionlist.ExtensionLister;
@@ -752,12 +753,12 @@ public final class MavenUpdateProvider {
 		int policy = ConfigUtil.getMavenDownloadPolicy();
 		if (policy == ConfigPro.MAVEN_DOWNLOAD_POLICY_ERROR) {
 			throw new IOException("Maven download is blocked by policy. Attempted to download [" + url + "]. "
-					+ "To allow downloads, set the system property or environment variable " + "'lucee.maven.download.policy' to 'warn' or 'ignore'. "
+					+ "To allow downloads, set the " + CFMLEngineImpl.getActiveDownloadPolicySetting() + " to 'warn' or 'ignore'. "
 					+ "Alternatively, place the artifact manually in your local Maven repository (~/.m2/repository).");
 		}
 		else if (policy == ConfigPro.MAVEN_DOWNLOAD_POLICY_WARN) {
 			LogUtil.log(ConfigUtil.getConfigServerImpl().getMavenDownloadPolicyLogLevel(), "maven", "Downloading Maven artifact from [" + url
-					+ "]. Maven download policy is set to 'warn'. " + "Set 'lucee.maven.download.policy' to 'error' to block downloads " + "or 'ignore' to suppress this warning.");
+					+ "]. Maven download policy is set to 'warn'. " + "Set the " + CFMLEngineImpl.getActiveDownloadPolicySetting() + " to 'error' to block downloads or 'ignore' to suppress this warning.");
 		}
 	}
 }

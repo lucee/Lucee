@@ -651,6 +651,30 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		LogUtil.log(cs, Log.LEVEL_DEBUG, LOG_NAME, "CFMLEngineImpl constructor total: " + (System.currentTimeMillis() - constructorStart) + "ms");
 	}
 
+	private static boolean isRuntimePhase() {
+		try {
+			CFMLEngine eng = CFMLEngineFactory.getInstance();
+			if (eng != null && eng.uptime() > 0) return true;
+		}
+		catch (Exception e) {
+			// engine not registered yet = still starting up
+		}
+		return false;
+	}
+
+	/**
+	 * returns the name of the setting (system property / environment variable) that controls the
+	 * Maven download policy for the active phase (startup or runtime), for use in messages
+	 */
+	public static String getActiveDownloadPolicySetting() {
+		return getDownloadPolicySetting(isRuntimePhase());
+	}
+
+	public static String getDownloadPolicySetting(boolean runtime) {
+		return runtime ? "system property 'lucee.maven.download.policy.runtime' (environment variable 'LUCEE_MAVEN_DOWNLOAD_POLICY_RUNTIME')"
+				: "system property 'lucee.maven.download.policy.startup' (environment variable 'LUCEE_MAVEN_DOWNLOAD_POLICY_STARTUP')";
+	}
+
 	private static void checkInvalidExtensions(CFMLEngineImpl eng, ConfigPro config, Set<ExtensionDefintion> extensionsToInstall, Set<RHExtension> extensionsToRemove) {
 		RHExtension[] extensions = config.getRHExtensions();
 		if (extensions != null) {
