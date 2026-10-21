@@ -584,13 +584,13 @@ public final class MavenUtil {
 							if (policy == CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_ERROR) {
 								throw new IOException("Lucee is unable to resolve the Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion()
 										+ "] " + "(type: " + type + ") because Maven downloads are blocked by policy. "
-										+ "To allow downloads, set the system property or environment variable " + "'lucee.maven.download.policy' to 'warn' or 'ignore'. ");
+										+ "To allow downloads, set the " + CFMLEngineImpl.getActiveDownloadPolicySetting() + " to 'warn' or 'ignore'. ");
 							}
 							else if (policy == CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_WARN) {
 								LogUtil.log(CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_LOG_LEVEL, "maven",
 										"Downloading Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] " + "(type: " + type
 												+ "). Maven download policy is set to 'warn'. "
-												+ "Set the system property or environment variable 'lucee.maven.download.policy' to "
+												+ "Set the " + CFMLEngineImpl.getActiveDownloadPolicySetting() + " to "
 												+ "'error' to block downloads or 'ignore' to suppress this warning.");
 							}
 
