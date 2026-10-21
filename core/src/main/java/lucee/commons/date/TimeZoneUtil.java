@@ -18,6 +18,7 @@
  **/
 package lucee.commons.date;
 
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -37,7 +38,10 @@ public final class TimeZoneUtil {
 	static {
 		String[] ids = TimeZone.getAvailableIDs();
 		for (int i = 0; i < ids.length; i++) {
-			IDS.put(ids[i].toLowerCase(), TimeZone.getTimeZone(ids[i]));
+			// legacy three-letter IDs (e.g. "PST") are stored as strings and only resolved when used,
+			// resolving them eagerly makes newer JVMs (Java 25+) print a deprecation warning for each
+			if (ZoneId.SHORT_IDS.containsKey(ids[i])) IDS.put(ids[i].toLowerCase(), ids[i]);
+			else IDS.put(ids[i].toLowerCase(), TimeZone.getTimeZone(ids[i]));
 		}
 		TimeZone def = TimeZone.getDefault();
 		if (def != null) IDS.put(def.getID(), def);
