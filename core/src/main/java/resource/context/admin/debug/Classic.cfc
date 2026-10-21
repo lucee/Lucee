@@ -382,10 +382,12 @@ if(!pages.recordcount || !hasQueries) {
 </cfif>
 <pre>#queries.sql#</pre>
 <cfif !isEmpty(queries.paramValue) && !isEmpty(queries.paramType)>
-<cfset paramValue1 = listtoarray(queries.paramValue,",")>
-<cfset paramType1 = listtoarray(queries.paramType, ",")>
+<cfset paramValue1 = listtoarray(queries.paramValue,",",true)>
+<cfset paramType1 = listtoarray(queries.paramType, ",",true)>
+<!--- values are joined with a comma, so a value containing a comma splits into more items than there are types (LDEV-6037) --->
+<cfif arraylen(paramType1) EQ 1><cfset paramValue1 = [queries.paramValue]></cfif>
 <cfoutput>
-	<pre><b> Query Parameter Value(s) - </b><br><br><cfloop from="1" to="#arraylen(paramValue1)#" index="i">###i# Parameter(#paramType1[i]#) = #paramValue1[i]#<br></cfloop></pre>
+	<pre><b> Query Parameter Value(s) - </b><br><br><cfif arraylen(paramValue1) EQ arraylen(paramType1)><cfloop from="1" to="#arraylen(paramValue1)#" index="i">###i# Parameter(#paramType1[i]#) = #paramValue1[i]#<br></cfloop><cfelse>Parameter Type(s) = #queries.paramType#<br>Parameter Value(s) = #queries.paramValue#<br></cfif></pre>
 </cfoutput>
 </cfif>
 </cfloop>
