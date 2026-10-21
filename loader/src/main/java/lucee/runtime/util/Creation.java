@@ -310,4 +310,21 @@ public interface Creation {
 
 	public abstract RefString createRefString(String value);
 
+	/**
+	 * creates a class definition for a class that is identified by its name only, for example one that
+	 * is handled by an extension
+	 * 
+	 * @param className name of the class
+	 * @return the class definition
+	 */
+	public abstract lucee.runtime.db.ClassDefinition createClassDefinition(String className);
+
+	/**
+	 * creates a class definition for a class that is already loaded
+	 * 
+	 * @param clazz the class
+	 * @return the class definition
+	 */
+	public abstract lucee.runtime.db.ClassDefinition createClassDefinition(Class<?> clazz);
+
 }

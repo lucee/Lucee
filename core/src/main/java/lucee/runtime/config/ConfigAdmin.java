@@ -130,6 +130,7 @@ import lucee.runtime.schedule.ScheduleTask;
 import lucee.runtime.schedule.ScheduleTaskImpl;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.util.MimeTypeDetector;
+import lucee.commons.io.log.LogEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.security.SerialNumber;
@@ -2023,6 +2024,16 @@ public final class ConfigAdmin {
 			}
 			engines.removeEL(KeyImpl.init(name));
 		}
+	}
+
+	private void _removeLogEngine() {
+		Struct logEngine = _getRootElement("logEngine");
+		removeClass(logEngine, "engine");
+	}
+
+	private void _updateLogEngine(ClassDefinition cd) throws PageException {
+		Struct logEngine = _getRootElement("logEngine");
+		setClass(logEngine, LogEngine.class, "engine", cd);
 	}
 
 	private void _removeMimeTypeDetector() {
@@ -4301,6 +4312,23 @@ public final class ConfigAdmin {
 				}
 			}
 
+			// update log engine
+			List<Map<String, String>> logEngines = rhext.getMetadata().getLogEngines();
+			if (!ArrayUtil.isEmpty(logEngines)) {
+				Iterator<Map<String, String>> itl = logEngines.iterator();
+				Map<String, String> map;
+				while (itl.hasNext()) {
+					map = itl.next();
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					if (cd != null && cd.hasClass()) {
+						_updateLogEngine(cd);
+						filter.add("resetLogEngine");
+						reloadNecessary = true;
+					}
+					logger.info("extension", "Update log engine [" + cd + "] from extension [" + rhext.getMetadata().getName() + ":" + rhext.getVersion() + "]");
+				}
+			}
+
 			// update regex engines
 			List<Map<String, String>> regexEngines = rhext.getMetadata().getRegexEngines();
 			if (!ArrayUtil.isEmpty(regexEngines)) {
@@ -4776,6 +4804,21 @@ public final class ConfigAdmin {
 						filter.add("resetMimeTypeDetector");
 					}
 					logger.info("extension", "Remove mime type detector [" + cd + "] from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");
+				}
+			}
+			// remove log engine
+			List<Map<String, String>> logEngines = rhe.getMetadata().getLogEngines();
+			if (!ArrayUtil.isEmpty(logEngines)) {
+				Iterator<Map<String, String>> itl = logEngines.iterator();
+				Map<String, String> map;
+				while (itl.hasNext()) {
+					map = itl.next();
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					if (cd != null && cd.hasClass()) {
+						_removeLogEngine();
+						filter.add("resetLogEngine");
+					}
+					logger.info("extension", "Remove log engine [" + cd + "] from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");
 				}
 			}
 			// remove regex engines
@@ -6087,7 +6130,7 @@ public final class ConfigAdmin {
 			if (cd.hasVersion()) el.setEL(hp ? prefix + "BundleVersion" : "bundleVersion", cd.getVersionAsString());
 		}
 		// Maven
-		else if (((ClassDefinitionImpl) cd).isMaven()) {
+		else if (cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven()) {
 			el.setEL(hp ? prefix + "Maven" : "maven", MavenUtil.toString(((ClassDefinitionImpl) cd).getMaven()));
 		}
 	}

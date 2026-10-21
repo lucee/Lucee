@@ -70,7 +70,9 @@ import lucee.commons.io.MimeTypeDetectorImpl;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.io.log.LogEngine;
+import lucee.commons.io.log.JULLogEngine;
 import lucee.commons.io.log.LogFactory;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
@@ -427,7 +429,13 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private volatile Map<String, LoggerAndSourceData> loggers;
 	// LDEV-6673: the loggers dropped by resetLoggers(), reused (unchanged) or closed by the next load
 	private Map<String, LoggerAndSourceData> retiredLoggers;
-	private static LogEngine logEngine;
+	private static Prop<ClassDefinition> metaLogEngineClassDef = Prop.custom(ClassDefinitionFactory.getInstance("engine")).keys("logEngine").defaultValue(null)
+			.description("Defines the log engine used by Lucee to create the loggers. By default, a simple built-in engine is used (console and file appenders), an extension like the Log4j extension can replace it "
+					+ "to support more appenders and layouts. This property uses a standard ClassDefinition, allowing the engine to be loaded via OSGi bundles or Maven coordinates.");
+	private volatile LogEngine logEngine;
+	// the id of the class definition the current engine was loaded from, empty for the built-in engine
+	private volatile String logEngineId;
+	private static final ThreadLocal<Boolean> loadingLogEngine = new ThreadLocal<Boolean>();
 
 	private static Prop<Boolean> metaDebugLogOutput = Prop.bool().keys("debuggingLogOutput").defaultValue(false).description(
 			"When enabled, Lucee intercepts all response output and records each text fragment together with the source template and line number that produced it. The data is accessible via the debugger as a query (columns: text, template, line). Has no effect when debugging is disabled.");
@@ -6677,6 +6685,23 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		return loggers;
 	}
 
+	private void closeRetiredLoggers() {
+		Map<String, LoggerAndSourceData> retired;
+		synchronized (SystemUtil.createToken("config", "loggers")) {
+			retired = retiredLoggers;
+			retiredLoggers = null;
+		}
+		if (retired == null) return;
+		for (LoggerAndSourceData las: retired.values()) {
+			try {
+				las.close();
+			}
+			catch (Exception e) {
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "loggers", e);
+			}
+		}
+	}
+
 	/**
 	 * LDEV-6673: an unchanged logger (same id) keeps its appender, changed or removed configured loggers
 	 * are closed, loggers created on demand are kept
@@ -7175,15 +7200,71 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public LogEngine getLogEngine() {
-		if (logEngine == null) {
-			synchronized (token) {
-				if (logEngine == null) {
-					logEngine = LogEngine.newInstance(this);
-				}
-			}
+		LogEngine engine = logEngine;
+		if (engine != null) return engine;
+		// the current thread is loading the engine, and loading can itself need to log
+		if (Boolean.TRUE.equals(loadingLogEngine.get()) || root == null) return JULLogEngine.getInstance();
 
+		synchronized (SystemUtil.createToken("config", "getLogEngine")) {
+			engine = logEngine;
+			if (engine != null) return engine;
+
+			loadingLogEngine.set(Boolean.TRUE);
+			try {
+				ClassDefinition cd = metaLogEngineClassDef.get(this, root);
+				if (cd == null || !cd.hasClass()) {
+					logEngineId = "";
+					return logEngine = JULLogEngine.getInstance();
+				}
+				try {
+					Object o = ClassUtil.loadInstance(cd.getClazz());
+					if (o instanceof LogEngine) {
+						LogEngine le = (LogEngine) o;
+						le.init(this);
+						logEngineId = cd.getId();
+						return logEngine = le;
+					}
+					logEngineLoadFailed(cd, "class does not implement the interface [" + LogEngine.class.getName() + "]", null);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					logEngineLoadFailed(cd, ExceptionUtil.getMessage(t, false), t);
+				}
+				// not remembered, so a later reset loads the engine again
+				logEngineId = null;
+				return logEngine = JULLogEngine.getInstance();
+			}
+			finally {
+				loadingLogEngine.remove();
+			}
 		}
-		return logEngine;
+	}
+
+	private void logEngineLoadFailed(ClassDefinition cd, String reason, Throwable t) {
+		SystemOut.printDate("failed to load the log engine [" + cd.getClassName() + "]: " + reason + "; using the built-in log engine", SystemUtil.ERR);
+		if (t != null) t.printStackTrace();
+	}
+
+	/**
+	 * drops the current log engine and everything created by it when the engine defined in the config changed, the next use loads the engine that is
+	 * defined now (an extension was installed or removed)
+	 */
+	public ConfigServerImpl resetLogEngine() {
+		synchronized (SystemUtil.createToken("config", "getLogEngine")) {
+			// this is also called when everything is reset (config load), nothing happens when the engine did not change
+			if (logEngine != null && root != null) {
+				ClassDefinition cd = metaLogEngineClassDef.get(this, root);
+				String wanted = cd != null && cd.hasClass() ? cd.getId() : "";
+				if (wanted.equals(logEngineId)) return this;
+			}
+			clearLoggers(null);
+			// LDEV-6673: loggers kept by resetLoggers() belong to the old engine, they must not be reused by the new one
+			closeRetiredLoggers();
+			consoleLayouts.clear();
+			resourceLayouts.clear();
+			logEngine = null;
+		}
+		return this;
 	}
 
 	@Override
