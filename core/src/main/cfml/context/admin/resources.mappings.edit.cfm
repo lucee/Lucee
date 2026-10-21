@@ -11,7 +11,7 @@
 </cfsilent>
 <cfoutput>
 	<div class="pageintro">#stText.Mappings.editDesc#</div>
-	<cfformClassic onerror="customError" action="#request.self#?virtual=#mapping.virtual#&action=#url.action#&action2=#url.action2#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?virtual=#encodeForHTMLAttribute(encodeForURL(mapping.virtual))#&action=#url.action#&action2=#encodeForHTMLAttribute(encodeForURL(url.action2))#" method="post">
 		<input type="hidden" name="mainAction" value="#stText.Buttons.save#">
 		<input type="hidden"  name="row_#mapping.id#" value="#mapping.id#">
 		<cfif !isEmpty(mapping.strArchive) && isEmpty(mapping.archive)>
@@ -23,20 +23,20 @@
 			<tbody>
 				<tr>
 					<th scope="row">#stText.Mappings.VirtualHead#</th>
-					<td title="#mapping.virtual#" nowrap><input type="hidden" 
-							name="virtual_#mapping.id#" value="#mapping.virtual#">#mapping.virtual#</td>
+					<td title="#encodeForHTMLAttribute(mapping.virtual)#" nowrap><input type="hidden" 
+							name="virtual_#mapping.id#" value="#encodeForHTMLAttribute(mapping.virtual)#">#encodeForHTML(mapping.virtual)#</td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.Mappings.PhysicalHead#</th>
 					<cfset css=iif(len(mapping.physical) EQ 0 and len(mapping.strPhysical) NEQ 0,de('Red'),de(''))>
-					<td class="tblContent#css#" nowrap <cfif len(mapping.strPhysical)>title="#mapping.strPhysical##newLine()##mapping.Physical#"</cfif>><cfif mapping.readOnly>#cut(mapping.strPhysical,72)#<cfelse><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
+					<td class="tblContent#css#" nowrap <cfif len(mapping.strPhysical)>title="#encodeForHTMLAttribute(mapping.strPhysical & newLine() & mapping.Physical)#"</cfif>><cfif mapping.readOnly>#encodeForHTML(cut(mapping.strPhysical,72))#<cfelse><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 							name="physical_#mapping.id#" value="#mapping.strPhysical#" required="no"  
 							style="width:100%" message="#stText.Mappings.PhysicalMissing##mapping.id#)"></cfif></td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.Mappings.ArchiveHead#</th>
 					<cfset css=iif(len(mapping.archive) EQ 0 and len(mapping.strArchive) NEQ 0,de('Red'),de(''))>
-					<td class="tblContent#css#" nowrap <cfif len(mapping.strArchive)>title="#mapping.strArchive##newLine()##mapping.Archive#"</cfif>><cfif mapping.readOnly>#cut(mappings.strArchive,72)#<cfelse><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
+					<td class="tblContent#css#" nowrap <cfif len(mapping.strArchive)>title="#encodeForHTMLAttribute(mapping.strArchive & newLine() & mapping.Archive)#"</cfif>><cfif mapping.readOnly>#encodeForHTML(cut(mapping.strArchive,72))#<cfelse><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 						name="archive_#mapping.id#" value="#mapping.strArchive#" required="no"  
 						style="width:100%" message="#stText.Mappings.ArchiveMissing##mapping.id#)"></cfif></td>
 				</tr>
@@ -168,10 +168,10 @@
 
 
 <cfsavecontent variable="codeSample"><cfset count=0><cfset del="">
-this.mappings["#mapping.virtual#"]=<cfif len(mapping.strPhysical) && !len(mapping.strArchive)>
-&nbsp;&nbsp;&nbsp;<span class="overflow">"#mapping.strPhysical#"</span><cfelse>{<cfif len(mapping.strPhysical)><cfset count++>
-&nbsp;&nbsp;&nbsp;physical:"#mapping.strPhysical#"<cfset del=","></cfif><cfif len(mapping.strArchive)><cfset count++>
-&nbsp;&nbsp;&nbsp;#del#archive:"#mapping.strArchive#"<cfset del=","></cfif><cfif count==2 && !mapping.PhysicalFirst>
+this.mappings["#encodeForHTML(mapping.virtual)#"]=<cfif len(mapping.strPhysical) && !len(mapping.strArchive)>
+&nbsp;&nbsp;&nbsp;<span class="overflow">"#encodeForHTML(mapping.strPhysical)#"</span><cfelse>{<cfif len(mapping.strPhysical)><cfset count++>
+&nbsp;&nbsp;&nbsp;physical:"#encodeForHTML(mapping.strPhysical)#"<cfset del=","></cfif><cfif len(mapping.strArchive)><cfset count++>
+&nbsp;&nbsp;&nbsp;#del#archive:"#encodeForHTML(mapping.strArchive)#"<cfset del=","></cfif><cfif count==2 && !mapping.PhysicalFirst>
 &nbsp;&nbsp;&nbsp;#del#primary:"<cfif mapping.PhysicalFirst>physical<cfelse>archive</cfif>"<cfset del=","></cfif>
 <cfif len(mapping.listenerMode)><cfset count++>&nbsp;&nbsp;&nbsp;#del#listenerMode:"#mapping.listenerMode#"<cfset del=","></cfif>
 <cfif len(mapping.listenerType)><cfset count++>&nbsp;&nbsp;&nbsp;#del#listenerType:"#mapping.listenerType#"<cfset del=","></cfif>

@@ -1,0 +1,3 @@
+<cfscript>
+dump(myVar);
+</cfscript>

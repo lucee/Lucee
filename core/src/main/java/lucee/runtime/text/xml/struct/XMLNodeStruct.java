@@ -493,7 +493,7 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 	public boolean equals(Object obj) {
 		if (!(obj instanceof XMLNodeStruct)) return super.equals(obj);
 		XMLNodeStruct other = ((XMLNodeStruct) obj);
-		return other.caseSensitive = caseSensitive && other.node.equals(node);
+		return other.caseSensitive == caseSensitive && other.node.equals(node);
 	}
 
 	@Override

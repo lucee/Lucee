@@ -235,6 +235,7 @@
 		if ( directoryExists( extDir ) )
 			directoryDelete( extDir, true ); // deletes directory with all files inside
 		directoryCreate( extDir ); // create empty dir again ( maybe Lucee expect this directory to exist )
+		fileWrite( extDir & sep & ".index", "" ); // empty index, no bundled extensions
 
 		// unzip core
 		var lcoFile = tmpLoader & sep & "core" & sep & "core.lco";

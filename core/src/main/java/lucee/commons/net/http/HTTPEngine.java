@@ -32,6 +32,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -167,6 +168,29 @@ public final class HTTPEngine extends HTTPEngineBasic {
 			throw new IOException("unable to invoke [" + url + "], status code [" + sc + "]");
 		}
 		return response.getContentAsStream();
+	}
+
+	/**
+	 * GET request returning the full response whatever the status code, so callers can handle 404 vs
+	 * 429/5xx and read headers like Retry-After (LDEV-6579, used by MavenUtil). Uses the pooled client
+	 * and the configured server proxy. The caller must release the response, see
+	 * {@link #releaseEL(HTTPResponse)}.
+	 */
+	public static HTTPResponse4Impl getResponse(URL url, String username, String password, long connectTimeout, long readTimeout, String userAgent) throws IOException {
+		return get(url, username, password, connectTimeout, connectTimeout, readTimeout, true, null, userAgent, getProxyData(url.getHost()), null, true);
+	}
+
+	/**
+	 * Gives the connection of a response from {@link #getResponse} back to the pool. Never throws.
+	 */
+	public static void releaseEL(HTTPResponse rsp) {
+		if (rsp == null) return;
+		try {
+			IOUtil.closeEL(rsp.getContentAsStream());
+		}
+		catch (Exception e) {
+			LogUtil.log("download", e);
+		}
 	}
 
 	public static String getAsString(URL url, String charset) throws IOException {

@@ -32,4 +32,16 @@ public interface Member {
 	public void setSafeNavigatedValue(Expression obj);
 
 	public Expression getSafeNavigatedValue();
+
+	/**
+	 * AST only: true when this member was reached with the safe navigation operator (<code>?.</code>).
+	 * Unlike {@link #getSafeNavigated()}, which is also set on the member before <code>?.</code> for
+	 * runtime resolution, this flag is set only on the member directly after <code>?.</code>.
+	 */
+	public default void setOptional(boolean optional) {
+	}
+
+	public default boolean isOptional() {
+		return false;
+	}
 }

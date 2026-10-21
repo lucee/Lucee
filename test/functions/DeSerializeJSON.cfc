@@ -164,6 +164,41 @@
 			});
 		});
 
+		describe( title="Test suite for DeserializeJson() strictMapping with an array of objects", body=function() {
+			var json = '[{"id":"1","name":"pothys"},{"id":"2","name":"lucee"}]';
+
+			it( title="strictMapping=true returns an array of structs", body=function( currentSpec ) {
+				var arr = deserializeJSON( json, true );
+				expect( isArray( arr ) ).toBeTrue();
+				expect( arrayLen( arr ) ).toBe( 2 );
+				expect( arr[ 1 ].id ).toBe( "1" );
+				expect( arr[ 2 ].name ).toBe( "lucee" );
+			});
+
+			it( title="strictMapping=false returns an array of structs (not a query)", body=function( currentSpec ) {
+				var arr = deserializeJSON( json, false );
+				expect( isArray( arr ) ).toBeTrue();
+				expect( isQuery( arr ) ).toBeFalse();
+				expect( arrayLen( arr ) ).toBe( 2 );
+				expect( arr[ 1 ].id ).toBe( "1" );
+				expect( arr[ 2 ].name ).toBe( "lucee" );
+			});
+
+			it( title="without strictMapping returns an array of structs", body=function( currentSpec ) {
+				var arr = deserializeJSON( json );
+				expect( isArray( arr ) ).toBeTrue();
+				expect( arrayLen( arr ) ).toBe( 2 );
+				expect( arr[ 1 ].id ).toBe( "1" );
+				expect( arr[ 2 ].name ).toBe( "lucee" );
+			});
+
+			it( title="strictMapping as named argument", body=function( currentSpec ) {
+				var arr = deserializeJSON( JSONVar=json, strictMapping=false );
+				expect( isArray( arr ) ).toBeTrue();
+				expect( arr[ 2 ].id ).toBe( "2" );
+			});
+		});
+
 		describe( title="Test suite for comments", body=function() {
 			// we allowing, because other parser do as well (some)
 			it( "deserializeJson should allow json5, block comment by default", function(){

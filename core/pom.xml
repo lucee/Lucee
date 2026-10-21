@@ -117,6 +117,12 @@
       <artifactId>commons-pool2</artifactId>
       <version>2.13.1</version>
     </dependency>
+  <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>2.0.17</version>
+    <scope>provided</scope>
+  </dependency>
     <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>httpcomponents-httpclient</artifactId>

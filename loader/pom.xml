@@ -490,6 +490,12 @@
     <version>2.13.1</version>
   </dependency>
   <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>2.0.17</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
     <groupId>fusiondebug.api</groupId>
     <artifactId>server</artifactId>
     <version>1.0.20</version>
