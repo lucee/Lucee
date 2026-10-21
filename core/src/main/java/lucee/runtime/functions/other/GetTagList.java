@@ -64,7 +64,7 @@ public final class GetTagList implements Function {
 					// inner.set(n.toString(), "");
 					if (filterByExtension) {
 						String src = tag.getSource();
-						if (src == null || (!src.equalsIgnoreCase(extensionFilter) && !src.contains(extensionFilter))) continue;
+						if (src == null || !src.equalsIgnoreCase(extensionFilter)) continue;
 					}
 					tagList.add(n.toString());
 				}

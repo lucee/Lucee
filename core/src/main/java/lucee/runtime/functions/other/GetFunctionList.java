@@ -27,7 +27,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.PageException;
@@ -69,9 +68,7 @@ public final class GetFunctionList implements Function {
 				// sct.set(e.getKey(), "");
 				if (filterByExtension) {
 					String src = func.getSource();
-					if (StringUtil.isEmpty(src, true) && func.getFunctionLib() != null)
-						src = func.getFunctionLib().getSource();
-					if (src == null || (!src.equalsIgnoreCase(extensionFilter) && !src.contains(extensionFilter))) continue;
+					if (src == null || !src.equalsIgnoreCase(extensionFilter)) continue;
 				}
 				tagList.add(e.getKey());
 			}

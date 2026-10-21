@@ -1,22 +1,24 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="functions,tags,extensions" {
 
 	function run( testResults, testBox ) {
-		describe( "LDEV-3259: getTagData() and getFunctionData() should include extension source", function() {
+		describe( "LDEV-3259 getTagData() and getFunctionData() should include extension source", function() {
 
-			it( title="getFunctionData() for a core function has no source key (built-in functions have no file source)", body=function( currentSpec ) {
+			it( title="getFunctionData() has no source for a core function", body=function( currentSpec ) {
 				var data = getFunctionData( "len" );
 				expect( data ).toBeTypeOf( "struct" );
 				expect( structKeyExists( data, "name" ) ).toBeTrue();
 				expect( data.name ).toBe( "len" );
+				expect( structKeyExists( data, "source" ) ).toBeFalse();
 			});
 
-			it( title="getTagData() for a core tag has no source key (built-in tags have no file source)", body=function( currentSpec ) {
+			it( title="getTagData() has no source for a core tag", body=function( currentSpec ) {
 				var data = getTagData( "cf", "output" );
 				expect( data ).toBeTypeOf( "struct" );
 				expect( structKeyExists( data, "name" ) ).toBeTrue();
+				expect( structKeyExists( data, "source" ) ).toBeFalse();
 			});
 
-			it( title="getFunctionData() returns correct struct keys", body=function( currentSpec ) {
+			it( title="getFunctionData() still returns the existing keys", body=function( currentSpec ) {
 				var data = getFunctionData( "arraylen" );
 				expect( structKeyExists( data, "name" ) ).toBeTrue();
 				expect( structKeyExists( data, "status" ) ).toBeTrue();
@@ -24,7 +26,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="functions,tags,ext
 				expect( structKeyExists( data, "returnType" ) ).toBeTrue();
 			});
 
-			it( title="getTagData() returns correct struct keys", body=function( currentSpec ) {
+			it( title="getTagData() still returns the existing keys", body=function( currentSpec ) {
 				var data = getTagData( "cf", "query" );
 				expect( structKeyExists( data, "name" ) ).toBeTrue();
 				expect( structKeyExists( data, "status" ) ).toBeTrue();
@@ -32,43 +34,43 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="functions,tags,ext
 				expect( structKeyExists( data, "nameSpace" ) ).toBeTrue();
 			});
 
-			it( title="getFunctionList() returns a non-empty struct", body=function( currentSpec ) {
+			it( title="getFunctionList() without an extension still returns the functions", body=function( currentSpec ) {
 				var list = getFunctionList();
 				expect( list ).toBeTypeOf( "struct" );
 				expect( structCount( list ) ).toBeGT( 0 );
 			});
 
-			it( title="getTagList() returns a non-empty struct", body=function( currentSpec ) {
+			it( title="getTagList() without an extension still returns the tags", body=function( currentSpec ) {
 				var list = getTagList();
 				expect( list ).toBeTypeOf( "struct" );
 				expect( structCount( list ) ).toBeGT( 0 );
 			});
 
-			it( title="getFunctionList() with empty extension filter returns all functions", body=function( currentSpec ) {
+			it( title="getFunctionList() with an empty extension returns all functions", body=function( currentSpec ) {
 				var allFunctions = getFunctionList();
 				var filteredFunctions = getFunctionList( "" );
 				expect( structCount( filteredFunctions ) ).toBe( structCount( allFunctions ) );
 			});
 
-			it( title="getTagList() with empty extension filter returns all tags", body=function( currentSpec ) {
+			it( title="getTagList() with an empty extension returns all tags", body=function( currentSpec ) {
 				var allTags = getTagList();
 				var filteredTags = getTagList( "" );
 				expect( structCount( filteredTags ) ).toBe( structCount( allTags ) );
 			});
 
-			it( title="getFunctionList() with a non-existent extension GUID returns empty struct", body=function( currentSpec ) {
+			it( title="getFunctionList() with an unknown extension guid returns no functions", body=function( currentSpec ) {
 				var filtered = getFunctionList( "00000000-0000-0000-0000-000000000000" );
 				expect( filtered ).toBeTypeOf( "struct" );
 				expect( structCount( filtered ) ).toBe( 0 );
 			});
 
-			it( title="getTagList() with a non-existent extension GUID returns empty struct", body=function( currentSpec ) {
+			it( title="getTagList() with an unknown extension guid returns no tags", body=function( currentSpec ) {
 				var filtered = getTagList( "00000000-0000-0000-0000-000000000000" );
 				expect( filtered ).toBeTypeOf( "struct" );
 				expect( structCount( filtered ) ).toBe( 0 );
 			});
 
-			it( title="getFunctionList(extension=...) and getTagList(extension=...) support named argument", body=function( currentSpec ) {
+			it( title="getFunctionList() and getTagList() accept extension as a named argument", body=function( currentSpec ) {
 				var filteredFuncs = getFunctionList( extension="00000000-0000-0000-0000-000000000000" );
 				expect( filteredFuncs ).toBeTypeOf( "struct" );
 				expect( structCount( filteredFuncs ) ).toBe( 0 );
@@ -78,32 +80,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="functions,tags,ext
 				expect( structCount( filteredTags ) ).toBe( 0 );
 			});
 
-			it( title="extension functions and tags include extension source when installed", body=function( currentSpec ) {
+			it( title="getFunctionData() and getTagData() return the extension guid as source and the lists filter by it", body=function( currentSpec ) {
 				var imageGuid = "B737ABC4-D43F-4D91-8E8E973E37C40D1B";
-				var allFuncs = getFunctionList();
-				if ( structKeyExists( allFuncs, "imagenew" ) ) {
-					var extFuncs = getFunctionList( imageGuid );
-					expect( structCount( extFuncs ) ).toBeGT( 0 );
-					expect( structKeyExists( extFuncs, "imagenew" ) ).toBeTrue();
+				var extFuncs = getFunctionList( imageGuid );
+				expect( structKeyExists( extFuncs, "imagenew" ) ).toBeTrue();
+				expect( structKeyExists( extFuncs, "len" ) ).toBeFalse();
+				expect( getFunctionData( "imagenew" ).source ).toBe( imageGuid );
 
-					var funcData = getFunctionData( "imagenew" );
-					expect( structKeyExists( funcData, "source" ) ).toBeTrue();
-					expect( len( funcData.source ) ).toBeGT( 0 );
-					expect( funcData.source ).toInclude( imageGuid );
-				}
+				var extTags = getTagList( imageGuid );
+				expect( structKeyExists( extTags, "cf" ) ).toBeTrue();
+				expect( structKeyExists( extTags.cf, "image" ) ).toBeTrue();
+				expect( structKeyExists( extTags.cf, "output" ) ).toBeFalse();
+				expect( getTagData( "cf", "image" ).source ).toBe( imageGuid );
+			});
 
-				var allTags = getTagList();
-				if ( structKeyExists( allTags, "cf:" ) && structKeyExists( allTags[ "cf:" ], "image" ) ) {
-					var extTags = getTagList( imageGuid );
-					expect( structCount( extTags ) ).toBeGT( 0 );
-					expect( structKeyExists( extTags, "cf:" ) ).toBeTrue();
-					expect( structKeyExists( extTags[ "cf:" ], "image" ) ).toBeTrue();
-
-					var tagData = getTagData( "cf", "image" );
-					expect( structKeyExists( tagData, "source" ) ).toBeTrue();
-					expect( len( tagData.source ) ).toBeGT( 0 );
-					expect( tagData.source ).toInclude( imageGuid );
-				}
+			it( title="extension filter is case insensitive and does not match a partial guid", body=function( currentSpec ) {
+				var imageGuid = "B737ABC4-D43F-4D91-8E8E973E37C40D1B";
+				expect( structKeyExists( getFunctionList( lCase( imageGuid ) ), "imagenew" ) ).toBeTrue();
+				expect( structCount( getFunctionList( left( imageGuid, 8 ) ) ) ).toBe( 0 );
+				expect( structCount( getTagList( left( imageGuid, 8 ) ) ) ).toBe( 0 );
 			});
 
 		});
