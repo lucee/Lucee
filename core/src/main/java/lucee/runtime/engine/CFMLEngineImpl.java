@@ -628,14 +628,31 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	public static int getActiveDownloadPolicy() {
+		return isRuntimePhase() ? MAVEN_DOWNLOAD_POLICY_RUNTIME : MAVEN_DOWNLOAD_POLICY_STARTUP;
+	}
+
+	private static boolean isRuntimePhase() {
 		try {
 			CFMLEngine eng = CFMLEngineFactory.getInstance();
-			if (eng != null && eng.uptime() > 0) return MAVEN_DOWNLOAD_POLICY_RUNTIME;
+			if (eng != null && eng.uptime() > 0) return true;
 		}
 		catch (Exception e) {
 			// engine not registered yet = still starting up
 		}
-		return MAVEN_DOWNLOAD_POLICY_STARTUP;
+		return false;
+	}
+
+	/**
+	 * returns the name of the setting (system property / environment variable) that controls the
+	 * Maven download policy for the active phase (startup or runtime), for use in messages
+	 */
+	public static String getActiveDownloadPolicySetting() {
+		return getDownloadPolicySetting(isRuntimePhase());
+	}
+
+	public static String getDownloadPolicySetting(boolean runtime) {
+		return runtime ? "system property 'lucee.maven.download.policy.runtime' (environment variable 'LUCEE_MAVEN_DOWNLOAD_POLICY_RUNTIME')"
+				: "system property 'lucee.maven.download.policy.startup' (environment variable 'LUCEE_MAVEN_DOWNLOAD_POLICY_STARTUP')";
 	}
 
 	private static void checkInvalidExtensions(CFMLEngineImpl eng, ConfigPro config, Set<ExtensionDefintion> extensionsToInstall, Set<String> extensionsToRemove) {

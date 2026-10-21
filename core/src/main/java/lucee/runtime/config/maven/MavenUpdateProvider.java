@@ -497,12 +497,12 @@ public final class MavenUpdateProvider {
 		int policy = CFMLEngineImpl.getActiveDownloadPolicy();
 		if (policy == CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_ERROR) {
 			throw new IOException("Maven download is blocked by policy. Attempted to download [" + url + "]. "
-					+ "To allow downloads, set the system property or environment variable " + "'lucee.maven.download.policy' to 'warn' or 'ignore'. "
+					+ "To allow downloads, set the " + CFMLEngineImpl.getActiveDownloadPolicySetting() + " to 'warn' or 'ignore'. "
 					+ "Alternatively, place the artifact manually in your local Maven repository (~/.m2/repository).");
 		}
 		else if (policy == CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_WARN) {
 			LogUtil.log(CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_LOG_LEVEL, "maven", "Downloading Maven artifact from [" + url + "]. Maven download policy is set to 'warn'. "
-					+ "Set 'lucee.maven.download.policy' to 'error' to block downloads " + "or 'ignore' to suppress this warning.");
+					+ "Set the " + CFMLEngineImpl.getActiveDownloadPolicySetting() + " to 'error' to block downloads or 'ignore' to suppress this warning.");
 		}
 	}
 }
