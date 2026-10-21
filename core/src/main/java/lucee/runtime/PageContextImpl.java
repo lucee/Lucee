@@ -159,7 +159,6 @@ import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
 import lucee.runtime.regex.Regex;
-import lucee.runtime.regex.RegexDeprecation;
 import lucee.runtime.rest.RestRequestListener;
 import lucee.runtime.rest.RestUtil;
 import lucee.runtime.security.Credential;
@@ -639,7 +638,6 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void release() {
-		regexDeprecationChecked = false;
 		// safety net: a parallel iteration normally closes its pool itself, this releases any leftover
 		// clones should the operation have been aborted before reaching its cleanup
 		if (parallelPool != null) {
@@ -4692,16 +4690,8 @@ public final class PageContextImpl extends PageContext {
 		return getApplicationContext().getAllowImplicidQueryCall();
 	}
 
-	private boolean regexDeprecationChecked;
-
 	public Regex getRegex() {
-		Regex regex = applicationContext == null ? config.getRegex() : getApplicationContext().getRegex();
-		// LDEV-6660: perl is deprecated as default, checked once per request when perl is used, logged once per application
-		if (!regexDeprecationChecked && RegexDeprecation.isPerl(regex)) {
-			regexDeprecationChecked = true;
-			RegexDeprecation.warnIfPerl(this, regex);
-		}
-		return regex;
+		return applicationContext == null ? config.getRegex() : getApplicationContext().getRegex();
 	}
 
 	private static int getIdCounter() {
