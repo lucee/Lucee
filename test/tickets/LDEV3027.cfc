@@ -103,6 +103,37 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="security" {
 				expect( markdownToHTML( "<b>x</b>", false ) ).toInclude( "<b>x</b>" );
 			});
 		});
+		describe( "LDEV-3027 admin search and mapping pages encode user input", function() {
+
+			var adminDir = getDirectoryFromPath( getCurrentTemplatePath() ) & "../../core/src/main/cfml/context/admin/";
+			var raw = {
+				"admin.search.cfm": [ "##url.q##" ],
+				"resources.mappings.list.cfm": [ "##mappings.virtual##", "##mappings.strPhysical##", "##mappings.strArchive##", "virtual=##mappings.virtual" ],
+				// value="" of cfinputClassic is encoded by the tag itself (encodeValue=true)
+				"resources.mappings.edit.cfm": [ "##mapping.virtual##", "title=""##mapping.", "##cut(mapping", ':"##mapping.str', """##mapping.strPhysical##""</span>", "##url.action2##" ]
+			};
+
+			loop collection=raw key="local.page" value="local.patterns" {
+				it( title="#page# has no raw output of user values", data={ page: page, patterns: patterns, dir: adminDir }, body=function( data ) {
+					if ( !fileExists( data.dir & data.page ) ) return; // admin source not available in this setup
+					var src = fileRead( data.dir & data.page );
+					loop array=data.patterns item="local.p" {
+						expect( src ).notToInclude( p, "raw output [#p#] in #data.page#" );
+					}
+					expect( src ).toInclude( "encodeFor" );
+				});
+			}
+
+			it( title="search highlight still works on encoded text", body=function( currentSpec ) {
+				var q = "<img src=x onerror=alert(1)>";
+				var tmp = "before #q# after";
+				var res = replaceNoCase( encodeForHTML( tmp ), encodeForHTML( q ), "<b>#encodeForHTML( q )#</b>", "all" );
+				expect( res ).notToInclude( "<img" );
+				expect( res ).toInclude( "<b>&lt;img" );
+				res = replaceNoCase( encodeForHTML( "the Mapping page" ), encodeForHTML( "mapping" ), "<b>#encodeForHTML( "mapping" )#</b>", "all" );
+				expect( res ).toInclude( "<b>mapping</b>" );
+			});
+		});
 	}
 
 	private struct function renderError( required string payload, required string mode, required string errorTemplate ) {
