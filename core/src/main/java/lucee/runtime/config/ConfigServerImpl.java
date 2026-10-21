@@ -427,8 +427,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private static Prop<LoggerAndSourceData> metaLoggers = Prop.custom(LogFactory.getInstance(), Prop.TYPE_MAP).keys("loggers").logGlobal().lowerCaseKeys()
 			.description("definition of all logs for Lucee");
 	private volatile Map<String, LoggerAndSourceData> loggers;
-	// the loggers that were dropped by resetLoggers, they are closed (or reused when unchanged) when the loggers are loaded again
-	private Map<String, LoggerAndSourceData> droppedLoggers;
+	// LDEV-6673: the loggers dropped by resetLoggers(), reused (unchanged) or closed by the next load
+	private Map<String, LoggerAndSourceData> retiredLoggers;
 	private static Prop<ClassDefinition> metaLogEngineClassDef = Prop.custom(ClassDefinitionFactory.getInstance("engine")).keys("logEngine").defaultValue(null)
 			.description("Defines the log engine used by Lucee to create the loggers. By default, a simple built-in engine is used (console and file appenders), an extension like the Log4j extension can replace it "
 					+ "to support more appenders and layouts. This property uses a standard ClassDefinition, allowing the engine to be loaded via OSGi bundles or Maven coordinates.");
@@ -6657,8 +6657,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					insideLoggers.set(true);
 					try {
 						Map<String, LoggerAndSourceData> loaded = metaLoggers.map(this, root);
-						reconcileLoggers(droppedLoggers, loaded);
-						droppedLoggers = null;
+						reconcileLoggers(retiredLoggers, loaded);
+						retiredLoggers = null;
 						loggers = loaded;
 					}
 					finally {
@@ -6674,7 +6674,10 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (loggers != null) {
 			synchronized (SystemUtil.createToken("config", "loggers")) {
 				if (loggers != null) {
-					droppedLoggers = loggers;
+					// LDEV-6673: keep the old loggers so the next load can reuse unchanged ones and close the rest,
+					// otherwise every reload opens a second appender per log file
+					if (retiredLoggers == null) retiredLoggers = loggers;
+					else retiredLoggers.putAll(loggers);
 					loggers = null;
 				}
 			}
@@ -6682,22 +6685,43 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		return loggers;
 	}
 
+	private void closeRetiredLoggers() {
+		Map<String, LoggerAndSourceData> retired;
+		synchronized (SystemUtil.createToken("config", "loggers")) {
+			retired = retiredLoggers;
+			retiredLoggers = null;
+		}
+		if (retired == null) return;
+		for (LoggerAndSourceData las: retired.values()) {
+			try {
+				las.close();
+			}
+			catch (Exception e) {
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "loggers", e);
+			}
+		}
+	}
+
 	/**
-	 * a logger that did not change keeps its appender, otherwise the appender of the dropped logger
-	 * would stay open next to the new one (LDEV-6673), the appenders of changed or removed loggers are
-	 * closed
+	 * LDEV-6673: an unchanged logger (same id) keeps its appender, changed or removed configured loggers
+	 * are closed, loggers created on demand are kept
 	 */
-	private static void reconcileLoggers(Map<String, LoggerAndSourceData> dropped, Map<String, LoggerAndSourceData> loaded) {
-		if (dropped == null) return;
-		for (Entry<String, LoggerAndSourceData> e: dropped.entrySet()) {
+	private static void reconcileLoggers(Map<String, LoggerAndSourceData> retired, Map<String, LoggerAndSourceData> loaded) {
+		if (retired == null) return;
+		for (Entry<String, LoggerAndSourceData> e: retired.entrySet()) {
 			LoggerAndSourceData old = e.getValue();
 			LoggerAndSourceData created = loaded.get(e.getKey());
+			if (created == old) continue;
 			try {
-				if (created != null && created != old && old.id().equals(created.id())) {
+				if (created == null) {
+					if (old.getDyn()) loaded.put(e.getKey(), old);
+					else old.close();
+				}
+				else if (old.id().equals(created.id())) {
 					loaded.put(e.getKey(), old);
 					created.close();
 				}
-				else if (created != old) old.close();
+				else old.close();
 			}
 			catch (Exception ex) {
 				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "loggers", ex);
@@ -6736,30 +6760,20 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) throws PageException {
-		LoggerAndSourceData las = getLoggers().get(name.toLowerCase());
+		Map<String, LoggerAndSourceData> map = getLoggers();
+		String lcName = name.toLowerCase();
+		LoggerAndSourceData las = map.get(lcName);
 		if (las == null) {
 			if (!createIfNecessary) return null;
-
-			ClassDefinition appender = getLogEngine().appenderClassDefintion("console");
-			ClassDefinition layout = getLogEngine().layoutClassDefintion("pattern");
-			las = LogFactory.createLogger(this, name, Log.LEVEL_ERROR, appender, null, layout, null, true, true, Prop.SOURCE_INTERNAL);
-
-			String id = LoggerAndSourceData.id(name.toLowerCase(), appender, null, layout, null, Log.LEVEL_ERROR, true);
-			LoggerAndSourceData existing = loggers != null ? loggers.get(name.toLowerCase()) : null;
-			if (existing != null) {
-				if (existing.id().equals(id)) {
-					// the new one opened its appender, it is not used
-					try {
-						las.close();
-					}
-					catch (Exception e) {
-						LogUtil.logGlobal(this, "loggers", e);
-					}
-					return existing;
-				}
-				existing.close();
+			// LDEV-6673: create under the lock, re-check and keep it in the map, so concurrent or repeated callers do not each open an appender
+			synchronized (SystemUtil.createToken("config", "loggers")) {
+				las = map.get(lcName);
+				if (las != null) return las.init();
+				ClassDefinition appender = getLogEngine().appenderClassDefintion("console");
+				ClassDefinition layout = getLogEngine().layoutClassDefintion("pattern");
+				las = LogFactory.createLogger(this, name, Log.LEVEL_ERROR, appender, null, layout, null, true, true, Prop.SOURCE_INTERNAL);
+				map.put(lcName, las);
 			}
-
 		}
 		return las.init();
 	}
@@ -7244,6 +7258,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 				if (wanted.equals(logEngineId)) return this;
 			}
 			clearLoggers(null);
+			// LDEV-6673: loggers kept by resetLoggers() belong to the old engine, they must not be reused by the new one
+			closeRetiredLoggers();
 			consoleLayouts.clear();
 			resourceLayouts.clear();
 			logEngine = null;
