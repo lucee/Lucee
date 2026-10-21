@@ -9,7 +9,7 @@ on:
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
-        default: '21'
+        default: '11'
   push:
     branches:
       - '**' # thus ignoring tagging
@@ -19,7 +19,7 @@ on:
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
-        default: '21'
+        default: '11'
       LUCEE_TEST_JAVA_VERSION:
         description: Optional Java Test version, default is the build java version
         required: false
@@ -35,8 +35,8 @@ jobs:
     env:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/6.2') }}"
-      LUCEE_BUILD_JAVA_VERSION: 21
-      LUCEE_TEST_JAVA_VERSION: ''
+      LUCEE_BUILD_JAVA_VERSION: 11
+      LUCEE_TEST_JAVA_VERSION: 21
     services:
       ldap:
         image: ghcr.io/lucee/test-openldap:test-mirror
