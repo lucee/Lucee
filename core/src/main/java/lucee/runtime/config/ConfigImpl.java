@@ -223,6 +223,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private Boolean mergeFormAndURL;
 
 	private volatile Map<String, LoggerAndSourceData> loggers;
+	private Map<String, LoggerAndSourceData> retiredLoggers;
 
 	private Integer debugLogOutput;
 	private volatile Integer debugOptions;
@@ -5563,11 +5564,26 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (loggers != null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "loggers")) {
 				if (loggers != null) {
+					// LDEV-6673: keep the old loggers so the next load can reuse unchanged ones and close the rest,
+					// otherwise every reload opens a second appender per log file
+					if (retiredLoggers == null) retiredLoggers = loggers;
+					else retiredLoggers.putAll(loggers);
 					loggers = null;
 				}
 			}
 		}
 		return loggers;
+	}
+
+	/**
+	 * LDEV-6673: returns (and forgets) the loggers dropped by resetLoggers(), never null
+	 */
+	protected Map<String, LoggerAndSourceData> takeRetiredLoggers() {
+		synchronized (SystemUtil.createToken("ConfigImpl", "loggers")) {
+			Map<String, LoggerAndSourceData> tmp = retiredLoggers;
+			retiredLoggers = null;
+			return tmp == null ? new HashMap<String, LoggerAndSourceData>() : tmp;
+		}
 	}
 
 	@Override
@@ -5600,11 +5616,17 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) throws PageException {
-		LoggerAndSourceData las = getLoggers().get(name.toLowerCase());
+		Map<String, LoggerAndSourceData> map = getLoggers();
+		LoggerAndSourceData las = map.get(name.toLowerCase());
 		if (las == null) {
 			if (!createIfNecessary) return null;
-			return ConfigFactoryImpl.addLogger(this, loggers, name, Log.LEVEL_ERROR, getLogEngine().appenderClassDefintion("console"), null,
+			// LDEV-6673: create under the lock and re-check, so concurrent callers do not each open an appender
+			synchronized (SystemUtil.createToken("ConfigImpl", "loggers")) {
+				las = map.get(name.toLowerCase());
+				if (las != null) return las;
+				return ConfigFactoryImpl.addLogger(this, map, name, Log.LEVEL_ERROR, getLogEngine().appenderClassDefintion("console"), null,
 					getLogEngine().layoutClassDefintion("pattern"), null, true, true);
+			}
 		}
 		return las;
 	}
