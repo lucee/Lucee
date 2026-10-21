@@ -1498,7 +1498,9 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		config.clearLoggers(Boolean.FALSE);
 		Set<String> existing = new HashSet<>();
 
-		Map<String, LoggerAndSourceData> loggerMap = new HashMap<String, LoggerAndSourceData>();
+		// LDEV-6673: start from the loggers dropped by resetLoggers(); addLogger() reuses unchanged ones (same id)
+		// and closes changed ones, loggers no longer configured are closed below
+		Map<String, LoggerAndSourceData> loggerMap = config.takeRetiredLoggers();
 		try {
 			// loggers
 			Struct loggers = ConfigUtil.getAsStruct("loggers", root);
@@ -1564,6 +1566,19 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			LogUtil.logGlobal(config, ConfigFactoryImpl.class.getName(), t);
+		}
+		// LDEV-6673: close configured loggers that were removed from the config (dynamic ones are kept)
+		Iterator<Entry<String, LoggerAndSourceData>> itl = loggerMap.entrySet().iterator();
+		Entry<String, LoggerAndSourceData> el;
+		while (itl.hasNext()) {
+			el = itl.next();
+			if (!el.getValue().getDyn() && !existing.contains(el.getKey())) {
+				try {
+					el.getValue().close();
+				}
+				catch (Exception ex) {}
+				itl.remove();
+			}
 		}
 		return loggerMap;
 	}
