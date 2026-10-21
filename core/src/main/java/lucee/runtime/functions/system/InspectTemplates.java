@@ -40,6 +40,10 @@ public final class InspectTemplates extends BIF implements Function {
 		// clear cached Application.cfc mapping-path resolutions so the next request re-validates
 		config.clearResolvedMappingPaths();
 
+		// clear the cached Application.cfc/cfm lookups (see applicationPathCacheClear()), otherwise a
+		// newly added or removed Application.cfc is only picked up once the cache times out (LDEV-5461)
+		config.clearApplicationCache();
+
 		// application
 		reset(config, config.getApplicationMappings());
 
