@@ -24,6 +24,9 @@ import java.io.InputStream;
 import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +36,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.log.slf4j.SLF4JBridge;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassUtil.ClassLoading;
 import lucee.runtime.PageSourcePool;
@@ -82,6 +86,9 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 	private boolean rpc;
 
 	public final String id;
+
+	// LDEV-6664 null until checked if this classloader needs the SLF4J 2.x bridge
+	private volatile Boolean slf4jBridge;
 
 	PhysicalClassLoader(String key, Config c, List<Resource> resources, Resource directory, ClassLoader parentClassLoader, ClassLoader addionalClassLoader, boolean rpc)
 			throws IOException {
@@ -260,6 +267,15 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 			// Check again after acquiring lock
 			c = findLoadedClass(name);
 			if (c != null) {
+				if (resolve) resolveClass(c);
+				return c;
+			}
+
+			// LDEV-6664 the SLF4J provider classes are defined in this classloader, so they link against the
+			// slf4j-api from the Maven jars
+			if (SLF4JBridge.isBridgeClass(name) && hasSLF4JBridge()) {
+				byte[] barr = SLF4JBridge.getBytecode(name);
+				c = defineClass(name, barr, 0, barr.length);
 				if (resolve) resolveClass(c);
 				return c;
 			}
@@ -451,6 +467,33 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 	 * 
 	 * if (f != null) { return ResourceUtil.toURL(f, null); } return null; }
 	 */
+
+	private boolean hasSLF4JBridge() {
+		Boolean b = slf4jBridge;
+		if (b == null) {
+			try {
+				b = SLF4JBridge.applies(this, super.findResource(SLF4JBridge.SLF4J2_MARKER), super.findResources(SLF4JBridge.SERVICE_FILE));
+			}
+			catch (IOException e) {
+				LogUtil.trace("physical-classloader", e);
+				b = Boolean.FALSE;
+			}
+			slf4jBridge = b;
+		}
+		return b.booleanValue();
+	}
+
+	@Override
+	public Enumeration<URL> findResources(String name) throws IOException {
+		Enumeration<URL> res = super.findResources(name);
+		// LDEV-6664 register the Lucee SLF4J provider for slf4j-api 2.x loaded from Maven jars
+		if (SLF4JBridge.SERVICE_FILE.equals(name) && hasSLF4JBridge()) {
+			List<URL> list = new ArrayList<>(Collections.list(res));
+			list.add(SLF4JBridge.getServiceFileURL());
+			return Collections.enumeration(list);
+		}
+		return res;
+	}
 
 	@Override
 	public InputStream getResourceAsStream(String name) {

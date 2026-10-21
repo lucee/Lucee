@@ -18,13 +18,10 @@
  **/
 package lucee.commons.date;
 
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 
 import lucee.commons.i18n.FormatUtil;
@@ -57,8 +54,6 @@ public abstract class DateTimeUtil {
 	public static final int QUARTER = 20;
 	public static final int MILLISECOND = 30;
 
-	private static final Map<String, ZoneId> zones = new HashMap<>();
-
 	/**
 	 * Unix timestamp representing the last moment when it was 1899-12-30 23:59:59 anywhere on Earth.
 	 * This corresponds to 1899-12-31 11:59:59 UTC (in the UTC-12 timezone).
@@ -74,62 +69,32 @@ public abstract class DateTimeUtil {
 	 * issues.
 	 * 
 	 * When Lucee's createTime() function creates a Time object, it uses 1899-12-30 as the base date.
-	 * This can trigger historical timezone rules that are confusing to users who expect modern timezone
-	 * behavior. For dates before the last moment of 1899, this method returns a fixed offset based on
-	 * the standard time (winter time, no DST) of the timezone.
+	 * This can trigger historical timezone rules (local mean time) that are confusing to users who
+	 * expect modern timezone behavior. For dates before the last moment of 1899, this method returns
+	 * the fixed offset java.util.TimeZone/Calendar uses for that instant, which is the same offset
+	 * that was used to create the value (JREDateTimeUtil._toTime), so a time renders as the
+	 * hour/minute it was created with (LDEV-6570). Not cached, so a timezone rule change (e.g.
+	 * America/Vancouver with tzdata 2026b) is picked up without a restart.
 	 * 
 	 * @param zone The original ZoneId
 	 * @param date The date to check (must be instanceof Time for conversion)
 	 * @return Fixed ZoneOffset for old synthetic dates, or original ZoneId for normal dates
 	 */
 	public static ZoneId toOffsetIfNeeded(ZoneId zone, Date date) {
-
-		if (date instanceof Time && date.getTime() <= LAST_1899_MOMENT_UTC) {
-			String cacheKey = zone.toString();
-			ZoneId cachedOffset = zones.get(cacheKey);
-
-			if (cachedOffset == null) {
-				synchronized (zones) {
-					cachedOffset = zones.get(cacheKey);
-					if (cachedOffset == null) {
-						// Use standard offset (winter time, no DST) for synthetic old dates
-						// DST didn't exist in 1899, and using a fixed offset avoids confusion
-						int rawOffsetSeconds = zone.getRules().getStandardOffset(Instant.now()).getTotalSeconds();
-						cachedOffset = ZoneOffset.ofTotalSeconds(rawOffsetSeconds);
-						zones.put(cacheKey, cachedOffset);
-					}
-				}
-			}
-			return cachedOffset;
-		}
-
+		if (date instanceof Time && date.getTime() <= LAST_1899_MOMENT_UTC) return toSyntheticOffset(zone, date.getTime());
 		// Return original zone for normal (non-synthetic) dates
 		return zone;
 	}
 
 	public static ZoneId toOffsetIfNeeded(ZoneId zone, long time) {
-
-		if (time <= LAST_1899_MOMENT_UTC) {
-			String cacheKey = zone.toString();
-			ZoneId cachedOffset = zones.get(cacheKey);
-
-			if (cachedOffset == null) {
-				synchronized (zones) {
-					cachedOffset = zones.get(cacheKey);
-					if (cachedOffset == null) {
-						// Use standard offset (winter time, no DST) for synthetic old dates
-						// DST didn't exist in 1899, and using a fixed offset avoids confusion
-						int rawOffsetSeconds = zone.getRules().getStandardOffset(Instant.now()).getTotalSeconds();
-						cachedOffset = ZoneOffset.ofTotalSeconds(rawOffsetSeconds);
-						zones.put(cacheKey, cachedOffset);
-					}
-				}
-			}
-			return cachedOffset;
-		}
-
+		if (time <= LAST_1899_MOMENT_UTC) return toSyntheticOffset(zone, time);
 		// Return original zone for normal (non-synthetic) dates
 		return zone;
+	}
+
+	private static ZoneId toSyntheticOffset(ZoneId zone, long time) {
+		if (zone instanceof ZoneOffset) return zone;
+		return ZoneOffset.ofTotalSeconds(TimeZone.getTimeZone(zone).getOffset(time) / 1000);
 	}
 
 	private static DateTimeUtil instance;

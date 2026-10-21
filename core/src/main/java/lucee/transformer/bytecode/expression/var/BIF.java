@@ -34,6 +34,7 @@ public final class BIF extends FunctionMember {
 	private ClassDefinition cd;
 	private String returnType = ANY;
 	private FunctionLibFunction flf;
+	private ExprString originalName; // LDEV-6041: preserve original parsed name for AST
 
 	private final Factory factory;
 
@@ -110,8 +111,19 @@ public final class BIF extends FunctionMember {
 		this.flf = flf;
 	}
 
+	/**
+	 * LDEV-6041: Store original parsed name for AST round-tripping
+	 */
+	public void setOriginalName(ExprString name) {
+		this.originalName = name;
+	}
+
 	@Override
 	public ExprString getName() {
+		// LDEV-6041: Return original name if available (preserves case for AST)
+		if (originalName != null) {
+			return originalName;
+		}
 		return factory.createLitString(flf.getName());
 	}
 }

@@ -450,7 +450,7 @@ public final class XMLUtil {
 					obj = features.get(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
 					Object obj2 = features.get(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF, null);
 					if (obj != null && obj2 != null) {
-						if (Caster.toBoolean(obj) != Caster.toBoolean(obj2))
+						if (Caster.toBooleanValue(obj) != Caster.toBooleanValue(obj2))
 							throw new ExpressionException("When both externalGeneralEntities and allowExternalEntities are set, they must match ");
 						externalGeneralEntities = Caster.toBoolean(obj);
 					}

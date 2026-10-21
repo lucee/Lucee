@@ -47,7 +47,7 @@ public final class HSQLUtil {
 	 * @param sql SQl Statement as String
 	 */
 	public HSQLUtil(String sql) {
-		this.sql = SQLPrettyfier.prettyfie(sql, true);// sqlToZQL(sql,true);
+		this.sql = SQLPrettyfier.prettyfie(stripCastTypes(sql), true);// sqlToZQL(sql,true);
 		parser = new ZqlParser(new ByteArrayInputStream(this.sql.getBytes()));
 	}
 
@@ -150,5 +150,100 @@ public final class HSQLUtil {
 			if (el instanceof ZExpression) parseZExpression((ZExpression) el, tablesNames);
 			else if (el instanceof ZQuery) getInvokedTables((ZQuery) el, tablesNames);
 		}
+	}
+
+	/**
+	 * the ZQL parser used to find the invoked tables does not understand "cast(expr AS type)", so it is
+	 * reduced to "(expr)" for that parsing only, the SQL executed by HSQLDB is not changed
+	 */
+	static String stripCastTypes(String sql) {
+		if (sql == null || sql.toLowerCase().indexOf("cast") == -1) return sql;
+		StringBuilder sb = new StringBuilder(sql.length());
+		int len = sql.length();
+		int i = 0;
+		while (i < len) {
+			char c = sql.charAt(i);
+			if (c == '\'' || c == '"') {
+				int end = skipString(sql, i);
+				sb.append(sql, i, end);
+				i = end;
+				continue;
+			}
+			if ((c == 'c' || c == 'C') && sql.regionMatches(true, i, "cast", 0, 4) && (i == 0 || !isIdentifierPart(sql.charAt(i - 1)))) {
+				int open = i + 4;
+				while (open < len && Character.isWhitespace(sql.charAt(open))) open++;
+				if (open < len && sql.charAt(open) == '(') {
+					int close = findClose(sql, open);
+					int as = close == -1 ? -1 : findTopLevelAs(sql, open + 1, close);
+					if (as != -1) {
+						sb.append('(');
+						sb.append(stripCastTypes(sql.substring(open + 1, as)));
+						sb.append(')');
+						i = close + 1;
+						continue;
+					}
+				}
+			}
+			sb.append(c);
+			i++;
+		}
+		return sb.toString();
+	}
+
+	private static int skipString(String sql, int start) {
+		char q = sql.charAt(start);
+		int i = start + 1;
+		while (i < sql.length()) {
+			if (sql.charAt(i) == q) {
+				if (i + 1 < sql.length() && sql.charAt(i + 1) == q) {
+					i += 2;
+					continue;
+				}
+				return i + 1;
+			}
+			i++;
+		}
+		return sql.length();
+	}
+
+	private static int findClose(String sql, int open) {
+		int depth = 0;
+		int i = open;
+		while (i < sql.length()) {
+			char c = sql.charAt(i);
+			if (c == '\'' || c == '"') {
+				i = skipString(sql, i);
+				continue;
+			}
+			if (c == '(') depth++;
+			else if (c == ')' && --depth == 0) return i;
+			i++;
+		}
+		return -1;
+	}
+
+	private static int findTopLevelAs(String sql, int start, int end) {
+		int depth = 0;
+		int last = -1;
+		int i = start;
+		while (i < end) {
+			char c = sql.charAt(i);
+			if (c == '\'' || c == '"') {
+				i = skipString(sql, i);
+				continue;
+			}
+			if (c == '(') depth++;
+			else if (c == ')') depth--;
+			else if (depth == 0 && (c == 'a' || c == 'A') && i + 2 < end && sql.regionMatches(true, i, "as", 0, 2) && i > start && Character.isWhitespace(sql.charAt(i - 1))
+					&& Character.isWhitespace(sql.charAt(i + 2))) {
+				last = i;
+			}
+			i++;
+		}
+		return last;
+	}
+
+	private static boolean isIdentifierPart(char c) {
+		return Character.isLetterOrDigit(c) || c == '_' || c == '.';
 	}
 }
