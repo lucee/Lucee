@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="log" {
 	function run( testResults, testBox ) {
 		describe( "LDEV-6673: reloading the logger config must not open a second appender per log", function() {
 			it( "resetLoggers() keeps unchanged loggers instead of creating new ones", function() {
-				var config = getPageContext().getConfig();
+				var config = createObject( "java", "lucee.runtime.config.ConfigUtil" ).getConfigServerImpl( getPageContext().getConfig() );
 				var sys = createObject( "java", "java.lang.System" );
 				var before = config.getLoggers().get( "application" );
 				expect( isNull( before ) ).toBeFalse();
