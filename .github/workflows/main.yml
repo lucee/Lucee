@@ -50,7 +50,7 @@ jobs:
       S3_DOWNLOAD_BUCKET: lucee-downloads
       S3_DOWNLOAD_REGION: us-east-1
       LUCEE_BUILD_JAVA_VERSION: 11
-      LUCEE_TEST_JAVA_VERSION: ''
+      LUCEE_TEST_JAVA_VERSION: 21
     services:
       ldap:
         image: ghcr.io/lucee/test-openldap:test-mirror
