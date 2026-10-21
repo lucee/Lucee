@@ -41,7 +41,7 @@ jobs:
     env:
       DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/7.0') }}"
       LUCEE_BUILD_JAVA_VERSION: 11
-      LUCEE_TEST_JAVA_VERSION: ''
+      LUCEE_TEST_JAVA_VERSION: 21
     services:
       ldap:
         image: ghcr.io/lucee/test-openldap:test-mirror
