@@ -32,11 +32,11 @@
 							</td>
 							<!--- virtual --->
 							<td nowrap="nowrap">
-								<input type="hidden" name="virtual_#mappings.currentrow#" value="#mappings.virtual#">
+								<input type="hidden" name="virtual_#mappings.currentrow#" value="#encodeForHTMLAttribute(mappings.virtual)#">
 								<cfif len(mappings.virtual) gt 19>
-									<abbr title="#mappings.virtual#">#cut(mappings.virtual, 16)#...</abbr>
+									<abbr title="#encodeForHTMLAttribute(mappings.virtual)#">#encodeForHTML(cut(mappings.virtual, 16))#...</abbr>
 								<cfelse>
-									#mappings.virtual#
+									#encodeForHTML(mappings.virtual)#
 								</cfif>
 							</td>
 							
@@ -44,18 +44,18 @@
 							<cfset css=iif(len(mappings.physical) EQ 0 and len(mappings.strPhysical) NEQ 0,de('Red'),de(''))>
 							<td class="tblContent#css# longwords">
 								<cfif FALSE and len(mappings.strPhysical) gt 39>
-									<abbr title="#mappings.strPhysical#">#left(mappings.strPhysical, 20)#...#right(mappings.strPhysical, 16)#</abbr>
+									<abbr title="#encodeForHTMLAttribute(mappings.strPhysical)#">#encodeForHTML(left(mappings.strPhysical, 20))#...#encodeForHTML(right(mappings.strPhysical, 16))#</abbr>
 								<cfelse>
-									#mappings.strPhysical#
+									#encodeForHTML(mappings.strPhysical)#
 								</cfif>
 							</td>
 							<!--- archive --->
 							<cfset css=iif(len(mappings.archive) EQ 0 and len(mappings.strArchive) NEQ 0,de('Red'),de(''))>
 							<td class="tblContent#css# longwords">
 								<cfif FALSE and len(mappings.strArchive) gt 39>
-									<abbr title="#mappings.strArchive#">#left(mappings.strArchive, 20)#...#right(mappings.strArchive, 16)#</abbr>
+									<abbr title="#encodeForHTMLAttribute(mappings.strArchive)#">#encodeForHTML(left(mappings.strArchive, 20))#...#encodeForHTML(right(mappings.strArchive, 16))#</abbr>
 								<cfelse>
-									#mappings.strArchive#
+									#encodeForHTML(mappings.strArchive)#
 								</cfif>
 							</td>
 							<!--- primary --->
@@ -89,7 +89,7 @@
 							<!--- edit --->
 							<td>
 								<cfif not mappings.readOnly>
-									#renderEditButton("#request.self#?action=#url.action#&action2=create&virtual=#mappings.virtual#")#
+									#renderEditButton("#request.self#?action=#url.action#&action2=create&virtual=#encodeForURL(mappings.virtual)#")#
 								</cfif>
 							</td>
 						</tr>
