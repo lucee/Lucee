@@ -117,16 +117,6 @@
       <artifactId>commons-pool2</artifactId>
       <version>2.13.1</version>
     </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>log4j-core</artifactId>
-    <version>2.26.0</version>
-  </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>log4j-api</artifactId>
-    <version>2.26.0</version>
-  </dependency>
     <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>httpcomponents-httpclient</artifactId>
@@ -145,6 +135,11 @@
     	<version>4.5.14</version>
       <scope>provided</scope>
     </dependency>
+  <dependency>
+    <groupId>org.lucee</groupId>
+    <artifactId>log4j-api</artifactId>
+    <version>2.26.0</version>
+  </dependency>
     <dependency>
       <groupId>org.lucee</groupId>
       <artifactId>commons-logging</artifactId>

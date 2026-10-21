@@ -438,4 +438,9 @@ public final class ResourceUtilImpl implements lucee.runtime.util.ResourceUtil {
 	public ResourceProvider getFileResourceProvider() {
 		return ResourcesImpl.getFileResourceProvider();
 	}
+
+	@Override
+	public Resource toConfigResource(lucee.runtime.config.Config config, Resource directory, String path, short type) {
+		return lucee.runtime.config.ConfigUtil.getFile(config, directory, lucee.runtime.config.ConfigUtil.translateOldPath(path), type);
+	}
 }
