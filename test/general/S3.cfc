@@ -70,10 +70,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 					if ( !structCount( error ) ) return;
 					// only connection-level problems (S3 not responding, dropped TLS handshake) are retried / skipped,
 					// anything else is a real failure
-					if ( !isTransientConnectionError( error ) ) throw (message="testcase failed", cause=error);
+					// never hide the real problem: surface type, message, detail and the full cause chain
+					if ( !isTransientConnectionError( error ) ) {
+						throw ( type=( error.type ?: "S3TestFailure" ), message="S3 100 threads test failed (attempt #attempt#): " & describeError( error, cred.SECRET_KEY ), detail=replace( ( error.detail ?: "" ), cred.SECRET_KEY, "***", "all" ), cause=error );
+					}
 					if ( attempt < maxAttempts ) sleep( 1000 * attempt );
 				}
-				skip( "S3 not reachable after #maxAttempts# attempts: #error.message#" );
+				skip( "S3 not reachable after #maxAttempts# attempts: " & describeError( error, cred.SECRET_KEY ) );
 			});
 		});
 	}
@@ -94,6 +97,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 			try { current = current.getCause(); } catch ( ignore ) { current = current.cause ?: nullValue(); }
 		}
 		return false;
+	}
+
+	// LDEV-6667 render an exception and its cause chain, so the test output shows the real error
+	private string function describeError( required any e, string secret="" ) {
+		var parts = [];
+		var current = arguments.e;
+		var depth = 0;
+		while ( !isNull( current ) && depth++ < 10 ) {
+			var cls = "";
+			var msg = "";
+			try { cls = current.getClass().getName(); msg = current.getMessage() ?: ""; } catch ( ignore ) {}
+			var line = "[" & ( current.type ?: cls ) & "] " & ( current.message ?: msg );
+			if ( len( current.detail ?: "" ) ) line &= " (detail: " & current.detail & ")";
+			if ( len( cls ) && !findNoCase( cls, line ) ) line &= " {" & cls & "}";
+			arrayAppend( parts, line );
+			var next = nullValue();
+			try { next = current.getCause(); } catch ( ignore ) { next = current.cause ?: nullValue(); }
+			current = next ?: nullValue();
+		}
+		var result = arrayToList( parts, " <- caused by: " );
+		// the s3:// path carries the credentials, never leak them into the test output
+		return len( arguments.secret ) ? replace( result, arguments.secret, "***", "all" ) : result;
 	}
 
 	private struct function getCredentials() {
