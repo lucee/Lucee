@@ -9,7 +9,7 @@ on:
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
-        default: '25'
+        default: '21'
   push:
     branches:
       - '**' # thus ignoring tagging
@@ -19,7 +19,7 @@ on:
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
-        default: '25'
+        default: '21'
       LUCEE_TEST_JAVA_VERSION:
         description: Optional Java Test version, default is the build java version
         required: false
@@ -51,7 +51,7 @@ jobs:
       # bucket behind cdn.lucee.org (ant/upload_to_s3.cfm uploads the build there, see LDEV-6537 for the cut-off)
       S3_DOWNLOAD_BUCKET: lucee-downloads
       S3_DOWNLOAD_REGION: us-east-1
-      LUCEE_BUILD_JAVA_VERSION: 25
+      LUCEE_BUILD_JAVA_VERSION: 21
       LUCEE_TEST_JAVA_VERSION: ''
     services:
       ldap:
