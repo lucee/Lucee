@@ -125,6 +125,7 @@ public final class TagLibTag {
 	private String bundleName;
 	private Version bundleVersion;
 	private Version introduced;
+	private String source;
 
 	public TagLibTag duplicate(boolean cloneAttributes) {
 		TagLibTag tlt = new TagLibTag(tagLib);
@@ -155,6 +156,7 @@ public final class TagLibTag {
 		tlt.tttConstructor = tttConstructor;
 		tlt.allowRemovingLiteral = allowRemovingLiteral;
 		tlt.status = status;
+		tlt.source = source;
 
 		tlt.eval = null;
 		tlt.tdbt = null;
@@ -481,6 +483,16 @@ public final class TagLibTag {
 	 */
 	public TagLib getTagLib() {
 		return tagLib;
+	}
+
+	public String getSource() {
+		if (source != null) return source;
+		if (tagLib != null) return tagLib.getSource();
+		return null;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
 	}
 
 	/**
