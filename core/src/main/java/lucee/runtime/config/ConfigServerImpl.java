@@ -421,6 +421,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private static Prop<LoggerAndSourceData> metaLoggers = Prop.custom(LogFactory.getInstance(), Prop.TYPE_MAP).keys("loggers").logGlobal().lowerCaseKeys()
 			.description("definition of all logs for Lucee");
 	private volatile Map<String, LoggerAndSourceData> loggers;
+	// LDEV-6673: the loggers dropped by resetLoggers(), reused (unchanged) or closed by the next load
+	private Map<String, LoggerAndSourceData> retiredLoggers;
 	private static LogEngine logEngine;
 
 	private static Prop<Boolean> metaDebugLogOutput = Prop.bool().keys("debuggingLogOutput").defaultValue(false).description(
@@ -6539,7 +6541,10 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					}
 					insideLoggers.set(true);
 					try {
-						loggers = metaLoggers.map(this, root);
+						Map<String, LoggerAndSourceData> loaded = metaLoggers.map(this, root);
+						reconcileLoggers(retiredLoggers, loaded);
+						retiredLoggers = null;
+						loggers = loaded;
 					}
 					finally {
 						insideLoggers.set(false);
@@ -6554,11 +6559,42 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (loggers != null) {
 			synchronized (SystemUtil.createToken("config", "loggers")) {
 				if (loggers != null) {
+					// LDEV-6673: keep the old loggers so the next load can reuse unchanged ones and close the rest,
+					// otherwise every reload opens a second appender per log file
+					if (retiredLoggers == null) retiredLoggers = loggers;
+					else retiredLoggers.putAll(loggers);
 					loggers = null;
 				}
 			}
 		}
 		return loggers;
+	}
+
+	/**
+	 * LDEV-6673: an unchanged logger (same id) keeps its appender, changed or removed configured loggers
+	 * are closed, loggers created on demand are kept
+	 */
+	private static void reconcileLoggers(Map<String, LoggerAndSourceData> retired, Map<String, LoggerAndSourceData> loaded) {
+		if (retired == null) return;
+		for (Entry<String, LoggerAndSourceData> e: retired.entrySet()) {
+			LoggerAndSourceData old = e.getValue();
+			LoggerAndSourceData created = loaded.get(e.getKey());
+			if (created == old) continue;
+			try {
+				if (created == null) {
+					if (old.getDyn()) loaded.put(e.getKey(), old);
+					else old.close();
+				}
+				else if (old.id().equals(created.id())) {
+					loaded.put(e.getKey(), old);
+					created.close();
+				}
+				else old.close();
+			}
+			catch (Exception ex) {
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "loggers", ex);
+			}
+		}
 	}
 
 	@Override
@@ -6592,23 +6628,20 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) throws PageException {
-		LoggerAndSourceData las = getLoggers().get(name.toLowerCase());
+		Map<String, LoggerAndSourceData> map = getLoggers();
+		String lcName = name.toLowerCase();
+		LoggerAndSourceData las = map.get(lcName);
 		if (las == null) {
 			if (!createIfNecessary) return null;
-
-			ClassDefinition appender = getLogEngine().appenderClassDefintion("console");
-			ClassDefinition layout = getLogEngine().layoutClassDefintion("pattern");
-			las = LogFactory.createLogger(this, name, Log.LEVEL_ERROR, appender, null, layout, null, true, true, Prop.SOURCE_INTERNAL);
-
-			String id = LoggerAndSourceData.id(name.toLowerCase(), appender, null, layout, null, Log.LEVEL_ERROR, true);
-			LoggerAndSourceData existing = loggers != null ? loggers.get(name.toLowerCase()) : null;
-			if (existing != null) {
-				if (existing.id().equals(id)) {
-					return existing;
-				}
-				existing.close();
+			// LDEV-6673: create under the lock, re-check and keep it in the map, so concurrent or repeated callers do not each open an appender
+			synchronized (SystemUtil.createToken("config", "loggers")) {
+				las = map.get(lcName);
+				if (las != null) return las.init();
+				ClassDefinition appender = getLogEngine().appenderClassDefintion("console");
+				ClassDefinition layout = getLogEngine().layoutClassDefintion("pattern");
+				las = LogFactory.createLogger(this, name, Log.LEVEL_ERROR, appender, null, layout, null, true, true, Prop.SOURCE_INTERNAL);
+				map.put(lcName, las);
 			}
-
 		}
 		return las.init();
 	}
