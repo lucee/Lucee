@@ -18,20 +18,19 @@
  **/
 package lucee.commons.net;
 
+import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
-
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.EncoderException;
-import org.apache.commons.codec.net.URLCodec;
+import java.nio.charset.StandardCharsets;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.net.http.ReqRspUtil;
 
 public final class URLDecoder {
+
+	private static final char[] HEX = "0123456789ABCDEF".toCharArray();
 
 	private URLDecoder() {
 	}
@@ -55,17 +54,31 @@ public final class URLDecoder {
 	public static String decode(String s, String enc, boolean force) throws UnsupportedEncodingException, ApplicationException {
 		try {
 			if (!force && !ReqRspUtil.needDecoding(s)) return s;
-			URLCodec codec = new URLCodec(enc);
-			return codec.decode(preprocessInput(codec, s, enc));
+			byte[] bytes = decodeEscapes(preprocessInput(s, enc).getBytes(StandardCharsets.US_ASCII));
+			return new String(bytes, enc);
 		}
-		catch (DecoderException e) {
-			Throwable cause = e.getCause();
-			if (cause instanceof UnsupportedEncodingException) throw (UnsupportedEncodingException) cause;
+		catch (IllegalArgumentException e) {
 			ApplicationException ae = new ApplicationException("Invalid URL encoding in string [" + s + "]");
 			ExceptionUtil.initCauseEL(ae, e);
 			throw ae;
 		}
+	}
 
+	private static byte[] decodeEscapes(byte[] bytes) {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream(bytes.length);
+		for (int i = 0; i < bytes.length; i++) {
+			int b = bytes[i];
+			if (b == '+') baos.write(' ');
+			else if (b == '%') {
+				if (i + 2 >= bytes.length) throw new IllegalArgumentException("Invalid URL encoding: truncated escape");
+				int u = Character.digit((char) bytes[++i], 16);
+				int l = Character.digit((char) bytes[++i], 16);
+				if (u == -1 || l == -1) throw new IllegalArgumentException("Invalid URL encoding: not a valid digit (radix 16)");
+				baos.write((u << 4) + l);
+			}
+			else baos.write(b);
+		}
+		return baos.toByteArray();
 	}
 
 	// old implementation, simply ignores invalid encoding and strip it out and continues
@@ -125,16 +138,8 @@ public final class URLDecoder {
 		return (needToChange ? sb.toString() : s);
 	}
 
-	public static String preprocessInput(URLCodec codec, String input, String encoding) {
+	public static String preprocessInput(String input, String encoding) {
 		StringBuilder result = null;
-		boolean hasEncoding;
-		if (StringUtil.isEmpty(encoding, true)) {
-			encoding = encoding.trim();
-			hasEncoding = true;
-		}
-		else {
-			hasEncoding = false;
-		}
 		try {
 			int length = input.length();
 
@@ -148,14 +153,15 @@ public final class URLDecoder {
 							result.append(input.subSequence(0, i));
 						}
 					}
-					if (hasEncoding) result.append(codec.encode(String.valueOf(c), encoding));
-					else result.append(codec.encode(String.valueOf(c)));
+					for (byte b: String.valueOf(c).getBytes(encoding)) {
+						result.append('%').append(HEX[(b >> 4) & 0xF]).append(HEX[b & 0xF]);
+					}
 				}
 				else if (result != null) result.append(c);
 			}
 
 		}
-		catch (UnsupportedEncodingException | EncoderException uee) {
+		catch (UnsupportedEncodingException uee) {
 			LogUtil.warn("physical-classloader", uee);
 		}
 		return result == null ? input : result.toString();
