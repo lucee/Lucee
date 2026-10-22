@@ -50,6 +50,7 @@ public final class ScheduledTaskThread extends ParentThreasRefThread {
 	private int intervall;
 	private int amount;
 	private boolean stop;
+	private volatile boolean finished;
 
 	private DateTimeUtil util;
 
@@ -89,6 +90,34 @@ public final class ScheduledTaskThread extends ParentThreasRefThread {
 
 	public void setStop(boolean stop) {
 		this.stop = stop;
+	}
+
+	/**
+	 * true when the task has nothing left to do (single execution done or in the past, end date passed
+	 * or invalid definition), so the thread must not be restarted
+	 */
+	public boolean isFinished() {
+		return finished;
+	}
+
+	/**
+	 * checks, before the thread is started, if the task will never execute again (a one off task in
+	 * the past or a task whose end date has passed)
+	 */
+	public boolean isExpired() {
+		long now = System.currentTimeMillis();
+		if (intervall == ScheduleTask.INTERVAL_ONCE && startDate + startTime < now) return true;
+		long nowTime = util.getMilliSecondsInDay(null, now);
+		return hasEndDatePassed(endDate, endTime, now - nowTime, nowTime);
+	}
+
+	/**
+	 * marks the task as done without starting the thread
+	 */
+	public void finish(String msg) {
+		finished = true;
+		log(Log.LEVEL_INFO, msg);
+		task.setValid(false);
 	}
 
 	public void stopIt() {
@@ -153,10 +182,12 @@ public final class ScheduledTaskThread extends ParentThreasRefThread {
 		// check values
 		if (startDate > endDate) {
 			log(Log.LEVEL_ERROR, "Invalid task definition: enddate is before startdate");
+			finished = true;
 			return;
 		}
 		if (intervall == ScheduleTaskImpl.INTERVAL_EVEREY && startTime > endTime) {
 			log(Log.LEVEL_ERROR, "Invalid task definition: endtime is before starttime");
+			finished = true;
 			return;
 		}
 
@@ -166,6 +197,7 @@ public final class ScheduledTaskThread extends ParentThreasRefThread {
 		if (isOnce) {
 			if (startDate + startTime < today) {
 				log(Log.LEVEL_INFO, "not executing task because single execution was in the past");
+				finished = true;
 				return;
 			}
 			execution = startDate + startTime;
@@ -194,12 +226,14 @@ public final class ScheduledTaskThread extends ParentThreasRefThread {
 				if (hasEndDatePassed(endDate, endTime, todayDate, todayTime)) {
 					log(Log.LEVEL_ERROR, String.format("End date %s has passed; now: %s", DateTimeUtil.format(endDate + endTime, null, LogUtil.getTimeZone(config)),
 							DateTimeUtil.format(todayDate + todayTime, null, LogUtil.getTimeZone(config))));
+					finished = true;
 					break;
 				}
 				execute();
 			}
 			if (isOnce) {
 				log(Log.LEVEL_INFO, "ending task after a single execution");
+				finished = true;
 				break;
 			}
 			today = System.currentTimeMillis();
