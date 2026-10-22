@@ -200,7 +200,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private static final boolean IS_WINDOWS = SystemUtil.isWindows();
 
 	static {
+		System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
 		System.setProperty("javax.xml.bind.context.factory", "com.sun.xml.bind.v2.ContextFactory");
+
+		// Force specific factory + log implementation
+		System.setProperty("org.apache.commons.logging.LogFactory", "org.apache.commons.logging.impl.LogFactoryImpl");
+		System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
+		System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "warn");
 
 		// Network/DNS Optimizations
 		System.setProperty("sun.net.inetaddr.ttl", "300"); // Cache DNS for 5 mins
