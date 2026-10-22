@@ -25,6 +25,18 @@ import lucee.runtime.coder.CoderException;
 
 public final class Base64Encoder {
 
+	private static final byte[] LENIENT_ALPHABET = new byte[128];
+
+	static {
+		java.util.Arrays.fill(LENIENT_ALPHABET, (byte) -1);
+		String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+		for (int i = 0; i < chars.length(); i++) {
+			LENIENT_ALPHABET[chars.charAt(i)] = (byte) i;
+		}
+		LENIENT_ALPHABET['-'] = 62;
+		LENIENT_ALPHABET['_'] = 63;
+	}
+
 	public static String encodeFromString(String data) {
 		return encode(data.getBytes(StandardCharsets.UTF_8));
 	}
@@ -85,9 +97,39 @@ public final class Base64Encoder {
 				throw new CoderException("cannot convert the input to a binary: " + iae.getMessage());
 			}
 		}
-		// Use Apache Commons for lenient decode - handles malformed padding that JDK rejects
-		byte[] res = org.apache.commons.codec.binary.Base64.decodeBase64(data);
-		if (res == null || res.length == 0) throw new CoderException("cannot convert the input to a binary");
+		// the JDK decoder rejects malformed padding and characters outside the alphabet, here both are
+		// skipped, the URL safe alphabet is accepted as well and decoding ends at the first padding
+		byte[] res = decodeLenient(data);
+		if (res.length == 0) throw new CoderException("cannot convert the input to a binary");
 		return res;
+	}
+
+	private static byte[] decodeLenient(String data) {
+		int len = data.length();
+		byte[] out = new byte[(len / 4 + 1) * 3];
+		int pos = 0;
+		int bits = 0;
+		int count = 0;
+		for (int i = 0; i < len; i++) {
+			char c = data.charAt(i);
+			if (c == '=') break;
+			int v = c < 128 ? LENIENT_ALPHABET[c] : -1;
+			if (v < 0) continue;
+			bits = (bits << 6) | v;
+			if (++count == 4) {
+				out[pos++] = (byte) (bits >> 16);
+				out[pos++] = (byte) (bits >> 8);
+				out[pos++] = (byte) bits;
+				bits = 0;
+				count = 0;
+			}
+		}
+		// 6 bits of a single left over character are not enough for a byte
+		if (count == 2) out[pos++] = (byte) (bits >> 4);
+		else if (count == 3) {
+			out[pos++] = (byte) (bits >> 10);
+			out[pos++] = (byte) (bits >> 2);
+		}
+		return java.util.Arrays.copyOf(out, pos);
 	}
 }
