@@ -2704,6 +2704,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			for (int i = 0; i < files.length; i++) {
 				try {
 					tl = TagLibFactory.loadFromFile(files[i], getIdentification());
+					String extId = getExtensionIdForTld(files[i].getName());
+					if (!StringUtil.isEmpty(extId, true)) {
+						tl.setSource(extId);
+					}
+					for (TagLibTag tag: tl.getTags().values()) {
+						if (!StringUtil.isEmpty(extId, true)) tag.setSource(extId);
+						else if (tag.getSource() == null) tag.setSource(tl.getSource());
+					}
 					key = getKey(tl);
 					if (!map.containsKey(key)) map.put(key, tl);
 					else overwrite(map.get(key), tl);
@@ -2717,6 +2725,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		}
 		else if (fileTld.isFile()) {
 			tl = TagLibFactory.loadFromFile(fileTld, getIdentification());
+			String extId = getExtensionIdForTld(fileTld.getName());
+			if (!StringUtil.isEmpty(extId, true)) {
+				tl.setSource(extId);
+			}
+			for (TagLibTag tag: tl.getTags().values()) {
+				if (!StringUtil.isEmpty(extId, true)) tag.setSource(extId);
+				else if (tag.getSource() == null) tag.setSource(tl.getSource());
+			}
 			key = getKey(tl);
 			if (!map.containsKey(key)) map.put(key, tl);
 			else overwrite(map.get(key), tl);
@@ -2898,8 +2914,13 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	private void overwrite(TagLib existingTL, TagLib newTL) {
 		Iterator<TagLibTag> it = newTL.getTags().values().iterator();
+		TagLibTag tag;
 		while (it.hasNext()) {
-			existingTL.setTag(it.next());
+			tag = it.next();
+			if (tag.getSource() == null && newTL.getSource() != null) {
+				tag.setSource(newTL.getSource());
+			}
+			existingTL.setTag(tag);
 		}
 	}
 
@@ -2958,7 +2979,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			for (int i = 0; i < files.length; i++) {
 				try {
 					fl = FunctionLibFactory.loadFromFile(files[i], getIdentification());
-
+					String extId = getExtensionIdForFld(files[i].getName());
+					if (!StringUtil.isEmpty(extId, true)) {
+						fl.setSource(extId);
+					}
+					for (FunctionLibFunction fn: fl.getFunctions().values()) {
+						if (!StringUtil.isEmpty(extId, true)) fn.setSource(extId);
+						else if (fn.getSource() == null) fn.setSource(fl.getSource());
+					}
 					overwrite(cfmlFlds, fl);
 
 				}
@@ -2970,6 +2998,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		}
 		else {
 			fl = FunctionLibFactory.loadFromFile(fileFld, getIdentification());
+			String extId = getExtensionIdForFld(fileFld.getName());
+			if (!StringUtil.isEmpty(extId, true)) {
+				fl.setSource(extId);
+			}
+			for (FunctionLibFunction fn: fl.getFunctions().values()) {
+				if (!StringUtil.isEmpty(extId, true)) fn.setSource(extId);
+				else if (fn.getSource() == null) fn.setSource(fl.getSource());
+			}
 			overwrite(cfmlFlds, fl);
 		}
 		// LDEV-3027: the bundled markdown extension escapes HTML in safeMode but does not
@@ -2996,9 +3032,48 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	private void overwrite(FunctionLib existingFL, FunctionLib newFL) {
 		Iterator<FunctionLibFunction> it = newFL.getFunctions().values().iterator();
+		FunctionLibFunction fn;
 		while (it.hasNext()) {
-			existingFL.setFunction(it.next());
+			fn = it.next();
+			if (fn.getSource() == null && newFL.getSource() != null) {
+				fn.setSource(newFL.getSource());
+			}
+			existingFL.setFunction(fn);
 		}
+	}
+
+	public String getExtensionIdForFld(String fldName) {
+		if (StringUtil.isEmpty(fldName, true)) return null;
+		RHExtension[] rhes = getRHExtensions();
+		if (rhes != null) {
+			for (RHExtension rhe: rhes) {
+				if (rhe == null || rhe.getMetadata() == null) continue;
+				String[] flds = rhe.getMetadata().getFlds();
+				if (flds != null) {
+					for (String fld: flds) {
+						if (fldName.equalsIgnoreCase(fld)) return rhe.getId();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	public String getExtensionIdForTld(String tldName) {
+		if (StringUtil.isEmpty(tldName, true)) return null;
+		RHExtension[] rhes = getRHExtensions();
+		if (rhes != null) {
+			for (RHExtension rhe: rhes) {
+				if (rhe == null || rhe.getMetadata() == null) continue;
+				String[] tlds = rhe.getMetadata().getTlds();
+				if (tlds != null) {
+					for (String tld: tlds) {
+						if (tldName.equalsIgnoreCase(tld)) return rhe.getId();
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	@Override
