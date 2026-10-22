@@ -49,6 +49,7 @@ import lucee.commons.io.TemporaryStream;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPClientEngine;
+import lucee.commons.net.http.HTTPFeatureNotSupportedException;
 import lucee.commons.net.http.HTTPRequest;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
@@ -256,13 +257,13 @@ public final class JDKEngine implements HTTPClientEngine {
 	@Override
 	public HTTPResponse execute(HTTPRequest r) throws IOException {
 		r.validate();
-		if (!StringUtil.isEmpty(r.getUsername(), true) && r.getAuthType() == HTTPRequest.AUTH_NTLM) {
-			throw new IOException("NTLM authentication is not supported by the built-in HTTP engine, install the HTTP extension to use it");
-		}
 
 		URL url = r.getURL();
 		ProxyData proxy = ProxyDataImpl.validate(r.getProxy(), url.getHost());
 		if (!ProxyDataImpl.isValid(proxy, url.getHost())) proxy = null;
+
+		// everything the request asks for and this engine cannot do ends here, before anything is sent, nothing is silently ignored
+		checkSupported(r, proxy, url);
 
 		boolean[] dedicated = new boolean[1];
 		HttpClient client = client(r, proxy, dedicated);
@@ -333,14 +334,30 @@ public final class JDKEngine implements HTTPClientEngine {
 				storeCookies(rsp, cookies);
 
 				// basic authentication, after the server asked for it
-				if (status == 401 && !authSent && !StringUtil.isEmpty(r.getUsername(), true)) {
-					String challenge = rsp.headers().firstValue("www-authenticate").orElse("");
-					if (challenge.toLowerCase(Locale.ROOT).startsWith("basic")) {
+				if (status == 401 && !StringUtil.isEmpty(r.getUsername(), true)) {
+					List<String> challenges = rsp.headers().allValues("www-authenticate");
+					boolean basic = hasScheme(challenges, "basic");
+					if (!basic && !challenges.isEmpty()) {
+						// the server only accepts a scheme the JDK client cannot do (Digest, Negotiate, NTLM ...)
+						IOUtil.closeEL(rsp.body());
+						poolStats.release(route, keepAlive);
+						throw new HTTPFeatureNotSupportedException("the authentication scheme [" + schemes(challenges) + "] the server asks for (only Basic is supported)");
+					}
+					if (basic && !authSent) {
 						IOUtil.closeEL(rsp.body());
 						poolStats.release(route, keepAlive);
 						authHeader = basic(r.getUsername(), r.getPassword());
 						authSent = true;
 						continue;
+					}
+				}
+				// the JDK client answers a Basic challenge of the proxy itself, any other scheme ends up here
+				if (status == 407 && proxy != null && !StringUtil.isEmpty(proxy.getUsername(), true)) {
+					List<String> challenges = rsp.headers().allValues("proxy-authenticate");
+					if (!challenges.isEmpty() && !hasScheme(challenges, "basic")) {
+						IOUtil.closeEL(rsp.body());
+						poolStats.release(route, keepAlive);
+						throw new HTTPFeatureNotSupportedException("the proxy authentication scheme [" + schemes(challenges) + "] the proxy asks for (only Basic is supported)");
 					}
 				}
 
@@ -384,6 +401,62 @@ public final class JDKEngine implements HTTPClientEngine {
 			if (dedicated[0]) JDKResponse.closeClient(client);
 			throw e;
 		}
+	}
+
+	/**
+	 * fails with a clear message for everything the request asks for that the built-in engine cannot do,
+	 * the HTTP extension can
+	 */
+	static void checkSupported(HTTPRequest r, ProxyData proxy, URL url) throws HTTPFeatureNotSupportedException {
+		// NTLM
+		if (!StringUtil.isEmpty(r.getUsername(), true) && r.getAuthType() == HTTPRequest.AUTH_NTLM) {
+			throw new HTTPFeatureNotSupportedException("NTLM authentication (authType=\"NTLM\")");
+		}
+
+		// headers the JDK client sets itself and does not allow to set (Host, Connection, Content-Length, Expect, Upgrade)
+		for (Header h: r.getHeaders()) {
+			if (isRestricted(h.getName().toLowerCase(Locale.ROOT))) {
+				throw new HTTPFeatureNotSupportedException("setting the header [" + h.getName() + "]");
+			}
+		}
+
+		// HTTPS through a proxy with credentials, the JDK sends no Basic credentials to the proxy while it tunnels (CONNECT) unless
+		// the system property jdk.http.auth.tunneling.disabledSchemes allows it
+		if (proxy != null && !StringUtil.isEmpty(proxy.getUsername(), true) && "https".equalsIgnoreCase(url.getProtocol()) && isBasicTunnelingDisabled()) {
+			throw new HTTPFeatureNotSupportedException(
+					"Basic authentication at a proxy for a HTTPS request (proxyUser/proxyPassword), the JVM disables it with the system property [jdk.http.auth.tunneling.disabledSchemes]");
+		}
+	}
+
+	private static boolean isBasicTunnelingDisabled() {
+		// not set means the default of the JDK (conf/net.properties), that is "Basic"
+		String disabled = System.getProperty("jdk.http.auth.tunneling.disabledSchemes");
+		if (disabled == null) return true;
+		for (String scheme: disabled.split(",")) {
+			if ("basic".equalsIgnoreCase(scheme.trim())) return true;
+		}
+		return false;
+	}
+
+	private static boolean hasScheme(List<String> challenges, String scheme) {
+		for (String c: challenges) {
+			// a header can hold several challenges, the scheme starts every one of them
+			for (String part: c.split(",")) {
+				String p = part.trim().toLowerCase(Locale.ROOT);
+				if (p.equals(scheme) || p.startsWith(scheme + " ")) return true;
+			}
+		}
+		return false;
+	}
+
+	private static String schemes(List<String> challenges) {
+		java.util.Set<String> set = new java.util.LinkedHashSet<>();
+		for (String c: challenges) {
+			String t = c.trim();
+			int i = t.indexOf(' ');
+			set.add(i == -1 ? t : t.substring(0, i));
+		}
+		return String.join(", ", set);
 	}
 
 	private static boolean isRedirect(int status) {
@@ -466,9 +539,7 @@ public final class JDKEngine implements HTTPClientEngine {
 				// the multipart header needs the boundary
 				if (body != null && body.contentType != null && body.multipart) continue;
 			}
-			if (isRestricted(lower)) {
-				throw new IOException("the header [" + name + "] can not be set with the built-in HTTP engine, install the HTTP extension to set it");
-			}
+			if (isRestricted(lower)) throw new HTTPFeatureNotSupportedException("setting the header [" + name + "]");
 			if (lower.equals("authorization") && authHeader != null) continue;
 			rb.header(name, h.getValue());
 			seen.add(lower);

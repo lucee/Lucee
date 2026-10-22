@@ -52,6 +52,7 @@ import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.URLEncoder;
 import lucee.commons.net.http.HTTPEngine;
+import lucee.commons.net.http.HTTPFeatureNotSupportedException;
 import lucee.commons.net.http.HTTPRequest;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
@@ -1043,6 +1044,8 @@ public final class Http extends BodyTagImpl {
 
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					// the request asks for something the engine cannot do, that is not a connection failure (LDEV-6676)
+					if (t instanceof HTTPFeatureNotSupportedException) throw new ApplicationException(t.getMessage());
 					if (!throwonerror) {
 						if (t instanceof SocketTimeoutException) setRequestTimeout(cfhttp);
 						else setUnknownHost(cfhttp, t);
@@ -1072,6 +1075,8 @@ public final class Http extends BodyTagImpl {
 					throw Caster.toPageException(ie);
 				}
 				if (e.t != null) {
+					// the request asks for something the engine cannot do, that is not a connection failure (LDEV-6676)
+					if (e.t instanceof HTTPFeatureNotSupportedException) throw new ApplicationException(e.t.getMessage());
 					if (!throwonerror) {
 						if (e.t instanceof SocketTimeoutException) setRequestTimeout(cfhttp);
 						else setUnknownHost(cfhttp, e.t);
