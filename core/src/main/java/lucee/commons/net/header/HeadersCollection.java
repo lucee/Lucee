@@ -1,6 +1,6 @@
 package lucee.commons.net.header;
 
-import org.apache.http.Header;
+import lucee.commons.net.http.Header;
 
 public interface HeadersCollection {
 	public Header[] getHeaders(String name);

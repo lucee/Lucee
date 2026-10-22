@@ -9,21 +9,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.util.Util;
+import lucee.commons.net.http.HTTPEngine;
+import lucee.commons.net.http.HTTPRequest;
+import lucee.commons.net.http.HTTPResponse;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
 import lucee.runtime.ai.AIUtil;
@@ -138,7 +132,7 @@ public final class GeminiSession extends AISessionSupport {
 
 	private Response executeRequest(Struct root, String messageText, List<Part> parts, AIResponseListener listener) throws Exception {
 		URL url = geminiEngine.toURL(geminiEngine.baseURL, GeminiEngine.CHAT, listener != null ? GeminiEngine.TYPE_STREAM : GeminiEngine.TYPE_REG);
-		HttpPost post = new HttpPost(url.toExternalForm());
+		HTTPRequest post = AISessionSupport.newRequest(HTTPRequest.POST, url);
 		post.setHeader("Content-Type", AIUtil.createJsonContentType(geminiEngine.charset));
 
 		// custom headers
@@ -152,17 +146,13 @@ public final class GeminiSession extends AISessionSupport {
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
 		LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "send request message to [" + url.toExternalForm() + "] by [" + geminiEngine.getLabel() + "]: " + str, "ai", "application");
 
-		StringEntity entity = new StringEntity(str, geminiEngine.charset);
-		post.setEntity(entity);
+		post.setBody(str, null, geminiEngine.charset);
 
-		RequestConfig config = AISessionSupport.setTimeout(RequestConfig.custom(), this).build();
-		post.setConfig(config);
+		AISessionSupport.setTimeout(post, this);
 
-		try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(post)) {
+		try (HTTPResponse response = HTTPEngine.getEngine().execute(post)) {
 
-			HttpEntity responseEntity = response.getEntity();
-			Header ct = responseEntity.getContentType();
-			MimeType mt = MimeType.getInstance(ct.getValue());
+			MimeType mt = MimeType.getInstance(AISessionSupport.contentType(response));
 
 			String t = mt.getType() + "/" + mt.getSubtype();
 			String cs = mt.getCharset() != null ? mt.getCharset().toString() : geminiEngine.charset;
@@ -173,7 +163,7 @@ public final class GeminiSession extends AISessionSupport {
 				GeminiStreamResponse r = new GeminiStreamResponse(cs, listener);
 
 				try (BufferedReader reader = new BufferedReader(
-						cs == null ? new InputStreamReader(responseEntity.getContent()) : new InputStreamReader(responseEntity.getContent(), cs))) {
+						cs == null ? new InputStreamReader(response.getContentAsStream()) : new InputStreamReader(response.getContentAsStream(), cs))) {
 					String line;
 					int index = 0;
 					Struct prev = null;
@@ -198,7 +188,7 @@ public final class GeminiSession extends AISessionSupport {
 			}
 			else if ("application/json".equals(t)) {
 				if (Util.isEmpty(cs, true)) cs = geminiEngine.charset;
-				String rawStr = EntityUtils.toString(responseEntity, geminiEngine.charset);
+				String rawStr = response.getContentAsString(geminiEngine.charset);
 				LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "response recieved send by [" + geminiEngine.getLabel() + "]: " + rawStr, "ai", "application");
 				Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, rawStr));
 
@@ -213,7 +203,7 @@ public final class GeminiSession extends AISessionSupport {
 				return r;
 			}
 			else {
-				throw unsupportedMimeTypeException(response, responseEntity, cs, t);
+				throw unsupportedMimeTypeException(response, cs, t);
 			}
 		}
 	}

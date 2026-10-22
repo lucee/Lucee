@@ -3,11 +3,10 @@ package lucee.runtime.ai;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.client.config.RequestConfig.Builder;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.util.EntityUtils;
 
+import lucee.commons.net.http.HTTPRequest;
+import lucee.commons.net.http.HTTPResponse;
+import lucee.commons.net.http.Header;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.other.CreateUniqueId;
@@ -117,43 +116,52 @@ public abstract class AISessionSupport implements AISessionMultipart {
 		throw new ApplicationException("this session type only supports single part text inquiries.");
 	}
 
-	public static Builder setTimeout(Builder builder, AISession session) {
-		if (session.getConnectTimeout() > 0) builder.setConnectTimeout(session.getConnectTimeout());
-		if (session.getSocketTimeout() > 0) builder.setSocketTimeout(session.getSocketTimeout());
-		return builder;
+	public static HTTPRequest setTimeout(HTTPRequest req, AISession session) {
+		return setTimeout(req, session.getConnectTimeout(), session.getSocketTimeout());
 	}
 
-	public static Builder setTimeout(Builder builder, int connectTimeout, int socketTimeout) {
-		if (connectTimeout > 0) builder.setConnectTimeout(connectTimeout);
-		if (socketTimeout > 0) builder.setSocketTimeout(socketTimeout);
-		return builder;
+	public static HTTPRequest setTimeout(HTTPRequest req, int connectTimeout, int socketTimeout) {
+		if (connectTimeout > 0) req.setConnectTimeout(connectTimeout);
+		if (socketTimeout > 0) req.setReadTimeout(socketTimeout);
+		return req;
 	}
 
-	public static Builder setRedirect(Builder builder) {
-		builder
+	public static HTTPRequest setRedirect(HTTPRequest req) {
+		return req.setRedirect("true");
+	}
 
-				.setRedirectsEnabled(true)
+	/**
+	 * creates a request for the given URL
+	 * 
+	 * @param url a String, URL or URI
+	 */
+	public static HTTPRequest newRequest(String method, Object url) throws java.net.MalformedURLException {
+		java.net.URL u;
+		if (url instanceof java.net.URL) u = (java.net.URL) url;
+		else if (url instanceof java.net.URI) u = ((java.net.URI) url).toURL();
+		else u = new java.net.URL(url.toString());
+		return new HTTPRequest().setMethod(method).setURL(u);
+	}
 
-				.setMaxRedirects(2)
-
-				.setCircularRedirectsAllowed(false)
-
-				.setRelativeRedirectsAllowed(true);
-		;
-		return builder;
+	/**
+	 * @return the value of the header Content-Type of the response, null if there is none
+	 */
+	public static String contentType(HTTPResponse response) {
+		Header h = response.getLastHeaderIgnoreCase("Content-Type");
+		return h == null ? null : h.getValue();
 	}
 
 	@Override
 	public abstract String getSystemMessage();
 
-	protected Exception unsupportedMimeTypeException(CloseableHttpResponse response, HttpEntity responseEntity, String cs, String mimetype) {
-		int statusCode = response.getStatusLine().getStatusCode();
-		String statusReason = response.getStatusLine().getReasonPhrase();
+	protected Exception unsupportedMimeTypeException(HTTPResponse response, String cs, String mimetype) {
+		int statusCode = response.getStatusCode();
+		String statusReason = response.getStatusText();
 
 		// Optionally read a snippet of the response body for context
 		String bodySnippet = "";
 		try {
-			String body = EntityUtils.toString(responseEntity, cs);
+			String body = response.getContentAsString(cs);
 			bodySnippet = body.length() > 200 ? body.substring(0, 200) + "..." : body;
 		}
 		catch (Exception ex) {

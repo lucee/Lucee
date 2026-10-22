@@ -25,11 +25,6 @@ import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.util.Map;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
@@ -37,7 +32,6 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
 import lucee.runtime.net.proxy.ProxyData;
 
 public final class HTTPEngine extends HTTPEngineBasic {
@@ -133,8 +127,8 @@ public final class HTTPEngine extends HTTPEngineBasic {
 
 	public static HTTPResponse head(URL url, String username, String password, long connectionRequestTimeout, long connectioTimeout, long socketTimeout, boolean redirect,
 			String charset, String useragent, ProxyData proxy, lucee.commons.net.http.Header[] headers, boolean pooling) throws IOException {
-		HttpHead head = new HttpHead(url.toExternalForm());
-		return invoke(url, head, username, password, connectionRequestTimeout, connectioTimeout, socketTimeout, redirect, charset, useragent, proxy, headers, null, pooling);
+		return invoke(url, HTTPRequest.HEAD, null, null, username, password, connectionRequestTimeout, connectioTimeout, socketTimeout, redirect, charset, useragent, proxy, headers, null,
+				pooling);
 	}
 
 	public static InputStream get(URL url) throws IOException {
@@ -160,14 +154,16 @@ public final class HTTPEngine extends HTTPEngineBasic {
 	public static InputStream get(URL url, String username, String password, long connectTimeout, long readTimeout, String userAgent, ProxyData proxy, boolean pooling)
 			throws IOException {
 		if (proxy == null) proxy = getProxyData(url.getHost());
-		HTTPResponse4Impl response = get(url, username, password, DEFAULT_CONNECT_REQUEST_TIMEOUT, connectTimeout, readTimeout, true, null, userAgent, proxy, null, pooling);
+		HTTPResponse response = get(url, username, password, DEFAULT_CONNECT_REQUEST_TIMEOUT, connectTimeout, readTimeout, true, null, userAgent, proxy, null, pooling);
 
 		int sc = response.getStatusCode();
 		if (sc < 200 || sc >= 300) {
 			response.close();
 			throw new IOException("unable to invoke [" + url + "], status code [" + sc + "]");
 		}
-		return response.getContentAsStream();
+		InputStream is = response.getContentAsStream();
+		// the stream releases the connection of the response when it is closed
+		return is == null || is instanceof HTTPEngineInputStream ? is : new HTTPEngineInputStream(response, is);
 	}
 
 	/**
@@ -176,7 +172,7 @@ public final class HTTPEngine extends HTTPEngineBasic {
 	 * and the configured server proxy. The caller must release the response, see
 	 * {@link #releaseEL(HTTPResponse)}.
 	 */
-	public static HTTPResponse4Impl getResponse(URL url, String username, String password, long connectTimeout, long readTimeout, String userAgent) throws IOException {
+	public static HTTPResponse getResponse(URL url, String username, String password, long connectTimeout, long readTimeout, String userAgent) throws IOException {
 		return get(url, username, password, connectTimeout, connectTimeout, readTimeout, true, null, userAgent, getProxyData(url.getHost()), null, true);
 	}
 
@@ -194,7 +190,7 @@ public final class HTTPEngine extends HTTPEngineBasic {
 	}
 
 	public static String getAsString(URL url, String charset) throws IOException {
-		HTTPResponse4Impl rsp = get(url, null, null, DEFAULT_CONNECT_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, -1, true, charset, null, getProxyData(url.getHost()), null, true);
+		HTTPResponse rsp = get(url, null, null, DEFAULT_CONNECT_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, -1, true, charset, null, getProxyData(url.getHost()), null, true);
 		int sc = rsp.getStatusCode();
 		if (sc < 200 || sc >= 300) {
 			rsp.close();
@@ -210,31 +206,29 @@ public final class HTTPEngine extends HTTPEngineBasic {
 		}
 	}
 
-	public static HTTPResponse4Impl get(URL url, String username, String password, long connectionRequestTimeout, long connectioTimeout, long socketTimeout, boolean redirect,
+	public static HTTPResponse get(URL url, String username, String password, long connectionRequestTimeout, long connectioTimeout, long socketTimeout, boolean redirect,
 			String charset, String useragent, ProxyData proxy, lucee.commons.net.http.Header[] headers, boolean pooling) throws IOException {
-		HttpGet get = new HttpGet(url.toExternalForm());
-		return invoke(url, get, username, password, connectionRequestTimeout, connectioTimeout, socketTimeout, redirect, charset, useragent, proxy, headers, null, pooling);
+		return invoke(url, HTTPRequest.GET, null, null, username, password, connectionRequestTimeout, connectioTimeout, socketTimeout, redirect, charset, useragent, proxy, headers, null,
+				pooling);
 	}
 
 	public static HTTPResponse post(URL url, String username, String password, long connectionRequestTimeout, long connectioTimeout, long socketTimeout, boolean redirect,
 			String charset, String useragent, ProxyData proxy, lucee.commons.net.http.Header[] headers, Map<String, String> formfields, boolean pooling) throws IOException {
-		HttpPost post = new HttpPost(url.toExternalForm());
-
-		return invoke(url, post, username, password, connectionRequestTimeout, connectioTimeout, socketTimeout, redirect, charset, useragent, proxy, headers, formfields, pooling);
+		return invoke(url, HTTPRequest.POST, null, null, username, password, connectionRequestTimeout, connectioTimeout, socketTimeout, redirect, charset, useragent, proxy, headers,
+				formfields, pooling);
 	}
 
 	public static HTTPResponse put(URL url, String username, String password, long connectionRequestTimeout, long connectioTimeout, long socketTimeout, boolean redirect,
 			String mimetype, String charset, String useragent, ProxyData proxy, lucee.commons.net.http.Header[] headers, Object body, boolean pooling) throws IOException {
-		HttpPut put = new HttpPut(url.toExternalForm());
-		setBody(put, body, mimetype, charset);
-		return invoke(url, put, username, password, connectionRequestTimeout, connectioTimeout, socketTimeout, redirect, charset, useragent, proxy, headers, null, pooling);
+		return invoke(url, HTTPRequest.PUT, body, mimetype, username, password, connectionRequestTimeout, connectioTimeout, socketTimeout, redirect, charset, useragent, proxy, headers,
+				null, pooling);
 
 	}
 
 	public static HTTPResponse delete(URL url, String username, String password, long connectionRequestTimeout, long connectioTimeout, long socketTimeout, boolean redirect,
 			String charset, String useragent, ProxyData proxy, lucee.commons.net.http.Header[] headers, boolean pooling) throws IOException {
-		HttpDelete delete = new HttpDelete(url.toExternalForm());
-		return invoke(url, delete, username, password, connectionRequestTimeout, connectioTimeout, socketTimeout, redirect, charset, useragent, proxy, headers, null, pooling);
+		return invoke(url, HTTPRequest.DELETE, null, null, username, password, connectionRequestTimeout, connectioTimeout, socketTimeout, redirect, charset, useragent, proxy, headers,
+				null, pooling);
 	}
 
 	/**

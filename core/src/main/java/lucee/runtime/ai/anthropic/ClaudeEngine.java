@@ -7,19 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.net.HTTPUtil;
 import lucee.loader.util.Util;
+import lucee.commons.net.http.HTTPEngine;
+import lucee.commons.net.http.HTTPRequest;
+import lucee.commons.net.http.HTTPResponse;
 import lucee.runtime.ai.AIEngine;
 import lucee.runtime.ai.AIEngineSupport;
 import lucee.runtime.ai.AIModel;
@@ -182,7 +177,7 @@ public final class ClaudeEngine extends AIEngineSupport {
 	@Override
 	public List<AIModel> getModels() throws PageException {
 		try {
-			HttpGet get = new HttpGet(baseURL.toExternalForm() + "models?limit=1000");
+			HTTPRequest get = AISessionSupport.newRequest(HTTPRequest.GET, baseURL.toExternalForm() + "models?limit=1000");
 			get.setHeader("x-api-key", apiKey);
 			get.setHeader("anthropic-version", version);
 			if (headers != null) {
@@ -190,16 +185,14 @@ public final class ClaudeEngine extends AIEngineSupport {
 					get.setHeader(e.getKey(), e.getValue());
 				}
 			}
-			RequestConfig config = AISessionSupport.setTimeout(RequestConfig.custom(), getConnectTimeout(), getSocketTimeout()).build();
-			get.setConfig(config);
+			AISessionSupport.setTimeout(get, getConnectTimeout(), getSocketTimeout());
 
-			try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(get)) {
-				HttpEntity responseEntity = response.getEntity();
-				Header ct = responseEntity.getContentType();
-				MimeType mt = ct == null ? null : MimeType.getInstance(ct.getValue());
+			try (HTTPResponse response = HTTPEngine.getEngine().execute(get)) {
+				String ct = AISessionSupport.contentType(response);
+				MimeType mt = ct == null ? null : MimeType.getInstance(ct);
 				String t = mt == null ? null : mt.getType() + "/" + mt.getSubtype();
 				if ("application/json".equals(t)) {
-					String rawStr = EntityUtils.toString(responseEntity, charset);
+					String rawStr = response.getContentAsString(charset);
 					Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, rawStr));
 					Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);
 					if (err != null) {

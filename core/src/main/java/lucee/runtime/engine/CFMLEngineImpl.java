@@ -201,13 +201,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private static final boolean IS_WINDOWS = SystemUtil.isWindows();
 
 	static {
-		System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
 		System.setProperty("javax.xml.bind.context.factory", "com.sun.xml.bind.v2.ContextFactory");
-
-		// Force specific factory + log implementation
-		System.setProperty("org.apache.commons.logging.LogFactory", "org.apache.commons.logging.impl.LogFactoryImpl");
-		System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
-		System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "warn");
 
 		// Log4j2 performance optimizations
 		System.setProperty("log4j2.hostName", "localhost"); // Prevents DNS lookup
@@ -1363,8 +1357,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			if (cntr != null) cntr.close();
 
 			// release HTTP Pool
-			HTTPEngine.releaseConnectionManager();
-			HTTPEngine.releaseSharedClient();
+			HTTPEngine.getEngine().close();
 
 			IOUtil.clearBufferPools();
 

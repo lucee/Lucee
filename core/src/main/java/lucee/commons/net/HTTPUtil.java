@@ -32,8 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletContext;
@@ -49,8 +47,8 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.net.header.HeadersCollection;
+import lucee.commons.net.http.Header;
 import lucee.commons.net.header.HeadersHTTPResponse;
-import lucee.commons.net.header.HeadersHttpResponseApache;
 import lucee.commons.net.header.HeadersHttpURLConnection;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
@@ -701,10 +699,6 @@ public final class HTTPUtil {
 
 	public static void validateDownload(URL url, HTTPResponse rsp, Resource res, String checksum, boolean deleteFileWhenInvalid, Exception cause) throws IOException {
 		_validateDownload(url, new HeadersHTTPResponse(rsp), res, checksum, deleteFileWhenInvalid, cause);
-	}
-
-	public static void validateDownload(URL url, HttpResponse rsp, Resource res, String checksum, boolean deleteFileWhenInvalid, Exception cause) throws IOException {
-		_validateDownload(url, new HeadersHttpResponseApache(rsp), res, checksum, deleteFileWhenInvalid, cause);
 	}
 
 	private static void _validateDownload(URL url, HeadersCollection headersCollection, Resource res, String checksum, boolean deleteFileWhenInvalid, Exception cause)

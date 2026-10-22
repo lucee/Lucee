@@ -26,9 +26,6 @@ import javax.management.AttributeList;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.pool.PoolStats;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
@@ -38,6 +35,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.ScopeContext;
@@ -110,32 +109,26 @@ public final class GetSystemInfo implements Function {
 
 		// HTTP connection pool
 		{
+			Struct pool = HTTPEngine.getEngine().getPoolStats();
+			Struct routes = Caster.toStruct(pool.get("routes", null), null);
 			Struct httpPoolInfo = new StructImpl();
-			int httpLeased = 0, httpAvailable = 0, httpPending = 0, httpMax = 0;
-			for (PoolingHttpClientConnectionManager cm: HTTPEngine.getConnectionManagers().values()) {
-				PoolStats totals = cm.getTotalStats();
-				httpLeased += totals.getLeased();
-				httpAvailable += totals.getAvailable();
-				httpPending += totals.getPending();
-				httpMax += totals.getMax();
-
-				for (HttpRoute route: cm.getRoutes()) {
-					PoolStats stats = cm.getStats(route);
-					if ((stats.getLeased() + stats.getAvailable() + stats.getPending()) == 0) continue;
-
+			if (routes != null) {
+				for (Key k: routes.keys()) {
+					Struct r = Caster.toStruct(routes.get(k, null), null);
+					if (r == null) continue;
 					Struct hc = new StructImpl();
-					hc.put("activeHttpConnections", stats.getLeased());
-					hc.put("idleHttpConnections", stats.getAvailable());
-					hc.put("waitingForHttpConn", stats.getPending());
-					hc.put("max", stats.getMax());
-					hc.put("route", route.getTargetHost().toHostString());
-					httpPoolInfo.put(route.getTargetHost().toHostString(), hc);
+					hc.put("activeHttpConnections", r.get("leased", 0));
+					hc.put("idleHttpConnections", r.get("available", 0));
+					hc.put("waitingForHttpConn", r.get("pending", 0));
+					hc.put("max", r.get("max", 0));
+					hc.put("route", r.get("route", ""));
+					httpPoolInfo.put(k.getString(), hc);
 				}
 			}
-			sct.put("activeHttpConnections", httpLeased);
-			sct.put("idleHttpConnections", httpAvailable);
-			sct.put("waitingForHttpConn", httpPending);
-			sct.put("maxHttpConnections", httpMax);
+			sct.put("activeHttpConnections", pool.get("leased", 0));
+			sct.put("idleHttpConnections", pool.get("available", 0));
+			sct.put("waitingForHttpConn", pool.get("pending", 0));
+			sct.put("maxHttpConnections", pool.get("max", 0));
 			sct.put("httpConnections", httpPoolInfo);
 		}
 

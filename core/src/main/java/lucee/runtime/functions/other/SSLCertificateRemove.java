@@ -41,7 +41,7 @@ public final class SSLCertificateRemove implements Function {
 			}
 
 			// Invalidate connection managers so new connections use updated trust material
-			HTTPEngine.releaseConnectionManager();
+			HTTPEngine.getEngine().releaseConnections();
 
 			return true;
 		}

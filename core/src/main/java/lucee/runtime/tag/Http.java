@@ -36,35 +36,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.config.RequestConfig.Builder;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpOptions;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpTrace;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.FormBodyPart;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HttpContext;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -80,10 +51,10 @@ import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.URLEncoder;
 import lucee.commons.net.http.HTTPEngine;
+import lucee.commons.net.http.HTTPRequest;
+import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
-import lucee.commons.net.http.httpclient.CachingGZIPInputStream;
-import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
-import lucee.commons.net.http.httpclient.ResourceBody;
+import lucee.commons.net.http.CachingGZIPInputStream;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.tag.CacheHandler;
@@ -730,16 +701,8 @@ public final class Http extends BodyTagImpl {
 		long start = System.nanoTime();
 		boolean safeToMemory = !StringUtil.isEmpty(result, true);
 
-		HttpClientBuilder builder = HTTPEngine.getHttpClientBuilder(this.usePool, this.clientCert, this.clientCertPassword, this.trustStore, this.trustStorePassword, this.sslVerify, this.redirect)
-				.getName();
-
-		// cookies
-		BasicCookieStore cookieStore = new BasicCookieStore();
-		builder.setDefaultCookieStore(cookieStore);
-
 		ConfigWeb cw = pageContext.getConfig();
-		HttpRequestBase req = null;
-		HttpContext httpContext = null;
+		HTTPRequest req = new HTTPRequest();
 
 		CacheHandler cacheHandler = null;
 		String cacheId = null;
@@ -775,11 +738,9 @@ public final class Http extends BodyTagImpl {
 			}
 
 			String host = null;
-			HttpHost httpHost;
 
 			try {
 				URL _url = HTTPUtil.toURL(url, port, encoded);
-				httpHost = new HttpHost(_url.getHost(), _url.getPort(), _url.getProtocol());
 				host = _url.getHost();
 				url = _url.toExternalForm();
 				if (sbQS.length() > 0) {
@@ -791,6 +752,7 @@ public final class Http extends BodyTagImpl {
 						url += "&" + sbQS;
 					}
 				}
+				req.setURL(new URL(url));
 
 				// check certificate
 				if (autoCert && "https".equalsIgnoreCase(_url.getProtocol())) {
@@ -843,82 +805,22 @@ public final class Http extends BodyTagImpl {
 			boolean isBinary = false;
 			boolean doMultiPart = doUploadFile || this.multiPart;
 
-			HttpEntityEnclosingRequest eeReqPost = null;
-			HttpEntityEnclosingRequest eeReq = null;
-
-			// Note: We need to determine if GET/DELETE will have a body by checking params
-			// If no body is needed, use standard HttpGet/HttpDelete for better server compatibility
-			// Some servers (like Cloudflare) refuse compression for non-standard GET requests with body support
-			boolean needsBodyForGet = false;
-			boolean needsBodyForDelete = false;
-
-			// Check if any params require a body for GET/DELETE
-			for (int i = 0; i < len; i++) {
-				HttpParamBean param = this.params.get(i);
-				int type = param.getType();
-				if (type == HttpParamBean.TYPE_XML || type == HttpParamBean.TYPE_BODY) {
-					if (this.method == METHOD_GET) needsBodyForGet = true;
-					if (this.method == METHOD_DELETE) needsBodyForDelete = true;
-				}
-			}
-
-			if (this.method == METHOD_GET) {
-				if (needsBodyForGet) {
-					req = new HttpGetWithBody(url);
-					eeReq = (HttpEntityEnclosingRequest) req;
-				}
-				else {
-					req = new HttpGet(url);
-				}
-			}
-			else if (this.method == METHOD_HEAD) {
-				req = new HttpHead(url);
-			}
-			else if (this.method == METHOD_DELETE) {
-				isBinary = true;
-				if (needsBodyForDelete) {
-					req = new HttpDeleteWithBody(url);
-					eeReq = (HttpEntityEnclosingRequest) req;
-				}
-				else {
-					req = new HttpDelete(url);
-				}
-			}
-			else if (this.method == METHOD_PUT) {
-				isBinary = true;
-				HttpPut put = new HttpPut(url);
-				eeReqPost = put;
-				req = put;
-				eeReq = put;
-			}
-			else if (this.method == METHOD_TRACE) {
-				isBinary = true;
-				req = new HttpTrace(url);
-			}
-			else if (this.method == METHOD_OPTIONS) {
-				isBinary = true;
-				req = new HttpOptions(url);
-			}
-			else if (this.method == METHOD_PATCH) {
-				isBinary = true;
-				eeReq = new HttpPatch(url);
-				req = (HttpRequestBase) eeReq;
-			}
-			else {
-				isBinary = true;
-				eeReqPost = new HttpPost(url);
-				req = (HttpPost) eeReqPost;
-				eeReq = eeReqPost;
-			}
+			String verb = getMethodAsVerb(method);
+			req.setMethod(verb);
+			// the methods that can have a body, and the ones that can have form fields
+			boolean bodyAllowed = this.method != METHOD_HEAD && this.method != METHOD_TRACE && this.method != METHOD_OPTIONS;
+			boolean formAllowed = this.method != METHOD_GET && this.method != METHOD_HEAD && this.method != METHOD_DELETE && this.method != METHOD_OPTIONS && this.method != METHOD_TRACE
+					&& this.method != METHOD_PATCH;
+			isBinary = this.method != METHOD_GET && this.method != METHOD_HEAD;
 
 			boolean hasForm = false;
 			boolean hasBody = false;
 			boolean hasContentType = false;
 			// Set http params
-			ArrayList<FormBodyPart> parts = new ArrayList<FormBodyPart>();
+			ArrayList<HTTPRequest.Part> parts = new ArrayList<HTTPRequest.Part>();
 
 			StringBuilder acceptEncoding = new StringBuilder();
-			java.util.List<NameValuePair> postParam = eeReqPost != null ? new ArrayList<NameValuePair>() : null;
+			java.util.List<String[]> postParam = formAllowed ? new ArrayList<String[]>() : null;
 
 			for (int i = 0; i < len; i++) {
 				HttpParamBean param = this.params.get(i);
@@ -935,12 +837,12 @@ public final class Http extends BodyTagImpl {
 					hasForm = true;
 					if (this.method == METHOD_GET)
 						throw new ApplicationException("httpparam with type formfield can only be used when the method attribute of the parent http tag is set to post");
-					if (eeReqPost != null) {
+					if (formAllowed) {
 						if (doMultiPart) {
-							parts.add(new FormBodyPart(param.getName(), new StringBody(param.getValueAsString(), CharsetUtil.toCharset(charset))));
+							parts.add(HTTPRequest.Part.text(param.getName(), param.getValueAsString(), charset));
 						}
 						else {
-							postParam.add(new BasicNameValuePair(param.getName(), param.getValueAsString()));
+							postParam.add(new String[] { param.getName(), param.getValueAsString() });
 						}
 					}
 					// else if(multi!=null)multi.addParameter(param.getName(),param.getValueAsString());
@@ -966,7 +868,7 @@ public final class Http extends BodyTagImpl {
 				}
 				// Cookie
 				else if (type == HttpParamBean.TYPE_COOKIE) {
-					HTTPEngine.addCookie(cookieStore, host, param.getName(), param.getValueAsString(), "/", charset);
+					req.addCookie(param.getName(), param.getValueAsString(), host, "/");
 				}
 				// File
 				else if (type == HttpParamBean.TYPE_FILE) {
@@ -985,15 +887,10 @@ public final class Http extends BodyTagImpl {
 					if (ct != null && !StringUtil.isEmpty(ct.getCharset(), true)) cs = ct.getCharset();
 
 					if (doMultiPart) {
-						try {
-							Resource res = param.getFile();
-							parts.add(new FormBodyPart(param.getName(), new ResourceBody(res, mt, res.getName(), cs)));
-							// parts.add(new ResourcePart(param.getName(),new
-							// ResourcePartSource(param.getFile()),getContentType(param),_charset));
-						}
-						catch (FileNotFoundException e) {
-							throw new ApplicationException("can't upload file, path is invalid", e.getMessage());
-						}
+						Resource res = param.getFile();
+						if (!res.isFile()) throw new ApplicationException("can't upload file, path is invalid", "File is not a normal file.");
+						if (!res.isReadable()) throw new ApplicationException("can't upload file, path is invalid", "File is not readable.");
+						parts.add(HTTPRequest.Part.file(param.getName(), res, mt, cs));
 					}
 				}
 				// XML
@@ -1009,8 +906,8 @@ public final class Http extends BodyTagImpl {
 					hasBody = true;
 					hasContentType = true;
 					req.addHeader("Content-type", mt + "; charset=" + cs);
-					if (eeReq == null) throw new ApplicationException("type xml is only supported for methods get, delete, post, and put");
-					HTTPEngine.setBody(eeReq, param.getValueAsString(), mt, cs);
+					if (!bodyAllowed) throw new ApplicationException("type xml is only supported for methods get, delete, post, and put");
+					req.setBody(param.getValueAsString(), mt, cs);
 				}
 				// Body
 				else if (type == HttpParamBean.TYPE_BODY) {
@@ -1023,8 +920,8 @@ public final class Http extends BodyTagImpl {
 					if (ct != null && !StringUtil.isEmpty(ct.getCharset(), true)) cs = ct.getCharset();
 
 					hasBody = true;
-					if (eeReq == null) throw new ApplicationException("type body is only supported for methods get, delete, post, and put");
-					HTTPEngine.setBody(eeReq, param.getValue(), mt, cs);
+					if (!bodyAllowed) throw new ApplicationException("type body is only supported for methods get, delete, post, and put");
+					req.setBody(param.getValue(), mt, cs);
 
 				}
 				else {
@@ -1034,7 +931,11 @@ public final class Http extends BodyTagImpl {
 			}
 
 			// post params
-			if (postParam != null && postParam.size() > 0) eeReqPost.setEntity(new org.apache.http.client.entity.UrlEncodedFormEntity(postParam, charset));
+			if (postParam != null && postParam.size() > 0) {
+				for (String[] field: postParam) {
+					req.addFormField(field[0], field[1]);
+				}
+			}
 
 			if (compression) {
 				acceptEncoding.append("gzip");
@@ -1046,45 +947,21 @@ public final class Http extends BodyTagImpl {
 			req.setHeader("Accept-Encoding", acceptEncoding.toString());
 
 			// multipart
-			if (doMultiPart && eeReq != null) {
+			if (doMultiPart && bodyAllowed) {
 				hasContentType = true;
 				boolean doIt = true;
-				if (!this.multiPart && parts.size() == 1) {
-					ContentBody body = parts.get(0).getBody();
-					if (body instanceof StringBody) {
-						StringBody sb = (StringBody) body;
-						try {
-							org.apache.http.entity.ContentType ct = org.apache.http.entity.ContentType.create(sb.getMimeType(), sb.getCharset());
-							String str = IOUtil.toString(sb.getReader());
-							StringEntity entity = new StringEntity(str, ct);
-							eeReq.setEntity(entity);
-
-						}
-						catch (IOException e) {
-							throw Caster.toPageException(e);
-						}
-						doIt = false;
-					}
+				if (!this.multiPart && parts.size() == 1 && parts.get(0).getResource() == null) {
+					// a single text part is sent as plain text
+					req.setBody(parts.get(0).getValue(), "text/plain", parts.get(0).getCharset());
+					doIt = false;
 				}
 
 				if (doIt) {
-
-					MultipartEntityBuilder mpeBuilder = MultipartEntityBuilder.create().setStrictMode();
-
-					// enabling the line below will append charset=... to the Content-Type header
-					// if (!StringUtil.isEmpty(charset, true))
-					// mpeBuilder.setCharset(CharsetUtil.toCharset(charset));
-
-					Iterator<FormBodyPart> it = parts.iterator();
-					while (it.hasNext()) {
-						FormBodyPart part = it.next();
-						mpeBuilder.addPart(part);
+					// the fields of a multipart request are parts
+					for (HTTPRequest.Part part: parts) {
+						req.addPart(part);
 					}
-
-					eeReq.setEntity(mpeBuilder.build());
 				}
-				// eem.setRequestEntity(new MultipartRequestEntityFlex(parts.toArray(new Part[parts.size()]),
-				// eem.getParams(),http.multiPartType));
 			}
 
 			if (hasBody && hasForm) throw new ApplicationException("mixing httpparam  type file/formfield and body/XML is not allowed");
@@ -1100,10 +977,10 @@ public final class Http extends BodyTagImpl {
 			}
 
 			// set User Agent
-			if (!hasHeaderIgnoreCase(req, "User-Agent")) req.setHeader("User-Agent", this.useragent);
+			if (!req.hasHeader("User-Agent")) req.setHeader("User-Agent", this.useragent);
 
 			// set timeout
-			setTimeout(this, builder, Http.checkRemainingTimeout(pageContext, this.timeout), connectionTimeout, socketTimeout);
+			setTimeout(req, Http.checkRemainingTimeout(pageContext, this.timeout), connectionTimeout, socketTimeout);
 			// set Username and Password
 			if (this.username != null) {
 
@@ -1113,10 +990,10 @@ public final class Http extends BodyTagImpl {
 					if (StringUtil.isEmpty(this.workStation, true)) throw new ApplicationException("attribute workstation is required when authentication type is [NTLM]");
 					if (StringUtil.isEmpty(this.domain, true)) throw new ApplicationException("attribute domain is required when authentication type is [NTLM]");
 
-					HTTPEngine.setNTCredentials(builder, this.username, this.password, this.workStation, this.domain);
+					req.setNTCredentials(this.username, this.password, this.workStation, this.domain);
 				}
 				else {
-					httpContext = HTTPEngine.setCredentials(builder, httpHost, this.username, this.password, preauth);
+					req.setCredentials(this.username, this.password, preauth);
 				}
 			}
 
@@ -1130,26 +1007,25 @@ public final class Http extends BodyTagImpl {
 				proxy = ProxyDataImpl.validate(((PageContextImpl) pageContext).getProxyData(), host);
 
 			}
-			HTTPEngine.setProxy(host, builder, req, proxy);
+			req.setProxy(proxy);
+
+			req.setRedirect(this.redirect).setPooling(this.usePool).setClientCert(this.clientCert, this.clientCertPassword).setTrustStore(this.trustStore, this.trustStorePassword)
+					.setSslVerify(this.sslVerify).setCharset(charset);
 
 		}
-		HTTPResponse4Impl rsp = null;
-		CloseableHttpClient client = null;
+		HTTPResponse rsp = null;
 		try {
-			if (httpContext == null) httpContext = new HttpClientContext();
-
 			HTTPStruct cfhttp = new HTTPStruct(cacheId);
 			cfhttp.setEL(KeyConstants._errordetail, "");
 			if (safeToMemory) pageContext.setVariable(result, cfhttp);
 
 			/////////////////////////////////////////// EXECUTE
 			/////////////////////////////////////////// /////////////////////////////////////////////////
-			client = builder.build();
-			Executor4 e = new Executor4(pageContext, this, client, httpContext, req, redirect, this.usePool);
+			HttpExecutor e = new HttpExecutor(pageContext, this, req);
 
 			if (socketTimeout == null || socketTimeout.getMillis() <= 0) {
 				try {
-					rsp = e.execute(client, httpContext, this.usePool);
+					rsp = e.execute();
 				}
 
 				catch (Throwable t) {
@@ -1327,7 +1203,7 @@ public final class Http extends BodyTagImpl {
 				file = ResourceUtil.toResourceNotExisting(pageContext, strPath);
 				// Resource dir = file.getParentResource();
 				if (file.isDirectory()) {
-					file = file.getRealResource(GetFileFromPath.call(pageContext, req.getURI().getPath()));
+					file = file.getRealResource(GetFileFromPath.call(pageContext, req.getURL().getPath()));
 				}
 
 			}
@@ -1409,11 +1285,10 @@ public final class Http extends BodyTagImpl {
 		}
 		finally {
 			if (rsp != null) rsp.close();
-			if (client != null) client.close();
 		}
 	}
 
-	private byte[] contentAsBinary(HTTPResponse4Impl rsp, String contentEncoding) throws PageException, IOException {
+	private byte[] contentAsBinary(HTTPResponse rsp, String contentEncoding) throws PageException, IOException {
 		byte[] barr = null;
 		InputStream is = null;
 		if (isGzipEncoded(contentEncoding)) {
@@ -1450,7 +1325,7 @@ public final class Http extends BodyTagImpl {
 		return barr;
 	}
 
-	private void storeTo(HTTPResponse4Impl rsp, String contentEncoding, Resource target) throws IOException {
+	private void storeTo(HTTPResponse rsp, String contentEncoding, Resource target) throws IOException {
 		InputStream is = null;
 		if (target != null && isGzipEncoded(contentEncoding)) {
 			if (method != METHOD_HEAD) {
@@ -1474,7 +1349,7 @@ public final class Http extends BodyTagImpl {
 		}
 	}
 
-	private String contentAsString(HTTPResponse4Impl rsp, Charset responseCharset, String contentEncoding, Executor4 e) throws PageException {
+	private String contentAsString(HTTPResponse rsp, Charset responseCharset, String contentEncoding, HttpExecutor e) throws PageException {
 		String str;
 		InputStream is = null;
 		try {
@@ -1605,7 +1480,7 @@ public final class Http extends BodyTagImpl {
 		return statusCode >= 200 && statusCode <= 299;
 	}
 
-	private PageException toPageException(Throwable t, HTTPResponse4Impl rsp) {
+	private PageException toPageException(Throwable t, HTTPResponse rsp) {
 		if (t instanceof SocketTimeoutException) {
 			HTTPException he = new HTTPException("408 Request Time-out", "a timeout occurred in tag http", 408, "Time-out", rsp == null ? null : rsp.getURL());
 			List<StackTraceElement> merged = ArrayUtil.merge(t.getStackTrace(), he.getStackTrace());
@@ -1651,15 +1526,6 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(KeyConstants._status_text, "Request Time-out");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
 		cfhttp.setEL(KeyConstants._error, Boolean.TRUE);
-	}
-
-	private static boolean hasHeaderIgnoreCase(HttpRequestBase req, String name) {
-		org.apache.http.Header[] headers = req.getAllHeaders();
-		if (headers == null) return false;
-		for (int i = 0; i < headers.length; i++) {
-			if (name.equalsIgnoreCase(headers[i].getName())) return true;
-		}
-		return false;
 	}
 
 	private static String headerValue(String value) {
@@ -1904,44 +1770,12 @@ public final class Http extends BodyTagImpl {
 		return "";
 	}
 
-	public static URL locationURL(HttpUriRequest req, HttpResponse rsp) {
-		URL url = null;
-		try {
-			url = req.getURI().toURL();
-		}
-		catch (MalformedURLException e1) {
-			return null;
-		}
-
-		Header h = HTTPResponse4Impl.getLastHeaderIgnoreCase(rsp, "location");
-		if (h != null) {
-			String str = h.getValue();
-			try {
-				return new URL(str);
-			}
-			catch (MalformedURLException e) {
-				try {
-					return new URL(url.getProtocol(), url.getHost(), url.getPort(), mergePath(url.getFile(), str));
-
-				}
-				catch (MalformedURLException e1) {
-					return null;
-				}
-			}
-		}
-		return null;
-	}
-
 	public static Charset getCharset(String strCharset) {
 		if (!StringUtil.isEmpty(strCharset, true)) return CharsetUtil.toCharset(strCharset);
 		return CharsetUtil.getWebCharset();
 	}
 
-	public static void setTimeout(HttpClientBuilder builder, TimeSpan timeout) {
-		setTimeout(null, builder, timeout, null, null);
-	}
-
-	private static void setTimeout(Http http, HttpClientBuilder builder, TimeSpan timeout, TimeSpan connectionTimeout, TimeSpan socketTimeout) {
+	private void setTimeout(HTTPRequest req, TimeSpan timeout, TimeSpan connectionTimeout, TimeSpan socketTimeout) {
 
 		// . Resolve Connection Timeout
 		if (connectionTimeout == null) connectionTimeout = timeout;
@@ -1955,48 +1789,35 @@ public final class Http extends BodyTagImpl {
 		if (socketTimeout == null) socketTimeout = timeout;
 
 		// Update the Http object for logging accuracy
-		if (http != null) {
-			http.timeout = timeout;
-			http.connectionTimeout = connectionTimeout;
-			http.socketTimeout = socketTimeout;
-		}
+		this.timeout = timeout;
+		this.connectionTimeout = connectionTimeout;
+		this.socketTimeout = socketTimeout;
 
-		// Build the config - .getMillis() returns the int we need
-		Builder b = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setConnectTimeout((int) connectionTimeout.getMillis())
-				.setConnectionRequestTimeout((int) connectionTimeout.getMillis()).setSocketTimeout(socketTimeout != null ? (int) socketTimeout.getMillis() : 0);
-
-		builder.setDefaultRequestConfig(b.build());
+		req.setConnectTimeout((int) connectionTimeout.getMillis());
+		req.setConnectionRequestTimeout((int) connectionTimeout.getMillis());
+		req.setReadTimeout(socketTimeout != null ? (int) socketTimeout.getMillis() : 0);
 	}
 
 }
 
-class Executor4 extends PageContextThread {
+class HttpExecutor extends PageContextThread {
 
 	final Http http;
-	private final CloseableHttpClient client;
-	final String redirect;
 	Throwable t;
 	boolean done;
-	// URL redirectURL;
-	HTTPResponse4Impl response;
-	private HttpRequestBase req;
-	private HttpContext context;
-	private boolean pooling;
+	HTTPResponse response;
+	private final HTTPRequest req;
 
-	public Executor4(PageContext pc, Http http, CloseableHttpClient client, HttpContext context, HttpRequestBase req, String redirect, boolean pooling) {
+	public HttpExecutor(PageContext pc, Http http, HTTPRequest req) {
 		super(pc);
 		this.http = http;
-		this.client = client;
-		this.pooling = pooling;
-		this.context = context;
-		this.redirect = redirect;
 		this.req = req;
 	}
 
 	@Override
 	public void run(PageContext pc) {
 		try {
-			response = execute(client, context, pooling);
+			response = execute();
 			done = true;
 		}
 		catch (Throwable t) {
@@ -2008,36 +1829,8 @@ class Executor4 extends PageContextThread {
 		}
 	}
 
-	public HTTPResponse4Impl execute(CloseableHttpClient client, HttpContext context, boolean pooling) throws IOException {
-		return response = new HTTPResponse4Impl(null, context, client, req, client.execute(req, context), pooling);
+	public HTTPResponse execute() throws IOException {
+		return response = HTTPEngine.getEngine().execute(req);
 	}
 
-}
-
-class HttpDeleteWithBody extends HttpEntityEnclosingRequestBase {
-	public static final String METHOD_NAME = "DELETE";
-
-	@Override
-	public String getMethod() {
-		return METHOD_NAME;
-	}
-
-	public HttpDeleteWithBody(final String uri) {
-		super();
-		setURI(URI.create(uri));
-	}
-}
-
-class HttpGetWithBody extends HttpEntityEnclosingRequestBase {
-	public static final String METHOD_NAME = "GET";
-
-	@Override
-	public String getMethod() {
-		return METHOD_NAME;
-	}
-
-	public HttpGetWithBody(final String uri) {
-		super();
-		setURI(URI.create(uri));
-	}
 }

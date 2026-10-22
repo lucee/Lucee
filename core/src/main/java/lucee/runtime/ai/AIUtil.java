@@ -5,8 +5,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.http.StatusLine;
-import org.apache.http.client.methods.CloseableHttpResponse;
 
 import lucee.commons.digest.Base64Encoder;
 import lucee.commons.io.log.LogUtil;
@@ -182,16 +180,6 @@ public final class AIUtil {
 	public static int getStatusCode(HTTPResponse response) {
 		if (response != null) {
 			return response.getStatusCode();
-		}
-		return -1;
-	}
-
-	public static int getStatusCode(CloseableHttpResponse response) {
-		if (response != null) {
-			StatusLine sl = response.getStatusLine();
-			if (sl != null) {
-				return sl.getStatusCode();
-			}
 		}
 		return -1;
 	}

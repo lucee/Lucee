@@ -11,7 +11,7 @@ import java.util.Set;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
-import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
+import lucee.commons.net.http.HTTPResponse;
 import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.config.maven.MavenUpdateProvider.Repository;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
@@ -122,7 +122,7 @@ public final class SolrSearchExtensionLister implements ExtensionLister {
 	}
 
 	private static String fetchSingle(String url) throws IOException {
-		HTTPResponse4Impl response = HTTPEngine.get(new URL(url), null, null, 2000, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, true, null,
+		HTTPResponse response = HTTPEngine.get(new URL(url), null, null, 2000, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, true, null,
 				"Solr-Search/1.0", null, null, true);
 		try {
 			int sc = response.getStatusCode();

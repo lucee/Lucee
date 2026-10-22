@@ -7,17 +7,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.util.Util;
+import lucee.commons.net.http.HTTPEngine;
+import lucee.commons.net.http.HTTPRequest;
+import lucee.commons.net.http.HTTPResponse;
 import lucee.runtime.ai.AIEngine;
 import lucee.runtime.ai.AIEngineSupport;
 import lucee.runtime.ai.AIModel;
@@ -217,23 +213,20 @@ public final class GeminiEngine extends AIEngineSupport {
 	@Override
 	public List<AIModel> getModels() throws PageException {
 		try {
-			HttpGet get = new HttpGet(toURL(baseURL, MODELS, null).toExternalForm());
+			HTTPRequest get = AISessionSupport.newRequest(HTTPRequest.GET, toURL(baseURL, MODELS, null));
 			get.setHeader("Content-Type", AIUtil.createJsonContentType(charset));
 
-			RequestConfig config = AISessionSupport.setTimeout(RequestConfig.custom(), this.getConnectTimeout(), this.getSocketTimeout()).build();
-			get.setConfig(config);
+			AISessionSupport.setTimeout(get, this.getConnectTimeout(), this.getSocketTimeout());
 
-			try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(get)) {
+			try (HTTPResponse response = HTTPEngine.getEngine().execute(get)) {
 
-				HttpEntity responseEntity = response.getEntity();
-				org.apache.http.Header ct = responseEntity.getContentType();
-				MimeType mt = MimeType.getInstance(ct.getValue());
+				MimeType mt = MimeType.getInstance(AISessionSupport.contentType(response));
 
 				String t = mt.getType() + "/" + mt.getSubtype();
 				String cs = mt.getCharset() != null ? mt.getCharset().toString() : charset;
 
 				if ("application/json".equals(t)) {
-					String rawStr = EntityUtils.toString(responseEntity, charset);
+					String rawStr = response.getContentAsString(charset);
 					Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, rawStr));
 
 					Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);

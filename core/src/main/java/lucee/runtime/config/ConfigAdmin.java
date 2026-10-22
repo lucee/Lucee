@@ -130,6 +130,7 @@ import lucee.runtime.schedule.ScheduleTask;
 import lucee.runtime.schedule.ScheduleTaskImpl;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.util.MimeTypeDetector;
+import lucee.commons.net.http.HTTPClientEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.security.SerialNumber;
@@ -2023,6 +2024,16 @@ public final class ConfigAdmin {
 			}
 			engines.removeEL(KeyImpl.init(name));
 		}
+	}
+
+	private void _removeHTTPEngine() {
+		Struct httpEngine = _getRootElement("httpEngine");
+		removeClass(httpEngine, "engine");
+	}
+
+	private void _updateHTTPEngine(ClassDefinition cd) throws PageException {
+		Struct httpEngine = _getRootElement("httpEngine");
+		setClass(httpEngine, HTTPClientEngine.class, "engine", cd);
 	}
 
 	private void _removeMimeTypeDetector() {
@@ -4301,6 +4312,23 @@ public final class ConfigAdmin {
 				}
 			}
 
+			// update http engine
+			List<Map<String, String>> httpEngines = rhext.getMetadata().getHttpEngines();
+			if (!ArrayUtil.isEmpty(httpEngines)) {
+				Iterator<Map<String, String>> itl = httpEngines.iterator();
+				Map<String, String> map;
+				while (itl.hasNext()) {
+					map = itl.next();
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					if (cd != null && cd.hasClass()) {
+						_updateHTTPEngine(cd);
+						filter.add("resetHTTPEngine");
+						reloadNecessary = true;
+					}
+					logger.info("extension", "Update http engine [" + cd + "] from extension [" + rhext.getMetadata().getName() + ":" + rhext.getVersion() + "]");
+				}
+			}
+
 			// update regex engines
 			List<Map<String, String>> regexEngines = rhext.getMetadata().getRegexEngines();
 			if (!ArrayUtil.isEmpty(regexEngines)) {
@@ -4776,6 +4804,21 @@ public final class ConfigAdmin {
 						filter.add("resetMimeTypeDetector");
 					}
 					logger.info("extension", "Remove mime type detector [" + cd + "] from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");
+				}
+			}
+			// remove http engine
+			List<Map<String, String>> httpEngines = rhe.getMetadata().getHttpEngines();
+			if (!ArrayUtil.isEmpty(httpEngines)) {
+				Iterator<Map<String, String>> itl = httpEngines.iterator();
+				Map<String, String> map;
+				while (itl.hasNext()) {
+					map = itl.next();
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					if (cd != null && cd.hasClass()) {
+						_removeHTTPEngine();
+						filter.add("resetHTTPEngine");
+					}
+					logger.info("extension", "Remove http engine [" + cd + "] from extension [" + rhe.getMetadata().getName() + ":" + rhe.getVersion() + "]");
 				}
 			}
 			// remove regex engines

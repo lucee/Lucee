@@ -134,30 +134,6 @@
     <scope>provided</scope>
   </dependency>
     <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>httpcomponents-httpclient</artifactId>
-    	<version>4.5.14</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>httpcomponents-httpcore</artifactId>
-    	<version>4.4.16</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>httpcomponents-httpmime</artifactId>
-    	<version>4.5.14</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.lucee</groupId>
-      <artifactId>commons-logging</artifactId>
-      <version>1.4.0.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
 	    <groupId>org.ow2.asm</groupId>
 	    <artifactId>asm</artifactId>
 	    <version>9.10.1</version>

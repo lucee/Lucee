@@ -33,7 +33,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPEngineBasic.HTTPDownloaderHeadResponse;
 import lucee.commons.net.http.HTTPResponse;
-import lucee.commons.net.http.httpclient.HTTPResponse4Impl.HTTPEngineInputStream;
+import lucee.commons.net.http.HTTPEngineInputStream;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 

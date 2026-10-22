@@ -3,8 +3,8 @@ package lucee.commons.net.header;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
+import lucee.commons.net.http.Header;
+import lucee.commons.net.http.HeaderImpl;
 
 import lucee.commons.net.http.HTTPResponse;
 
@@ -19,9 +19,9 @@ public final class HeadersHTTPResponse implements HeadersCollection {
 	@Override
 	public Header[] getHeaders(String name) {
 		List<Header> list = new ArrayList<>();
-		for (lucee.commons.net.http.Header header: response.getAllHeaders()) {
+		for (Header header: response.getAllHeaders()) {
 			if (name.equals(header.getName())) {
-				list.add(new BasicHeader(header.getName(), header.getValue()));
+				list.add(new HeaderImpl(header.getName(), header.getValue()));
 			}
 		}
 		return list.toArray(new Header[list.size()]);

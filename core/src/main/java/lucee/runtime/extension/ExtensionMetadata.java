@@ -79,6 +79,8 @@ public final class ExtensionMetadata implements Serializable {
 	private String searchsRaw;
 	private List<Map<String, String>> mimeTypes;
 	private String mimeTypesRaw;
+	private List<Map<String, String>> httpEngines;
+	private String httpEnginesRaw;
 	private List<Map<String, String>> regexEngines;
 	private String regexEnginesRaw;
 
@@ -238,6 +240,22 @@ public final class ExtensionMetadata implements Serializable {
 			mimeTypesRaw = str;
 		}
 		if (mimeTypes == null) mimeTypes = new ArrayList<Map<String, String>>();
+	}
+
+	public List<Map<String, String>> getHttpEngines() {
+		return httpEngines;
+	}
+
+	public String getHttpEnginesRaw() {
+		return httpEnginesRaw;
+	}
+
+	public void setHttpEngine(String str, Log logger) {
+		if (!StringUtil.isEmpty(str, true)) {
+			httpEngines = RHExtension.toSettings(logger, str);
+			httpEnginesRaw = str;
+		}
+		if (httpEngines == null) httpEngines = new ArrayList<Map<String, String>>();
 	}
 
 	public List<Map<String, String>> getRegexEngines() {
@@ -655,6 +673,7 @@ public final class ExtensionMetadata implements Serializable {
 		if (resources != null && !resources.isEmpty()) sb.append(", resources=").append(resources);
 		if (searchs != null && !searchs.isEmpty()) sb.append(", searchs=").append(searchs);
 		if (mimeTypes != null && !mimeTypes.isEmpty()) sb.append(", mimeTypes=").append(mimeTypes);
+		if (httpEngines != null && !httpEngines.isEmpty()) sb.append(", httpEngines=").append(httpEngines);
 		if (regexEngines != null && !regexEngines.isEmpty()) sb.append(", regexEngines=").append(regexEngines);
 		if (amfs != null && !amfs.isEmpty()) sb.append(", amfs=").append(amfs);
 		if (jdbcs != null && !jdbcs.isEmpty()) sb.append(", jdbcs=").append(jdbcs);
