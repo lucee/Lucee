@@ -11229,8 +11229,8 @@ Use `LoadAISession()` to restore a serialized session.
 	<!-- metaphone -->
 	<function>
 		<name>metaphone</name>
-		<class>lucee.runtime.functions.string.Metaphone</class>
-		<description>Metaphone is a phonetic algorithm, an algorithm published in 1990 for indexing words by their English pronunciation. The algorithm produces variable length keys as its output, as opposed to Soundex's fixed-length keys. Similar sounding words share the same keys.</description>
+		<class>lucee.runtime.functions.string.Soundex</class>
+		<description>Deprecated, Metaphone is no longer supported since Lucee 9.0 and the function is an alias of soundex(), so it returns the Soundex code (for example "L200") instead of the Metaphone key (for example "LS"). Metaphone is a phonetic algorithm published in 1990 for indexing words by their English pronunciation, it produced variable length keys as its output, as opposed to Soundex's fixed-length keys. If you need Metaphone, use a Metaphone implementation of your own or an extension.</description>
 		<argument>
 			<name>str</name>
 			<type>string</type>
