@@ -375,6 +375,8 @@ public final class ScheduleTaskImpl implements ScheduleTaskPro {
 	}
 
 	public void startIfNecessary(CFMLEngineImpl engine) {
+		// the task has nothing left to do (LDEV-5737), so there is nothing to (re)start
+		if (thread != null && thread.isFinished()) return;
 		if (thread != null) {
 			if (thread.isAlive()) {
 				if (thread.getState() == State.BLOCKED) {
@@ -390,6 +392,12 @@ public final class ScheduleTaskImpl implements ScheduleTaskPro {
 		}
 		this.thread = new ScheduledTaskThread(engine, scheduler, this);
 		setValid(true);
+		// don't start a thread for a task that will never execute again (LDEV-5737);
+		// autoDelete tasks still get one, the thread removes them asynchronously when it ends
+		if (!isAutoDelete() && thread.isExpired()) {
+			thread.finish("not starting task because it has expired");
+			return;
+		}
 		thread.start();
 	}
 
