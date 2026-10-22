@@ -398,4 +398,14 @@ public final class CreationImpl implements Creation, Serializable {
 		return new KeyLockImpl<K>();
 	}
 
+
+	@Override
+	public lucee.runtime.db.ClassDefinition createClassDefinition(String className) {
+		return new lucee.transformer.library.ClassDefinitionImpl(className);
+	}
+
+	@Override
+	public lucee.runtime.db.ClassDefinition createClassDefinition(Class<?> clazz) {
+		return new lucee.transformer.library.ClassDefinitionImpl(clazz);
+	}
 }

@@ -72,7 +72,6 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.compress.CompressUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
-import lucee.commons.io.log.log4j2.Log4j2Engine;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
@@ -203,11 +202,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	static {
 		System.setProperty("javax.xml.bind.context.factory", "com.sun.xml.bind.v2.ContextFactory");
 
-		// Log4j2 performance optimizations
-		System.setProperty("log4j2.hostName", "localhost"); // Prevents DNS lookup
-		System.setProperty("log4j2.disable.jmx", "true"); // Skip JMX
-		System.setProperty("log4j2.asyncLoggerConfigRingBufferSize", "262144"); // Larger buffer
-
 		// Network/DNS Optimizations
 		System.setProperty("sun.net.inetaddr.ttl", "300"); // Cache DNS for 5 mins
 		System.setProperty("sun.net.inetaddr.negative.ttl", "10"); // Cache failures for 10s
@@ -298,14 +292,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				TagLibFactory.loadFromSystem(null);
 			}
 			catch (TagLibException e) {}
-		}, true).start();
-
-		// Force localhost resolution early
-		ThreadUtil.getThread(() -> {
-			try {
-				Log4j2Engine.prepare();
-			}
-			catch (Exception e) {}
 		}, true).start();
 
 		/*

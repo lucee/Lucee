@@ -25,6 +25,7 @@ import java.util.List;
 
 import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.Resource;
+import lucee.runtime.config.Config;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
@@ -490,4 +491,16 @@ public interface ResourceUtil {
 	public char getSeparator(ResourceProvider rp);
 
 	public ResourceProvider getFileResourceProvider();
+
+	/**
+	 * translates a path as used in configuration settings (placeholders like {lucee-config}, relative to
+	 * the given directory, or absolute) to a resource
+	 * 
+	 * @param config config used to resolve placeholders
+	 * @param directory directory a relative path is relative to
+	 * @param path path to translate
+	 * @param type TYPE_FILE or TYPE_DIR
+	 * @return the resource
+	 */
+	public Resource toConfigResource(Config config, Resource directory, String path, short type);
 }

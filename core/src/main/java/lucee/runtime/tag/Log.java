@@ -27,7 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
-import lucee.commons.io.retirement.RetireOutputStream;
 import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -346,7 +345,7 @@ public final class Log extends TagImpl {
 		}
 
 		@Override
-		public void retire(RetireOutputStream os) {
+		public void retire(java.io.OutputStream os) {
 			pool.retire(res, CharsetUtil.toCharset(charset));
 		}
 	}

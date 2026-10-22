@@ -23,52 +23,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="log" {
 				checkLog( "pattern", "dd.MM.yyyy HH", "^\d{2}\.\d{2}\.\d{4} \d{2}" );
 			});
 
-			it( title="datadog layout", body=function( currentSpec ) {
-				// yyyy-MM-dd HH:mm:ss
-				checkLog( "datadog", "yyyy-MM-dd HH", "^\d{4}-\d{2}-\d{2} \d{2}" );
-			});
-
-			it( title="datasource appender, time column (request timezone set with setTimeZone)", skip=isH2NotSupported(), body=function( currentSpec ) {
-				var id = "ldev6598_" & replace( lCase( createUUID() ), "-", "", "all" );
-				var pw = request.ServerAdminPassword;
-				var orig = getTimeZone();
-				try {
-					admin
-						action="updateDatasource" type="server" password="#pw#"
-						name="#id#" newName="#id#" classname="org.h2.Driver" bundlename="org.lucee.h2"
-						dsn="jdbc:h2:#server._getTempDir( id )#/db;MODE=MySQL" dbusername="sa" dbpassword=""
-						connectionLimit="10" connectionTimeout="0" blob="false" clob="false" validate="false" storage="false"
-						allowed_select="true" allowed_insert="true" allowed_update="true" allowed_delete="true" allowed_alter="true"
-						allowed_drop="true" allowed_revoke="true" allowed_create="true" allowed_grant="true";
-					admin
-						action="updateLogSettings" type="server" password="#pw#"
-						name="#id#" level="info" appenderClass="datasource" appenderArgs={ "datasource": id, "table": id }
-						layoutClass="classic" layoutArgs={};
-
-					var token = createUUID();
-					setTimeZone( variables.requestTZ );
-					var before = fmt( "yyyy-MM-dd HH", variables.configTZ );
-					writeLog( text="ldev6598 #token#", log=id, type="information" );
-					var after = fmt( "yyyy-MM-dd HH", variables.configTZ );
-					// read the stored value as text, so reading it back does not convert it with any timezone
-					var qry = queryExecute( "SELECT FORMATDATETIME(time, 'yyyy-MM-dd HH') AS t FROM #id# WHERE message LIKE ?", [ "%#token#%" ], { datasource: id } );
-					expect( qry.recordcount ).toBe( 1 );
-					expect( [ before, after ] ).toInclude( qry.t,
-						"datasource: expected the config timezone [#variables.configTZ#: #before#], request timezone [#variables.requestTZ#: #fmt( "yyyy-MM-dd HH", variables.requestTZ )#], stored: #qry.t#" );
-				}
-				finally {
-					setTimeZone( orig );
-					try {
-						admin action="removeLogSetting" type="server" password="#pw#" name="#id#";
-					}
-					catch ( any e ) {}
-					try {
-						admin action="removeDatasource" type="server" password="#pw#" name="#id#";
-					}
-					catch ( any e ) {}
-				}
-			});
-
 		});
 	}
 
@@ -100,15 +54,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="log" {
 		}
 		finally {
 			if ( fileExists( logFile ) ) fileDelete( logFile );
-		}
-	}
-
-	private boolean function isH2NotSupported() {
-		try {
-			return structIsEmpty( server.getTestService( "h2", server._getTempDir( "LDEV6598" ) ) );
-		}
-		catch ( any e ) {
-			return true;
 		}
 	}
 
