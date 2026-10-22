@@ -74,6 +74,9 @@ public final class JDKEngine implements HTTPClientEngine {
 
 	private final Map<String, HttpClient> clients = new ConcurrentHashMap<>();
 	private final SecureRandom random = new SecureRandom();
+	private final PoolStats poolStats = new PoolStats();
+	// state of the custom cacerts (SSLCertificateInstall/Remove) the pooled clients were created with
+	private volatile String customCaCertsState = null;
 
 	@Override
 	public void init(Config config) throws PageException {
@@ -101,6 +104,17 @@ public final class JDKEngine implements HTTPClientEngine {
 		if (!r.isPooling()) {
 			dedicated[0] = true;
 			return build(r, proxy);
+		}
+		// the SSL context of a client is created once, a client created before a certificate was installed in or removed from the
+		// custom cacerts would not see the change (LDEV-5571)
+		String caState = customCaCertsState();
+		if (!caState.equals(customCaCertsState)) {
+			synchronized (clients) {
+				if (!caState.equals(customCaCertsState)) {
+					evictClients();
+					customCaCertsState = caState;
+				}
+			}
 		}
 		HttpClient client = clients.get(key);
 		if (client == null) {
@@ -135,17 +149,42 @@ public final class JDKEngine implements HTTPClientEngine {
 			}
 		}
 
-		boolean hasCert = !StringUtil.isEmpty(r.getClientCert(), true);
-		boolean hasTrust = !StringUtil.isEmpty(r.getTrustStore(), true);
-		if (hasCert || hasTrust || !r.isSslVerify()) {
-			try {
-				builder.sslContext(createSSLContext(r));
-			}
-			catch (GeneralSecurityException e) {
-				throw lucee.commons.lang.ExceptionUtil.toIOException(e);
-			}
+		// always an SSL context of our own, the default SSL context of the JVM does not know the certificates installed in the
+		// custom cacerts of Lucee (SSLCertificateInstall, LDEV-5571)
+		try {
+			builder.sslContext(createSSLContext(r));
+		}
+		catch (GeneralSecurityException e) {
+			throw lucee.commons.lang.ExceptionUtil.toIOException(e);
 		}
 		return builder.build();
+	}
+
+	private static String customCaCertsState() {
+		java.nio.file.Path p = SSLUtil.getCustomCaCertsPath();
+		if (p == null) return "";
+		try {
+			if (!java.nio.file.Files.isRegularFile(p)) return p + ":none";
+			return p + ":" + java.nio.file.Files.getLastModifiedTime(p).toMillis() + ":" + java.nio.file.Files.size(p);
+		}
+		catch (IOException e) {
+			return p + ":error";
+		}
+	}
+
+	/**
+	 * removes all pooled clients, requests that are still running on them can complete
+	 */
+	private void evictClients() {
+		List<HttpClient> old = new ArrayList<>(clients.values());
+		clients.clear();
+		for (HttpClient c: old) {
+			try {
+				c.shutdown();
+			}
+			catch (Throwable t) {
+			}
+		}
 	}
 
 	private SSLContext createSSLContext(HTTPRequest r) throws GeneralSecurityException, IOException {
@@ -228,9 +267,9 @@ public final class JDKEngine implements HTTPClientEngine {
 		boolean[] dedicated = new boolean[1];
 		HttpClient client = client(r, proxy, dedicated);
 
-		final CompletableFuture<?>[] current = new CompletableFuture<?>[1];
+		final java.util.concurrent.atomic.AtomicReference<CompletableFuture<?>> current = new java.util.concurrent.atomic.AtomicReference<>();
 		r.setAbortHandler(() -> {
-			CompletableFuture<?> f = current[0];
+			CompletableFuture<?> f = current.get();
 			if (f != null) f.cancel(true);
 		});
 
@@ -262,24 +301,33 @@ public final class JDKEngine implements HTTPClientEngine {
 				applyHeaders(rb, r, body, cookies, authHeader, method);
 				rb.method(method, body == null ? BodyPublishers.noBody() : body.publisher());
 
-				CompletableFuture<HttpResponse<InputStream>> f = client.sendAsync(rb.build(), HttpResponse.BodyHandlers.ofInputStream());
-				current[0] = f;
-				if (r.isAborted()) f.cancel(true);
+				String route = PoolStats.route(uri, proxy);
+				poolStats.lease(route);
 				HttpResponse<InputStream> rsp;
 				try {
-					rsp = f.get();
+					CompletableFuture<HttpResponse<InputStream>> f = client.sendAsync(rb.build(), HttpResponse.BodyHandlers.ofInputStream());
+					current.set(f);
+					if (r.isAborted()) f.cancel(true);
+					try {
+						rsp = f.get();
+					}
+					catch (InterruptedException e) {
+						f.cancel(true);
+						Thread.currentThread().interrupt();
+						throw new java.io.InterruptedIOException("the request was interrupted");
+					}
+					catch (ExecutionException e) {
+						throw toIOException(e.getCause(), r, proxy, uri);
+					}
+					catch (java.util.concurrent.CancellationException e) {
+						throw new IOException("the request was aborted");
+					}
 				}
-				catch (InterruptedException e) {
-					f.cancel(true);
-					Thread.currentThread().interrupt();
-					throw new java.io.InterruptedIOException("the request was interrupted");
+				catch (IOException | RuntimeException e) {
+					poolStats.release(route, false);
+					throw e;
 				}
-				catch (ExecutionException e) {
-					throw toIOException(e.getCause(), r, proxy, uri);
-				}
-				catch (java.util.concurrent.CancellationException e) {
-					throw new IOException("the request was aborted");
-				}
+				final boolean keepAlive = !dedicated[0] && PoolStats.keepAlive(rsp);
 
 				int status = rsp.statusCode();
 				storeCookies(rsp, cookies);
@@ -289,6 +337,7 @@ public final class JDKEngine implements HTTPClientEngine {
 					String challenge = rsp.headers().firstValue("www-authenticate").orElse("");
 					if (challenge.toLowerCase(Locale.ROOT).startsWith("basic")) {
 						IOUtil.closeEL(rsp.body());
+						poolStats.release(route, keepAlive);
 						authHeader = basic(r.getUsername(), r.getPassword());
 						authSent = true;
 						continue;
@@ -297,12 +346,21 @@ public final class JDKEngine implements HTTPClientEngine {
 
 				String location = rsp.headers().firstValue("location").orElse(null);
 				if (follow && location != null && isRedirect(status) && mayFollow(status, method, lax)) {
+					IOUtil.closeEL(rsp.body());
+					poolStats.release(route, keepAlive);
 					if (++redirects > MAX_REDIRECTS) {
-						IOUtil.closeEL(rsp.body());
 						throw new IOException("Maximum redirects (" + MAX_REDIRECTS + ") exceeded");
 					}
-					IOUtil.closeEL(rsp.body());
-					URI next = uri.resolve(location);
+					URI next;
+					try {
+						next = uri.resolve(location.trim());
+					}
+					catch (IllegalArgumentException e) {
+						throw new IOException("invalid redirect location [" + location + "]: " + e.getMessage());
+					}
+					if (next.getHost() == null || !("http".equalsIgnoreCase(next.getScheme()) || "https".equalsIgnoreCase(next.getScheme()))) {
+						throw new IOException("invalid redirect location [" + location + "]");
+					}
 					locations.add(next.toString());
 					// a redirect to another host does not get the credentials
 					if (!next.getHost().equalsIgnoreCase(uri.getHost())) {
@@ -319,7 +377,7 @@ public final class JDKEngine implements HTTPClientEngine {
 					continue;
 				}
 
-				return new JDKResponse(rsp, url, uri, locations, dedicated[0] ? client : null);
+				return new JDKResponse(rsp, url, uri, locations, dedicated[0] ? client : null, () -> poolStats.release(route, keepAlive));
 			}
 		}
 		catch (IOException | RuntimeException e) {
@@ -595,6 +653,7 @@ public final class JDKEngine implements HTTPClientEngine {
 		for (HttpClient c: old.values()) {
 			JDKResponse.closeClient(c);
 		}
+		poolStats.clearIdle();
 	}
 
 	@Override
@@ -617,13 +676,6 @@ public final class JDKEngine implements HTTPClientEngine {
 
 	@Override
 	public Struct getPoolStats() {
-		// the JDK client does not expose statistics of its connection pool
-		Struct sct = new StructImpl();
-		sct.setEL("leased", 0);
-		sct.setEL("available", 0);
-		sct.setEL("pending", 0);
-		sct.setEL("max", 0);
-		sct.setEL("routes", new StructImpl());
-		return sct;
+		return poolStats.toStruct();
 	}
 }

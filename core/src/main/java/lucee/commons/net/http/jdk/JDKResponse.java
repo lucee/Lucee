@@ -55,20 +55,24 @@ final class JDKResponse extends HTTPResponseSupport {
 	private final URL url;
 	private final List<String> locations;
 	private final HttpClient client;
+	private final Runnable onClose;
+	private final java.util.concurrent.atomic.AtomicBoolean closed = new java.util.concurrent.atomic.AtomicBoolean();
 	private final Header[] headers;
 	private InputStream content;
 	private boolean decoded;
 
-	JDKResponse(HttpResponse<InputStream> rsp, URL url, URI target, List<String> locations, HttpClient client) {
+	JDKResponse(HttpResponse<InputStream> rsp, URL url, URI target, List<String> locations, HttpClient client, Runnable onClose) {
 		this.rsp = rsp;
+		this.onClose = onClose;
 		this.url = url;
 		this.target = target;
 		this.locations = locations;
 		this.client = client;
 
-		// the content is decompressed like the other engines do, the headers that described the compressed content are removed
+		// the content is decompressed like the other engines do, the headers that described the compressed content are removed.
+		// a response without a body (HEAD, 204, 304, 1xx) keeps them, they describe the content the server would send (LDEV-5932)
 		String ce = firstValue(rsp, "content-encoding");
-		decoded = ce != null && (ce.toLowerCase().contains("gzip") || ce.toLowerCase().contains("deflate"));
+		decoded = ce != null && hasBody(rsp) && (ce.toLowerCase().contains("gzip") || ce.toLowerCase().contains("deflate"));
 
 		List<Header> list = new ArrayList<>();
 		for (Map.Entry<String, List<String>> e: rsp.headers().map().entrySet()) {
@@ -81,6 +85,12 @@ final class JDKResponse extends HTTPResponseSupport {
 		headers = list.toArray(new Header[list.size()]);
 	}
 
+	private static boolean hasBody(HttpResponse<?> rsp) {
+		int status = rsp.statusCode();
+		if (status < 200 || status == 204 || status == 304) return false;
+		return !"HEAD".equalsIgnoreCase(rsp.request().method());
+	}
+
 	private static String firstValue(HttpResponse<?> rsp, String name) {
 		return rsp.headers().firstValue(name).orElse(null);
 	}
@@ -89,9 +99,18 @@ final class JDKResponse extends HTTPResponseSupport {
 		if (content == null) {
 			InputStream is = rsp.body();
 			if (is != null && decoded) {
-				String ce = firstValue(rsp, "content-encoding").toLowerCase();
-				if (ce.contains("gzip")) is = new GZIPInputStream(is);
-				else is = new InflaterInputStream(is);
+				// an empty compressed body is not a valid gzip stream, it is returned as it is
+				java.io.PushbackInputStream pis = new java.io.PushbackInputStream(is, 1);
+				int first = pis.read();
+				if (first == -1) {
+					is = pis;
+				}
+				else {
+					pis.unread(first);
+					String ce = firstValue(rsp, "content-encoding").toLowerCase();
+					if (ce.contains("gzip")) is = new GZIPInputStream(pis);
+					else is = new InflaterInputStream(pis);
+				}
 			}
 			content = is;
 		}
@@ -203,12 +222,18 @@ final class JDKResponse extends HTTPResponseSupport {
 
 	@Override
 	public void close() throws IOException {
+		if (!closed.compareAndSet(false, true)) return;
 		try {
 			InputStream is = rsp.body();
 			if (is != null) is.close();
 		}
 		finally {
-			if (client != null) closeClient(client);
+			try {
+				if (client != null) closeClient(client);
+			}
+			finally {
+				if (onClose != null) onClose.run();
+			}
 		}
 	}
 

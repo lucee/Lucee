@@ -151,7 +151,7 @@ public final class HTTPRequest {
 
 	private ProxyData proxy;
 
-	private Runnable abortHandler;
+	private volatile Runnable abortHandler;
 	private volatile boolean aborted;
 
 	public String getMethod() {
