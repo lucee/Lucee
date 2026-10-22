@@ -49,6 +49,9 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	private final String path;
 	private final String name;
 	private HTTPResponse http;
+	// LDEV-5912: status code of the HEAD request, kept for this resource (as 8.0 does), so a sequence of
+	// checks like exists(), isFile() and isReadable() sends only one HEAD request
+	private volatile Integer headStatusCode;
 
 	public HTTPResource(HTTPResourceProvider provider, HTTPConnectionData data) {
 		this.provider = provider;
@@ -117,9 +120,14 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 
 	private int getStatusCode() throws IOException, GeneralSecurityException {
 		if (http == null) {
+			Integer cached = headStatusCode;
+			if (cached != null) return cached.intValue();
+
 			URL url = toURL();
 			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
-			return HTTPEngine4Impl.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getStatusCode();
+			int code = HTTPEngine4Impl.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getStatusCode();
+			headStatusCode = code;
+			return code;
 		}
 		return http.getStatusCode();
 	}
