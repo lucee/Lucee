@@ -149,6 +149,11 @@ public final class JDKEngine implements HTTPClientEngine {
 				});
 			}
 		}
+		else {
+			// like Apache HttpClient before (LDEV-6675), without a proxy of the request there is none, the default proxy selector of
+			// the JVM would take the proxy system properties (http.proxyHost ...) for every request
+			builder.proxy(HttpClient.Builder.NO_PROXY);
+		}
 
 		// always an SSL context of our own, the default SSL context of the JVM does not know the certificates installed in the
 		// custom cacerts of Lucee (SSLCertificateInstall, LDEV-5571)
@@ -276,7 +281,8 @@ public final class JDKEngine implements HTTPClientEngine {
 
 		String redirect = r.getRedirect() == null ? "true" : r.getRedirect().trim();
 		boolean follow = !"false".equalsIgnoreCase(redirect);
-		boolean lax = "lax".equalsIgnoreCase(redirect);
+		// without pooling Apache HttpClient always followed redirects the lax way (LaxRedirectStrategy), that stays (LDEV-6675)
+		boolean lax = "lax".equalsIgnoreCase(redirect) || (follow && !r.isPooling());
 
 		String method = r.getMethod();
 		URI uri = toURI(url);
@@ -463,10 +469,11 @@ public final class JDKEngine implements HTTPClientEngine {
 		return status == 301 || status == 302 || status == 303 || status == 307 || status == 308;
 	}
 
+	// the same as the redirect strategies of Apache HttpClient: a 303 always, otherwise GET and HEAD, lax also POST and DELETE
 	private static boolean mayFollow(int status, String method, boolean lax) {
-		if (lax) return true;
 		if (status == 303) return true;
-		return "GET".equals(method) || "HEAD".equals(method);
+		if ("GET".equals(method) || "HEAD".equals(method)) return true;
+		return lax && ("POST".equals(method) || "DELETE".equals(method));
 	}
 
 	private static URI toURI(URL url) throws IOException {
