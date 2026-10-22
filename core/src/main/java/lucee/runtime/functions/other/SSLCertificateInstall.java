@@ -54,7 +54,7 @@ public final class SSLCertificateInstall implements Function {
 					: new CertificateInstaller( keystore, host, Caster.toIntValue( port ), password.toCharArray() );
 				installer.installAll( true );
 			}
-			HTTPEngine.releaseConnectionManager();
+			HTTPEngine.getEngine().releaseConnections();
 		}
 		catch ( Exception e ) {
 			throw Caster.toPageException( e );

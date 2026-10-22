@@ -656,6 +656,9 @@ component {
 		server.checkVersionGTE = checkVersionGTE;
 		server.doesJDBCSupportMaven = doesJDBCSupportMaven;
 		server.getMssqlJdbcDriverDefinition = getMssqlJdbcDriverDefinition;
+		server.getHttpEngineName = getHttpEngineName;
+		server.isHttpExtensionEngine = isHttpExtensionEngine;
+		server.needsHttpExtensionEngine = needsHttpExtensionEngine;
 	}
 	public struct function getTestService( required string service, 
 			string dbFile="", 
@@ -964,6 +967,35 @@ component {
 		used to filter out tests which have a specific fix version 
 		when running against older versions of lucee, i.e with extension ci
 	*/
+	/*
+		LDEV-6676 name of the HTTP engine cfhttp uses, "jdk" for the built-in engine, an other name when the
+		HTTP extension provides the engine
+	*/
+	public string function getHttpEngineName() {
+		try {
+			return createObject( "java", "lucee.commons.net.http.HTTPEngineBasic" ).getEngine().getName();
+		}
+		catch ( e ) {
+			// a Lucee version without a pluggable HTTP engine, there the engine is Apache HttpClient
+			return "httpclient";
+		}
+	}
+
+	public boolean function isHttpExtensionEngine() {
+		return server.getHttpEngineName() != "jdk";
+	}
+
+	/*
+		LDEV-6676 use as skip for a test that needs a feature only the HTTP extension provides, e.g.
+		it( title="... (needs the HTTP extension engine)", skip=server.needsHttpExtensionEngine(), body=... )
+		cfhttp tests run with the built-in engine by default, the skip reason is written to the output
+	*/
+	public boolean function needsHttpExtensionEngine( string feature="" ) {
+		if ( server.isHttpExtensionEngine() ) return false;
+		systemOutput( "skipped#len( arguments.feature ) ? " [" & arguments.feature & "]" : ""#: needs the HTTP extension engine, the active HTTP engine is [#server.getHttpEngineName()#]", true );
+		return true;
+	}
+
 	public boolean function doesJDBCSupportMaven() {
 		// JDBC extension maven coordinates supported from 7.1.0.184-SNAPSHOT
 		var version = trim( server.lucee.version );

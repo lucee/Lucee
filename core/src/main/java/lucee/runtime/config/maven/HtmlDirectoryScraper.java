@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
-import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
+import lucee.commons.net.http.HTTPResponse;
 
 public class HtmlDirectoryScraper {
 
@@ -86,7 +86,7 @@ public class HtmlDirectoryScraper {
 	}
 
 	private String fetchSingle(String url, int[] statusCode) throws IOException {
-		HTTPResponse4Impl response = HTTPEngine.get(new URL(url), null, null, 2000, 10000, 30000, true, null, "HTML-Directory-Scraper/1.0", null, null, true);
+		HTTPResponse response = HTTPEngine.get(new URL(url), null, null, 2000, 10000, 30000, true, null, "HTML-Directory-Scraper/1.0", null, null, true);
 		try {
 			int sc = response.getStatusCode();
 			if (sc != 200) {

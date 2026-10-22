@@ -163,4 +163,18 @@ public interface HTTPUtil {
 	public URL removeUnecessaryPort(URL url);
 
 	Header createHeader(String name, String value);
+
+	/**
+	 * creates the SSL context Lucee uses for its own HTTPS requests: it trusts the certificates of the
+	 * JVM, the certificates Lucee installed (custom cacerts) and the given trust store.
+	 * 
+	 * @param clientCert path to a key store with the client certificate, can be null
+	 * @param clientCertPassword password of the client certificate key store, can be null
+	 * @param trustStore path to an additional trust store, can be null
+	 * @param trustStorePassword password of the additional trust store, can be null
+	 * @param verify when false the context trusts every certificate
+	 * @return the SSL context
+	 */
+	public javax.net.ssl.SSLContext createSSLContext(String clientCert, String clientCertPassword, String trustStore, String trustStorePassword, boolean verify)
+			throws java.security.GeneralSecurityException, IOException;
 }

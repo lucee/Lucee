@@ -23,8 +23,9 @@ import java.io.InputStream;
 import java.net.URL;
 
 import lucee.commons.io.res.ContentType;
+import lucee.runtime.type.Array;
 
-public interface HTTPResponse {
+public interface HTTPResponse extends java.io.Closeable {
 
 	public String getContentAsString() throws IOException;
 
@@ -46,6 +47,11 @@ public interface HTTPResponse {
 
 	public URL getURL();
 
+	/**
+	 * @return the URL of the last request, that is the target of the redirects that were followed
+	 */
+	public URL getTargetURL();
+
 	public int getStatusCode();
 
 	public String getStatusText();
@@ -55,4 +61,14 @@ public interface HTTPResponse {
 	public String getStatusLine();
 
 	public Header[] getAllHeaders();
+
+	/**
+	 * @return the URLs of the redirects that were followed, null if there were none
+	 */
+	public Array getLocations();
+
+	/**
+	 * releases the connection, must be called when the response is no longer needed
+	 */
+	public void close() throws IOException;
 }

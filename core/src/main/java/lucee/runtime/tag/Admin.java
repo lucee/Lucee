@@ -4829,7 +4829,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	public static void updateSSLCertificate(Config config, String host, int port) throws PageException {
 		try {
 			CertificateInstaller.installToCustomCaCerts( host, port );
-			HTTPEngine.releaseConnectionManager();
+			HTTPEngine.getEngine().releaseConnections();
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

@@ -73,6 +73,8 @@ import lucee.commons.io.log.Log;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.JULLogEngine;
+import lucee.commons.net.http.HTTPClientEngine;
+import lucee.commons.net.http.jdk.JDKEngine;
 import lucee.commons.io.log.LogFactory;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
@@ -1317,6 +1319,15 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private static final long MIMETYPE_DETECTOR_RETRY_MAX = 60000L;
 	private volatile long mimeTypeDetectorNextRetry;
 	private long mimeTypeDetectorRetryInterval = MIMETYPE_DETECTOR_RETRY_MIN;
+
+	private static Prop<ClassDefinition> metaHTTPEngineClassDef = Prop.custom(ClassDefinitionFactory.getInstance("engine")).keys("httpEngine").defaultValue(null)
+			.description("Defines the engine that sends the HTTP requests of Lucee (the tag cfhttp, downloads, AI engines). By default, the built-in engine is used, an extension like the HTTP extension can replace it "
+					+ "to support the full feature set. This property uses a standard ClassDefinition, allowing the engine to be loaded via OSGi bundles or Maven coordinates.");
+	private static final HTTPClientEngine DEFAULT_HTTP_ENGINE = new JDKEngine();
+	private volatile HTTPClientEngine httpEngine;
+	// the id of the class definition the current engine was loaded from, empty for the built-in engine
+	private volatile String httpEngineId;
+	private static final ThreadLocal<Boolean> loadingHTTPEngine = new ThreadLocal<Boolean>();
 
 	private static Prop<Integer> metaExternalizeStringGTE = Prop.integer().keys("externalizeStringGte").defaultValue(-1)
 			.description("Determines the character length threshold at which strings are moved from generated Java class files into separate external files. "
@@ -7195,6 +7206,82 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public final ConfigServerImpl resetFullNullSupport() {
 		nullSupport.reset();
+		return this;
+	}
+
+	/**
+	 * @return the engine that is used when the config does not define one
+	 */
+	public static HTTPClientEngine getDefaultHTTPEngine() {
+		return DEFAULT_HTTP_ENGINE;
+	}
+
+	/**
+	 * returns the HTTP engine defined by an extension, the built-in engine when none is defined or the
+	 * defined one cannot be loaded
+	 */
+	public HTTPClientEngine getHTTPEngine() {
+		HTTPClientEngine engine = httpEngine;
+		if (engine != null) return engine;
+		// the current thread is loading the engine, and loading can itself need to download something
+		if (Boolean.TRUE.equals(loadingHTTPEngine.get()) || root == null) return DEFAULT_HTTP_ENGINE;
+
+		synchronized (SystemUtil.createToken("config", "getHTTPEngine")) {
+			engine = httpEngine;
+			if (engine != null) return engine;
+
+			loadingHTTPEngine.set(Boolean.TRUE);
+			try {
+				ClassDefinition cd = metaHTTPEngineClassDef.get(this, root);
+				if (cd == null || !cd.hasClass()) {
+					httpEngineId = "";
+					return httpEngine = DEFAULT_HTTP_ENGINE;
+				}
+				try {
+					Object o = ClassUtil.loadInstance(cd.getClazz());
+					if (o instanceof HTTPClientEngine) {
+						HTTPClientEngine he = (HTTPClientEngine) o;
+						he.init(this);
+						httpEngineId = cd.getId();
+						return httpEngine = he;
+					}
+					httpEngineLoadFailed(cd, "class does not implement the interface [" + HTTPClientEngine.class.getName() + "]", null);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					httpEngineLoadFailed(cd, ExceptionUtil.getMessage(t, false), t);
+				}
+				// not remembered, so a later reset loads the engine again
+				httpEngineId = null;
+				return httpEngine = DEFAULT_HTTP_ENGINE;
+			}
+			finally {
+				loadingHTTPEngine.remove();
+			}
+		}
+	}
+
+	private void httpEngineLoadFailed(ClassDefinition cd, String reason, Throwable t) {
+		SystemOut.printDate("failed to load the http engine [" + cd.getClassName() + "]: " + reason + "; using the built-in http engine", SystemUtil.ERR);
+		if (t != null) t.printStackTrace();
+	}
+
+	/**
+	 * drops the current HTTP engine when the engine defined in the config changed, the next use loads
+	 * the engine that is defined now (an extension was installed or removed). This is also called when
+	 * everything is reset (config load), nothing happens when the engine did not change.
+	 */
+	public ConfigServerImpl resetHTTPEngine() {
+		synchronized (SystemUtil.createToken("config", "getHTTPEngine")) {
+			if (httpEngine != null && root != null) {
+				ClassDefinition cd = metaHTTPEngineClassDef.get(this, root);
+				String wanted = cd != null && cd.hasClass() ? cd.getId() : "";
+				if (wanted.equals(httpEngineId)) return this;
+			}
+			HTTPClientEngine old = httpEngine;
+			httpEngine = null;
+			if (old != null && old != DEFAULT_HTTP_ENGINE) old.close();
+		}
 		return this;
 	}
 

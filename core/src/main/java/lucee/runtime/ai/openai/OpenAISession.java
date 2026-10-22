@@ -12,16 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
@@ -30,6 +20,9 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.util.Util;
+import lucee.commons.net.http.HTTPEngine;
+import lucee.commons.net.http.HTTPRequest;
+import lucee.commons.net.http.HTTPResponse;
 import lucee.runtime.ai.AIEngineSupport;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
@@ -227,21 +220,19 @@ public final class OpenAISession extends AISessionSupport {
 		String str = json.serialize(null, request, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
 		LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "request message send by [" + openaiEngine.getLabel() + "]: " + str, "ai", "application");
 
-		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-			CloseableHttpResponse response = null;
+		{
+			HTTPResponse response = null;
 			try {
-				response = execute(httpClient, str);
+				response = execute(str);
 
-				HttpEntity responseEntity = response.getEntity();
-				Header ct = responseEntity.getContentType();
-				MimeType mt = MimeType.getInstance(ct.getValue());
+				MimeType mt = MimeType.getInstance(AISessionSupport.contentType(response));
 				String t = mt.getType() + "/" + mt.getSubtype();
 				String cs = mt.getCharset() != null ? mt.getCharset().toString() : openaiEngine.charset;
 
 				// stream false
 				if ("application/json".equals(t)) {
 					if (Util.isEmpty(cs, true)) cs = openaiEngine.charset;
-					String rawStr = EntityUtils.toString(responseEntity, openaiEngine.charset);
+					String rawStr = response.getContentAsString(openaiEngine.charset);
 					LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "response recieved send by [" + openaiEngine.getLabel() + "]: " + rawStr, "ai", "application");
 					Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, rawStr));
 
@@ -257,7 +248,7 @@ public final class OpenAISession extends AISessionSupport {
 							return executeRequest(request, messageText, parts, listener);
 						}
 						throw AIUtil.toException(this.getEngine(), Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
-								Caster.toString(err.get(KeyConstants._code, null), null), response.getStatusLine().getStatusCode());
+								Caster.toString(err.get(KeyConstants._code, null), null), response.getStatusCode());
 					}
 
 					OpenAIResponse r = new OpenAIResponse(raw, cs);
@@ -271,7 +262,7 @@ public final class OpenAISession extends AISessionSupport {
 					OpenAIStreamResponse r = new OpenAIStreamResponse(cs, listener);
 
 					try (BufferedReader reader = new BufferedReader(
-							cs == null ? new InputStreamReader(responseEntity.getContent()) : new InputStreamReader(responseEntity.getContent(), cs))) {
+							cs == null ? new InputStreamReader(response.getContentAsStream()) : new InputStreamReader(response.getContentAsStream(), cs))) {
 						String line;
 						int index = 0;
 						Struct prev = null;
@@ -295,7 +286,7 @@ public final class OpenAISession extends AISessionSupport {
 					return r;
 				}
 				else {
-					throw unsupportedMimeTypeException(response, responseEntity, cs, t);
+					throw unsupportedMimeTypeException(response, cs, t);
 				}
 			}
 			finally {
@@ -304,12 +295,12 @@ public final class OpenAISession extends AISessionSupport {
 		}
 	}
 
-	private CloseableHttpResponse execute(CloseableHttpClient httpClient, String str) throws ClientProtocolException, IOException, URISyntaxException {
+	private HTTPResponse execute(String str) throws IOException, URISyntaxException {
 		int max = 3;
-		CloseableHttpResponse response = httpClient.execute(createHttpPost(openaiEngine.chatCompletionsURI, str));
-		while (response.getStatusLine().getStatusCode() >= 300 && response.getStatusLine().getStatusCode() < 400) {
+		HTTPResponse response = HTTPEngine.getEngine().execute(createHttpPost(openaiEngine.chatCompletionsURI, str));
+		while (response.getStatusCode() >= 300 && response.getStatusCode() < 400) {
 			if (--max == 0) return response;
-			Header locationHeader = response.getFirstHeader("Location");
+			lucee.commons.net.http.Header locationHeader = response.getLastHeaderIgnoreCase("Location");
 			if (locationHeader != null) {
 				String redirectUrl = locationHeader.getValue();
 				IOUtil.closeEL(response);
@@ -318,14 +309,14 @@ public final class OpenAISession extends AISessionSupport {
 						openaiEngine.chatCompletionsURI.getHost(), openaiEngine.chatCompletionsURI.getPort(), redirectUrl, openaiEngine.chatCompletionsURI.getQuery(),
 						openaiEngine.chatCompletionsURI.getFragment());
 
-				response = httpClient.execute(createHttpPost(openaiEngine.chatCompletionsURI, str));
+				response = HTTPEngine.getEngine().execute(createHttpPost(openaiEngine.chatCompletionsURI, str));
 			}
 		}
 		return response;
 	}
 
-	private HttpPost createHttpPost(URI uri, String str) {
-		HttpPost post = new HttpPost(uri);
+	private HTTPRequest createHttpPost(URI uri, String str) throws java.net.MalformedURLException {
+		HTTPRequest post = AISessionSupport.newRequest(HTTPRequest.POST, uri);
 		post.setHeader("Content-Type", AIUtil.createJsonContentType(openaiEngine.charset));
 		post.setHeader("Authorization", "Bearer " + openaiEngine.secretKey);
 		// custom headers
@@ -335,11 +326,9 @@ public final class OpenAISession extends AISessionSupport {
 			}
 		}
 
-		StringEntity entity = new StringEntity(str, openaiEngine.charset);
-		post.setEntity(entity);
+		post.setBody(str, null, openaiEngine.charset);
 
-		RequestConfig config = AISessionSupport.setRedirect(AISessionSupport.setTimeout(RequestConfig.custom(), this)).build();
-		post.setConfig(config);
+		AISessionSupport.setRedirect(AISessionSupport.setTimeout(post, this));
 
 		return post;
 	}

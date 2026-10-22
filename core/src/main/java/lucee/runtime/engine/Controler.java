@@ -432,7 +432,7 @@ public final class Controler extends ParentThreasRefThread {
 					stopwatch.start();
 					// Clear unused http connections
 					try {
-						HTTPEngine.closeIdleConnections();
+						HTTPEngine.getEngine().closeIdleConnections();
 					}
 					catch (Exception e) {
 						if (log != null) log.error("controler", e);

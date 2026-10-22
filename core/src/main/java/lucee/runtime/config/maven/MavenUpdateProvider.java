@@ -22,7 +22,6 @@ import java.util.Stack;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.apache.http.StatusLine;
 import org.xml.sax.SAXException;
 
 import lucee.commons.digest.HashUtil;
@@ -518,11 +517,6 @@ public final class MavenUpdateProvider {
 			sb.append(r.url);
 		}
 		return sb.toString();
-	}
-
-	private boolean validSatusCode(StatusLine sl) {
-		if (sl == null) return false;
-		return sl.getStatusCode() >= 200 && sl.getStatusCode() < 300;
 	}
 
 	private boolean validSatusCode(int code) {

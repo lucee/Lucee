@@ -1349,8 +1349,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			if (cntr != null) cntr.close();
 
 			// release HTTP Pool
-			HTTPEngine.releaseConnectionManager();
-			HTTPEngine.releaseSharedClient();
+			HTTPEngine.getEngine().close();
 
 			IOUtil.clearBufferPools();
 

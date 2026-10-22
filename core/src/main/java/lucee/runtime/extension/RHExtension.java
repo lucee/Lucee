@@ -911,6 +911,7 @@ public final class RHExtension implements Serializable {
 		metadata.setSearch(StringUtil.unwrap(attr.getValue("search")), logger);
 		metadata.setMimeType(StringUtil.unwrap(attr.getValue("mimetype")), logger);
 		metadata.setLogEngine(StringUtil.unwrap(attr.getValue("log-engine")), logger);
+		metadata.setHttpEngine(StringUtil.unwrap(attr.getValue("http-engine")), logger);
 		metadata.setRegexEngine(StringUtil.unwrap(attr.getValue("regex-engine")), logger);
 		metadata.setORM(StringUtil.unwrap(attr.getValue("orm")), logger);
 		metadata.setWebservice(StringUtil.unwrap(attr.getValue("webservice")), logger);
@@ -1306,6 +1307,7 @@ public final class RHExtension implements Serializable {
 		coll.setEL(KeyConstants._search, toArray(md.getSearchs()));
 		coll.setEL(KeyImpl.init("mimeType"), toArray(md.getMimeTypes()));
 		coll.setEL(KeyImpl.init("logEngine"), toArray(md.getLogEngines()));
+		coll.setEL(KeyImpl.init("httpEngine"), toArray(md.getHttpEngines()));
 		coll.setEL(KeyImpl.init("regexEngine"), toArray(md.getRegexEngines()));
 		coll.setEL(KeyConstants._orm, toArray(md.getOrms()));
 		coll.setEL(KeyConstants._webservice, toArray(md.getWebservices()));

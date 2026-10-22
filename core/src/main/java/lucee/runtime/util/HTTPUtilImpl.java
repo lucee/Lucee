@@ -155,4 +155,19 @@ public final class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 		return HTTPEngine.header(name, value);
 	}
 
+
+	@Override
+	public javax.net.ssl.SSLContext createSSLContext(String clientCert, String clientCertPassword, String trustStore, String trustStorePassword, boolean verify)
+			throws java.security.GeneralSecurityException, IOException {
+		java.nio.file.Path certPath = lucee.commons.lang.StringUtil.isEmpty(clientCert, true) ? null : java.nio.file.Paths.get(clientCert);
+		char[] certPassword = clientCertPassword != null ? clientCertPassword.toCharArray() : null;
+		if (!verify) return lucee.runtime.net.http.SSLUtil.createUnsafeSSLContext(certPath, certPassword);
+		if (!lucee.commons.lang.StringUtil.isEmpty(trustStore, true)) {
+			char[] trustPassword = trustStorePassword != null ? trustStorePassword.toCharArray() : "changeit".toCharArray();
+			java.util.List<lucee.runtime.net.http.SSLUtil.TrustStoreConfig> additional = new java.util.ArrayList<>();
+			additional.add(new lucee.runtime.net.http.SSLUtil.TrustStoreConfig(java.nio.file.Paths.get(trustStore), trustPassword));
+			return lucee.runtime.net.http.SSLUtil.createSSLContext(certPath, certPassword, additional);
+		}
+		return lucee.runtime.net.http.SSLUtil.createSSLContext(certPath, certPassword);
+	}
 }

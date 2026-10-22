@@ -12,18 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
@@ -33,6 +21,9 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.net.HTTPUtil;
 import lucee.loader.util.Util;
+import lucee.commons.net.http.HTTPEngine;
+import lucee.commons.net.http.HTTPRequest;
+import lucee.commons.net.http.HTTPResponse;
 import lucee.runtime.ai.AIEngine;
 import lucee.runtime.ai.AIEngineFile;
 import lucee.runtime.ai.AIEngineSupport;
@@ -318,7 +309,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 	@Override
 	public List<AIModel> getModels() throws PageException {
 		try {
-			HttpGet get = new HttpGet(new URL(baseURL, "models").toExternalForm());
+			HTTPRequest get = AISessionSupport.newRequest(HTTPRequest.GET, new URL(baseURL, "models"));
 			if (!Util.isEmpty(secretKey, true)) get.setHeader("Authorization", "Bearer " + secretKey);
 			get.setHeader("Content-Type", AIUtil.createJsonContentType(charset));
 			if (headers != null) {
@@ -327,20 +318,17 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 				}
 			}
 
-			RequestConfig config = AISessionSupport.setRedirect(AISessionSupport.setTimeout(RequestConfig.custom(), getConnectTimeout(), getSocketTimeout())).build();
-			get.setConfig(config);
+			AISessionSupport.setRedirect(AISessionSupport.setTimeout(get, getConnectTimeout(), getSocketTimeout()));
 
-			try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(get)) {
+			try (HTTPResponse response = HTTPEngine.getEngine().execute(get)) {
 
-				HttpEntity responseEntity = response.getEntity();
-				Header ct = responseEntity.getContentType();
-				MimeType mt = MimeType.getInstance(ct.getValue());
+				MimeType mt = MimeType.getInstance(AISessionSupport.contentType(response));
 
 				String t = mt.getType() + "/" + mt.getSubtype();
 				String cs = mt.getCharset() != null ? mt.getCharset().toString() : charset;
 
 				if ("application/json".equals(t)) {
-					String rawStr = EntityUtils.toString(responseEntity, charset);
+					String rawStr = response.getContentAsString(charset);
 					Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, rawStr));
 					throwIfError(raw, AIUtil.getStatusCode(response));
 
@@ -383,9 +371,9 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			URI url = new URI(getBaseURL() + "fine_tuning/jobs");
 			InputStream is = null;
 			// Create HttpClient
-			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-				// Create HttpPost request
-				HttpPost post = new HttpPost(url);
+			try {
+				// Create request
+				HTTPRequest post = AISessionSupport.newRequest(HTTPRequest.POST, url);
 				post.setHeader("Content-Type", AIUtil.createJsonContentType(charset));
 				post.setHeader("Authorization", "Bearer " + secretKey);
 
@@ -394,13 +382,11 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 				sct.set(KeyConstants._model, model);
 				JSONConverter json = new JSONConverter(true, StandardCharsets.UTF_8, JSONDateFormat.PATTERN_CF, false);
 				String str = json.serialize(null, sct, SerializationSettings.SERIALIZE_AS_COLUMN, Boolean.TRUE);
-				StringEntity entity = new StringEntity(str);
-				post.setEntity(entity);
+				post.setBody(str, null, charset);
 
 				// Execute the request
-				try (CloseableHttpResponse response = httpClient.execute(post)) {
-					HttpEntity responseEntity = response.getEntity();
-					String responseString = EntityUtils.toString(responseEntity, charset);
+				try (HTTPResponse response = HTTPEngine.getEngine().execute(post)) {
+						String responseString = response.getContentAsString(charset);
 
 					Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
 					throwIfError(raw, AIUtil.getStatusCode(response));
@@ -426,26 +412,21 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			URI url = new URI(getBaseURL() + "files");
 			InputStream is = null;
 			// Create HttpClient
-			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-				// Create HttpPost request
-				HttpPost uploadFile = new HttpPost(url);
+			try {
+				// Create request
+				HTTPRequest uploadFile = AISessionSupport.newRequest(HTTPRequest.POST, url);
 				uploadFile.setHeader("Authorization", "Bearer " + secretKey);
 
-				// Build the multipart entity
-				MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-				builder.addTextBody("purpose", purpose, org.apache.http.entity.ContentType.TEXT_PLAIN);
-				builder.addBinaryBody("file", is = jsonl.getInputStream(), org.apache.http.entity.ContentType.APPLICATION_OCTET_STREAM, jsonl.getName());
-
-				HttpEntity multipart = builder.build();
-				uploadFile.setEntity(multipart);
+				// Build the multipart body
+				uploadFile.addPart(HTTPRequest.Part.text("purpose", purpose, null));
+				uploadFile.addPart(HTTPRequest.Part.file("file", jsonl, "application/octet-stream", null));
 
 				// Execute the request
-				CloseableHttpResponse response = httpClient.execute(uploadFile);
+				HTTPResponse response = HTTPEngine.getEngine().execute(uploadFile);
 				try {
 
 					// Get response
-					HttpEntity responseEntity = response.getEntity();
-					String responseString = EntityUtils.toString(responseEntity, charset);
+						String responseString = response.getContentAsString(charset);
 
 					/*
 					 * { "object": "file", "id": "file-NvDokaQZjf06auxzzU5ONayK", "purpose": "fine-tune", "filename":
@@ -478,18 +459,17 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			URI url = new URI(getBaseURL() + "files");
 			InputStream is = null;
 			// Create HttpClient
-			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-				// Create HttpPost request
-				HttpGet get = new HttpGet(url);
+			try {
+				// Create request
+				HTTPRequest get = AISessionSupport.newRequest(HTTPRequest.GET, url);
 				get.setHeader("Authorization", "Bearer " + secretKey);
 
 				// Execute the request
-				try (CloseableHttpResponse response = httpClient.execute(get)) {
+				try (HTTPResponse response = HTTPEngine.getEngine().execute(get)) {
 					// Get response
-					HttpEntity responseEntity = response.getEntity();
-					List<AIFile> list = new ArrayList<>();
-					if ("application/json".equals(responseEntity.getContentType().getValue())) {
-						String responseString = EntityUtils.toString(responseEntity, charset);
+						List<AIFile> list = new ArrayList<>();
+					if ("application/json".equals(AISessionSupport.contentType(response))) {
+						String responseString = response.getContentAsString(charset);
 						Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
 						throwIfError(raw, AIUtil.getStatusCode(response));
 						Array data = Caster.toArray(raw.get(KeyConstants._data));
@@ -536,17 +516,16 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			URI url = new URI(getBaseURL() + "files/" + id.trim());
 			InputStream is = null;
 			// Create HttpClient
-			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-				// Create HttpPost request
-				HttpGet get = new HttpGet(url);
+			try {
+				// Create request
+				HTTPRequest get = AISessionSupport.newRequest(HTTPRequest.GET, url);
 				get.setHeader("Authorization", "Bearer " + secretKey);
 
 				// Execute the request
-				try (CloseableHttpResponse response = httpClient.execute(get)) {
+				try (HTTPResponse response = HTTPEngine.getEngine().execute(get)) {
 					// Get response
-					HttpEntity responseEntity = response.getEntity();
-					if ("application/json".equals(responseEntity.getContentType().getValue())) {
-						String responseString = EntityUtils.toString(responseEntity, charset);
+						if ("application/json".equals(AISessionSupport.contentType(response))) {
+						String responseString = response.getContentAsString(charset);
 						Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
 						throwIfError(sct, AIUtil.getStatusCode(response));
 						return new AIFileSupport(
@@ -568,7 +547,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 								Caster.toString(sct.get("status_details", null)));
 
 					}
-					throw new ApplicationException("The AI did answer with the mime type [" + responseEntity.getContentType().getValue()
+					throw new ApplicationException("The AI did answer with the mime type [" + AISessionSupport.contentType(response)
 							+ "] that is not supported, only [application/json] is supported");
 				}
 
@@ -588,25 +567,21 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		try {
 			URI url = new URI(getBaseURL() + "files/" + id.trim() + "/content");
 
-			// Create HttpClient
-			CloseableHttpClient httpClient = HttpClients.createDefault();
-
-			// Create HttpGet request
-			HttpGet get = new HttpGet(url);
+			// Create request
+			HTTPRequest get = AISessionSupport.newRequest(HTTPRequest.GET, url);
 			get.setHeader("Authorization", "Bearer " + secretKey);
 
 			// Execute the request
-			CloseableHttpResponse response = httpClient.execute(get);
-			HttpEntity responseEntity = response.getEntity();
+			HTTPResponse response = HTTPEngine.getEngine().execute(get);
 
-			if ("application/json".equals(responseEntity.getContentType().getValue())) {
-				String responseString = EntityUtils.toString(responseEntity, charset);
+			if ("application/json".equals(AISessionSupport.contentType(response))) {
+				String responseString = response.getContentAsString(charset);
 				Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
 				throwIfError(sct, AIUtil.getStatusCode(response));
 			}
 
 			// Return the InputStream, caller is responsible for closing it
-			return responseEntity.getContent();
+			return response.getContentAsStream();
 
 		}
 		catch (Exception e) {
@@ -620,23 +595,22 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			URI url = new URI(getBaseURL() + "files/" + id.trim());
 			InputStream is = null;
 			// Create HttpClient
-			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-				// Create HttpPost request
-				HttpDelete get = new HttpDelete(url);
+			try {
+				// Create request
+				HTTPRequest get = AISessionSupport.newRequest(HTTPRequest.DELETE, url);
 				get.setHeader("Authorization", "Bearer " + secretKey);
 
 				// Execute the request
-				try (CloseableHttpResponse response = httpClient.execute(get)) {
+				try (HTTPResponse response = HTTPEngine.getEngine().execute(get)) {
 					// Get response
-					HttpEntity responseEntity = response.getEntity();
-					if ("application/json".equals(responseEntity.getContentType().getValue())) {
-						String responseString = EntityUtils.toString(responseEntity, charset);
+						if ("application/json".equals(AISessionSupport.contentType(response))) {
+						String responseString = response.getContentAsString(charset);
 						Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
 						throwIfError(sct, AIUtil.getStatusCode(response));
 						return Caster.toBooleanValue(sct.get(KeyConstants._deleted));
 
 					}
-					throw new ApplicationException("The AI did answer with the mime type [" + responseEntity.getContentType().getValue()
+					throw new ApplicationException("The AI did answer with the mime type [" + AISessionSupport.contentType(response)
 							+ "] that is not supported, only [application/json] is supported");
 				}
 
