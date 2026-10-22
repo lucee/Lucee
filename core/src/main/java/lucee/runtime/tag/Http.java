@@ -1056,8 +1056,16 @@ public final class Http extends BodyTagImpl {
 			else {
 				e.start();
 				try {
-					synchronized (this) {// print.err(timeout);
-						this.wait(socketTimeout.getMillis());
+					// the tag instance is pooled, the executor of an earlier (aborted) request of this instance can still notify it, so a
+					// wake up alone does not mean that this request is done, it waits until the executor is finished or the time is up
+					long ms = socketTimeout.getMillis();
+					long deadline = System.nanoTime() + (ms >= Long.MAX_VALUE / 1000000L ? Long.MAX_VALUE / 2 : ms * 1000000L);
+					synchronized (this) {
+						while (!e.finished) {
+							long left = (deadline - System.nanoTime()) / 1000000L;
+							if (left <= 0) break;
+							this.wait(left);
+						}
 					}
 				}
 				catch (InterruptedException ie) {
@@ -1816,9 +1824,10 @@ public final class Http extends BodyTagImpl {
 class HttpExecutor extends PageContextThread {
 
 	final Http http;
-	Throwable t;
-	boolean done;
-	HTTPResponse response;
+	volatile Throwable t;
+	volatile boolean done;
+	volatile boolean finished;
+	volatile HTTPResponse response;
 	private final HTTPRequest req;
 
 	public HttpExecutor(PageContext pc, Http http, HTTPRequest req) {
@@ -1838,6 +1847,7 @@ class HttpExecutor extends PageContextThread {
 			this.t = t;
 		}
 		finally {
+			finished = true;
 			SystemUtil.notify(http);
 		}
 	}
