@@ -24,8 +24,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
-import org.apache.commons.codec.digest.DigestUtils;
+import java.util.HexFormat;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
@@ -50,10 +49,33 @@ public final class Hash {
 	}
 
 	// MD5
+	private static String hexDigest(String algorithm, InputStream is) throws IOException {
+		MessageDigest md = messageDigest(algorithm);
+		byte[] buffer = new byte[8192];
+		int len;
+		while ((len = is.read(buffer)) != -1) {
+			md.update(buffer, 0, len);
+		}
+		return HexFormat.of().formatHex(md.digest());
+	}
+
+	private static String hexDigest(String algorithm, byte[] data) throws IOException {
+		return HexFormat.of().formatHex(messageDigest(algorithm).digest(data));
+	}
+
+	private static MessageDigest messageDigest(String algorithm) throws IOException {
+		try {
+			return MessageDigest.getInstance(algorithm);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new IOException(e);
+		}
+	}
+
 	public static String md5(Resource res) throws IOException {
 		InputStream is = res.getInputStream();
 		try {
-			return DigestUtils.md5Hex(is);
+			return hexDigest("MD5", is);
 		}
 		finally {
 			IOUtil.close(is);
@@ -71,7 +93,7 @@ public final class Hash {
 			}
 
 			// Adjust buffer if less than 100 bytes were read
-			return DigestUtils.md5Hex(bytesRead < 100 ? java.util.Arrays.copyOf(buffer, bytesRead) : buffer);
+			return hexDigest("MD5", bytesRead < 100 ? java.util.Arrays.copyOf(buffer, bytesRead) : buffer);
 		}
 	}
 
@@ -87,7 +109,7 @@ public final class Hash {
 	public static String sha1(Resource res) throws IOException {
 		InputStream is = res.getInputStream();
 		try {
-			return DigestUtils.sha1Hex(is);
+			return hexDigest("SHA-1", is);
 		}
 		finally {
 			IOUtil.close(is);
@@ -110,7 +132,7 @@ public final class Hash {
 	public static String sha256(Resource res) throws IOException {
 		InputStream is = res.getInputStream();
 		try {
-			return DigestUtils.sha256Hex(is);
+			return hexDigest("SHA-256", is);
 		}
 		finally {
 			IOUtil.close(is);
@@ -146,7 +168,7 @@ public final class Hash {
 	public static String sha512(Resource res) throws IOException {
 		InputStream is = res.getInputStream();
 		try {
-			return DigestUtils.sha512Hex(is);
+			return hexDigest("SHA-512", is);
 		}
 		finally {
 			IOUtil.close(is);
