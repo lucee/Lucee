@@ -6,16 +6,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 	variables.httpbin = server.getTestService( "httpbin" );
 	variables.noServer = "http://127.0.0.1:1/ldev6676";
 
-	private boolean function isBuiltInEngine() {
-		return createObject( "java", "lucee.commons.net.http.HTTPEngineBasic" ).getEngine().getName() == "jdk";
-	}
-
+	// the messages are only thrown by the built-in engine, the HTTP extension engine supports these features
 	private boolean function notBuiltInEngine() {
-		return !isBuiltInEngine();
+		return server.isHttpExtensionEngine();
 	}
 
 	private boolean function noHttpbin() {
 		return notBuiltInEngine() || structCount( variables.httpbin ) == 0;
+	}
+
+	private boolean function extensionNoHttpbin( string feature="" ) {
+		return structCount( variables.httpbin ) == 0 || server.needsHttpExtensionEngine( arguments.feature );
 	}
 
 	private string function httpbinURL( required string path ) {
@@ -114,6 +115,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 			it( title="wrong Basic credentials end in a 401, not in an error", skip=noHttpbin(), body=function() {
 				cfhttp( url=httpbinURL( "basic-auth/user/passwd" ), result="local.res", timeout=10, username="user", password="wrong" );
 				expect( res.status_code ).toBe( 401 );
+			});
+
+			it( title="Basic authentication works with every engine", skip=structCount( variables.httpbin ) == 0, body=function() {
+				cfhttp( url=httpbinURL( "basic-auth/user/passwd" ), result="local.res", timeout=10, username="user", password="passwd" );
+				expect( res.status_code ).toBe( 200 );
+			});
+		});
+
+		describe( "LDEV-6676 features only the HTTP extension engine provides", function() {
+
+			it( title="the Host header is sent (needs the HTTP extension engine)", skip=extensionNoHttpbin( "Host header" ), body=function() {
+				cfhttp( url=httpbinURL( "headers" ), result="local.res", timeout=10 ) {
+					cfhttpparam( type="header", name="Host", value="ldev6676.example.com" );
+				}
+				expect( res.status_code ).toBe( 200 );
+				expect( deserializeJSON( res.fileContent ).headers.Host ).toBe( "ldev6676.example.com" );
+			});
+
+			it( title="Digest authentication works (needs the HTTP extension engine)", skip=extensionNoHttpbin( "Digest authentication" ), body=function() {
+				cfhttp( url=httpbinURL( "digest-auth/auth/user/passwd" ), result="local.res", timeout=10, username="user", password="passwd" );
+				expect( res.status_code ).toBe( 200 );
 			});
 		});
 	}
