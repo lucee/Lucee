@@ -303,8 +303,8 @@ public final class SQLCaster {
 			return;
 		case Types.TINYINT:
 			try {
-				// LDEV-3118 signed (-128..127) and unsigned (MSSQL, 0..255) tinyint are both allowed
-				short s = Caster.toShortValue(checkRange(value, Byte.MIN_VALUE, 255, "TINYINT"));
+				// LDEV-3118 tinyint is unsigned (0..255) like in ACF, negative values are invalid
+				short s = Caster.toShortValue(checkRange(value, 0, 255, "TINYINT"));
 				if (s > Byte.MAX_VALUE) stat.setObject(parameterIndex, Short.valueOf(s), type);
 				else stat.setObject(parameterIndex, Byte.valueOf((byte) s), type);
 			}
