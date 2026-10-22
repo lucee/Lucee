@@ -29,6 +29,7 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,6 +79,7 @@ import lucee.runtime.functions.system.CallStackGet;
 import lucee.runtime.net.http.CertificateInstaller;
 import lucee.runtime.net.http.MultiPartResponseUtils;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.http.SSLUtil;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
@@ -1011,6 +1013,17 @@ public final class Http extends BodyTagImpl {
 
 			req.setRedirect(this.redirect).setPooling(this.usePool).setClientCert(this.clientCert, this.clientCertPassword).setTrustStore(this.trustStore, this.trustStorePassword)
 					.setSslVerify(this.sslVerify).setCharset(charset);
+
+			// an invalid trust store is an error in the attributes of the tag, it must throw and not end up as a "Connection Failure"
+			// inside the execution below, that is also the case with throwOnError=false (LDEV-6005)
+			if (!StringUtil.isEmpty(this.trustStore, true)) {
+				try {
+					SSLUtil.validateTrustStore(Paths.get(this.trustStore.trim()), this.trustStorePassword == null ? null : this.trustStorePassword.toCharArray());
+				}
+				catch (Exception ex) {
+					throw new ApplicationException("invalid value for attribute [trustStore] [" + this.trustStore + "]: " + ex.getMessage());
+				}
+			}
 
 		}
 		HTTPResponse rsp = null;

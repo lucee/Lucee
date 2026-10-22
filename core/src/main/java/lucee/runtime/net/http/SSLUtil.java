@@ -239,6 +239,19 @@ public final class SSLUtil {
 	}
 
 	/**
+	 * Checks that a trust store exists and can be loaded with the given password, throws if not.
+	 *
+	 * @param path Path to the trust store (PKCS12 or JKS)
+	 * @param password Password of the trust store, "changeit" when null
+	 */
+	public static void validateTrustStore( Path path, char[] password ) throws GeneralSecurityException {
+		if ( path == null || !Files.isRegularFile( path ) ) {
+			throw new GeneralSecurityException( "trustStore file not found: " + path );
+		}
+		loadKeyStore( path, password == null ? DEFAULT_PASSWORD : password );
+	}
+
+	/**
 	 * Loads a KeyStore from a file, auto-detecting the type (JKS or PKCS12).
 	 */
 	public static KeyStore loadKeyStore( Path path, char[] password ) throws GeneralSecurityException {
