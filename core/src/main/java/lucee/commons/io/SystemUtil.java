@@ -58,7 +58,6 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.BundleReference;
@@ -1571,8 +1570,8 @@ public final class SystemUtil {
 		InputStream is;
 		if (bundle == null) {
 			ClassLoader cl = PageSourceImpl.class.getClassLoader();
-			if (cl instanceof BundleClassLoader) {
-				bundle = ((BundleClassLoader) cl).getBundle();
+			if (cl instanceof BundleReference) {
+				bundle = ((BundleReference) cl).getBundle();
 			}
 		}
 		if (bundle != null) {

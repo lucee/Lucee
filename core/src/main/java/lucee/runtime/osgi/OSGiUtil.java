@@ -46,11 +46,10 @@ import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
-import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
-import org.apache.felix.framework.Logger;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.BundleReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
@@ -72,6 +71,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
+import lucee.loader.osgi.LoggerImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.osgi.BundleCollection;
@@ -954,7 +954,7 @@ public final class OSGiUtil {
 		final Resource jarDir = ResourceUtil.toResource(factory.getBundleDirectory());
 		final URL updateUrl = BundleProvider.getInstance().getBundleAsURL(new BundleDefinition(symbolicName, symbolicVersion), true);
 
-		log(Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "]");
+		log(LoggerImpl.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "]");
 
 		// extract version if necessary
 		if ("latest".equals(symbolicVersion)) {
@@ -984,7 +984,7 @@ public final class OSGiUtil {
 		catch (GeneralSecurityException e) {
 			final String msg = "Download bundle failed for [" + symbolicName + "] in version [" + symbolicVersion + "] from [" + updateUrl
 					+ "], please download manually and copy to [" + jarDir + "]";
-			log(Logger.LOG_ERROR, msg);
+			log(LoggerImpl.LOG_ERROR, msg);
 			throw new IOException(msg, e);
 		}
 		return jar;
@@ -2494,15 +2494,14 @@ public final class OSGiUtil {
 		return defaultValue;
 	}
 
-	public static boolean isFrameworkBundle(Bundle b) {// FELIX specific
-
-		return "org.apache.felix.framework".equalsIgnoreCase(b.getSymbolicName()); // TODO move to cire util class tha does not exist yet
+	public static boolean isFrameworkBundle(Bundle b) {
+		return b.getBundleId() == 0;
 	}
 
 	public static Bundle getBundleFromClass(Class clazz, Bundle defaultValue) {
 		ClassLoader cl = clazz.getClassLoader();
-		if (cl instanceof BundleClassLoader) {
-			return ((BundleClassLoader) cl).getBundle();
+		if (cl instanceof BundleReference) {
+			return ((BundleReference) cl).getBundle();
 		}
 		return defaultValue;
 	}
@@ -2519,7 +2518,7 @@ public final class OSGiUtil {
 
 	public static List<File> getClassPathAsList() {
 		ClassLoader cl = OSGiUtil.class.getClassLoader();
-		BundleClassLoader bcl = cl instanceof BundleClassLoader ? (BundleClassLoader) cl : null;
+		BundleReference bcl = cl instanceof BundleReference ? (BundleReference) cl : null;
 		BundleContext bc = null;
 		if (bcl != null) {
 			Bundle bundle = bcl.getBundle();
@@ -2582,8 +2581,8 @@ public final class OSGiUtil {
 	public static boolean isValid(Object obj) {
 		if (obj != null) {
 			ClassLoader cl = obj.getClass().getClassLoader();
-			if (cl instanceof BundleClassLoader) {
-				if (((Bundle) ((BundleClassLoader) cl).getBundle()).getState() != Bundle.ACTIVE) return false;
+			if (cl instanceof BundleReference) {
+				if (((Bundle) ((BundleReference) cl).getBundle()).getState() != Bundle.ACTIVE) return false;
 			}
 		}
 		return true;
@@ -2851,7 +2850,7 @@ public final class OSGiUtil {
 		}
 	}
 
-	public static String createId(BundleClassLoader bcl) {
+	public static String createId(BundleReference bcl) {
 		Bundle b = bcl.getBundle();
 		return b.getSymbolicName() + ":" + b.getVersion().toString();
 	}

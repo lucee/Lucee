@@ -41,10 +41,10 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 
-import org.apache.felix.framework.Felix;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.launch.Framework;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.engine.CFMLEngineFactorySupport;
@@ -83,7 +83,7 @@ public class BundleLoader {
 			start = tmp;
 
 			// close all bundles
-			Felix felix;
+			Framework felix;
 			if (old != null) {
 				engFac.log(LoggerImpl.LOG_DEBUG, "onload/uninstall existig bundle context");
 				removeBundlesEL(old);

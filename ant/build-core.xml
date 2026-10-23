@@ -957,21 +957,9 @@
     <copy file="${temp}/archive/env-vars.json" tofile="${trgLoader}/env-vars.json"/> 
   </target>
   <!--
-  MARK: Felix
+  MARK: Manifest
   -->
-  <target name="addFelix" if="buildLoaderJar">
-    <echots message="copy the content of the felix jar to the classes folder"/>
-    
-    <!-- get the path for the felix jar TODO this impl could be better -->
-    <felix property="felix" separator="${path.separator}" dependencies="${dependencies}"/>
-    
-    <!-- unzip the content to target -->
-    <unzip src="${felix}" dest="${goal}">
-        <!-- <patternset>
-            <exclude name="**/MANIFEST.MF"/>
-        </patternset> -->
-    </unzip>
-
+  <target name="createLoaderManifest" if="buildLoaderJar">
     <!-- Manifest need merging -->
     <loadproperties 
       srcFile="${srcLoader}/META-INF/MANIFEST.MF"
@@ -994,6 +982,48 @@
 
     </manifest>
     <!-- TODO load dyn -->
+  </target>
+
+  <!--
+  MARK: Shade
+  copies the third party libraries the core always needs into the assembled folder and relocates them,
+  using the Maven shade plugin (ant/shade/pom.xml); this is temporary, when the jar is built by Maven alone
+  the shade plugin moves to loader/pom.xml
+  -->
+  <target name="shade" if="buildLoaderJar">
+    <echots message="shade the third party libraries into ${goal}"/>
+
+    <!-- remove what an earlier build left behind, the libraries come in with the shaded jar -->
+    <delete dir="${goal}/org/apache/felix" quiet="true"/>
+    <delete dir="${goal}/org/osgi" quiet="true"/>
+    <delete dir="${goal}/lucee/shaded" quiet="true"/>
+    <delete file="${goal}/default.properties" quiet="true"/>
+    <delete file="${goal}/module-info.class" quiet="true"/>
+    <delete dir="${temp}/shade" quiet="true"/>
+
+    <condition property="mvn.executable" value="mvn.cmd" else="mvn">
+      <os family="windows"/>
+    </condition>
+    <exec executable="${mvn.executable}" failonerror="true">
+      <arg value="-B"/>
+      <arg value="-q"/>
+      <arg value="-f"/>
+      <arg file="${ant}/shade/pom.xml"/>
+      <arg value="package"/>
+      <arg value="-Dshade.input=${goal}"/>
+      <arg value="-Dshade.output=${temp}/shade"/>
+    </exec>
+
+    <unzip src="${temp}/shade/lucee-shaded.jar" dest="${goal}" overwrite="true"/>
+
+    <!-- license and notice files of the shaded libraries -->
+    <delete dir="${goal}/META-INF/licenses" quiet="true"/>
+    <copy todir="${goal}/META-INF/licenses">
+      <fileset dir="${temp}/shade/licenses">
+        <include name="*/META-INF/*"/>
+      </fileset>
+      <mapper type="regexp" from="^(.*)/META-INF/(.*)$$" to="\1/\2"/>
+    </copy>
   </target>
 
   <target name="setMvnEnv" description="set the variable right for ant">
@@ -1129,7 +1159,7 @@
     <echots message="build-jar-ant:${goal}/META-INF/MANIFEST.MF"/>  
   </target>
 
-  <target name="_buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addMavenDependencies,addBundles,addFelix,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar">
+  <target name="_buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addMavenDependencies,addBundles,createLoaderManifest,createCore,shade,createLoader,test_warmup,test_stable_loader" description="generate the loader jar">
     <!-- version -->
     <currentTime property="ct" />
     <echo file="${outputDir}/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
@@ -1145,7 +1175,7 @@
     <echo level="info">after:${goal}</echo>  
   </target>
 
-  <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addMavenDependencies,addBundles,addFelix,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar" >
+  <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addMavenDependencies,addBundles,createLoaderManifest,createCore,shade,createLoader,test_warmup,test_stable_loader" description="generate the loader jar" >
     <!-- version -->
     <currentTime property="ct" />
     <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
@@ -1154,7 +1184,7 @@
     <echots message="done"/>
   </target>
 
-  <target name="buildLoaderFast" depends="__build,setAntEnv,addExtensions,addMavenDependencies,addBundles,addFelix,createCore,createLoader" 
+  <target name="buildLoaderFast" depends="__build,setAntEnv,addExtensions,addMavenDependencies,addBundles,createLoaderManifest,createCore,shade,createLoader" 
     description="quick/fast generate the loader jar" >
     <!-- version -->
     <currentTime property="ct" />

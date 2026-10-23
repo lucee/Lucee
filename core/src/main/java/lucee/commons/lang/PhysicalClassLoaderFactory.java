@@ -1,5 +1,6 @@
 package lucee.commons.lang;
 
+import org.osgi.framework.BundleReference;
 import java.nio.charset.StandardCharsets;
 
 import java.io.IOException;
@@ -12,7 +13,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -123,7 +123,7 @@ public class PhysicalClassLoaderFactory {
 		return true;
 	}
 
-	public static PhysicalClassLoader getRPCClassLoader(Config c, BundleClassLoader bcl, boolean reload) throws IOException {
+	public static PhysicalClassLoader getRPCClassLoader(Config c, ClassLoader bcl, boolean reload) throws IOException {
 		return getRPCClassLoader(c, null, bcl, SystemUtil.getCoreClassLoader(), reload);
 	}
 
@@ -131,28 +131,28 @@ public class PhysicalClassLoaderFactory {
 		return getRPCClassLoader(c, js, null, SystemUtil.getCoreClassLoader(), reload);
 	}
 
-	private static String key(Config c, JavaSettings js, BundleClassLoader bcl, ClassLoader parent) {
+	private static String key(Config c, JavaSettings js, ClassLoader bcl, ClassLoader parent) {
 		String key = js == null ? "orphan" : ((JavaSettingsImpl) js).id();
 
 		if (parent == null) parent = SystemUtil.getCoreClassLoader();
 		if (parent instanceof PhysicalClassLoader) {
 			key += ":" + ((PhysicalClassLoader) parent).id;
 		}
-		else if (parent instanceof BundleClassLoader) {
-			key += ":" + OSGiUtil.createId((BundleClassLoader) parent);
+		else if (parent instanceof BundleReference) {
+			key += ":" + OSGiUtil.createId((BundleReference) parent);
 		}
 		else {
 			key += ":" + parent.getClass().getName() + parent.hashCode();
 		}
 
-		if (bcl != null) {
-			key += ":" + OSGiUtil.createId(bcl);
+		if (bcl instanceof BundleReference) {
+			key += ":" + OSGiUtil.createId((BundleReference) bcl);
 		}
 
 		return HashUtil.create64BitHashAsString(key);
 	}
 
-	private static PhysicalClassLoader getRPCClassLoader(Config c, JavaSettings js, BundleClassLoader bcl, ClassLoader parent, boolean reload) throws IOException {
+	private static PhysicalClassLoader getRPCClassLoader(Config c, JavaSettings js, ClassLoader bcl, ClassLoader parent, boolean reload) throws IOException {
 		boolean doesTrace = LogUtil.does(Log.LEVEL_TRACE);
 		String key = key(c, js, bcl, parent);
 

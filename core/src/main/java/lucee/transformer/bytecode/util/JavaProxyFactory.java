@@ -31,13 +31,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.osgi.framework.BundleReference;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -495,8 +495,8 @@ public final class JavaProxyFactory {
 			if (cl instanceof PhysicalClassLoader) {
 				return cl;
 			}
-			else if (cl instanceof BundleClassLoader) {
-				return PhysicalClassLoaderFactory.getRPCClassLoader(pc.getConfig(), (BundleClassLoader) cl, false);
+			else if (cl instanceof BundleReference) {
+				return PhysicalClassLoaderFactory.getRPCClassLoader(pc.getConfig(), cl, false);
 			}
 		}
 		return null;

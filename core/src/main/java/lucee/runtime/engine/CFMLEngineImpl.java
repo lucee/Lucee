@@ -48,12 +48,12 @@ import java.util.TimeZone;
 
 import javax.script.ScriptEngineFactory;
 
-import org.apache.felix.framework.Felix;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.osgi.framework.launch.Framework;
 import org.osgi.framework.wiring.FrameworkWiring;
 
 import jakarta.servlet.ServletConfig;
@@ -364,7 +364,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				}
 
 				config.put(Constants.FRAMEWORK_BOOTDELEGATION, "lucee.*");
-				Felix felix = factory.getFelix(factory.getResourceRoot(), config);
+				Framework felix = factory.getFelix(factory.getResourceRoot(), config);
 
 				bundleCollection = new BundleCollection(felix, felix, null);
 				// bundleContext=bundleCollection.getBundleContext();
