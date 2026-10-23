@@ -24,16 +24,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.commons.fileupload2.core.DiskFileItem;
-import org.apache.commons.fileupload2.core.DiskFileItemFactory;
 
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import lucee.commons.collection.MapFactory;
@@ -50,11 +49,11 @@ import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.net.http.MultipartFormParser;
 import lucee.runtime.net.http.ServletInputStreamDummy;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.scope.jakarta.JakartaServletDiskFileUpload;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -161,17 +160,6 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		}
 	}
 
-	private static DiskFileItemFactory getDiskFileItemFactory(PageContext pc) throws IOException {
-		ServletContext servletContext = pc.getServletConfig().getServletContext();
-		File tempDir = ResourceUtil.toFile(pc.getConfig().getTempDirectory());
-		Object o = servletContext.getAttribute("jakarta.servlet.context.tempdir");
-		if (o instanceof File) {
-			tempDir = (File) o;
-		}
-		return DiskFileItemFactory.builder().setPath(tempDir.toPath()).get();
-
-	}
-
 	private void initializeMultiPart(PageContext pc, boolean scriptProteced) {
 		// get temp directory
 		Resource tempDir = pc.getConfig().getTempDirectory();
@@ -181,35 +169,37 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		final String encoding = getEncoding();
 		Charset cs = null;
 		try {
-			DiskFileItemFactory factory = getDiskFileItemFactory(pc);
-
-			JakartaServletDiskFileUpload upload = new JakartaServletDiskFileUpload(factory);
 			if (!StringUtil.isEmpty(encoding, true)) {
 				cs = CharsetUtil.toCharset(encoding.trim());
-				upload.setHeaderCharset(cs);
 			}
 
 			HttpServletRequest req = pc.getHttpServletRequest();
 
 			// Parse the request
+			MultipartFormParser parser = new MultipartFormParser(req.getInputStream(), req.getContentType(), cs != null ? cs : CharsetUtil.toCharset(req.getCharacterEncoding(), null));
 
-			List<DiskFileItem> items = upload.parseRequest(req);
-
-			// byte[] value;
 			InputStream is;
 			ArrayList<URLItem> list = new ArrayList<URLItem>();
 			String fileName;
-			for (DiskFileItem item: items) {
+			MultipartFormParser.Item item;
+			while ((item = parser.next()) != null) {
 
 				// process Form Field
 				if (item.isFormField() || StringUtil.isEmpty(item.getName())) {
-					list.add(new URLItem(item.getFieldName(), cs != null ? item.getString(cs) : item.getString(), false));
+					list.add(new URLItem(item.getFieldName(), item.getString(cs), false));
 				}
 				// Process Uploaded File
 				else {
 					fileName = getFileName();
 					tempFile = tempDir.getRealResource(fileName);
-					item.write(ResourceUtil.toPath(tempFile));
+					try {
+						Files.copy(item.getInputStream(), ResourceUtil.toPath(tempFile), StandardCopyOption.REPLACE_EXISTING);
+					}
+					catch (Throwable t) {
+						// the upload was aborted, the part of the file that arrived is not registered, so nothing else would remove it
+						tempFile.delete();
+						throw t;
+					}
 					String ct = item.getContentType();
 					if (ALLOW_MIMETYPE_DETECTION){
 						if ( StringUtil.isEmpty(ct) && tempFile.length() > 0) {
@@ -341,10 +331,6 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			rtn[index++] = it.next();
 		}
 		return rtn;
-	}
-
-	public DiskFileItem getFileUpload(String key) {
-		return null;
 	}
 
 	@Override

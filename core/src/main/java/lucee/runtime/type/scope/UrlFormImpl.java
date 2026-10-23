@@ -21,7 +21,6 @@ package lucee.runtime.type.scope;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 
-import org.apache.commons.fileupload2.core.DiskFileItem;
 
 import jakarta.servlet.ServletInputStream;
 import lucee.runtime.PageContext;
@@ -243,10 +242,6 @@ public final class UrlFormImpl extends StructSupport implements URLForm {
 	@Override
 	public int compareTo(String str) throws PageException {
 		return form.compareTo(str);
-	}
-
-	public DiskFileItem getFileUpload(String key) {
-		return form.getFileUpload(key);
 	}
 
 	@Override
