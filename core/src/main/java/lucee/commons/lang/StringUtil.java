@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -1076,12 +1077,15 @@ public final class StringUtil {
 	 */
 	public static String soundex(String str) {
 		if (str == null) return null;
-		StringBuilder clean = new StringBuilder(str.length());
+		StringBuilder sb = new StringBuilder(str.length());
 		for (int i = 0; i < str.length(); i++) {
 			char c = str.charAt(i);
-			if (Character.isLetter(c)) clean.append(Character.toUpperCase(c));
+			if (Character.isLetter(c)) sb.append(c);
 		}
-		if (clean.length() == 0) return "";
+		if (sb.length() == 0) return "";
+		// uppercase the whole string (not char by char), so "ß" becomes "SS" and ligatures like "ﬁ" become
+		// "FI", same as commons-codec did
+		String clean = sb.toString().toUpperCase(Locale.ENGLISH);
 
 		char[] out = { '0', '0', '0', '0' };
 		int count = 0;
