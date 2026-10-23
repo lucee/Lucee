@@ -1537,6 +1537,8 @@ public abstract class AbstrCFMLExprTransformer {
 
 		String name = null;
 		Invoker invoker = null;
+		// LDEV-5212 end of the last member read, so the expression ends after "cfc.doSleep()" and not after "cfc"
+		Position end = null;
 		// Loop over nested Variables
 		boolean safeNavigation;
 		while (data.srcCode.isValidIndex()) {
@@ -1550,6 +1552,7 @@ public abstract class AbstrCFMLExprTransformer {
 				namePropUC = nameProp;
 				// Valid Syntax ???
 				if (!data.srcCode.forwardIfCurrent(']')) throw new TemplateException(data.srcCode, "Invalid Syntax Closing []] not found");
+				end = data.srcCode.getPosition();
 			}
 			// .
 			else if (isStaticChild || data.srcCode.forwardIfCurrent('.') || (safeNavigation = data.srcCode.forwardIfCurrent('?', '.'))) {
@@ -1559,6 +1562,7 @@ public abstract class AbstrCFMLExprTransformer {
 				Position line = data.srcCode.getPosition();
 				name = identifier(data, true);
 				if (name == null) throw new TemplateException(data.srcCode, "Invalid identifier");
+				end = data.srcCode.getPosition();
 				comments(data);
 				nameProp = Identifier.toIdentifier(data.factory, name, line, data.srcCode.getPosition());
 				namePropUC = Identifier.toIdentifier(data.factory, name, data.settings.dotNotationUpper ? Identifier.CASE_UPPER : Identifier.CASE_ORIGNAL, line,
@@ -1594,6 +1598,7 @@ public abstract class AbstrCFMLExprTransformer {
 			if (data.srcCode.isCurrent('(')) {
 				if (nameProp == null && name != null) nameProp = Identifier.toIdentifier(data.factory, name, Identifier.CASE_ORIGNAL, null, null);// properly this is never used
 				invoker.addMember(member = getFunctionMember(data, nameProp, false));
+				end = data.srcCode.getPosition();
 			}
 
 			// property
@@ -1607,6 +1612,8 @@ public abstract class AbstrCFMLExprTransformer {
 				member.setOptional(true);
 			}
 		}
+
+		if (end != null) expr.setEnd(end);
 
 		// STATIC SCOPE CALL
 		if (tryStatic) {
