@@ -40,7 +40,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven,extension" {
 				expect( detail[ "lex" ] ).toBe( baseUrl & "repo/org/lucee/ldev6523-extension/1.0.0.1/ldev6523-extension-1.0.0.1.lex" );
 				expect( detail ).notToHaveKey( "lco" );
 				expect( detail ).notToHaveKey( "pom" );
-				var requests = requestLog.toString( "UTF-8" );
+				var requests = loggedRequests();
 				expect( requests ).toInclude( "ldev6523-extension-1.0.0.1.lex" );
 				expect( requests ).notToInclude( ".lco" );
 				expect( requests ).notToInclude( ".pom" );
@@ -132,6 +132,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven,extension" {
 				expect( isInstalled( id ) ).toBeFalse();
 			});
 		});
+	}
+
+	/**
+	 * the output filter logs a request only after the response was sent, so the client can be faster than the log.
+	 * the server handles one exchange after the other (no executor), so once a last request is answered,
+	 * all the requests before it are logged.
+	 */
+	private string function loggedRequests() {
+		var conn = createObject( "java", "java.net.URL" ).init( baseUrl & "ldev6523-sync" ).openConnection();
+		try {
+			conn.setRequestMethod( "HEAD" );
+			conn.getResponseCode();
+		}
+		finally {
+			conn.disconnect();
+		}
+		return requestLog.toString( "UTF-8" );
 	}
 
 	private function addArtifact( required string artifact, required string version, required array types ) {
