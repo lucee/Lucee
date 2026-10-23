@@ -21,6 +21,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
+import lucee.loader.engine.mvn.MavenUpdateProvider;
 import lucee.loader.util.Util;
 import lucee.runtime.exp.PageException;
 
@@ -32,7 +33,7 @@ public final class BundleProvider {
 	private static URL DEFAULT_PROVIDER_DETAIL_MVN = null;
 
 	private static URL[] defaultProviderDetail;
-	private static URL defaultProviderDetailMvn;
+	private static URL[] defaultProviderDetailMvn;
 	private static Map<String, SoftReference<Map<String, Info[]>>> mappingsCollection = new ConcurrentHashMap<String, SoftReference<Map<String, Info[]>>>();
 	private static Map<String, Info[]> mappingsFallback = new ConcurrentHashMap<>();
 
@@ -509,17 +510,28 @@ public final class BundleProvider {
 		return defaultProviderDetail;
 	}
 
-	private static URL getDefaultProviderDetailMvn() {
+	private static URL[] getDefaultProviderDetailMvn() {
 		if (defaultProviderDetailMvn == null) {
 			String str = Util.getSystemPropOrEnvVar("lucee.mvn.bundle.detail", null);
 			if (!Util.isEmpty(str, true)) {
 				try {
-					defaultProviderDetailMvn = new URL(str.trim());
+					defaultProviderDetailMvn = new URL[] { new URL(str.trim()) };
 				}
 				catch (Exception e) {
 				}
 			}
-			if (defaultProviderDetailMvn == null) defaultProviderDetailMvn = DEFAULT_PROVIDER_DETAIL_MVN;
+			// LDEV-6705: same repositories as the core update (lucee.mvn.repo.releases, lucee.mvn.repo.mixed)
+			if (defaultProviderDetailMvn == null) {
+				List<URL> urls = new ArrayList<>();
+				for (String repo: MavenUpdateProvider.getDefaultRepositoriesReleases()) {
+					try {
+						urls.add(new URL(repo));
+					}
+					catch (Exception e) {
+					}
+				}
+				defaultProviderDetailMvn = urls.isEmpty() ? new URL[] { DEFAULT_PROVIDER_DETAIL_MVN } : urls.toArray(new URL[urls.size()]);
+			}
 		}
 		return defaultProviderDetailMvn;
 	}
@@ -574,18 +586,20 @@ public final class BundleProvider {
 				if (factory != null) factory.log(org.apache.felix.resolver.Logger.LOG_INFO, "Found Maven/OSGi mapping [" + info + "] for OSGi bundle [" + bd.name + "]");
 
 				if (!info.isMaven()) continue;
-				v = bd.getVersionAsString();
-				url = validate(createURL(getDefaultProviderDetailMvn(), info, v), null);
-				if (url != null) {
-					if (factory != null) factory.log(org.apache.felix.resolver.Logger.LOG_INFO, "Found URL [" + url + "] for OSGi bundle [" + bd.name + "]");
-					return url;
-				}
-				if (v != null && v.endsWith(".0")) {
-					v = v.substring(0, v.length() - 2);
-					url = validate(createURL(getDefaultProviderDetailMvn(), info, v), null);
+				for (URL repo: getDefaultProviderDetailMvn()) {
+					v = bd.getVersionAsString();
+					url = validate(createURL(repo, info, v), null);
 					if (url != null) {
 						if (factory != null) factory.log(org.apache.felix.resolver.Logger.LOG_INFO, "Found URL [" + url + "] for OSGi bundle [" + bd.name + "]");
 						return url;
+					}
+					if (v != null && v.endsWith(".0")) {
+						v = v.substring(0, v.length() - 2);
+						url = validate(createURL(repo, info, v), null);
+						if (url != null) {
+							if (factory != null) factory.log(org.apache.felix.resolver.Logger.LOG_INFO, "Found URL [" + url + "] for OSGi bundle [" + bd.name + "]");
+							return url;
+						}
 					}
 				}
 			}
@@ -596,8 +610,10 @@ public final class BundleProvider {
 			int index = bd.name.lastIndexOf('.');
 			String last = index == -1 ? bd.name : bd.name.substring(index + 1);
 
-			url = validate(new URL(getDefaultProviderDetailMvn(), bd.name.replace('.', '/') + "/" + bd.version + "/" + last + "-" + bd.version + ".jar"), null);
-			if (url != null) return url;
+			for (URL repo: getDefaultProviderDetailMvn()) {
+				url = validate(new URL(repo, bd.name.replace('.', '/') + "/" + bd.version + "/" + last + "-" + bd.version + ".jar"), null);
+				if (url != null) return url;
+			}
 		}
 		// S3: we check for a direct match
 		for (URL detail: details) {

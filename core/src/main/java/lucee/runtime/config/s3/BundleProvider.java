@@ -90,6 +90,7 @@ public final class BundleProvider extends DefaultHandler {
 	private static URL defaultProviderList;
 	private static URL[] defaultProviderDetail;
 	private static URL defaultProviderDetailMvn;
+	private static URL[] defaultProviderDetailsMvn;
 	private final Map<String, List<Info>> mappings;
 	private static Map<String, String> latests = new ConcurrentHashMap();
 	static {
@@ -132,6 +133,27 @@ public final class BundleProvider extends DefaultHandler {
 			if (defaultProviderDetail == null) defaultProviderDetail = DEFAULT_PROVIDER_DETAILS;
 		}
 		return defaultProviderDetail;
+	}
+
+	public static URL[] getDefaultProviderDetailsMvn() {
+		if (defaultProviderDetailsMvn == null) {
+			// an explicit bundle repository wins
+			if (!StringUtil.isEmpty(SystemUtil.getSystemPropOrEnvVar("lucee.mvn.bundle.detail", null), true)) {
+				defaultProviderDetailsMvn = new URL[] { getDefaultProviderDetailMvn() };
+			}
+			// LDEV-6705: same repositories as the core update and the extensions
+			else {
+				List<URL> urls = new ArrayList<>();
+				for (String repo: MavenUpdateProvider.getDefaultRepositoryURLs(false)) {
+					try {
+						urls.add(new URL(repo));
+					}
+					catch (Exception e) {}
+				}
+				defaultProviderDetailsMvn = urls.isEmpty() ? new URL[] { getDefaultProviderDetailMvn() } : urls.toArray(new URL[urls.size()]);
+			}
+		}
+		return defaultProviderDetailsMvn;
 	}
 
 	public static URL getDefaultProviderDetailMvn() {
@@ -228,23 +250,25 @@ public final class BundleProvider extends DefaultHandler {
 			String v;
 			for (Info info: infos) {
 				if (!info.isMaven()) continue;
-				v = bd.getVersionAsString();
-				url = validate(createURL(getDefaultProviderDetailMvn(), info, v), null);
-				if (url != null) return url;
-				if (v != null && v.endsWith(".0")) {
-					v = v.substring(0, v.length() - 2);
-					url = validate(createURL(getDefaultProviderDetailMvn(), info, v), null);
+				for (URL repo: getDefaultProviderDetailsMvn()) {
+					v = bd.getVersionAsString();
+					url = validate(createURL(repo, info, v), null);
 					if (url != null) return url;
+					if (v != null && v.endsWith(".0")) {
+						v = v.substring(0, v.length() - 2);
+						url = validate(createURL(repo, info, v), null);
+						if (url != null) return url;
+					}
 				}
 			}
 
 		}
 		else if (bd.getVersion() != null) {
 			String last = ListUtil.last(bd.getName(), '.');
-			url = validate(
-					new URL(getDefaultProviderDetailMvn(), bd.getName().replace('.', '/') + "/" + bd.getVersionAsString() + "/" + last + "-" + bd.getVersionAsString() + ".jar"),
-					null);
-			if (url != null) return url;
+			for (URL repo: getDefaultProviderDetailsMvn()) {
+				url = validate(new URL(repo, bd.getName().replace('.', '/') + "/" + bd.getVersionAsString() + "/" + last + "-" + bd.getVersionAsString() + ".jar"), null);
+				if (url != null) return url;
+			}
 		}
 		if (!includeS3) throw new IOException("no URL found for bundle [" + bd + "]");
 		// S3: we check for a direct match
