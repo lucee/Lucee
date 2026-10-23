@@ -84,6 +84,7 @@ public final class FunctionLibFunction {
 	private ClassDefinition functionCD;
 	private Version introduced;
 	private final boolean core;
+	private String extensionId;
 
 	/**
 	 * Geschuetzer Konstruktor ohne Argumente.
@@ -128,6 +129,7 @@ public final class FunctionLibFunction {
 		dbl.bif = bif;
 		dbl.functionCD = functionCD;
 		dbl.introduced = introduced;
+		dbl.extensionId = extensionId;
 
 		dbl.argument = new ArrayList<>(argument.size());
 		for (FunctionLibFunctionArg arg: argument) {
@@ -272,6 +274,16 @@ public final class FunctionLibFunction {
 	 */
 	public FunctionLib getFunctionLib() {
 		return functionLib;
+	}
+
+	public String getExtensionId() {
+		if (extensionId != null) return extensionId;
+		if (functionLib != null) return functionLib.getExtensionId();
+		return null;
+	}
+
+	public void setExtensionId(String extensionId) {
+		this.extensionId = extensionId;
 	}
 
 	/**

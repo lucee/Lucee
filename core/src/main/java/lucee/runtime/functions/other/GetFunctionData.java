@@ -92,6 +92,9 @@ public final class GetFunctionData implements Function {
 		sct.set(KeyConstants._argMin, Caster.toDouble(function.getArgMin()));
 		sct.set(KeyConstants._argMax, Caster.toDouble(function.getArgMax()));
 		sct.set(KeyConstants._type, "java");
+		String ext = function.getExtensionId();
+		if (!StringUtil.isEmpty(ext, true))
+			sct.set(KeyConstants._extension, ext);
 		String[] names = function.getMemberNames();
 		if (!ArrayUtil.isEmpty(names) && function.getMemberType() != CFTypes.TYPE_UNKNOW) {
 			StructImpl mem = new StructImpl(StructImpl.TYPE_LINKED);
@@ -144,6 +147,9 @@ public final class GetFunctionData implements Function {
 		sct.set(KeyConstants._returnType, StringUtil.emptyIfNull(udf.getReturnTypeAsString()));
 		sct.set(KeyConstants._type, "cfml");
 		sct.set(KeyConstants._source, udf.getSource());
+		String ext = function.getExtensionId();
+		if (!StringUtil.isEmpty(ext, true))
+			sct.set(KeyConstants._extension, ext);
 		sct.set(KeyConstants._status, "implemented");
 
 		FunctionArgument[] fas = udf.getFunctionArguments();
