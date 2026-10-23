@@ -19,6 +19,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- the version of Felix that gets shaded into the jar, also read by the Ant build (ant/build-core.xml) -->
     <felix.version>7.0.5</felix.version>
+    <!-- the version of ASM that gets shaded into the core -->
+    <asm.version>9.10.1</asm.version>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compiler.release>21</maven.compiler.release>
     <timestamp>${maven.build.timestamp}</timestamp>
@@ -550,31 +552,33 @@
       <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
-      <version>9.10.1</version>
+      <version>${asm.version}</version>
       <scope>provided</scope>
     </dependency>
      <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-commons</artifactId>
-      <version>9.10.1</version>
+      <version>${asm.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-util</artifactId>
-      <version>9.10.1</version>
+      <version>${asm.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-analysis</artifactId>
-      <version>9.10.1</version>
-  </dependency>
+      <version>${asm.version}</version>
+      <scope>provided</scope>
+    </dependency>
 <dependency>
     <groupId>org.ow2.asm</groupId>
     <artifactId>asm-tree</artifactId>
-    <version>9.10.1</version>
-</dependency>
+    <version>${asm.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
 
 

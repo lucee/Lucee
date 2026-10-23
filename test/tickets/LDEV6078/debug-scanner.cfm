@@ -32,19 +32,7 @@ if ( classFiles.len() > 0 ) {
 
 	// Read and get bytecode text
 	bytes = fileReadBinary( classFile );
-	ClassReader = createObject( "java", "org.objectweb.asm.ClassReader" );
-	TraceClassVisitor = createObject( "java", "org.objectweb.asm.util.TraceClassVisitor" );
-	PrintWriter = createObject( "java", "java.io.PrintWriter" );
-	StringWriter = createObject( "java", "java.io.StringWriter" );
-
-	reader = ClassReader.init( bytes );
-	sw = StringWriter.init();
-	pw = PrintWriter.init( sw );
-	visitor = TraceClassVisitor.init( javaCast( "null", "" ), pw );
-	reader.accept( visitor, 0 );
-	pw.flush();
-
-	text = sw.toString();
+	text = new BytecodeLineScanner().getBytecodeText( bytes );
 	lines = listToArray( text, chr( 10 ) );
 
 	// Show first 200 lines with line numbers
