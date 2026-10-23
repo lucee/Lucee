@@ -18,7 +18,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 			return true;
 		}
 		catch ( any e ) {
-			return false;
+			// only a class that does not exist is a "no", anything else is an error in the test
+			if ( isDefined( "e.cause.type" ) && e.cause.type == "java.lang.ClassNotFoundException" ) return false;
+			rethrow;
 		}
 	}
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="lucee" basedir="${rootDir}" name="luceeCore"
     xmlns:if="ant:if"
+    xmlns:rsel="antlib:org.apache.tools.ant.types.resources.selectors"
     xmlns:resolver="antlib:org.apache.maven.resolver.ant">
   <description>
     Build Lucee Core
@@ -104,15 +105,17 @@
     </condition>
     <available file="${mvn.settings}" property="mvn.settings.available"/>
 
-    <!-- the classpath without the unshaded Felix, the jars we build must bring their own -->
-    <loadresource property="runtime_classpath_shaded">
-      <string value="${runtime_classpath}"/>
-      <filterchain>
-        <tokenfilter>
-          <replaceregex pattern="[^:;]*org[./\\]apache[./\\]felix[^:;]*[:;]?" replace="" flags="g"/>
-        </tokenfilter>
-      </filterchain>
-    </loadresource>
+    <!-- the classpath without the unshaded Felix (Maven has it as provided, the Ant build resolves it into the classpath), the jars we build must bring their own -->
+    <path id="runtime_classpath_path">
+      <pathelement path="${runtime_classpath}"/>
+    </path>
+    <restrict id="runtime_classpath_shaded_path">
+      <path refid="runtime_classpath_path"/>
+      <rsel:not>
+        <rsel:name name="**/org/apache/felix/**" handledirsep="true"/>
+      </rsel:not>
+    </restrict>
+    <pathconvert property="runtime_classpath_shaded" refid="runtime_classpath_shaded_path"/>
     <property name="test" location="${rootDir}/test"/>
     <!-- free text filter, comma delimitered to filter tests based on path -->
     <property name="testFilter" value=""/>
