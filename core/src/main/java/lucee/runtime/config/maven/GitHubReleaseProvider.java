@@ -1,9 +1,7 @@
 package lucee.runtime.config.maven;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -45,15 +43,13 @@ public final class GitHubReleaseProvider {
 	}
 
 	/**
-	 * release tags to check for a version, the full version first (e.g. "7.1.1.17-RC") and then the
-	 * version without qualifier (e.g. "7.1.2.184" for "7.1.2.184-RC"), because both forms are used.
+	 * the GitHub release tag of a version, the numeric version without qualifier (e.g. "7.1.2.184" for
+	 * "7.1.2.184-RC"), the same tag the release build creates ("Tag published revision" in
+	 * .github/workflows/main.yml)
 	 */
-	public static List<String> getTags(String version) {
-		List<String> tags = new ArrayList<>();
-		tags.add(version);
+	public static String getTag(String version) {
 		int index = version.indexOf('-');
-		if (index > 0) tags.add(version.substring(0, index));
-		return tags;
+		return index > 0 ? version.substring(0, index) : version;
 	}
 
 	/**
@@ -88,28 +84,25 @@ public final class GitHubReleaseProvider {
 		CacheEntry ce = cache.get(base + v);
 		if (ce != null && ce.created + CACHE_TIMEOUT > System.currentTimeMillis()) return new LinkedHashMap<>(ce.data);
 
-		List<String> tags = getTags(v);
+		String tag = getTag(v);
 		for (String key: ARTIFACT_KEYS) {
-			for (String tag: tags) {
-				String strURL = toURL(base, tag, v, key);
-				try {
-					HTTPResponse rsp = HTTPDownloader.head(new URL(strURL), MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.CONNECTION_TIMEOUT, Log.LEVEL_TRACE);
-					if (rsp != null && rsp.getStatusCode() >= 200 && rsp.getStatusCode() < 300) {
-						if (!result.containsKey("lastModified")) {
-							for (Header h: rsp.getAllHeaders()) {
-								if ("Last-Modified".equalsIgnoreCase(h.getName())) {
-									Object lm = DateCaster.toDateAdvanced(h.getValue(), null);
-									if (lm != null) result.put("lastModified", lm);
-								}
+			String strURL = toURL(base, tag, v, key);
+			try {
+				HTTPResponse rsp = HTTPDownloader.head(new URL(strURL), MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.CONNECTION_TIMEOUT, Log.LEVEL_TRACE);
+				if (rsp != null && rsp.getStatusCode() >= 200 && rsp.getStatusCode() < 300) {
+					if (!result.containsKey("lastModified")) {
+						for (Header h: rsp.getAllHeaders()) {
+							if ("Last-Modified".equalsIgnoreCase(h.getName())) {
+								Object lm = DateCaster.toDateAdvanced(h.getValue(), null);
+								if (lm != null) result.put("lastModified", lm);
 							}
 						}
-						result.put(key, strURL);
-						break;
 					}
+					result.put(key, strURL);
 				}
-				catch (Exception e) {
-					LogUtil.log(Log.LEVEL_DEBUG, "github-releases", "Failed to check [" + strURL + "]: " + e.getMessage());
-				}
+			}
+			catch (Exception e) {
+				LogUtil.log(Log.LEVEL_DEBUG, "github-releases", "Failed to check [" + strURL + "]: " + e.getMessage());
 			}
 		}
 		cache.put(base + v, new CacheEntry(result));
