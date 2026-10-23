@@ -32,7 +32,6 @@ import java.util.UUID;
 
 import org.apache.commons.fileupload2.core.DiskFileItem;
 import org.apache.commons.fileupload2.core.DiskFileItemFactory;
-import org.apache.commons.io.FileCleaningTracker;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletInputStream;
@@ -55,7 +54,6 @@ import lucee.runtime.net.http.ServletInputStreamDummy;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.scope.jakarta.JakartaFileCleaner;
 import lucee.runtime.type.scope.jakarta.JakartaServletDiskFileUpload;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -165,13 +163,12 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 
 	private static DiskFileItemFactory getDiskFileItemFactory(PageContext pc) throws IOException {
 		ServletContext servletContext = pc.getServletConfig().getServletContext();
-		FileCleaningTracker fileCleaningTracker = JakartaFileCleaner.getFileCleaningTracker(servletContext);
 		File tempDir = ResourceUtil.toFile(pc.getConfig().getTempDirectory());
 		Object o = servletContext.getAttribute("jakarta.servlet.context.tempdir");
 		if (o instanceof File) {
 			tempDir = (File) o;
 		}
-		return DiskFileItemFactory.builder().setPath(tempDir.toPath()).setFileCleaningTracker(fileCleaningTracker).get();
+		return DiskFileItemFactory.builder().setPath(tempDir.toPath()).get();
 
 	}
 
