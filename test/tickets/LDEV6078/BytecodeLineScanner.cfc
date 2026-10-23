@@ -2,7 +2,7 @@
  * Scan compiled CFML bytecode for exeLogStart line numbers using ASM
  * Used to verify correct line numbers in compiled bytecode for debugger support
  */
-component {
+component javaSettings='{"maven":["org.ow2.asm:asm-util:9.10.1"]}' {
 
 	/**
 	 * Scan a directory of compiled classes and extract exeLogStart line numbers
@@ -158,7 +158,7 @@ component {
 	/**
 	 * Get bytecode text representation using ASM's TraceClassVisitor
 	 */
-	private string function getBytecodeText( required binary classBytes ) {
+	public string function getBytecodeText( required binary classBytes ) {
 		var ClassReader = createObject( "java", "org.objectweb.asm.ClassReader" );
 		var TraceClassVisitor = createObject( "java", "org.objectweb.asm.util.TraceClassVisitor" );
 		var PrintWriter = createObject( "java", "java.io.PrintWriter" );
