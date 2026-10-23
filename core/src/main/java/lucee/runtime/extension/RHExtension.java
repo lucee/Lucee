@@ -385,7 +385,9 @@ public final class RHExtension implements Serializable {
 			// we have no version definition, we need to know the latest versions
 			if (downloadIfNecessary && StringUtil.isEmpty(ed.getVersion())) {
 				try {
-					ed.setParam("version", DeployHandler.getLatestVersionFor((ConfigPro) config, ed, null, true).toString());
+					lucee.runtime.config.maven.Version latest = DeployHandler.getLatestVersionFor((ConfigPro) config, ed, null, true);
+					if (latest == null) return null;
+					ed.setParam("version", latest.toString());
 				}
 				catch (PageException e) {
 					return null;
