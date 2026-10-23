@@ -12,7 +12,7 @@
 
   <properties>
     <!-- LDEV-6516: CI-friendly version; GHA overrides -Drevision=base.build[-QUALIFIER] -->
-    <lucee.version.base>8.0.0</lucee.version.base>
+    <lucee.version.base>8.0.1</lucee.version.base>
     <lucee.version.build>0</lucee.version.build>
     <lucee.version.qualifier>-SNAPSHOT</lucee.version.qualifier>
     <revision>${lucee.version.base}.${lucee.version.build}${lucee.version.qualifier}</revision>
