@@ -25,6 +25,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="soundex" {
 				expect( soundex( " - " ) ).toBe( "" );
 			});
 
+			it( title="the whole string is uppercased, so sharp s and ligatures map like commons-codec", body=function( currentSpec ) {
+				// chr( 223 ) is the german sharp s, uppercased it becomes "SS"
+				expect( soundex( "Stra" & chr( 223 ) & "e" ) ).toBe( "S362" );
+				expect( soundex( chr( 223 ) ) ).toBe( "S000" );
+				// chr( 64257 ) is the ligature "fi", uppercased it becomes "FI"
+				expect( soundex( chr( 64257 ) & "sher" ) ).toBe( "F260" );
+			});
+
 			it( title="a character that is not mapped fails", body=function( currentSpec ) {
 				var msg = "";
 				try {
