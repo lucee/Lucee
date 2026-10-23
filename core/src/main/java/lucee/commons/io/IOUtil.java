@@ -928,8 +928,8 @@ public final class IOUtil {
 		if (charset == null) charset = SystemUtil.getCharset();
 		// BOM detection, no BufferedReader — read with pooled 64KB char buffer
 		PushbackInputStream bomIn = new PushbackInputStream(is, 4);
-		String bomCharset = skipBOM(bomIn);
-		if (bomCharset != null) charset = Charset.forName(bomCharset);
+		Charset bomCharset = skipBOM(bomIn);
+		if (bomCharset != null) charset = bomCharset;
 		InputStreamReader isr = new InputStreamReader(bomIn, charset);
 		char[] buf = borrowCharBuffer();
 		try {
@@ -946,21 +946,23 @@ public final class IOUtil {
 	}
 
 	private static final byte[][] BOMS = { { 0, 0, (byte) 0xFE, (byte) 0xFF }, { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF }, { (byte) 0xFE, (byte) 0xFF }, { (byte) 0xFF, (byte) 0xFE } };
-	private static final String[] BOM_CHARSETS = { "UTF-32BE", "UTF-8", "UTF-16BE", "UTF-16LE" };
+	// standard charsets as constants, null means the charset is not standard and is looked up by name
+	private static final Charset[] BOM_CHARSETS = { null, StandardCharsets.UTF_8, StandardCharsets.UTF_16BE, StandardCharsets.UTF_16LE };
+	private static final String[] BOM_CHARSET_NAMES = { "UTF-32BE", "UTF-8", "UTF-16BE", "UTF-16LE" };
 
 	/**
 	 * skips a byte order mark at the start of the stream
 	 * 
-	 * @return the name of the charset the mark stands for or null if there is no mark
+	 * @return the charset the mark stands for or null if there is no mark
 	 */
-	private static String skipBOM(PushbackInputStream in) throws IOException {
+	private static Charset skipBOM(PushbackInputStream in) throws IOException {
 		byte[] first = new byte[4];
 		int count = 0;
 		int r;
 		while (count < first.length && (r = in.read(first, count, first.length - count)) != -1) {
 			count += r;
 		}
-		String result = null;
+		Charset result = null;
 		int skip = 0;
 		outer: for (int i = 0; i < BOMS.length; i++) {
 			byte[] bom = BOMS[i];
@@ -968,7 +970,7 @@ public final class IOUtil {
 			for (int j = 0; j < bom.length; j++) {
 				if (first[j] != bom[j]) continue outer;
 			}
-			result = BOM_CHARSETS[i];
+			result = BOM_CHARSETS[i] != null ? BOM_CHARSETS[i] : Charset.forName(BOM_CHARSET_NAMES[i]);
 			skip = bom.length;
 			break;
 		}
