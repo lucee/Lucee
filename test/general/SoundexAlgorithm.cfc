@@ -63,9 +63,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="soundex" {
 		});
 
 		describe( "metaphone()", function() {
-			it( title="is an alias of soundex()", body=function( currentSpec ) {
-				expect( metaphone( "lucee" ) ).toBe( soundex( "lucee" ) );
-				expect( metaphone( "coldfusion" ) ).toBe( soundex( "coldfusion" ) );
+			it( title="was removed and fails instead of returning the soundex code", body=function( currentSpec ) {
+				expect( function(){
+					metaphone( "lucee" );
+				}).toThrow( type="application", regex="metaphone\(\) was removed in Lucee 9" );
 			});
 		});
 	}
