@@ -66,8 +66,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="multipart" {
 		describe( "lucee.runtime.net.http.MultipartFormParser, recorded requests", function() {
 
 			it( title="gives the same items as commons-fileupload2 did for the recorded requests", body=function( currentSpec ) {
+				// caseNN.bin is the request, caseNN.txt the items commons-fileupload2 returned for it.
+				// 07, 11 and 12 are not part of the recorded set, the numbering has gaps.
+				// commons-fileupload2 is no longer a dependency, so new behaviour goes into the specs below and not here.
 				var cases = directoryList( variables.fixtures, false, "path", "*.bin", "name" );
-				expect( arrayLen( cases ) ).toBeGT( 5 );
+				expect( arrayLen( cases ) ).toBe( 11 );
 				for ( var f in cases ) {
 					var expected = listToArray( fileRead( replace( f, ".bin", ".txt" ), "utf-8" ), chr( 10 ), false, false );
 					var ct = expected[ 1 ];

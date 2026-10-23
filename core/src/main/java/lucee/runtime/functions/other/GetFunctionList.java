@@ -28,7 +28,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.runtime.PageContext;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -40,7 +42,11 @@ public final class GetFunctionList implements Function {
 
 	private static final long serialVersionUID = -7313412061811118382L;
 
-	public static lucee.runtime.type.Struct call(PageContext pc) {
+	public static lucee.runtime.type.Struct call(PageContext pc) throws PageException {
+		return call(pc, null);
+	}
+
+	public static lucee.runtime.type.Struct call(PageContext pc, String extensionFilter) throws PageException {
 
 		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		// synchronized(sct) {
@@ -54,11 +60,17 @@ public final class GetFunctionList implements Function {
 		_functions = flds.getFunctions();
 		it = _functions.entrySet().iterator();
 
+		boolean filterByExtension = !StringUtil.isEmpty(extensionFilter, true);
+
 		while (it.hasNext()) {
 			e = it.next();
 			func = e.getValue();
 			if (func.getStatus() != TagLib.STATUS_HIDDEN && func.getStatus() != TagLib.STATUS_UNIMPLEMENTED) {
 				// sct.set(e.getKey(), "");
+				if (filterByExtension) {
+					String extId = func.getExtensionId();
+					if (extId == null || !extId.equalsIgnoreCase(extensionFilter)) continue;
+				}
 				tagList.add(e.getKey());
 			}
 		}

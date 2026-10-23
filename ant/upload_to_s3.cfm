@@ -9,15 +9,18 @@
 	S3_CUTOFF = createDateTime( 2027, 3, 1, 0, 0, 0, 0, "UTC" );
 	CDN_RETIRED = now() GTE S3_CUTOFF;
 	IS_SNAPSHOT = findNoCase( "-SNAPSHOT", server.system.properties.luceeVersion ?: listLast( server.system.properties.luceeCore, "\/" ) ) GT 0;
-	// alpha versions are only on Maven, they are never copied to S3 (cdn.lucee.org)
 	IS_ALPHA = findNoCase( "-ALPHA", server.system.properties.luceeVersion ?: listLast( server.system.properties.luceeCore, "\/" ) ) GT 0;
-	PUBLISH_TO_S3 = DO_DEPLOY && !IS_ALPHA && ( !CDN_RETIRED || !IS_SNAPSHOT );
-	PUBLISH_TO_S3_ROOT = PUBLISH_TO_S3 && !CDN_RETIRED;
+	// LDEV-6708: alpha versions are only published when released with "[release]" in the commit message (FORCE_RELEASE in main.yml),
+	// then they go to the Maven layout only (maven.lucee-services.com), not to Maven Central and not to the bucket root
+	FORCE_RELEASE = server.system.environment.FORCE_RELEASE ?: false;
+	SKIP_ALPHA = IS_ALPHA && !FORCE_RELEASE;
+	PUBLISH_TO_S3 = DO_DEPLOY && !SKIP_ALPHA && ( !CDN_RETIRED || !IS_SNAPSHOT );
+	PUBLISH_TO_S3_ROOT = PUBLISH_TO_S3 && !CDN_RETIRED && !IS_ALPHA;
 
 	_logger( "" );
 	_logger( " #### Publish Builds to S3" );
-	if ( DO_DEPLOY && IS_ALPHA ) {
-		_logger( "Not publishing ALPHA to S3, alpha versions are only on Maven, only building Light and Zero" );
+	if ( DO_DEPLOY && SKIP_ALPHA ) {
+		_logger( "Not publishing ALPHA to S3, alpha versions are only published with [release] in the commit message (LDEV-6708), only building Light and Zero" );
 	} else if ( DO_DEPLOY && !PUBLISH_TO_S3 ) {
 		_logger( "Not publishing SNAPSHOT to S3, since #dateTimeFormat( S3_CUTOFF, "yyyy-mm-dd", "UTC" )# snapshots are only on Sonatype (LDEV-6537), only building Light and Zero" );
 	} else if ( PUBLISH_TO_S3 && !PUBLISH_TO_S3_ROOT ) {
@@ -237,6 +240,11 @@
 		directoryCreate( extDir ); // create empty dir again ( maybe Lucee expect this directory to exist )
 		fileWrite( extDir & sep & ".index", "" ); // empty index, no bundled extensions
 
+		// remove the maven folder, it only holds the maven dependencies of the bundled extensions (LDEV-6560) LDEV-6712
+		var mavenDir = tmpLoader & sep & "maven";
+		if ( directoryExists( mavenDir ) )
+			directoryDelete( mavenDir, true );
+
 		// unzip core
 		var lcoFile = tmpLoader & sep & "core" & sep & "core.lco";
 		local.tmpCore = tmpDir & "lucee-core-" & createUniqueId(  ); // the jar
@@ -268,6 +276,13 @@
 			fileDelete( trg );
 		zip action = "zip" source = tmpLoader file = trg;
 
+		// LDEV-6712 light and zero have no bundled extensions, so they must not contain the maven folder
+		zip action = "list" file = trg name = "local.qEntries";
+		loop query = qEntries {
+			if ( left( replace( qEntries.name, "\", "/", "all" ), 6 ) == "maven/" )
+				_logger( message="[#trg#] still contains the maven folder [#qEntries.name#]", throw=true );
+		}
+		_logger( "[#listLast( trg, sep )#] contains no maven folder, size #numberFormat( getFileInfo( trg ).size / 1024 / 1024, "0.0" )# MB" );
 	}
 
 	function _logger( string message="", boolean throw=false ){
