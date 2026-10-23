@@ -25,8 +25,8 @@ public class MavenUpdateProvider {
 	public static final int READ_TIMEOUT_HEAD = 5000;
 	public static final int READ_TIMEOUT_GET = 20000;
 
-	private static final String DEFAULT_REPOSITORY_SNAPSHOT = "https://oss.sonatype.org/content/repositories/snapshots/";
-	private static final String DEFAULT_REPOSITORY_RELEASES = "https://oss.sonatype.org/service/local/repositories/releases/content/";
+	private static final String DEFAULT_REPOSITORY_SNAPSHOT = "https://central.sonatype.com/repository/maven-snapshots/";
+	private static final String DEFAULT_REPOSITORY_RELEASES = "https://repo1.maven.org/maven2/";
 
 	public static final String DEFAULT_GROUP = "org.lucee";
 	public static final String DEFAULT_ARTIFACT = "lucee";
