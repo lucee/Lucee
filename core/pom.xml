@@ -16,7 +16,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compiler.release>21</maven.compiler.release>
-    <!-- the same version as in loader/pom.xml, Felix is only needed to compile against the OSGi API -->
+    <!-- loader/pom.xml defines felix.version, this pom is standalone and cannot inherit it, the build (ant/build-core.xml) fails if the two are not the same. Felix is only needed to compile against the OSGi API -->
     <felix.version>7.0.5</felix.version>
   </properties>
 

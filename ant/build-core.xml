@@ -95,6 +95,15 @@
     <!-- the version of Felix that gets shaded, defined in loader/pom.xml (already set when Maven starts the build) -->
     <xmlproperty file="${rootDir}/loader/pom.xml" prefix="loaderpom"/>
     <property name="felix.version" value="${loaderpom.project.properties.felix.version}"/>
+    <!-- core/pom.xml is a standalone pom and cannot inherit the property, so the build makes sure it is the same version -->
+    <xmlproperty file="${rootDir}/core/pom.xml" prefix="corepom"/>
+    <fail message="felix.version in core/pom.xml [${corepom.project.properties.felix.version}] must be the same as in loader/pom.xml [${felix.version}]">
+      <condition>
+        <not>
+          <equals arg1="${corepom.project.properties.felix.version}" arg2="${felix.version}"/>
+        </not>
+      </condition>
+    </fail>
 
     <!-- the Maven used to call the shade plugin, the Maven that started the build when there is one -->
     <condition property="mvn.name" value="mvn.cmd" else="mvn">
