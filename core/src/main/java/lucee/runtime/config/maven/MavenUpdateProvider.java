@@ -106,6 +106,56 @@ public final class MavenUpdateProvider {
 	private final String artifact;
 	private final Collection<Repository> repos;
 
+	private static Repository[] defaultRepositoryReleases;
+	private static Repository[] defaultRepositorySnapshots;
+	private static Repository[] defaultRepositoryMixed;
+
+	/**
+	 * default release repositories, can be overwritten with the system property / environment variable
+	 * lucee.mvn.repo.releases (same as the loader)
+	 */
+	public static Repository[] getDefaultRepositoryReleases() {
+		if (defaultRepositoryReleases == null) {
+			defaultRepositoryReleases = readReposFromEnvVar("lucee.mvn.repo.releases", DEFAULT_REPOSITORIES_RELEASES);
+		}
+		return defaultRepositoryReleases;
+	}
+
+	/**
+	 * default snapshot repositories, can be overwritten with the system property / environment variable
+	 * lucee.mvn.repo.snapshots (same as the loader)
+	 */
+	public static Repository[] getDefaultRepositorySnapshots() {
+		if (defaultRepositorySnapshots == null) {
+			defaultRepositorySnapshots = readReposFromEnvVar("lucee.mvn.repo.snapshots", DEFAULT_REPOSITORIES_SNAPSHOTS);
+		}
+		return defaultRepositorySnapshots;
+	}
+
+	/**
+	 * default repositories for releases and snapshots, can be overwritten with the system property /
+	 * environment variable lucee.mvn.repo.mixed (same as the loader)
+	 */
+	public static Repository[] getDefaultRepositoryMixed() {
+		if (defaultRepositoryMixed == null) {
+			defaultRepositoryMixed = readReposFromEnvVar("lucee.mvn.repo.mixed", DEFAULT_REPOSITORIES_ALL);
+		}
+		return defaultRepositoryMixed;
+	}
+
+	/**
+	 * LDEV-6705: the one repository list used for all Maven downloads (core update, extensions, OSGi
+	 * bundles, POM dependencies), the release (lucee.mvn.repo.releases) or snapshot
+	 * (lucee.mvn.repo.snapshots) repositories followed by the mixed repositories (lucee.mvn.repo.mixed)
+	 */
+	public static List<String> getDefaultRepositoryURLs(boolean snapshot) {
+		List<String> urls = new ArrayList<>();
+		for (Repository repo: merge(snapshot ? getDefaultRepositorySnapshots() : getDefaultRepositoryReleases(), getDefaultRepositoryMixed())) {
+			if (!urls.contains(repo.url)) urls.add(repo.url);
+		}
+		return urls;
+	}
+
 	private static Repository[] readReposFromEnvVar(String envVarName, Repository[] defaultValue) {
 		String str = SystemUtil.getSystemPropOrEnvVar(envVarName, null);
 		if (!StringUtil.isEmpty(str, true)) {
@@ -308,6 +358,8 @@ public final class MavenUpdateProvider {
 	public InputStream getLoader(Version version) throws IOException, SAXException, PageException {
 		Map<String, Object> data = detail(version, "jar", true);
 		String strURL = Caster.toString(data.get("jar"), null);
+		// the repository found first may only have the .lco, look for the jar in the other repositories
+		if (StringUtil.isEmpty(strURL)) strURL = findArtifact(version, "jar");
 		if (StringUtil.isEmpty(strURL)) {
 			throw new IOException("No JAR artifact found for [" + group + ":" + artifact + ":" + version + "]. " + "Verify the version exists in the configured repositories.");
 		}
@@ -381,42 +433,53 @@ public final class MavenUpdateProvider {
 					}
 					// read main
 					{
-						String strURL = repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + "." + requiredArtifactExtension;
-						URL urlMain = new URL(strURL);
-						HTTPDownloaderHeadResponse rsp = HTTPEngine.head(urlMain, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
-						if (rsp != null && validSatusCode(rsp.getStatusCode())) {
+						String base = repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v;
+						// LDEV-6704: for the core, look for the .lco first, a version with only .lco and pom is valid
+						boolean lcoFirst = "jar".equals(requiredArtifactExtension);
+						HTTPDownloaderHeadResponse rspLco = null;
+						URL urlLco = new URL(base + ".lco");
+						if (lcoFirst) {
+							rspLco = HTTPEngine.head(urlLco, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
+						}
+						URL urlMain = new URL(base + "." + requiredArtifactExtension);
+						HTTPDownloaderHeadResponse rspMain = HTTPEngine.head(urlMain, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
+						boolean hasMain = rspMain != null && validSatusCode(rspMain.getStatusCode());
+						boolean hasLco = lcoFirst && rspLco != null && validSatusCode(rspLco.getStatusCode());
+						if (hasMain || hasLco) {
 							Map<String, Object> result = new LinkedHashMap<>();
 
-							Header[] headers = rsp.getAllHeaders();
+							Header[] headers = (hasMain ? rspMain : rspLco).getAllHeaders();
 							if (headers != null) {
 								for (Header h: headers) {
 									if ("Last-Modified".equals(h.getName())) result.put("lastModified", DateCaster.toDateAdvanced(h.getValue(), null));
 								}
 							}
-							result.put(requiredArtifactExtension, urlMain.toExternalForm());
+							if (hasMain) result.put(requiredArtifactExtension, urlMain.toExternalForm());
 
 							// optional
 							// pom
 							{
-								URL url = new URL(repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + ".pom");
-								rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
+								URL url = new URL(base + ".pom");
+								HTTPDownloaderHeadResponse rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
 								if (rsp != null && validSatusCode(rsp.getStatusCode())) {
 									result.put("pom", url.toExternalForm());
 								}
 							}
 							// lco
-							{
-								URL url = new URL(repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + ".lco");
-								rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
+							if (hasLco) {
+								result.put("lco", urlLco.toExternalForm());
+							}
+							else if (!lcoFirst) {
+								HTTPDownloaderHeadResponse rsp = HTTPEngine.head(urlLco, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
 								if (rsp != null && validSatusCode(rsp.getStatusCode())) {
-									result.put("lco", url.toExternalForm());
+									result.put("lco", urlLco.toExternalForm());
 								}
 							}
 							storeToCache(repo, artifact, v, requiredArtifactExtension, result);
 							return result;
 						}
 						// a non-null response that is not a success (e.g. 404) is a definitive "not here"
-						else if (rsp != null) {
+						else if (rspMain != null) {
 							definitiveMiss = true;
 						}
 					}
@@ -436,8 +499,9 @@ public final class MavenUpdateProvider {
 		catch (UnknownHostException uhe) {
 			throw new IOException("cannot reach maven server", uhe);
 		}
-		if (throwException) throw new IOException("Could not find the artifact [" + group + ":" + artifact + ":" + version + "] (type: " + requiredArtifactExtension
-				+ ") in any of the configured repositories: [" + toList(repos, version) + "]. " + "Verify the artifact coordinates and version are correct.");
+		if (throwException) throw new IOException("Could not find the artifact [" + group + ":" + artifact + ":" + version + "] (type: "
+				+ ("jar".equals(requiredArtifactExtension) ? "lco or jar" : requiredArtifactExtension) + ") in any of the configured repositories: [" + toList(repos, version)
+				+ "]. " + "Verify the artifact coordinates and version are correct.");
 		return null;
 	}
 
@@ -448,6 +512,20 @@ public final class MavenUpdateProvider {
 		catch (Exception e) {
 			LogUtil.log("MetadataReader", e);
 		}
+	}
+
+	private String findArtifact(Version version, String extension) throws IOException {
+		if (version.is(Version.SNAPSHOT)) return null;
+		String g = group.replace('.', '/');
+		String a = artifact.replace('.', '/');
+		String v = version.toString();
+		for (Repository repo: repos) {
+			if (!repo.handle(version)) continue;
+			URL url = new URL(repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + "." + extension);
+			HTTPDownloaderHeadResponse rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
+			if (rsp != null && validSatusCode(rsp.getStatusCode())) return url.toExternalForm();
+		}
+		return null;
 	}
 
 	private void storeNegativeToCache(Repository repository, String artifact, String version, String requiredArtifactExtension) {
