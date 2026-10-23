@@ -90,6 +90,54 @@
             </plugins>
         </build>
     </profile>
+    <!--
+      LDEV-6708: what a Lucee 9 release publishes on Maven Central: only the main jar, its pom, the sources jar
+      and a minimal javadoc jar (Central requires both). Activated by the release build in .github/workflows/main.yml.
+      Light/zero, the .lco, the JSON files, WAR, Express and installers go to GitHub Releases and maven.lucee-services.com only.
+    -->
+    <profile>
+        <id>maven-central</id>
+        <build>
+            <plugins>
+              <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                  <execution><id>attach-artifact-lco</id><phase>none</phase></execution>
+                  <execution><id>attach-artifact-zero</id><phase>none</phase></execution>
+                  <execution><id>attach-artifact-light</id><phase>none</phase></execution>
+                  <execution><id>attach-artifact-config-schema</id><phase>none</phase></execution>
+                  <execution><id>attach-artifact-env-vars</id><phase>none</phase></execution>
+                </executions>
+              </plugin>
+              <!-- minimal javadoc jar instead of the full loader javadoc -->
+              <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                  <execution><id>attach-javadocs</id><phase>none</phase></execution>
+                </executions>
+              </plugin>
+              <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                  <execution>
+                    <id>attach-minimal-javadoc</id>
+                    <phase>package</phase>
+                    <goals>
+                      <goal>jar</goal>
+                    </goals>
+                    <configuration>
+                      <classifier>javadoc</classifier>
+                      <classesDirectory>${project.basedir}/src/central/javadoc</classesDirectory>
+                    </configuration>
+                  </execution>
+                </executions>
+              </plugin>
+            </plugins>
+        </build>
+    </profile>
 </profiles>
 
 
