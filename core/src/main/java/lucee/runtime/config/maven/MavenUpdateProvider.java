@@ -99,6 +99,19 @@ public final class MavenUpdateProvider {
 		return defaultRepositoryMixed;
 	}
 
+	/**
+	 * LDEV-6705: the one repository list used for all Maven downloads (core update, extensions, OSGi
+	 * bundles, POM dependencies), the release (lucee.mvn.repo.releases) or snapshot
+	 * (lucee.mvn.repo.snapshots) repositories followed by the mixed repositories (lucee.mvn.repo.mixed)
+	 */
+	public static List<String> getDefaultRepositoryURLs(boolean snapshot) {
+		List<String> urls = new ArrayList<>();
+		for (Repository repo: merge(snapshot ? getDefaultRepositorySnapshots() : getDefaultRepositoryReleases(), getDefaultRepositoryMixed())) {
+			if (!urls.contains(repo.url)) urls.add(repo.url);
+		}
+		return urls;
+	}
+
 	private static Repository[] readReposFromEnvVar(String envVarName, Repository[] defaultValue) {
 		String str = SystemUtil.getSystemPropOrEnvVar(envVarName, null);
 		if (!StringUtil.isEmpty(str, true)) {
