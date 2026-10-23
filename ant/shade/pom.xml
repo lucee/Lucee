@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Shades (copies in and relocates) the third party libraries that Lucee always needs into the
-  Lucee jar. This is a temporary bridge: the jar is assembled by the Ant build (ant/build-core.xml),
+  Lucee jars. This is a temporary bridge: the jars are assembled by the Ant build (ant/build-core.xml),
   Ant hands the assembled folder to this project, and takes the shaded result back. Once the jar is
   built by Maven alone, the shade plugin configuration moves to loader/pom.xml unchanged.
 
-  Called by the target "shade" in ant/build-core.xml:
-    mvn -f ant/shade/pom.xml package -Dfelix.version=... -Dshade.input=[assembled folder]
-        -Dshade.manifest=[manifest of the result] -Dshade.output=[result folder]
+  There are two profiles, because the loader and the core (.lco) are still two jars:
+    loader: the classes of the loader plus Felix (org.apache.felix -> lucee.shaded.felix)
+    core:   the classes of the core plus ASM (org.objectweb.asm -> lucee.shaded.asm)
 
-  The versions of the shaded libraries (felix.version) are defined in loader/pom.xml and handed over by Ant.
+  Called by the macro "shadeJar" in ant/build-core.xml:
+    mvn -f ant/shade/pom.xml package -P[loader|core] -Dfelix.version=... -Dasm.version=...
+        -Dshade.input=[assembled folder] -Dshade.manifest=[manifest of the result] -Dshade.output=[result folder]
+
+  The versions of the shaded libraries (felix.version, asm.version) are defined in loader/pom.xml and handed over by Ant.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -25,14 +29,6 @@
     <shade.manifest>${shade.input}/META-INF/MANIFEST.MF</shade.manifest>
     <shade.output>${project.build.directory}/shaded</shade.output>
   </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.felix</groupId>
-      <artifactId>org.apache.felix.framework</artifactId>
-      <version>${felix.version}</version>
-    </dependency>
-  </dependencies>
 
   <build>
     <directory>${shade.output}/work</directory>
@@ -52,100 +48,206 @@
           </archive>
         </configuration>
       </plugin>
-
-      <!-- the license and notice files of the shaded libraries, they are added to META-INF/licenses/[artifact] in the jar by the shade plugin -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.6.1</version>
-        <executions>
-          <execution>
-            <id>licenses</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.apache.felix</groupId>
-                  <artifactId>org.apache.felix.framework</artifactId>
-                  <version>${felix.version}</version>
-                  <outputDirectory>${shade.output}/licenses/org.apache.felix.framework</outputDirectory>
-                  <includes>META-INF/LICENSE,META-INF/NOTICE,META-INF/DEPENDENCIES</includes>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.6.0</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <outputFile>${shade.output}/lucee-shaded.jar</outputFile>
-              <createDependencyReducedPom>false</createDependencyReducedPom>
-              <shadeSourcesContent>false</shadeSourcesContent>
-              <minimizeJar>false</minimizeJar>
-
-              <artifactSet>
-                <includes>
-                  <include>org.apache.felix:org.apache.felix.framework</include>
-                </includes>
-              </artifactSet>
-
-              <relocations>
-                <!-- org.osgi.* is the OSGi API, bundles and extensions import it from the framework, it stays -->
-                <relocation>
-                  <pattern>org.apache.felix</pattern>
-                  <shadedPattern>lucee.shaded.felix</shadedPattern>
-                </relocation>
-              </relocations>
-
-              <filters>
-                <filter>
-                  <artifact>org.apache.felix:org.apache.felix.framework</artifact>
-                  <excludes>
-                    <exclude>META-INF/MANIFEST.MF</exclude>
-                    <exclude>META-INF/maven/**</exclude>
-                    <exclude>META-INF/native-image/**</exclude>
-                    <exclude>META-INF/DEPENDENCIES</exclude>
-                    <exclude>META-INF/LICENSE</exclude>
-                    <exclude>META-INF/NOTICE</exclude>
-                    <exclude>module-info.class</exclude>
-                  </excludes>
-                </filter>
-              </filters>
-
-              <transformers>
-                <!-- the content of META-INF/services files is relocated too -->
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                <!-- license and notice files of the shaded libraries (unpacked by the dependency plugin above) -->
-                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
-                  <resource>META-INF/licenses/org.apache.felix.framework/LICENSE</resource>
-                  <file>${shade.output}/licenses/org.apache.felix.framework/META-INF/LICENSE</file>
-                </transformer>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
-                  <resource>META-INF/licenses/org.apache.felix.framework/NOTICE</resource>
-                  <file>${shade.output}/licenses/org.apache.felix.framework/META-INF/NOTICE</file>
-                </transformer>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
-                  <resource>META-INF/licenses/org.apache.felix.framework/DEPENDENCIES</resource>
-                  <file>${shade.output}/licenses/org.apache.felix.framework/META-INF/DEPENDENCIES</file>
-                </transformer>
-              </transformers>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
+
+  <profiles>
+
+    <!-- the loader jar: Felix -->
+    <profile>
+      <id>loader</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>org.apache.felix.framework</artifactId>
+          <version>${felix.version}</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <!-- the license and notice files of the shaded libraries, they are added to META-INF/licenses/[artifact] in the jar by the shade plugin -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>3.6.1</version>
+            <executions>
+              <execution>
+                <id>licenses</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.apache.felix</groupId>
+                      <artifactId>org.apache.felix.framework</artifactId>
+                      <version>${felix.version}</version>
+                      <outputDirectory>${shade.output}/licenses/org.apache.felix.framework</outputDirectory>
+                      <includes>META-INF/LICENSE,META-INF/NOTICE,META-INF/DEPENDENCIES</includes>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.6.0</version>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <outputFile>${shade.output}/lucee-shaded.jar</outputFile>
+                  <createDependencyReducedPom>false</createDependencyReducedPom>
+                  <shadeSourcesContent>false</shadeSourcesContent>
+                  <minimizeJar>false</minimizeJar>
+
+                  <artifactSet>
+                    <includes>
+                      <include>org.apache.felix:org.apache.felix.framework</include>
+                    </includes>
+                  </artifactSet>
+
+                  <relocations>
+                    <!-- org.osgi.* is the OSGi API, bundles and extensions import it from the framework, it stays -->
+                    <relocation>
+                      <pattern>org.apache.felix</pattern>
+                      <shadedPattern>lucee.shaded.felix</shadedPattern>
+                    </relocation>
+                  </relocations>
+
+                  <filters>
+                    <filter>
+                      <artifact>org.apache.felix:org.apache.felix.framework</artifact>
+                      <excludes>
+                        <exclude>META-INF/MANIFEST.MF</exclude>
+                        <exclude>META-INF/maven/**</exclude>
+                        <exclude>META-INF/native-image/**</exclude>
+                        <exclude>META-INF/DEPENDENCIES</exclude>
+                        <exclude>META-INF/LICENSE</exclude>
+                        <exclude>META-INF/NOTICE</exclude>
+                        <exclude>module-info.class</exclude>
+                      </excludes>
+                    </filter>
+                  </filters>
+
+                  <transformers>
+                    <!-- the content of META-INF/services files is relocated too -->
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                    <!-- license and notice files of the shaded libraries (unpacked by the dependency plugin above) -->
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                      <resource>META-INF/licenses/org.apache.felix.framework/LICENSE</resource>
+                      <file>${shade.output}/licenses/org.apache.felix.framework/META-INF/LICENSE</file>
+                    </transformer>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                      <resource>META-INF/licenses/org.apache.felix.framework/NOTICE</resource>
+                      <file>${shade.output}/licenses/org.apache.felix.framework/META-INF/NOTICE</file>
+                    </transformer>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                      <resource>META-INF/licenses/org.apache.felix.framework/DEPENDENCIES</resource>
+                      <file>${shade.output}/licenses/org.apache.felix.framework/META-INF/DEPENDENCIES</file>
+                    </transformer>
+                  </transformers>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- the core (.lco): ASM -->
+    <profile>
+      <id>core</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm</artifactId>
+          <version>${asm.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm-commons</artifactId>
+          <version>${asm.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm-util</artifactId>
+          <version>${asm.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm-tree</artifactId>
+          <version>${asm.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm-analysis</artifactId>
+          <version>${asm.version}</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.6.0</version>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <outputFile>${shade.output}/lucee-shaded.jar</outputFile>
+                  <createDependencyReducedPom>false</createDependencyReducedPom>
+                  <shadeSourcesContent>false</shadeSourcesContent>
+                  <minimizeJar>false</minimizeJar>
+
+                  <artifactSet>
+                    <includes>
+                      <include>org.ow2.asm:*</include>
+                    </includes>
+                  </artifactSet>
+
+                  <relocations>
+                    <relocation>
+                      <pattern>org.objectweb.asm</pattern>
+                      <shadedPattern>lucee.shaded.asm</shadedPattern>
+                    </relocation>
+                  </relocations>
+
+                  <filters>
+                    <filter>
+                      <artifact>org.ow2.asm:*</artifact>
+                      <excludes>
+                        <exclude>META-INF/MANIFEST.MF</exclude>
+                        <exclude>META-INF/maven/**</exclude>
+                        <exclude>module-info.class</exclude>
+                      </excludes>
+                    </filter>
+                  </filters>
+
+                  <transformers>
+                    <!-- the ASM jars do not contain their license (BSD 3-clause), the text is kept in ant/shade/licenses -->
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                      <resource>META-INF/licenses/org.ow2.asm/LICENSE</resource>
+                      <file>${project.basedir}/licenses/asm/LICENSE</file>
+                    </transformer>
+                  </transformers>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+  </profiles>
 </project>

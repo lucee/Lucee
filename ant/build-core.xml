@@ -92,15 +92,23 @@
     <property name="srcInst" location="${rootDir}/instrumentation/src/main/java"/> 
     <property name="ant" location="${rootDir}/ant"/>
 
-    <!-- the version of Felix that gets shaded, defined in loader/pom.xml (already set when Maven starts the build) -->
+    <!-- the versions of the libraries that get shaded, defined in loader/pom.xml (already set when Maven starts the build) -->
     <xmlproperty file="${rootDir}/loader/pom.xml" prefix="loaderpom"/>
     <property name="felix.version" value="${loaderpom.project.properties.felix.version}"/>
-    <!-- core/pom.xml is a standalone pom and cannot inherit the property, so the build makes sure it is the same version -->
+    <property name="asm.version" value="${loaderpom.project.properties.asm.version}"/>
+    <!-- core/pom.xml is a standalone pom and cannot inherit the properties, so the build makes sure they are the same versions -->
     <xmlproperty file="${rootDir}/core/pom.xml" prefix="corepom"/>
     <fail message="felix.version in core/pom.xml [${corepom.project.properties.felix.version}] must be the same as in loader/pom.xml [${felix.version}]">
       <condition>
         <not>
           <equals arg1="${corepom.project.properties.felix.version}" arg2="${felix.version}"/>
+        </not>
+      </condition>
+    </fail>
+    <fail message="asm.version in core/pom.xml [${corepom.project.properties.asm.version}] must be the same as in loader/pom.xml [${asm.version}]">
+      <condition>
+        <not>
+          <equals arg1="${corepom.project.properties.asm.version}" arg2="${asm.version}"/>
         </not>
       </condition>
     </fail>
@@ -638,11 +646,8 @@
     <!-- generates a jar from the core 
           this jars are only 
     -->
-    <jar 
-        basedir="${core}" 
-        compress="false"
-        jarfile="${temp}/loader/core/core.lco" 
-        manifest="${core}/META-INF/MANIFEST.MF"/> 
+    <shadeJar profile="core" input="${core}" manifest="${core}/META-INF/MANIFEST.MF" output="${temp}/shade-core-test"/>
+    <copy file="${temp}/shade-core-test/lucee-shaded.jar" tofile="${temp}/loader/core/core.lco" overwrite="true"/>
 
 
     <!-- generates the jar from the loader -->
@@ -653,7 +658,7 @@
       manifest="${srcLoader}/META-INF/MANIFEST.MF"/>
 
     <!-- the archives are built and the test cases run with the shaded jar, the same as what we ship -->
-    <shadeJar input="${temp}/loader" manifest="${srcLoader}/META-INF/MANIFEST.MF" output="${temp}/shade-test"/>
+    <shadeJar profile="loader" input="${temp}/loader" manifest="${srcLoader}/META-INF/MANIFEST.MF" output="${temp}/shade-test"/>
     <copy file="${temp}/shade-test/lucee-shaded.jar" tofile="${temp}/lucee.jar" overwrite="true"/>
 
 </target>
@@ -1031,6 +1036,7 @@
   are used when there is one.
   -->
   <macrodef name="shadeJar">
+    <attribute name="profile"/><!-- loader (Felix) or core (ASM), see ant/shade/pom.xml -->
     <attribute name="input"/><!-- the folder that gets shaded -->
     <attribute name="manifest"/><!-- the manifest of the result -->
     <attribute name="output"/><!-- the folder that receives lucee-shaded.jar and the licenses -->
@@ -1046,7 +1052,9 @@
         <arg value="-f"/>
         <arg file="${ant}/shade/pom.xml"/>
         <arg value="package"/>
+        <arg value="-P@{profile}"/>
         <arg value="-Dfelix.version=${felix.version}"/>
+        <arg value="-Dasm.version=${asm.version}"/>
         <arg value="-Dshade.input=@{input}"/>
         <arg value="-Dshade.manifest=@{manifest}"/>
         <arg value="-Dshade.output=@{output}"/>
@@ -1065,7 +1073,7 @@
     <delete file="${goal}/default.properties" quiet="true"/>
     <delete file="${goal}/module-info.class" quiet="true"/>
 
-    <shadeJar input="${goal}" manifest="${goal}/META-INF/MANIFEST.MF" output="${temp}/shade"/>
+    <shadeJar profile="loader" input="${goal}" manifest="${goal}/META-INF/MANIFEST.MF" output="${temp}/shade"/>
 
     <!-- the manifest created by createLoaderManifest stays the only one -->
     <unzip src="${temp}/shade/lucee-shaded.jar" dest="${goal}" overwrite="true">
@@ -1101,10 +1109,8 @@
     </copy>
 
     <!-- create the lucee core with the default Java version -->
-    <jar 
-        basedir="${core}" 
-        jarfile="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco" 
-        manifest="${core}/META-INF/MANIFEST.MF"/>
+    <shadeJar profile="core" input="${core}" manifest="${core}/META-INF/MANIFEST.MF" output="${temp}/shade-core"/>
+    <copy file="${temp}/shade-core/lucee-shaded.jar" tofile="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco" overwrite="true"/>
     <echots message="create lco:${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco"/>
 
     <!-- temporary disabled -->
@@ -1151,10 +1157,8 @@
     </copy>
 
     <!-- create the lucee core with the Java 17 version -->
-    <jar 
-        basedir="${core}" 
-        jarfile="${trgLoader}/${version}.jvm17.lco" 
-        manifest="${core}/META-INF/MANIFEST.MF"/>
+    <shadeJar profile="core" input="${core}" manifest="${core}/META-INF/MANIFEST.MF" output="${temp}/shade-core"/>
+    <copy file="${temp}/shade-core/lucee-shaded.jar" tofile="${trgLoader}/${version}.jvm17.lco" overwrite="true"/>
     <echots message="create lco:${trgLoader}/${version}.jvm17.lco"/>   
   </target>
 
@@ -1168,10 +1172,8 @@
     </copy>
 
     <!-- create the lucee core with the Java 21 version -->
-    <jar
-        basedir="${core}" 
-        jarfile="${trgLoader}/${version}.jvm21.lco" 
-        manifest="${core}/META-INF/MANIFEST.MF"/>
+    <shadeJar profile="core" input="${core}" manifest="${core}/META-INF/MANIFEST.MF" output="${temp}/shade-core"/>
+    <copy file="${temp}/shade-core/lucee-shaded.jar" tofile="${trgLoader}/${version}.jvm21.lco" overwrite="true"/>
     <echots message="create lco:${trgLoader}/${version}.jvm21.lco"/>
   </target>
 

@@ -257,12 +257,7 @@ Export-Package: coldfusion.image,
  lucee.transformer.util,
  lucee.transformer.cfml.script.java.function
 Require-Bundle: org.apache.commons.commons-io;bundle-version=2.21.0,
- org.apache.commons.commons-pool2;bundle-version=2.13.1,
- org.objectweb.asm.tree.analysis;bundle-version=9.10.1,
- org.objectweb.asm.tree;bundle-version=9.10.1,
- org.objectweb.asm.commons;bundle-version=9.10.1,
- org.objectweb.asm.util;bundle-version=9.10.1,
- org.objectweb.asm;bundle-version=9.10.1
+ org.apache.commons.commons-pool2;bundle-version=2.13.1
 Require-Extension: org.lucee:mysql-jdbc-extension:26.7.0:lite,
  org.lucee:mssql-jdbc-extension:13.4.0.jre11:lite,
  org.lucee:postgresql-jdbc-extension:42.7.11:lite,
