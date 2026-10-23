@@ -63,9 +63,9 @@ public final class POM {
 			}
 		}
 
-		// LDEV-6705: same repositories as the core update, the extensions and the OSGi bundles
+		// LDEV-6705: same repositories as the core update, the extensions and the OSGi bundles (release repositories, snapshots stay disabled)
 		for (String url: MavenUpdateProvider.getDefaultRepositoryURLs(false)) {
-			REPOSITORIES.add(REPOSITORY_MAVEN_CENTRAL.getUrl().equals(url) ? REPOSITORY_MAVEN_CENTRAL : new Repository(url));
+			REPOSITORIES.add(REPOSITORY_MAVEN_CENTRAL.getUrl().equals(url) ? REPOSITORY_MAVEN_CENTRAL : new Repository(url, url, url, true, false));
 		}
 		REPOSITORIES.add(REPOSITORY_GOOGLE_CENTRAL_MIRROR);
 		// REPOSITORIES.add(REPOSITORY_JCENTER);
