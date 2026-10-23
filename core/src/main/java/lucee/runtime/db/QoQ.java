@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.db;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +38,7 @@ import lucee.commons.math.MathUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.IllegalQoQException;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -1215,7 +1218,57 @@ public final class QoQ {
 		if (caseSensitive && left instanceof String && right instanceof String) {
 			return ((String) left).compareTo((String) right);
 		}
+		return compare(pc, left, op.getLeft(), right, op.getRight());
+	}
+
+	/**
+	 * compares two values like OpUtil.compare, but numbers that can't be represented exactly as a
+	 * double (more than 15 digits, e.g. a bigint id stored as varchar) are compared exactly, otherwise
+	 * 996012564777658757 and 996012564777658758 are the same number (LDEV-5790)
+	 */
+	private static int compare(PageContext pc, Object left, Expression leftExp, Object right, Expression rightExp) throws PageException {
+		if (!ThreadLocalPageContext.preciseMath(pc)) {
+			// an unquoted number literal is parsed to a double, use its source string instead
+			Object l = leftExp instanceof ValueNumber ? ((ValueNumber) leftExp).getString() : left;
+			Object r = rightExp instanceof ValueNumber ? ((ValueNumber) rightExp).getString() : right;
+			if (isLargeNumber(l) || isLargeNumber(r)) {
+				BigDecimal bl = toExactNumber(l);
+				if (bl != null) {
+					BigDecimal br = toExactNumber(r);
+					if (br != null) return bl.compareTo(br);
+				}
+			}
+		}
 		return OpUtil.compare(pc, left, right);
+	}
+
+	private static final long MAX_EXACT_DOUBLE = 1L << 53;
+
+	private static boolean isLargeNumber(Object o) {
+		if (o instanceof String) return ((String) o).length() > 15;
+		if (o instanceof Long) {
+			long l = ((Long) o).longValue();
+			return l > MAX_EXACT_DOUBLE || l < -MAX_EXACT_DOUBLE;
+		}
+		return o instanceof BigInteger || o instanceof BigDecimal;
+	}
+
+	private static BigDecimal toExactNumber(Object o) {
+		if (o instanceof BigDecimal) return (BigDecimal) o;
+		if (o instanceof BigInteger) return new BigDecimal((BigInteger) o);
+		if (o instanceof Long || o instanceof Integer || o instanceof Short || o instanceof Byte) return BigDecimal.valueOf(((Number) o).longValue());
+		if (o instanceof String) {
+			String str = ((String) o).trim();
+			if (str.isEmpty() || !Decision.isNumber(str)) return null;
+			try {
+				return new BigDecimal(str);
+			}
+			catch (NumberFormatException e) {
+				return null;
+			}
+		}
+		// double, float, boolean, dates ... -> no exact representation, use the regular compare
+		return null;
 	}
 
 	private Object executeMod(PageContext pc, SQL sql, QueryImpl source, Operation2 expression, int row) throws PageException {
@@ -1257,7 +1310,7 @@ public final class QoQ {
 				cmp = ((String) left).compareTo((String) right);
 			}
 			else {
-				cmp = OpUtil.compare(pc, left, right);
+				cmp = compare(pc, left, operators[0], right, operators[i]);
 			}
 			if (cmp == 0) return isNot ? Boolean.FALSE : Boolean.TRUE;
 		}
@@ -1461,7 +1514,9 @@ public final class QoQ {
 		// print.out(left+" between "+right1+" and "+right2
 		// +" = "+((Operator.compare(left,right1)>=0)+" && "+(Operator.compare(left,right2)<=0)));
 
-		return ((OpUtil.compare(pc, left, right1) >= 0) && (OpUtil.compare(pc, left, right2) <= 0)) ? Boolean.TRUE : Boolean.FALSE;
+		return ((compare(pc, left, expression.getExp(), right1, expression.getLeft()) >= 0) && (compare(pc, left, expression.getExp(), right2, expression.getRight()) <= 0))
+				? Boolean.TRUE
+				: Boolean.FALSE;
 	}
 
 	private Object executeLike(PageContext pc, SQL sql, QueryImpl source, Operation3 expression, int row) throws PageException {
