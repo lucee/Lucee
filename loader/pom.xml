@@ -17,6 +17,8 @@
     <lucee.version.qualifier>-ALPHA</lucee.version.qualifier>
     <revision>${lucee.version.base}.${lucee.version.build}${lucee.version.qualifier}</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- the version of Felix that gets shaded into the jar, also read by the Ant build (ant/build-core.xml) -->
+    <felix.version>7.0.5</felix.version>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compiler.release>21</maven.compiler.release>
     <timestamp>${maven.build.timestamp}</timestamp>
@@ -250,6 +252,11 @@
                     <property name="runtime_classpath" refid="maven.runtime.classpath" />
 
                     <property name="outputDir" value="${project.build.outputDirectory}" />
+
+                    <!-- handed to the Maven that is called to shade (ant/shade/pom.xml) -->
+                    <property name="mvn.localRepository" value="${settings.localRepository}" />
+                    <property name="mvn.offline" value="${settings.offline}" />
+                    <property name="mvn.settings" value="${session.request.userSettingsFile}" />
                     <property name="testcases" value="true" />
                     <property name="compileTestBox" value="true"/><!-- needed for cfml build archives-->
                     <property name="buildLoaderJar" value="true"/>                    
@@ -435,8 +442,8 @@
   <dependency>
     <groupId>org.apache.felix</groupId>
     <artifactId>org.apache.felix.framework</artifactId>
-    <version>7.0.5</version><!-- 4.6.1 -->
-    <scope>compile</scope>
+    <version>${felix.version}</version><!-- 4.6.1 -->
+    <scope>provided</scope>
   </dependency>
   <dependency>
     <groupId>javax.servlet</groupId>

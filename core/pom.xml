@@ -16,6 +16,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compiler.release>21</maven.compiler.release>
+    <!-- the same version as in loader/pom.xml, Felix is only needed to compile against the OSGi API -->
+    <felix.version>7.0.5</felix.version>
   </properties>
 
   <licenses>
@@ -87,8 +89,8 @@
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.framework</artifactId>
-      <version>7.0.5</version>
-      <scope>compile</scope>
+      <version>${felix.version}</version>
+      <scope>provided</scope>
     </dependency>
 	<dependency>
     <groupId>org.lucee</groupId>

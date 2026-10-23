@@ -90,6 +90,29 @@
     <property name="srcAll" location="${rootDir}/core/src/main"/>
     <property name="srcInst" location="${rootDir}/instrumentation/src/main/java"/> 
     <property name="ant" location="${rootDir}/ant"/>
+
+    <!-- the version of Felix that gets shaded, defined in loader/pom.xml (already set when Maven starts the build) -->
+    <xmlproperty file="${rootDir}/loader/pom.xml" prefix="loaderpom"/>
+    <property name="felix.version" value="${loaderpom.project.properties.felix.version}"/>
+
+    <!-- the Maven used to call the shade plugin, the Maven that started the build when there is one -->
+    <condition property="mvn.name" value="mvn.cmd" else="mvn">
+      <os family="windows"/>
+    </condition>
+    <condition property="mvn.executable" value="${maven.home}/bin/${mvn.name}" else="${mvn.name}">
+      <isset property="maven.home"/>
+    </condition>
+    <available file="${mvn.settings}" property="mvn.settings.available"/>
+
+    <!-- the classpath without the unshaded Felix, the jars we build must bring their own -->
+    <loadresource property="runtime_classpath_shaded">
+      <string value="${runtime_classpath}"/>
+      <filterchain>
+        <tokenfilter>
+          <replaceregex pattern="[^:;]*org[./\\]apache[./\\]felix[^:;]*[:;]?" replace="" flags="g"/>
+        </tokenfilter>
+      </filterchain>
+    </loadresource>
     <property name="test" location="${rootDir}/test"/>
     <!-- free text filter, comma delimitered to filter tests based on path -->
     <property name="testFilter" value=""/>
@@ -617,6 +640,10 @@
       jarfile="${temp}/lucee.jar" 
       manifest="${srcLoader}/META-INF/MANIFEST.MF"/>
 
+    <!-- the archives are built and the test cases run with the shaded jar, the same as what we ship -->
+    <shadeJar input="${temp}/loader" manifest="${srcLoader}/META-INF/MANIFEST.MF" output="${temp}/shade-test"/>
+    <copy file="${temp}/shade-test/lucee-shaded.jar" tofile="${temp}/lucee.jar" overwrite="true"/>
+
 </target>
 
 <!--
@@ -732,7 +759,7 @@
     
     <!-- Replace Jakarta EE API versions for Java 17 compatibility -->
     <loadresource property="runtime_classpath_updated">
-        <string value="${runtime_classpath}"/>
+        <string value="${runtime_classpath_shaded}"/>
         <filterchain>
             <tokenfilter>
                 <stringtokenizer/>
@@ -881,7 +908,7 @@
     <java classname="org.apache.tools.ant.launch.Launcher" dir="${temp}/warmup" fork="true" failonerror="true" errorproperty="exc4" jvm="${testJavaVersionExec}">
       <classpath path="${java.class.path}">
           <pathelement location="${trgLoader}/lucee-${version}.jar"/>
-          <pathelement path="${runtime_classpath}"/>
+          <pathelement path="${runtime_classpath_shaded}"/>
       </classpath>
 
       <arg value="-f"/>
@@ -986,10 +1013,35 @@
 
   <!--
   MARK: Shade
-  copies the third party libraries the core always needs into the assembled folder and relocates them,
-  using the Maven shade plugin (ant/shade/pom.xml); this is temporary, when the jar is built by Maven alone
-  the shade plugin moves to loader/pom.xml
+  copies the third party libraries the core always needs into a folder and relocates them, using the Maven
+  shade plugin (ant/shade/pom.xml); this is temporary, when the jar is built by Maven alone the shade plugin
+  moves to loader/pom.xml. The maven that started the build, its settings, local repository and offline mode
+  are used when there is one.
   -->
+  <macrodef name="shadeJar">
+    <attribute name="input"/><!-- the folder that gets shaded -->
+    <attribute name="manifest"/><!-- the manifest of the result -->
+    <attribute name="output"/><!-- the folder that receives lucee-shaded.jar and the licenses -->
+    <sequential>
+      <delete dir="@{output}" quiet="true"/>
+      <exec executable="${mvn.executable}" failonerror="true">
+        <arg value="-B"/>
+        <arg value="-q"/>
+        <arg value="-o" if:true="${mvn.offline}"/>
+        <arg value="-s" if:set="mvn.settings.available"/>
+        <arg file="${mvn.settings}" if:set="mvn.settings.available"/>
+        <arg value="-Dmaven.repo.local=${mvn.localRepository}" if:set="mvn.localRepository"/>
+        <arg value="-f"/>
+        <arg file="${ant}/shade/pom.xml"/>
+        <arg value="package"/>
+        <arg value="-Dfelix.version=${felix.version}"/>
+        <arg value="-Dshade.input=@{input}"/>
+        <arg value="-Dshade.manifest=@{manifest}"/>
+        <arg value="-Dshade.output=@{output}"/>
+      </exec>
+    </sequential>
+  </macrodef>
+
   <target name="shade" if="buildLoaderJar">
     <echots message="shade the third party libraries into ${goal}"/>
 
@@ -997,33 +1049,18 @@
     <delete dir="${goal}/org/apache/felix" quiet="true"/>
     <delete dir="${goal}/org/osgi" quiet="true"/>
     <delete dir="${goal}/lucee/shaded" quiet="true"/>
+    <delete dir="${goal}/META-INF/licenses" quiet="true"/>
     <delete file="${goal}/default.properties" quiet="true"/>
     <delete file="${goal}/module-info.class" quiet="true"/>
-    <delete dir="${temp}/shade" quiet="true"/>
 
-    <condition property="mvn.executable" value="mvn.cmd" else="mvn">
-      <os family="windows"/>
-    </condition>
-    <exec executable="${mvn.executable}" failonerror="true">
-      <arg value="-B"/>
-      <arg value="-q"/>
-      <arg value="-f"/>
-      <arg file="${ant}/shade/pom.xml"/>
-      <arg value="package"/>
-      <arg value="-Dshade.input=${goal}"/>
-      <arg value="-Dshade.output=${temp}/shade"/>
-    </exec>
+    <shadeJar input="${goal}" manifest="${goal}/META-INF/MANIFEST.MF" output="${temp}/shade"/>
 
-    <unzip src="${temp}/shade/lucee-shaded.jar" dest="${goal}" overwrite="true"/>
-
-    <!-- license and notice files of the shaded libraries -->
-    <delete dir="${goal}/META-INF/licenses" quiet="true"/>
-    <copy todir="${goal}/META-INF/licenses">
-      <fileset dir="${temp}/shade/licenses">
-        <include name="*/META-INF/*"/>
-      </fileset>
-      <mapper type="regexp" from="^(.*)/META-INF/(.*)$$" to="\1/\2"/>
-    </copy>
+    <!-- the manifest created by createLoaderManifest stays the only one -->
+    <unzip src="${temp}/shade/lucee-shaded.jar" dest="${goal}" overwrite="true">
+      <patternset>
+        <exclude name="META-INF/MANIFEST.MF"/>
+      </patternset>
+    </unzip>
   </target>
 
   <target name="setMvnEnv" description="set the variable right for ant">
@@ -1153,7 +1190,7 @@
     <echots message="build loader .jar - ${goal}"/>
     
     <jar 
-      basedir="${temp}/loader" 
+      basedir="${goal}" 
       jarfile="${trgLoader}/lucee-${version}.jar" 
       manifest="${goal}/META-INF/MANIFEST.MF"/>
     <echots message="build-jar-ant:${goal}/META-INF/MANIFEST.MF"/>  

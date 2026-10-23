@@ -6,7 +6,10 @@
   built by Maven alone, the shade plugin configuration moves to loader/pom.xml unchanged.
 
   Called by the target "shade" in ant/build-core.xml:
-    mvn -f ant/shade/pom.xml package -Dshade.input=[assembled folder] -Dshade.output=[result folder]
+    mvn -f ant/shade/pom.xml package -Dfelix.version=... -Dshade.input=[assembled folder]
+        -Dshade.manifest=[manifest of the result] -Dshade.output=[result folder]
+
+  The versions of the shaded libraries (felix.version) are defined in loader/pom.xml and handed over by Ant.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -19,15 +22,15 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <shade.input>${project.build.directory}/input</shade.input>
+    <shade.manifest>${shade.input}/META-INF/MANIFEST.MF</shade.manifest>
     <shade.output>${project.build.directory}/shaded</shade.output>
   </properties>
 
   <dependencies>
-    <!-- keep the version in sync with loader/pom.xml and core/pom.xml -->
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.framework</artifactId>
-      <version>7.0.5</version>
+      <version>${felix.version}</version>
     </dependency>
   </dependencies>
 
@@ -45,12 +48,12 @@
           <forceCreation>true</forceCreation>
           <archive>
             <addMavenDescriptor>false</addMavenDescriptor>
-            <manifestFile>${shade.input}/META-INF/MANIFEST.MF</manifestFile>
+            <manifestFile>${shade.manifest}</manifestFile>
           </archive>
         </configuration>
       </plugin>
 
-      <!-- the license and notice files of the shaded libraries, they go to META-INF/licenses/[artifact] in the jar -->
+      <!-- the license and notice files of the shaded libraries, they are added to META-INF/licenses/[artifact] in the jar by the shade plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -67,7 +70,7 @@
                 <artifactItem>
                   <groupId>org.apache.felix</groupId>
                   <artifactId>org.apache.felix.framework</artifactId>
-                  <version>7.0.5</version>
+                  <version>${felix.version}</version>
                   <outputDirectory>${shade.output}/licenses/org.apache.felix.framework</outputDirectory>
                   <includes>META-INF/LICENSE,META-INF/NOTICE,META-INF/DEPENDENCIES</includes>
                 </artifactItem>
@@ -125,6 +128,19 @@
               <transformers>
                 <!-- the content of META-INF/services files is relocated too -->
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <!-- license and notice files of the shaded libraries (unpacked by the dependency plugin above) -->
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/licenses/org.apache.felix.framework/LICENSE</resource>
+                  <file>${shade.output}/licenses/org.apache.felix.framework/META-INF/LICENSE</file>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/licenses/org.apache.felix.framework/NOTICE</resource>
+                  <file>${shade.output}/licenses/org.apache.felix.framework/META-INF/NOTICE</file>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/licenses/org.apache.felix.framework/DEPENDENCIES</resource>
+                  <file>${shade.output}/licenses/org.apache.felix.framework/META-INF/DEPENDENCIES</file>
+                </transformer>
               </transformers>
             </configuration>
           </execution>
