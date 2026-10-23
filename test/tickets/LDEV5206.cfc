@@ -48,7 +48,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( pageParts[ key ].snippet ).toBe( "cfc = new ldev5206()" );
 			});
 
-			xit( "LDEV-5212 test DebugExecutionLog - cfm parts member", function(){
+			it( "LDEV-5212 test DebugExecutionLog - cfm parts member", function(){
 				var logs = getDebugLogs();
 				expect( len( logs ) ).toBe( 1 );
 				var log = logs[ 1 ];

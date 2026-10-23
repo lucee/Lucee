@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 	function beforeAll(){
 		if (structKeyExists(server, "getDatasource")){
@@ -50,15 +50,46 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip=true {
 				}
 			});
 		}
+
+		describe( title="LDEV-5790 qoq - large numbers in other comparisons", body=function() {
+			loop array=colTypes item="local.colType" {
+				var testArgs = { colType: colType };
+
+				it( title="col #colType# with an unquoted number literal", data=testArgs, body=function( data ) {
+					var q = getQuery( data.colType );
+					var res = queryExecute( "SELECT * from q where num = 996012564777658757", [], { dbtype="query" } );
+					expect( res.recordCount ).toBe( 1 );
+					expect( res.num[ 1 ] ).toBe( "996012564777658757" );
+				});
+
+				it( title="col #colType# with IN", data=testArgs, body=function( data ) {
+					var q = getQuery( data.colType );
+					var res = queryExecute( "SELECT * from q where num in ( '996012564777658758', '1' )", [], { dbtype="query" } );
+					expect( res.recordCount ).toBe( 1 );
+					expect( res.num[ 1 ] ).toBe( "996012564777658758" );
+				});
+
+				it( title="col #colType# with <> and >", data=testArgs, body=function( data ) {
+					var q = getQuery( data.colType );
+					var res = queryExecute( "SELECT * from q where num <> ?", [ { value: "996012564777658757", sqltype: "varchar" } ], { dbtype="query" } );
+					expect( res.recordCount ).toBe( 1 );
+					expect( res.num[ 1 ] ).toBe( "996012564777658758" );
+					res = queryExecute( "SELECT * from q where num > ?", [ { value: "996012564777658757", sqltype: "bigint" } ], { dbtype="query" } );
+					expect( res.recordCount ).toBe( 1 );
+					expect( res.num[ 1 ] ).toBe( "996012564777658758" );
+				});
+
+				it( title="col #colType# with BETWEEN", data=testArgs, body=function( data ) {
+					var q = getQuery( data.colType );
+					var res = queryExecute( "SELECT * from q where num between 996012564777658758 and 996012564777658760", [], { dbtype="query" } );
+					expect( res.recordCount ).toBe( 1 );
+					expect( res.num[ 1 ] ).toBe( "996012564777658758" );
+				});
+			}
+		});
 	};
 
 	private function checkSkip( args ){
-		if ( args.colType == "varchar" && args.clauseType == "bigint" ){
-			if ( args.db eq "qoq" ) return true;
-		}
-		if ( args.colType == "bigint" && args.clauseType == "bigint" ){
-			if ( args.db eq "qoq" ) return true;
-		}
 		return false;
 	}
 
