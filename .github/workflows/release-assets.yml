@@ -15,7 +15,7 @@ on:
         required: true
         type: string
       target:
-        description: 'Commit SHA or branch the release is tagged on, only needed if the tag does not exist yet'
+        description: 'Commit SHA or branch the release is tagged on, only needed if the tag (version without qualifier) does not exist yet'
         required: false
         type: string
       installers_only:
@@ -107,15 +107,28 @@ jobs:
         if [ -z "$(ls -A release-assets)" ]; then
           echo "nothing to attach for $VERSION"; exit 0
         fi
-        if ! gh release view "$VERSION" > /dev/null 2>&1; then
+        # LDEV-6701: the release tag is the numeric version without qualifier (7.1.2.184-RC -> 7.1.2.184),
+        # the same tag main.yml creates and the one Lucee looks up for the GitHub release fallback
+        TAG="${VERSION%%-*}"
+        if [ "$TAG" != "$VERSION" ] && gh release view "$VERSION" > /dev/null 2>&1; then
+          echo "::warning::an older release is tagged with the full version $VERSION, the files go to the release tagged $TAG"
+        fi
+        if NAME=$(gh release view "$TAG" --json name --jq .name 2> /dev/null); then
+          # same as main.yml: upload into the existing release, but never mix the files of an RC and a final with the same number
+          if [ "$NAME" != "Lucee $VERSION" ]; then
+            echo "::error::the release tagged $TAG is [$NAME], not Lucee $VERSION; not attaching the files of $VERSION to it"; exit 1
+          fi
+        else
           ARGS=(--title "Lucee $VERSION" --notes "Lucee $VERSION")
           case "$VERSION" in *-RC|*-BETA|*-ALPHA) ARGS+=(--prerelease);; esac
           if [ -n "$TARGET" ]; then
             ARGS+=(--target "$TARGET")
-          elif ! gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$VERSION" > /dev/null 2>&1; then
-            echo "::error::tag $VERSION does not exist, provide the target (commit SHA) input"; exit 1
+          elif gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" > /dev/null 2>&1; then
+            ARGS+=(--verify-tag)
+          else
+            echo "::error::tag $TAG does not exist, provide the target (commit SHA) input"; exit 1
           fi
-          gh release create "$VERSION" "${ARGS[@]}"
+          gh release create "$TAG" "${ARGS[@]}"
         fi
-        gh release upload "$VERSION" release-assets/* --clobber
-        gh release view "$VERSION" --json url,assets --jq '.url, (.assets[] | .name + " " + (.size|tostring))'
+        gh release upload "$TAG" release-assets/* --clobber
+        gh release view "$TAG" --json url,assets --jq '.url, (.assets[] | .name + " " + (.size|tostring))'
