@@ -352,9 +352,21 @@ jobs:
         elif [[ "$VERSION" == *-ALPHA ]]; then
           echo "------- Maven Install ALPHA (no deplyment) on ${{ github.event_name }} ---------";
           mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+        elif [[ "$VERSION" == *-* ]]; then
+          # LDEV-6707: RC, BETA and other pre-releases are not published on Maven Central anymore,
+          # they go to maven.lucee-services.com (S3 upload during the build) and the GitHub release only
+          echo "------- Maven Install PRE-RELEASE (not on Maven Central) on ${{ github.event_name }} -------";
+          mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
         else
-          echo "------- Maven Deploy RELEASE on ${{ github.event_name }} -------";
-          mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
+          # LDEV-6707: only the .lco and the pom (pom packaging) go to Maven Central, see loader/central/pom.xml.
+          # The jar, light, zero, express and WAR go to maven.lucee-services.com (S3 upload during the build) and the GitHub release only
+          echo "------- Maven Deploy RELEASE (.lco and pom only) on ${{ github.event_name }} -------";
+          mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
+          if [ ! -f "loader/target/$VERSION.lco" ]; then
+            echo "::error::loader/target/$VERSION.lco does not exist, nothing to publish on Maven Central"; exit 1
+          fi
+          mvn -B -e -f loader/central/pom.xml -Drevision="$VERSION" clean deploy --settings maven-settings.xml -DperformRelease=true;
           echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
         fi
     - name: clean github.ref_name
@@ -387,16 +399,6 @@ jobs:
           git tag -a "$TAG" -m "$TAG"
           git push origin "refs/tags/$TAG"
         fi
-    - name: Trigger the Lucee Docker image build
-      # LDEV-6536: runs after the maven deploy, so the jar is on Maven already (was in ant/upload_to_s3.cfm)
-      if: success() && env.DID_DEPLOY == 'true' && env.VERSION != ''
-      continue-on-error: true
-      env:
-        GH_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
-      run: |
-        jq -n --arg v "$VERSION" '{event_type: "build-docker-images", client_payload: {LUCEE_VERSION: $v}}' \
-          | gh api repos/lucee/lucee-dockerfiles/dispatches --input -
-        echo "Lucee Docker build triggered for $VERSION, see https://github.com/lucee/lucee-dockerfiles/actions"
     - name: Attach Lucee artifacts (express zip, jar, light, zero, lco) to the GitHub release
       # LDEV-6529: releases only (no snapshots), uses the files this job just built, nothing comes from cdn.lucee.org
       if: ${{ env.DID_DEPLOY == 'true' && env.VERSION != '' && !contains(env.VERSION, '-SNAPSHOT') }}
@@ -436,6 +438,17 @@ jobs:
         fi
         gh release upload "$TAG" release-assets/* --clobber
 
+    - name: Trigger the Lucee Docker image build
+      # LDEV-6536: runs after the maven deploy (was in ant/upload_to_s3.cfm)
+      # LDEV-6707: and after the GitHub release, the jar is not on Maven Central anymore
+      if: success() && env.DID_DEPLOY == 'true' && env.VERSION != ''
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
+      run: |
+        jq -n --arg v "$VERSION" '{event_type: "build-docker-images", client_payload: {LUCEE_VERSION: $v}}' \
+          | gh api repos/lucee/lucee-dockerfiles/dispatches --input -
+        echo "Lucee Docker build triggered for $VERSION, see https://github.com/lucee/lucee-dockerfiles/actions"
     - name: Regenerate org/lucee index.html and group maven-metadata.xml on S3
       # LDEV-XXXX: what organize-artifacts.yml did after organizing a version, now on every build that was published to S3
       if: ${{ success() && env.DID_DEPLOY == 'true' && env.S3_PUBLISHED == 'true' }}
