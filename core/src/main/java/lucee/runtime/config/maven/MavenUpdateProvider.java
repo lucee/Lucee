@@ -240,6 +240,8 @@ public final class MavenUpdateProvider {
 	public InputStream getLoader(Version version) throws IOException, GeneralSecurityException, SAXException, PageException {
 		Map<String, Object> data = detail(version, "jar", true);
 		String strURL = Caster.toString(data.get("jar"), null);
+		// the repository found first may only have the .lco, look for the jar in the other repositories
+		if (StringUtil.isEmpty(strURL)) strURL = findArtifact(version, "jar");
 		if (StringUtil.isEmpty(strURL)) {
 			throw new IOException("No JAR artifact found for [" + group + ":" + artifact + ":" + version + "]. " + "Verify the version exists in the configured repositories.");
 		}
@@ -299,33 +301,44 @@ public final class MavenUpdateProvider {
 					}
 					// read main
 					{
-						String strURL = repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + "." + requiredArtifactExtension;
-						URL urlMain = new URL(strURL);
-						HTTPResponse rsp = HTTPDownloader.head(urlMain, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, Log.LEVEL_TRACE);
-						if (validSatusCode(rsp)) {
+						String base = repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v;
+						// LDEV-6704: for the core, look for the .lco first, a version with only .lco and pom is valid
+						boolean lcoFirst = "jar".equals(requiredArtifactExtension);
+						HTTPResponse rspLco = null;
+						URL urlLco = new URL(base + ".lco");
+						if (lcoFirst) {
+							rspLco = HTTPDownloader.head(urlLco, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, Log.LEVEL_TRACE);
+						}
+						URL urlMain = new URL(base + "." + requiredArtifactExtension);
+						HTTPResponse rspMain = HTTPDownloader.head(urlMain, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, Log.LEVEL_TRACE);
+						boolean hasMain = validSatusCode(rspMain);
+						boolean hasLco = lcoFirst && validSatusCode(rspLco);
+						if (hasMain || hasLco) {
 							Map<String, Object> result = new LinkedHashMap<>();
-							Header[] headers = rsp.getAllHeaders();
+							Header[] headers = (hasMain ? rspMain : rspLco).getAllHeaders();
 							for (Header h: headers) {
 								if ("Last-Modified".equals(h.getName())) result.put("lastModified", DateCaster.toDateAdvanced(h.getValue(), null));
 							}
 
-							result.put(requiredArtifactExtension, urlMain.toExternalForm());
+							if (hasMain) result.put(requiredArtifactExtension, urlMain.toExternalForm());
 
 							// optional
 							// pom
 							{
-								URL url = new URL(repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + ".pom");
-								rsp = HTTPDownloader.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, Log.LEVEL_TRACE);
+								URL url = new URL(base + ".pom");
+								HTTPResponse rsp = HTTPDownloader.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, Log.LEVEL_TRACE);
 								if (validSatusCode(rsp)) {
 									result.put("pom", url.toExternalForm());
 								}
 							}
 							// lco
-							{
-								URL url = new URL(repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + ".lco");
-								rsp = HTTPDownloader.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, Log.LEVEL_TRACE);
+							if (hasLco) {
+								result.put("lco", urlLco.toExternalForm());
+							}
+							else if (!lcoFirst) {
+								HTTPResponse rsp = HTTPDownloader.head(urlLco, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, Log.LEVEL_TRACE);
 								if (validSatusCode(rsp)) {
-									result.put("lco", url.toExternalForm());
+									result.put("lco", urlLco.toExternalForm());
 								}
 							}
 							storeToCache(repo, artifact, v, result);
@@ -339,8 +352,8 @@ public final class MavenUpdateProvider {
 		catch (UnknownHostException uhe) {
 			throw new IOException("cannot reach maven server", uhe);
 		}
-		if (throwException) throw new IOException("Could not find the artifact [" + group + ":" + artifact + ":" + version + "] (type: " + requiredArtifactExtension
-				+ ") in any of the configured repositories: [" + toList(repos) + "]. " + "Verify the artifact coordinates and version are correct.");
+		if (throwException) throw new IOException("Could not find the artifact [" + group + ":" + artifact + ":" + version + "] (type: "
+				+ ("jar".equals(requiredArtifactExtension) ? "lco or jar" : requiredArtifactExtension) + ") in any of the configured repositories: [" + toList(repos) + "]. " + "Verify the artifact coordinates and version are correct.");
 		return null;
 	}
 
@@ -358,6 +371,18 @@ public final class MavenUpdateProvider {
 		catch (Exception e) {
 			LogUtil.log("MetadataReader", e);
 		}
+	}
+
+	private String findArtifact(Version version, String extension) throws IOException, GeneralSecurityException {
+		if (version.getQualifier().equals("SNAPSHOT")) return null;
+		String g = group.replace('.', '/');
+		String a = artifact.replace('.', '/');
+		String v = version.toString();
+		for (Repository repo: merge(repoReleases, repoMixed)) {
+			URL url = new URL(repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + "." + extension);
+			if (validSatusCode(HTTPDownloader.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, Log.LEVEL_TRACE))) return url.toExternalForm();
+		}
+		return null;
 	}
 
 	private Map<String, Object> readFromCache(Repository repository, String artifact, String version) {
