@@ -192,7 +192,14 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 				else {
 					fileName = getFileName();
 					tempFile = tempDir.getRealResource(fileName);
-					Files.copy(item.getInputStream(), ResourceUtil.toPath(tempFile), StandardCopyOption.REPLACE_EXISTING);
+					try {
+						Files.copy(item.getInputStream(), ResourceUtil.toPath(tempFile), StandardCopyOption.REPLACE_EXISTING);
+					}
+					catch (Throwable t) {
+						// the upload was aborted, the part of the file that arrived is not registered, so nothing else would remove it
+						tempFile.delete();
+						throw t;
+					}
 					String ct = item.getContentType();
 					if (ALLOW_MIMETYPE_DETECTION){
 						if ( StringUtil.isEmpty(ct) && tempFile.length() > 0) {

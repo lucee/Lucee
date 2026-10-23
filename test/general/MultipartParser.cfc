@@ -57,7 +57,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="multipart" {
 			readAll( parser( arguments.body, arguments.ct ) );
 		}
 		catch ( any e ) {
-			return e.message;
+			return e.type & ": " & e.message;
 		}
 		return "";
 	}
@@ -163,6 +163,80 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="multipart" {
 			});
 		});
 
+		describe( "lucee.runtime.net.http.MultipartFormParser, a multipart/mixed section", function() {
+
+			it( title="a part without a file name inside of the section is skipped", body=function( currentSpec ) {
+				var inner = part( 'Content-Disposition: attachment; filename="one.txt"', "file one", "SUB" )
+					& part( "X-Other: 1", "no file name", "SUB" )
+					& part( 'Content-Disposition: attachment', "no file name either", "SUB" )
+					& part( 'Content-Disposition: attachment; filename="two.txt"', "file two", "SUB" )
+					& close( "SUB" );
+				var body = bytes( part( 'Content-Disposition: form-data; name="files"' & chr( 13 ) & chr( 10 ) & "Content-Type: multipart/mixed; boundary=SUB", inner ) & part( disp( "after" ), "value" ) & close() );
+				var items = readAll( parser( body ) );
+				expect( items ).toHaveLength( 3 );
+				expect( items[ 1 ] ).toInclude( "files|false|one.txt|" );
+				expect( items[ 2 ] ).toInclude( "files|false|two.txt|" );
+				expect( items[ 3 ] ).toInclude( "after|true|" );
+			});
+		});
+
+		describe( "lucee.runtime.net.http.MultipartFormParser, encoded file names", function() {
+
+			var ue = chr( 252 ) & ".txt";
+
+			it( title="RFC 2231/5987: filename* with charset and percent encoding", body=function( currentSpec ) {
+				var items = readAll( parser( bytes( part( "Content-Disposition: form-data; name=""f""; filename*=UTF-8''%C3%BC.txt", "x" ) & close() ) ) );
+				expect( items ).toHaveLength( 1 );
+				expect( items[ 1 ] ).toBe( "f|false|" & ue & "|null|78" );
+			});
+
+			it( title="filename* with another charset, a language and lower case hex", body=function( currentSpec ) {
+				var items = readAll( parser( bytes( part( "Content-Disposition: form-data; name=""f""; filename*=iso-8859-1'de'%fc.txt", "x" ) & close() ) ) );
+				expect( items[ 1 ] ).toBe( "f|false|" & ue & "|null|78" );
+			});
+
+			it( title="filename* takes precedence over filename, in any order", body=function( currentSpec ) {
+				var a = readAll( parser( bytes( part( "Content-Disposition: form-data; name=""f""; filename=""fallback.txt""; filename*=UTF-8''%C3%BC.txt", "x" ) & close() ) ) );
+				var b = readAll( parser( bytes( part( "Content-Disposition: form-data; name=""f""; filename*=UTF-8''%C3%BC.txt; filename=""fallback.txt""", "x" ) & close() ) ) );
+				expect( a[ 1 ] ).toBe( "f|false|" & ue & "|null|78" );
+				expect( b[ 1 ] ).toBe( "f|false|" & ue & "|null|78" );
+			});
+
+			it( title="an item with only filename* is a file", body=function( currentSpec ) {
+				var items = readAll( parser( bytes( part( "Content-Disposition: form-data; name=""f""; filename*=UTF-8''a%20b.txt", "x" ) & close() ) ) );
+				expect( items[ 1 ] ).toInclude( "f|false|a b.txt|" );
+			});
+
+			it( title="filename* that cannot be decoded is kept as it is", body=function( currentSpec ) {
+				expect( readAll( parser( bytes( part( "Content-Disposition: form-data; name=""f""; filename*=NoSuchCharset''%C3%BC.txt", "x" ) & close() ) ) )[ 1 ] ).toInclude( "|NoSuchCharset''%C3%BC.txt|" );
+				expect( readAll( parser( bytes( part( "Content-Disposition: form-data; name=""f""; filename*=plain.txt", "x" ) & close() ) ) )[ 1 ] ).toInclude( "|plain.txt|" );
+			});
+
+			it( title="RFC 2047 encoded words, base64 and quoted printable", body=function( currentSpec ) {
+				var b64 = readAll( parser( bytes( part( 'Content-Disposition: form-data; name="f"; filename="=?UTF-8?B?w7wudHh0?="', "x" ) & close() ) ) );
+				var q = readAll( parser( bytes( part( 'Content-Disposition: form-data; name="f"; filename="=?UTF-8?Q?=C3=BC.txt?="', "x" ) & close() ) ) );
+				var lq = readAll( parser( bytes( part( 'Content-Disposition: form-data; name="f"; filename="=?ISO-8859-1?q?=FC_a.txt?="', "x" ) & close() ) ) );
+				expect( b64[ 1 ] ).toBe( "f|false|" & ue & "|null|78" );
+				expect( q[ 1 ] ).toBe( "f|false|" & ue & "|null|78" );
+				expect( lq[ 1 ] ).toBe( "f|false|" & chr( 252 ) & " a.txt|null|78" );
+			});
+
+			it( title="adjacent encoded words are joined, text around them is kept", body=function( currentSpec ) {
+				var items = readAll( parser( bytes( part( 'Content-Disposition: form-data; name="f"; filename="=?UTF-8?B?w7w=?= =?UTF-8?Q?=C3=BC?= x.txt"', "x" ) & close() ) ) );
+				expect( items[ 1 ] ).toBe( "f|false|" & chr( 252 ) & chr( 252 ) & " x.txt|null|78" );
+			});
+
+			it( title="an encoded word that cannot be decoded is kept as it is", body=function( currentSpec ) {
+				var items = readAll( parser( bytes( part( 'Content-Disposition: form-data; name="f"; filename="=?NoSuchCharset?B?w7w=?=.txt"', "x" ) & close() ) ) );
+				expect( items[ 1 ] ).toInclude( "|=?NoSuchCharset?B?w7w=?=.txt|" );
+			});
+
+			it( title="the field name can be encoded as well", body=function( currentSpec ) {
+				var items = readAll( parser( bytes( part( "Content-Disposition: form-data; name*=UTF-8''%C3%BC", "x" ) & close() ) ) );
+				expect( items[ 1 ] ).toBe( chr( 252 ) & "|true|null|null|78" );
+			});
+		});
+
 		describe( "lucee.runtime.net.http.MultipartFormParser, headers", function() {
 
 			it( title="names and file names are decoded with the given charset", body=function( currentSpec ) {
@@ -213,36 +287,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="multipart" {
 		describe( "lucee.runtime.net.http.MultipartFormParser, invalid requests", function() {
 
 			it( title="a request that is not multipart", body=function( currentSpec ) {
-				expect( failureOf( bytes( "a=b" ), "application/x-www-form-urlencoded" ) ).notToBe( "" );
-				expect( failureOf( bytes( "a=b" ), "" ) ).notToBe( "" );
+				expect( failureOf( bytes( "a=b" ), "application/x-www-form-urlencoded" ) ).toInclude( "MalformedMultipartException" );
+				expect( failureOf( bytes( "a=b" ), "" ) ).toInclude( "MalformedMultipartException" );
 			});
 
 			it( title="no boundary", body=function( currentSpec ) {
-				expect( failureOf( bytes( part( disp( "a" ), "x" ) & close() ), "multipart/form-data" ) ).notToBe( "" );
-				expect( failureOf( bytes( part( disp( "a" ), "x" ) & close() ), "multipart/form-data; boundary=" ) ).notToBe( "" );
+				expect( failureOf( bytes( part( disp( "a" ), "x" ) & close() ), "multipart/form-data" ) ).toInclude( "MalformedMultipartException" );
+				expect( failureOf( bytes( part( disp( "a" ), "x" ) & close() ), "multipart/form-data; boundary=" ) ).toInclude( "MalformedMultipartException" );
 			});
 
 			it( title="a stream that ends in a part", body=function( currentSpec ) {
 				var full = part( disp( "f", "x.bin" ), repeatString( "0123456789", 100 ) ) & close();
 				for ( var cut in [ 10, 40, 100, 200, 500, len( full ) - 20 ] ) {
-					expect( failureOf( bytes( left( full, cut ) ) ) ).notToBe( "", "cut at #cut#" );
+					expect( failureOf( bytes( left( full, cut ) ) ) ).toInclude( "MalformedMultipartException", "cut at #cut#" );
 				}
 			});
 
 			it( title="characters after a boundary", body=function( currentSpec ) {
-				expect( failureOf( bytes( part( disp( "a" ), "x" ) & "--BBx" & chr( 13 ) & chr( 10 ) ) ) ).notToBe( "" );
+				expect( failureOf( bytes( part( disp( "a" ), "x" ) & "--BBx" & chr( 13 ) & chr( 10 ) ) ) ).toInclude( "MalformedMultipartException" );
 			});
 
 			it( title="a header section that is too big", body=function( currentSpec ) {
 				var body = bytes( part( disp( "a" ) & chr( 13 ) & chr( 10 ) & "X-Big: " & repeatString( "x", 11000 ), "x" ) & close() );
-				expect( failureOf( body ) ).notToBe( "" );
+				expect( failureOf( body ) ).toInclude( "MalformedMultipartException" );
 				body = bytes( part( disp( "a" ) & chr( 13 ) & chr( 10 ) & "X-Big: " & repeatString( "x", 9000 ), "x" ) & close() );
 				expect( failureOf( body ) ).toBe( "" );
 			});
 
 			it( title="a file name with a zero byte", body=function( currentSpec ) {
 				var body = bytes( part( disp( "a", "evil" & variables.nul & ".txt" ), "x" ) & close() );
-				expect( failureOf( body ) ).notToBe( "" );
+				expect( failureOf( body ) ).toInclude( "MalformedMultipartException" );
 			});
 		});
 

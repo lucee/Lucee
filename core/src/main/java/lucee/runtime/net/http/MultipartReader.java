@@ -44,6 +44,8 @@ public final class MultipartReader {
 	private boolean started;
 
 	private final InputStream body = new Body();
+	private final byte[] one = new byte[1];
+	private final byte[] skipBuffer = new byte[2048];
 
 	public MultipartReader(InputStream in, byte[] boundary) {
 		this(in, boundary, DEFAULT_HEADER_SIZE_MAX);
@@ -120,8 +122,7 @@ public final class MultipartReader {
 		if (closed) return false;
 		// skip what is left of the current part (or the preamble)
 		if (!bodyDone) {
-			byte[] skip = new byte[2048];
-			while (readBody(skip, 0, skip.length) != -1) {
+			while (readBody(skipBuffer, 0, skipBuffer.length) != -1) {
 			}
 		}
 		// the delimiter
@@ -269,7 +270,6 @@ public final class MultipartReader {
 
 		@Override
 		public int read() throws IOException {
-			byte[] one = new byte[1];
 			int r;
 			while ((r = readBody(one, 0, 1)) == 0) {
 			}

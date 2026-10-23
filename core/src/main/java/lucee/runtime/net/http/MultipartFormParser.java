@@ -62,8 +62,9 @@ public final class MultipartFormParser {
 				current = new Item(fieldName, getFileName(headers), contentType, headers, reader.getBody());
 				return current;
 			}
-			// part of a multipart/mixed section
+			// part of a multipart/mixed section, a part without a file name is skipped
 			String fileName = getFileName(headers);
+			if (fileName == null) continue;
 			current = new Item(sectionFieldName, fileName, headers.get("content-type"), headers, reader.getBody());
 			return current;
 		}
@@ -193,10 +194,14 @@ public final class MultipartFormParser {
 
 	/**
 	 * the parameters of a header value like {@code form-data; name="a"; filename="b.txt"}, the names
-	 * are lower case, the quotes around a value are removed
+	 * are lower case, the quotes around a value are removed. A name that ends with an asterisk
+	 * ({@code filename*=UTF-8''%C3%BC.txt}, RFC 2231/5987) is decoded and takes precedence over the
+	 * same name without an asterisk, a value with encoded words ({@code =?UTF-8?B?...?=}, RFC 2047)
+	 * is decoded as well.
 	 */
 	static Map<String, String> parameters(String value) {
 		Map<String, String> result = new LinkedHashMap<String, String>();
+		Map<String, String> extended = new LinkedHashMap<String, String>();
 		int len = value.length();
 		int pos = value.indexOf(';');
 		while (pos != -1 && pos < len) {
@@ -218,10 +223,99 @@ public final class MultipartFormParser {
 				String name = param.substring(0, eq).trim().toLowerCase(Locale.ENGLISH);
 				String val = param.substring(eq + 1).trim();
 				if (val.length() >= 2 && val.charAt(0) == '"' && val.charAt(val.length() - 1) == '"') val = val.substring(1, val.length() - 1);
-				if (!name.isEmpty() && !result.containsKey(name)) result.put(name, val);
+				if (name.endsWith("*")) {
+					name = name.substring(0, name.length() - 1);
+					if (!name.isEmpty() && !extended.containsKey(name)) extended.put(name, decodeExtended(val));
+				}
+				else if (!name.isEmpty() && !result.containsKey(name)) result.put(name, decodeEncodedWords(val));
 			}
 			pos = end < len ? end : -1;
 		}
+		result.putAll(extended);
 		return result;
+	}
+
+	/**
+	 * RFC 2231/5987: {@code charset'language'percent-encoded-value}, a value that does not have this
+	 * format or has an unknown charset is returned as it is
+	 */
+	static String decodeExtended(String value) {
+		int first = value.indexOf('\'');
+		if (first == -1) return value;
+		int second = value.indexOf('\'', first + 1);
+		if (second == -1) return value;
+		Charset cs;
+		try {
+			cs = Charset.forName(value.substring(0, first));
+		}
+		catch (Exception e) {
+			return value;
+		}
+		java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream(value.length());
+		for (int i = second + 1; i < value.length(); i++) {
+			char c = value.charAt(i);
+			if (c == '%') {
+				if (i + 2 >= value.length()) break; // unterminated sequence
+				int hi = Character.digit(value.charAt(i + 1), 16);
+				int lo = Character.digit(value.charAt(i + 2), 16);
+				if (hi == -1 || lo == -1) {
+					baos.write(c);
+					continue;
+				}
+				baos.write((hi << 4) | lo);
+				i += 2;
+			}
+			else baos.write((byte) c);
+		}
+		return new String(baos.toByteArray(), cs);
+	}
+
+	private static final java.util.regex.Pattern ENCODED_WORD = java.util.regex.Pattern.compile("=\\?([^?\\s]+)\\?([bBqQ])\\?([^?\\s]*)\\?=");
+	private static final java.util.regex.Pattern WHITESPACE_BETWEEN_WORDS = java.util.regex.Pattern.compile("(\\?=)\\s+(?==\\?)");
+
+	/**
+	 * RFC 2047: {@code =?charset?B?base64?=} or {@code =?charset?Q?quoted-printable?=}, a word that
+	 * cannot be decoded is kept as it is
+	 */
+	static String decodeEncodedWords(String value) {
+		if (value.indexOf("=?") == -1) return value;
+		// white space between two encoded words is not part of the text
+		String text = WHITESPACE_BETWEEN_WORDS.matcher(value).replaceAll("$1");
+		java.util.regex.Matcher m = ENCODED_WORD.matcher(text);
+		StringBuilder sb = new StringBuilder(text.length());
+		int last = 0;
+		while (m.find()) {
+			sb.append(text, last, m.start());
+			String decoded = null;
+			try {
+				Charset cs = Charset.forName(m.group(1));
+				byte[] bytes;
+				if (m.group(2).equalsIgnoreCase("B")) bytes = java.util.Base64.getMimeDecoder().decode(m.group(3));
+				else {
+					String q = m.group(3);
+					java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream(q.length());
+					for (int i = 0; i < q.length(); i++) {
+						char c = q.charAt(i);
+						if (c == '_') baos.write(' ');
+						else if (c == '=' && i + 2 < q.length()) {
+							int hi = Character.digit(q.charAt(i + 1), 16);
+							int lo = Character.digit(q.charAt(i + 2), 16);
+							if (hi == -1 || lo == -1) throw new IllegalArgumentException();
+							baos.write((hi << 4) | lo);
+							i += 2;
+						}
+						else baos.write((byte) c);
+					}
+					bytes = baos.toByteArray();
+				}
+				decoded = new String(bytes, cs);
+			}
+			catch (Exception e) {
+			}
+			sb.append(decoded != null ? decoded : m.group());
+			last = m.end();
+		}
+		sb.append(text, last, text.length());
+		return sb.toString();
 	}
 }

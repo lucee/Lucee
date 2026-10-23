@@ -110,6 +110,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="multipart" {
 				expect( result.files.f1.hash ).toBe( hash( content, "MD5" ) );
 			});
 
+			it( title="a file name sent as filename*", body=function( currentSpec ) {
+				var raw = createObject( "java", "java.io.ByteArrayOutputStream" ).init();
+				raw.write( charsetDecode( "--XyZ" & chr( 13 ) & chr( 10 ) & "Content-Disposition: form-data; name=""f1""; filename*=UTF-8''M%C3%BCller.txt" & chr( 13 ) & chr( 10 ) & "Content-Type: text/plain" & chr( 13 ) & chr( 10 ) & chr( 13 ) & chr( 10 ) & "x" & chr( 13 ) & chr( 10 ) & "--XyZ--" & chr( 13 ) & chr( 10 ), "utf-8" ) );
+				var result = post( raw.toByteArray(), "f1" );
+				expect( result.files.f1.clientFile ).toBe( "M" & chr( 252 ) & "ller.txt" );
+			});
+
+			it( title="an upload that is cut off leaves nothing behind: empty form scope and no temp file", body=function( currentSpec ) {
+				var content = charsetDecode( repeatString( "0123456789", 20000 ), "utf-8" ); // 200 KB
+				var full = body( [ { name: "title", value: "my file" }, { name: "f1", filename: "data.bin", type: "application/octet-stream", bytes: content } ] );
+				var before = directoryList( getTempDirectory(), false, "name", "tmp-*.upload" );
+				var cut = binaryDecode( left( binaryEncode( full, "hex" ), 200000 ), "hex" ); // 100000 bytes, in the middle of the file
+				var res = _internalRequest(
+					template: variables.template,
+					urls: { files: "" },
+					method: "POST",
+					headers: { "Content-Type": "multipart/form-data; boundary=XyZ" },
+					body: cut
+				);
+				var result = deserializeJSON( res.filecontent );
+				expect( result.fields ).toBeEmpty();
+				var after = directoryList( getTempDirectory(), false, "name", "tmp-*.upload" );
+				expect( after ).toHaveLength( arrayLen( before ) );
+			});
+
 			it( title="a boundary with special characters", body=function( currentSpec ) {
 				var boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
 				var result = post( body( [ { name: "a", value: "one" } ], boundary ), "", boundary );
