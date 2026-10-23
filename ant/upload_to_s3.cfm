@@ -233,6 +233,11 @@
 		directoryCreate( extDir ); // create empty dir again ( maybe Lucee expect this directory to exist )
 		fileWrite( extDir & sep & ".index", "" ); // empty index, no bundled extensions
 
+		// remove the maven folder, it only holds the maven dependencies of the bundled extensions (LDEV-6560) LDEV-6712
+		var mavenDir = tmpLoader & sep & "maven";
+		if ( directoryExists( mavenDir ) )
+			directoryDelete( mavenDir, true );
+
 		// unzip core
 		var lcoFile = tmpLoader & sep & "core" & sep & "core.lco";
 		local.tmpCore = tmpDir & "lucee-core-" & createUniqueId(  ); // the jar
@@ -264,6 +269,13 @@
 			fileDelete( trg );
 		zip action = "zip" source = tmpLoader file = trg;
 
+		// LDEV-6712 light and zero have no bundled extensions, so they must not contain the maven folder
+		zip action = "list" file = trg name = "local.qEntries";
+		loop query = qEntries {
+			if ( left( replace( qEntries.name, "\", "/", "all" ), 6 ) == "maven/" )
+				_logger( message="[#trg#] still contains the maven folder [#qEntries.name#]", throw=true );
+		}
+		_logger( "[#listLast( trg, sep )#] contains no maven folder, size #numberFormat( getFileInfo( trg ).size / 1024 / 1024, "0.0" )# MB" );
 	}
 
 	function _logger( string message="", boolean throw=false ){
