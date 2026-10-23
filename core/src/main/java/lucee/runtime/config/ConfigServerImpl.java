@@ -2704,14 +2704,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			for (int i = 0; i < files.length; i++) {
 				try {
 					tl = TagLibFactory.loadFromFile(files[i], getIdentification());
-					String extId = getExtensionIdForTld(files[i].getName());
-					if (!StringUtil.isEmpty(extId, true)) {
-						tl.setSource(extId);
-					}
-					for (TagLibTag tag: tl.getTags().values()) {
-						if (!StringUtil.isEmpty(extId, true)) tag.setSource(extId);
-						else if (tag.getSource() == null) tag.setSource(tl.getSource());
-					}
+					applyExtensionId(tl, files[i].getName());
 					key = getKey(tl);
 					if (!map.containsKey(key)) map.put(key, tl);
 					else overwrite(map.get(key), tl);
@@ -2725,14 +2718,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		}
 		else if (fileTld.isFile()) {
 			tl = TagLibFactory.loadFromFile(fileTld, getIdentification());
-			String extId = getExtensionIdForTld(fileTld.getName());
-			if (!StringUtil.isEmpty(extId, true)) {
-				tl.setSource(extId);
-			}
-			for (TagLibTag tag: tl.getTags().values()) {
-				if (!StringUtil.isEmpty(extId, true)) tag.setSource(extId);
-				else if (tag.getSource() == null) tag.setSource(tl.getSource());
-			}
+			applyExtensionId(tl, fileTld.getName());
 			key = getKey(tl);
 			if (!map.containsKey(key)) map.put(key, tl);
 			else overwrite(map.get(key), tl);
@@ -2917,8 +2903,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		TagLibTag tag;
 		while (it.hasNext()) {
 			tag = it.next();
-			if (tag.getSource() == null && newTL.getSource() != null) {
-				tag.setSource(newTL.getSource());
+			if (tag.getExtensionId() == null && newTL.getExtensionId() != null) {
+				tag.setExtensionId(newTL.getExtensionId());
 			}
 			existingTL.setTag(tag);
 		}
@@ -2979,14 +2965,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			for (int i = 0; i < files.length; i++) {
 				try {
 					fl = FunctionLibFactory.loadFromFile(files[i], getIdentification());
-					String extId = getExtensionIdForFld(files[i].getName());
-					if (!StringUtil.isEmpty(extId, true)) {
-						fl.setSource(extId);
-					}
-					for (FunctionLibFunction fn: fl.getFunctions().values()) {
-						if (!StringUtil.isEmpty(extId, true)) fn.setSource(extId);
-						else if (fn.getSource() == null) fn.setSource(fl.getSource());
-					}
+					applyExtensionId(fl, files[i].getName());
 					overwrite(cfmlFlds, fl);
 
 				}
@@ -2998,14 +2977,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		}
 		else {
 			fl = FunctionLibFactory.loadFromFile(fileFld, getIdentification());
-			String extId = getExtensionIdForFld(fileFld.getName());
-			if (!StringUtil.isEmpty(extId, true)) {
-				fl.setSource(extId);
-			}
-			for (FunctionLibFunction fn: fl.getFunctions().values()) {
-				if (!StringUtil.isEmpty(extId, true)) fn.setSource(extId);
-				else if (fn.getSource() == null) fn.setSource(fl.getSource());
-			}
+			applyExtensionId(fl, fileFld.getName());
 			overwrite(cfmlFlds, fl);
 		}
 		// LDEV-3027: the bundled markdown extension escapes HTML in safeMode but does not
@@ -3035,10 +3007,30 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		FunctionLibFunction fn;
 		while (it.hasNext()) {
 			fn = it.next();
-			if (fn.getSource() == null && newFL.getSource() != null) {
-				fn.setSource(newFL.getSource());
+			if (fn.getExtensionId() == null && newFL.getExtensionId() != null) {
+				fn.setExtensionId(newFL.getExtensionId());
 			}
 			existingFL.setFunction(fn);
+		}
+	}
+
+	private void applyExtensionId(TagLib tl, String resourceName) {
+		String extId = getExtensionIdForTld(resourceName);
+		if (!StringUtil.isEmpty(extId, true)) {
+			tl.setExtensionId(extId);
+			for (TagLibTag tag: tl.getTags().values()) {
+				tag.setExtensionId(extId);
+			}
+		}
+	}
+
+	private void applyExtensionId(FunctionLib fl, String resourceName) {
+		String extId = getExtensionIdForFld(resourceName);
+		if (!StringUtil.isEmpty(extId, true)) {
+			fl.setExtensionId(extId);
+			for (FunctionLibFunction fn: fl.getFunctions().values()) {
+				fn.setExtensionId(extId);
+			}
 		}
 	}
 

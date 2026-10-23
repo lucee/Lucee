@@ -6991,9 +6991,7 @@ When used, the function automatically validates that the secret exists and throw
 	<function>
 		<name>getTagList</name>
 		<class>lucee.runtime.functions.other.GetTagList</class>
-		<description>
-		returns information to a tag as struct
-		</description>
+		<description>Returns all the currently registered tags</description>
 		<argument>
 			<name>extension</name>
 			<type>string</type>

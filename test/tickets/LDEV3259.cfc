@@ -94,36 +94,70 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="extensions" {
                 expect( structCount( filteredTags ) ).toBe( 0 );
             });
 
-            var imageGuid = "B737ABC4-D43F-4D91-8E8E973E37C40D1B";
+            var compressGuid = "8D7FB0DF-08BB-1589-FE3975678F07DB17";
             var allFunctions = getFunctionList();
             var allTags = getTagList();
 
-            it(title = "Image extension functions include extension metadata when the extension is installed", skip = !structKeyExists( allFunctions, "imagenew" ), body = function( currentSpec ) {
-                    var extensionFunctions = getFunctionList( imageGuid );
+            it( title="bundled compress extension functions include exact extension GUID", body=function( currentSpec ) {
+                var extensionFunctions = getFunctionList( compressGuid );
 
-                    expect( structKeyExists( extensionFunctions, "imagenew" ) ).toBeTrue();
+                expect( structKeyExists( extensionFunctions, "compress" ) ).toBeTrue();
 
-                    var functionData = getFunctionData( "imagenew" );
+                var functionData = getFunctionData( "compress" );
 
-                    expect( structKeyExists( functionData, "extension" ) ).toBeTrue();
-                    expect( len( functionData.extension ) ).toBeGT( 0 );
-                    expect( functionData.extension ).toInclude( imageGuid );
-                }
-            );
+                expect( structKeyExists( functionData, "extension" ) ).toBeTrue();
+                expect( functionData.extension ).toBe( compressGuid );
+            });
 
-            it(title = "Image extension tags include extension metadata when the extension is installed", skip = !(structKeyExists( allTags, "cf" ) && structKeyExists( allTags[ "cf" ], "image" )), body = function( currentSpec ) {
-                    var extensionTags = getTagList( imageGuid );
+            it( title="bundled compress extension tags include exact extension GUID", body=function( currentSpec ) {
+                var extensionTags = getTagList( compressGuid );
 
-                    expect( structKeyExists( extensionTags, "cf" ) ).toBeTrue();
-                    expect( structKeyExists( extensionTags[ "cf" ], "image" ) ).toBeTrue();
+                expect( structKeyExists( extensionTags, "cf" ) ).toBeTrue();
+                expect( structKeyExists( extensionTags.cf, "zip" ) ).toBeTrue();
 
-                    var tagData = getTagData( "cf", "image" );
+                var tagData = getTagData( "cf", "zip" );
 
-                    expect( structKeyExists( tagData, "extension" ) ).toBeTrue();
-                    expect( len( tagData.extension ) ).toBeGT( 0 );
-                    expect( tagData.extension ).toInclude( imageGuid );
-                }
-            );
+                expect( structKeyExists( tagData, "extension" ) ).toBeTrue();
+                expect( tagData.extension ).toBe( compressGuid );
+            });
+
+            it( title="extension filter matches case-insensitively and does not do substring or path matching", body=function( currentSpec ) {
+                var lowerCompress = lCase( compressGuid );
+                var filtered = getFunctionList( lowerCompress );
+                expect( structKeyExists( filtered, "compress" ) ).toBeTrue();
+
+                var partial = left( compressGuid, 8 );
+                expect( structCount( getFunctionList( partial ) ) ).toBe( 0 );
+                expect( structCount( getTagList( partial ) ) ).toBe( 0 );
+
+                expect( structCount( getFunctionList( "lib" ) ) ).toBe( 0 );
+                expect( structCount( getTagList( "lib" ) ) ).toBe( 0 );
+            });
+
+            var imageGuid = "B737ABC4-D43F-4D91-8E8E973E37C40D1B";
+
+            it( title = "Image extension functions include extension metadata when the extension is installed", skip = !structKeyExists( allFunctions, "imagenew" ), body = function( currentSpec ) {
+                var extensionFunctions = getFunctionList( imageGuid );
+
+                expect( structKeyExists( extensionFunctions, "imagenew" ) ).toBeTrue();
+
+                var functionData = getFunctionData( "imagenew" );
+
+                expect( structKeyExists( functionData, "extension" ) ).toBeTrue();
+                expect( functionData.extension ).toBe( imageGuid );
+            });
+
+            it( title = "Image extension tags include extension metadata when the extension is installed", skip = !(structKeyExists( allTags, "cf" ) && structKeyExists( allTags[ "cf" ], "image" )), body = function( currentSpec ) {
+                var extensionTags = getTagList( imageGuid );
+
+                expect( structKeyExists( extensionTags, "cf" ) ).toBeTrue();
+                expect( structKeyExists( extensionTags[ "cf" ], "image" ) ).toBeTrue();
+
+                var tagData = getTagData( "cf", "image" );
+
+                expect( structKeyExists( tagData, "extension" ) ).toBeTrue();
+                expect( tagData.extension ).toBe( imageGuid );
+            });
 
         });
     }

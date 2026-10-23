@@ -73,6 +73,7 @@ public class TagLib implements Cloneable, Lib {
 	private boolean isCore;
 
 	private String source;
+	private String extensionId;
 
 	private URI uri;
 
@@ -96,6 +97,14 @@ public class TagLib implements Cloneable, Lib {
 	 */
 	public void setSource(String source) {
 		this.source = source;
+	}
+
+	public void setExtensionId(String extensionId) {
+		this.extensionId = extensionId;
+	}
+
+	public String getExtensionId() {
+		return extensionId;
 	}
 
 	/**
@@ -378,6 +387,7 @@ public class TagLib implements Cloneable, Lib {
 		tl.tags = duplicate(this.tags, deepCopy);
 		tl.type = this.type;
 		tl.source = this.source;
+		tl.extensionId = this.extensionId;
 		tl.ignoreUnknowTags = this.ignoreUnknowTags;
 
 		return tl;

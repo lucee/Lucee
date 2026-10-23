@@ -125,7 +125,7 @@ public final class TagLibTag {
 	private String bundleName;
 	private Version bundleVersion;
 	private Version introduced;
-	private String source;
+	private String extensionId;
 
 	public TagLibTag duplicate(boolean cloneAttributes) {
 		TagLibTag tlt = new TagLibTag(tagLib);
@@ -156,7 +156,7 @@ public final class TagLibTag {
 		tlt.tttConstructor = tttConstructor;
 		tlt.allowRemovingLiteral = allowRemovingLiteral;
 		tlt.status = status;
-		tlt.source = source;
+		tlt.extensionId = extensionId;
 
 		tlt.eval = null;
 		tlt.tdbt = null;
@@ -485,14 +485,14 @@ public final class TagLibTag {
 		return tagLib;
 	}
 
-	public String getSource() {
-		if (source != null) return source;
-		if (tagLib != null) return tagLib.getSource();
+	public String getExtensionId() {
+		if (extensionId != null) return extensionId;
+		if (tagLib != null) return tagLib.getExtensionId();
 		return null;
 	}
 
-	public void setSource(String source) {
-		this.source = source;
+	public void setExtensionId(String extensionId) {
+		this.extensionId = extensionId;
 	}
 
 	/**

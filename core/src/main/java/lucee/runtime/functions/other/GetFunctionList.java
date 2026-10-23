@@ -60,7 +60,7 @@ public final class GetFunctionList implements Function {
 		_functions = flds.getFunctions();
 		it = _functions.entrySet().iterator();
 
-		boolean filterByExtension = extensionFilter != null && !extensionFilter.isEmpty();
+		boolean filterByExtension = !StringUtil.isEmpty(extensionFilter, true);
 
 		while (it.hasNext()) {
 			e = it.next();
@@ -68,10 +68,8 @@ public final class GetFunctionList implements Function {
 			if (func.getStatus() != TagLib.STATUS_HIDDEN && func.getStatus() != TagLib.STATUS_UNIMPLEMENTED) {
 				// sct.set(e.getKey(), "");
 				if (filterByExtension) {
-					String src = func.getSource();
-					if (StringUtil.isEmpty(src, true) && func.getFunctionLib() != null)
-						src = func.getFunctionLib().getSource();
-					if (src == null || (!src.equalsIgnoreCase(extensionFilter) && !src.contains(extensionFilter))) continue;
+					String extId = func.getExtensionId();
+					if (extId == null || !extId.equalsIgnoreCase(extensionFilter)) continue;
 				}
 				tagList.add(e.getKey());
 			}

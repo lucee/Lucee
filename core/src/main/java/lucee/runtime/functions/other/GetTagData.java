@@ -111,8 +111,8 @@ public final class GetTagData implements Function {
 		sct.set("hasNameAppendix", Boolean.FALSE);
 		sct.set(KeyConstants._status, "implemented");
 		sct.set(KeyConstants._type, "cfml");
-		String tagExt = tag.getSource();
-		if (StringUtil.isEmpty(tagExt, true) && tld != null) tagExt = tld.getSource();
+		String tagExt = tag.getExtensionId();
+		if (StringUtil.isEmpty(tagExt, true) && tld != null) tagExt = tld.getExtensionId();
 		if (!StringUtil.isEmpty(tagExt, true))
 			sct.set(KeyConstants._extension, tagExt);
 
@@ -193,8 +193,8 @@ public final class GetTagData implements Function {
 		}
 
 		sct.set(KeyConstants._type, "java");
-		String tagExt = tag.getSource();
-		if (StringUtil.isEmpty(tagExt, true) && tld != null) tagExt = tld.getSource();
+		String tagExt = tag.getExtensionId();
+		if (StringUtil.isEmpty(tagExt, true) && tld != null) tagExt = tld.getExtensionId();
 		if (!StringUtil.isEmpty(tagExt, true))
 			sct.set(KeyConstants._extension, tagExt);
 

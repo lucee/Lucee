@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
+import lucee.commons.lang.StringUtil;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.PageException;
@@ -49,7 +51,7 @@ public final class GetTagList implements Function {
 		TagLibTag tag;
 		tlds = ((ConfigPro) pc.getConfig()).getTLDs();
 
-		boolean filterByExtension = extensionFilter != null && !extensionFilter.isEmpty();
+		boolean filterByExtension = !StringUtil.isEmpty(extensionFilter, true);
 
 		for (int i = 0; i < tlds.length; i++) {
 			String ns = tlds[i].getNameSpaceAndSeparator();
@@ -63,8 +65,9 @@ public final class GetTagList implements Function {
 				if (tag.getStatus() != TagLib.STATUS_HIDDEN && tag.getStatus() != TagLib.STATUS_UNIMPLEMENTED) {
 					// inner.set(n.toString(), "");
 					if (filterByExtension) {
-						String src = tag.getSource();
-						if (src == null || (!src.equalsIgnoreCase(extensionFilter) && !src.contains(extensionFilter))) continue;
+						String extId = tag.getExtensionId();
+						if (extId == null && tlds[i] != null) extId = tlds[i].getExtensionId();
+						if (extId == null || !extId.equalsIgnoreCase(extensionFilter)) continue;
 					}
 					tagList.add(n.toString());
 				}
