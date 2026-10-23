@@ -6951,6 +6951,13 @@ When used, the function automatically validates that the secret exists and throw
 		<name>getFunctionList</name>
 		<class>lucee.runtime.functions.other.GetFunctionList</class>
 		<description>Returns all the currently registered functions</description>
+		<argument>
+			<name>extension</name>
+			<type>string</type>
+			<required>false</required>
+			<default></default>
+			<description>Optional extension GUID to filter functions by their source extension.</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
@@ -6984,9 +6991,14 @@ When used, the function automatically validates that the secret exists and throw
 	<function>
 		<name>getTagList</name>
 		<class>lucee.runtime.functions.other.GetTagList</class>
-		<description>
-		returns information to a tag as struct
-		</description>
+		<description>Returns all the currently registered tags</description>
+		<argument>
+			<name>extension</name>
+			<type>string</type>
+			<required>false</required>
+			<default></default>
+			<description>Optional extension GUID to filter tags by their source extension.</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
