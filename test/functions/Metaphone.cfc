@@ -18,10 +18,11 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
-	// Metaphone is no longer supported since Lucee 9.0, the function is an alias of soundex()
+	// metaphone() was removed in Lucee 9.0 together with commons-codec, calling it throws a clear error
 	public void function testMetaphone(){
-		expect( metaPhone( "lucee" ) ).toBe( "L200" );
-		expect( metaPhone( "coldfusion" ) ).toBe( "C431" );
+		expect( function(){
+			metaPhone( "lucee" );
+		}).toThrow( type="application", regex="metaphone\(\) was removed in Lucee 9" );
 	}
 
 }
