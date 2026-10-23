@@ -317,6 +317,8 @@ public final class MavenUpdateProvider {
 						String base = repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v;
 						// LDEV-6704: for the core, look for the .lco first, a version with only .lco and pom is valid
 						boolean lcoFirst = "jar".equals(requiredArtifactExtension);
+						// LDEV-6523: only the core has a .lco, and the .pom is not needed to install an extension
+						boolean isCore = DEFAULT_GROUP.equals(group) && DEFAULT_ARTIFACT.equals(artifact);
 						HTTPResponse rspLco = null;
 						URL urlLco = new URL(base + ".lco");
 						if (lcoFirst) {
@@ -337,7 +339,7 @@ public final class MavenUpdateProvider {
 
 							// optional
 							// pom
-							{
+							if (isCore) {
 								URL url = new URL(base + ".pom");
 								HTTPResponse rsp = HTTPDownloader.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, Log.LEVEL_TRACE);
 								if (validSatusCode(rsp)) {
@@ -348,7 +350,7 @@ public final class MavenUpdateProvider {
 							if (hasLco) {
 								result.put("lco", urlLco.toExternalForm());
 							}
-							else if (!lcoFirst) {
+							else if (!lcoFirst && isCore) {
 								HTTPResponse rsp = HTTPDownloader.head(urlLco, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, Log.LEVEL_TRACE);
 								if (validSatusCode(rsp)) {
 									result.put("lco", urlLco.toExternalForm());
@@ -440,6 +442,20 @@ public final class MavenUpdateProvider {
 			sb.append(r.url);
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * returns the url of the pom next to the given artifact url, or null if there is none
+	 */
+	public static String getPOMURL(String artifactUrl) throws IOException {
+		if (artifactUrl == null) return null;
+		int slash = artifactUrl.lastIndexOf('/');
+		int dot = artifactUrl.lastIndexOf('.');
+		if (dot <= slash) return null;
+		URL url = new URL(artifactUrl.substring(0, dot) + ".pom");
+		HTTPResponse rsp = HTTPDownloader.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, Log.LEVEL_TRACE);
+		if (rsp != null && rsp.getStatusCode() >= 200 && rsp.getStatusCode() < 300) return url.toExternalForm();
+		return null;
 	}
 
 	private boolean validSatusCode(HTTPResponse rsp) {
