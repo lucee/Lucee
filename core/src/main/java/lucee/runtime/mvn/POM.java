@@ -25,6 +25,7 @@ import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPDownloader;
 import lucee.commons.tree.TreeNode;
+import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.op.Caster;
 import lucee.runtime.thread.ThreadUtil;
@@ -62,7 +63,10 @@ public final class POM {
 			}
 		}
 
-		REPOSITORIES.add(REPOSITORY_MAVEN_CENTRAL);
+		// LDEV-6705: same repositories as the core update, the extensions and the OSGi bundles (release repositories, snapshots stay disabled)
+		for (String url: MavenUpdateProvider.getDefaultRepositoryURLs(false)) {
+			REPOSITORIES.add(REPOSITORY_MAVEN_CENTRAL.getUrl().equals(url) ? REPOSITORY_MAVEN_CENTRAL : new Repository(url, url, url, true, false));
+		}
 		REPOSITORIES.add(REPOSITORY_GOOGLE_CENTRAL_MIRROR);
 		// REPOSITORIES.add(REPOSITORY_JCENTER);
 		// REPOSITORIES.add(REPOSITORY_APACHE);
