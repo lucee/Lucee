@@ -20,9 +20,9 @@ package lucee.runtime.functions.system;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.BundleReference;
 
 import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
@@ -56,8 +56,8 @@ public final class BundleInfo implements Function {
 		else clazz = obj.getClass();
 
 		ClassLoader cl = clazz.getClassLoader();
-		if (cl instanceof BundleClassLoader) {
-			BundleClassLoader bcl = (BundleClassLoader) cl;
+		if (cl instanceof BundleReference) {
+			BundleReference bcl = (BundleReference) cl;
 			Bundle b = bcl.getBundle();
 			Struct sct = new StructImpl();
 			sct.setEL(KeyConstants._id, b.getBundleId());

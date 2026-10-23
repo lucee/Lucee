@@ -22,17 +22,17 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.felix.framework.Felix;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.launch.Framework;
 
 public class BundleCollection {
 	public final Bundle core;
 	private final List<Bundle> slaves;
-	public final Felix felix;
+	public final Framework felix;
 	private File felixCacheParentDirectory;
 
-	public BundleCollection(final Felix felix, final Bundle master, final List<Bundle> slaves) {
+	public BundleCollection(final Framework felix, final Bundle master, final List<Bundle> slaves) {
 		this.felix = felix;
 		this.core = master;
 		this.slaves = new ArrayList<Bundle>();

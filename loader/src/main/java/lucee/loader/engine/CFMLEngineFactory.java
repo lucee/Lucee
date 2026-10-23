@@ -62,6 +62,7 @@ import org.apache.felix.framework.Logger;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.osgi.framework.launch.Framework;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -730,7 +731,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		return singelton;
 	}
 
-	public Felix getFelix(final File resourceRootDir, Map<String, Object> config) throws BundleException {
+	public Framework getFelix(final File resourceRootDir, Map<String, Object> config) throws BundleException {
 
 		if (config == null) config = new HashMap<>();
 

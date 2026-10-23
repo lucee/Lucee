@@ -77,28 +77,6 @@
      ]]>
   </scriptdef>
 
-  <scriptdef name="felix" language="javascript" classpath="${nashorn_classpath}">
-     <attribute name="property" />
-     <attribute name="dependencies" />
-     <attribute name="separator" />
-     <![CDATA[
-      var dep = attributes.get("dependencies");
-      var sep = attributes.get("separator");
-      var arr=dep.split(sep);
-      
-      var rtn="";
-      for(var i=0;i<arr.length;i++){
-        if(arr[i].indexOf("felix")!=-1) {
-          rtn=arr[i];
-          break;
-        } 
-      }
-
-      var res=arr[0];
-      project.setProperty(attributes.get("property"), rtn);
-     ]]>
-  </scriptdef>
-  
   <scriptdef name="currentTime" language="javascript" classpath="${nashorn_classpath}">
      <attribute name="property" />
      <![CDATA[

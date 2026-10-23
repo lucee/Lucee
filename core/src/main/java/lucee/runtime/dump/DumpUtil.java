@@ -39,8 +39,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 
-import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleReference;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -669,9 +669,9 @@ public final class DumpUtil {
 
 			// Bundle Info
 			ClassLoader cl = clazz.getClassLoader();
-			if (cl instanceof BundleClassLoader) {
+			if (cl instanceof BundleReference) {
 				try {
-					BundleClassLoader bcl = (BundleClassLoader) cl;
+					BundleReference bcl = (BundleReference) cl;
 					Bundle b = bcl.getBundle();
 					if (b != null) {
 						DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");

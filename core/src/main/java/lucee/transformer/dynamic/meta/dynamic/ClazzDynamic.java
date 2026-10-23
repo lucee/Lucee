@@ -21,13 +21,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleReference;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -153,8 +153,8 @@ public final class ClazzDynamic extends Clazz {
 		String id = clids.get(System.identityHashCode(cl));
 		if (id != null) return id;
 
-		if (cl instanceof BundleClassLoader) {
-			Bundle b = ((BundleClassLoader) cl).getBundle();
+		if (cl instanceof BundleReference) {
+			Bundle b = ((BundleReference) cl).getBundle();
 			id = "b" + HashUtil.create64BitHashAsString(b.getSymbolicName() + ":" + b.getVersion() + ":" + jv, Character.MAX_RADIX);
 			clids.put(System.identityHashCode(cl), id);
 			return id;

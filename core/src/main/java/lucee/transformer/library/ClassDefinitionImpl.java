@@ -24,9 +24,9 @@ import java.io.ObjectOutput;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.BundleReference;
 import org.osgi.framework.Version;
 
 import lucee.commons.digest.HashUtil;
@@ -96,8 +96,8 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		this.className = clazz.getName();
 		this.clazz = clazz;
 		ClassLoader cl = clazz.getClassLoader();
-		if (cl instanceof BundleClassLoader) {
-			BundleClassLoader bcl = (BundleClassLoader) cl;
+		if (cl instanceof BundleReference) {
+			BundleReference bcl = (BundleReference) cl;
 			Bundle b = bcl.getBundle();
 			this.name = b.getSymbolicName();
 			this.version = b.getVersion();

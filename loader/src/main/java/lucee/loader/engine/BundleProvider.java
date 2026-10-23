@@ -228,7 +228,6 @@ public final class BundleProvider {
 		put(mappingsFallback, "org.apache.commons.pool", new Info("commons-pool", "commons-pool"));
 		put(mappingsFallback, "org.apache.commons.pool2", new Info("org.apache.commons", "commons-pool2"));
 		put(mappingsFallback, "org.apache.commons.text", new Info("org.apache.commons", "commons-text"));
-		put(mappingsFallback, "org.apache.felix.framework", new Info("org.apache.felix", "org.apache.felix.framework"));
 		put(mappingsFallback, "org.apache.fop", new Info[0]);
 		put(mappingsFallback, "org.apache.hadoop.zookeeper", new Info[0]);
 		put(mappingsFallback, "org.apache.logging.log4j.core", new Info("org.apache.logging.log4j", "log4j-core"));
@@ -437,7 +436,6 @@ public final class BundleProvider {
 		put(mappingsFallback, "xmpcore", new Info[0]);
 		put(mappingsFallback, "zip4j", new Info("net.lingala.zip4j", "zip4j"));
 
-		put(mappingsFallback, "org.apache.felix.main", new Info("org.apache.felix", "org.apache.felix.framework"));
 put(mappingsFallback, "org.apache.commons.commons-fileupload", new Info("commons-fileupload", "commons-fileupload"));
 		put(mappingsFallback, "jakarta.activation-api", new Info("jakarta.activation-api", "jakarta.activation"));
 		put(mappingsFallback, "jakarta.mail-api", new Info("jakarta.mail-api", "jakarta.mail"));
