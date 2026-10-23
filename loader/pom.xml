@@ -517,12 +517,6 @@
     <version>1.10.13</version>
     <scope>compile</scope>
   </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-email-all</artifactId>
-    <version>1.6.0</version>
-    <scope>provided</scope>
-  </dependency>
   <!-- not used by the core itself, but required by bundles of extensions like commons-compress -->
   <dependency>
     <groupId>commons-io</groupId>

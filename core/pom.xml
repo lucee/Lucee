@@ -92,12 +92,6 @@
       <version>${felix.version}</version>
       <scope>provided</scope>
     </dependency>
-	<dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-email-all</artifactId>
-    <version>1.6.0</version>
-    <scope>provided</scope>
-  </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-pool2</artifactId>
