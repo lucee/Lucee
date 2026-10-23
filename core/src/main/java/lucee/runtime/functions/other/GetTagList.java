@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
+import lucee.commons.lang.StringUtil;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.PageException;
@@ -40,30 +42,43 @@ public final class GetTagList implements Function {
 	private static final long serialVersionUID = -5143967669895264247L;
 
 	public static lucee.runtime.type.Struct call(PageContext pc) throws PageException {
+		return call(pc, null);
+	}
+
+	public static lucee.runtime.type.Struct call(PageContext pc, String extensionFilter) throws PageException {
 		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		TagLib[] tlds;
 		TagLibTag tag;
 		tlds = ((ConfigPro) pc.getConfig()).getTLDs();
+
+		boolean filterByExtension = !StringUtil.isEmpty(extensionFilter, true);
 
 		for (int i = 0; i < tlds.length; i++) {
 			String ns = tlds[i].getNameSpaceAndSeparator();
 
 			Map<String, TagLibTag> tags = tlds[i].getTags();
 			Iterator<String> it = tags.keySet().iterator();
-			Struct inner = new StructImpl(StructImpl.TYPE_LINKED);
-			sct.set(ns, inner);
 			ArrayList<String> tagList = new ArrayList<>();
 			while (it.hasNext()) {
 				Object n = it.next();
 				tag = tlds[i].getTag(n.toString());
 				if (tag.getStatus() != TagLib.STATUS_HIDDEN && tag.getStatus() != TagLib.STATUS_UNIMPLEMENTED) {
 					// inner.set(n.toString(), "");
+					if (filterByExtension) {
+						String extId = tag.getExtensionId();
+						if (extId == null && tlds[i] != null) extId = tlds[i].getExtensionId();
+						if (extId == null || !extId.equalsIgnoreCase(extensionFilter)) continue;
+					}
 					tagList.add(n.toString());
 				}
 			}
-			Collections.sort(tagList);
-			for (String t: tagList) {
-				inner.put(t, "");
+			if (!tagList.isEmpty() || !filterByExtension) {
+				Collections.sort(tagList);
+				Struct inner = new StructImpl(StructImpl.TYPE_LINKED);
+				sct.set(ns, inner);
+				for (String t: tagList) {
+					inner.put(t, "");
+				}
 			}
 		}
 		return sct;

@@ -2704,6 +2704,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			for (int i = 0; i < files.length; i++) {
 				try {
 					tl = TagLibFactory.loadFromFile(files[i], getIdentification());
+					applyExtensionId(tl, files[i].getName());
 					key = getKey(tl);
 					if (!map.containsKey(key)) map.put(key, tl);
 					else overwrite(map.get(key), tl);
@@ -2717,6 +2718,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		}
 		else if (fileTld.isFile()) {
 			tl = TagLibFactory.loadFromFile(fileTld, getIdentification());
+			applyExtensionId(tl, fileTld.getName());
 			key = getKey(tl);
 			if (!map.containsKey(key)) map.put(key, tl);
 			else overwrite(map.get(key), tl);
@@ -2898,8 +2900,13 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	private void overwrite(TagLib existingTL, TagLib newTL) {
 		Iterator<TagLibTag> it = newTL.getTags().values().iterator();
+		TagLibTag tag;
 		while (it.hasNext()) {
-			existingTL.setTag(it.next());
+			tag = it.next();
+			if (tag.getExtensionId() == null && newTL.getExtensionId() != null) {
+				tag.setExtensionId(newTL.getExtensionId());
+			}
+			existingTL.setTag(tag);
 		}
 	}
 
@@ -2958,7 +2965,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			for (int i = 0; i < files.length; i++) {
 				try {
 					fl = FunctionLibFactory.loadFromFile(files[i], getIdentification());
-
+					applyExtensionId(fl, files[i].getName());
 					overwrite(cfmlFlds, fl);
 
 				}
@@ -2970,6 +2977,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		}
 		else {
 			fl = FunctionLibFactory.loadFromFile(fileFld, getIdentification());
+			applyExtensionId(fl, fileFld.getName());
 			overwrite(cfmlFlds, fl);
 		}
 		// LDEV-3027: the bundled markdown extension escapes HTML in safeMode but does not
@@ -2996,9 +3004,68 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	private void overwrite(FunctionLib existingFL, FunctionLib newFL) {
 		Iterator<FunctionLibFunction> it = newFL.getFunctions().values().iterator();
+		FunctionLibFunction fn;
 		while (it.hasNext()) {
-			existingFL.setFunction(it.next());
+			fn = it.next();
+			if (fn.getExtensionId() == null && newFL.getExtensionId() != null) {
+				fn.setExtensionId(newFL.getExtensionId());
+			}
+			existingFL.setFunction(fn);
 		}
+	}
+
+	private void applyExtensionId(TagLib tl, String resourceName) {
+		String extId = getExtensionIdForTld(resourceName);
+		if (!StringUtil.isEmpty(extId, true)) {
+			tl.setExtensionId(extId);
+			for (TagLibTag tag: tl.getTags().values()) {
+				tag.setExtensionId(extId);
+			}
+		}
+	}
+
+	private void applyExtensionId(FunctionLib fl, String resourceName) {
+		String extId = getExtensionIdForFld(resourceName);
+		if (!StringUtil.isEmpty(extId, true)) {
+			fl.setExtensionId(extId);
+			for (FunctionLibFunction fn: fl.getFunctions().values()) {
+				fn.setExtensionId(extId);
+			}
+		}
+	}
+
+	public String getExtensionIdForFld(String fldName) {
+		if (StringUtil.isEmpty(fldName, true)) return null;
+		RHExtension[] rhes = getRHExtensions();
+		if (rhes != null) {
+			for (RHExtension rhe: rhes) {
+				if (rhe == null || rhe.getMetadata() == null) continue;
+				String[] flds = rhe.getMetadata().getFlds();
+				if (flds != null) {
+					for (String fld: flds) {
+						if (fldName.equalsIgnoreCase(fld)) return rhe.getId();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	public String getExtensionIdForTld(String tldName) {
+		if (StringUtil.isEmpty(tldName, true)) return null;
+		RHExtension[] rhes = getRHExtensions();
+		if (rhes != null) {
+			for (RHExtension rhe: rhes) {
+				if (rhe == null || rhe.getMetadata() == null) continue;
+				String[] tlds = rhe.getMetadata().getTlds();
+				if (tlds != null) {
+					for (String tld: tlds) {
+						if (tldName.equalsIgnoreCase(tld)) return rhe.getId();
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	@Override

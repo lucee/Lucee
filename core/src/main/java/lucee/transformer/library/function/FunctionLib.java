@@ -45,6 +45,7 @@ public final class FunctionLib implements Lib {
 	private String displayName = "";
 	private String description = "";
 	private String source;
+	private String extensionId;
 
 	/**
 	 * Geschuetzer Konstruktor ohne Argumente.
@@ -227,6 +228,8 @@ public final class FunctionLib implements Lib {
 		fl.shortName = this.shortName;
 		fl.uri = this.uri;
 		fl.version = this.version;
+		fl.source = this.source;
+		fl.extensionId = this.extensionId;
 
 		return fl;
 	}
@@ -243,6 +246,14 @@ public final class FunctionLib implements Lib {
 	 */
 	public String getSource() {
 		return source;
+	}
+
+	public void setExtensionId(String extensionId) {
+		this.extensionId = extensionId;
+	}
+
+	public String getExtensionId() {
+		return extensionId;
 	}
 
 	/**
