@@ -465,7 +465,9 @@ public final class DeployHandler {
 		Resource res = downloadExtension(ci, ed, log, throwOnError);
 		if (res != null) {
 			try {
-				RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, filter, reload, force, RHExtension.ACTION_MOVE);
+				// LDEV-6523: a file from the local Maven repository is a cache entry, it has to stay there
+				short action = ResourceUtil.isChildOf(res, ci.getMavenDir()) ? RHExtension.ACTION_COPY : RHExtension.ACTION_MOVE;
+				RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, filter, reload, force, action);
 				installDone.setValue(true);
 				if (log != null) log.info("extension", "Installed extension [" + ed + "] from remote extension provider");
 				return _ext;
