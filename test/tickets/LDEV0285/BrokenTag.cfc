@@ -1,0 +1,3 @@
+<cfcomponent>
+	<cfif true>
+</cfcomponent>
