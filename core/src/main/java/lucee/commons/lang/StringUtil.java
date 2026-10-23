@@ -1075,7 +1075,38 @@ public final class StringUtil {
 	 * @return soundex from given string
 	 */
 	public static String soundex(String str) {
-		return new org.apache.commons.codec.language.Soundex().soundex(str);
+		if (str == null) return null;
+		StringBuilder clean = new StringBuilder(str.length());
+		for (int i = 0; i < str.length(); i++) {
+			char c = str.charAt(i);
+			if (Character.isLetter(c)) clean.append(Character.toUpperCase(c));
+		}
+		if (clean.length() == 0) return "";
+
+		char[] out = { '0', '0', '0', '0' };
+		int count = 0;
+		out[count++] = clean.charAt(0);
+		char lastDigit = soundexDigit(clean.charAt(0));
+		for (int i = 1; i < clean.length() && count < out.length; i++) {
+			char ch = clean.charAt(i);
+			// H and W are ignored completely
+			if (ch == 'H' || ch == 'W') continue;
+			char digit = soundexDigit(ch);
+			// vowels and repeated digits are not stored
+			if (digit != '0' && digit != lastDigit) out[count++] = digit;
+			lastDigit = digit;
+		}
+		return new String(out);
+	}
+
+	private static final String SOUNDEX_MAPPING = "01230120022455012623010202";
+
+	private static char soundexDigit(char c) {
+		int index = c - 'A';
+		if (index < 0 || index >= SOUNDEX_MAPPING.length()) {
+			throw new IllegalArgumentException("The character is not mapped: " + c + " (index=" + index + ")");
+		}
+		return SOUNDEX_MAPPING.charAt(index);
 	}
 
 	/**

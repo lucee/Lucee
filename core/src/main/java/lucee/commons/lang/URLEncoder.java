@@ -18,13 +18,9 @@
  **/
 package lucee.commons.lang;
 
-import java.nio.charset.StandardCharsets;
-
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
-
-import org.apache.commons.codec.net.URLCodec;
-
 
 /**
  * @deprecated use instead lucee.commons.net.URLEncoder
@@ -33,6 +29,7 @@ import org.apache.commons.codec.net.URLCodec;
 @Deprecated
 public final class URLEncoder {
 
+	private static final char[] HEX = "0123456789ABCDEF".toCharArray();
 	private static final BitSet WWW_FORM_URL = new BitSet(256);
 
 	static {
@@ -50,11 +47,21 @@ public final class URLEncoder {
 	}
 
 	public static String encode(String str, java.nio.charset.Charset charset) throws UnsupportedEncodingException {
-		return new String(URLCodec.encodeUrl(WWW_FORM_URL, str.getBytes(charset)), "us-ascii");
+		return encode(str.getBytes(charset));
 	}
 
 	public static String encode(String str, String encoding) throws UnsupportedEncodingException {
-		return new String(URLCodec.encodeUrl(WWW_FORM_URL, str.getBytes(encoding)), "us-ascii");
+		return encode(str.getBytes(encoding));
+	}
+
+	private static String encode(byte[] bytes) {
+		StringBuilder sb = new StringBuilder(bytes.length);
+		for (byte b: bytes) {
+			int c = b & 0xFF;
+			if (WWW_FORM_URL.get(c)) sb.append((char) c);
+			else sb.append('%').append(HEX[c >> 4]).append(HEX[c & 0xF]);
+		}
+		return sb.toString();
 	}
 
 	public static String encode(String str) throws UnsupportedEncodingException {
