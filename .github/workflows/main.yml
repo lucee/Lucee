@@ -16,6 +16,17 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      # LDEV-6674: releases, RCs and betas are only published by running this workflow manually
+      # on a 7.1 branch with deploy ticked, like the extensions. Pushes only publish snapshots.
+      deploy:
+        description: 'Publish a new build (Maven, S3, GitHub release), only on 7.1 branches'
+        type: boolean
+        default: false
+      qualifier:
+        description: 'What to publish when deploy is ticked: SNAPSHOT, BETA, RC or release (final, no qualifier)'
+        type: choice
+        options: [SNAPSHOT, BETA, RC, release]
+        default: SNAPSHOT
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
@@ -45,7 +56,10 @@ jobs:
       pull-requests: write
       issues: read
     env:
-      DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/7.1') }}"
+      # LDEV-6674: a push to a 7.1 branch publishes a snapshot (not the push that only creates a branch,
+      # its commit was already built on the source branch), a manual run publishes when deploy is ticked
+      DO_DEPLOY: "${{ startsWith(github.ref, 'refs/heads/7.1') && ((github.event_name == 'push' && !github.event.created) || (github.event_name == 'workflow_dispatch' && inputs.deploy == true)) }}"
+      QUALIFIER_INPUT: "${{ github.event_name == 'workflow_dispatch' && inputs.qualifier || 'SNAPSHOT' }}"
       # bucket behind cdn.lucee.org (ant/upload_to_s3.cfm uploads the build there, see LDEV-6537 for the cut-off)
       S3_DOWNLOAD_BUCKET: lucee-downloads
       S3_DOWNLOAD_REGION: us-east-1
@@ -188,6 +202,9 @@ jobs:
       id: resolve-revision
       run: |
         set -euo pipefail
+        if [ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ] && [ "${{ inputs.deploy }}" == "true" ] && [ "$DO_DEPLOY" != "true" ]; then
+          echo "::error::deploy is only possible on 7.1 branches, not on [$GITHUB_REF]"; exit 1
+        fi
         # LDEV-6516: on mainline 7.1 push (DO_DEPLOY), allocate next build from tags / Maven metadata.
         # PRs and forks keep the default POM revision and must not consume production build numbers.
         if [ "${{ env.DO_DEPLOY }}" != "true" ]; then
@@ -196,12 +213,21 @@ jobs:
         fi
         # Match build step: without GPG secrets CI only runs tests — do not consume a build number
         if [ "${{ secrets.GPG_PASSPHRASE }}" == "" ]; then
+          if [ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]; then
+            echo "::error::deploy is ticked, but there are no GPG / deploy credentials"; exit 1
+          fi
           echo "Skipping revision bump (no GPG / deploy credentials; test-only run)"
           exit 0
         fi
 
         BASE=$(mvn -f loader/pom.xml help:evaluate -Dexpression=lucee.version.base -q -DforceStdout | tr -d '\r')
-        QUALIFIER=$(mvn -f loader/pom.xml help:evaluate -Dexpression=lucee.version.qualifier -q -DforceStdout | tr -d '\r')
+        # LDEV-6674: the qualifier comes from the run, not from the pom: pushes publish snapshots,
+        # a manual run publishes what was picked, so one version is used for Maven, S3, the tag and the GitHub release
+        case "$QUALIFIER_INPUT" in
+          release) QUALIFIER="" ;;
+          SNAPSHOT|BETA|RC) QUALIFIER="-$QUALIFIER_INPUT" ;;
+          *) echo "::error::unknown qualifier [$QUALIFIER_INPUT]"; exit 1 ;;
+        esac
         echo "Base=$BASE qualifier=$QUALIFIER"
 
         # Ensure tags are available for max(build)+1
@@ -252,6 +278,7 @@ jobs:
         TAG="${BASE}.${NEXT_BUILD}"
 
         echo "Resolved VERSION=$VERSION (max seen build=${MAX_BUILD:-none})"
+        echo "### Publishing Lucee $VERSION (tag $TAG)" >> "$GITHUB_STEP_SUMMARY"
         echo "VERSION=$VERSION" >> "$GITHUB_ENV"
         echo "TAG=$TAG" >> "$GITHUB_ENV"
 
