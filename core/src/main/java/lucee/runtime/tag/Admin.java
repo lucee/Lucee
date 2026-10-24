@@ -120,6 +120,7 @@ import lucee.runtime.config.ResetFilter;
 import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.DataSourceFactory;
 import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.DataSourceManager;
 import lucee.runtime.db.DataSourcePro;
@@ -2829,6 +2830,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Struct custom = getStruct("custom", new StructImpl());
 		String dbdriver = getString("dbdriver", "");
 
+		// resolve the driver the same way as for the stored datasource (extension metadata, maven), otherwise the verification fails
+		cd = DataSourceFactory.resolveJDBCDriverClassDefinition(config, cd, id, dbdriver);
+
 		// config.getDatasourceConnectionPool().remove(name);
 		DataSourcePro ds = null;
 		try {
@@ -2994,6 +2998,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 	private void doVerifyDatasource() throws PageException {
 		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
+		// same driver resolution as for the stored datasource (extension metadata, maven)
+		cd = DataSourceFactory.resolveJDBCDriverClassDefinition(config, cd, getString("id", null), getString("dbdriver", null));
 
 		String connStr = (String) attributes.get("connStr", null);
 		if (StringUtil.isEmpty(connStr)) connStr = (String) attributes.get("dsn", null);
