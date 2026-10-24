@@ -12,7 +12,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import lucee.commons.lang.StringUtil;
@@ -29,7 +28,6 @@ import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
-import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
@@ -57,7 +55,6 @@ public final class GeminiEngine extends AIEngineSupport {
 	private int connectTimeout;
 	String location;
 	String charset;
-	ProxyData proxy = null;
 	Map<String, String> formfields = null;
 	String model;
 	String systemMessage;
@@ -192,13 +189,14 @@ public final class GeminiEngine extends AIEngineSupport {
 	@Override
 	public List<AIModel> getModels() throws PageException {
 		try {
-			HttpGet get = new HttpGet(toURL(baseURL, MODELS, null).toExternalForm());
+			URL url = toURL(baseURL, MODELS, null);
+			HttpGet get = new HttpGet(url.toExternalForm());
 			get.setHeader("Content-Type", AIUtil.createJsonContentType(charset));
 
 			RequestConfig config = AISessionSupport.setTimeout(RequestConfig.custom(), this.getConnectTimeout(), this.getSocketTimeout()).build();
 			get.setConfig(config);
 
-			try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(get)) {
+			try (CloseableHttpClient httpClient = AIUtil.createHttpClient(url.getHost()); CloseableHttpResponse response = httpClient.execute(get)) {
 
 				HttpEntity responseEntity = response.getEntity();
 				org.apache.http.Header ct = responseEntity.getContentType();

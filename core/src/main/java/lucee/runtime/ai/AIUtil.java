@@ -1,12 +1,18 @@
 package lucee.runtime.ai;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.http.StatusLine;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import lucee.commons.digest.Base64Encoder;
 import lucee.commons.io.log.LogUtil;
@@ -15,12 +21,16 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPResponse;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.CoderException;
+import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -433,5 +443,25 @@ public final class AIUtil {
 			if (!a.isText()) return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Creates an HTTP client for AI requests based on the common HTTP engine (LDEV-6580): pooled
+	 * connections shared with cfhttp, the configured server proxy and the standard cookie spec. The
+	 * connection manager is shared, so closing the returned client only releases its connections.
+	 *
+	 * @param host host of the target URL, used to check the proxy exclusion list
+	 */
+	public static CloseableHttpClient createHttpClient(String host) throws GeneralSecurityException, IOException {
+		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(true, null, null, "true");
+		builder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()); // LDEV-2321
+		HTTPEngine4Impl.setProxy(host, builder, null, getProxyData(host));
+		return builder.build();
+	}
+
+	public static ProxyData getProxyData(String host) {
+		Config config = ThreadLocalPageContext.getConfig();
+		if (config == null) return null;
+		return ProxyDataImpl.validate(config.getProxyData(), host);
 	}
 }
