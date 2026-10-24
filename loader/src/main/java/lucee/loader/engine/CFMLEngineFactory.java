@@ -74,7 +74,6 @@ import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import lucee.VersionInfo;
 import lucee.commons.io.log.Log;
-import lucee.commons.lang.ConcurrentHashMapAsHashtable;
 import lucee.loader.TP;
 import lucee.loader.engine.mvn.MavenUpdateProvider;
 import lucee.loader.osgi.BundleCollection;
@@ -137,7 +136,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	protected CFMLEngineFactory(final ServletConfig config) {
 		Logging.startupLog();
-		System.setProperty("org.apache.commons.logging.LogFactory.HashtableImpl", ConcurrentHashMapAsHashtable.class.getName());
 		File logFile = null;
 		this.config = config;
 		try {

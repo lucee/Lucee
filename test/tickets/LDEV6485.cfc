@@ -1,13 +1,22 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 
+	function beforeAll() {
+		// the core does not ship javax.mail anymore (commons-email-all is removed in 9.0), an application that still uses it brings it, here from Maven
+		variables.javaxMail = new component javaSettings='{"maven":["com.sun.mail:javax.mail:1.6.2"]}' {
+			function getSession( required any props ) {
+				return createObject( "java", "javax.mail.Session" ).getInstance( arguments.props );
+			}
+		};
+	}
+
 	function run( testResults, testBox ) {
 		describe( "Test suite for LDEV-6485 (javax/jakarta mail Provider clash)", function() {
 
 			it( title="cfmail does not fail with IMAPProvider not a subtype after javax.mail.Session was used", body=function( currentSpec ) {
-				// Pollute the request / TCCL path with javax.mail (core still ships commons-email-all on 7.1/8.0).
+				// Use javax.mail next to the jakarta based mail extension (on 7.1/8.0 the core shipped commons-email-all and polluted the request / TCCL path).
 				// On the buggy mail extension this makes every subsequent jakarta Session.getInstance() fail.
 				var props = createObject( "java", "java.util.Properties" ).init();
-				var sess = createObject( "java", "javax.mail.Session" ).getInstance( props );
+				var sess = variables.javaxMail.getSession( props );
 				try { sess.getStore( "imap" ); } catch ( any e ) { /* ignore */ }
 
 				var err = "";
@@ -36,9 +45,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 						}
 					} catch ( any ignore ) {}
 
-					var sess = createObject( "java", "javax.mail.Session" ).getInstance(
-						createObject( "java", "java.util.Properties" ).init()
-					);
+					var sess = variables.javaxMail.getSession( createObject( "java", "java.util.Properties" ).init() );
 					sess.getStore( "imap" );
 				}
 				catch ( any e ) {

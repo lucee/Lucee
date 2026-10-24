@@ -2,6 +2,11 @@ package lucee.commons.lang;
 
 import java.util.Hashtable;
 
+/**
+ * @deprecated not used by Lucee (see LDEV-6635), only kept because it is a public class of the loader,
+ *             can be removed with the next major release
+ */
+@Deprecated
 public class WeakConcurrentHashMapAsHashtable<K, V> extends Hashtable<K, V> {
 	/*
 	 * private static final Reference DEFAULT_VALUE = new WeakReference("");

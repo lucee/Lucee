@@ -11,6 +11,11 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+/**
+ * @deprecated not used since LDEV-6635 (it was handed to commons-logging as LogFactory.HashtableImpl), only kept because it is a public class of the loader,
+ *             can be removed with the next major release
+ */
+@Deprecated
 public class ConcurrentHashMapAsHashtable<K, V> extends Hashtable<K, V> {
 
 	private ConcurrentHashMap<K, V> map;

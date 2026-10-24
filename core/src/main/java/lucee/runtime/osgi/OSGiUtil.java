@@ -180,6 +180,10 @@ public final class OSGiUtil {
 		packageBundleMapping.put("org.apache.commons.lang", "org.apache.commons.lang");
 		packageBundleMapping.put("jcifs.smb", "org.lucee.jcifs");
 		packageBundleMapping.put("org.apache.commons.logging", "org.lucee.commons.logging");
+		// the commons-email-all bundle (javax.mail, javax.activation) is not part of Lucee 9 anymore, older extensions that
+		// import these packages get the OSGi bundles from Maven
+		packageBundleMapping.put("javax.activation", "com.sun.activation.javax.activation");
+		packageBundleMapping.put("javax.mail", "com.sun.mail.javax.mail");
 
 	}
 
