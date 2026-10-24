@@ -23,10 +23,12 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigUtil;
@@ -79,12 +81,79 @@ public abstract class HTTPEngineBasic {
 	 * Get ProxyData from ThreadLocalPageContext Config (following Http.java pattern line 1099)
 	 */
 	protected static ProxyData getProxyData(String host) {
-		Config config = ThreadLocalPageContext.getConfigServer();
-		if (config != null) {
-			ProxyData proxy = config.getProxyData();
-			return ProxyDataImpl.validate(proxy, host);
+		// LDEV-6715: a download triggered by a request uses the application proxy (this.proxy) first, like cfhttp
+		ProxyData proxy = getRequestProxyData();
+		if (proxy == null) {
+			Config config = ThreadLocalPageContext.getConfigServer();
+			if (config != null) proxy = config.getProxyData();
+		}
+		return ProxyDataImpl.validate(proxy, host);
+	}
+
+	// LDEV-6715: the proxy of the request that triggered a download, handed over to the worker threads
+	private static final ThreadLocal<RequestProxy> inheritedRequestProxy = new ThreadLocal<>();
+
+	private static final class RequestProxy {
+		private final ProxyData proxy;
+
+		private RequestProxy(ProxyData proxy) {
+			this.proxy = proxy;
+		}
+	}
+
+	/**
+	 * LDEV-6715: the proxy for a download triggered by the current request, the application proxy
+	 * (this.proxy) first, then the server proxy (same as cfhttp, see PageContextImpl.getProxyData()).
+	 * Inside a task wrapped with {@link #withRequestProxy(Runnable)} or
+	 * {@link #withRequestProxyCallable(Callable)}, the proxy captured from the calling request. Returns
+	 * null when there is no request (startup, deploy directory), the caller then uses the server proxy.
+	 */
+	public static ProxyData getRequestProxyData() {
+		RequestProxy inherited = inheritedRequestProxy.get();
+		if (inherited != null) return inherited.proxy;
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc instanceof PageContextImpl) {
+			PageContextImpl pci = (PageContextImpl) pc;
+			if (pci.getApplicationContext() != null) return pci.getProxyData();
 		}
 		return null;
+	}
+
+	/**
+	 * LDEV-6715: wraps a task that runs on another thread, so downloads inside it use the proxy of the
+	 * request that created the task, not whatever page context the worker thread may see.
+	 */
+	public static Runnable withRequestProxy(Runnable task) {
+		RequestProxy rp = new RequestProxy(getRequestProxyData());
+		return () -> {
+			RequestProxy prev = inheritedRequestProxy.get();
+			inheritedRequestProxy.set(rp);
+			try {
+				task.run();
+			}
+			finally {
+				if (prev == null) inheritedRequestProxy.remove();
+				else inheritedRequestProxy.set(prev);
+			}
+		};
+	}
+
+	/**
+	 * LDEV-6715: like {@link #withRequestProxy(Runnable)} for a {@link Callable}
+	 */
+	public static <T> Callable<T> withRequestProxyCallable(Callable<T> task) {
+		RequestProxy rp = new RequestProxy(getRequestProxyData());
+		return () -> {
+			RequestProxy prev = inheritedRequestProxy.get();
+			inheritedRequestProxy.set(rp);
+			try {
+				return task.call();
+			}
+			finally {
+				if (prev == null) inheritedRequestProxy.remove();
+				else inheritedRequestProxy.set(prev);
+			}
+		};
 	}
 
 	public static HeaderImpl[] toHeaders(Map<String, String> headers) {
