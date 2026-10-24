@@ -2,7 +2,7 @@
  * Scan compiled CFML bytecode for exeLogStart line numbers using ASM
  * Used to verify correct line numbers in compiled bytecode for debugger support
  */
-component javaSettings='{"maven":["org.ow2.asm:asm-util:9.10.1"]}' {
+component javaSettings='{"maven":["org.ow2.asm:asm-util:9.11.1"]}' {
 
 	/**
 	 * Scan a directory of compiled classes and extract exeLogStart line numbers
