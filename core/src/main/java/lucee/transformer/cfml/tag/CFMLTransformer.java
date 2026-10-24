@@ -151,7 +151,7 @@ public final class CFMLTransformer {
 	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib flibs, boolean returnValue, boolean ignoreScopes, boolean ast)
 			throws TemplateException, IOException {
 		Page p;
-		SourceCode sc;
+		SourceCode sc = null;
 
 		boolean writeLog = config.getExecutionLogEnabled();
 
@@ -165,6 +165,7 @@ public final class CFMLTransformer {
 		boolean hasCharset = false;
 		boolean hasUpper = false;
 		boolean allowUnknownTags = ast;
+		TemplateException tagException = null;
 		while (true) {
 			PageSourceCode psc = null;
 			try {
@@ -218,6 +219,13 @@ public final class CFMLTransformer {
 					charset = pde.getCharset();
 				}
 			}
+			catch (TemplateException te) {
+				// a script component can contain "<cf" in a comment or string, retry it as script below
+				if (!isCFMLCompExt || wrapped || te instanceof ComponentTemplateException) throw te;
+				tagException = te;
+				p = null;
+				break;
+			}
 		}
 
 		// could it be a component?
@@ -226,7 +234,7 @@ public final class CFMLTransformer {
 
 		// we don't have a component or interface
 		// Also check if component exists inside cfscript body (handles <cfscript>component { }</cfscript>)
-		if (!wrapped && p.isPage() && !containsComponentRecursive(p)) {
+		if (tagException != null || (!wrapped && p.isPage() && !containsComponentRecursive(p))) {
 			possibleUndetectedComponent = isCFMLCompExt;
 		}
 
@@ -275,12 +283,18 @@ public final class CFMLTransformer {
 				}
 			}
 			catch (ComponentTemplateException e) {
+				if (tagException != null) throw tagException;
 				throw e.getTemplateException();
+			}
+			catch (TemplateException e) {
+				if (tagException != null) throw tagException;
+				throw e;
 			}
 			// we only use that result if it is a component now
 			// In AST mode, isPage() returns true even when component exists inside cfscript
 			// because the component isn't moved to root. Use recursive check instead.
 			if (_p != null && (!_p.isPage() || containsComponentRecursive(_p))) return _p;
+			if (tagException != null) throw tagException;
 		}
 
 		// In AST mode, component stays inside cfscript so skip this validation
