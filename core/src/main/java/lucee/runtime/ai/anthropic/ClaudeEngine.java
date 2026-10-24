@@ -31,7 +31,6 @@ import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
-import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
@@ -52,7 +51,6 @@ public final class ClaudeEngine extends AIEngineSupport {
 	private int socketTimeout;
 	private int connectTimeout;
 	private String charset;
-	ProxyData proxy = null;
 	private int conversationSizeLimit = DEFAULT_CONVERSATION_SIZE_LIMIT;
 	Struct custom;
 	Map<String, String> headers;
