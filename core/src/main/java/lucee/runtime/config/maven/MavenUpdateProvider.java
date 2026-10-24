@@ -291,7 +291,7 @@ public final class MavenUpdateProvider {
 			Stack<Exception> exceptions = new Stack<>();
 
 			for (Repository repo: repos) {
-				Thread thread = ThreadUtil.getThread(() -> {
+				Thread thread = ThreadUtil.getThread(HTTPEngine.withRequestProxy(() -> {
 					try {
 						if (LogUtil.doesInfo(log)) {
 							log.info("maven", "scanning metadata for " + group + ":" + artifact + " at " + repo.url);
@@ -311,7 +311,7 @@ public final class MavenUpdateProvider {
 						// Forwarded to parent thread; silent local catch
 						exceptions.add(e);
 					}
-				}, false);
+				}), false);
 				thread.start();
 				threads.add(thread);
 			}
