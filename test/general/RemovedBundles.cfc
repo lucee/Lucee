@@ -30,8 +30,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 			});
 
 			it( title="the classes are not provided by Lucee", body=function( currentSpec ) {
+				// javax.mail / javax.activation are not tested here: an older extension that imports them gets the bundles from Maven (OSGiUtil.packageBundleMapping) and they are visible from then on
 				expect( canLoad( "org.apache.commons.mail.Email" ) ).toBeFalse();
-				expect( canLoad( "javax.mail.Session" ) ).toBeFalse();
 			});
 
 			it( title="Lucee does not configure commons-logging for the libraries of extensions", body=function( currentSpec ) {
