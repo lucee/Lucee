@@ -41,17 +41,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ai,proxy" {
 				});
 			}
 
-			it( "OpenAI model listing goes through the configured server proxy", function() {
-				setProxy( "127.0.0.1", 1 );
-				try {
-					var msg = callEngine( "ldev6580-openai", "models" );
-				}
-				finally {
-					restoreProxy();
-				}
-				expect( msg ).notToInclude( "UnknownHost", "the proxy was bypassed: " & msg );
-				expect( msg ).toInclude( "127.0.0.1", msg );
-			});
+			for ( var engine in engines ) {
+				it( title="#engine# model listing goes through the configured server proxy", data={ engine: engine }, body=function( data ) {
+					setProxy( "127.0.0.1", 1 );
+					try {
+						var msg = callEngine( data.engine, "models" );
+					}
+					finally {
+						restoreProxy();
+					}
+					expect( msg ).notToInclude( "UnknownHost", "the proxy was bypassed: " & msg );
+					expect( msg ).toInclude( "127.0.0.1", msg );
+				});
+			}
 
 		});
 	}

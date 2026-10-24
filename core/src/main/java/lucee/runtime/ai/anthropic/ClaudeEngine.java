@@ -13,7 +13,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import lucee.commons.lang.StringUtil;
@@ -191,7 +190,7 @@ public final class ClaudeEngine extends AIEngineSupport {
 			RequestConfig config = AISessionSupport.setTimeout(RequestConfig.custom(), getConnectTimeout(), getSocketTimeout()).build();
 			get.setConfig(config);
 
-			try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(get)) {
+			try (CloseableHttpClient httpClient = AIUtil.createHttpClient(baseURL.getHost()); CloseableHttpResponse response = httpClient.execute(get)) {
 				HttpEntity responseEntity = response.getEntity();
 				Header ct = responseEntity.getContentType();
 				MimeType mt = ct == null ? null : MimeType.getInstance(ct.getValue());
