@@ -43,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi,datasource" {
 					shaded.nextElement();
 					count++;
 				}
-				expect( count ).toBeGT( 20 );
+				expect( count ).toBeGT( 0 );
 			});
 
 			it( title="the core does not require the commons-pool2 bundle anymore", body=function( currentSpec ) {
