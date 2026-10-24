@@ -1010,7 +1010,7 @@ public final class FileTag extends BodyTagImpl {
 		// set server variables
 		cffile.set(KeyConstants._serverdirectory, getParent(destination));
 		cffile.set(KeyConstants._serverfile, destination.getName());
-		cffile.set(KeyConstants._serverfileext, ResourceUtil.getExtension(destination, null));
+		cffile.set(KeyConstants._serverfileext, ResourceUtil.getExtension(destination, ""));
 		cffile.set(KeyConstants._serverfilename, ResourceUtil.getName(destination));
 		cffile.set(KeyConstants._attemptedserverfile, destination.getName());
 
