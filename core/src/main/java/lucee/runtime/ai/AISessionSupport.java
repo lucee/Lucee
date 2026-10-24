@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig.Builder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
@@ -118,12 +119,14 @@ public abstract class AISessionSupport implements AISessionMultipart {
 	}
 
 	public static Builder setTimeout(Builder builder, AISession session) {
+		builder.setCookieSpec(CookieSpecs.STANDARD); // LDEV-2321
 		if (session.getConnectTimeout() > 0) builder.setConnectTimeout(session.getConnectTimeout());
 		if (session.getSocketTimeout() > 0) builder.setSocketTimeout(session.getSocketTimeout());
 		return builder;
 	}
 
 	public static Builder setTimeout(Builder builder, int connectTimeout, int socketTimeout) {
+		builder.setCookieSpec(CookieSpecs.STANDARD); // LDEV-2321
 		if (connectTimeout > 0) builder.setConnectTimeout(connectTimeout);
 		if (socketTimeout > 0) builder.setSocketTimeout(socketTimeout);
 		return builder;

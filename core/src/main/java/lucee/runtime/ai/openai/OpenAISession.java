@@ -18,7 +18,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import lucee.commons.io.CharsetUtil;
@@ -225,7 +224,7 @@ public final class OpenAISession extends AISessionSupport {
 		String str = json.serialize(null, request, SerializationSettings.SERIALIZE_AS_COLUMN, null);
 		LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "request message send by [" + openaiEngine.getLabel() + "]: " + str, "ai", "application");
 
-		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+		try (CloseableHttpClient httpClient = AIUtil.createHttpClient(openaiEngine.getBaseURL().getHost())) {
 			CloseableHttpResponse response = null;
 			try {
 				response = execute(httpClient, str);
