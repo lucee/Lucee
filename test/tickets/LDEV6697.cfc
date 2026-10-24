@@ -27,9 +27,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="wddx" {
 				wddx action="cfml2wddx" input=src output="local.packet";
 				wddx action="wddx2cfml" input=packet output="local.result";
 
-				expect( structKeyList( result ) ).toBe( "Z,Y,X,W" );
-				expect( structKeyList( result.y ) ).toBe( "C,B,A" );
-				expect( structKeyList( result.w ) ).toBe( "Q,P" );
+				expect( structKeyList( result ) ).toBe( structKeyList( src ) );
+				expect( uCase( structKeyList( result ) ) ).toBe( "Z,Y,X,W" );
+				expect( uCase( structKeyList( result.y ) ) ).toBe( "C,B,A" );
+				expect( uCase( structKeyList( result.w ) ) ).toBe( "Q,P" );
 			});
 
 			it( "keeps the key order of a struct inside an array", function() {
@@ -37,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="wddx" {
 				wddx action="cfml2wddx" input=src output="local.packet";
 				wddx action="wddx2cfml" input=packet output="local.result";
 
-				expect( structKeyList( result[ 1 ] ) ).toBe( "ZETA,ALPHA,MU" );
+				expect( uCase( structKeyList( result[ 1 ] ) ) ).toBe( "ZETA,ALPHA,MU" );
 			});
 		});
 	}
