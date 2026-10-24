@@ -19,6 +19,7 @@
     <!-- loader/pom.xml defines felix.version, this pom is standalone and cannot inherit it, the build (ant/build-core.xml) fails if the two are not the same. Felix is only needed to compile against the OSGi API -->
     <felix.version>7.0.5</felix.version>
     <asm.version>9.11.1</asm.version>
+    <pool2.version>2.13.1</pool2.version>
   </properties>
 
   <licenses>
@@ -96,7 +97,8 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-pool2</artifactId>
-      <version>2.13.1</version>
+      <version>${pool2.version}</version>
+      <scope>provided</scope>
     </dependency>
   <dependency>
     <groupId>org.slf4j</groupId>

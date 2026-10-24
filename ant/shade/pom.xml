@@ -8,12 +8,13 @@
   There are two profiles, because the loader and the core (.lco) are still two jars:
     loader: the classes of the loader plus Felix (org.apache.felix -> lucee.shaded.felix)
     core:   the classes of the core plus ASM (org.objectweb.asm -> lucee.shaded.asm)
+            and commons-pool2 (org.apache.commons.pool2 -> lucee.shaded.pool2)
 
   Called by the macro "shadeJar" in ant/build-core.xml:
-    mvn -f ant/shade/pom.xml package -P[loader|core] -Dfelix.version=... -Dasm.version=...
+    mvn -f ant/shade/pom.xml package -P[loader|core] -Dfelix.version=... -Dasm.version=... -Dpool2.version=...
         -Dshade.input=[assembled folder] -Dshade.manifest=[manifest of the result] -Dshade.output=[result folder]
 
-  The versions of the shaded libraries (felix.version, asm.version) are defined in loader/pom.xml and handed over by Ant.
+  The versions of the shaded libraries (felix.version, asm.version, pool2.version) are defined in loader/pom.xml and handed over by Ant.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -162,7 +163,7 @@
       </build>
     </profile>
 
-    <!-- the core (.lco): ASM -->
+    <!-- the core (.lco): ASM and commons-pool2 -->
     <profile>
       <id>core</id>
       <dependencies>
@@ -191,9 +192,41 @@
           <artifactId>asm-analysis</artifactId>
           <version>${asm.version}</version>
         </dependency>
+        <dependency>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-pool2</artifactId>
+          <version>${pool2.version}</version>
+        </dependency>
       </dependencies>
       <build>
         <plugins>
+          <!-- the license and notice files of commons-pool2, they are added to META-INF/licenses/[artifact] in the core by the shade plugin -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>3.6.1</version>
+            <executions>
+              <execution>
+                <id>licenses</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.apache.commons</groupId>
+                      <artifactId>commons-pool2</artifactId>
+                      <version>${pool2.version}</version>
+                      <outputDirectory>${shade.output}/licenses/org.apache.commons.commons-pool2</outputDirectory>
+                      <includes>META-INF/LICENSE.txt,META-INF/NOTICE.txt</includes>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-shade-plugin</artifactId>
@@ -213,6 +246,7 @@
                   <artifactSet>
                     <includes>
                       <include>org.ow2.asm:*</include>
+                      <include>org.apache.commons:commons-pool2</include>
                     </includes>
                   </artifactSet>
 
@@ -220,6 +254,10 @@
                     <relocation>
                       <pattern>org.objectweb.asm</pattern>
                       <shadedPattern>lucee.shaded.asm</shadedPattern>
+                    </relocation>
+                    <relocation>
+                      <pattern>org.apache.commons.pool2</pattern>
+                      <shadedPattern>lucee.shaded.pool2</shadedPattern>
                     </relocation>
                   </relocations>
 
@@ -232,6 +270,16 @@
                         <exclude>module-info.class</exclude>
                       </excludes>
                     </filter>
+                    <filter>
+                      <artifact>org.apache.commons:commons-pool2</artifact>
+                      <excludes>
+                        <exclude>META-INF/MANIFEST.MF</exclude>
+                        <exclude>META-INF/maven/**</exclude>
+                        <exclude>META-INF/versions/**</exclude>
+                        <exclude>META-INF/LICENSE.txt</exclude>
+                        <exclude>META-INF/NOTICE.txt</exclude>
+                      </excludes>
+                    </filter>
                   </filters>
 
                   <transformers>
@@ -239,6 +287,15 @@
                     <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
                       <resource>META-INF/licenses/org.ow2.asm/LICENSE</resource>
                       <file>${project.basedir}/licenses/asm/LICENSE</file>
+                    </transformer>
+                    <!-- license and notice of commons-pool2 (Apache 2.0), unpacked by the dependency plugin above -->
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                      <resource>META-INF/licenses/org.apache.commons.commons-pool2/LICENSE.txt</resource>
+                      <file>${shade.output}/licenses/org.apache.commons.commons-pool2/META-INF/LICENSE.txt</file>
+                    </transformer>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                      <resource>META-INF/licenses/org.apache.commons.commons-pool2/NOTICE.txt</resource>
+                      <file>${shade.output}/licenses/org.apache.commons.commons-pool2/META-INF/NOTICE.txt</file>
                     </transformer>
                   </transformers>
                 </configuration>

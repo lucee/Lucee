@@ -96,6 +96,7 @@
     <xmlproperty file="${rootDir}/loader/pom.xml" prefix="loaderpom"/>
     <property name="felix.version" value="${loaderpom.project.properties.felix.version}"/>
     <property name="asm.version" value="${loaderpom.project.properties.asm.version}"/>
+    <property name="pool2.version" value="${loaderpom.project.properties.pool2.version}"/>
     <!-- core/pom.xml is a standalone pom and cannot inherit the properties, so the build makes sure they are the same versions -->
     <xmlproperty file="${rootDir}/core/pom.xml" prefix="corepom"/>
     <fail message="felix.version in core/pom.xml [${corepom.project.properties.felix.version}] must be the same as in loader/pom.xml [${felix.version}]">
@@ -109,6 +110,13 @@
       <condition>
         <not>
           <equals arg1="${corepom.project.properties.asm.version}" arg2="${asm.version}"/>
+        </not>
+      </condition>
+    </fail>
+    <fail message="pool2.version in core/pom.xml [${corepom.project.properties.pool2.version}] must be the same as in loader/pom.xml [${pool2.version}]">
+      <condition>
+        <not>
+          <equals arg1="${corepom.project.properties.pool2.version}" arg2="${pool2.version}"/>
         </not>
       </condition>
     </fail>
@@ -1036,7 +1044,7 @@
   are used when there is one.
   -->
   <macrodef name="shadeJar">
-    <attribute name="profile"/><!-- loader (Felix) or core (ASM), see ant/shade/pom.xml -->
+    <attribute name="profile"/><!-- loader (Felix) or core (ASM, commons-pool2), see ant/shade/pom.xml -->
     <attribute name="input"/><!-- the folder that gets shaded -->
     <attribute name="manifest"/><!-- the manifest of the result -->
     <attribute name="output"/><!-- the folder that receives lucee-shaded.jar and the licenses -->
@@ -1055,6 +1063,7 @@
         <arg value="-P@{profile}"/>
         <arg value="-Dfelix.version=${felix.version}"/>
         <arg value="-Dasm.version=${asm.version}"/>
+        <arg value="-Dpool2.version=${pool2.version}"/>
         <arg value="-Dshade.input=@{input}"/>
         <arg value="-Dshade.manifest=@{manifest}"/>
         <arg value="-Dshade.output=@{output}"/>
