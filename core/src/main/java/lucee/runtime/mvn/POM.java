@@ -188,14 +188,15 @@ public final class POM {
 	}
 
 	public void initXMLAsync() {
-		ThreadUtil.getThread(() -> {
+		// LDEV-6715: the download uses the proxy of the request that created the POM
+		ThreadUtil.getThread(HTTPEngine.withRequestProxy(() -> {
 			synchronized (token) {
 				try {
 					initXML();
 				}
 				catch (IOException e) {}
 			}
-		}, true).start();
+		}), true).start();
 	}
 
 	void initXML() throws IOException {
@@ -666,7 +667,8 @@ public final class POM {
 					if ((!optional && p.getOptional()) || !node.addChild(p)) continue;
 					// Handle recursive processing in a separate thread
 					if (recursive) {
-						Future<Pair<IOException, POM>> future = executor.submit(() -> {
+						// LDEV-6715: dependencies are downloaded with the proxy of the calling request
+						Future<Pair<IOException, POM>> future = executor.submit(HTTPEngine.withRequestProxyCallable(() -> {
 							try {
 								getDependencies(p, recursive, level + 1, node, optional);
 							}
@@ -674,7 +676,7 @@ public final class POM {
 								return new Pair<IOException, POM>(ioe, p);
 							}
 							return new Pair<IOException, POM>(null, p);
-						});
+						}));
 						futures.add(future);
 					}
 				}
