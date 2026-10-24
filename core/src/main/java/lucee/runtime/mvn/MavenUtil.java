@@ -563,12 +563,13 @@ public final class MavenUtil {
 	}
 
 	public static void downloadAsync(POM pom, Collection<Repository> repositories, String type, Log log) {
-		ThreadUtil.getThread(() -> {
+		// LDEV-6715: the download uses the proxy of the calling request
+		ThreadUtil.getThread(HTTPEngine.withRequestProxy(() -> {
 			try {
 				download(pom, repositories, type, log);
 			}
 			catch (IOException e) {}
-		}, true).start();
+		}), true).start();
 	}
 
 	public static Resource download(POM pom, Collection<Repository> repositories, String type, Log log) throws IOException {
