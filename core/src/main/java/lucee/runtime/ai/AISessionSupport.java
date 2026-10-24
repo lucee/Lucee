@@ -140,7 +140,8 @@ public abstract class AISessionSupport implements AISessionMultipart {
 		if (url instanceof java.net.URL) u = (java.net.URL) url;
 		else if (url instanceof java.net.URI) u = ((java.net.URI) url).toURL();
 		else u = new java.net.URL(url.toString());
-		return new HTTPRequest().setMethod(method).setURL(u);
+		// LDEV-6580: AI requests go through the configured server proxy, like cfhttp
+		return new HTTPRequest().setMethod(method).setURL(u).setProxy(AIUtil.getProxyData(u.getHost()));
 	}
 
 	/**

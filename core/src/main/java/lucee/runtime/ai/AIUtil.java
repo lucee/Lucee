@@ -16,9 +16,12 @@ import lucee.commons.net.http.HTTPResponse;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.CoderException;
+import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -462,5 +465,17 @@ public final class AIUtil {
 			if (a.isStructured() || !a.isText()) return false;
 		}
 		return true;
+	}
+
+	/**
+	 * the configured server proxy for the given host (LDEV-6580), null if there is none or the host is
+	 * excluded
+	 *
+	 * @param host host of the target URL, used to check the proxy exclusion list
+	 */
+	public static ProxyData getProxyData(String host) {
+		Config config = ThreadLocalPageContext.getConfig();
+		if (config == null) return null;
+		return ProxyDataImpl.validate(config.getProxyData(), host);
 	}
 }
