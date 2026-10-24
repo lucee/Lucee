@@ -64,6 +64,11 @@ public final class LuceeExtension extends BIF {
 				for (Entry<String, Object> e: data.entrySet()) {
 					sct.set(Caster.toKey(e.getKey()), e.getValue());
 				}
+				// LDEV-6523: the provider no longer looks for the pom of an extension, so we do it only here
+				if (!data.containsKey("pom")) {
+					String pom = MavenUpdateProvider.getPOMURL(Caster.toString(data.get("lex"), null));
+					if (pom != null) sct.set("pom", pom);
+				}
 
 				boolean detailed = args.length == 4 ? Caster.toBooleanValue(args[3]) : false;
 

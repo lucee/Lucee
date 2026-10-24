@@ -25,7 +25,7 @@
   <property name="extOracle"    value="org.lucee:oracle-jdbc-extension:23.8.0.25.04-ojdbc11"/>
   <property name="extLucene"    value="org.lucee:lucene-search-extension:3.0.0.163"/>
   <property name="extAxis"      value="org.lucee:axis-extension:1.5.0.6"/>
-  <property name="extChart"     value="org.lucee:chart-extension:3.0.0.0-BETA"/>
+  <property name="extChart"     value="org.lucee:chart-extension:2.0.0.3"/>
   <property name="extRedis"     value="org.lucee:redis-extension:4.1.0.1-RC"/>
   <property name="extHibernate" value="org.lucee:hibernate-extension:5.6.15.21"/>
   <property name="extEHCache"   value="org.lucee:ehcache-extension:2.10.9.2-BETA"/>

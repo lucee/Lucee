@@ -435,6 +435,8 @@ public final class MavenUpdateProvider {
 						String base = repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v;
 						// LDEV-6704: for the core, look for the .lco first, a version with only .lco and pom is valid
 						boolean lcoFirst = "jar".equals(requiredArtifactExtension);
+						// LDEV-6523: only the core has a .lco, and the .pom is not needed to install an extension
+						boolean isCore = DEFAULT_GROUP.equals(group) && DEFAULT_ARTIFACT.equals(artifact);
 						HTTPDownloaderHeadResponse rspLco = null;
 						URL urlLco = new URL(base + ".lco");
 						if (lcoFirst) {
@@ -457,7 +459,7 @@ public final class MavenUpdateProvider {
 
 							// optional
 							// pom
-							{
+							if (isCore) {
 								URL url = new URL(base + ".pom");
 								HTTPDownloaderHeadResponse rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
 								if (rsp != null && validSatusCode(rsp.getStatusCode())) {
@@ -468,7 +470,7 @@ public final class MavenUpdateProvider {
 							if (hasLco) {
 								result.put("lco", urlLco.toExternalForm());
 							}
-							else if (!lcoFirst) {
+							else if (!lcoFirst && isCore) {
 								HTTPDownloaderHeadResponse rsp = HTTPEngine.head(urlLco, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
 								if (rsp != null && validSatusCode(rsp.getStatusCode())) {
 									result.put("lco", urlLco.toExternalForm());
@@ -595,6 +597,29 @@ public final class MavenUpdateProvider {
 			sb.append(r.url);
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * returns the url of the pom next to the given artifact url, or null if there is none
+	 */
+	public static String getPOMURL(String artifactUrl) throws IOException {
+		URL url = toSiblingURL(artifactUrl, "pom");
+		if (url == null) return null;
+		HTTPDownloaderHeadResponse rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true, null);
+		if (rsp != null && rsp.getStatusCode() >= 200 && rsp.getStatusCode() < 300) return url.toExternalForm();
+		return null;
+	}
+
+	/**
+	 * returns the url of the file with the given extension in the same folder and with the same name as
+	 * the given artifact url, or null if the url has no extension
+	 */
+	public static URL toSiblingURL(String artifactUrl, String extension) throws IOException {
+		if (artifactUrl == null) return null;
+		int slash = artifactUrl.lastIndexOf('/');
+		int dot = artifactUrl.lastIndexOf('.');
+		if (dot <= slash) return null;
+		return new URL(artifactUrl.substring(0, dot + 1) + extension);
 	}
 
 	private boolean validSatusCode(int code) {
