@@ -1286,6 +1286,7 @@ public final class ASMUtil {
 						else if ("25".equals(vs) || "25.0".equals(vs)) javaBytecodeVersion = Opcodes.V25;
 						else if ("26".equals(vs) || "26.0".equals(vs)) javaBytecodeVersion = Opcodes.V26;
 						else if ("27".equals(vs) || "27.0".equals(vs)) javaBytecodeVersion = Opcodes.V27;
+						else if ("28".equals(vs) || "28.0".equals(vs)) javaBytecodeVersion = Opcodes.V28;
 					}
 
 					// we do not use the version of the JVM by default, because this would limit the use of lucee
@@ -1340,7 +1341,7 @@ public final class ASMUtil {
 	}
 
 	public static int getMaxVersion() {
-		return Opcodes.V27;
+		return Opcodes.V28;
 	}
 
 	private static Map<Type, String> names = new HashMap<>();
