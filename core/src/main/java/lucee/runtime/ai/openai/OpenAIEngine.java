@@ -566,16 +566,24 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 
 			// Execute the request
 			CloseableHttpResponse response = httpClient.execute(get);
-			HttpEntity responseEntity = response.getEntity();
+			try {
+				HttpEntity responseEntity = response.getEntity();
 
-			if ("application/json".equals(responseEntity.getContentType().getValue())) {
-				String responseString = EntityUtils.toString(responseEntity, charset);
-				Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
-				throwIfError(sct, AIUtil.getStatusCode(response));
+				if ("application/json".equals(responseEntity.getContentType().getValue())) {
+					String responseString = EntityUtils.toString(responseEntity, charset);
+					Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
+					throwIfError(sct, AIUtil.getStatusCode(response));
+				}
+
+				// Return the InputStream, caller is responsible for closing it, that also releases the pooled
+				// connection
+				return responseEntity.getContent();
 			}
-
-			// Return the InputStream, caller is responsible for closing it
-			return responseEntity.getContent();
+			catch (Exception e) {
+				// the connection comes from the shared pool, release it when no stream is handed out
+				IOUtil.closeEL(response);
+				throw e;
+			}
 
 		}
 		catch (Exception e) {
