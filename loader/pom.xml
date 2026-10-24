@@ -20,7 +20,7 @@
     <!-- the version of Felix that gets shaded into the jar, also read by the Ant build (ant/build-core.xml) -->
     <felix.version>7.0.5</felix.version>
     <!-- the version of ASM that gets shaded into the core -->
-    <asm.version>9.10.1</asm.version>
+    <asm.version>9.11.1</asm.version>
     <!-- the version of commons-pool2 that gets shaded into the core -->
     <pool2.version>2.13.1</pool2.version>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

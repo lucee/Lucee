@@ -18,7 +18,7 @@
     <maven.compiler.release>21</maven.compiler.release>
     <!-- loader/pom.xml defines felix.version, this pom is standalone and cannot inherit it, the build (ant/build-core.xml) fails if the two are not the same. Felix is only needed to compile against the OSGi API -->
     <felix.version>7.0.5</felix.version>
-    <asm.version>9.10.1</asm.version>
+    <asm.version>9.11.1</asm.version>
     <pool2.version>2.13.1</pool2.version>
   </properties>
 
