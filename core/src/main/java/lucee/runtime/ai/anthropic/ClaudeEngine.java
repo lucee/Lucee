@@ -13,7 +13,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import lucee.commons.lang.StringUtil;
@@ -31,7 +30,6 @@ import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
-import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
@@ -52,7 +50,6 @@ public final class ClaudeEngine extends AIEngineSupport {
 	private int socketTimeout;
 	private int connectTimeout;
 	private String charset;
-	ProxyData proxy = null;
 	private int conversationSizeLimit = DEFAULT_CONVERSATION_SIZE_LIMIT;
 	Struct custom;
 	Map<String, String> headers;
@@ -193,7 +190,7 @@ public final class ClaudeEngine extends AIEngineSupport {
 			RequestConfig config = AISessionSupport.setTimeout(RequestConfig.custom(), getConnectTimeout(), getSocketTimeout()).build();
 			get.setConfig(config);
 
-			try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(get)) {
+			try (CloseableHttpClient httpClient = AIUtil.createHttpClient(baseURL.getHost()); CloseableHttpResponse response = httpClient.execute(get)) {
 				HttpEntity responseEntity = response.getEntity();
 				Header ct = responseEntity.getContentType();
 				MimeType mt = ct == null ? null : MimeType.getInstance(ct.getValue());

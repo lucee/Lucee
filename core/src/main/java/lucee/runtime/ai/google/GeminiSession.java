@@ -16,7 +16,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import lucee.commons.io.log.Log;
@@ -158,7 +157,7 @@ public final class GeminiSession extends AISessionSupport {
 		RequestConfig config = AISessionSupport.setTimeout(RequestConfig.custom(), this).build();
 		post.setConfig(config);
 
-		try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(post)) {
+		try (CloseableHttpClient httpClient = AIUtil.createHttpClient(url.getHost()); CloseableHttpResponse response = httpClient.execute(post)) {
 
 			HttpEntity responseEntity = response.getEntity();
 			Header ct = responseEntity.getContentType();

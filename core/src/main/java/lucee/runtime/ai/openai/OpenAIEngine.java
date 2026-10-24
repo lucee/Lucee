@@ -22,7 +22,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import lucee.commons.io.IOUtil;
@@ -50,7 +49,6 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.listener.SerializationSettings;
-import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
@@ -136,7 +134,6 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 	int socketTimeout = DEFAULT_SOCKET_TIMEOUT;
 	int connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 	String charset;
-	ProxyData proxy = null;
 	Map<String, String> formfields = null;
 	String model;
 	String label = "OpenAI";
@@ -330,7 +327,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			RequestConfig config = AISessionSupport.setRedirect(AISessionSupport.setTimeout(RequestConfig.custom(), getConnectTimeout(), getSocketTimeout())).build();
 			get.setConfig(config);
 
-			try (CloseableHttpClient httpClient = HttpClients.createDefault(); CloseableHttpResponse response = httpClient.execute(get)) {
+			try (CloseableHttpClient httpClient = AIUtil.createHttpClient(baseURL.getHost()); CloseableHttpResponse response = httpClient.execute(get)) {
 
 				HttpEntity responseEntity = response.getEntity();
 				Header ct = responseEntity.getContentType();
@@ -383,7 +380,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			URI url = new URI(getBaseURL() + "fine_tuning/jobs");
 			InputStream is = null;
 			// Create HttpClient
-			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			try (CloseableHttpClient httpClient = AIUtil.createHttpClient(baseURL.getHost())) {
 				// Create HttpPost request
 				HttpPost post = new HttpPost(url);
 				post.setHeader("Content-Type", AIUtil.createJsonContentType(charset));
@@ -426,7 +423,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			URI url = new URI(getBaseURL() + "files");
 			InputStream is = null;
 			// Create HttpClient
-			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			try (CloseableHttpClient httpClient = AIUtil.createHttpClient(baseURL.getHost())) {
 				// Create HttpPost request
 				HttpPost uploadFile = new HttpPost(url);
 				uploadFile.setHeader("Authorization", "Bearer " + secretKey);
@@ -478,7 +475,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			URI url = new URI(getBaseURL() + "files");
 			InputStream is = null;
 			// Create HttpClient
-			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			try (CloseableHttpClient httpClient = AIUtil.createHttpClient(baseURL.getHost())) {
 				// Create HttpPost request
 				HttpGet get = new HttpGet(url);
 				get.setHeader("Authorization", "Bearer " + secretKey);
@@ -536,7 +533,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			URI url = new URI(getBaseURL() + "files/" + id.trim());
 			InputStream is = null;
 			// Create HttpClient
-			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			try (CloseableHttpClient httpClient = AIUtil.createHttpClient(baseURL.getHost())) {
 				// Create HttpPost request
 				HttpGet get = new HttpGet(url);
 				get.setHeader("Authorization", "Bearer " + secretKey);
@@ -589,7 +586,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			URI url = new URI(getBaseURL() + "files/" + id.trim() + "/content");
 
 			// Create HttpClient
-			CloseableHttpClient httpClient = HttpClients.createDefault();
+			CloseableHttpClient httpClient = AIUtil.createHttpClient(baseURL.getHost());
 
 			// Create HttpGet request
 			HttpGet get = new HttpGet(url);
@@ -597,16 +594,24 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 
 			// Execute the request
 			CloseableHttpResponse response = httpClient.execute(get);
-			HttpEntity responseEntity = response.getEntity();
+			try {
+				HttpEntity responseEntity = response.getEntity();
 
-			if ("application/json".equals(responseEntity.getContentType().getValue())) {
-				String responseString = EntityUtils.toString(responseEntity, charset);
-				Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
-				throwIfError(sct, AIUtil.getStatusCode(response));
+				if ("application/json".equals(responseEntity.getContentType().getValue())) {
+					String responseString = EntityUtils.toString(responseEntity, charset);
+					Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
+					throwIfError(sct, AIUtil.getStatusCode(response));
+				}
+
+				// Return the InputStream, caller is responsible for closing it, that also releases the pooled
+				// connection
+				return responseEntity.getContent();
 			}
-
-			// Return the InputStream, caller is responsible for closing it
-			return responseEntity.getContent();
+			catch (Exception e) {
+				// the connection comes from the shared pool, release it when no stream is handed out
+				IOUtil.closeEL(response);
+				throw e;
+			}
 
 		}
 		catch (Exception e) {
@@ -620,7 +625,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 			URI url = new URI(getBaseURL() + "files/" + id.trim());
 			InputStream is = null;
 			// Create HttpClient
-			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			try (CloseableHttpClient httpClient = AIUtil.createHttpClient(baseURL.getHost())) {
 				// Create HttpPost request
 				HttpDelete get = new HttpDelete(url);
 				get.setHeader("Authorization", "Bearer " + secretKey);
