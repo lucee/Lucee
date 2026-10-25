@@ -770,7 +770,7 @@ public final class WDDXConverter extends ConverterSupport {
 	 */
 	private Object _deserializeStruct(Element elStruct) throws ConverterException {
 		String type = elStruct.getAttribute("type");
-		Struct struct = new StructImpl();
+		Struct struct = new StructImpl(Struct.TYPE_LINKED);
 
 		NodeList list = elStruct.getChildNodes();
 		int len = list.getLength();

@@ -25,7 +25,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//public function setUp(){}
 
 	public void function testStruct() localmode="modern" {
-		src = {"test & test":'test & test'};
+		// LDEV-6697 wddx2cfml returns ordered structs, so the source is ordered as well
+		src = ["test & test":'test & test'];
 		
 		wddx action="cfml2wddx" input="#src#" output="wddx" validate='yes';
 		wddx action="wddx2cfml" input="#wddx#" output="trg";
