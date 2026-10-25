@@ -46,15 +46,16 @@ import lucee.commons.collection.RefMap;
 import lucee.commons.collection.RefMap.ReferenceType;
 import lucee.commons.date.DateTimeException;
 import lucee.commons.date.DateTimeUtil;
+import lucee.commons.date.TwoDigitYear;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 
 public final class FormatUtil {
 
-	private static final short FORMAT_TYPE_DATE = 1;
-	private static final short FORMAT_TYPE_TIME = 2;
-	private static final short FORMAT_TYPE_DATE_TIME = 3;
+	static final short FORMAT_TYPE_DATE = 1;
+	static final short FORMAT_TYPE_TIME = 2;
+	static final short FORMAT_TYPE_DATE_TIME = 3;
 
 	private static final LocalTime DEFAULT_TIME = LocalTime.of(0, 0, 0);
 	private static final LocalDate DEFAULT_DATE = LocalDate.of(1899, 12, 30);
@@ -68,7 +69,7 @@ public final class FormatUtil {
 	private static final int DEFAULT_MILLISECOND;
 
 	static {
-		DEFAULT_YEAR = year(DEFAULT_DATE);
+		DEFAULT_YEAR = DEFAULT_DATE.getYear();
 		DEFAULT_MONTH = DEFAULT_DATE.get(ChronoField.MONTH_OF_YEAR);
 		DEFAULT_DAY = DEFAULT_DATE.get(ChronoField.DAY_OF_MONTH);
 
@@ -564,7 +565,7 @@ public final class FormatUtil {
 			}
 
 			if (FormatUtil.FORMAT_TYPE_DATE_TIME == fw.type) {
-				int year = year(accessor);
+				int year = year(accessor, fw);
 				int month = accessor.get(ChronoField.MONTH_OF_YEAR);
 				int day = accessor.get(ChronoField.DAY_OF_MONTH);
 				int hour = hour(accessor);
@@ -576,7 +577,7 @@ public final class FormatUtil {
 
 			}
 			else if (FormatUtil.FORMAT_TYPE_DATE == fw.type) {
-				int year = year(accessor);
+				int year = year(accessor, fw);
 				int month = accessor.get(ChronoField.MONTH_OF_YEAR);
 				int day = accessor.get(ChronoField.DAY_OF_MONTH);
 
@@ -619,7 +620,7 @@ public final class FormatUtil {
 			if (FormatUtil.FORMAT_TYPE_DATE_TIME == fw.type) {
 				return DateTimeUtil.getInstance().toTime(zone,
 
-						year(accessor),
+						year(accessor, fw),
 
 						accessor.get(ChronoField.MONTH_OF_YEAR),
 
@@ -639,7 +640,7 @@ public final class FormatUtil {
 			else if (FormatUtil.FORMAT_TYPE_DATE == fw.type) {
 				return DateTimeUtil.getInstance().toTime(zone,
 
-						year(accessor),
+						year(accessor, fw),
 
 						accessor.get(ChronoField.MONTH_OF_YEAR),
 
@@ -693,15 +694,11 @@ public final class FormatUtil {
 		return 0;
 	}
 
-	private static final int year(TemporalAccessor accessor) {
+	private static final int year(TemporalAccessor accessor, FormatterWrapper fw) {
 		int year = accessor.isSupported(ChronoField.YEAR) ? accessor.get(ChronoField.YEAR) : accessor.get(ChronoField.YEAR_OF_ERA);
-		if (year < 100) {
-			if (year < 40) {
-				return year + 2000;
-			}
-			return year + 1900;
-		}
-		return year;
+		// a "yy" pattern already maps the two digits to 2000-2099, undo that so the common rule is used
+		if (fw.twoDigitYear && year >= 2000 && year <= 2099) return TwoDigitYear.toYear(year - 2000);
+		return TwoDigitYear.toYear(year);
 	}
 
 	private static class Pattern {

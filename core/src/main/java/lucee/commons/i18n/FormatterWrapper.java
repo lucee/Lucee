@@ -1,8 +1,12 @@
 package lucee.commons.i18n;
 
 import java.time.ZoneId;
+import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.FormatStyle;
 import java.time.format.ResolverStyle;
+import java.util.Locale;
 
 public final class FormatterWrapper {
 	public final DateTimeFormatter formatter;
@@ -14,6 +18,8 @@ public final class FormatterWrapper {
 	public final boolean custom;
 	public final short type;
 	public final ZoneId zone;
+
+	final boolean twoDigitYear;
 
 	private final boolean hasComma;
 	private final boolean hasSlash;
@@ -44,6 +50,45 @@ public final class FormatterWrapper {
 		this.hasColon = pattern.indexOf(':') != -1;
 		this.hasTimeZone = pattern.indexOf('z') != -1 || pattern.indexOf('Z') != -1;
 		this.hasWhitespace = pattern.chars().anyMatch(Character::isWhitespace);
+		this.twoDigitYear = hasTwoDigitYear(formatter, pattern, type);
+	}
+
+	private static boolean hasTwoDigitYear(DateTimeFormatter formatter, String pattern, short type) {
+		FormatStyle style = toFormatStyle(pattern);
+		if (style != null) {
+			if (type == FormatUtil.FORMAT_TYPE_TIME) return false;
+			try {
+				Locale locale = formatter.getLocale();
+				pattern = DateTimeFormatterBuilder.getLocalizedDateTimePattern(style, type == FormatUtil.FORMAT_TYPE_DATE ? null : style, IsoChronology.INSTANCE,
+						locale == null ? Locale.getDefault() : locale);
+			}
+			catch (Exception e) {
+				return false;
+			}
+		}
+		// "yy" and "uu" (exactly two letters, outside of quoted text) parse a reduced two-digit year
+		boolean quoted = false;
+		int len = pattern.length();
+		for (int i = 0; i < len; i++) {
+			char c = pattern.charAt(i);
+			if (c == '\'') {
+				quoted = !quoted;
+				continue;
+			}
+			if (quoted || (c != 'y' && c != 'u')) continue;
+			int start = i;
+			while (i + 1 < len && pattern.charAt(i + 1) == c) i++;
+			if (i - start == 1) return true;
+		}
+		return false;
+	}
+
+	private static FormatStyle toFormatStyle(String pattern) {
+		if ("short".equalsIgnoreCase(pattern)) return FormatStyle.SHORT;
+		if ("medium".equalsIgnoreCase(pattern)) return FormatStyle.MEDIUM;
+		if ("long".equalsIgnoreCase(pattern)) return FormatStyle.LONG;
+		if ("full".equalsIgnoreCase(pattern)) return FormatStyle.FULL;
+		return null;
 	}
 
 	@Override
