@@ -22,7 +22,8 @@
 		<attribute name="coremanifest" />
 		<![CDATA[
 		var debug=false;
-		var bundles = attributes.get("bundles").split( java.io.File.pathSeparator );
+		var bundlesAttr = attributes.get( "bundles" );
+		var bundles = ( bundlesAttr == null || bundlesAttr.trim() == "" ) ? [] : bundlesAttr.split( java.io.File.pathSeparator );
 		var target = attributes.get( "target" );
 		var coreManifestPath = attributes.get( "coremanifest" );
 		var _echo = project.createTask( "echo" );
@@ -38,7 +39,15 @@
 		// read the core Manifest
 		var manifest = new java.util.jar.Manifest( new java.io.FileInputStream( new java.io.File( coreManifestPath ) ) );
 		var attrs = manifest.getMainAttributes();
-		var reqBundles = attrs.getValue("Require-Bundle").split( "," );
+		// Require-Bundle is optional, the core does not have to require any bundle
+		var reqBundle = attrs.getValue( "Require-Bundle" );
+		var reqBundles = [];
+		if ( reqBundle != null && reqBundle.trim() != "" ) {
+			var parts = reqBundle.split( "," );
+			for ( var p = 0 ; p < parts.length ; p++ ) {
+				if ( parts[ p ].trim() != "" ) reqBundles.push( parts[ p ].trim() );
+			}
+		}
 		var reqBundleFrag = attrs.getValue( "Require-Bundle-Fragment" );
 		if ( reqBundleFrag != null )
 			reqBundleFrag = reqBundleFrag.split( "," );
@@ -47,8 +56,9 @@
 
 		for ( var i = 0 ; i < bundles.length ; i++ ) {
 			var bundle = bundles[ i ].trim();
+			if ( bundle == "" ) continue;
 			// first we read the manifest
-			var manifest = new java.util.jar.JarFile( bundles[i] ).getManifest();
+			var manifest = new java.util.jar.JarFile( bundle ).getManifest();
 			var attrs = manifest.getMainAttributes();
 			var name = attrs.getValue( "Bundle-SymbolicName" );
 			var version = attrs.getValue( "Bundle-Version" );

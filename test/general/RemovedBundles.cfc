@@ -21,7 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 		describe( "commons-email-all and commons-logging are not part of the core anymore", function() {
 
 			it( title="the core does not require the bundles", body=function( currentSpec ) {
-				var requires = variables.core.getHeaders().get( "Require-Bundle" );
+				var requires = variables.core.getHeaders().get( "Require-Bundle" ) ?: "";
 				expect( requires ).notToInclude( "commons-email" );
 				expect( requires ).notToInclude( "commons-logging" );
 				var imports = variables.core.getHeaders().get( "Import-Package" ) ?: "";

@@ -49,6 +49,8 @@ public final class GetTagList implements Function {
 		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		TagLib[] tlds;
 		TagLibTag tag;
+		// tlds/flds loaded before the extensions only get their extension id once the extensions are loaded (LDEV-6720)
+		((ConfigPro) pc.getConfig()).getRHExtensions();
 		tlds = ((ConfigPro) pc.getConfig()).getTLDs();
 
 		boolean filterByExtension = !StringUtil.isEmpty(extensionFilter, true);

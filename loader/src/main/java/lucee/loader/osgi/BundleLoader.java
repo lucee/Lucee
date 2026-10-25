@@ -109,9 +109,8 @@ public class BundleLoader {
 			if (mani == null) throw new IOException("lucee core [" + rc + "] is invalid, there is no META-INF/MANIFEST.MF File");
 			final Attributes attrs = mani.getMainAttributes();
 
-			// get bundle needed for that core
+			// get bundle needed for that core (optional, a core does not have to require any bundle)
 			final String rb = attrs.getValue("Require-Bundle");
-			if (Util.isEmpty(rb)) throw new IOException("lucee core [" + rc + "] is invalid, no Require-Bundle definition found in the META-INF/MANIFEST.MF File");
 
 			// get fragments needed for that core (Lucee specific Key)
 			final String rbf = attrs.getValue("Require-Bundle-Fragment");

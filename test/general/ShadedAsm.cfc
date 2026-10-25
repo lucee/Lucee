@@ -43,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 			});
 
 			it( title="the core does not require the ASM bundles anymore", body=function( currentSpec ) {
-				var requires = variables.core.getHeaders().get( "Require-Bundle" );
+				var requires = variables.core.getHeaders().get( "Require-Bundle" ) ?: "";
 				expect( requires ).notToInclude( "objectweb" );
 				var imports = variables.core.getHeaders().get( "Import-Package" ) ?: "";
 				expect( imports ).notToInclude( "objectweb" );
