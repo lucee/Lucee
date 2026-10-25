@@ -521,12 +521,6 @@
     <version>1.10.13</version>
     <scope>compile</scope>
   </dependency>
-  <!-- not used by the core itself, but required by bundles of extensions like commons-compress -->
-  <dependency>
-    <groupId>commons-io</groupId>
-    <artifactId>commons-io</artifactId>
-    <version>2.21.0</version>
-  </dependency>
   <dependency>
     <groupId>org.apache.commons</groupId>
     <artifactId>commons-pool2</artifactId>
