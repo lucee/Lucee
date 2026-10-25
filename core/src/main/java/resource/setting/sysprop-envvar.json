@@ -275,6 +275,16 @@
 		"default": 5
 	},
 	{
+		"sysprop": "lucee.date.twodigityear.pivot",
+		"envvar": "LUCEE_DATE_TWODIGITYEAR_PIVOT",
+		"desc": "Controls how two-digit years are converted to full years by all date parsing and casting (parseDateTime(), lsParseDateTime(), createDate(), implicit casts, ...). By default (empty or `sliding`) Java's sliding window is used, as java.text.SimpleDateFormat does: a two-digit year is placed within 80 years before and 20 years after the current date. A number from 0 to 100 sets a fixed pivot instead: two-digit years below the pivot become 20xx, all others 19xx (e.g. `30` maps 00-29 to 2000-2029 and 30-99 to 1930-1999, as createDate() did before Lucee 8.0)",
+		"category": "application",
+		"functions": [ "parseDateTime", "lsParseDateTime", "createDate", "createDateTime" ],
+		"type": "string",
+		"introduced": "8.0.0.0",
+		"default": "sliding"
+	},
+	{
 		"sysprop": "lucee.datetimeformat.mode",
 		"envvar": "LUCEE_DATETIMEFORMAT_MODE",
 		"desc": "Controls how datetimeFormat() interprets pattern masks such as WW and FF. `classic`: Emulates legacy formatting behavior (like Lucee 5), applying zero-padding and pattern length rules. `modern` (default): Uses Lucee 6+ behavior with precise pattern interpretation, aligned with Java's DateTimeFormatter for consistency and clarity. Use `classic` to maintain compatibility with legacy codebases that depend on padded output from formatting masks",

@@ -238,17 +238,14 @@ public abstract class DateTimeUtil {
 	}
 
 	/**
-	 * translate 2 digit numbers to a year; for example 10 to 2010 or 50 to 1950
+	 * translate 2 digit numbers to a year; for example 10 to 2010 or 50 to 1950, see TwoDigitYear for
+	 * the rule used
 	 * 
 	 * @param year
 	 * @return year matching number
 	 */
 	public int toYear(int year) {
-		if (year < 100) {
-			if (year < 30) year = year += 2000;
-			else year = year += 1900;
-		}
-		return year;
+		return TwoDigitYear.toYear(year);
 	}
 
 	/**
