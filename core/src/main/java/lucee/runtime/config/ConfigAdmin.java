@@ -95,6 +95,7 @@ import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.DataSourceSupport;
 import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -1722,8 +1723,42 @@ public final class ConfigAdmin {
 					OSGiUtil.uninstall(bl);
 				}
 				catch (BundleException e) {}
+				// datasources may still hold a driver instance from the uninstalled bundle
+				flushDatasourcesUsingDriver(cd.getClassName());
 			}
 		}
+	}
+
+	private void flushDatasourcesUsingDriver(String className) {
+		// drop the cached driver of the configured datasources
+		DataSource[] dataSources = config.getDataSources();
+		if (dataSources != null) {
+			for (DataSource ds: dataSources) {
+				if (usesDriver(ds, className)) ((DataSourceSupport) ds).resetDriver();
+			}
+		}
+
+		// close the pools of all datasources (including application defined ones) using that driver
+		List<DataSource> affected = new ArrayList<>();
+		for (DatasourceConnPool pool: new ArrayList<>(config.getDatasourceConnectionPools())) {
+			DataSource ds = pool.getFactory().getDatasource();
+			if (usesDriver(ds, className)) affected.add(ds);
+		}
+		for (DataSource ds: affected) {
+			((DataSourceSupport) ds).resetDriver();
+			try {
+				config.removeDatasourceConnectionPool(ds.getName());
+			}
+			catch (Exception e) {
+				LogUtil.log(config, "datasource", e, Log.LEVEL_ERROR, "application");
+			}
+		}
+	}
+
+	private static boolean usesDriver(DataSource ds, String className) {
+		if (!(ds instanceof DataSourceSupport)) return false;
+		ClassDefinition dsCD = ds.getClassDefinition();
+		return dsCD != null && dsCD.isClassNameEqualTo(className);
 	}
 
 	private void _removeStartupHook(ClassDefinitionImpl cd) throws PageException {
