@@ -4692,7 +4692,9 @@ public final class ConfigAdmin {
 
 		ResetFilter filter = new ResetFilter();
 		try {
-			RHExtension ext = ed.toRHExtension(config);
+			// only look at what is installed, never resolve or download a version from a provider
+			RHExtension ext = getInstalledRHExtension(ed);
+			if (ext == null) ext = RHExtension.getInstance(config, ed, false, config.getLog("deploy"));
 			synchronized (SystemUtil.createToken("updateExtension", ext.getId())) {
 				unSyncRemoveExtension(config, ext, null, filter, true, log);
 			}
@@ -4708,6 +4710,19 @@ public final class ConfigAdmin {
 				LogUtil.log("deploy", "start-bundles", e);
 			}
 		}
+	}
+
+	private RHExtension getInstalledRHExtension(ExtensionDefintion ed) {
+		String id = ed.getId();
+		if (StringUtil.isEmpty(id, true)) return null;
+		String version = ed.getVersion();
+		RHExtension[] installed = ((ConfigPro) config).getRHExtensions();
+		if (installed == null) return null;
+		for (RHExtension ext: installed) {
+			if (ext == null || !id.trim().equalsIgnoreCase(ext.getId())) continue;
+			if (StringUtil.isEmpty(version, true) || version.trim().equals(ext.getVersion())) return ext;
+		}
+		return null;
 	}
 
 	/**

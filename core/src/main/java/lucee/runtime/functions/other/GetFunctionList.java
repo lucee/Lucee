@@ -51,6 +51,8 @@ public final class GetFunctionList implements Function {
 		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		// synchronized(sct) {
 		// hasSet=true;
+		// tlds/flds loaded before the extensions only get their extension id once the extensions are loaded (LDEV-6720)
+		((ConfigPro) pc.getConfig()).getRHExtensions();
 		FunctionLib flds = ((ConfigPro) pc.getConfig()).getFLDs();
 		FunctionLibFunction func;
 		Map<String, FunctionLibFunction> _functions;

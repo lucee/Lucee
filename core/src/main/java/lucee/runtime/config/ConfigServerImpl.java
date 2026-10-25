@@ -1371,6 +1371,10 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ "On startup, Lucee synchronizes the environment: it installs missing extensions and removes any existing " + "extensions not present in this list. ");
 	private List<ExtensionDefintion> extensions;
 	private RHExtension[] extensionsX;
+	// set when tlds/flds were loaded before the extensions, so their extension ids are not known yet
+	// (LDEV-6720)
+	private volatile boolean tldExtensionIdsPending;
+	private volatile boolean fldExtensionIdsPending;
 	private int extensionsLoadCount = 0;
 	private Map<String, RHExtension> extensionsLoading;
 
@@ -3079,9 +3083,30 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		}
 	}
 
+	/**
+	 * returns the extensions if they are already loaded, otherwise null, it never triggers loading them.
+	 * If they are not loaded yet, the tlds or flds are flagged to be reloaded once the extensions are.
+	 */
+	private RHExtension[] getLoadedRHExtensions(boolean tld) {
+		RHExtension[] rhes = extensionsX;
+		if (rhes == null) {
+			if (tld) tldExtensionIdsPending = true;
+			else fldExtensionIdsPending = true;
+			rhes = extensionsX; // the extensions may have finished loading in the meantime
+		}
+		return rhes;
+	}
+
+	/**
+	 * returns the id of the extension that provides the given fld file, or null if unknown. This only
+	 * looks at extensions that are already loaded and never triggers loading (and so deploying) them,
+	 * because it is called while the flds are being loaded, which also happens in the middle of an
+	 * extension install (LDEV-6720). If the extensions are not loaded yet, the flds are reloaded once
+	 * they are, so the ids get filled in then.
+	 */
 	public String getExtensionIdForFld(String fldName) {
 		if (StringUtil.isEmpty(fldName, true)) return null;
-		RHExtension[] rhes = getRHExtensions();
+		RHExtension[] rhes = getLoadedRHExtensions(false);
 		if (rhes != null) {
 			for (RHExtension rhe: rhes) {
 				if (rhe == null || rhe.getMetadata() == null) continue;
@@ -3096,9 +3121,13 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		return null;
 	}
 
+	/**
+	 * returns the id of the extension that provides the given tld file, or null if unknown. Like
+	 * {@link #getExtensionIdForFld(String)} this never triggers loading the extensions (LDEV-6720).
+	 */
 	public String getExtensionIdForTld(String tldName) {
 		if (StringUtil.isEmpty(tldName, true)) return null;
-		RHExtension[] rhes = getRHExtensions();
+		RHExtension[] rhes = getLoadedRHExtensions(true);
 		if (rhes != null) {
 			for (RHExtension rhe: rhes) {
 				if (rhe == null || rhe.getMetadata() == null) continue;
@@ -5022,6 +5051,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	public RHExtension[] getRHExtensions() {
 
 		if (extensionsX == null) {
+			boolean loaded = false;
 			synchronized (SystemUtil.createToken("config", "extensions")) {
 				if (extensionsX == null) {
 					// re-entered by the loading thread, e.g. uninstalling an orphaned extension asks for the other installed extensions (LDEV-6462)
@@ -5151,14 +5181,32 @@ public final class ConfigServerImpl implements ConfigServerPro {
 							}
 						}
 						extensionsX = exts.values().toArray(new RHExtension[exts.size()]);
+						loaded = true;
 					}
 					finally {
 						extensionsLoading = null;
 					}
 				}
 			}
+			// outside the extensions lock, so we never wait for the tld/fld lock while holding it
+			if (loaded) resetPendingExtensionIds();
 		}
 		return extensionsX;
+	}
+
+	/**
+	 * tlds/flds loaded before the extensions could not get their extension id, reset them so the next
+	 * access loads them again with the now known extensions (LDEV-6720)
+	 */
+	private void resetPendingExtensionIds() {
+		if (tldExtensionIdsPending) {
+			tldExtensionIdsPending = false;
+			resetTLDs();
+		}
+		if (fldExtensionIdsPending) {
+			fldExtensionIdsPending = false;
+			resetFLDs();
+		}
 	}
 
 	private static void startBundles(ConfigServerImpl config, RHExtension rhe, boolean firstLoad) throws IOException, BundleException {
