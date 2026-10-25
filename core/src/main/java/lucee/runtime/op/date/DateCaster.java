@@ -244,14 +244,6 @@ public final class DateCaster {
 		return defaultValue;
 	}
 
-	private static void optimzeDate(Calendar c, TimeZone tz, Date d) {
-		c.setTimeZone(tz);
-		c.setTime(d);
-		int year = c.get(Calendar.YEAR);
-		if (year < 40) c.set(Calendar.YEAR, 2000 + year);
-		else if (year < 100) c.set(Calendar.YEAR, 1900 + year);
-	}
-
 	public static DateTime toDateAdvanced(String str, TimeZone timeZone, DateTime defaultValue) {
 		return toDateAdvanced(str, CONVERTING_TYPE_OFFSET, timeZone, defaultValue);
 	}
