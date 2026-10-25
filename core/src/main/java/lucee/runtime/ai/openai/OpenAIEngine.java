@@ -573,15 +573,22 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 
 			// Execute the request
 			HTTPResponse response = HTTPEngine.getEngine().execute(get);
+			try {
+				if ("application/json".equals(AISessionSupport.contentType(response))) {
+					String responseString = response.getContentAsString(charset);
+					Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
+					throwIfError(sct, AIUtil.getStatusCode(response));
+				}
 
-			if ("application/json".equals(AISessionSupport.contentType(response))) {
-				String responseString = response.getContentAsString(charset);
-				Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
-				throwIfError(sct, AIUtil.getStatusCode(response));
+				// Return the InputStream, caller is responsible for closing it, that also releases the
+				// connection
+				return response.getContentAsStream();
 			}
-
-			// Return the InputStream, caller is responsible for closing it
-			return response.getContentAsStream();
+			catch (Exception e) {
+				// LDEV-6580: release the connection when no stream is handed out
+				IOUtil.closeEL(response);
+				throw e;
+			}
 
 		}
 		catch (Exception e) {

@@ -1,12 +1,14 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="syntax" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-285", function() {
 			it(title="Check parsing, with coldfusion tag in commented out before 'cfscript' tag", body = function( currentSpec ) {
+				// outside cfscript "//" is not a comment, so the tag is real
 				var uri=createURI("LDEV0285/App1.cfc");
-				var result = _InternalRequest(
-					template:uri
-				);
-				expect(result.filecontent.trim()).toBe("");
+				expect(function(){
+					_InternalRequest(
+						template:uri
+					);
+				}).toThrow(regex="undefined tag \[cflucee\]");
 			});
 
 			it(title="Check parsing, with coldfusion tag in commented out inside 'cfscript' tag", body = function( currentSpec ) {
@@ -18,11 +20,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="syntax
 			});
 
 			it(title="Check parsing, with coldfusion tag in commented out in tag based component", body = function( currentSpec ) {
+				// in a tag based component "//" is not a comment, so the tag is real
 				var uri=createURI("LDEV0285/App3.cfc");
-				var result = _InternalRequest(
-					template:uri
-				);
-				expect(result.filecontent.trim()).toBe("");
+				expect(function(){
+					_InternalRequest(
+						template:uri
+					);
+				}).toThrow(regex="undefined tag \[cflucee\]");
 			});
 
 			it(title="Check parsing, with cfargument tag commented out in a script based component", body = function( currentSpec ) {
@@ -31,6 +35,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="syntax
 					template:uri
 				);
 				expect(result.filecontent.trim()).toBe("");
+			});
+
+			it(title="Check parsing, with unclosed cfif in a line comment in a script based component", body = function( currentSpec ) {
+				expect(new LDEV0285.LineComment().test()).toBe("line");
+			});
+
+			it(title="Check parsing, with unclosed cfif in a block comment in a script based component", body = function( currentSpec ) {
+				expect(new LDEV0285.BlockComment().test()).toBe("block");
+			});
+
+			it(title="Check parsing, with unclosed cfif in a string in a script based component", body = function( currentSpec ) {
+				expect(new LDEV0285.InString().test()).toBe("this is <cfif xys>");
+			});
+
+			it(title="Check parsing, broken tag based component still reports the tag error", body = function( currentSpec ) {
+				expect(function(){
+					new LDEV0285.BrokenTag();
+				}).toThrow(regex="Start and End Tag do not match \[cfif-cfcomponent\]");
 			});
 		});
 	}

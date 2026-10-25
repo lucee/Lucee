@@ -469,7 +469,14 @@ public class ExtensionProvider {
 			synchronized (SystemUtil.createToken("ExtensionProvider", "getPOM:" + group + ":" + artifact)) {
 				if (!local.isFile()) {
 					local.getParentResource().mkdirs();
-					IOUtil.copy(get(artifact, version), local, true);
+					InputStream is = get(artifact, ext, version);
+					try {
+						IOUtil.copy(is, local, true);
+					}
+					catch (IOException e) {
+						local.delete();
+						throw e;
+					}
 				}
 			}
 		}
@@ -489,15 +496,19 @@ public class ExtensionProvider {
 		return defaultValue;
 	}
 
-	private InputStream get(String artifact, Version version) throws PageException, IOException, SAXException {
+	private InputStream get(String artifact, String ext, Version version) throws PageException, IOException, SAXException {
 		Map<String, Object> detail = detail(artifact, version);
 		if (detail != null) {
-			URL url = HTTPUtil.toURL(Caster.toString(detail.get(EXTENSION_EXTENSION), null), Http.ENCODED_NO, null);
+			URL url = HTTPUtil.toURL(Caster.toString(detail.get(ext), null), Http.ENCODED_NO, null);
+			// LDEV-6523: the detail only knows the .lex, other files (like the .pom) are next to it
+			if (url == null && !EXTENSION_EXTENSION.equals(ext)) {
+				url = MavenUpdateProvider.toSiblingURL(Caster.toString(detail.get(EXTENSION_EXTENSION), null), ext);
+			}
 			if (url != null) {
 				return HTTPEngine.get(url, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT);
 			}
 		}
-		throw new ApplicationException("there is no [" + EXTENSION_EXTENSION + "] artifact for [" + this.group + ":" + artifact + ":" + version + "]");
+		throw new ApplicationException("there is no [" + ext + "] artifact for [" + this.group + ":" + artifact + ":" + version + "]");
 	}
 
 	/**
