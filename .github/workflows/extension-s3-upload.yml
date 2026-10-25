@@ -1,6 +1,8 @@
 # Reusable workflow (LDEV-XXXX): uploads one extension build into the Maven layout on the lucee-downloads bucket (cdn.lucee.org)
 #   org/lucee/<artifactId>/<version>/<artifactId>-<version>.lex (+ -lite.lex, .pom, .sha1) and updates the version,
 #   artifact and org/lucee group metadata + index.html, like organize-extensions.yml does by hand.
+# RC/BETA/ALPHA builds also upload the extension's own org.lucee jar(s) from the full .lex (not on Maven Central, the lite .lex
+#   only references them) and fail when the lite .lex references a jar the full .lex does not contain (LDEV-6721).
 # The cut-off (2027-03-01, LDEV-6537) is defined once, in .github/scripts/upload-extension-to-s3.js:
 #   before: every build incl. SNAPSHOT; from then on: SNAPSHOT skipped, RC/BETA/ALPHA/final Maven layout only.
 #
