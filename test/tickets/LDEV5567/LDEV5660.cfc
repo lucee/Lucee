@@ -53,7 +53,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	private struct function getBundlesFromManifest( mfPath ){
 		var manifest = manifestRead(mfPath);
-		var bundles = manifest.main["Require-Bundle"];
+		var bundles = manifest.main["Require-Bundle"] ?: "";
 		var _bundles = listToArray(bundles);
 		var manifestBundles = {};
 		arrayEach(_bundles, function(el){
