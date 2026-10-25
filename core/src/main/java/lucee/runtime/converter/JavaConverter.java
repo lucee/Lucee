@@ -28,6 +28,11 @@ import java.io.ObjectStreamClass;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.Writer;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
@@ -141,18 +146,15 @@ public final class JavaConverter extends ConverterSupport implements BinaryConve
 			String name = desc.getName();
 
 			// once one class of the graph resolved through an extension, the rest uses the same loader
+			Class<?> clazz;
 			if (extensionLoader != null) {
-				try {
-					return Class.forName(name, false, extensionLoader);
-				}
-				catch (ClassNotFoundException cnf) {}
+				clazz = ResolvedClassCache.forName(name, extensionLoader);
+				if (clazz != null) return clazz;
 			}
 
 			if (cl != null) {
-				try {
-					return Class.forName(name, false, cl);
-				}
-				catch (ClassNotFoundException ex) {}
+				clazz = ResolvedClassCache.forName(name, cl);
+				if (clazz != null) return clazz;
 			}
 
 			try {
@@ -162,7 +164,7 @@ public final class JavaConverter extends ConverterSupport implements BinaryConve
 				// the class may be contributed by an installed extension and therefore not visible to the
 				// core engine classloader (e.g. the mail extension's MailSpoolerTask persisted by the
 				// spooler). Resolve it through the extension's maven artifacts and reuse that loader.
-				Class<?> clazz = loadFromExtensions(name);
+				clazz = loadFromExtensions(name);
 				if (clazz != null) {
 					extensionLoader = clazz.getClassLoader();
 					return clazz;
@@ -173,6 +175,103 @@ public final class JavaConverter extends ConverterSupport implements BinaryConve
 
 		public ClassLoader getClassLoader() {
 			return cl;
+		}
+	}
+
+	/**
+	 * Caches the outcome of Class.forName(name, false, loader) per class loader, so deserializing the same
+	 * types concurrently does not queue every caller on the class loading lock of the loader (LDEV-6717).
+	 * Loaders are held through weak keys and classes through weak values, so nothing here keeps a class
+	 * loader alive (extension updates/uninstalls, flushed dynamic loaders). A class a loader could not find
+	 * is only remembered for a short time, after that the loader is asked again.
+	 */
+	static final class ResolvedClassCache {
+
+		private static final long NOT_FOUND_TTL_NANOS = TimeUnit.SECONDS.toNanos(5);
+		private static final int MAX_NOT_FOUND = 1000;
+
+		private static final ConcurrentHashMap<LoaderKey, Entries> CACHE = new ConcurrentHashMap<>();
+		private static final ReferenceQueue<ClassLoader> QUEUE = new ReferenceQueue<>();
+
+		private ResolvedClassCache() {}
+
+		/**
+		 * @return the class, or null if the loader cannot find it
+		 */
+		static Class<?> forName(String name, ClassLoader loader) {
+			if (loader == null) return load(name, null);
+
+			Entries entries = CACHE.get(new LoaderKey(loader, null));
+			if (entries != null) {
+				WeakReference<Class<?>> ref = entries.found.get(name);
+				Class<?> clazz = ref == null ? null : ref.get();
+				if (clazz != null) return clazz;
+
+				Long notFoundAt = entries.notFound.get(name);
+				if (notFoundAt != null) {
+					if (System.nanoTime() - notFoundAt.longValue() < NOT_FOUND_TTL_NANOS) return null;
+					entries.notFound.remove(name, notFoundAt);
+				}
+			}
+
+			Class<?> clazz = load(name, loader);
+			if (entries == null) {
+				expunge();
+				entries = CACHE.computeIfAbsent(new LoaderKey(loader, QUEUE), k -> new Entries());
+			}
+			if (clazz != null) {
+				entries.found.put(name, new WeakReference<>(clazz));
+				entries.notFound.remove(name);
+			}
+			else {
+				if (entries.notFound.size() >= MAX_NOT_FOUND) entries.notFound.clear();
+				entries.notFound.put(name, System.nanoTime());
+			}
+			return clazz;
+		}
+
+		private static Class<?> load(String name, ClassLoader loader) {
+			try {
+				return Class.forName(name, false, loader);
+			}
+			catch (ClassNotFoundException cnfe) {
+				return null;
+			}
+		}
+
+		private static void expunge() {
+			Reference<? extends ClassLoader> ref;
+			while ((ref = QUEUE.poll()) != null) {
+				CACHE.remove(ref);
+			}
+		}
+
+		private static final class Entries {
+			private final ConcurrentHashMap<String, WeakReference<Class<?>>> found = new ConcurrentHashMap<>();
+			private final ConcurrentHashMap<String, Long> notFound = new ConcurrentHashMap<>();
+		}
+
+		private static final class LoaderKey extends WeakReference<ClassLoader> {
+
+			private final int hash;
+
+			LoaderKey(ClassLoader loader, ReferenceQueue<ClassLoader> queue) {
+				super(loader, queue);
+				this.hash = System.identityHashCode(loader);
+			}
+
+			@Override
+			public int hashCode() {
+				return hash;
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (this == obj) return true;
+				if (!(obj instanceof LoaderKey)) return false;
+				ClassLoader loader = get();
+				return loader != null && loader == ((LoaderKey) obj).get();
+			}
 		}
 	}
 
