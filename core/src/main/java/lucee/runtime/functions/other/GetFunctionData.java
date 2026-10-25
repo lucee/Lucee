@@ -54,6 +54,8 @@ public final class GetFunctionData implements Function {
 
 	public static Struct call(PageContext pc, String strFunctionName) throws PageException {
 
+		// tlds/flds loaded before the extensions only get their extension id once the extensions are loaded (LDEV-6720)
+		((ConfigPro) pc.getConfig()).getRHExtensions();
 		FunctionLib flds = ((ConfigPro) pc.getConfig()).getFLDs();
 
 		FunctionLibFunction function = flds.getFunction(strFunctionName.toLowerCase());

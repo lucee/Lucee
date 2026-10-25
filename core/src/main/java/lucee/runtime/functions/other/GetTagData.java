@@ -57,6 +57,8 @@ public final class GetTagData implements Function {
 	private static final long serialVersionUID = -4928080244340202246L;
 
 	public static Struct call(PageContext pc, String nameSpace, String strTagName) throws PageException {
+		// tlds/flds loaded before the extensions only get their extension id once the extensions are loaded (LDEV-6720)
+		ThreadLocalPageContext.getConfigServer(pc).getRHExtensions();
 		TagLibTag tlt = TagUtil.getTagLibTag(ThreadLocalPageContext.getConfigServer(pc), nameSpace, strTagName);
 		if (tlt == null) throw new ExpressionException("tag [" + nameSpace + strTagName + "] is not a built in tag");
 
