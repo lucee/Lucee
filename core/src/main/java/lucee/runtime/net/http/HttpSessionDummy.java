@@ -38,6 +38,8 @@ public final class HttpSessionDummy implements HttpSession {
 	private static final Map<String, HttpSessionDummy> sessions = new ConcurrentHashMap<>();
 	private static final SecureRandom random = new SecureRandom();
 	private static final char[] HEX = "0123456789ABCDEF".toCharArray();
+	private static final long PURGE_INTERVAL = 10000L;
+	private static volatile long lastPurge;
 
 	private volatile String id;
 	private final long creationTime;
@@ -67,7 +69,12 @@ public final class HttpSessionDummy implements HttpSession {
 	 * creates a new session and registers it, so it can be found again with {@link #get(String)}
 	 */
 	public static HttpSessionDummy create() {
-		removeExpired();
+		long now = System.currentTimeMillis();
+		// scan for expired sessions at most every 10 seconds, not on every new session
+		if (now - lastPurge > PURGE_INTERVAL) {
+			lastPurge = now;
+			removeExpired();
+		}
 		HttpSessionDummy session = new HttpSessionDummy();
 		sessions.put(session.id, session);
 		return session;

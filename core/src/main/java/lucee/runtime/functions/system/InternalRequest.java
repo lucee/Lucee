@@ -33,6 +33,10 @@ import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.other.CreatePageContext;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.SessionCookieData;
+import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.HttpServletRequestDummy;
 import lucee.runtime.net.http.HttpServletResponseDummy;
@@ -52,11 +56,13 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
+import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.scope.Form;
 import lucee.runtime.type.scope.FormImpl;
 import lucee.runtime.type.scope.UrlFormImpl;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.util.PageContextUtil;
 
 public class InternalRequest implements Function {
 
@@ -136,7 +142,7 @@ public class InternalRequest implements Function {
 
 			_pc.executeCFML(template, true, false);
 			HttpSession s;
-			if (_pc.getSessionType() == Config.SESSION_TYPE_JEE && (s = _pc.getHttpServletRequest().getSession(false)) != null) _pc.cookieScope().set(KeyConstants._JSESSIONID, s.getId());
+			if (_pc.getSessionType() == Config.SESSION_TYPE_JEE && (s = _pc.getHttpServletRequest().getSession(false)) != null) setSessionIdCookie(_pc, s.getId());
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -319,6 +325,34 @@ public class InternalRequest implements Function {
 			if (req instanceof HttpServletRequestDummy) ((HttpServletRequestDummy) req).setCreateSession(true);
 		}
 		return _pc;
+	}
+
+	/**
+	 * sets the JSESSIONID as a session cookie, with the path, domain, secure, httpOnly, samesite and
+	 * partitioned settings of the application's sessionCookie, like the cfid/cftoken cookies
+	 */
+	private static void setSessionIdCookie(PageContextImpl pc, String id) {
+		String domain = PageContextUtil.getCookieDomain(pc);
+		boolean httpOnly = SessionCookieDataImpl.DEFAULT.isHttpOnly();
+		boolean secure = SessionCookieDataImpl.DEFAULT.isSecure();
+		short samesite = SessionCookieDataImpl.DEFAULT.getSamesite();
+		String path = SessionCookieDataImpl.DEFAULT.getPath();
+		boolean partitioned = SessionCookieDataImpl.DEFAULT.isPartitioned();
+
+		ApplicationContext ac = pc.getApplicationContext();
+		if (ac instanceof ApplicationContextSupport) {
+			SessionCookieData data = ((ApplicationContextSupport) ac).getSessionCookie();
+			if (data != null) {
+				httpOnly = data.isHttpOnly();
+				secure = data.isSecure();
+				samesite = data.getSamesite();
+				partitioned = data.isPartitioned();
+				if (!StringUtil.isEmpty(data.getDomain(), true)) domain = data.getDomain().trim();
+				if (!StringUtil.isEmpty(data.getPath(), true)) path = data.getPath().trim();
+			}
+		}
+		// -1: no expires, the cookie lives as long as the browser session
+		((CookieImpl) pc.cookieScope()).setCookieEL(KeyConstants._JSESSIONID, id, -1, secure, path, domain, httpOnly, true, false, samesite, partitioned);
 	}
 
 	private static String toQueryString(Struct urls, Charset charset) throws PageException {

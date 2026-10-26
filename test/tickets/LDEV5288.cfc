@@ -12,6 +12,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie,session" {
 				expect( jsessionid ).notToBeEmpty();
 				expect( result.session.sessionid ).toBe( jsessionid );
 				expect( result.session.urltoken ).toInclude( "jsessionid=" & jsessionid );
+
+				// same attributes as the application's sessionCookie settings, but no expires (browser session cookie)
+				var attributes = listToArray( listRest( _cookies[ 1 ], ";" ), ";" );
+				expect( arrayFindNoCase( attributes, "Path=/" ) ).toBeGT( 0, _cookies[ 1 ] );
+				expect( arrayFindNoCase( attributes, "HttpOnly" ) ).toBeGT( 0, _cookies[ 1 ] );
+				expect( arrayFindNoCase( attributes, "Secure" ) ).toBeGT( 0, _cookies[ 1 ] );
+				expect( arrayFindNoCase( attributes, "SameSite=Strict" ) ).toBeGT( 0, _cookies[ 1 ] );
+				expect( _cookies[ 1 ] ).notToInclude( "Expires=" );
 			});
 
 			it( title='internalRequest with the jsessionId cookie continues the same jee session', body=function( currentSpec ) {
