@@ -785,6 +785,10 @@ public final class ASMUtil {
 
 		public LuceeClassWriter(int flags) {
 			super(flags);
+			// ASM 9.11 limits the frame computation per method (100M operations), large templates exceed
+			// it, especially with the DAP breakpoint instrumentation, we generate the code ourselves, so
+			// we keep the unlimited behaviour of ASM before 9.11
+			setComputeLimits(Integer.MAX_VALUE, Long.MAX_VALUE);
 		}
 
 		@Override
