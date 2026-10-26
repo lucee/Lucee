@@ -27,7 +27,7 @@ import lucee.runtime.writer.BodyContentImpl;
 
 public final class Silent extends BodyTagTryCatchFinallyImpl {
 
-	private Boolean bufferOutput = true;
+	private boolean bufferOutput = true;
 	private BodyContentImpl bc;
 	private boolean wasSilent;
 
@@ -35,14 +35,12 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 	 * @param bufferOutput the bufferoutput to set
 	 */
 	public void setBufferoutput(boolean bufferOutput) {
-		this.bufferOutput = bufferOutput ? Boolean.TRUE : Boolean.FALSE;
+		this.bufferOutput = bufferOutput;
 	}
 
 	@Override
 	public int doStartTag() throws PageException {
-		if (bufferOutput == null) bufferOutput = (pageContext.getApplicationContext()).getBufferOutput() ? Boolean.TRUE : Boolean.FALSE;
-
-		if (bufferOutput.booleanValue()) bc = (BodyContentImpl) pageContext.pushBody();
+		if (bufferOutput) bc = (BodyContentImpl) pageContext.pushBody();
 		else wasSilent = pageContext.setSilent();
 
 		return EVAL_BODY_INCLUDE;
@@ -51,7 +49,7 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 	@Override
 	public void doCatch(Throwable t) throws Throwable {
 		ExceptionUtil.rethrowIfNecessary(t);
-		if (bufferOutput.booleanValue()) {
+		if (bufferOutput) {
 			try {
 				bc.flush();
 			}
@@ -66,7 +64,7 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 
 	@Override
 	public void doFinally() {
-		if (bufferOutput.booleanValue()) {
+		if (bufferOutput) {
 			if (bc != null) {
 				bc.clearBody();
 				pageContext.popBody();

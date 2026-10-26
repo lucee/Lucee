@@ -35,14 +35,16 @@ public final class SaveContent extends BodyTagTryCatchFinallyImpl {
 
 	/** The name of the variable in which to save the generated content inside the tag. */
 	private String variable;
-	private Boolean trim = null;
+	private boolean trim;
+	private boolean hasTrim;
 	private boolean append;
 
 	@Override
 	public void release() {
 		super.release();
 		variable = null;
-		trim = null;
+		trim = false;
+		hasTrim = false;
 		append = false;
 	}
 
@@ -58,6 +60,7 @@ public final class SaveContent extends BodyTagTryCatchFinallyImpl {
 
 	public void setTrim(boolean trim) {
 		this.trim = trim;
+		this.hasTrim = true;
 	}
 
 	/**
@@ -76,7 +79,8 @@ public final class SaveContent extends BodyTagTryCatchFinallyImpl {
 	@Override
 	public int doAfterBody() throws PageException {
 		// If trim-attribute is not set by the user, use the whitespace-setting
-		if (trim == null) {
+		boolean trim = this.trim;
+		if (!hasTrim) {
 			ConfigWebPro config = (ConfigWebPro) pageContext.getConfig();
 			trim = config.getCFMLWriterType() != ConfigPro.CFML_WRITER_REGULAR;
 		}
