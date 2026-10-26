@@ -359,18 +359,23 @@ public final class OSGiUtil {
 				"Given version [" + version + "] is invalid, a valid version is following this pattern <major-number>.<minor-number>.<micro-number>[.<qualifier>]");
 	}
 
-	private static boolean isFromLuceeJar(java.net.URL resource) {
-		if (resource == null) return false;
+	private static final String LUCEE_LOCATION = luceeLocation();
+
+	private static String luceeLocation() {
 		try {
 			java.net.URL location = OSGiUtil.class.getProtectionDomain().getCodeSource().getLocation();
-			if (location == null) return false;
-			String res = resource.toExternalForm();
-			String loc = location.toExternalForm();
-			return res.startsWith(loc) || res.startsWith("jar:" + loc);
+			return location == null ? null : location.toExternalForm();
 		}
 		catch (Exception e) {
-			return false;
+			return null;
 		}
+	}
+
+	private static boolean isFromLuceeJar(java.net.URL resource) {
+		if (resource == null || LUCEE_LOCATION == null) return false;
+		String res = resource.toExternalForm();
+		// a folder (build) ends with a slash, a jar is addressed as jar:file:/...jar!/...
+		return LUCEE_LOCATION.endsWith("/") ? res.startsWith(LUCEE_LOCATION) : res.startsWith("jar:" + LUCEE_LOCATION + "!/");
 	}
 
 	/**
