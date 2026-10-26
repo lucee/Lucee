@@ -17,6 +17,8 @@
     <lucee.version.qualifier>-ALPHA</lucee.version.qualifier>
     <revision>${lucee.version.base}.${lucee.version.build}${lucee.version.qualifier}</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- true: only compile and package, without the archives, the extensions and the bundles (the jar is not usable) -->
+    <lucee.skip.archives>false</lucee.skip.archives>
     <!-- the version of Felix that gets shaded into the jar, also read by the Ant build (ant/build-core.xml) -->
     <felix.version>7.0.5</felix.version>
     <!-- the version of ASM that gets shaded into the core -->
@@ -55,6 +57,36 @@
           <exclude>License.txt</exclude>
         </excludes>
       </resource>
+      <!-- the CFML of the Lucee context, the admin and the documentation are archives (lucee-admin.lar, lucee-doc.lar) built by Lucee itself -->
+      <resource>
+        <directory>core/src/main/cfml/context</directory>
+        <targetPath>resource/context</targetPath>
+        <excludes>
+          <exclude>admin/**</exclude>
+          <exclude>doc/**</exclude>
+          <exclude>debug/**</exclude>
+          <exclude>**/*.js</exclude>
+          <exclude>**/*.java</exclude>
+          <exclude>**/.*</exclude>
+        </excludes>
+      </resource>
+      <resource>
+        <directory>core/src/main/cfml/context/admin/resources/language</directory>
+        <targetPath>resource/context/admin/resources/language</targetPath>
+        <includes>
+          <include>*.json</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>core/src/main/cfml/context/admin/plugin</directory>
+        <targetPath>resource/context/admin/plugin</targetPath>
+        <includes>
+          <include>**/*.cfm</include>
+          <include>**/*.cfc</include>
+          <include>**/*.xml</include>
+          <include>**/*.json</include>
+        </includes>
+      </resource>
     </resources>
 
     <plugins>
@@ -87,7 +119,7 @@
         </configuration>
       </plugin>
 
-      <!-- the version file and the manifest, the manifest is the manifest of the loader plus the headers of the core, so both stay where they are -->
+      <!-- the version file and the manifest, the manifest is the manifest of the loader plus the headers of the core, so both stay where they are. It is in the classes folder, so Lucee also finds it when it runs from there (build) -->
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>3.1.0</version>
@@ -101,17 +133,64 @@
             <configuration>
               <target>
                 <echo file="${project.build.outputDirectory}/lucee/version" message="${project.version}:${maven.build.timestamp}" encoding="UTF-8"/>
-                <concat destfile="${project.build.directory}/MANIFEST.MF" fixlastline="yes" eol="lf">
+                <concat destfile="${project.build.outputDirectory}/META-INF/MANIFEST.MF" fixlastline="yes" eol="lf">
                   <fileset file="${project.basedir}/loader/src/main/java/META-INF/MANIFEST.MF"/>
+                  <filterchain>
+                    <linecontainsregexp negate="true">
+                      <regexp pattern="^\s*$"/>
+                    </linecontainsregexp>
+                  </filterchain>
                 </concat>
-                <concat destfile="${project.build.directory}/MANIFEST.MF" fixlastline="yes" eol="lf" append="true">
+                <concat destfile="${project.build.outputDirectory}/META-INF/MANIFEST.MF" fixlastline="yes" eol="lf" append="true">
                   <fileset file="${project.basedir}/core/src/main/java/META-INF/MANIFEST.MF"/>
                   <filterchain>
+                    <linecontainsregexp negate="true">
+                      <regexp pattern="^\s*$"/>
+                    </linecontainsregexp>
                     <linecontainsregexp negate="true">
                       <regexp pattern="^(Manifest-Version|Bundle-Version|Built-Date|Bundle-Name|Bundle-SymbolicName|Bundle-ManifestVersion):"/>
                     </linecontainsregexp>
                   </filterchain>
                 </concat>
+                <echo file="${project.build.outputDirectory}/META-INF/MANIFEST.MF" append="true" encoding="UTF-8">Bundle-Version: ${project.version}
+Bundle-Name: Lucee Core
+Bundle-SymbolicName: lucee.core
+Bundle-ManifestVersion: 2
+Built-Date: ${maven.build.timestamp}</echo>
+                <echo file="${project.build.outputDirectory}/META-INF/MANIFEST.MF" append="true" message=""/>
+              </target>
+            </configuration>
+          </execution>
+          <!-- the archives (created by Lucee itself), the extensions and the bundles, see ant/build-single-jar.xml -->
+          <execution>
+            <id>archives</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <skip>${lucee.skip.archives}</skip>
+              <target>
+                <path id="nashorn.classpath">
+                  <pathelement path="ant/lib/nashorn-core-15.4.jar"/>
+                  <pathelement path="ant/lib/asm-9.5.jar"/>
+                  <pathelement path="ant/lib/asm-util-9.5.jar"/>
+                  <pathelement path="ant/lib/asm-commons-9.5.jar"/>
+                  <pathelement path="ant/lib/asm-tree-9.5.jar"/>
+                </path>
+                <pathconvert property="nashorn_classpath" refid="nashorn.classpath"/>
+                <dependencyfilesets prefix="mydeps."/>
+                <pathconvert property="dependencies" refid="mydeps.maven.project.dependencies"/>
+                <property name="version" value="${project.version}"/>
+                <property name="runtime_classpath" refid="maven.runtime.classpath"/>
+                <property name="outputDir" value="${project.build.outputDirectory}"/>
+                <property name="target" value="${project.build.directory}"/>
+                <property name="baseDir" value="${basedir}"/>
+                <property name="rootDir" value="${basedir}"/>
+                <property name="testcases" value="true"/>
+                <property name="compileTestBox" value="true"/>
+                <property name="buildLoaderJar" value="true"/>
+                <ant antfile="ant/build-single-jar.xml" target="archives"/>
               </target>
             </configuration>
           </execution>
@@ -125,14 +204,7 @@
         <configuration>
           <archive>
             <addMavenDescriptor>false</addMavenDescriptor>
-            <manifestFile>${project.build.directory}/MANIFEST.MF</manifestFile>
-            <manifestEntries>
-              <Bundle-Version>${project.version}</Bundle-Version>
-              <Bundle-Name>Lucee Core</Bundle-Name>
-              <Bundle-SymbolicName>lucee.core</Bundle-SymbolicName>
-              <Bundle-ManifestVersion>2</Bundle-ManifestVersion>
-              <Built-Date>${maven.build.timestamp}</Built-Date>
-            </manifestEntries>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
           </archive>
         </configuration>
       </plugin>
