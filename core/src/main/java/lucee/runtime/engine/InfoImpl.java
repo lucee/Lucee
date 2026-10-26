@@ -72,11 +72,13 @@ public final class InfoImpl implements Info {
 	public String requiredExtensionsRaw;
 
 	public InfoImpl(Bundle bundle) {
+		this(bundle.getVersion(), bundle.getHeaders());
+	}
 
-		Dictionary<String, String> headers = bundle.getHeaders();
+	public InfoImpl(Version version, Dictionary<String, String> headers) {
 
 		// version
-		this.version = bundle.getVersion();
+		this.version = version;
 		this.fullVersionInfo = KeyImpl.createHash64(this.version.toString());
 		this.versionName = headers.get("Minor-Name");
 		if (this.versionName == null) throw new RuntimeException("missing Minor-Name");

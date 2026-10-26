@@ -379,8 +379,13 @@ public final class OSGiUtil {
 		BundleCollection bc = engine.getBundleCollection();
 		// first we try to load the class from the Lucee core
 		try {
+			// Lucee is one jar, the system bundle is the core and the classes are loaded by the classloader of Lucee
+			if (bc.core == bc.felix) {
+				Class clazz = OSGiUtil.class.getClassLoader().getResource(classPath) != null ? OSGiUtil.class.getClassLoader().loadClass(className) : null;
+				if (clazz != null) return clazz;
+			}
 			// load from core
-			if (bc.core.getEntry(classPath) != null) {
+			else if (bc.core.getEntry(classPath) != null) {
 				return bc.core.loadClass(className);
 			}
 		}

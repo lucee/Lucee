@@ -502,7 +502,43 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 	}
 
+	/**
+	 * Lucee is one jar when the classes of the core are visible to the classloader of the loader, then there is no core file (.lco) to
+	 * load and no core to update.
+	 */
+	private boolean isMerged() {
+		return mainClassLoader.getResource("lucee/runtime/engine/CFMLEngineImpl.class") != null;
+	}
+
+	private void initMergedEngine() throws ServletException {
+		long start = System.currentTimeMillis();
+		try {
+			bundleCollection = BundleLoader.loadBundles(this, getResourceRoot(), getBundleDirectory(), bundleCollection);
+			log(LoggerImpl.LOG_DEBUG, "BundleLoader.loadBundles: " + (System.currentTimeMillis() - start) + "ms");
+
+			final Class<?> clazz = Class.forName("lucee.runtime.engine.CFMLEngineImpl", true, mainClassLoader);
+			final Method m = clazz.getMethod("getInstance", new Class[] { CFMLEngineFactory.class, BundleCollection.class });
+			setEngine((CFMLEngine) m.invoke(null, new Object[] { this, bundleCollection }));
+			version = singelton.getInfo().getVersion();
+			log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Loaded Lucee Version [" + version + "]");
+		}
+		catch (final InvocationTargetException e) {
+			log(e.getTargetException());
+			throw new ServletException(e.getTargetException());
+		}
+		catch (final Exception e) {
+			ServletException se = new ServletException(e);
+			Util.initCauseEL(se, e);
+			throw se;
+		}
+		log(LoggerImpl.LOG_DEBUG, "loaded Lucee in " + (System.currentTimeMillis() - start) + "ms");
+	}
+
 	private void initEngine() throws ServletException {
+		if (isMerged()) {
+			initMergedEngine();
+			return;
+		}
 		long start = System.currentTimeMillis();
 		long totalStart = start;
 		final Version coreVersion = VersionInfo.getIntVersion();
@@ -958,6 +994,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	// future
 	@Deprecated
 	private boolean _update(final Identification id) throws IOException, ServletException {
+		// the core is part of the jar, it cannot be updated
+		if (isMerged()) return false;
 
 		final File newLucee = downloadCore(id);
 		if (newLucee == null) return false;
