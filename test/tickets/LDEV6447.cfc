@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 			});
 
 			it( title="jee session: does not eagerly create a replacement session", body=function( currentSpec ) {
-				assertLazyReplacement( "jee" );
+				assertLazyJeeReplacement();
 			});
 		});
 
@@ -60,6 +60,49 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 		expect( data.hasUserId ).toBeFalse( "The new session should not contain data from the old session" );
 	}
 
+	private function assertLazyJeeReplacement() {
+		var uri = createURI( "LDEV6447/lifecycle" );
+		var result = _InternalRequest(
+			template: "#uri#/invalidate-jee.cfm",
+			url: { sessionType: "jee" }
+		);
+		var data = deserializeJSON( result.filecontent.trim() );
+
+		// the jee session id is the id of the HttpSession
+		expect( data.oldHttpSessionId ).notToBeEmpty( "A jee session should be backed by an HttpSession" );
+		expect( data.oldSessionId ).toBe( data.oldHttpSessionId );
+		expect( data.oldSessionExists ).toBeFalse( "The old session should be removed" );
+		expect( data.cfidChanged ).toBeTrue( "sessionInvalidate() should issue a new cfid" );
+		expect( data.replacementCreatedEagerly ).toBeFalse( "sessionInvalidate() should not eagerly create a replacement session" );
+		expect( data.sessionCreatedOnAccess ).toBeTrue( "Accessing SESSION should lazily create a new session" );
+		expect( data.newSessionId ).toBe( data.newHttpSessionId );
+		expect( data.newSessionId ).notToBe( data.oldSessionId );
+		expect( data.hasUserId ).toBeFalse( "The new session should not contain data from the old session" );
+		expect( result.session.sessionid ).toBe( data.newSessionId );
+		var jsessionCookies = getSetCookies( result, "jsessionid" );
+		expect( len( jsessionCookies ) ).toBe( 1, "cookies returned [#serializeJson( result.headers[ "Set-Cookie" ] ?: [] )#]" );
+		expect( listRest( listFirst( jsessionCookies[ 1 ], ";" ), "=" ) ).toBe( data.newSessionId );
+
+		// the old jsessionid no longer gives access to the invalidated session
+		var old = _InternalRequest(
+			template: "#uri#/check.cfm",
+			url: { sessionType: "jee" },
+			cookies: { jsessionid: data.oldSessionId }
+		);
+		var oldData = deserializeJSON( old.filecontent.trim() );
+		expect( oldData.sessionId ).notToBe( data.oldSessionId );
+		expect( oldData.sessionId ).notToBe( data.newSessionId );
+		expect( oldData.hasUserId ).toBeFalse( "The old jsessionid should not give access to the old session data" );
+
+		// the replacement jsessionid continues the replacement session
+		var current = _InternalRequest(
+			template: "#uri#/check.cfm",
+			url: { sessionType: "jee" },
+			cookies: { jsessionid: data.newSessionId }
+		);
+		expect( deserializeJSON( current.filecontent.trim() ).sessionId ).toBe( data.newSessionId );
+	}
+
 	private function assertCacheStorageInvalidated( required boolean sessionCluster ) {
 		var uri = createURI( "LDEV6447/cache-storage" );
 
@@ -97,6 +140,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 		expect( checked.oldStored ).toBeFalse( "The old session should not be written back to cache storage under the old cfid" );
 		expect( checked.newStored ).toBeTrue( "The replacement session should be stored under its new cfid" );
 		expect( checked.hasUserId ).toBeFalse( "The old cfid should not give access to the old session data" );
+	}
+
+	private array function getSetCookies( required struct result, required string name ) {
+		var headers = arguments.result.headers[ "Set-Cookie" ] ?: [];
+		if ( isSimpleValue( headers ) ) headers = [ headers ];
+		var matches = [];
+		for ( var header in headers ) {
+			if ( listFirst( header, "=" ) eq arguments.name ) arrayAppend( matches, header );
+		}
+		return matches;
 	}
 
 	private string function createURI( required string calledName ) {

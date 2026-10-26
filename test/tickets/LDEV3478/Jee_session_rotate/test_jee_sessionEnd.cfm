@@ -2,5 +2,9 @@
 	initialSessionId = session.sessionid;
 	if ( !structKeyExists( url, "rotateOnSessionStart" ) )
 		sessionRotate();
-	echo( initialSessionId );
+	echo( serializeJSON( {
+		initialSessionId: initialSessionId,
+		sessionId: session.sessionid,
+		applicationName: application.applicationName
+	} ) );
 </cfscript>
