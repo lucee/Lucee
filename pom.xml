@@ -9,6 +9,7 @@
   <name>Lucee</name>
   <description>Building Lucee as a single jar (LDEV-6711), loader and core are compiled together</description>
 
+  <!-- the version properties (lucee.version.*) and the library versions (felix, asm, pool2) are the same as in loader/pom.xml, keep them in sync until loader/pom.xml is gone -->
   <!-- loader/src and core/src stay where they are so 8.0 can still be merged into 9.0, both are compiled into one jar -->
   <properties>
     <!-- LDEV-6516: CI-friendly version; GHA overrides -Drevision=base.build[-QUALIFIER] -->
