@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -32,7 +33,14 @@ import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.other.CreatePageContext;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.SessionCookieData;
+import lucee.runtime.listener.SessionCookieDataImpl;
+import lucee.runtime.net.http.HTTPServletRequestWrap;
+import lucee.runtime.net.http.HttpServletRequestDummy;
 import lucee.runtime.net.http.HttpServletResponseDummy;
+import lucee.runtime.net.http.HttpSessionDummy;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -48,11 +56,13 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
+import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.scope.Form;
 import lucee.runtime.type.scope.FormImpl;
 import lucee.runtime.type.scope.UrlFormImpl;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.util.PageContextUtil;
 
 public class InternalRequest implements Function {
 
@@ -132,7 +142,7 @@ public class InternalRequest implements Function {
 
 			_pc.executeCFML(template, true, false);
 			HttpSession s;
-			if (_pc.getSessionType() == Config.SESSION_TYPE_JEE && (s = _pc.getSession()) != null) _pc.cookieScope().set(KeyConstants._JSESSIONID, s.getId());
+			if (_pc.getSessionType() == Config.SESSION_TYPE_JEE && (s = _pc.getHttpServletRequest().getSession(false)) != null) setSessionIdCookie(_pc, s.getId());
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -192,6 +202,16 @@ public class InternalRequest implements Function {
 			if (ct != null) {
 				isText = HTTPUtil.isTextMimeType(ct.getMimeType()) == Boolean.TRUE;
 				if (ct.getCharset() != null) _charset = CharsetUtil.toCharset(ct.getCharset(), null);
+			}
+			// a session we created only for this request, but the application does not use jee sessions
+			HttpSession hs = _pc.getHttpServletRequest().getSession(false);
+			if (hs instanceof HttpSessionDummy && _pc.getSessionType() != Config.SESSION_TYPE_JEE) {
+				try {
+					if (hs.isNew()) hs.invalidate();
+				}
+				catch (IllegalStateException ise) {
+					// already invalidated
+				}
 			}
 			releasePageContext(_pc, pc);
 
@@ -293,10 +313,46 @@ public class InternalRequest implements Function {
 			String method) throws PageException {
 
 		HttpSession session = pc.getSessionType() == Config.SESSION_TYPE_JEE ? pc.getSession() : null;
+		// no container session to share, use our own (LDEV-5288); a jsessionid cookie picks up a session from a former internal request
+		boolean ownSession = session == null;
+		if (ownSession && cookies != null) session = HttpSessionDummy.get(Caster.toString(cookies.get(KeyConstants._jsessionid, null), null));
 
-		return ThreadUtil.createPageContext(pc.getConfig(), os, pc.getHttpServletRequest().getServerName(), template, toQueryString(urls, charset),
+		PageContextImpl _pc = ThreadUtil.createPageContext(pc.getConfig(), os, pc.getHttpServletRequest().getServerName(), template, toQueryString(urls, charset),
 				CreatePageContext.toCookies(cookies), CreatePageContext.toPair(headers, true), body, CreatePageContext.toPair(new StructImpl(), true),
 				CreatePageContext.castValuesToString(new StructImpl()), true, -1, session, method);
+		if (ownSession) {
+			HttpServletRequest req = HTTPServletRequestWrap.pure(_pc.getHttpServletRequest());
+			if (req instanceof HttpServletRequestDummy) ((HttpServletRequestDummy) req).setCreateSession(true);
+		}
+		return _pc;
+	}
+
+	/**
+	 * sets the JSESSIONID as a session cookie, with the path, domain, secure, httpOnly, samesite and
+	 * partitioned settings of the application's sessionCookie, like the cfid/cftoken cookies
+	 */
+	private static void setSessionIdCookie(PageContextImpl pc, String id) {
+		String domain = PageContextUtil.getCookieDomain(pc);
+		boolean httpOnly = SessionCookieDataImpl.DEFAULT.isHttpOnly();
+		boolean secure = SessionCookieDataImpl.DEFAULT.isSecure();
+		short samesite = SessionCookieDataImpl.DEFAULT.getSamesite();
+		String path = SessionCookieDataImpl.DEFAULT.getPath();
+		boolean partitioned = SessionCookieDataImpl.DEFAULT.isPartitioned();
+
+		ApplicationContext ac = pc.getApplicationContext();
+		if (ac instanceof ApplicationContextSupport) {
+			SessionCookieData data = ((ApplicationContextSupport) ac).getSessionCookie();
+			if (data != null) {
+				httpOnly = data.isHttpOnly();
+				secure = data.isSecure();
+				samesite = data.getSamesite();
+				partitioned = data.isPartitioned();
+				if (!StringUtil.isEmpty(data.getDomain(), true)) domain = data.getDomain().trim();
+				if (!StringUtil.isEmpty(data.getPath(), true)) path = data.getPath().trim();
+			}
+		}
+		// -1: no expires, the cookie lives as long as the browser session
+		((CookieImpl) pc.cookieScope()).setCookieEL(KeyConstants._JSESSIONID, id, -1, secure, path, domain, httpOnly, true, false, samesite, partitioned);
 	}
 
 	private static String toQueryString(Struct urls, Charset charset) throws PageException {
