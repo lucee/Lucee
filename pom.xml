@@ -9,6 +9,42 @@
   <name>Lucee</name>
   <description>Building Lucee as a single jar (LDEV-6711), loader and core are compiled together</description>
 
+  <url>https://lucee.org</url>
+
+  <licenses>
+    <license>
+     <name>The GNU Lesser General Public License, Version 2.1</name>
+     <url>http://www.gnu.org/licenses/lgpl-2.1.txt</url>
+     <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>micstriit</id>
+      <name>Michael Offner</name>
+      <email>michael@lucee.org</email>
+      <organization>Lucee Association Switzerland</organization>
+      <organizationUrl>http://lucee.org</organizationUrl>
+      <roles>
+        <role>Project-Administrator</role>
+        <role>Developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>isapir</id>
+      <name>Igal Sapir</name>
+      <email>dev@21solutions.net</email>
+      <organization>21 Solutions</organization>
+      <organizationUrl>http://21solutions.net/</organizationUrl>
+      <roles>
+          <role>Developer</role>
+      </roles>
+      <timezone>-8</timezone>
+    </developer>
+  </developers>
+
   <!-- the version properties (lucee.version.*) and the library versions (felix, asm, pool2) are the same as in loader/pom.xml, keep them in sync until loader/pom.xml is gone -->
   <!-- loader/src and core/src stay where they are so 8.0 can still be merged into 9.0, both are compiled into one jar -->
   <properties>
@@ -35,6 +71,38 @@
     <maven.build.timestamp.locale>en,GB</maven.build.timestamp.locale>
     <main.class>lucee.runtime.script.Main</main.class>
   </properties>
+
+  <profiles>
+    <profile>
+        <id>release-sign-artifacts</id>
+        <activation>
+            <property>
+                <name>performRelease</name>
+                <value>true</value>
+            </property>
+        </activation>
+        <build>
+            <plugins>
+              <!-- GPG sign -->
+              <plugin>
+           <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-gpg-plugin</artifactId>
+           <version>3.0.1</version>
+                <executions>
+                  <execution>
+                    <id>sign-artifacts</id>
+                    <phase>verify</phase>
+                    <goals>
+                      <goal>sign</goal>
+                    </goals>
+                  </execution>
+                </executions>
+              </plugin>
+
+            </plugins>
+        </build>
+    </profile>
+  </profiles>
 
   <build>
     <resources>
@@ -203,6 +271,81 @@ Built-Date: ${maven.build.timestamp}</echo>
                 <property name="buildLoaderJar" value="true"/>
                 <ant antfile="ant/build-single-jar.xml" target="archives"/>
               </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- LDEV-6516: resolve ${revision} for install/deploy (Maven 3) -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>1.8.0</version>
+        <configuration>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
+          <updatePomFile>true</updatePomFile>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- publish to central maven -->
+      <plugin>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
+        <version>0.8.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <publishingServerId>ossrh</publishingServerId>
+          <autoPublish>true</autoPublish>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.2.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Maven Central requires a javadoc jar, a minimal one is enough (LDEV-6708), the full javadoc is not published -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-minimal-javadoc</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>javadoc</classifier>
+              <classesDirectory>${project.basedir}/loader/src/central/javadoc</classesDirectory>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+              </archive>
             </configuration>
           </execution>
         </executions>
@@ -403,6 +546,7 @@ Built-Date: ${maven.build.timestamp}</echo>
     </plugins>
   </build>
 
+  <!-- Felix, ASM and commons-pool2 are shaded into the jar, they are optional so the published pom does not make consumers pull them in again -->
   <dependencies>
 
   <dependency>
@@ -415,6 +559,7 @@ Built-Date: ${maven.build.timestamp}</echo>
     <groupId>org.apache.felix</groupId>
     <artifactId>org.apache.felix.framework</artifactId>
     <version>${felix.version}</version><!-- 4.6.1 -->
+  <optional>true</optional>
   </dependency>
   <dependency>
     <groupId>javax.servlet</groupId>
@@ -444,6 +589,7 @@ Built-Date: ${maven.build.timestamp}</echo>
     <groupId>org.apache.commons</groupId>
     <artifactId>commons-pool2</artifactId>
     <version>${pool2.version}</version>
+  <optional>true</optional>
   </dependency>
   <dependency>
     <groupId>org.slf4j</groupId>
@@ -462,26 +608,31 @@ Built-Date: ${maven.build.timestamp}</echo>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
       <version>${asm.version}</version>
+    <optional>true</optional>
     </dependency>
      <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-commons</artifactId>
       <version>${asm.version}</version>
+    <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-util</artifactId>
       <version>${asm.version}</version>
+    <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-analysis</artifactId>
       <version>${asm.version}</version>
+    <optional>true</optional>
     </dependency>
 <dependency>
     <groupId>org.ow2.asm</groupId>
     <artifactId>asm-tree</artifactId>
     <version>${asm.version}</version>
+    <optional>true</optional>
     </dependency>
 
 
@@ -508,6 +659,13 @@ Built-Date: ${maven.build.timestamp}</echo>
         <scope>compile</scope>
     </dependency>
 </dependencies>
+
+  <scm>
+    <url>https://github.com/lucee/Lucee</url>
+             <connection>scm:git:git://github.com/lucee/Lucee.git</connection>
+    <developerConnection>scm:git:git@github.com:lucee/Lucee.git</developerConnection>
+    <tag>${project.version}</tag>
+  </scm>
 
   <repositories>
       <repository>
