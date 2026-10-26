@@ -370,9 +370,6 @@ jobs:
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
         S3_BUCKET_PREFIX: lucee-ldev-6-
-        # for uploading successful builds
-        S3_ACCESS_ID_DOWNLOAD: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
-        S3_SECRET_KEY_DOWNLOAD: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
         # used by maven-settings.xml
         MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
         MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
@@ -397,41 +394,79 @@ jobs:
         fi
         if [ "${{ secrets.GPG_PASSPHRASE }}" == "" ]; then
           echo "------- Maven Test on ${{ github.event_name }} ---------"
-          # LDEV-6711: the tests run against the single jar built by the root pom.xml (release, deploy and install still use loader/pom.xml)
+          # LDEV-6711: the tests run against the single jar built by the root pom.xml (deploy and install use it too, the S3 upload, light and zero jars follow as separate steps)
           mvn -B -e "${REVISION_ARGS[@]}" verify -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         elif [[ "$VERSION_CLEAN" == *-SNAPSHOT ]]; then
           echo "------- Maven Deploy SNAPSHOT on ${{ github.event_name }} ---------"
-          mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean deploy --settings maven-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          mvn -B -e "${REVISION_ARGS[@]}" clean deploy --settings maven-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
           echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
         elif [[ "$VERSION_CLEAN" == *-ALPHA ]]; then
           if [[ "${{ env.FORCE_RELEASE }}" == "true" && "${{ env.DO_DEPLOY }}" == "true" ]]; then
-            # LDEV-6708: pre-releases are not published on Maven Central, only on maven.lucee-services.com (S3 upload during the build) and the GitHub release
+            # LDEV-6708: pre-releases are not published on Maven Central, only on maven.lucee-services.com (S3 upload, see "Publish to S3") and the GitHub release
             echo "------- Maven Install ALPHA RELEASE (forced via [release] commit message, not on Maven Central) on ${{ github.event_name }} -------"
-            mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+            mvn -B -e "${REVISION_ARGS[@]}" clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
             echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
           else
             echo "------- Maven Install ALPHA (no deployment) on ${{ github.event_name }} ---------"
-            mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+            mvn -B -e "${REVISION_ARGS[@]}" clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
           fi
         else
           if [[ "${{ env.DO_DEPLOY }}" == "true" && "$VERSION_CLEAN" == *-* ]]; then
             # LDEV-6708: RC, BETA and other pre-releases are not published on Maven Central,
-            # only on maven.lucee-services.com (S3 upload during the build) and the GitHub release
+            # only on maven.lucee-services.com (S3 upload, see "Publish to S3") and the GitHub release
             echo "------- Maven Install PRE-RELEASE (not on Maven Central) on ${{ github.event_name }} -------"
-            mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+            mvn -B -e "${REVISION_ARGS[@]}" clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
             echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
           elif [[ "${{ env.DO_DEPLOY }}" == "true" ]]; then
-            # LDEV-6708: only the main jar, its pom, sources and a minimal javadoc go to Maven Central (profile maven-central in loader/pom.xml),
-            # everything else goes to maven.lucee-services.com (S3 upload during the build) and the GitHub release
+            # LDEV-6708: only the main jar, its pom, sources and a minimal javadoc go to Maven Central (the root pom attaches nothing else),
+            # everything else goes to maven.lucee-services.com (S3 upload, see "Publish to S3") and the GitHub release
             echo "------- Maven Deploy RELEASE (main jar only) on ${{ github.event_name }} -------"
-            mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean deploy --settings maven-settings.xml -Pmaven-central -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+            mvn -B -e "${REVISION_ARGS[@]}" clean deploy --settings maven-settings.xml -DperformRelease=true -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
             echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
           else
             echo "------- Maven Test RELEASE (no deploy) on ${{ github.event_name }} ---------"
-            # LDEV-6711: the tests run against the single jar built by the root pom.xml (release, deploy and install still use loader/pom.xml)
+            # LDEV-6711: the tests run against the single jar built by the root pom.xml (deploy and install use it too, the S3 upload, light and zero jars follow as separate steps)
             mvn -B -e "${REVISION_ARGS[@]}" verify -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
           fi
         fi
+    - name: Build the light and zero jars
+      # LDEV-6711: after the Maven build, from the jar (this was done inside the build by ant/upload_to_s3.cfm)
+      if: ${{ success() && env.DO_DEPLOY == 'true' && env.VERSION != '' }}
+      run: |
+        set -euo pipefail
+        mapfile -t JARS < <(find target -maxdepth 1 -type f -name 'lucee-[0-9]*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' -printf '%f\n')
+        if [ "${#JARS[@]}" -ne 1 ]; then
+          echo "::error::expected exactly one lucee-<version>.jar in target, found [${JARS[*]:-}]"; exit 1
+        fi
+        BUILT="${JARS[0]#lucee-}"; BUILT="${BUILT%.jar}"
+        echo "BUILT=$BUILT" >> "$GITHUB_ENV"
+        .github/scripts/build-light-zero.sh "$BUILT" "target/lucee-$BUILT.jar" target
+    - name: Publish to S3 (maven.lucee-services.com / cdn.lucee.org)
+      # LDEV-6711: was ant/upload_to_s3.cfm inside the build. Alpha versions only with [release] (LDEV-6708), see decide() in the script
+      if: ${{ success() && env.DO_DEPLOY == 'true' && env.BUILT != '' }}
+      working-directory: .github/scripts
+      env:
+        INPUT_VERSION: ${{ env.BUILT }}
+        INPUT_DIR: ${{ github.workspace }}/target
+        INPUT_S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
+        INPUT_S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
+        INPUT_S3_BUCKET: ${{ env.S3_DOWNLOAD_BUCKET }}
+        INPUT_S3_REGION: ${{ env.S3_DOWNLOAD_REGION }}
+      run: |
+        npm ci
+        node publish-core-to-s3.js
+    - name: Notify the update provider, the extension provider, the download page and Forgebox
+      # LDEV-6711: was in ant/upload_to_s3.cfm, only when the build was published to S3
+      if: ${{ success() && env.S3_PUBLISHED == 'true' }}
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
+      run: |
+        curl -fsS -m 90 "https://update.lucee.org/rest/update/provider/buildLatest" || echo "::warning::update provider trigger failed"
+        curl -fsS -m 90 "https://extension.lucee.org/rest/extension/provider/reset" || echo "::warning::extension provider reset failed"
+        curl -fsS -m 90 "https://download.lucee.org/?type=snapshots&reset=force" -o /dev/null || echo "::warning::download page reset failed"
+        # Forgebox always answers with 204 no content, see https://github.com/Ortus-Lucee/forgebox-cfengine-publisher/actions for the output
+        echo '{"event_type":"forgebox_deploy"}' | gh api repos/Ortus-Lucee/forgebox-cfengine-publisher/dispatches --input - || echo "::warning::Forgebox trigger failed"
     - name: clean github.ref_name
       id: cleanrefname
       if: always()
@@ -460,19 +495,17 @@ jobs:
           git tag -a "$TAG" -m "$TAG"
           git push origin "refs/tags/$TAG"
         fi
-    - name: Attach Lucee artifacts (express zip, jar, light, zero, lco) to the GitHub release
+    - name: Attach Lucee artifacts (express zip, war, jar, light, zero) to the GitHub release
       # LDEV-6529: releases only (no snapshots), uses the files this job just built, nothing comes from cdn.lucee.org
       if: ${{ env.DID_DEPLOY == 'true' && env.VERSION != '' && !contains(env.VERSION, '-SNAPSHOT') }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         set -euo pipefail
-        # the version of what was actually built: loader/target/<version>.lco (next to <version>.jvmNN.lco)
-        mapfile -t LCOS < <(find loader/target -maxdepth 1 -type f -name '*.lco' ! -name '*.jvm*.lco' -printf '%f\n')
-        if [ "${#LCOS[@]}" -ne 1 ]; then
-          echo "::error::expected exactly one <version>.lco in loader/target, found [${LCOS[*]:-}]"; exit 1
+        # the version of what was actually built (set by "Build the light and zero jars")
+        if [ -z "${BUILT:-}" ]; then
+          echo "::error::BUILT is not set, the light and zero jars were not built"; exit 1
         fi
-        BUILT="${LCOS[0]%.lco}"
         case "$BUILT" in *-SNAPSHOT*) echo "$BUILT is a snapshot, not attaching it to a release"; exit 0;; esac
         if [ "$BUILT" != "$VERSION" ]; then
           echo "::error::VERSION [$VERSION] does not match the built version [$BUILT]"; exit 1
@@ -483,12 +516,11 @@ jobs:
 
         # same file names as on cdn.lucee.org
         mkdir -p release-assets
-        cp "loader/target/lucee-$BUILT.jar" "release-assets/lucee-$BUILT.jar"
-        cp "loader/target/lucee-light-$BUILT.jar" "release-assets/lucee-light-$BUILT.jar"
-        cp "loader/target/lucee-zero-$BUILT.jar" "release-assets/lucee-zero-$BUILT.jar"
-        cp "loader/target/$BUILT.lco" "release-assets/$BUILT.lco"
-        .github/scripts/build-express.sh "$BUILT" "loader/target/lucee-$BUILT.jar" "release-assets/lucee-express-$BUILT.zip"
-        .github/scripts/build-war.sh "$BUILT" "loader/target/lucee-$BUILT.jar" "release-assets/lucee-$BUILT.war"
+        cp "target/lucee-$BUILT.jar" "release-assets/lucee-$BUILT.jar"
+        cp "target/lucee-light-$BUILT.jar" "release-assets/lucee-light-$BUILT.jar"
+        cp "target/lucee-zero-$BUILT.jar" "release-assets/lucee-zero-$BUILT.jar"
+        .github/scripts/build-express.sh "$BUILT" "target/lucee-$BUILT.jar" "release-assets/lucee-express-$BUILT.zip"
+        .github/scripts/build-war.sh "$BUILT" "target/lucee-$BUILT.jar" "release-assets/lucee-$BUILT.war"
         ls -l release-assets
 
         # the release uses the annotated tag created by "Tag published revision" (numeric, without qualifier)
