@@ -47,6 +47,7 @@
       <fileset dir="${target}/archive"/>
     </move>
     <copy file="${target}/${jarName}.jar" tofile="${temp}/lucee.jar" overwrite="true"/>
+    <antcall target="__extract_testbox"/>
     <antcall target="__build_testbox"/>
   </target>
 
