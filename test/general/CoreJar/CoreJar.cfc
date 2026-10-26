@@ -6,21 +6,32 @@ component {
 
 	function init() {
 		variables.cl = createObject( "java", "lucee.runtime.osgi.OSGiUtil" ).getClass().getClassLoader();
+		// the build with a separate core (core.lco loaded as a bundle) is still around, then the bundle is the core
+		variables.bundle = "";
+		try {
+			variables.bundle = variables.cl.getBundle();
+		}
+		catch ( any e ) {
+			variables.bundle = "";
+		}
 		var location = createObject( "java", "lucee.runtime.osgi.OSGiUtil" ).getClass().getProtectionDomain().getCodeSource().getLocation().toString();
 		variables.jar = location.endsWith( ".jar" ) ? createObject( "java", "java.net.URI" ).init( location ).getPath() : "";
 		return this;
 	}
 
 	function loadClass( required string className ) {
+		if ( !isSimpleValue( variables.bundle ) ) return variables.bundle.loadClass( arguments.className );
 		return createObject( "java", "java.lang.Class" ).forName( arguments.className, false, variables.cl );
 	}
 
 	function getEntry( required string path ) {
+		if ( !isSimpleValue( variables.bundle ) ) return variables.bundle.getEntry( arguments.path );
 		return variables.cl.getResource( arguments.path );
 	}
 
 	/** the headers of the manifest of Lucee (the one with the header Require-Extension) */
 	function getHeaders() {
+		if ( !isSimpleValue( variables.bundle ) ) return variables.bundle.getHeaders();
 		var headers = createObject( "java", "java.util.Hashtable" ).init();
 		var urls = variables.cl.getResources( "META-INF/MANIFEST.MF" );
 		while ( urls.hasMoreElements() ) {
@@ -39,6 +50,7 @@ component {
 
 	/** all entries of the Lucee jar below the path, pattern is "*" or "*.class" */
 	function findEntries( required string path, required string pattern, boolean recurse = true ) {
+		if ( !isSimpleValue( variables.bundle ) ) return variables.bundle.findEntries( arguments.path, arguments.pattern, arguments.recurse );
 		var result = createObject( "java", "java.util.Vector" ).init();
 		if ( !len( variables.jar ) ) return result.elements();
 		var jf = createObject( "java", "java.util.jar.JarFile" ).init( variables.jar );
