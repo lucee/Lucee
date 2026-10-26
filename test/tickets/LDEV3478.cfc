@@ -73,41 +73,74 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 			it( title='jee session - onSessionEnd with sessionRotate()', body=function( currentSpec ) {
 				_reset('jee');
 				var uri = createURI("LDEV3478");
-				var j2eeSessionId = _InternalRequest(
+				var result = _InternalRequest(
 					template : "#uri#/jee_session_rotate/test_jee_sessionend.cfm"
 				);
 				_dumpSessions("before");
-				_dumpResult( j2eeSessionId );
-				expect( len( j2eeSessionId.fileContent ) ).toBeGT( 0 );
-				var _cookies = _getCookies( j2eeSessionId, "cfid" );
-				expect( len( _cookies ) ).toBe( 1, "cookies returned [#_cookies.toJson()#]" );
-				var appName = listFirst( trim( j2eeSessionId.fileContent ), '-' ) & "-";
+				_dumpResult( result );
+				var data = deserializeJSON( trim( result.fileContent ) );
+				var appName = data.applicationName;
+
+				// sessionRotate() keeps the jee session, but gives it a new id
+				expect( data.initialSessionId ).notToBeEmpty();
+				expect( data.sessionId ).notToBeEmpty();
+				expect( data.sessionId ).notToBe( data.initialSessionId );
+				expect( result.session.sessionid ).toBe( data.sessionId );
+				var _cookies = _getJSessionIdCookies( result );
+				expect( len( _cookies ) ).toBe( 1, "cookies returned [#serializeJson( result.headers[ "Set-Cookie" ] ?: [] )#]" );
+				expect( listRest( listFirst( _cookies[ 1 ], ";" ), "=" ) ).toBe( data.sessionId );
+
+				expect( structKeyExists( server.LDEV3478.start_JEE_Sessions, data.initialSessionId ) ).toBeTrue();
+				// rotating ends the session under its old id
+				expect( structKeyExists( server.LDEV3478.ended_JEE_Sessions, data.initialSessionId ) ).toBeTrue();
+				expect( structKeyExists( server.LDEV3478.ended_JEE_Sessions, data.sessionId ) ).toBeFalse();
 				expect( _getSessionCount( appName ) ).toBe( 1 );
+
 				// allow session to expire
 				sleep( 1001 );
 				admin
 					action="purgeExpiredSessions"
 					type="server"
 					password="#request.SERVERADMINPASSWORD#";
+				_dumpSessions("post purge");
+
+				// the rotated session ends on expiry
 				expect( _getSessionCount( appName ) ).toBe( 0 );
-				expect( structKeyExists( server.LDEV3478.ended_JEE_Sessions, trim( j2eeSessionId.fileContent ) ) ).toBeTrue();
+				expect( structKeyExists( server.LDEV3478.ended_JEE_Sessions, data.sessionId ) ).toBeTrue();
+				expect( structKeyExists( server.LDEV3478.ended_JEE_Sessions, data.initialSessionId ) ).toBeTrue();
 			});
 
 			it( title='LDEV-5271 jee session - onSessionEnd with sessionRotate() in onSessionStart', body=function( currentSpec ) {
 				_reset('jee');
 				var uri = createURI("LDEV3478");
-				var j2eeSessionId = _InternalRequest(
+				var result = _InternalRequest(
 					template : "#uri#/jee_session_rotate/test_jee_sessionend.cfm",
 					url: {
 						rotateOnSessionStart: "onSessionStart"
 					}
 				);
-				_dumpResult( j2eeSessionId );
-				expect( len( j2eeSessionId.fileContent ) ).toBeGT( 0 );
-				var _cookies = _getCookies( j2eeSessionId, "cfid" );
-				expect( len( _cookies ) ).toBe( 1, "cookies returned [#_cookies.toJson()#]" );
-				var appName = listFirst( trim( j2eeSessionId.fileContent ), '-' ) & "-";
+				_dumpResult( result );
+				var data = deserializeJSON( trim( result.fileContent ) );
+				var appName = data.applicationName;
+
+				// rotated in onSessionStart, the template only sees the new id
+				expect( data.sessionId ).notToBeEmpty();
+				expect( data.initialSessionId ).toBe( data.sessionId );
+				expect( result.session.sessionid ).toBe( data.sessionId );
+				var _cookies = _getJSessionIdCookies( result );
+				expect( len( _cookies ) ).toBe( 1, "cookies returned [#serializeJson( result.headers[ "Set-Cookie" ] ?: [] )#]" );
+				expect( listRest( listFirst( _cookies[ 1 ], ";" ), "=" ) ).toBe( data.sessionId );
+
+				// onSessionStart saw the session before and after sessionRotate()
+				var startedIds = structKeyArray( server.LDEV3478.start_JEE_Sessions );
+				expect( len( startedIds ) ).toBe( 2, "started sessions [#serializeJson( startedIds )#]" );
+				expect( arrayFind( startedIds, data.sessionId ) ).toBeGT( 0 );
+				arrayDelete( startedIds, data.sessionId );
+				var preRotateId = startedIds[ 1 ];
+				expect( preRotateId ).notToBe( data.sessionId );
+				expect( structKeyExists( server.LDEV3478.ended_JEE_Sessions, data.sessionId ) ).toBeFalse();
 				expect( _getSessionCount( appName ) ).toBe( 1 );
+
 				// allow session to expire
 				_dumpSessions("before");
 				sleep( 1001 );
@@ -118,7 +151,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				_dumpSessions("post purge");
 
 				expect( _getSessionCount( appName ) ).toBe( 0 );
-				expect( structKeyExists( server.LDEV3478.ended_JEE_Sessions, trim( j2eeSessionId.fileContent ) ) ).toBeTrue();
+				expect( structKeyExists( server.LDEV3478.ended_JEE_Sessions, data.sessionId ) ).toBeTrue();
 			});
 		});
 	}
@@ -164,6 +197,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				arrayAppend( matches, header );
 		}
 		matches = [ "remove this to test LDEV-1105, duplicate cfid cookies" ];
+		return matches;
+	}
+
+	private function _getJSessionIdCookies( result ){
+		var headers = result.headers[ "Set-Cookie" ] ?: [];
+		if ( isSimpleValue( headers ) ) headers = [ headers ];
+		var matches = [];
+		for ( var header in headers ){
+			if ( listFirst( header, "=" ) eq "jsessionid" )
+				arrayAppend( matches, header );
+		}
 		return matches;
 	}
 
