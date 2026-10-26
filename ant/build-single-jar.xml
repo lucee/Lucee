@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LDEV-6711: the part of the build of the single jar that is not done by Maven itself.
+  The root pom.xml compiles loader and core into one folder, this file is called (by the antrun plugin of the root pom)
+  with that folder as "outputDir" and does what needs a running Lucee or the extension cache:
+  - the agent jar
+  - the archives (lucee-context.lar, lucee-admin.lar, lucee-doc.lar, testbox.lar) and the json files, created by Lucee itself
+  - the bundled extensions, bundles and maven artifacts that are added to the jar
+  The properties (rootDir, outputDir, version, dependencies, runtime_classpath ...) are handed over by the root pom.
+-->
+<project default="archives" basedir="${rootDir}" name="luceeSingleJar">
+
+  <!-- the libraries that are shaded into the jar (Felix, ASM, commons-pool2) must not be in the classpath of the tests, the jar brings them with the relocated names -->
+  <path id="runtime_classpath_all">
+    <pathelement path="${runtime_classpath}"/>
+  </path>
+  <restrict id="runtime_classpath_shaded_path">
+    <path refid="runtime_classpath_all"/>
+    <not xmlns="antlib:org.apache.tools.ant.types.resources.selectors">
+      <or>
+        <name name="**/org/apache/felix/**" handledirsep="true"/>
+        <name name="**/org/ow2/asm/**" handledirsep="true"/>
+        <name name="**/org/apache/commons/commons-pool2/**" handledirsep="true"/>
+        <!-- the classes folder is the jar -->
+        <name name="**/target/classes" handledirsep="true"/>
+      </or>
+    </not>
+  </restrict>
+  <pathconvert property="runtime_classpath_shaded" refid="runtime_classpath_shaded_path"/>
+
+  <!-- the folder with the compiled classes is the core, the loader and the folder everything gets added to -->
+  <property name="core" location="${outputDir}"/>
+  <property name="goal" location="${outputDir}"/>
+  <property name="trgLoader" location="${target}"/>
+  <property name="buildLoaderJar" value="true"/>
+
+  <import file="build-core.xml"/>
+
+  <target name="archives" depends="copyDeployFiles,agent,__extract_testbox,addExtensions,addMavenDependencies,addBundles,__build_single">
+    <echots message="done, the archives, extensions and bundles are in ${outputDir}"/>
+  </target>
+
+  <!-- runs the CFML test cases with the jar that was built (${temp}/lucee.jar), the archives of the build are used, see __build_testbox in build-core.xml -->
+  <target name="tests" depends="copyDeployFiles">
+    <!-- init cleans the temp folder, what the tests need from the build is put back: the archives (base folder, testbox.lar), the jar -->
+    <copy todir="${temp}/archive" includeemptydirs="true">
+      <fileset dir="${target}/archive" includes="**"/>
+    </copy>
+    <copy file="${target}/${jarName}.jar" tofile="${temp}/lucee.jar" overwrite="true"/>
+    <antcall target="__extract_testbox"/>
+    <antcall target="__build_testbox"/>
+  </target>
+
+  <target name="__build_single">
+    <echots message="copy bundles in place"/>
+    <addBundles
+      bundles="${dependencies}"
+      target="${temp}/archive/base/lucee-server/bundles"
+      coremanifest="${coreManifest}"/>
+
+    <echots message="copy extensions in place"/>
+    <copyExtensions
+      source="${cache}"
+      target="${temp}/archive/base/lucee-server/context/extensions/available"
+      extensions="${reqExt.data}">
+    </copyExtensions>
+
+    <echots message="build the archives with Lucee itself (${outputDir})"/>
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="false" errorproperty="exc" resultproperty="exitcode">
+      <classpath path="${java.class.path}">
+          <pathelement location="${outputDir}"/>
+          <pathelement path="${runtime_classpath}"/>
+      </classpath>
+
+      <arg value="-f"/>
+      <arg value="${ant}/build-create-archive.xml"/>
+
+      <jvmarg value="-Dsrc=${tmpContext}"/>
+      <jvmarg value="-Dtemp=${temp}/archive"/>
+      <jvmarg value="-Dtestbox=${temp}/testbox/testbox"/>
+      <jvmarg value="-DcompileTestBox=${compileTestBox}"/>
+      <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
+      <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
+      <jvmarg value="-Dlucee.enable.dialect=true"/>
+      <jvmarg value="-Dlucee.extensions.install=true"/>
+      <jvmarg value="-Dlucee.full.null.support=false"/>
+      <jvmarg value="-Dlucee.enable.bundle.download=true"/>
+      <jvmarg value="-Dlucee.cli.printExceptions=true"/>
+      <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
+      <jvmarg value="-Dlucee.compiler.java.version=${javaVersionCoreDefault}"/>
+    </java>
+    <echo level="error" message="Exit code: ${exitcode}"/>
+    <echo level="error" message="Error output: ${exc}"/>
+    <fail message="Archive creation failed with exit code ${exitcode}">
+      <condition>
+        <not><equals arg1="${exitcode}" arg2="0"/></not>
+      </condition>
+    </fail>
+
+    <echots message="copy the generated archives in place"/>
+    <copy file="${temp}/archive/lucee-context.lar" tofile="${outputDir}/resource/context/lucee-context.lar"/>
+    <copy file="${temp}/archive/lucee-admin.lar" tofile="${outputDir}/resource/context/lucee-admin.lar"/>
+    <copy file="${temp}/archive/lucee-doc.lar" tofile="${outputDir}/resource/context/lucee-doc.lar"/>
+    <copy file="${temp}/archive/config-schema.json" tofile="${trgLoader}/config-schema.json"/>
+    <copy file="${temp}/archive/env-vars.json" tofile="${trgLoader}/env-vars.json"/>
+
+    <!-- the tests need the archives and the base folder of the build, see the target "tests" -->
+    <copy todir="${target}/archive" includeemptydirs="true">
+      <fileset dir="${temp}/archive" includes="**"/>
+    </copy>
+  </target>
+</project>

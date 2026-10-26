@@ -916,7 +916,7 @@ public class Prop<T> {
 	private static Array loadStaticSyspropEnvvarEntries() throws PageException {
 		InputStream is = null;
 		try {
-			is = Prop.class.getClassLoader().getResourceAsStream("/resource/setting/sysprop-envvar.json");
+			is = Prop.class.getClassLoader().getResourceAsStream("resource/setting/sysprop-envvar.json");
 			if (is == null) throw new ApplicationException("Failed to read [/resource/setting/sysprop-envvar.json]");
 			String raw = IOUtil.toString(is, StandardCharsets.UTF_8);
 			return Caster.toArray(new JSONExpressionInterpreter(false, JSONExpressionInterpreter.FORMAT_JSON5).interpret(null, raw));

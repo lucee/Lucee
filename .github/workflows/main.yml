@@ -143,7 +143,7 @@ jobs:
         path: |
           ~/.m2/repository/*
           !~/.m2/repository/org/lucee/lucee/
-        key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
+        key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml','loader/pom.xml','core/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-
     
@@ -397,7 +397,8 @@ jobs:
         fi
         if [ "${{ secrets.GPG_PASSPHRASE }}" == "" ]; then
           echo "------- Maven Test on ${{ github.event_name }} ---------"
-          mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          # LDEV-6711: the tests run against the single jar built by the root pom.xml (release, deploy and install still use loader/pom.xml)
+          mvn -B -e "${REVISION_ARGS[@]}" verify -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         elif [[ "$VERSION_CLEAN" == *-SNAPSHOT ]]; then
           echo "------- Maven Deploy SNAPSHOT on ${{ github.event_name }} ---------"
           mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean deploy --settings maven-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
@@ -427,7 +428,8 @@ jobs:
             echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
           else
             echo "------- Maven Test RELEASE (no deploy) on ${{ github.event_name }} ---------"
-            mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" test -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+            # LDEV-6711: the tests run against the single jar built by the root pom.xml (release, deploy and install still use loader/pom.xml)
+            mvn -B -e "${REVISION_ARGS[@]}" verify -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
           fi
         fi
     - name: clean github.ref_name

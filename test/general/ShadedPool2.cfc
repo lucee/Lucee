@@ -1,8 +1,8 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi,datasource" {
 
 	function beforeAll() {
-		// OSGiUtil is a class of the core bundle
-		variables.core = createObject( "java", "lucee.runtime.osgi.OSGiUtil" ).getClass().getClassLoader().getBundle();
+		// Lucee is one jar, the core is not a bundle
+		variables.core = new CoreJar.CoreJar();
 	}
 
 	private boolean function canLoad( required string className ) {

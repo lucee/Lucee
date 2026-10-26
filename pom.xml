@@ -1,0 +1,522 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.lucee</groupId>
+  <artifactId>lucee</artifactId>
+  <version>${revision}</version>
+  <packaging>jar</packaging>
+
+  <name>Lucee</name>
+  <description>Building Lucee as a single jar (LDEV-6711), loader and core are compiled together</description>
+
+  <!-- the version properties (lucee.version.*) and the library versions (felix, asm, pool2) are the same as in loader/pom.xml, keep them in sync until loader/pom.xml is gone -->
+  <!-- loader/src and core/src stay where they are so 8.0 can still be merged into 9.0, both are compiled into one jar -->
+  <properties>
+    <!-- LDEV-6516: CI-friendly version; GHA overrides -Drevision=base.build[-QUALIFIER] -->
+    <lucee.version.base>9.0.0</lucee.version.base>
+    <lucee.version.build>0</lucee.version.build>
+    <lucee.version.qualifier>-ALPHA</lucee.version.qualifier>
+    <revision>${lucee.version.base}.${lucee.version.build}${lucee.version.qualifier}</revision>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- true: only compile and package, without the archives, the extensions and the bundles (the jar is not usable) -->
+    <lucee.skip.archives>false</lucee.skip.archives>
+    <skipTests>false</skipTests>
+    <!-- the version of Felix that gets shaded into the jar, also read by the Ant build (ant/build-core.xml) -->
+    <felix.version>7.0.5</felix.version>
+    <!-- the version of ASM that gets shaded into the core -->
+    <asm.version>9.11.1</asm.version>
+    <!-- the version of commons-pool2 that gets shaded into the core -->
+    <pool2.version>2.13.1</pool2.version>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+    <timestamp>${maven.build.timestamp}</timestamp>
+    <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss z</maven.build.timestamp.format>
+    <maven.build.timestamp.zone>UTC</maven.build.timestamp.zone>
+    <maven.build.timestamp.locale>en,GB</maven.build.timestamp.locale>
+    <main.class>lucee.runtime.script.Main</main.class>
+  </properties>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>loader/src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>loader/src/main/java</directory>
+        <excludes>
+          <exclude>**/*.java</exclude>
+          <exclude>**/.*</exclude>
+          <exclude>META-INF/MANIFEST.MF</exclude>
+          <exclude>lucee/version</exclude>
+        </excludes>
+      </resource>
+      <resource>
+        <directory>core/src/main/java</directory>
+        <excludes>
+          <exclude>**/*.java</exclude>
+          <exclude>**/.*</exclude>
+          <exclude>META-INF/MANIFEST.MF</exclude>
+          <exclude>License.txt</exclude>
+          <exclude>default.properties</exclude>
+        </excludes>
+      </resource>
+      <!-- the default.properties of Felix is in the root of the jar (shaded), Felix loads it from there -->
+      <resource>
+        <directory>core/src/main/java</directory>
+        <targetPath>lucee</targetPath>
+        <includes>
+          <include>default.properties</include>
+        </includes>
+      </resource>
+      <!-- the CFML of the Lucee context, the admin and the documentation are archives (lucee-admin.lar, lucee-doc.lar) built by Lucee itself -->
+      <resource>
+        <directory>core/src/main/cfml/context</directory>
+        <targetPath>resource/context</targetPath>
+        <excludes>
+          <exclude>admin/**</exclude>
+          <exclude>doc/**</exclude>
+          <exclude>debug/**</exclude>
+          <exclude>**/*.js</exclude>
+          <exclude>**/*.java</exclude>
+          <exclude>**/.*</exclude>
+        </excludes>
+      </resource>
+      <resource>
+        <directory>core/src/main/cfml/context/admin/resources/language</directory>
+        <targetPath>resource/context/admin/resources/language</targetPath>
+        <includes>
+          <include>*.json</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>core/src/main/cfml/context/admin/plugin</directory>
+        <targetPath>resource/context/admin/plugin</targetPath>
+        <includes>
+          <include>**/*.cfm</include>
+          <include>**/*.cfc</include>
+          <include>**/*.xml</include>
+          <include>**/*.json</include>
+        </includes>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>add-sources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>loader/src/main/java</source>
+                <source>core/src/main/java</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>21</release>
+        </configuration>
+      </plugin>
+
+      <!-- the version file and the manifest, the manifest is the manifest of the loader plus the headers of the core, so both stay where they are. It is in the classes folder, so Lucee also finds it when it runs from there (build) -->
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>version-and-manifest</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <echo file="${project.build.outputDirectory}/lucee/version" message="${project.version}:${maven.build.timestamp}" encoding="UTF-8"/>
+                <concat destfile="${project.build.outputDirectory}/META-INF/MANIFEST.MF" fixlastline="yes" eol="lf">
+                  <fileset file="${project.basedir}/loader/src/main/java/META-INF/MANIFEST.MF"/>
+                  <filterchain>
+                    <linecontainsregexp negate="true">
+                      <regexp pattern="^\s*$"/>
+                    </linecontainsregexp>
+                  </filterchain>
+                </concat>
+                <concat destfile="${project.build.outputDirectory}/META-INF/MANIFEST.MF" fixlastline="yes" eol="lf" append="true">
+                  <fileset file="${project.basedir}/core/src/main/java/META-INF/MANIFEST.MF"/>
+                  <filterchain>
+                    <linecontainsregexp negate="true">
+                      <regexp pattern="^\s*$"/>
+                    </linecontainsregexp>
+                    <linecontainsregexp negate="true">
+                      <regexp pattern="^(Manifest-Version|Bundle-Version|Built-Date|Bundle-Name|Bundle-SymbolicName|Bundle-ManifestVersion):"/>
+                    </linecontainsregexp>
+                  </filterchain>
+                </concat>
+                <echo file="${project.build.outputDirectory}/META-INF/MANIFEST.MF" append="true" encoding="UTF-8">Bundle-Version: ${project.version}
+Bundle-Name: Lucee Core
+Bundle-SymbolicName: lucee.core
+Bundle-ManifestVersion: 2
+Built-Date: ${maven.build.timestamp}</echo>
+                <echo file="${project.build.outputDirectory}/META-INF/MANIFEST.MF" append="true" message=""/>
+              </target>
+            </configuration>
+          </execution>
+          <!-- the archives (created by Lucee itself), the extensions and the bundles, see ant/build-single-jar.xml -->
+          <execution>
+            <id>archives</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <skip>${lucee.skip.archives}</skip>
+              <target>
+                <path id="nashorn.classpath">
+                  <pathelement path="ant/lib/nashorn-core-15.4.jar"/>
+                  <pathelement path="ant/lib/asm-9.5.jar"/>
+                  <pathelement path="ant/lib/asm-util-9.5.jar"/>
+                  <pathelement path="ant/lib/asm-commons-9.5.jar"/>
+                  <pathelement path="ant/lib/asm-tree-9.5.jar"/>
+                </path>
+                <pathconvert property="nashorn_classpath" refid="nashorn.classpath"/>
+                <dependencyfilesets prefix="mydeps."/>
+                <pathconvert property="dependencies" refid="mydeps.maven.project.dependencies"/>
+                <property name="version" value="${project.version}"/>
+                <property name="runtime_classpath" refid="maven.runtime.classpath"/>
+                <property name="outputDir" value="${project.build.outputDirectory}"/>
+                <property name="target" value="${project.build.directory}"/>
+                <property name="baseDir" value="${basedir}"/>
+                <property name="rootDir" value="${basedir}"/>
+                <property name="testcases" value="true"/>
+                <property name="compileTestBox" value="true"/>
+                <property name="buildLoaderJar" value="true"/>
+                <ant antfile="ant/build-single-jar.xml" target="archives"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- runs the CFML test cases (mvn test -DtestFilter="..." / -DtestLabels="..."), against the jar that is built, skipped with -DskipTests -->
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>tests</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <skip>${skipTests}</skip>
+              <target>
+                <path id="nashorn.classpath">
+                  <pathelement path="ant/lib/nashorn-core-15.4.jar"/>
+                  <pathelement path="ant/lib/asm-9.5.jar"/>
+                  <pathelement path="ant/lib/asm-util-9.5.jar"/>
+                  <pathelement path="ant/lib/asm-commons-9.5.jar"/>
+                  <pathelement path="ant/lib/asm-tree-9.5.jar"/>
+                </path>
+                <pathconvert property="nashorn_classpath" refid="nashorn.classpath"/>
+                <dependencyfilesets prefix="mydeps."/>
+                <pathconvert property="dependencies" refid="mydeps.maven.project.dependencies"/>
+                <property name="version" value="${project.version}"/>
+                <property name="runtime_classpath" refid="maven.runtime.classpath"/>
+                <property name="outputDir" value="${project.build.outputDirectory}"/>
+                <property name="target" value="${project.build.directory}"/>
+                <property name="baseDir" value="${basedir}"/>
+                <property name="rootDir" value="${basedir}"/>
+                <property name="testcases" value="true"/>
+                <property name="buildLoaderJar" value="true"/>
+                <property name="jarName" value="${project.build.finalName}"/>
+                <ant antfile="ant/build-single-jar.xml" target="tests"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.3.0</version>
+        <configuration>
+          <archive>
+            <addMavenDescriptor>false</addMavenDescriptor>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <!-- the license and notice files of the shaded libraries, the shade plugin adds them to META-INF/licenses/[artifact] -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.6.1</version>
+        <executions>
+          <execution>
+            <id>licenses</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.apache.felix</groupId>
+                  <artifactId>org.apache.felix.framework</artifactId>
+                  <version>${felix.version}</version>
+                  <outputDirectory>${project.build.directory}/licenses/org.apache.felix.framework</outputDirectory>
+                  <includes>META-INF/LICENSE,META-INF/NOTICE,META-INF/DEPENDENCIES</includes>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.commons</groupId>
+                  <artifactId>commons-pool2</artifactId>
+                  <version>${pool2.version}</version>
+                  <outputDirectory>${project.build.directory}/licenses/org.apache.commons.commons-pool2</outputDirectory>
+                  <includes>META-INF/LICENSE.txt,META-INF/NOTICE.txt</includes>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Felix (org.apache.felix -> lucee.shaded.felix), ASM (org.objectweb.asm -> lucee.shaded.asm) and commons-pool2
+           (org.apache.commons.pool2 -> lucee.shaded.pool2) are copied into the jar and relocated, same as ant/shade/pom.xml does for the two jars -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.6.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <shadeSourcesContent>false</shadeSourcesContent>
+              <minimizeJar>false</minimizeJar>
+
+              <artifactSet>
+                <includes>
+                  <include>org.apache.felix:org.apache.felix.framework</include>
+                  <include>org.ow2.asm:*</include>
+                  <include>org.apache.commons:commons-pool2</include>
+                </includes>
+              </artifactSet>
+
+              <relocations>
+                <!-- org.osgi.* is the OSGi API, bundles and extensions import it from the framework, it stays -->
+                <relocation>
+                  <pattern>org.apache.felix</pattern>
+                  <shadedPattern>lucee.shaded.felix</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.objectweb.asm</pattern>
+                  <shadedPattern>lucee.shaded.asm</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.pool2</pattern>
+                  <shadedPattern>lucee.shaded.pool2</shadedPattern>
+                </relocation>
+              </relocations>
+
+              <filters>
+                <filter>
+                  <artifact>org.apache.felix:org.apache.felix.framework</artifact>
+                  <excludes>
+                    <exclude>META-INF/MANIFEST.MF</exclude>
+                    <exclude>META-INF/maven/**</exclude>
+                    <exclude>META-INF/native-image/**</exclude>
+                    <exclude>META-INF/DEPENDENCIES</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/NOTICE</exclude>
+                    <exclude>module-info.class</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.ow2.asm:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/MANIFEST.MF</exclude>
+                    <exclude>META-INF/maven/**</exclude>
+                    <exclude>module-info.class</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.apache.commons:commons-pool2</artifact>
+                  <excludes>
+                    <exclude>META-INF/MANIFEST.MF</exclude>
+                    <exclude>META-INF/maven/**</exclude>
+                    <exclude>META-INF/versions/**</exclude>
+                    <exclude>META-INF/LICENSE.txt</exclude>
+                    <exclude>META-INF/NOTICE.txt</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/licenses/org.apache.felix.framework/LICENSE</resource>
+                  <file>${project.build.directory}/licenses/org.apache.felix.framework/META-INF/LICENSE</file>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/licenses/org.apache.felix.framework/NOTICE</resource>
+                  <file>${project.build.directory}/licenses/org.apache.felix.framework/META-INF/NOTICE</file>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/licenses/org.apache.felix.framework/DEPENDENCIES</resource>
+                  <file>${project.build.directory}/licenses/org.apache.felix.framework/META-INF/DEPENDENCIES</file>
+                </transformer>
+                <!-- the ASM jars do not contain their license (BSD 3-clause) -->
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/licenses/org.ow2.asm/LICENSE</resource>
+                  <file>${project.basedir}/ant/shade/licenses/asm/LICENSE</file>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/licenses/org.apache.commons.commons-pool2/LICENSE.txt</resource>
+                  <file>${project.build.directory}/licenses/org.apache.commons.commons-pool2/META-INF/LICENSE.txt</file>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/licenses/org.apache.commons.commons-pool2/NOTICE.txt</resource>
+                  <file>${project.build.directory}/licenses/org.apache.commons.commons-pool2/META-INF/NOTICE.txt</file>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+
+  <dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <version>4.13.2</version>
+    <scope>test</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.apache.felix</groupId>
+    <artifactId>org.apache.felix.framework</artifactId>
+    <version>${felix.version}</version><!-- 4.6.1 -->
+  </dependency>
+  <dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>javax.servlet-api</artifactId>
+    <version>4.0.1</version>
+    <scope>compile</scope>
+  </dependency>
+<dependency>
+    <groupId>javax.servlet.jsp</groupId>
+    <artifactId>javax.servlet.jsp-api</artifactId>
+    <version>2.3.3</version>
+    <scope>compile</scope>
+</dependency>
+  <dependency>
+    <groupId>javax.el</groupId>
+    <artifactId>javax.el-api</artifactId>
+    <version>3.0.0</version>
+    <scope>compile</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.apache.ant</groupId>
+    <artifactId>ant</artifactId>
+    <version>1.10.13</version>
+    <scope>compile</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-pool2</artifactId>
+    <version>${pool2.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>2.0.17</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+    <groupId>fusiondebug.api</groupId>
+    <artifactId>server</artifactId>
+    <version>1.0.20</version>
+    <scope>provided</scope>
+  </dependency>
+
+      <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>${asm.version}</version>
+    </dependency>
+     <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <version>${asm.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-util</artifactId>
+      <version>${asm.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-analysis</artifactId>
+      <version>${asm.version}</version>
+    </dependency>
+<dependency>
+    <groupId>org.ow2.asm</groupId>
+    <artifactId>asm-tree</artifactId>
+    <version>${asm.version}</version>
+    </dependency>
+
+
+
+      <!-- https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-core -->
+      <dependency>
+          <groupId>org.apache.tomcat.embed</groupId>
+          <artifactId>tomcat-embed-core</artifactId>
+          <version>9.0.123</version>
+          <scope>provided</scope>
+      </dependency>
+      <!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-annotations-api -->
+      <dependency>
+          <groupId>org.apache.tomcat</groupId>
+          <artifactId>tomcat-annotations-api</artifactId>
+          <version>9.0.123</version>
+          <scope>provided</scope>
+      </dependency>
+
+    <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-api</artifactId>
+        <version>10.0.0</version>
+        <scope>compile</scope>
+    </dependency>
+</dependencies>
+
+  <repositories>
+      <repository>
+         <id>repo</id>
+         <url>https://raw.githubusercontent.com/lucee/mvn/master/releases</url>
+      </repository>
+      <repository>
+        <id>central</id>
+        <url>https://repo1.maven.org/maven2/</url>
+      </repository>
+  </repositories>
+</project>

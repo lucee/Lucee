@@ -72,11 +72,13 @@ public final class InfoImpl implements Info {
 	public String requiredExtensionsRaw;
 
 	public InfoImpl(Bundle bundle) {
+		this(bundle.getVersion(), bundle.getHeaders());
+	}
 
-		Dictionary<String, String> headers = bundle.getHeaders();
+	public InfoImpl(Version version, Dictionary<String, String> headers) {
 
 		// version
-		this.version = bundle.getVersion();
+		this.version = version;
 		this.fullVersionInfo = KeyImpl.createHash64(this.version.toString());
 		this.versionName = headers.get("Minor-Name");
 		if (this.versionName == null) throw new RuntimeException("missing Minor-Name");
@@ -220,10 +222,24 @@ public final class InfoImpl implements Info {
 			}
 			if (prop.getProperty(keyToValidate) != null) return prop;
 
-			// try from core classloader without leading slash
+			// Lucee is one jar, the default.properties in the root is the one of Felix
 			prop = new Properties();
 			Class clazz = PageSourceImpl.class;
 			ClassLoader cl = clazz.getClassLoader();
+			try {
+				is = cl.getResourceAsStream("lucee/default.properties");
+				prop.load(is);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+			finally {
+				IOUtil.closeEL(is);
+			}
+			if (prop.getProperty(keyToValidate) != null) return prop;
+
+			// try from core classloader without leading slash
+			prop = new Properties();
 			try {
 				is = cl.getResourceAsStream("default.properties");
 				prop.load(is);

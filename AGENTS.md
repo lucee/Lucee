@@ -11,13 +11,18 @@ Open source CFML Server deployed as a Java Servlet.
 
 ## Build & Commands
 
-Always run from the `/loader` directory and pipe the output to a file.
+LDEV-6711: Lucee is built as a single jar by the `pom.xml` in the repository root (`loader/src` and `core/src` are compiled together). Ant is only used inside it for the archive step (`ant/build-single-jar.xml`).
 
-Maven builds automatically before testing, so do NOT run `ant fast` before `mvn test`.
+Always run from the repository root and pipe the output to a file.
 
-- Run a specific test: `mvn test -DtestFilter="{testFilename}"`
-- Run the whole test suite: `mvn test`
-- Build only (no tests, for script-runner): `ant fast`
+The CFML tests run against the packaged jar, so use `verify` (not `test`). Do NOT run `ant fast` before.
+
+- Run a specific test: `mvn verify -DtestFilter="{testFilename}"`
+- Run the whole test suite: `mvn verify`
+- Build only (no tests): `mvn package -DskipTests`
+- Skip the archives, extensions and bundles (the jar is not usable, compile check only): `-Dlucee.skip.archives=true`
+
+The old build (`loader/pom.xml`, `ant fast` in `/loader`) still exists, it is used by the release (light/zero jars, `.lco`, S3 upload) until that is moved to the root pom. `lucee.version.*` and the library versions are defined in both poms, keep them in sync.
 
 ### Development Environment
 
@@ -40,10 +45,10 @@ To read an issue from Jira, rewrite the browse URL to the XML version:
 
 Run CFML scripts headless using [script-runner](https://github.com/lucee/script-runner). Requires a local checkout (usually in the parent directory of this repo).
 
-Build a custom JAR first with `ant fast` from `/loader`, then run:
+Build a custom JAR first with `mvn package -DskipTests` from the root (`target/lucee-{version}.jar`), then run:
 
 ```sh
-ant -buildfile "../script-runner/build.xml" -DluceeJar="/full/path/to/loader/target/lucee-{version}.jar" -Dwebroot="D:\work\yourproject" -Dexecute="test.cfm"
+ant -buildfile "../script-runner/build.xml" -DluceeJar="/full/path/to/target/lucee-{version}.jar" -Dwebroot="D:\work\yourproject" -Dexecute="test.cfm"
 ```
 
 See the [script-runner README](https://github.com/lucee/script-runner/blob/main/README.md) for full details.

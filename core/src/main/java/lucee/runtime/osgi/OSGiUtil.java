@@ -359,6 +359,25 @@ public final class OSGiUtil {
 				"Given version [" + version + "] is invalid, a valid version is following this pattern <major-number>.<minor-number>.<micro-number>[.<qualifier>]");
 	}
 
+	private static final String LUCEE_LOCATION = luceeLocation();
+
+	private static String luceeLocation() {
+		try {
+			java.net.URL location = OSGiUtil.class.getProtectionDomain().getCodeSource().getLocation();
+			return location == null ? null : location.toExternalForm();
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
+
+	private static boolean isFromLuceeJar(java.net.URL resource) {
+		if (resource == null || LUCEE_LOCATION == null) return false;
+		String res = resource.toExternalForm();
+		// a folder (build) ends with a slash, a jar is addressed as jar:file:/...jar!/...
+		return LUCEE_LOCATION.endsWith("/") ? res.startsWith(LUCEE_LOCATION) : res.startsWith("jar:" + LUCEE_LOCATION + "!/");
+	}
+
 	/**
 	 * tries to load a class with ni bundle definition
 	 *
@@ -379,8 +398,13 @@ public final class OSGiUtil {
 		BundleCollection bc = engine.getBundleCollection();
 		// first we try to load the class from the Lucee core
 		try {
+			// Lucee is one jar, the system bundle is the core and the classes are loaded by the classloader of Lucee
+			if (bc.core == bc.felix) {
+				// only the classes of the Lucee jar, not what the parent classloaders offer (servlet container, webapp libraries ...)
+				if (isFromLuceeJar(OSGiUtil.class.getClassLoader().getResource(classPath))) return OSGiUtil.class.getClassLoader().loadClass(className);
+			}
 			// load from core
-			if (bc.core.getEntry(classPath) != null) {
+			else if (bc.core.getEntry(classPath) != null) {
 				return bc.core.loadClass(className);
 			}
 		}
@@ -2408,7 +2432,9 @@ public final class OSGiUtil {
 			InputStream is = null;
 			try {
 				Properties prop = new Properties();
-				is = OSGiUtil.class.getClassLoader().getResourceAsStream("default.properties");
+				// Lucee is one jar, the default.properties in the root is the one of Felix
+				is = OSGiUtil.class.getClassLoader().getResourceAsStream("lucee/default.properties");
+				if (is == null) is = OSGiUtil.class.getClassLoader().getResourceAsStream("default.properties");
 				prop.load(is);
 				String bd = prop.getProperty("org.osgi.framework.bootdelegation");
 				String addional = Caster.toString(SystemUtil.getSystemPropOrEnvVar("org.osgi.framework.bootdelegation", null), null);

@@ -41,7 +41,7 @@ public class JacobReleaseInfo {
 		// for WebSphere. They may be using some kind of Servlet loader that
 		// needs an absolute path based search
 		if (stream == null) {
-			stream = JacobReleaseInfo.class.getClassLoader().getResourceAsStream("/" + PROPERTY_FILE_NAME);
+			stream = JacobReleaseInfo.class.getClassLoader().getResourceAsStream(PROPERTY_FILE_NAME);
 		}
 		// A report came in that WebSphere had trouble finding the file
 		// so lets trap it. Plus, it's a good idea anyway.

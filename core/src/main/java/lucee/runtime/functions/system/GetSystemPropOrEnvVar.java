@@ -22,7 +22,7 @@ public final class GetSystemPropOrEnvVar implements Function {
 		InputStream is = null;
 		String sysProps = null;
 		try {
-			is = PageSourceImpl.class.getClassLoader().getResourceAsStream("/resource/setting/sysprop-envvar.json");
+			is = PageSourceImpl.class.getClassLoader().getResourceAsStream("resource/setting/sysprop-envvar.json");
 			sysProps = IOUtil.toString(is, StandardCharsets.UTF_8);
 		}
 		catch (Throwable t) {

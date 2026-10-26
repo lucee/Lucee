@@ -367,7 +367,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				throw Caster.toPageRuntimeException(e);
 			}
 		}
-		this.info = new InfoImpl(bundleCollection == null ? null : bundleCollection.core);
+		this.info = new InfoImpl(bundleCollection.getCoreVersion(), bundleCollection.getCoreHeaders());
 
 		// remove older or newer lucee-core bundles to avoid conflicts
 		{

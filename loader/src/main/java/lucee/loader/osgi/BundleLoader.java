@@ -23,9 +23,14 @@ import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -44,8 +49,13 @@ import java.util.zip.ZipEntry;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
+import org.osgi.framework.wiring.FrameworkWiring;
 
+import lucee.loader.TP;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.engine.CFMLEngineFactorySupport;
 import lucee.loader.util.ExtensionFilter;
@@ -82,25 +92,8 @@ public class BundleLoader {
 			engFac.log(LoggerImpl.LOG_DEBUG, "loaded default properties in " + (tmp - start) + "ms");
 			start = tmp;
 
-			// close all bundles
-			Framework felix;
-			if (old != null) {
-				engFac.log(LoggerImpl.LOG_DEBUG, "onload/uninstall existig bundle context");
-				removeBundlesEL(old);
-				felix = old.felix;
-				// stops felix (wait for it)
-				BundleUtil.stop(felix, false);
-				felix = engFac.getFelix(resourceRootDir, config);
-				tmp = System.currentTimeMillis();
-				engFac.log(LoggerImpl.LOG_DEBUG, "reloaded Felix in " + (tmp - start) + "ms");
-				start = tmp;
-			}
-			else {
-				felix = engFac.getFelix(resourceRootDir, config);
-				tmp = System.currentTimeMillis();
-				engFac.log(LoggerImpl.LOG_DEBUG, "loaded Felix in " + (tmp - start) + "ms");
-				start = tmp;
-			}
+			final Framework felix = startFelix(engFac, resourceRootDir, config, old, start);
+			start = System.currentTimeMillis();
 
 			final BundleContext bc = felix.getBundleContext();
 
@@ -170,6 +163,222 @@ public class BundleLoader {
 			}
 			catch (final IOException ioe) {}
 		}
+	}
+
+	private static Framework startFelix(final CFMLEngineFactory engFac, final File resourceRootDir, final Map<String, Object> config, final BundleCollection old, long start)
+			throws BundleException {
+		// close all bundles
+		Framework felix;
+		long tmp;
+		if (old != null) {
+			engFac.log(LoggerImpl.LOG_DEBUG, "onload/uninstall existig bundle context");
+			removeBundlesEL(old);
+			felix = old.felix;
+			// stops felix (wait for it)
+			BundleUtil.stop(felix, false);
+			felix = engFac.getFelix(resourceRootDir, config);
+			tmp = System.currentTimeMillis();
+			engFac.log(LoggerImpl.LOG_DEBUG, "reloaded Felix in " + (tmp - start) + "ms");
+		}
+		else {
+			felix = engFac.getFelix(resourceRootDir, config);
+			tmp = System.currentTimeMillis();
+			engFac.log(LoggerImpl.LOG_DEBUG, "loaded Felix in " + (tmp - start) + "ms");
+		}
+		return felix;
+	}
+
+	/**
+	 * Lucee is one jar, the classes of the core are loaded by the same classloader as the loader, there is no core bundle. Felix is
+	 * only used for the bundles (extensions and libraries), the packages of the core are exported by the system bundle.
+	 */
+	public static BundleCollection loadBundles(final CFMLEngineFactory engFac, final File resourceRootDir, final File jarDirectory, final BundleCollection old)
+			throws IOException, BundleException {
+		return loadBundles(engFac, resourceRootDir, jarDirectory, old, true);
+	}
+
+	private static BundleCollection loadBundles(final CFMLEngineFactory engFac, final File resourceRootDir, final File jarDirectory, final BundleCollection old, boolean retry)
+			throws IOException, BundleException {
+		long start = System.currentTimeMillis();
+		final Map<String, Object> config = new HashMap<>();
+		JarFile jf = null;
+		try {
+			final Attributes attrs = loadLuceeManifest().getMainAttributes();
+
+			// the config from default.properties
+			final Properties defProp = new Properties();
+			// the default.properties in the root of the jar is the one of Felix
+			try (InputStream is = new TP().getClass().getClassLoader().getResourceAsStream("lucee/default.properties")) {
+				if (is == null) throw new IOException("Lucee has no lucee/default.properties file!");
+				defProp.load(is);
+			}
+			for (Entry<Object, Object> e: defProp.entrySet()) {
+				String k = (String) e.getKey();
+				if (!k.startsWith("org.") && !k.startsWith("felix.")) continue;
+				config.put(k, CFMLEngineFactorySupport.removeQuotes((String) e.getValue(), true));
+			}
+
+			// the packages of Lucee are exported by the system bundle, so the bundles can import them
+			final String exports = attrs.getValue("Export-Package");
+			if (!Util.isEmpty(exports, true)) {
+				final String key = "org.osgi.framework.system.packages.extra";
+				final String existing = (String) config.get(key);
+				final String packages = exports.replaceAll("\\s+", "");
+				config.put(key, Util.isEmpty(existing, true) ? packages : existing.trim() + "," + packages);
+			}
+			long tmp = System.currentTimeMillis();
+			engFac.log(LoggerImpl.LOG_DEBUG, "loaded default properties in " + (tmp - start) + "ms");
+			start = tmp;
+
+			final Framework felix = startFelix(engFac, resourceRootDir, config, old, start);
+			start = System.currentTimeMillis();
+			final BundleContext bc = felix.getBundleContext();
+
+			final Map<String, String> requiredBundles = readRequireBundle(attrs.getValue("Require-Bundle"));
+			final Map<String, String> requiredBundleFragments = readRequireBundle(attrs.getValue("Require-Bundle-Fragment"));
+			final Map<String, File> availableBundles = loadAvailableBundles(jarDirectory, requiredBundles, requiredBundleFragments);
+			final boolean always = "always".equalsIgnoreCase(Util.getSystemPropOrEnvVar("lucee.enable.bundle.download", null));
+
+			final URL location = new TP().getClass().getProtectionDomain().getCodeSource().getLocation();
+			if (location != null && "file".equals(location.getProtocol())) {
+				final File f = new File(location.toURI());
+				if (f.isFile()) jf = new JarFile(f);
+			}
+
+			final List<Bundle> bundles = addRequiredBundles(requiredBundles, availableBundles, jf, always, engFac, bc);
+			addRequiredBundles(requiredBundleFragments, availableBundles, jf, always, engFac, bc);
+			final Dictionary<String, String> headers = new Hashtable<>();
+			for (Entry<Object, Object> e: attrs.entrySet())
+				headers.put(e.getKey().toString(), e.getValue().toString());
+
+			// archives (.lar) and bundles of extensions require the bundle "lucee.core"
+			if (!Util.isEmpty(exports, true)) bundles.add(installCoreFacade(bc, headers.get("Bundle-Version"), exports.replaceAll("\\s+", "")));
+
+			BundleUtil.start(engFac, bundles);
+			engFac.log(LoggerImpl.LOG_DEBUG, "loaded and started bundles in " + (System.currentTimeMillis() - start) + "ms");
+
+			return new BundleCollection(felix, bundles, new Version(headers.get("Bundle-Version")), headers);
+		}
+		catch (BundleException be) {
+			// stale felix cache, see LDEV-6144
+			File felixCacheDir;
+			if (retry && be.getMessage() != null && be.getMessage().contains("not unique") && (felixCacheDir = new File(extractFelixCacheRootdir(config), "felix-cache")).isDirectory()) {
+				Util.deleteContent(felixCacheDir, null);
+				return loadBundles(engFac, resourceRootDir, jarDirectory, old, false);
+			}
+			throw be;
+		}
+		catch (URISyntaxException e) {
+			throw new IOException(e);
+		}
+		finally {
+			Util.closeEL(jf);
+		}
+	}
+
+	/**
+	 * Lucee is one jar and not a bundle anymore, but the archives (.lar) and the bundles of extensions "Require-Bundle" lucee.core.
+	 * This installs a bundle with that name that exports the packages of Lucee and imports them from the system bundle (they are
+	 * substituted), so the classes are still the ones of the jar.
+	 */
+	private static Bundle installCoreFacade(final BundleContext bc, final String version, final String packages) throws IOException, BundleException {
+		final String location = "lucee-core-facade:" + version;
+		Bundle existing = null;
+		boolean removed = false;
+		for (Bundle b: bc.getBundles()) {
+			if (!"lucee.core".equals(b.getSymbolicName())) continue;
+			if (existing == null && location.equals(b.getLocation())) {
+				existing = b;
+				continue;
+			}
+			// the felix cache survives restarts: a real core bundle (.lco) or a facade of another version from an earlier start must not
+			// be wired to the bundles that require lucee.core
+			try {
+				b.uninstall();
+				removed = true;
+			}
+			catch (final BundleException be) {
+				// stays installed, the bundles are wired to the facade of the current version first
+			}
+		}
+		if (existing != null) {
+			if (removed) refreshAll(bc);
+			return existing;
+		}
+		final Manifest mani = new Manifest();
+		final Attributes attrs = mani.getMainAttributes();
+		attrs.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		attrs.putValue("Bundle-ManifestVersion", "2");
+		attrs.putValue("Bundle-SymbolicName", "lucee.core");
+		attrs.putValue("Bundle-Name", "Lucee Core");
+		attrs.putValue("Bundle-Version", version);
+		attrs.putValue("Export-Package", packages);
+		attrs.putValue("Import-Package", packages);
+		final java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+		new java.util.jar.JarOutputStream(baos, mani).close();
+		final Bundle facade = bc.installBundle(location, new java.io.ByteArrayInputStream(baos.toByteArray()));
+		if (removed) refreshAll(bc);
+		return facade;
+	}
+
+	/**
+	 * The bundles from the felix cache (extensions that require lucee.core) are already started and wired to the old core when we get
+	 * here, an uninstalled bundle stays in use until the packages are refreshed.
+	 */
+	private static void refreshAll(final BundleContext bc) {
+		final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+		final FrameworkWiring fw = bc.getBundle(0).adapt(FrameworkWiring.class);
+		fw.refreshBundles(null, new FrameworkListener() {
+			@Override
+			public void frameworkEvent(final FrameworkEvent event) {
+				if (event.getType() == FrameworkEvent.PACKAGES_REFRESHED) latch.countDown();
+			}
+		});
+		try {
+			latch.await(60, java.util.concurrent.TimeUnit.SECONDS);
+		}
+		catch (final InterruptedException ie) {
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	/**
+	 * the manifest of the jar (or folder) the loader classes come from, there can be other manifests with the same name in the
+	 * classpath (even of another Lucee jar), the scan for the one with the Bundle-SymbolicName "lucee.core" is only the fallback
+	 */
+	private static Manifest loadLuceeManifest() throws IOException {
+		try {
+			final URL location = new TP().getClass().getProtectionDomain().getCodeSource().getLocation();
+			if (location != null && "file".equals(location.getProtocol())) {
+				final File f = new File(location.toURI());
+				if (f.isFile()) {
+					try (JarFile jf = new JarFile(f)) {
+						final Manifest mani = jf.getManifest();
+						if (mani != null && "lucee.core".equals(mani.getMainAttributes().getValue("Bundle-SymbolicName"))) return mani;
+					}
+				}
+				else {
+					final File mf = new File(f, "META-INF/MANIFEST.MF");
+					if (mf.isFile()) {
+						try (InputStream is = new java.io.FileInputStream(mf)) {
+							final Manifest mani = new Manifest(is);
+							if ("lucee.core".equals(mani.getMainAttributes().getValue("Bundle-SymbolicName"))) return mani;
+						}
+					}
+				}
+			}
+		}
+		catch (final URISyntaxException e) {
+			// fallback below
+		}
+		final Enumeration<URL> urls = new TP().getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
+		while (urls.hasMoreElements()) {
+			try (InputStream is = urls.nextElement().openStream()) {
+				final Manifest mani = new Manifest(is);
+				if ("lucee.core".equals(mani.getMainAttributes().getValue("Bundle-SymbolicName"))) return mani;
+			}
+		}
+		throw new IOException("the manifest of Lucee (Bundle-SymbolicName lucee.core) was not found");
 	}
 
 	private static File extractFelixCacheRootdir(Map<String, Object> config) {

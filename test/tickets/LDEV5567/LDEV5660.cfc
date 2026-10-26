@@ -23,9 +23,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					import lucee.loader.engine.BundleProvider;
 					function getMappings(){
 
-						var pc= getPageContext();
-						var bi=bundleInfo(pc);
-						var jf= new java.util.jar.JarFile(bi.location);
+						var jarPath = "";
+						try {
+							jarPath = bundleInfo( getPageContext() ).location;
+						}
+						catch ( any e ) {
+							// Lucee is one jar, the core is not a bundle
+							var location = getPageContext().getClass().getProtectionDomain().getCodeSource().getLocation().toString();
+							jarPath = createObject( "java", "java.net.URI" ).init( location ).getPath();
+						}
+						var jf= new java.util.jar.JarFile( jarPath );
 						return BundleProvider::getMappings(jf);
 					}
 				};
