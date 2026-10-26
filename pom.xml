@@ -1,0 +1,199 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.lucee</groupId>
+  <artifactId>lucee</artifactId>
+  <version>${revision}</version>
+  <packaging>jar</packaging>
+
+  <name>Lucee</name>
+  <description>Building Lucee as a single jar (LDEV-6711), loader and core are compiled together</description>
+
+  <!-- loader/src and core/src stay where they are so 8.0 can still be merged into 9.0, both are compiled into one jar -->
+  <properties>
+    <!-- LDEV-6516: CI-friendly version; GHA overrides -Drevision=base.build[-QUALIFIER] -->
+    <lucee.version.base>9.0.0</lucee.version.base>
+    <lucee.version.build>0</lucee.version.build>
+    <lucee.version.qualifier>-ALPHA</lucee.version.qualifier>
+    <revision>${lucee.version.base}.${lucee.version.build}${lucee.version.qualifier}</revision>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- the version of Felix that gets shaded into the jar, also read by the Ant build (ant/build-core.xml) -->
+    <felix.version>7.0.5</felix.version>
+    <!-- the version of ASM that gets shaded into the core -->
+    <asm.version>9.11.1</asm.version>
+    <!-- the version of commons-pool2 that gets shaded into the core -->
+    <pool2.version>2.13.1</pool2.version>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+    <timestamp>${maven.build.timestamp}</timestamp>
+    <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss z</maven.build.timestamp.format>
+    <maven.build.timestamp.zone>UTC</maven.build.timestamp.zone>
+    <maven.build.timestamp.locale>en,GB</maven.build.timestamp.locale>
+    <main.class>lucee.runtime.script.Main</main.class>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>add-sources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>loader/src/main/java</source>
+                <source>core/src/main/java</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>21</release>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+
+  <dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <version>4.13.2</version>
+    <scope>test</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.apache.felix</groupId>
+    <artifactId>org.apache.felix.framework</artifactId>
+    <version>${felix.version}</version><!-- 4.6.1 -->
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>javax.servlet-api</artifactId>
+    <version>4.0.1</version>
+    <scope>compile</scope>
+  </dependency>
+<dependency>
+    <groupId>javax.servlet.jsp</groupId>
+    <artifactId>javax.servlet.jsp-api</artifactId>
+    <version>2.3.3</version>
+    <scope>compile</scope>
+</dependency>
+  <dependency>
+    <groupId>javax.el</groupId>
+    <artifactId>javax.el-api</artifactId>
+    <version>3.0.0</version>
+    <scope>compile</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.apache.ant</groupId>
+    <artifactId>ant</artifactId>
+    <version>1.10.13</version>
+    <scope>compile</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-pool2</artifactId>
+    <version>${pool2.version}</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>2.0.17</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+    <groupId>fusiondebug.api</groupId>
+    <artifactId>server</artifactId>
+    <version>1.0.20</version>
+    <scope>provided</scope>
+  </dependency>
+
+      <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>${asm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+     <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <version>${asm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-util</artifactId>
+      <version>${asm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-analysis</artifactId>
+      <version>${asm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+<dependency>
+    <groupId>org.ow2.asm</groupId>
+    <artifactId>asm-tree</artifactId>
+    <version>${asm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+
+
+      <!-- https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-core -->
+      <dependency>
+          <groupId>org.apache.tomcat.embed</groupId>
+          <artifactId>tomcat-embed-core</artifactId>
+          <version>9.0.123</version>
+          <scope>provided</scope>
+      </dependency>
+      <!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-annotations-api -->
+      <dependency>
+          <groupId>org.apache.tomcat</groupId>
+          <artifactId>tomcat-annotations-api</artifactId>
+          <version>9.0.123</version>
+          <scope>provided</scope>
+      </dependency>
+
+    <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-api</artifactId>
+        <version>10.0.0</version>
+        <scope>compile</scope>
+    </dependency>
+</dependencies>
+
+  <repositories>
+      <repository>
+         <id>repo</id>
+         <url>https://raw.githubusercontent.com/lucee/mvn/master/releases</url>
+      </repository>
+      <repository>
+        <id>snapi</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      </repository>
+      <repository>
+        <id>res</id>
+        <url>https://oss.sonatype.org/content/repositories/releases/</url>
+      </repository>
+      <repository>
+        <id>central</id>
+        <url>https://repo1.maven.org/maven2/</url>
+      </repository>
+  </repositories>
+</project>
