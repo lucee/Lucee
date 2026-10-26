@@ -244,12 +244,15 @@ public class BundleLoader {
 
 			final List<Bundle> bundles = addRequiredBundles(requiredBundles, availableBundles, jf, always, engFac, bc);
 			addRequiredBundles(requiredBundleFragments, availableBundles, jf, always, engFac, bc);
-			BundleUtil.start(engFac, bundles);
-			engFac.log(LoggerImpl.LOG_DEBUG, "loaded and started bundles in " + (System.currentTimeMillis() - start) + "ms");
-
 			final Dictionary<String, String> headers = new Hashtable<>();
 			for (Entry<Object, Object> e: attrs.entrySet())
 				headers.put(e.getKey().toString(), e.getValue().toString());
+
+			// archives (.lar) and bundles of extensions require the bundle "lucee.core"
+			if (!Util.isEmpty(exports, true)) bundles.add(installCoreFacade(bc, headers.get("Bundle-Version"), exports.replaceAll("\\s+", "")));
+
+			BundleUtil.start(engFac, bundles);
+			engFac.log(LoggerImpl.LOG_DEBUG, "loaded and started bundles in " + (System.currentTimeMillis() - start) + "ms");
 
 			return new BundleCollection(felix, bundles, new Version(headers.get("Bundle-Version")), headers);
 		}
@@ -268,6 +271,29 @@ public class BundleLoader {
 		finally {
 			Util.closeEL(jf);
 		}
+	}
+
+	/**
+	 * Lucee is one jar and not a bundle anymore, but the archives (.lar) and the bundles of extensions "Require-Bundle" lucee.core.
+	 * This installs a bundle with that name that exports the packages of Lucee and imports them from the system bundle (they are
+	 * substituted), so the classes are still the ones of the jar.
+	 */
+	private static Bundle installCoreFacade(final BundleContext bc, final String version, final String packages) throws IOException, BundleException {
+		for (Bundle b: bc.getBundles()) {
+			if ("lucee.core".equals(b.getSymbolicName()) && b.getVersion().toString().equals(version)) return b;
+		}
+		final Manifest mani = new Manifest();
+		final Attributes attrs = mani.getMainAttributes();
+		attrs.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		attrs.putValue("Bundle-ManifestVersion", "2");
+		attrs.putValue("Bundle-SymbolicName", "lucee.core");
+		attrs.putValue("Bundle-Name", "Lucee Core");
+		attrs.putValue("Bundle-Version", version);
+		attrs.putValue("Export-Package", packages);
+		attrs.putValue("Import-Package", packages);
+		final java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+		new java.util.jar.JarOutputStream(baos, mani).close();
+		return bc.installBundle("lucee-core-facade:" + version, new java.io.ByteArrayInputStream(baos.toByteArray()));
 	}
 
 	/**

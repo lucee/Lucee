@@ -41,11 +41,11 @@
   </target>
 
   <!-- runs the CFML test cases with the jar that was built (${temp}/lucee.jar), the archives of the build are used, see __build_testbox in build-core.xml -->
-  <target name="tests" depends="init">
-    <!-- init cleans the temp folder, the archives and the jar are put back -->
-    <move todir="${temp}/archive">
-      <fileset dir="${target}/archive"/>
-    </move>
+  <target name="tests" depends="copyDeployFiles">
+    <!-- init cleans the temp folder, what the tests need from the build is put back: the archives (base folder, testbox.lar), the jar -->
+    <copy todir="${temp}/archive" includeemptydirs="true">
+      <fileset dir="${target}/archive" includes="**"/>
+    </copy>
     <copy file="${target}/${jarName}.jar" tofile="${temp}/lucee.jar" overwrite="true"/>
     <antcall target="__extract_testbox"/>
     <antcall target="__build_testbox"/>
@@ -105,8 +105,8 @@
     <copy file="${temp}/archive/env-vars.json" tofile="${trgLoader}/env-vars.json"/>
 
     <!-- the tests need the archives and the base folder of the build, see the target "tests" -->
-    <move todir="${target}/archive">
-      <fileset dir="${temp}/archive"/>
-    </move>
+    <copy todir="${target}/archive" includeemptydirs="true">
+      <fileset dir="${temp}/archive" includes="**"/>
+    </copy>
   </target>
 </project>

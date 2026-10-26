@@ -62,7 +62,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven" {
 
 	private numeric function _deploy( required string repoPath, string bundlePath=variables.bundle ) {
 		var jarUrl = createObject( "java", "java.io.File" ).init( arguments.bundlePath ).toURI().toURL();
-		var cl = createObject( "java", "java.net.URLClassLoader" ).init( javaCast( "java.net.URL[]", [ jarUrl ] ) );
+		// the platform class loader as parent (not the one with the Lucee jar), otherwise the maven folder of the Lucee jar (the jar bundles the maven files of the extensions) is found first
+		var cl = createObject( "java", "java.net.URLClassLoader" ).init( javaCast( "java.net.URL[]", [ jarUrl ] ), createObject( "java", "java.lang.ClassLoader" ).getPlatformClassLoader() );
 		var pc = getPageContext();
 		var repo = createObject( "java", "lucee.commons.io.res.util.ResourceUtil" ).toResourceNotExisting( pc, arguments.repoPath );
 		var log = pc.getConfig().getLog( "deploy" );
