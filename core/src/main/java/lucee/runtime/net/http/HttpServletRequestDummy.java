@@ -117,6 +117,7 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 	private String scheme = "http";
 
 	private HttpSession session;
+	private boolean createSession;
 
 	/**
 	 * constructor of the class
@@ -436,8 +437,23 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 	}
 
 	@Override
-	public HttpSession getSession(boolean arg0) {
+	public HttpSession getSession(boolean create) {
+		if (createSession) {
+			synchronized (this) {
+				// like a servlet container, an invalidated session is no longer returned
+				if (session instanceof HttpSessionDummy && !((HttpSessionDummy) session).isValid()) session = null;
+				if (session == null && create) session = HttpSessionDummy.create();
+			}
+		}
 		return session;
+	}
+
+	/**
+	 * if set to true, getSession(true) creates a new {@link HttpSessionDummy} when there is no session
+	 * yet
+	 */
+	public void setCreateSession(boolean createSession) {
+		this.createSession = createSession;
 	}
 
 	@Override
@@ -822,6 +838,9 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 
 	@Override
 	public String changeSessionId() {
+		HttpSession session = getSession(false);
+		if (session instanceof HttpSessionDummy) return ((HttpSessionDummy) session).changeId();
+		if (session == null) throw new IllegalStateException("there is no session associated with this request");
 		throw new RuntimeException("not supported!");
 	}
 

@@ -1092,6 +1092,8 @@ public final class ScopeContext {
 				UserScope newSession;
 				if (isJ2EESession) {
 					newSession = getSessionScope(pc);
+					// after changeSessionId() the JSession lives on, register it under the new cfid so it still expires and ends (onSessionEnd)
+					if (newSession == oldSession && newSession instanceof JSession) getSubMap(cfSessionContexts, appContext.getName()).put(pc.getCFID(), (JSession) newSession);
 				}
 				else {
 					newSession = (UserScope) getCFScope(pc, true, Scope.SCOPE_SESSION);
