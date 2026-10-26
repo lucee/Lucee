@@ -9,7 +9,7 @@
 // A build is only published once (LDEV-3921), the script does nothing when the jar of that version is already there.
 //
 // env: INPUT_VERSION, INPUT_DIR (folder with the jars and the pom), INPUT_S3_BUCKET, INPUT_S3_REGION, INPUT_S3_ACCESS_KEY, INPUT_S3_SECRET_KEY,
-//      INPUT_DRY_RUN=true (only log what would be uploaded), FORCE_RELEASE (alpha versions are only published when true)
+//      DO_DEPLOY=true (nothing is published otherwise), INPUT_DRY_RUN=true (only log what would be uploaded), FORCE_RELEASE (alpha versions are only published when true)
 import { S3Client, ListObjectsV2Command, GetBucketLocationCommand, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { createHash } from 'node:crypto';
 import { readFileSync, existsSync, appendFileSync } from 'node:fs';
@@ -114,7 +114,7 @@ async function run() {
 	const region = process.env.INPUT_S3_REGION || 'us-east-1';
 	if (!/^[0-9]+(\.[0-9]+){3}(-[A-Za-z0-9]+)*$/.test(version)) throw new Error(`[${version}] is not a valid Lucee version`);
 
-	const d = decide(version, { deploy: process.env.DO_DEPLOY !== 'false', forceRelease: process.env.FORCE_RELEASE === 'true' });
+	const d = decide(version, { deploy: process.env.DO_DEPLOY === 'true', forceRelease: process.env.FORCE_RELEASE === 'true' });
 	if (!d.publish) { log(`not publishing ${version} to S3: ${d.reason}`); return; }
 	if (!bucket) throw new Error('INPUT_S3_BUCKET is required');
 
@@ -143,13 +143,20 @@ async function run() {
 		log(`${version} was already published to S3, nothing to do (LDEV-3921)`);
 		return;
 	}
-	for (const p of puts) {
+	// the main jar (and its sha1) is the "already published" marker, so it goes last: a failed upload can be repaired by a rerun
+	const marker = `org/lucee/lucee/${version}/lucee-${version}.jar`;
+	const isMarker = p => p.key === marker || p.key === marker + '.sha1';
+	for (const p of puts.filter(p => !isMarker(p))) {
 		await c.send(new PutObjectCommand({ Bucket: bucket, Key: p.key, Body: p.body, ContentType: p.type }));
 		log(`uploaded ${p.key}`);
 	}
 	const key = 'org/lucee/lucee/maven-metadata.xml';
 	await c.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: artifactMetadataXml('lucee', await getText(c, bucket, key), version, ts), ContentType: 'application/xml' }));
 	log(`updated ${key}`);
+	for (const p of puts.filter(isMarker)) {
+		await c.send(new PutObjectCommand({ Bucket: bucket, Key: p.key, Body: p.body, ContentType: p.type }));
+		log(`uploaded ${p.key}`);
+	}
 
 	// main.yml regenerates org/lucee/index.html + org/lucee/maven-metadata.xml only when this is set
 	if (process.env.GITHUB_ENV) appendFileSync(process.env.GITHUB_ENV, 'S3_PUBLISHED=true\n');

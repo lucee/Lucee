@@ -456,8 +456,8 @@ jobs:
         npm ci
         node publish-core-to-s3.js
     - name: Notify the update provider, the extension provider, the download page and Forgebox
-      # LDEV-6711: was in ant/upload_to_s3.cfm, only when the build was published to S3
-      if: ${{ success() && env.S3_PUBLISHED == 'true' }}
+      # LDEV-6711: was in ant/upload_to_s3.cfm, for every published build (also SNAPSHOTs that only go to Sonatype after the S3 cut-off, and reruns)
+      if: ${{ success() && (env.DID_DEPLOY == 'true' || env.S3_PUBLISHED == 'true') }}
       continue-on-error: true
       env:
         GH_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
