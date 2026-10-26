@@ -1,8 +1,9 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	function beforeAll() {
 		variables.uri = createURI("LDEV3883/orm");
 		variables.uriNoOrm = createURI("LDEV3883/noorm");
+		variables.uriNested = createURI("LDEV3883/nested");
 		variables.expected = "onApplicationStart,onSessionStart,onRequestStart,onRequestEnd";
 	}
 
@@ -26,11 +27,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( cleanOutput( result.fileContent ) ).toBe( expected );
 			});
 
+			it( title="nested request from onApplicationStart does not start the application again", body=function( currentSpec ) {
+				local.appName = "test-3883-nested_#createUniqueID()#";
+				local.key = "LDEV3883_nested_" & appName;
+				try {
+					local.result = _internalRequest(
+						template = "#uriNested#/LDEV3883.cfm",
+						urls = { appName: appName, template: "#uriNested#/LDEV3883.cfm" }
+					);
+					expect( cleanOutput( result.fileContent ) ).toBe( "done" );
+					expect( server[ key ] ).toBe( 1 );
+				}
+				finally {
+					structDelete( server, key );
+				}
+			});
+
 		});
 
 		describe( title="LDEV-3883 application lifecycle order with ORM", skip=noOrm(), body=function() {
 
-			xit( title="using application scope in ORM event handler", body=function( currentSpec ) {
+			it( title="using application scope in ORM event handler", body=function( currentSpec ) {
 				local.result = _internalRequest(
 					template = "#uri#/LDEV3883.cfm",
 					urls = { type: "handler", appName: "test-3883-orm-handler_#createUniqueID()#" }
@@ -38,7 +55,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( cleanOutput( result.fileContent ) ).toBe( expected );
 			});
 
-			xit( title="using application scope in component", body=function( currentSpec ) {
+			it( title="using application scope in component", body=function( currentSpec ) {
 				local.result = _internalRequest(
 					template = "#uri#/LDEV3883.cfm",
 					urls = { type: "cfc", appName: "test-3883-orm-cfc_#createUniqueID()#" }
