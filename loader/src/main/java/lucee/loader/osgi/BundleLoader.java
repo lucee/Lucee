@@ -297,18 +297,18 @@ public class BundleLoader {
 	}
 
 	/**
-	 * the manifest of the Lucee jar, there can be many manifests in the classpath, the one of Lucee is the one with the header
-	 * "Require-Extension"
+	 * the manifest of the Lucee jar, there can be many manifests in the classpath, the one of Lucee is the one with the
+	 * Bundle-SymbolicName "lucee.core" (light and zero have no Require-Extension)
 	 */
 	private static Manifest loadLuceeManifest() throws IOException {
 		final Enumeration<URL> urls = new TP().getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
 		while (urls.hasMoreElements()) {
 			try (InputStream is = urls.nextElement().openStream()) {
 				final Manifest mani = new Manifest(is);
-				if (mani.getMainAttributes().getValue("Require-Extension") != null) return mani;
+				if ("lucee.core".equals(mani.getMainAttributes().getValue("Bundle-SymbolicName"))) return mani;
 			}
 		}
-		throw new IOException("the manifest of Lucee (with the header [Require-Extension]) was not found");
+		throw new IOException("the manifest of Lucee (Bundle-SymbolicName lucee.core) was not found");
 	}
 
 	private static File extractFelixCacheRootdir(Map<String, Object> config) {
