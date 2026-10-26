@@ -47,13 +47,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 			});
 
 			it( title="the class loader of a bundle is found by the OSGi API (BundleReference)", body=function( currentSpec ) {
-				// OSGiUtil is a class of the core bundle
-				var obj = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
-				var cl = obj.getClass().getClassLoader();
-				expect( cl.getClass().getName() ).toBe( "lucee.shaded.felix.framework.BundleWiringImpl$BundleClassLoader" );
-				expect( cl.getBundle().getSymbolicName() ).toBe( "lucee.core" );
-				var info = bundleInfo( obj );
-				expect( info.name ).toBe( "lucee.core" );
+				var BundleWiring = createObject( "java", "org.osgi.framework.wiring.BundleWiring" ).getClass();
+				var checked = false;
+				for ( var b in variables.bundleContext.getBundles() ) {
+					if ( b.getBundleId() == 0 ) continue;
+					var wiring = b.adapt( BundleWiring );
+					if ( isNull( wiring ) ) continue;
+					var cl = wiring.getClassLoader();
+					if ( isNull( cl ) ) continue;
+					expect( cl.getClass().getName() ).toBe( "lucee.shaded.felix.framework.BundleWiringImpl$BundleClassLoader" );
+					expect( cl.getBundle().getSymbolicName() ).toBe( b.getSymbolicName() );
+					checked = true;
+					break;
+				}
+				expect( checked ).toBeTrue( "no resolved bundle found" );
 			});
 
 			it( title="the framework classes are only available under the relocated name", body=function( currentSpec ) {

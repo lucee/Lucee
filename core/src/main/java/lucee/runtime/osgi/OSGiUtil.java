@@ -2413,7 +2413,9 @@ public final class OSGiUtil {
 			InputStream is = null;
 			try {
 				Properties prop = new Properties();
-				is = OSGiUtil.class.getClassLoader().getResourceAsStream("default.properties");
+				// Lucee is one jar, the default.properties in the root is the one of Felix
+				is = OSGiUtil.class.getClassLoader().getResourceAsStream("lucee/default.properties");
+				if (is == null) is = OSGiUtil.class.getClassLoader().getResourceAsStream("default.properties");
 				prop.load(is);
 				String bd = prop.getProperty("org.osgi.framework.bootdelegation");
 				String addional = Caster.toString(SystemUtil.getSystemPropOrEnvVar("org.osgi.framework.bootdelegation", null), null);

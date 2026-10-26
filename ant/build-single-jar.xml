@@ -10,6 +10,24 @@
 -->
 <project default="archives" basedir="${rootDir}" name="luceeSingleJar">
 
+  <!-- the libraries that are shaded into the jar (Felix, ASM, commons-pool2) must not be in the classpath of the tests, the jar brings them with the relocated names -->
+  <path id="runtime_classpath_all">
+    <pathelement path="${runtime_classpath}"/>
+  </path>
+  <restrict id="runtime_classpath_shaded_path">
+    <path refid="runtime_classpath_all"/>
+    <not xmlns="antlib:org.apache.tools.ant.types.resources.selectors">
+      <or>
+        <name name="**/org/apache/felix/**" handledirsep="true"/>
+        <name name="**/org/ow2/asm/**" handledirsep="true"/>
+        <name name="**/org/apache/commons/commons-pool2/**" handledirsep="true"/>
+        <!-- the classes folder is the jar -->
+        <name name="**/target/classes" handledirsep="true"/>
+      </or>
+    </not>
+  </restrict>
+  <pathconvert property="runtime_classpath_shaded" refid="runtime_classpath_shaded_path"/>
+
   <!-- the folder with the compiled classes is the core, the loader and the folder everything gets added to -->
   <property name="core" location="${outputDir}"/>
   <property name="goal" location="${outputDir}"/>
@@ -20,6 +38,16 @@
 
   <target name="archives" depends="copyDeployFiles,agent,__extract_testbox,addExtensions,addMavenDependencies,addBundles,__build_single">
     <echots message="done, the archives, extensions and bundles are in ${outputDir}"/>
+  </target>
+
+  <!-- runs the CFML test cases with the jar that was built (${temp}/lucee.jar), the archives of the build are used, see __build_testbox in build-core.xml -->
+  <target name="tests" depends="init">
+    <!-- init cleans the temp folder, the archives and the jar are put back -->
+    <move todir="${temp}/archive">
+      <fileset dir="${target}/archive"/>
+    </move>
+    <copy file="${target}/${jarName}.jar" tofile="${temp}/lucee.jar" overwrite="true"/>
+    <antcall target="__build_testbox"/>
   </target>
 
   <target name="__build_single">
@@ -74,5 +102,10 @@
     <copy file="${temp}/archive/lucee-doc.lar" tofile="${outputDir}/resource/context/lucee-doc.lar"/>
     <copy file="${temp}/archive/config-schema.json" tofile="${trgLoader}/config-schema.json"/>
     <copy file="${temp}/archive/env-vars.json" tofile="${trgLoader}/env-vars.json"/>
+
+    <!-- the tests need the archives and the base folder of the build, see the target "tests" -->
+    <move todir="${target}/archive">
+      <fileset dir="${temp}/archive"/>
+    </move>
   </target>
 </project>

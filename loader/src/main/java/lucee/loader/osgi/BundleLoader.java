@@ -204,8 +204,9 @@ public class BundleLoader {
 
 			// the config from default.properties
 			final Properties defProp = new Properties();
-			try (InputStream is = new TP().getClass().getClassLoader().getResourceAsStream("default.properties")) {
-				if (is == null) throw new IOException("Lucee has no default.properties file!");
+			// the default.properties in the root of the jar is the one of Felix
+			try (InputStream is = new TP().getClass().getClassLoader().getResourceAsStream("lucee/default.properties")) {
+				if (is == null) throw new IOException("Lucee has no lucee/default.properties file!");
 				defProp.load(is);
 			}
 			for (Entry<Object, Object> e: defProp.entrySet()) {

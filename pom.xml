@@ -19,6 +19,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- true: only compile and package, without the archives, the extensions and the bundles (the jar is not usable) -->
     <lucee.skip.archives>false</lucee.skip.archives>
+    <skipTests>false</skipTests>
     <!-- the version of Felix that gets shaded into the jar, also read by the Ant build (ant/build-core.xml) -->
     <felix.version>7.0.5</felix.version>
     <!-- the version of ASM that gets shaded into the core -->
@@ -55,7 +56,16 @@
           <exclude>**/.*</exclude>
           <exclude>META-INF/MANIFEST.MF</exclude>
           <exclude>License.txt</exclude>
+          <exclude>default.properties</exclude>
         </excludes>
+      </resource>
+      <!-- the default.properties of Felix is in the root of the jar (shaded), Felix loads it from there -->
+      <resource>
+        <directory>core/src/main/java</directory>
+        <targetPath>lucee</targetPath>
+        <includes>
+          <include>default.properties</include>
+        </includes>
       </resource>
       <!-- the CFML of the Lucee context, the admin and the documentation are archives (lucee-admin.lar, lucee-doc.lar) built by Lucee itself -->
       <resource>
@@ -191,6 +201,46 @@ Built-Date: ${maven.build.timestamp}</echo>
                 <property name="compileTestBox" value="true"/>
                 <property name="buildLoaderJar" value="true"/>
                 <ant antfile="ant/build-single-jar.xml" target="archives"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- runs the CFML test cases (mvn test -DtestFilter="..." / -DtestLabels="..."), against the jar that is built, skipped with -DskipTests -->
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>tests</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <skip>${skipTests}</skip>
+              <target>
+                <path id="nashorn.classpath">
+                  <pathelement path="ant/lib/nashorn-core-15.4.jar"/>
+                  <pathelement path="ant/lib/asm-9.5.jar"/>
+                  <pathelement path="ant/lib/asm-util-9.5.jar"/>
+                  <pathelement path="ant/lib/asm-commons-9.5.jar"/>
+                  <pathelement path="ant/lib/asm-tree-9.5.jar"/>
+                </path>
+                <pathconvert property="nashorn_classpath" refid="nashorn.classpath"/>
+                <dependencyfilesets prefix="mydeps."/>
+                <pathconvert property="dependencies" refid="mydeps.maven.project.dependencies"/>
+                <property name="version" value="${project.version}"/>
+                <property name="runtime_classpath" refid="maven.runtime.classpath"/>
+                <property name="outputDir" value="${project.build.outputDirectory}"/>
+                <property name="target" value="${project.build.directory}"/>
+                <property name="baseDir" value="${basedir}"/>
+                <property name="rootDir" value="${basedir}"/>
+                <property name="testcases" value="true"/>
+                <property name="buildLoaderJar" value="true"/>
+                <property name="jarName" value="${project.build.finalName}"/>
+                <ant antfile="ant/build-single-jar.xml" target="tests"/>
               </target>
             </configuration>
           </execution>
