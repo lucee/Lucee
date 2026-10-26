@@ -359,6 +359,20 @@ public final class OSGiUtil {
 				"Given version [" + version + "] is invalid, a valid version is following this pattern <major-number>.<minor-number>.<micro-number>[.<qualifier>]");
 	}
 
+	private static boolean isFromLuceeJar(java.net.URL resource) {
+		if (resource == null) return false;
+		try {
+			java.net.URL location = OSGiUtil.class.getProtectionDomain().getCodeSource().getLocation();
+			if (location == null) return false;
+			String res = resource.toExternalForm();
+			String loc = location.toExternalForm();
+			return res.startsWith(loc) || res.startsWith("jar:" + loc);
+		}
+		catch (Exception e) {
+			return false;
+		}
+	}
+
 	/**
 	 * tries to load a class with ni bundle definition
 	 *
@@ -381,8 +395,8 @@ public final class OSGiUtil {
 		try {
 			// Lucee is one jar, the system bundle is the core and the classes are loaded by the classloader of Lucee
 			if (bc.core == bc.felix) {
-				Class clazz = OSGiUtil.class.getClassLoader().getResource(classPath) != null ? OSGiUtil.class.getClassLoader().loadClass(className) : null;
-				if (clazz != null) return clazz;
+				// only the classes of the Lucee jar, not what the parent classloaders offer (servlet container, webapp libraries ...)
+				if (isFromLuceeJar(OSGiUtil.class.getClassLoader().getResource(classPath))) return OSGiUtil.class.getClassLoader().loadClass(className);
 			}
 			// load from core
 			else if (bc.core.getEntry(classPath) != null) {

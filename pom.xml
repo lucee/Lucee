@@ -673,14 +673,6 @@ Built-Date: ${maven.build.timestamp}</echo>
          <url>https://raw.githubusercontent.com/lucee/mvn/master/releases</url>
       </repository>
       <repository>
-        <id>snapi</id>
-        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      </repository>
-      <repository>
-        <id>res</id>
-        <url>https://oss.sonatype.org/content/repositories/releases/</url>
-      </repository>
-      <repository>
         <id>central</id>
         <url>https://repo1.maven.org/maven2/</url>
       </repository>

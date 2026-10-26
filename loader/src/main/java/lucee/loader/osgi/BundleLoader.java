@@ -279,9 +279,24 @@ public class BundleLoader {
 	 * substituted), so the classes are still the ones of the jar.
 	 */
 	private static Bundle installCoreFacade(final BundleContext bc, final String version, final String packages) throws IOException, BundleException {
+		final String location = "lucee-core-facade:" + version;
+		Bundle existing = null;
 		for (Bundle b: bc.getBundles()) {
-			if ("lucee.core".equals(b.getSymbolicName()) && b.getVersion().toString().equals(version)) return b;
+			if (!"lucee.core".equals(b.getSymbolicName())) continue;
+			if (existing == null && location.equals(b.getLocation())) {
+				existing = b;
+				continue;
+			}
+			// the felix cache survives restarts: a real core bundle (.lco) or a facade of another version from an earlier start must not
+			// be wired to the bundles that require lucee.core
+			try {
+				b.uninstall();
+			}
+			catch (final BundleException be) {
+				// stays installed, the bundles are wired to the facade of the current version first
+			}
 		}
+		if (existing != null) return existing;
 		final Manifest mani = new Manifest();
 		final Attributes attrs = mani.getMainAttributes();
 		attrs.put(Attributes.Name.MANIFEST_VERSION, "1.0");
@@ -293,14 +308,38 @@ public class BundleLoader {
 		attrs.putValue("Import-Package", packages);
 		final java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
 		new java.util.jar.JarOutputStream(baos, mani).close();
-		return bc.installBundle("lucee-core-facade:" + version, new java.io.ByteArrayInputStream(baos.toByteArray()));
+		return bc.installBundle(location, new java.io.ByteArrayInputStream(baos.toByteArray()));
 	}
 
 	/**
-	 * the manifest of the Lucee jar, there can be many manifests in the classpath, the one of Lucee is the one with the
-	 * Bundle-SymbolicName "lucee.core" (light and zero have no Require-Extension)
+	 * the manifest of the jar (or folder) the loader classes come from, there can be other manifests with the same name in the
+	 * classpath (even of another Lucee jar), the scan for the one with the Bundle-SymbolicName "lucee.core" is only the fallback
 	 */
 	private static Manifest loadLuceeManifest() throws IOException {
+		try {
+			final URL location = new TP().getClass().getProtectionDomain().getCodeSource().getLocation();
+			if (location != null && "file".equals(location.getProtocol())) {
+				final File f = new File(location.toURI());
+				if (f.isFile()) {
+					try (JarFile jf = new JarFile(f)) {
+						final Manifest mani = jf.getManifest();
+						if (mani != null && "lucee.core".equals(mani.getMainAttributes().getValue("Bundle-SymbolicName"))) return mani;
+					}
+				}
+				else {
+					final File mf = new File(f, "META-INF/MANIFEST.MF");
+					if (mf.isFile()) {
+						try (InputStream is = new java.io.FileInputStream(mf)) {
+							final Manifest mani = new Manifest(is);
+							if ("lucee.core".equals(mani.getMainAttributes().getValue("Bundle-SymbolicName"))) return mani;
+						}
+					}
+				}
+			}
+		}
+		catch (final URISyntaxException e) {
+			// fallback below
+		}
 		final Enumeration<URL> urls = new TP().getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
 		while (urls.hasMoreElements()) {
 			try (InputStream is = urls.nextElement().openStream()) {
