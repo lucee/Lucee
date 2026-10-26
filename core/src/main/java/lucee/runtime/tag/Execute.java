@@ -101,6 +101,7 @@ public final class Execute extends BodyTagImpl {
 		environment = null;
 		onError = null;
 		onProgress = null;
+		exitCodeVariable = null;
 	}
 
 	/**
