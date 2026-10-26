@@ -49,8 +49,11 @@ import java.util.zip.ZipEntry;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
+import org.osgi.framework.wiring.FrameworkWiring;
 
 import lucee.loader.TP;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -281,6 +284,7 @@ public class BundleLoader {
 	private static Bundle installCoreFacade(final BundleContext bc, final String version, final String packages) throws IOException, BundleException {
 		final String location = "lucee-core-facade:" + version;
 		Bundle existing = null;
+		boolean removed = false;
 		for (Bundle b: bc.getBundles()) {
 			if (!"lucee.core".equals(b.getSymbolicName())) continue;
 			if (existing == null && location.equals(b.getLocation())) {
@@ -291,12 +295,16 @@ public class BundleLoader {
 			// be wired to the bundles that require lucee.core
 			try {
 				b.uninstall();
+				removed = true;
 			}
 			catch (final BundleException be) {
 				// stays installed, the bundles are wired to the facade of the current version first
 			}
 		}
-		if (existing != null) return existing;
+		if (existing != null) {
+			if (removed) refreshAll(bc);
+			return existing;
+		}
 		final Manifest mani = new Manifest();
 		final Attributes attrs = mani.getMainAttributes();
 		attrs.put(Attributes.Name.MANIFEST_VERSION, "1.0");
@@ -308,7 +316,30 @@ public class BundleLoader {
 		attrs.putValue("Import-Package", packages);
 		final java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
 		new java.util.jar.JarOutputStream(baos, mani).close();
-		return bc.installBundle(location, new java.io.ByteArrayInputStream(baos.toByteArray()));
+		final Bundle facade = bc.installBundle(location, new java.io.ByteArrayInputStream(baos.toByteArray()));
+		if (removed) refreshAll(bc);
+		return facade;
+	}
+
+	/**
+	 * The bundles from the felix cache (extensions that require lucee.core) are already started and wired to the old core when we get
+	 * here, an uninstalled bundle stays in use until the packages are refreshed.
+	 */
+	private static void refreshAll(final BundleContext bc) {
+		final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+		final FrameworkWiring fw = bc.getBundle(0).adapt(FrameworkWiring.class);
+		fw.refreshBundles(null, new FrameworkListener() {
+			@Override
+			public void frameworkEvent(final FrameworkEvent event) {
+				if (event.getType() == FrameworkEvent.PACKAGES_REFRESHED) latch.countDown();
+			}
+		});
+		try {
+			latch.await(60, java.util.concurrent.TimeUnit.SECONDS);
+		}
+		catch (final InterruptedException ie) {
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	/**
