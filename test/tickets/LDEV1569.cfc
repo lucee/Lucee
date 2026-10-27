@@ -52,11 +52,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="orm" {
 
 		describe( title="Test suite for LDEV-1569 (ORM entity on H2)", skip=noOrm(), body=function() {
 
-			it( title="serializeJSON( entityNew ) includes null persistent property with full null support", body=function( currentSpec ) {
+			it( title="serializeJSON( entityNew ) includes null persistent property with full null support", skip=preLDEV1569(), body=function( currentSpec ) {
 				expect( ormRequest( "entityNew", true ) ).toBe( '{"id":2,"name":null}' );
 			});
 
-			it( title="serializeJSON( entityLoadByPK ) includes null persistent property with full null support", body=function( currentSpec ) {
+			it( title="serializeJSON( entityLoadByPK ) includes null persistent property with full null support", skip=preLDEV1569(), body=function( currentSpec ) {
 				expect( ormRequest( "entityLoad", true ) ).toBe( '{"id":3,"name":null}' );
 			});
 
@@ -96,6 +96,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="orm" {
 		// getting the credentials from the environment variables
 		var mySQL = server.getDatasource("mysql");
 		return structIsEmpty(mySQL);
+	}
+
+	// the fix is in 7.1.3.19 and newer, older versions omit the null property
+	private boolean function preLDEV1569() {
+		return !server.checkVersionGTE( listFirst( server.lucee.version, "-" ), 7, 1, 3, 19 );
 	}
 
 	private function noOrm() {
