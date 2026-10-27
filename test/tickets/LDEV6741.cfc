@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="ssl" {
 
 	function beforeAll() {
-		variables.dir = server._getTempDir( "LDEV6741" );
+		variables.dir = replace( server._getTempDir( "LDEV6741" ), "\", "/", "all" );
 		if ( directoryExists( variables.dir ) ) directoryDelete( variables.dir, true );
 		directoryCreate( variables.dir, true );
 		variables.dir &= "/";
