@@ -3,11 +3,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		describe( title="Testcase for MavenLoad() function", body=function() {
 			
 			it(title="load com.github.tjake", body=function( currentSpec ) {
-				var l=len(mavenLoad([
+				var jars=mavenLoad([
 					"com.github.tjake:jlama-core:0.7.0",
 					"com.github.tjake:jlama-native:0.7.0"
-				]));
-				expect(l).toBe(40);
+				]);
+				// LDEV-6747 only one version per groupId:artifactId (nearest wins), before every conflicting version was loaded
+				expect(len(jars)).toBe(28);
+				var artifacts={};
+				loop array=jars item="local.jar" {
+					// {mvnDir}/{group}/{artifact}/{version}/{artifact}-{version}.jar
+					var artifactDir=getDirectoryFromPath(getDirectoryFromPath(jar).reReplace("[\\/]$",""));
+					expect(structKeyExists(artifacts,artifactDir)).toBeFalse("more than one version of [#artifactDir#]");
+					artifacts[artifactDir]=true;
+				}
 			});
 
 			it(title="load org.apache.commons", body=function( currentSpec ) {
