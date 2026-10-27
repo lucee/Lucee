@@ -1844,17 +1844,26 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (build == null) build = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.build", ""), null);
 		boolean warmup = Boolean.TRUE.equals(build);
 		if (warmup) {
-			onStartCall(config, reload, true);
+			// LDEV-6744 a failing or timed out onBuild() must fail the warmup (non zero exit code)
+			boolean success = onStartCall(config, reload, true);
 
 			// make sure all .CFConfig.json settings are loaded
 			ConfigUtil.getConfigServerImpl(config).touchAll(null);
 
-			String msg = "Lucee warmup completed. Shutting down.";
-			// CONSOLE_OUT.println(msg);
-			LogUtil.logGlobal(config, Log.LEVEL_INFO, "config", msg);
-			LogUtil.log(config, Log.LEVEL_INFO, "application", msg);
+			if (success) {
+				String msg = "Lucee warmup completed. Shutting down.";
+				// CONSOLE_OUT.println(msg);
+				LogUtil.logGlobal(config, Log.LEVEL_INFO, "config", msg);
+				LogUtil.log(config, Log.LEVEL_INFO, "application", msg);
+			}
+			else {
+				String msg = "Lucee warmup failed, onBuild() threw an exception or did not finish in time. Shutting down.";
+				System.err.println(msg);
+				LogUtil.logGlobal(config, Log.LEVEL_ERROR, "config", msg);
+				LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);
+			}
 			shutdownFelix();
-			System.exit(0);
+			System.exit(success ? 0 : 1);
 		}
 		else {
 			onStartCall(config, reload, false);
@@ -1869,7 +1878,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		onStartCall(config, reload, false);
 	}
 
-	private void onStartCall(ConfigPro config, boolean reload, boolean warmup) {
+	/**
+	 * 
+	 * @return false if the listener threw an exception or did not finish within the timeout, otherwise
+	 *         true (also when there is no listener to call)
+	 */
+	private boolean onStartCall(ConfigPro config, boolean reload, boolean warmup) {
 		boolean isWeb = config instanceof ConfigWeb;
 		String context = isWeb ? "Web" : "Server";
 		String methodName = warmup ? "onBuild" : ("on" + context + "Start");
@@ -1877,7 +1891,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (!ThreadLocalPageContext.callOnStart.get()) {
 			LogUtil.log(config, Log.LEVEL_INFO, "application",
 					"on-start: skipping [" + methodName + "] listener for [" + context + "] context because callOnStart is disabled for the current thread");
-			return;
+			return true;
 		}
 
 		Resource listenerTemplateCFML = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
@@ -1915,7 +1929,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					"on-start: no [" + methodName + "] listener found for [" + context + "] context; neither web root ["
 							+ (listenerTemplateCFMLWebRoot == null ? "n/a" : listenerTemplateCFMLWebRoot.getAbsolutePath()) + "] nor config dir ["
 							+ listenerTemplateCFML.getAbsolutePath() + "] exists");
-			return;
+			return true;
 		}
 
 		if (!StringUtil.emptyIfNull(Thread.currentThread().getName()).startsWith("on-start-")) {
@@ -1925,18 +1939,24 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			thread.setName("on-start-" + CreateUniqueId.invoke());
 			long start = System.currentTimeMillis();
 			thread.start();
+			boolean success = true;
 			try {
 				thread.join(timeout);
 			}
 			catch (Exception e) {
 				LogUtil.log(config, "on-start", e);
+				success = false;
 			}
 			if (thread.isAlive()) {
-				LogUtil.log(config, Log.LEVEL_INFO, "on-start", "killing on-start");
+				LogUtil.log(config, Log.LEVEL_ERROR, "on-start", "on-" + (warmup ? "warmup" : "start") + " did not finish within " + timeout + "ms, killing on-start");
 				SystemUtil.stop(thread);
+				success = false;
 			}
+			if (thread.error != null) success = false;
 			LogUtil.log(config, Log.LEVEL_INFO, "on-start", "on-" + (warmup ? "warmup" : "start") + " executed in " + (System.currentTimeMillis() - start) + "ms");
+			return success;
 		}
+		return true;
 	}
 
 	/**
@@ -1949,6 +1969,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		private String context;
 		private boolean inWebRoot;
 		private boolean warmup;
+		private volatile Throwable error;
 
 		public OnStart(ConfigPro config, String context, boolean reload, boolean inWebRoot, boolean warmup) {
 			this.config = config;
@@ -2021,6 +2042,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				// error listener
 				// LDEV-6472 log it, otherwise a failing onBuild() during warmup is not visible at all
 				LogUtil.log(config, "application", "on-start: [" + methodName + "] listener via request uri [" + requestURI + "] threw an exception", e, Log.LEVEL_ERROR);
+				error = e;
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				LogUtil.log(config, "application", "on-start: [" + methodName + "] listener via request uri [" + requestURI + "] threw an exception", t, Log.LEVEL_ERROR);
+				error = t;
 			}
 			finally {
 				if (pc != null) {

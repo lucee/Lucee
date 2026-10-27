@@ -1030,6 +1030,12 @@ public abstract class AbstrCFMLExprTransformer {
 			if (expr instanceof LitString && ((LitString) expr).getString().startsWith("saklsdjasklfhnsalkfddsf:")) {
 				tmp = expr;
 				expr = dynamic(data, false);
+				// LDEV-6750 no static scope access follows (for example a struct literal like "{ class: [ 1, 2 ] }"), so it was not a prefix
+				if (expr == null) {
+					tmp = null;
+					data.srcCode.setPos(pos);
+					expr = newOp(data, dynamic(data, false));
+				}
 			}
 			// new operator?
 			else {

@@ -1770,7 +1770,7 @@ public final class RHExtension implements Serializable {
 		return StringUtil.isEmpty(ed.getId(), true) ? null : ed;
 	}
 
-	public static ExtensionDefintion toExtensionDefinition(Config config, Map<String, String> data) {
+	public static ExtensionDefintion toExtensionDefinition(Config config, Map<String, String> data) throws ApplicationException {
 		if (data == null || data.size() == 0) return null;
 
 		ExtensionDefintion ed = new ExtensionDefintion();
@@ -1803,8 +1803,22 @@ public final class RHExtension implements Serializable {
 
 			// source
 			else if ("path".equalsIgnoreCase(name) || "url".equalsIgnoreCase(name) || "resource".equalsIgnoreCase(name)) {
-				res = ResourceUtil.toResourceExisting(config, ((ConfigPro) config).replacePlaceHolder(entry.getValue().trim()), null);
-				if (res != null && res.isFile()) {
+				String path = toResourcePath(config, value);
+				res = ResourceUtil.toResourceExisting(config, path, null);
+				// LDEV-6745 an explicitly defined source has to exist, we do not silently fall back to a download
+				if (res == null || !res.isFile()) {
+					String id = getValueIgnoreCase(data, "id");
+					String version = getValueIgnoreCase(data, "version");
+					// already installed in that version, we keep it
+					if (!StringUtil.isEmpty(id, true) && !StringUtil.isEmpty(version, true) && isInstalled(config, id.trim(), version.trim())) {
+						if (log != null) log.error("extension",
+								"the " + name + " [" + path + "] defined for the extension [" + id.trim() + "] does not exist, keep the already installed version [" + version.trim() + "]");
+					}
+					else {
+						throw new ApplicationException("the " + name + " [" + path + "] defined for the extension [" + (StringUtil.isEmpty(id, true) ? "" : id.trim()) + "] does not exist");
+					}
+				}
+				else {
 					ed.setSource(config, res);
 					if (ed.getId() == null) {
 
@@ -1833,6 +1847,35 @@ public final class RHExtension implements Serializable {
 		if (ed.getId() == null && ed.getCoordinate(config, false) == null) return null;
 		return ed;
 
+	}
+
+	/**
+	 * resolves placeholders like {system:...}, {env:...} and path placeholders like {lucee-server}
+	 */
+	public static String toResourcePath(Config config, String path) {
+		path = path.trim();
+		config = ThreadLocalPageContext.getConfig(config);
+		if (config == null) return path;
+		path = ((ConfigPro) config).replacePlaceHolder(path);
+		return ConfigUtil.replacePlaceholder(path, config);
+	}
+
+	/**
+	 * LDEV-6745 is the extension with the given id installed in the given version
+	 */
+	public static boolean isInstalled(Config config, String id, String version) {
+		for (RHExtensionCollection.Entry entry: getInstalledExtensions(config)) {
+			RHExtension ext = entry.getRHExtension();
+			if (ext != null && id.equalsIgnoreCase(ext.getId()) && version.equalsIgnoreCase(ext.getVersion())) return true;
+		}
+		return false;
+	}
+
+	private static String getValueIgnoreCase(Map<String, String> data, String name) {
+		for (Entry<String, String> e: data.entrySet()) {
+			if (name.equalsIgnoreCase(e.getKey().trim())) return e.getValue();
+		}
+		return null;
 	}
 
 	public static List<RHExtension> toRHExtensions(Config config, List<ExtensionDefintion> eds) throws PageException {
