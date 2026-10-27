@@ -45,7 +45,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 		});
 
-		describe( title="LDEV-3883 application lifecycle order with ORM", skip=noOrm(), body=function() {
+		describe( title="LDEV-3883 application lifecycle order with ORM", skip=( noOrm() || preLDEV3883() ), body=function() {
 
 			it( title="using application scope in ORM event handler", body=function( currentSpec ) {
 				local.result = _internalRequest(
@@ -69,6 +69,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	private string function cleanOutput( required string str ) {
 		return reReplace( trim( arguments.str ), "\s+", "", "all" );
+	}
+
+	// the fix is in 7.1.3.20 and newer, older versions skip onApplicationStart when ORM touches the application scope first
+	private boolean function preLDEV3883() {
+		return !server.checkVersionGTE( listFirst( server.lucee.version, "-" ), 7, 1, 3, 20 );
 	}
 
 	private function noOrm() {
