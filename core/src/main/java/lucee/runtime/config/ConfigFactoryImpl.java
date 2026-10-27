@@ -4110,7 +4110,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 		// Security / SSL
 		Resource secDir = configDir.getRealResource("security");
-		Resource res = create("/resource/security/", "cacerts", secDir, false);
+		Resource res = BundledTrustStore.deploy(secDir);
 		if (SystemUtil.getSystemPropOrEnvVar("lucee.use.lucee.SSL.TrustStore", "").equalsIgnoreCase("true"))
 			System.setProperty("javax.net.ssl.trustStore", res.toString());/* JAVJAK */
 		// LDEV-6666 no-op when already done by the quick config
