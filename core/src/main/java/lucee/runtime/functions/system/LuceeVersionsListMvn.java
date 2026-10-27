@@ -58,8 +58,8 @@ public final class LuceeVersionsListMvn extends BIF {
 				Map<String, Version> map = new LinkedHashMap<>();
 				Version existing;
 				for (Version v: mup.list()) {
-					key = new StringBuilder().append(v.getMajor()).append('.').append(v.getMinor()).append('.').append(v.getMicro()).toString();
-					if (t == TYPE_ALL || (t == TYPE_SNAPSHOT && v.getQualifier().endsWith("-SNAPSHOT")) || (t == TYPE_RELEASE && !v.getQualifier().endsWith("-SNAPSHOT"))) {
+					key = v.cycle();
+					if (t == TYPE_ALL || (t == TYPE_SNAPSHOT && v.is(Version.SNAPSHOT)) || (t == TYPE_RELEASE && v.is(Version.RELEASE))) {
 						existing = map.get(key);
 						if (existing == null || Version.compare(existing, v) < 0) {
 							map.put(key, v);
@@ -75,7 +75,7 @@ public final class LuceeVersionsListMvn extends BIF {
 			// all
 			Array arr = new ArrayImpl();
 			for (Version v: mup.list()) {
-				if (t == TYPE_ALL || (t == TYPE_SNAPSHOT && v.getQualifier().endsWith("-SNAPSHOT")) || (t == TYPE_RELEASE && !v.getQualifier().endsWith("-SNAPSHOT"))) {
+				if (t == TYPE_ALL || (t == TYPE_SNAPSHOT && v.is(Version.SNAPSHOT)) || (t == TYPE_RELEASE && v.is(Version.RELEASE))) {
 					arr.append(v.toString());
 				}
 			}

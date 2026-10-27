@@ -18,19 +18,22 @@ package lucee.runtime.config.maven;
 
 import java.io.IOException;
 
+import lucee.aprint;
 import lucee.runtime.op.Caster;
 
 public class Version implements Comparable<Version> {
 
+	public static final int SNAPSHOT = 1;
+	public static final int RELEASE = 2;
+
 	// ------------------------------------------------------------------ fields
 
-	private final int major;
-	private final Integer minor; // null when not specified in input
-	private final Integer micro; // null when not specified in input
-	private final Integer build; // null when not specified in input
-	/** Empty string means "no qualifier", never null. */
-	private final String qualifier;
-	/** Canonical string built at construction time, used by toString(). */
+	private final Integer major;
+	private final Integer minor;
+	private final Integer micro;
+	private final Integer build;
+	private final String appendix;
+
 	private final String original;
 
 	private transient int hash; // lazy cache
@@ -38,34 +41,21 @@ public class Version implements Comparable<Version> {
 	// --------------------------------------------------------- well-known constants
 
 	/** The empty version "0.0.0". */
-	public static final Version emptyVersion = new Version(0, 0, 0);
-
-	// --------------------------------------------------------------- constructors
-
-	/**
-	 * Creates a version from numeric components; qualifier is set to "".
-	 */
-	public Version(int major, int minor, int micro) {
-		this(major, minor, micro, null, null);
-	}
+	public static final Version emptyVersion = new Version(null, null, null, null, null, "");
 
 	/**
 	 * Internal constructor — all parsing goes through {@link #parseVersion(String)} or
 	 * {@link #parseVersion(String, Version)}; this constructor only accepts already-validated
 	 * components.
 	 */
-	private Version(int major, Integer minor, Integer micro, Integer build, String qualifier) {
-		if (major < 0) throw new IllegalArgumentException("invalid version: negative major \"" + major + "\"");
-		if (minor != null && minor < 0) throw new IllegalArgumentException("invalid version: negative minor \"" + minor + "\"");
-		if (micro != null && micro < 0) throw new IllegalArgumentException("invalid version: negative micro \"" + micro + "\"");
-		if (build != null && build < 0) throw new IllegalArgumentException("invalid version: negative build \"" + build + "\"");
+	private Version(Integer major, Integer minor, Integer micro, Integer build, String appendix, String original) {
 
 		this.major = major;
 		this.minor = minor;
 		this.micro = micro;
 		this.build = build;
-		this.qualifier = (qualifier == null || qualifier.trim().isEmpty()) ? "" : qualifier.trim();
-		this.original = buildString(major, minor, micro, build, this.qualifier);
+		this.appendix = appendix;
+		this.original = original;
 	}
 
 	// --------------------------------------------------------- static factories
@@ -76,44 +66,6 @@ public class Version implements Comparable<Version> {
 		return parseVersion(version, emptyVersion);
 	}
 
-	// ----------------------------------------------------------------- getters
-
-	/** Returns the major component. Always present. */
-	public int getMajor() {
-		return major;
-	}
-
-	/**
-	 * Returns the minor component exactly as parsed, or {@code null} if it was not present in the
-	 * version string (e.g. {@code "2-BETA"}).
-	 */
-	public Integer getMinor() {
-		return minor;
-	}
-
-	/**
-	 * Returns the micro component exactly as parsed, or {@code null} if it was not present in the
-	 * version string (e.g. {@code "2.5-BETA"}).
-	 */
-	public Integer getMicro() {
-		return micro;
-	}
-
-	/**
-	 * Returns the build component exactly as parsed, or {@code null} if it was not present in the
-	 * version string (e.g. {@code "0.9.4-RC"} has no build, but {@code "0.9.4.119-RC"} has build 119).
-	 */
-	public Integer getBuild() {
-		return build;
-	}
-
-	/** Returns the qualifier, or the empty string if there is none. */
-	public String getQualifier() {
-		return qualifier;
-	}
-
-	// ---------------------------------------------------------------- toString
-
 	/**
 	 * Returns the canonical string: "major", "major.minor", "major.minor.micro", or
 	 * "major.minor.micro.build", each optionally followed by "-qualifier".
@@ -123,32 +75,29 @@ public class Version implements Comparable<Version> {
 		return original;
 	}
 
+	public boolean is(int type) {
+		if (appendix != null && appendix.endsWith("SNAPSHOT")) return type == SNAPSHOT;
+		return type == RELEASE;
+	}
+
 	// --------------------------------------------------------------- hashCode / equals
 
 	@Override
 	public int hashCode() {
-		int h = hash;
-		if (h != 0) return h;
-		h = 31 * 17;
-		h = 31 * h + major;
-		h = 31 * h + minor();
-		h = 31 * h + micro();
-		h = 31 * h + build();
-		h = 31 * h + qualifier.hashCode();
-		return hash = h;
+		return original.hashCode();
 	}
 
 	/**
 	 * Two versions are equal when major, effective minor, effective micro, effective build, and
-	 * qualifier are all equal (absent components treated as 0).
-	 * Note: "1.0.0" and "1.0.0.0" are considered equal by this contract.
+	 * qualifier are all equal (absent components treated as 0). Note: "1.0.0" and "1.0.0.0" are
+	 * considered equal by this contract.
 	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) return true;
 		if (!(obj instanceof Version)) return false;
 		Version o = (Version) obj;
-		return major == o.major && minor() == o.minor() && micro() == o.micro() && build() == o.build() && qualifier.equals(o.qualifier);
+		return original.equals(o.original);
 	}
 
 	// --------------------------------------------------------------- compareTo
@@ -166,19 +115,33 @@ public class Version implements Comparable<Version> {
 	public int compareTo(Version other) {
 		if (other == this) return 0;
 
-		int result = Integer.compare(major, other.major);
-		if (result != 0) return result;
+		// we only check if we have integer on both
+		if (major != null && other.major != null) {
+			int result = Integer.compare(major, other.major);
+			if (result != 0) return result;
 
-		result = Integer.compare(minor(), other.minor());
-		if (result != 0) return result;
+			// we only check if we also had major
+			if (minor != null && other.minor != null) {
+				result = Integer.compare(minor, other.minor);
+				if (result != 0) return result;
 
-		result = Integer.compare(micro(), other.micro());
-		if (result != 0) return result;
+				// we only check if we also had minor
+				if (micro != null && other.micro != null) {
+					result = Integer.compare(micro, other.micro);
+					if (result != 0) return result;
 
-		result = Integer.compare(build(), other.build());
-		if (result != 0) return result;
+					// we only check if we also had minor
+					if (build != null && other.build != null) {
+						result = Integer.compare(build, other.build);
+						if (result != 0) return result;
 
-		return compareQualifiers(qualifier, other.qualifier);
+						// we only check if we also had build
+						return (appendix + "").compareTo(other.appendix + "");
+					}
+				}
+			}
+		}
+		return original.compareTo(other.original);
 	}
 
 	public static int compare(Version v1, Version v2) {
@@ -207,26 +170,21 @@ public class Version implements Comparable<Version> {
 		for (int i = 0; i < arr.length; i++)
 			arr[i] = arr[i].trim();
 
-		Integer major, minor, micro, build;
-		String qualifier;
+		Integer major, minor = null, micro = null, build = null;
+		String appendix;
 
 		switch (arr.length) {
 		case 1: {
 			String[] hp = arr[0].split("-", 2);
 			major = Caster.toInteger(hp[0], null);
-			minor = null;
-			micro = null;
-			build = null;
-			qualifier = hp.length > 1 ? hp[1] : null;
+			appendix = hp.length > 1 ? hp[1] : null;
 			break;
 		}
 		case 2: {
 			major = Caster.toInteger(arr[0], null);
 			String[] hp = arr[1].split("-", 2);
 			minor = Caster.toInteger(hp[0], null);
-			micro = null;
-			build = null;
-			qualifier = hp.length > 1 ? hp[1] : null;
+			appendix = hp.length > 1 ? hp[1] : null;
 			break;
 		}
 		case 3: {
@@ -234,26 +192,21 @@ public class Version implements Comparable<Version> {
 			minor = Caster.toInteger(arr[1], null);
 			String[] hp = arr[2].split("-", 2);
 			micro = Caster.toInteger(hp[0], null);
-			build = null;
-			qualifier = hp.length > 1 ? hp[1] : null;
+			appendix = hp.length > 1 ? hp[1] : null;
 			break;
 		}
 		default: {
-			// 4 dot-parts: "major.minor.micro.build[-qualifier]" — 5+ segments are not supported and will return defaultValue
 			major = Caster.toInteger(arr[0], null);
 			minor = Caster.toInteger(arr[1], null);
 			micro = Caster.toInteger(arr[2], null);
 			String[] hp = arr[3].split("-", 2);
 			build = Caster.toInteger(hp[0], null);
-			qualifier = hp.length > 1 ? hp[1] : null;
+			appendix = hp.length > 1 ? hp[1] : null;
 			break;
 		}
 		}
 
-		if (major == null || (arr.length >= 2 && minor == null) || (arr.length >= 3 && micro == null) || (arr.length >= 4 && build == null))
-			return defaultValue;
-
-		return new Version(major, minor, micro, build, qualifier);
+		return new Version(major, minor, micro, build, appendix, version);
 	}
 
 	/**
@@ -267,52 +220,37 @@ public class Version implements Comparable<Version> {
 		throw new IOException("Given version [" + version + "] is invalid, a valid version follows the pattern <major>[.<minor>[.<micro>[.<build>]]][-<qualifier>]");
 	}
 
-	// ----------------------------------------------------------------- helpers
-
-	/** Returns minor as int, treating absent (null) as 0. */
-	private int minor() {
-		return minor == null ? 0 : minor;
-	}
-
-	/** Returns micro as int, treating absent (null) as 0. */
-	private int micro() {
-		return micro == null ? 0 : micro;
-	}
-
-	/** Returns build as int, treating absent (null) as 0. */
-	private int build() {
-		return build == null ? 0 : build;
-	}
-
 	/** Builds the canonical string from components. */
-	private static String buildString(int major, Integer minor, Integer micro, Integer build, String qualifier) {
+	private static String buildString(int major, Integer minor, Integer micro, String qualifier) {
 		StringBuilder sb = new StringBuilder(24);
 		sb.append(major);
 		if (minor != null) {
 			sb.append('.').append(minor);
 			if (micro != null) {
 				sb.append('.').append(micro);
-				if (build != null) sb.append('.').append(build);
+				if (qualifier != null) sb.append('.').append(qualifier);
 			}
 		}
-		if (qualifier != null && !qualifier.isEmpty()) sb.append('-').append(qualifier);
 		return sb.toString();
 	}
 
-	/**
-	 * Maven qualifier ordering: - empty (release) beats any qualifier - SNAPSHOT is always the lowest
-	 * qualifier - everything else compared case-insensitively
-	 */
-	private static int compareQualifiers(String q1, String q2) {
-		boolean e1 = q1.isEmpty(), e2 = q2.isEmpty();
-		if (e1 && e2) return 0;
-		if (e1) return 1;
-		if (e2) return -1;
-		boolean s1 = q1.equalsIgnoreCase("SNAPSHOT");
-		boolean s2 = q2.equalsIgnoreCase("SNAPSHOT");
-		if (s1 && s2) return 0;
-		if (s1) return -1;
-		if (s2) return 1;
-		return q1.compareToIgnoreCase(q2);
+	public static void dump(String version) throws IOException {
+		Version v = parseVersion(version);
+		aprint.e("---- " + version + " ----");
+		aprint.e("str: " + v.toString());
+		aprint.e("original: " + v.original);
+		aprint.e("major:" + v.major);
+		aprint.e("minor:" + v.minor);
+		aprint.e("micro:" + v.micro);
+		aprint.e("build:" + v.build);
+		aprint.e("appendix:" + v.appendix);
+		aprint.e("is-rel:" + v.is(RELEASE));
+		aprint.e("is-snap:" + v.is(SNAPSHOT));
+		aprint.e("");
 	}
+
+	public String cycle() {
+		return major + ":" + minor + ":" + micro;
+	}
+
 }

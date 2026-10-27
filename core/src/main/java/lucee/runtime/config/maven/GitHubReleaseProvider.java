@@ -77,7 +77,7 @@ public final class GitHubReleaseProvider {
 	 */
 	public static Map<String, Object> detail(Version version) {
 		Map<String, Object> result = new LinkedHashMap<>();
-		if (version == null || "SNAPSHOT".equalsIgnoreCase(version.getQualifier())) return result;
+		if (version == null || version.is(Version.SNAPSHOT)) return result;
 
 		String v = version.toString();
 		String base = getReleasesUrl();

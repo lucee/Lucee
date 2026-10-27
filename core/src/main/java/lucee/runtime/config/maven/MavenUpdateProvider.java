@@ -278,7 +278,7 @@ public final class MavenUpdateProvider {
 		// SNAPSHOT - snapshot have a more complicated structure, ebcause there can be udaptes/multiple
 		// versions
 
-		boolean isSnap = version.getQualifier().equals("SNAPSHOT");
+		boolean isSnap = version.is(Version.SNAPSHOT);
 		List<Repository> repos = isSnap ? merge(repoSnapshots, repoMixed) : merge(repoReleases, repoMixed);
 
 		if (requiredArtifactExtension == null) requiredArtifactExtension = "jar";
@@ -389,7 +389,7 @@ public final class MavenUpdateProvider {
 	}
 
 	private String findArtifact(Version version, String extension) throws IOException, GeneralSecurityException {
-		if (version.getQualifier().equals("SNAPSHOT")) return null;
+		if (version.is(Version.SNAPSHOT)) return null;
 		String g = group.replace('.', '/');
 		String a = artifact.replace('.', '/');
 		String v = version.toString();
