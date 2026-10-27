@@ -383,7 +383,7 @@ public class ExtensionProvider {
 		Version lastRel = null;
 
 		for (Version v: list(artifact)) {
-			if (!v.toString().toUpperCase().endsWith("-SNAPSHOT")) {
+			if (!v.is(Version.SNAPSHOT)) {
 				if (lastRel == null || Version.compare(lastRel, v) < 0) {
 					lastRel = v;
 				}

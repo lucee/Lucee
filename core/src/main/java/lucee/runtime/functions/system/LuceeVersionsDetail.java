@@ -26,7 +26,7 @@ public final class LuceeVersionsDetail extends BIF {
 		Version v = Version.parseVersion(version, null);
 
 		// releases: Maven Central first, artifacts missing there (lco, light, zero) from GitHub Releases
-		if (v != null && !"SNAPSHOT".equalsIgnoreCase(v.getQualifier())) {
+		if (v != null && !v.is(Version.SNAPSHOT)) {
 			try {
 				MavenUpdateProvider central = new MavenUpdateProvider(MavenUpdateProvider.getDefaultRepositorySnapshots(), MavenUpdateProvider.getDefaultRepositoryReleases(),
 						new Repository[0], MavenUpdateProvider.DEFAULT_GROUP, MavenUpdateProvider.DEFAULT_ARTIFACT);
