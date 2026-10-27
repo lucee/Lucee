@@ -6,12 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.codec.digest.DigestUtils;
-
+import lucee.commons.digest.Hash;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -88,7 +88,13 @@ public final class BundledTrustStore {
 
 	public static String getBundledHash() throws IOException {
 		byte[] bundled = getBundled();
-		return bundled == null ? null : DigestUtils.sha256Hex(bundled);
+		if (bundled == null) return null;
+		try {
+			return Hash.sha256(bundled);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new IOException(e);
+		}
 	}
 
 	public static Set<String> getPreviousHashes() throws IOException {
@@ -114,13 +120,7 @@ public final class BundledTrustStore {
 	}
 
 	private static String sha256(Resource file) throws IOException {
-		InputStream is = file.getInputStream();
-		try {
-			return DigestUtils.sha256Hex(is);
-		}
-		finally {
-			IOUtil.close(is);
-		}
+		return Hash.sha256(file);
 	}
 
 	private static InputStream getResourceAsStream(String path) {
