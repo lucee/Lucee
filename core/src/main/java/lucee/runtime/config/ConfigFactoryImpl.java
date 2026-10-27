@@ -1789,7 +1789,13 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			while (it.hasNext()) {
 				e = it.next();
 				dataSource = Caster.toStruct(e.getValue(), null);
-				if (dataSource == null) continue;
+				if (dataSource == null) {
+					// LDEV-6751: "psq" and "preserveSingleQuote" are settings, not datasources
+					if (!isDataSourcesSetting(e.getKey())) {
+						log(config, Log.LEVEL_WARN, "skipping entry [" + e.getKey() + "] in [dataSources], it is not a datasource definition (struct expected)");
+					}
+					continue;
+				}
 
 				if (dataSource.containsKey(KeyConstants._database)) {
 					try {
@@ -2925,6 +2931,14 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			ExceptionUtil.rethrowIfNecessary(th);
 			th.printStackTrace();
 		}
+	}
+
+	/**
+	 * LDEV-6751: settings that can be defined directly inside "dataSources", next to the datasource
+	 * definitions
+	 */
+	public static boolean isDataSourcesSetting(Key key) {
+		return KeyConstants._psq.equalsIgnoreCase(key) || KeyConstants._preservesinglequote.equalsIgnoreCase(key);
 	}
 
 	public static void log(Config config, int level, String message) {
