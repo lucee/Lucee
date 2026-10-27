@@ -8,6 +8,7 @@ import java.util.Map;
 import org.osgi.framework.BundleException;
 
 import lucee.commons.date.TimeZoneUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -54,7 +55,12 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 			JDBCDriver jdbc;
 			ClassDefinition cd;
 			String id;
-			Struct dataSource = Caster.toStruct(val);
+			Struct dataSource = Caster.toStruct(val, null);
+			// LDEV-6751: an entry that is not a struct is no datasource definition, do not fail all datasources
+			if (dataSource == null) {
+				ConfigFactoryImpl.log(config, Log.LEVEL_WARN, "ignoring entry [" + name + "] in [dataSources], it is not a datasource definition");
+				return null;
+			}
 
 			if (!hasDataSourceDefinition(dataSource)) {
 				return null;

@@ -2161,7 +2161,50 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public boolean getPSQL() {
+		// LDEV-6751: a legacy "psq" inside "dataSources" may only have been merged in (configImport)
+		if (!preserveSingleQuote.isInitialized()) patchLegacyDataSourcesPSQ(root);
 		return preserveSingleQuote.get(this, root);
+	}
+
+	private static final Key KEY_DATASOURCES = KeyImpl.init("dataSources");
+	private static final Key KEY_PSQ = KeyImpl.init("psq");
+	private static final Key KEY_PRESERVE_SINGLE_QUOTE = KeyImpl.init("preserveSingleQuote");
+	private static final Key[] ROOT_PSQ_KEYS = new Key[] { KEY_PRESERVE_SINGLE_QUOTE, KeyImpl.init("datasourcePreserveSingleQuotes"), KEY_PSQ };
+
+	/**
+	 * LDEV-6751: configs in the older layout (or converted from a lucee-server.xml) can contain the
+	 * "psq" / "preserveSingleQuote" setting inside "dataSources", where it is not a datasource
+	 * definition. A "psq" found there is used as the root "preserveSingleQuote" setting, but only when
+	 * the root has no setting of its own; "preserveSingleQuote" there was already ignored before and
+	 * is only removed. Both keys are always removed from "dataSources".
+	 *
+	 * @param root raw config data
+	 * @return true if the config data was changed
+	 */
+	public static boolean patchLegacyDataSourcesPSQ(Struct root) {
+		if (root == null) return false;
+		Struct dataSources = Caster.toStruct(root.get(KEY_DATASOURCES, null), null);
+		if (dataSources == null || (!dataSources.containsKey(KEY_PSQ) && !dataSources.containsKey(KEY_PRESERVE_SINGLE_QUOTE))) return false;
+
+		synchronized (SystemUtil.createToken("config", "patchLegacyDataSourcesPSQ")) {
+			Object psq = dataSources.get(KEY_PSQ, null);
+			if (psq == null && !dataSources.containsKey(KEY_PRESERVE_SINGLE_QUOTE)) return false;
+			if (psq != null && !hasRootPSQ(root)) {
+				Boolean b = Caster.toBoolean(psq, null);
+				if (b != null) root.setEL(KEY_PRESERVE_SINGLE_QUOTE, b);
+			}
+			dataSources.removeEL(KEY_PSQ);
+			dataSources.removeEL(KEY_PRESERVE_SINGLE_QUOTE);
+			return true;
+		}
+	}
+
+	private static boolean hasRootPSQ(Struct root) {
+		for (Key k: ROOT_PSQ_KEYS) {
+			Object v = root.get(k, null);
+			if (v != null && !StringUtil.isEmpty(Caster.toString(v, null), true)) return true;
+		}
+		return false;
 	}
 
 	public ConfigServerImpl resetPSQL() {
@@ -3698,9 +3741,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (dataSources == null) {
 			synchronized (SystemUtil.createToken("config", "getDataSources")) {
 				if (dataSources == null) {
-					// patch
-					Struct raw = ConfigUtil.getAsStruct("dataSources", root);
-					raw.removeEL(KeyImpl.init("preserveSingleQuote"));
+					// LDEV-6751: legacy psq setting inside "dataSources" is not a datasource
+					patchLegacyDataSourcesPSQ(root);
 
 					dataSources = metaDatasourcesAll.map(this, root);
 				}
@@ -7555,6 +7597,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			ConfigFile.createConfigFile(configFile);
 			root = ConfigFile.read(configFile, null);
 		}
+		patchLegacyDataSourcesPSQ(root);
 		this.setConfigLastModified();
 		this.loadTime = System.currentTimeMillis();
 
