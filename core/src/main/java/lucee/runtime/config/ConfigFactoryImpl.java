@@ -388,7 +388,10 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		configServer.setRoot(root);
 		configServer.resetScheduledTasks();
 		load(configServer, root, true, doNew, quick);
-		((CFMLEngineImpl) ConfigUtil.getEngine(configServer)).onStart(configServer, true);
+		// LDEV-6743 same as with a new instance, while the engine only has the essential (quick) config,
+		// extensions are not loaded yet, onStart (onBuild with warmup) is called once the full config is
+		// loaded
+		if (!quick) ((CFMLEngineImpl) ConfigUtil.getEngine(configServer)).onStart(configServer, true);
 	}
 
 	private static long second(long ms) {
