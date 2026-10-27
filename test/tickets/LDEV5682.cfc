@@ -12,10 +12,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="log" {
 			});
 
 			it( title="a logger with a stale lucee.core bundle version still loads its appender", body=function( currentSpec ) {
+				// 9.0: the log4j appenders moved to the Log4j extension (LDEV-6626), the built-in console appender type is part of the core
 				var cd = createObject( "java", "lucee.transformer.library.ClassDefinitionImpl" ).init(
-					"lucee.commons.io.log.log4j2.appender.ConsoleAppender", "lucee.core", "6.0.0.1", getPageContext().getConfig().getIdentification()
+					"lucee.commons.io.log.JULLogEngine$ConsoleAppenderType", "lucee.core", "6.0.0.1", getPageContext().getConfig().getIdentification()
 				);
-				expect( cd.getClazz().getName() ).toBe( "lucee.commons.io.log.log4j2.appender.ConsoleAppender" );
+				expect( cd.getClazz().getName() ).toBe( "lucee.commons.io.log.JULLogEngine$ConsoleAppenderType" );
 			});
 
 		});
