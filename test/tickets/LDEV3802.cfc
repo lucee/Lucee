@@ -11,7 +11,14 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				_InternalRequest(
 					template : "#uri#\LDEV3802.cfm"
 				);
-				sleep(100);
+				// the thread outlives the request (it sleeps first), so wait for it to write the result instead of a fixed sleep
+				var waited = 0;
+				while ( !fileExists( file ) || !len( trim( fileRead( file ) ) ) ) {
+					if ( waited >= 10000 ) break;
+					sleep( 50 );
+					waited += 50;
+				}
+				expect( fileExists( file ) ).toBeTrue( "thread did not write [#file#] within #waited#ms" );
 				expect(trim(fileRead(file))).tobe("success");
 			});	
 		});
