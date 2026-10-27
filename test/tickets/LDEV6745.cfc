@@ -77,11 +77,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="extension" {
 		var java = System.getProperty( "java.home" ) & "/bin/java";
 		if ( !fileExists( java ) ) java &= ".exe";
 
-		var cp = [
-			toPath( createObject( "java", "lucee.loader.engine.CFMLEngineFactory" ).getInstance().getCFMLEngineFactory() ),
-			toPath( createObject( "java", "jakarta.servlet.ServletException" ).init( "" ) ),
-			toPath( createObject( "java", "jakarta.servlet.jsp.JspException" ).init( "" ) )
-		];
+		// classpath of the running JVM (loader and its dependencies), make sure the Lucee loader, servlet and jsp api are part of it
+		var cp = listToArray( System.getProperty( "java.class.path" ), File.pathSeparator );
+		loop array=[
+			createObject( "java", "lucee.loader.engine.CFMLEngineFactory" ).getInstance().getCFMLEngineFactory(),
+			createObject( "java", "jakarta.servlet.ServletException" ).init( "" ),
+			createObject( "java", "jakarta.servlet.jsp.JspException" ).init( "" )
+		] item="local.obj" {
+			var path = toPath( obj );
+			if ( !arrayContains( cp, path ) ) arrayAppend( cp, path );
+		}
 
 		var cmd = [ java, "-Dlucee.enable.warmup=true", "-cp", arrayToList( cp, File.pathSeparator ), "lucee.cli.CLI", "webroot=" & webroot, "uri=/index.cfm" ];
 		var pb = createObject( "java", "java.lang.ProcessBuilder" ).init( cmd );
