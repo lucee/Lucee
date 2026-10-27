@@ -1,4 +1,4 @@
 <cfscript>
 	consumer = new Consumer();
-	writeOutput( "exists:#consumer.hasResponseFormat()#;null:#consumer.isResponseFormatNull()#" );
+	writeOutput( "exists:#consumer.hasResponseFormatArgument()#;null:#consumer.isResponseFormatNull()#" );
 </cfscript>

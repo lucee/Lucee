@@ -1,12 +1,13 @@
 component {
 
 	function init( string responseFormat=null ) {
+		variables.argumentExists = structKeyExists( arguments, "responseFormat" );
 		variables.responseFormat = responseFormat;
 		return this;
 	}
 
-	function hasResponseFormat() {
-		return structKeyExists( variables, "responseFormat" );
+	function hasResponseFormatArgument() {
+		return variables.argumentExists;
 	}
 
 	function isResponseFormatNull() {
