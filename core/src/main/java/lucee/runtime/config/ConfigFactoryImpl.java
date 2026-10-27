@@ -376,10 +376,19 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 	 */
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl configServer)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
+		reloadInstance(engine, configServer, false);
+	}
+
+	/**
+	 * @param force reload even when the config file looks older than the last load; the file mtime comes from a coarser clock than
+	 *            System.currentTimeMillis(), so a file written right after a load can look older and the change would be skipped
+	 */
+	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl configServer, boolean force)
+			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
 		boolean quick = CFMLEngineImpl.quick(engine);
 		Resource configFile = configServer.getConfigFile();
 		if (configFile == null) return;
-		if (second(configServer.getLoadTime()) > second(configFile.lastModified())) {
+		if (!force && second(configServer.getLoadTime()) > second(configFile.lastModified())) {
 			if (!configServer.getConfigDir().getRealResource("password.txt").isFile()) return;
 		}
 		int iDoNew = getNew(engine, configServer.getConfigDir(), quick, UpdateInfo.NEW_NONE).updateType;

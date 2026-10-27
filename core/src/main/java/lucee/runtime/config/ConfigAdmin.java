@@ -361,7 +361,8 @@ public final class ConfigAdmin {
 		// if(storeInMemoryData)XMLCaster.writeTo(doc,config.getConfigFile());
 		CFMLEngine engine = ConfigUtil.getCFMLEngine(config);
 		ConfigServerImpl cs = config;
-		ConfigFactoryImpl.reloadInstance(engine, cs);
+		// we just stored (or detected) a change, so the reload must not be skipped based on the file timestamp
+		ConfigFactoryImpl.reloadInstance(engine, cs, true);
 		ConfigWeb[] webs = cs.getConfigWebs();
 		for (ConfigWeb web: webs) {
 			ConfigFactoryImpl.reloadInstance(engine, config, (ConfigWebImpl) web, true);
