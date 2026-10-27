@@ -1,14 +1,10 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="null" {
 
 	function beforeAll() {
-		variables.admin = new org.lucee.cfml.Administrator( "server", request.ServerAdminPassword );
-		variables.compilerSettings = admin.getCompilerSettings();
+		variables.cs = createObject( "java", "lucee.runtime.config.ConfigUtil" ).getConfigServerImpl( getPageContext().getConfig() );
+		variables.system = createObject( "java", "java.lang.System" );
 		variables.mac = createObject( "java", "lucee.runtime.listener.ModernApplicationContext" );
 		variables.nsh = createObject( "java", "lucee.runtime.config.NullSupportHelper" );
-	}
-
-	function afterAll() {
-		setServerNullSupport( variables.compilerSettings.nullSupport );
 	}
 
 	function run( testResults, testBox ) {
@@ -35,23 +31,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="null" {
 	}
 
 	// enables/disables null support on server level, as if no application ever defined its own null support setting
+	// the test server is started with -Dlucee.full.null.support=false, which takes precedence over .CFConfig.json,
+	// so the server setting is switched via that system property
 	private any function withServerNullSupport( required boolean nullSupport, required function body ) {
 		var hasCustom = variables.mac.hasCustomNullSupportSetting;
+		var orgProp = variables.system.getProperty( "lucee.full.null.support" );
 		try {
-			setServerNullSupport( arguments.nullSupport );
+			variables.system.setProperty( "lucee.full.null.support", arguments.nullSupport ? "true" : "false" );
+			variables.cs.resetFullNullSupport();
 			variables.mac.hasCustomNullSupportSetting = false;
 			return arguments.body();
 		}
 		finally {
 			variables.mac.hasCustomNullSupportSetting = hasCustom;
-			setServerNullSupport( variables.compilerSettings.nullSupport );
+			if ( isNull( orgProp ) ) variables.system.clearProperty( "lucee.full.null.support" );
+			else variables.system.setProperty( "lucee.full.null.support", orgProp );
+			variables.cs.resetFullNullSupport();
 		}
-	}
-
-	private void function setServerNullSupport( required boolean nullSupport ) {
-		var settings = duplicate( variables.compilerSettings );
-		settings.nullSupport = arguments.nullSupport;
-		variables.admin.updateCompilerSettings( argumentCollection = settings );
 	}
 
 	private string function createURI( string calledName ) {
