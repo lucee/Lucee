@@ -1,0 +1,83 @@
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="warmup" {
+
+	function beforeAll() {
+		variables.root = getTempDirectory() & "LDEV6743-" & createUUID() & "/";
+		variables.webroot = root & "webroot/";
+		variables.resultFile = root & "onBuild.json";
+		variables.logFile = root & "process.log";
+		directoryCreate( webroot & "WEB-INF/lucee-server/context/context", true );
+		fileWrite( webroot & "index.cfm", "" );
+
+		// Server.cfc of the new server, onBuild() reports what is available at that point
+		var cfc = 'component {
+	function onBuild() {
+		var installed = directoryList( "#webroot#WEB-INF/lucee-server/context/extensions/installed", false, "name", "*.lex" );
+		fileWrite( "#resultFile#", serializeJSON( {
+			"registered": extensionList().recordCount,
+			"installed": arrayLen( installed )
+		} ) );
+	}
+}';
+		fileWrite( webroot & "WEB-INF/lucee-server/context/context/Server.cfc", cfc );
+	}
+
+	function afterAll() {
+		if ( directoryExists( variables.root ) ) directoryDelete( variables.root, true );
+	}
+
+	function run( testResults, testBox ) {
+		describe( "LDEV-6743: warmup, onBuild() is called after the extensions are installed and registered", function() {
+
+			it( "onBuild() sees all installed extensions", function() {
+				var exitCode = runWarmup();
+				var log = fileExists( logFile ) ? fileRead( logFile ) : "";
+				expect( exitCode ).toBe( 0, log );
+				expect( fileExists( resultFile ) ).toBeTrue( "onBuild() was not executed: " & log );
+
+				var result = deserializeJSON( fileRead( resultFile ) );
+				expect( result.installed ).toBeGT( 0, "no extension installed at onBuild()" );
+				expect( result.registered ).toBe( result.installed, "extensions registered at onBuild() [#result.registered#], installed [#result.installed#]" );
+			});
+
+		});
+	}
+
+	// starts a new Lucee server (fresh server directory) in a separate JVM with warmup enabled
+	private numeric function runWarmup() {
+		var System = createObject( "java", "java.lang.System" );
+		var File = createObject( "java", "java.io.File" );
+
+		var java = System.getProperty( "java.home" ) & "/bin/java";
+		if ( !fileExists( java ) ) java &= ".exe";
+
+		var cp = [
+			toPath( createObject( "java", "lucee.loader.engine.CFMLEngineFactory" ).getInstance().getCFMLEngineFactory() ),
+			toPath( createObject( "java", "jakarta.servlet.ServletException" ).init( "" ) ),
+			toPath( createObject( "java", "jakarta.servlet.jsp.JspException" ).init( "" ) )
+		];
+
+		var cmd = [ java, "-Dlucee.enable.warmup=true", "-cp", arrayToList( cp, File.pathSeparator ), "lucee.cli.CLI", "webroot=" & webroot, "uri=/index.cfm" ];
+		var pb = createObject( "java", "java.lang.ProcessBuilder" ).init( cmd );
+		var env = pb.environment();
+		// the new server must not pick up settings from the server running the tests
+		loop array=[ "LUCEE_ENABLE_WARMUP", "LUCEE_BUILD", "LUCEE_EXTENSIONS", "LUCEE_EXTENSIONS_INSTALL", "LUCEE_BASE_CONFIG" ] item="local.k" {
+			env.remove( k );
+		}
+		pb.directory( File.init( root ) );
+		pb.redirectErrorStream( true );
+		pb.redirectOutput( File.init( logFile ) );
+
+		var process = pb.start();
+		var TimeUnit = createObject( "java", "java.util.concurrent.TimeUnit" );
+		if ( !process.waitFor( 5, TimeUnit.MINUTES ) ) {
+			process.destroyForcibly();
+			throw "warmup did not finish within 5 minutes";
+		}
+		return process.exitValue();
+	}
+
+	// jar (or class directory) the class of the given object is loaded from
+	private string function toPath( required any obj ) {
+		return createObject( "java", "java.io.File" ).init( arguments.obj.getClass().getProtectionDomain().getCodeSource().getLocation().toURI() ).getAbsolutePath();
+	}
+}
