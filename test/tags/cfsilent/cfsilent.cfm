@@ -31,4 +31,19 @@
 			writeoutput(e.message);
 		}
 	}
+
+	else if (form.scene == 4) {
+		// default bufferoutput must survive the pooled tag being reused
+		for (i = 1; i <= 2; i++) {
+			try {
+				silent {
+					writeoutput("default ");
+					throw "error";
+				}
+			}
+			catch(any e) {
+				writeoutput(e.message & " ");
+			}
+		}
+	}
 </cfscript>

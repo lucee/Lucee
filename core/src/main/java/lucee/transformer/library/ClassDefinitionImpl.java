@@ -59,6 +59,8 @@ import lucee.runtime.type.wrap.MapAsStruct;
 
 public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizable {
 
+	private static final String CORE_BUNDLE_NAME = "lucee.core";
+
 	/**
 	 * do not use to load class!!!
 	 */
@@ -266,6 +268,16 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 
 		// OSGi
 		if (name != null) {
+			// classes of the Lucee core always come from the running core, a core version stored in a config
+			// (written by an older release) can never be loaded (LDEV-5682)
+			if (CORE_BUNDLE_NAME.equals(name)) {
+				try {
+					return clazz = (Class<T>) ClassDefinitionImpl.class.getClassLoader().loadClass(className);
+				}
+				catch (ClassNotFoundException cnfe) {
+					// fall back to the regular bundle lookup
+				}
+			}
 			return clazz = ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null), versionOnlyMattersWhenDownloading);
 		}
 

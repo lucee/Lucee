@@ -630,7 +630,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public static final Prop<Boolean> metaPsq = Prop.bool().keys("preserveSingleQuote", "datasourcePreserveSingleQuotes", "psq").defaultValue(false)
 			.description("Preserve single quotes (') in SQL defined with the cfquery tag.");
-	private final ConfigValue<Boolean> preserveSingleQuote = new ConfigValue<>(metaPsq);
+	// field name has to match the key of metaPsq (Prop.createConfig)
+	private volatile Boolean preserveSingleQuote;
 
 	public final static Prop<String> metaErrorTemplate500 = Prop.str().keys("errorGeneralTemplate", "generalErrorTemplate", "template500").access(SecurityManager.TYPE_DEBUGGING)
 			.defaultValue("/lucee/templates/error/error." + (Constants.getCFMLTemplateExtensions()[0])).description(
@@ -1282,6 +1283,9 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("When enabled, struct keys defined via dot notation preserve their original casing (e.g. sct.myKey → \"myKey\"). "
 					+ "When disabled (CFML default), dot-notation keys are converted to uppercase (e.g. sct.myKey → \"MYKEY\"). "
 					+ "Keys defined via bracket notation always preserve their original case regardless of this setting.");
+	public final static Prop<Boolean> metaDotNotationUpperCase = Prop.bool().keys("dotNotationUpperCase").noEnvVar().deprecated().defaultValue(true)
+			.description("Deprecated, use [preserveCase] instead (inverted). When disabled (false), struct keys defined via dot notation preserve their original casing. "
+					+ "Only used when [preserveCase] is not defined.");
 	private Boolean preserveCase;
 
 	private static Prop<Boolean> metaDefaultFunctionOutput = Prop.bool().keys("defaultFunctionOutput").defaultValue(true)
@@ -2206,11 +2210,76 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public boolean getPSQL() {
-		return preserveSingleQuote.get(this, root);
+		Boolean b = preserveSingleQuote;
+		if (b == null) {
+			synchronized (SystemUtil.createToken("config", "getPSQL")) {
+				b = preserveSingleQuote;
+				if (b == null) preserveSingleQuote = b = readPSQ(this, root);
+			}
+		}
+		return b.booleanValue();
+	}
+
+	/**
+	 * LDEV-6751: resolves the server wide "preserve single quotes" setting. The setting can be defined
+	 * inside "dataSources" (older layout) or in the root, the "dataSources" level wins. A system
+	 * property / environment variable still takes precedence over the config file. Precedence:
+	 * <ol>
+	 * <li>system property / environment variable</li>
+	 * <li>dataSources.psq</li>
+	 * <li>dataSources.preserveSingleQuote (legacy, inverted meaning: true means quotes get
+	 * escaped)</li>
+	 * <li>preserveSingleQuote</li>
+	 * <li>datasourcePreserveSingleQuotes</li>
+	 * <li>psq</li>
+	 * <li>false</li>
+	 * </ol>
+	 *
+	 * @param config config used to resolve placeholders
+	 * @param root raw config data
+	 * @return true if single quotes are preserved (not escaped)
+	 */
+	public static boolean readPSQ(ConfigServerImpl config, Struct root) {
+		if (root == null) return metaPsq.get(config, new StructImpl()).booleanValue();
+
+		if (metaPsq.getEnvVarSystemPropSource() == null) {
+			Struct dataSources = Caster.toStruct(root.get(KeyConstants._datasources, null), null);
+			if (dataSources != null) {
+				Boolean b = readBoolean(config, dataSources, "psq");
+				if (b != null) return b.booleanValue();
+				// legacy name, it has the opposite meaning
+				b = readBoolean(config, dataSources, "preserveSingleQuote");
+				if (b != null) return !b.booleanValue();
+			}
+		}
+		return metaPsq.get(config, root).booleanValue();
+	}
+
+	private static Boolean readBoolean(Config config, Struct data, String name) {
+		String str = ConfigFactoryImpl.getAttr(config, data, name);
+		if (StringUtil.isEmpty(str, true)) return null;
+		return Caster.toBoolean(str.trim(), null);
+	}
+
+	/**
+	 * LDEV-6751: removes all psq settings, except the canonical root "preserveSingleQuote", so a value
+	 * written by the admin cannot be masked by another key
+	 *
+	 * @param root raw config data
+	 */
+	public static void removeOtherPSQSettings(Struct root) {
+		if (root == null) return;
+		Struct dataSources = Caster.toStruct(root.get(KeyConstants._datasources, null), null);
+		if (dataSources != null) {
+			dataSources.removeEL(KeyConstants._psq);
+			dataSources.removeEL(KeyConstants._preservesinglequote);
+		}
+		root.removeEL(KeyImpl.init("datasourcePreserveSingleQuotes"));
+		root.removeEL(KeyConstants._psq);
 	}
 
 	public ConfigServerImpl resetPSQL() {
-		preserveSingleQuote.reset();
+		preserveSingleQuote = null;
 		return this;
 	}
 
@@ -3824,10 +3893,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (dataSources == null) {
 			synchronized (SystemUtil.createToken("config", "getDataSources")) {
 				if (dataSources == null) {
-					// patch
-					Struct raw = ConfigUtil.getAsStruct("dataSources", root);
-					raw.removeEL(KeyImpl.init("preserveSingleQuote"));
-
 					dataSources = metaDatasourcesAll.map(this, root);
 				}
 			}
@@ -6384,11 +6449,26 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (preserveCase == null) {
 			synchronized (SystemUtil.createToken("config", "getDotNotationUpperCase")) {
 				if (preserveCase == null) {
-					preserveCase = metaPreserveCase.get(this, root);
+					preserveCase = readPreserveCase(this, root);
 				}
 			}
 		}
 		return !preserveCase;// invert: lucee.preserve.case=true means dotNotationUpperCase=false
+	}
+
+	/**
+	 * resolves the preserve case setting, [preserveCase] (or its system property / environment
+	 * variable) takes precedence, then the legacy key [dotNotationUpperCase] (inverted) is used
+	 * 
+	 * @param config config server
+	 * @param root config root struct
+	 * @return true when dot notation keys should preserve their case
+	 */
+	public static boolean readPreserveCase(ConfigServerImpl config, Struct root) {
+		if (!metaPreserveCase.isDefined(root) && metaDotNotationUpperCase.isDefined(root)) {
+			return !metaDotNotationUpperCase.get(config, root);
+		}
+		return metaPreserveCase.get(config, root);
 	}
 
 	public ConfigServerImpl resetDotNotationUpperCase() {

@@ -68,6 +68,11 @@
 	src.mvnMetadataName = "maven-metadata.xml";
 	// flattened pom (${revision} resolved) written by flatten-maven-plugin
 	src.pom = server.system.properties.luceePom ?: "";
+	// config schema and env vars (LDEV-6707), attached to the Maven build but no longer deployed to Maven Central
+	src.configSchema = server.system.properties.luceeConfigSchema ?: "";
+	src.envVars = server.system.properties.luceeEnvVars ?: "";
+	src.mvnConfigSchemaName = "lucee-"&src.version&"-config-schema.json";
+	src.mvnEnvVarsName = "lucee-"&src.version&"-env-vars.json";
 	// lucee-6.2.2.78-SNAPSHOT.jar
 	if ( ! FileExists( src.jar ) || ! FileExists( src.core ) ){
 		_logger( src.jar & " exists: " & FileExists( src.jar ) );
@@ -166,6 +171,20 @@
 			publishToS3( src.pom, trg.mvnDir & src.mvnPomName, "Publish [#src.pom#] to [#trg.mvnDirRel & src.mvnPomName#] on S3: " );
 		} else {
 			_logger( "WARNING: flattened pom [#src.pom#] not found, no pom uploaded to S3" );
+		}
+	}
+
+	// config-schema.json and env-vars.json (LDEV-6707), next to the pom in the Maven layout
+	if ( PUBLISH_TO_S3 && !buildExistsOnS3 ) {
+		if ( len( src.configSchema ) && fileExists( src.configSchema ) ) {
+			publishToS3( src.configSchema, trg.mvnDir & src.mvnConfigSchemaName, "Publish [#src.configSchema#] to [#trg.mvnDirRel & src.mvnConfigSchemaName#] on S3: " );
+		} else {
+			_logger( "WARNING: config schema [#src.configSchema#] not found, no config-schema.json uploaded to S3" );
+		}
+		if ( len( src.envVars ) && fileExists( src.envVars ) ) {
+			publishToS3( src.envVars, trg.mvnDir & src.mvnEnvVarsName, "Publish [#src.envVars#] to [#trg.mvnDirRel & src.mvnEnvVarsName#] on S3: " );
+		} else {
+			_logger( "WARNING: env vars [#src.envVars#] not found, no env-vars.json uploaded to S3" );
 		}
 	}
 

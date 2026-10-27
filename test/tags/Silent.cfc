@@ -28,6 +28,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				).filecontent;
 				expect(trim(result)).toBe("error");
 			});
+
+			it( title = "checking cfsilent default bufferoutput after the tag is reused", body=function( currentSpec ) {
+				local.result = _InternalRequest(
+					template : "#uri#\cfsilent.cfm",
+					forms : { scene = 4 }
+				).filecontent;
+				expect(trim(result)).toBe("default error default error");
+			});
 		});
 	}
 	private string function createURI(string calledName) {

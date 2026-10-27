@@ -283,11 +283,16 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		// we reload in case the config file was changed from outside
 
 		load(configServer, quick);
-		try {
-			((CFMLEngineImpl) ConfigUtil.getEngine(configServer)).onStart(configServer, true);
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
+		// LDEV-6743 same as with a new instance, while the engine only has the essential (quick) config,
+		// extensions are not loaded yet, onStart (onBuild with warmup) is called once the full config is
+		// loaded
+		if (!quick) {
+			try {
+				((CFMLEngineImpl) ConfigUtil.getEngine(configServer)).onStart(configServer, true);
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
 		}
 	}
 
@@ -1512,7 +1517,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 		// Security / SSL
 		Resource secDir = configDir.getRealResource("security");
-		Resource res = create("/resource/security/", "cacerts", secDir, false);
+		Resource res = BundledTrustStore.deploy(secDir);
 		if (SystemUtil.getSystemPropOrEnvVar("lucee.use.lucee.SSL.TrustStore", "").equalsIgnoreCase("true"))
 			System.setProperty("javax.net.ssl.trustStore", res.toString());/* JAVJAK */
 		// LDEV-6666 no-op when already done by the quick config
