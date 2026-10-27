@@ -1,7 +1,14 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
-	function isModernHibernate(){		
-		return (left(bundleInfo(createObject("java","org.lucee.extension.orm.hibernate.HibernateORMEngine")).version,1)>=5);
+	// read the version from the installed extension, the Hibernate extension 7+ loads its classes from Maven, not as OSGi bundle
+	function isModernHibernate(){
+		var extensions = extensionList();
+		loop query=extensions {
+			if ( extensions.id == "FAD1E8CB-4F45-4184-86359145767C29DE" ) {
+				return ( listFirst( extensions.version, "." ) >= 5 );
+			}
+		}
+		return true;
 	}
 
 	function run( testResults , testBox ) {
