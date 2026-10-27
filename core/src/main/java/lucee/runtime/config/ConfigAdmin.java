@@ -60,6 +60,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.compress.ZipUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -396,12 +397,12 @@ public final class ConfigAdmin {
 			loggers.setEL(KeyConstants._mail, logger);
 		}
 		if ("console".equalsIgnoreCase(logFile)) {
-			setClass(logger, null, "appender", ci.getLogEngine().appenderClassDefintion("console"));
-			setClass(logger, null, "layout", ci.getLogEngine().layoutClassDefintion("pattern"));
+			setLogClass(ci, logger, "appender", ci.getLogEngine().appenderClassDefintion("console"));
+			setLogClass(ci, logger, "layout", ci.getLogEngine().layoutClassDefintion("pattern"));
 		}
 		else {
-			setClass(logger, null, "appender", ci.getLogEngine().appenderClassDefintion("resource"));
-			setClass(logger, null, "layout", ci.getLogEngine().layoutClassDefintion("classic"));
+			setLogClass(ci, logger, "appender", ci.getLogEngine().appenderClassDefintion("resource"));
+			setLogClass(ci, logger, "layout", ci.getLogEngine().layoutClassDefintion("classic"));
 			logger.setEL("appenderArguments", "path:" + logFile);
 		}
 		logger.setEL("logLevel", level);
@@ -5563,9 +5564,9 @@ public final class ConfigAdmin {
 		}
 
 		el.setEL("level", LogUtil.levelToString(level, ""));
-		setClass(el, null, "appender", appenderCD);
+		setLogClass(config, el, "appender", appenderCD);
 		el.setEL("appenderArguments", appenderArgs);
-		setClass(el, null, "layout", layoutCD);
+		setLogClass(config, el, "layout", layoutCD);
 		el.setEL("layoutArguments", layoutArgs);
 
 		if (el.containsKey("appender")) rem(el, "appender");
@@ -6225,6 +6226,24 @@ public final class ConfigAdmin {
 		// Maven
 		else if (cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven()) {
 			el.setEL(hp ? prefix + "Maven" : "maven", MavenUtil.toString(((ClassDefinitionImpl) cd).getMaven()));
+		}
+	}
+
+	/**
+	 * like setClass, but for appenders and layouts the log engine resolves by class name (the built-in
+	 * ones, from the Lucee core or the bundled log4j), only the class name is stored. Otherwise the
+	 * config pins the current core / log4j bundle version, which no longer exists after an update
+	 * (LDEV-5682).
+	 */
+	private static void setLogClass(ConfigPro config, Struct el, String prefix, ClassDefinition cd) throws PageException {
+		setClass(el, null, prefix, cd);
+		if (cd == null || !cd.isBundle() || StringUtil.isEmpty(cd.getClassName())) return;
+
+		LogEngine engine = config.getLogEngine();
+		ClassDefinition builtIn = "appender".equals(prefix) ? engine.appenderClassDefintion(cd.getClassName()) : engine.layoutClassDefintion(cd.getClassName());
+		if (builtIn != null && builtIn.isBundle() && builtIn.isClassNameEqualTo(cd.getClassName()) && StringUtil.emptyIfNull(builtIn.getName()).equals(cd.getName())) {
+			el.removeEL(KeyImpl.init(prefix + "BundleName"));
+			el.removeEL(KeyImpl.init(prefix + "BundleVersion"));
 		}
 	}
 

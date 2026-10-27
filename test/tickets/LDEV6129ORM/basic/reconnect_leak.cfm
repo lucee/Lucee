@@ -18,8 +18,15 @@
 	// 1. Load any entity to ensure the session + connection are open and dc is in place
 	entityLoad( "LDEV6129Person" );
 
-	// 2. Get the raw Hibernate SessionImpl
+	// 2. Get the raw Hibernate SessionImpl. The Hibernate extension 7+ returns a
+	//    proxy from ormGetSession(), the SessionImpl is the delegate of its InvocationHandler
 	hibSession = ormGetSession();
+	if ( findNoCase( "Proxy", hibSession.getClass().getName() ) ) {
+		handler = createObject( "java", "java.lang.reflect.Proxy" ).getInvocationHandler( hibSession );
+		delegateField = handler.getClass().getDeclaredField( "delegate" );
+		delegateField.setAccessible( true );
+		hibSession = delegateField.get( handler );
+	}
 
 	// 3. Walk the class hierarchy to find the private jdbcCoordinator field
 	//    (declared on AbstractSharedSessionContract, not SessionImpl itself)

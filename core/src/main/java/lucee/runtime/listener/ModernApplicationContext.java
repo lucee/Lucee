@@ -2120,6 +2120,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport = fullNullSupport;
 		this.initFullNullSupport = true;
+		hasCustomNullSupportSetting = true;
 	}
 
 	@Override

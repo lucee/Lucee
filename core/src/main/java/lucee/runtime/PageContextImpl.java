@@ -3894,7 +3894,11 @@ public final class PageContextImpl extends PageContext {
 				RefBoolean isNew = new RefBooleanImpl(false);
 				application = scopeContext.getApplicationScope(this, true, isNew);
 				// now within the lock, we get the application
-				if (isNew.toBooleanValue()) {
+				// LDEV-3883: the scope can already exist without being started, when something (for example an ORM
+				// event handler pseudo constructor during ORM init) accessed the application scope before this gate.
+				// nameLock is null for a nested call from the thread already running onApplicationStart (e.g. an
+				// internalRequest inside onApplicationStart), that one must not start the application again
+				if (isNew.toBooleanValue() || (nameLock != null && !application.isInitalized())) {
 
 					try {
 						if (!listener.onApplicationStart(this, application)) {
