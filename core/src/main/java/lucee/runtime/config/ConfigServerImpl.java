@@ -1260,6 +1260,9 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("When enabled, struct keys defined via dot notation preserve their original casing (e.g. sct.myKey → \"myKey\"). "
 					+ "When disabled (CFML default), dot-notation keys are converted to uppercase (e.g. sct.myKey → \"MYKEY\"). "
 					+ "Keys defined via bracket notation always preserve their original case regardless of this setting.");
+	public final static Prop<Boolean> metaDotNotationUpperCase = Prop.bool().keys("dotNotationUpperCase").noEnvVar().deprecated().defaultValue(true)
+			.description("Deprecated, use [preserveCase] instead (inverted). When disabled (false), struct keys defined via dot notation preserve their original casing. "
+					+ "Only used when [preserveCase] is not defined.");
 	private Boolean preserveCase;
 
 	private static Prop<Boolean> metaDefaultFunctionOutput = Prop.bool().keys("defaultFunctionOutput").defaultValue(true)
@@ -6258,11 +6261,26 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (preserveCase == null) {
 			synchronized (SystemUtil.createToken("config", "getDotNotationUpperCase")) {
 				if (preserveCase == null) {
-					preserveCase = metaPreserveCase.get(this, root);
+					preserveCase = readPreserveCase(this, root);
 				}
 			}
 		}
 		return !preserveCase;// invert: lucee.preserve.case=true means dotNotationUpperCase=false
+	}
+
+	/**
+	 * resolves the preserve case setting, [preserveCase] (or its system property / environment
+	 * variable) takes precedence, then the legacy key [dotNotationUpperCase] (inverted) is used
+	 * 
+	 * @param config config server
+	 * @param root config root struct
+	 * @return true when dot notation keys should preserve their case
+	 */
+	public static boolean readPreserveCase(ConfigServerImpl config, Struct root) {
+		if (!metaPreserveCase.isDefined(root) && metaDotNotationUpperCase.isDefined(root)) {
+			return !metaDotNotationUpperCase.get(config, root);
+		}
+		return metaPreserveCase.get(config, root);
 	}
 
 	public ConfigServerImpl resetDotNotationUpperCase() {
