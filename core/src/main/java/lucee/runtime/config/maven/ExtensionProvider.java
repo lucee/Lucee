@@ -194,7 +194,7 @@ public class ExtensionProvider {
 		List<Thread> threads = new ArrayList<>();
 		Stack<Exception> exceptions = new Stack<Exception>();
 		for (Repository r: repos) {
-			Thread thread = ThreadUtil.getThread(() -> {
+			Thread thread = ThreadUtil.getThread(HTTPEngine.withRequestProxy(() -> {
 				try {
 					Set<String> tmp = readFromCache(r);
 					if (tmp == null) {
@@ -207,7 +207,7 @@ public class ExtensionProvider {
 					exceptions.add(e);
 				}
 
-			}, true);
+			}), true);
 			thread.start();
 			threads.add(thread);
 		}
@@ -593,7 +593,7 @@ public class ExtensionProvider {
 					Stack<Exception> exceptions = new Stack<>();
 
 					for (String artifact: artifactsList) {
-						Thread thread = ThreadUtil.getThread(() -> {
+						Thread thread = ThreadUtil.getThread(HTTPEngine.withRequestProxy(() -> {
 							try {
 								if (!has(group, artifact)) {
 									if (LogUtil.doesInfo(log)) {
@@ -638,7 +638,7 @@ public class ExtensionProvider {
 								exceptions.push(e);
 							}
 
-						}, false);
+						}), false);
 
 						thread.start();
 						threads.add(thread);

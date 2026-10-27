@@ -2265,11 +2265,11 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public ProxyData getProxyData() {
 		if (!initProxyData) {
 			Struct sct = Caster.toStruct(get(component, KeyConstants._proxy, null), null);
-			if (sct != null) proxyData = ProxyDataImpl.toProxyData(sct, config.getProxyData());
-			else proxyData = config.getProxyData();
+			proxyData = sct != null ? ProxyDataImpl.toProxyData(sct, null) : null;
 			initProxyData = true;
 		}
-		return proxyData;
+		// LDEV-6715: without this.proxy, the current server proxy (it can change in the admin)
+		return proxyData != null ? proxyData : config.getProxyData();
 	}
 
 	@Override
