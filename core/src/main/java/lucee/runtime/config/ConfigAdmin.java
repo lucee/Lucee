@@ -2634,9 +2634,11 @@ public final class ConfigAdmin {
 	}
 
 	/**
-	 * update PSQ State
+	 * update PSQ State, the value is stored as "preserveSingleQuote" in the root. Because a setting
+	 * inside "dataSources" overrides the root (LDEV-6751), "dataSources.psq" and
+	 * "dataSources.preserveSingleQuote" are removed, so they cannot mask the value set here.
 	 * 
-	 * @param psq Preserver Single Quote
+	 * @param psq Preserver Single Quote, null resets the setting to the default (false)
 	 * @throws SecurityException
 	 */
 	public void updatePSQ(Boolean psq) throws SecurityException {
@@ -2645,7 +2647,17 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update datasource connections");
 
-		root.setEL("preserveSingleQuote", Caster.toBooleanValue(psq, true));
+		Struct dataSources = Caster.toStruct(root.get(KeyConstants._datasources, null), null);
+		if (dataSources != null) {
+			dataSources.removeEL(KeyConstants._psq);
+			dataSources.removeEL(KeyConstants._preservesinglequote);
+		}
+
+		if (psq == null) {
+			root.removeEL(KeyConstants._preservesinglequote);
+			root.removeEL(KeyImpl.init("datasourcePreserveSingleQuotes"));
+		}
+		else root.setEL("preserveSingleQuote", psq.booleanValue());
 	}
 
 	public void updateInspectTemplate(String inspectTemplate, int inspectTemplateIntervalSlow, int inspectTemplateIntervalFast) throws SecurityException {

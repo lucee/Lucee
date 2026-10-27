@@ -1112,17 +1112,54 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (psq == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getPSQL")) {
 				if (psq == null) {
-					// PSQ
-					String strPSQ = ConfigFactoryImpl.getAttr(this, root, "preserveSingleQuote");
-					if (StringUtil.isEmpty(strPSQ)) strPSQ = ConfigFactoryImpl.getAttr(this, root, "datasourcePreserveSingleQuotes");
-					if (!StringUtil.isEmpty(strPSQ)) {
-						psq = Caster.toBoolean(strPSQ, Boolean.FALSE);
-					}
-					else psq = Boolean.FALSE;
+					psq = readPSQ(this, root);
 				}
 			}
 		}
 		return psq;
+	}
+
+	/**
+	 * LDEV-6751: resolves the server wide "preserve single quotes" setting from the config data. The
+	 * setting can be defined inside "dataSources" (older layout) or in the root, the "dataSources"
+	 * level wins. Precedence:
+	 * <ol>
+	 * <li>dataSources.psq</li>
+	 * <li>dataSources.preserveSingleQuote (legacy, inverted meaning: true means quotes get
+	 * escaped)</li>
+	 * <li>preserveSingleQuote</li>
+	 * <li>datasourcePreserveSingleQuotes</li>
+	 * <li>false</li>
+	 * </ol>
+	 * 
+	 * @param config config used to resolve placeholders
+	 * @param root config data
+	 * @return true if single quotes are preserved (not escaped)
+	 */
+	public static boolean readPSQ(Config config, Struct root) {
+		if (root == null) return false;
+
+		// dataSources level
+		Struct dataSources = Caster.toStruct(root.get(KeyConstants._datasources, null), null);
+		if (dataSources != null) {
+			Boolean b = readBoolean(config, dataSources, "psq");
+			if (b != null) return b.booleanValue();
+			// legacy name, it has the opposite meaning
+			b = readBoolean(config, dataSources, "preserveSingleQuote");
+			if (b != null) return !b.booleanValue();
+		}
+
+		// root level
+		String strPSQ = ConfigFactoryImpl.getAttr(config, root, "preserveSingleQuote");
+		if (StringUtil.isEmpty(strPSQ)) strPSQ = ConfigFactoryImpl.getAttr(config, root, "datasourcePreserveSingleQuotes");
+		if (!StringUtil.isEmpty(strPSQ)) return Caster.toBooleanValue(strPSQ, false);
+		return false;
+	}
+
+	private static Boolean readBoolean(Config config, Struct data, String name) {
+		String str = ConfigFactoryImpl.getAttr(config, data, name);
+		if (StringUtil.isEmpty(str, true)) return null;
+		return Caster.toBoolean(str.trim(), null);
 	}
 
 	public ConfigImpl resetPSQL() {
