@@ -29,15 +29,20 @@ public final class NullSupportHelper {
 	public final static boolean full(PageContext pc) {
 
 		if (pc == null) {
-			// we know
+			// no application overrides the setting, so the server setting applies (LDEV-6748)
 			if (!ModernApplicationContext.hasCustomNullSupportSetting) {
-				return false;
+				return serverFullNullSupport();
 			}
 
 			pc = ThreadLocalPageContext.get();
-			if (pc == null) return false;
+			if (pc == null) return serverFullNullSupport();
 		}
 		return ((PageContextImpl) pc).getFullNullSupport();
+	}
+
+	private static boolean serverFullNullSupport() {
+		ConfigServerPro cs = ThreadLocalPageContext.getConfigServer();
+		return cs != null && cs.getFullNullSupport();
 	}
 
 	public final static boolean full() {
