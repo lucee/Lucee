@@ -3472,13 +3472,25 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 						Resource res = null;
 						if (!StringUtil.isEmpty(strRes, true)) {
+							strRes = RHExtension.toResourcePath(config, strRes);
 							res = ResourceUtil.toResourceExisting(config, strRes, null);
-							if (res == null) {
-								if (!StringUtil.isEmpty(id, true)) {
-									log(config, Log.LEVEL_ERROR, "the resource [" + strRes + "] from the extension [" + id + "] cannot be resolved");
+							// LDEV-6745 an explicitly defined resource has to exist, we do not fall back to a download
+							if (res == null || !res.isFile()) {
+								res = null;
+								String version = getAttr(config, child, KeyConstants._version);
+								// already installed in that version, we keep it
+								if (!StringUtil.isEmpty(id, true) && !StringUtil.isEmpty(version, true) && RHExtension.isInstalled(config, id, version)) {
+									log(config, Log.LEVEL_ERROR,
+											"the resource [" + strRes + "] from the extension [" + id + "] does not exist, keep the already installed version [" + version + "]");
 								}
 								else {
-									log(config, Log.LEVEL_ERROR, "the extension resource [" + strRes + "] cannot be resolved");
+									if (!StringUtil.isEmpty(id, true)) {
+										log(config, Log.LEVEL_ERROR, "the resource [" + strRes + "] from the extension [" + id + "] does not exist, the extension is not installed");
+									}
+									else {
+										log(config, Log.LEVEL_ERROR, "the extension resource [" + strRes + "] does not exist, the extension is not installed");
+									}
+									continue;
 								}
 							}
 							else {

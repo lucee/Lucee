@@ -1461,7 +1461,7 @@ public final class RHExtension implements Serializable {
 		return StringUtil.isEmpty(ed.getId(), true) ? null : ed;
 	}
 
-	public static ExtensionDefintion toExtensionDefinition(Config config, String id, Map<String, String> data) {
+	public static ExtensionDefintion toExtensionDefinition(Config config, String id, Map<String, String> data) throws ApplicationException {
 		if (data == null || data.size() == 0) return null;
 
 		ExtensionDefintion ed = new ExtensionDefintion();
@@ -1478,8 +1478,13 @@ public final class RHExtension implements Serializable {
 			name = entry.getKey().trim();
 			if (!"id".equalsIgnoreCase(name)) ed.setParam(name, entry.getValue().trim());
 			if ("path".equalsIgnoreCase(name) || "url".equalsIgnoreCase(name) || "resource".equalsIgnoreCase(name)) {
-				res = ResourceUtil.toResourceExisting(config, ConfigUtil.replaceConfigPlaceHolder(config, entry.getValue().trim()), null);
-				if (res != null && res.isFile()) {
+				String path = toResourcePath(config, entry.getValue());
+				res = ResourceUtil.toResourceExisting(config, path, null);
+				// LDEV-6745 an explicitly defined source has to exist, we do not silently fall back to a download
+				if (res == null || !res.isFile()) {
+					throw new ApplicationException("the " + name + " [" + path + "] defined for the extension [" + (StringUtil.isEmpty(id, true) ? "" : id) + "] does not exist");
+				}
+				else {
 					ed.setSource(config, res);
 					if (ed.getId() == null) {
 
@@ -1509,6 +1514,16 @@ public final class RHExtension implements Serializable {
 		if (ed.getId() == null) return null;
 		return ed;
 
+	}
+
+	/**
+	 * resolves placeholders like {system:...}, {env:...} and path placeholders like {lucee-server}
+	 */
+	public static String toResourcePath(Config config, String path) {
+		path = ConfigUtil.replaceConfigPlaceHolder(config, path.trim());
+		config = ThreadLocalPageContext.getConfig(config);
+		if (config != null) path = ConfigUtil.replacePlaceholder(path, config);
+		return path;
 	}
 
 	public static List<RHExtension> toRHExtensions(List<ExtensionDefintion> eds) throws PageException {
