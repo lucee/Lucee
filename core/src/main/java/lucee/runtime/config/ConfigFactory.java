@@ -462,6 +462,9 @@ public abstract class ConfigFactory {
 				if (b != null) b = b.booleanValue() ? Boolean.FALSE : Boolean.TRUE;
 			}
 			if (b != null) root.setEL("preserveSingleQuote", b.booleanValue());
+			// LDEV-6751: the setting now lives in the root, it is no datasource
+			rem("psq", dataSources);
+			rem("preserveSingleQuote", dataSources);
 
 			Array dataSource = ConfigUtil.getAsArray("dataSource", dataSources);
 
