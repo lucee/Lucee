@@ -54,6 +54,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.engine.Controler;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -405,6 +406,10 @@ public final class JSONConverter extends ConverterSupport {
 			ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
 			boolean triggerDataMember = acs.getTriggerComponentDataMember();
 
+			// LDEV-1569: with full null support, a null persistent property of an ORM entity is written as null
+			// (like a query column) instead of being dropped; ordinary components and null support off are unchanged
+			boolean keepNullProps = isPeristent && acs.isORMEnabled() && NullSupportHelper.full(pc);
+
 			Property[] props = comp.getProperties(false, true, false, false);
 			ComponentScope scope = comp.getComponentScope();
 			for (int i = 0; i < props.length; i++) {
@@ -420,7 +425,7 @@ public final class JSONConverter extends ConverterSupport {
 				if (triggerDataMember) value = comp.get(pc, key, null);
 				else value = scope.get(key, null);
 
-				if (!addUDFs && (value instanceof UDF || value == null)) continue;
+				if (!addUDFs && (value instanceof UDF || (value == null && !keepNullProps))) continue;
 				if (doIt) sb.append(',');
 				doIt = true;
 				sb.append(StringUtil.escapeJS(key.getString(), '"', charsetEncoder));

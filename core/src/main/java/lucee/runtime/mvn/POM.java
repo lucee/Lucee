@@ -5,8 +5,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -799,29 +802,77 @@ public final class POM {
 	}
 
 	public Collection<POM> getJarPOMs(boolean optional) throws IOException {
-		// List<POM> poms = new ArrayList<>();
-		Map<String, POM> map = new HashMap<>();
+		// LDEV-6747 only one version per groupId:artifactId, the nearest to this pom wins (Maven dependency
+		// mediation)
+		Map<String, POM> map = new LinkedHashMap<>();
 		initXML();
 		// current
 		if ("jar".equalsIgnoreCase(this.artifactExtension)) {
 			if (getArtifact() != null) {
-				// poms.add(this);
-				map.put(this.id(), this);
+				map.put(toGroupArtifact(this), this);
 			}
 		}
 
-		List<POM> dependencies = getAllDependencies(optional);
+		List<POM> dependencies = getAllDependenciesNearestWins(optional);
 		if (dependencies != null) {
 			for (POM p: dependencies) {
 				if ("jar".equalsIgnoreCase(p.artifactExtension)) {
 					if (p.getArtifact() != null) {
-						// poms.add(p);
-						map.put(p.id(), p);
+						map.putIfAbsent(toGroupArtifact(p), p);
 					}
 				}
 			}
 		}
 		return map.values();
+	}
+
+	/**
+	 * returns all dependencies (transitive) with only one version per groupId:artifactId, the version
+	 * nearest to this pom wins, on the same depth the first declared wins (Maven "nearest wins").
+	 * Dependencies of a version that lost are not followed.
+	 */
+	public List<POM> getAllDependenciesNearestWins(boolean optional) throws IOException {
+		List<POM> result = new ArrayList<>();
+		Set<String> selected = new HashSet<>();
+		selected.add(toGroupArtifact(this));
+
+		List<POM> level = new ArrayList<>();
+		level.add(this);
+		List<POM> next;
+		List<POM> deps;
+		while (!level.isEmpty()) {
+			next = new ArrayList<>();
+			for (POM pom: level) {
+				try {
+					deps = pom.getDependencies();
+				}
+				catch (IOException cause) {
+					// if optional we let it go
+					if (pom != this && pom.isOptional()) {
+						result.remove(pom);
+						selected.remove(toGroupArtifact(pom));
+						continue;
+					}
+					IOException e = new IOException("Failed to load dependencies in [" + pom + "]");
+					ExceptionUtil.initCauseEL(e, cause);
+					throw e;
+				}
+				if (deps == null) continue;
+				for (POM p: deps) {
+					if (!optional && p.getOptional()) continue;
+					// a version of this artifact is already selected (nearer or declared before)
+					if (!selected.add(toGroupArtifact(p))) continue;
+					result.add(p);
+					next.add(p);
+				}
+			}
+			level = next;
+		}
+		return result;
+	}
+
+	private static String toGroupArtifact(POM pom) {
+		return pom.groupId + ":" + pom.artifactId;
 	}
 
 	public String getChecksum() {

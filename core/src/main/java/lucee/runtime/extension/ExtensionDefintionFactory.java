@@ -2,7 +2,9 @@ package lucee.runtime.extension;
 
 import java.util.Map;
 
+import lucee.commons.io.log.Log;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigFactoryImpl;
 import lucee.runtime.config.Prop;
 import lucee.runtime.config.PropFactory;
 import lucee.runtime.exp.ApplicationException;
@@ -34,7 +36,16 @@ public class ExtensionDefintionFactory implements PropFactory<ExtensionDefintion
 
 			Map<String, String> child = Caster.toStringMap(childSct);
 			// MUST toExtensionDefinition nned to throw a proper exception
-			ExtensionDefintion ed = RHExtension.toExtensionDefinition(config, child);
+			ExtensionDefintion ed;
+			try {
+				ed = RHExtension.toExtensionDefinition(config, child);
+			}
+			catch (ApplicationException ae) {
+				// LDEV-6745 the resource defined for this extension does not exist, the extension is not installed (no
+				// fallback to a download), but this must not prevent the other extensions from loading
+				ConfigFactoryImpl.log(config, Log.LEVEL_ERROR, ae.getMessage() + ", the extension is not installed");
+				return null;
+			}
 			if (ed != null) return ed;
 			throw new ApplicationException("unable to load extension defintion");
 

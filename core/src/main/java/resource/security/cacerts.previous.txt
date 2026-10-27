@@ -1,0 +1,10 @@
+# SHA-256 hashes of every cacerts file Lucee has ever bundled under resource/security/cacerts.
+# On startup an existing lucee-server/context/security/cacerts is replaced with the current bundled
+# version only when its hash is listed here, so trust stores modified by users are never touched.
+# When updating the bundled cacerts, add the hash of the version being replaced (LDEV-6741).
+1a6935393c7ccdd6b3a8c3bb06cd55c5a3c9605d6604cb01bf5896f9f9401be7
+0032a3c517b0acb925db3dfe06345e3eed0f64dcd79d1354a3fc7992e51d3a0b
+7bfc72110c3d819b6eaefc8dd50f92021bd610641c405e2c8d060d50c2f3523c
+68b07eb00e1a9e7000991cd5384de69efd2f546f48c40c70f7eb6c5ef8b5fde6
+9f6b411d05afe3c54fe83989507960b1f6a402400c288d737808e5617c17ea59
+6fe983076def1ad7c40da7093d7d52d897872872d4e9d2089826af7ae5f05822
