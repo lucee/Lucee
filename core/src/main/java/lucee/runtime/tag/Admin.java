@@ -793,6 +793,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("updatepsq", ACCESS_FREE) && check2(ACCESS_WRITE)) {
 			admin.checkWriteAccess();
 			ConfigServerImpl.metaPsq.write(configServer, attributes);
+			// LDEV-6751: settings inside dataSources (or root aliases) would mask the value written above
+			ConfigServerImpl.removeOtherPSQSettings(configServer.raw());
 			store();
 			ConfigUtil.getConfigServerImpl(config).resetPSQL();
 		}
