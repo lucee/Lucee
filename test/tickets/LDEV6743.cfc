@@ -75,10 +75,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="warmup" {
 		var process = pb.start();
 		var TimeUnit = createObject( "java", "java.util.concurrent.TimeUnit" );
 		if ( !process.waitFor( 5, TimeUnit.MINUTES ) ) {
+			// LDEV-6743 report where the server hangs
+			var threads = threadDump( process, logFile );
 			process.destroyForcibly();
-			throw "warmup did not finish within 5 minutes";
+			throw "warmup did not finish within 5 minutes, output: " & ( fileExists( logFile ) ? right( fileRead( logFile ), 5000 ) : "" ) & chr( 10 ) & "threads: " & threads;
 		}
 		return process.exitValue();
+	}
+
+	// thread dump of a process that does not finish
+	private string function threadDump( required any process, required string logFile ) {
+		var jcmd = createObject( "java", "java.lang.System" ).getProperty( "java.home" ) & "/bin/jcmd";
+		if ( !fileExists( jcmd ) ) jcmd &= ".exe";
+		if ( !fileExists( jcmd ) ) return "jcmd not available";
+		var out = arguments.logFile & ".threads";
+		var pb = createObject( "java", "java.lang.ProcessBuilder" ).init( [ jcmd, toString( arguments.process.pid() ), "Thread.print" ] );
+		pb.redirectErrorStream( true );
+		pb.redirectOutput( createObject( "java", "java.io.File" ).init( out ) );
+		pb.start().waitFor( 30, createObject( "java", "java.util.concurrent.TimeUnit" ).SECONDS );
+		return fileExists( out ) ? fileRead( out ) : "";
 	}
 
 	// jar (or class directory) the class of the given object is loaded from
