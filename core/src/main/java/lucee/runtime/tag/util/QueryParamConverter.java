@@ -137,6 +137,16 @@ public final class QueryParamConverter {
 	}
 
 	private static SQL convert(String sql, List<SQLItems<SQLItem>> items, List<SQLItems<NamedSQLItem>> namedItems) throws ApplicationException, PageException {
+		// only named params modify items, so only then the retry needs an untouched copy
+		SQL res = convert(sql, namedItems.isEmpty() ? items : new ArrayList<SQLItems<SQLItem>>(items), namedItems, false);
+		// LDEV-4424 more question marks than params, retry with [ ] (MSSQL) and ` ` (MySQL) as quoted identifier, e.g. [Country/Entity?]
+		if (res == null) res = convert(sql, items, namedItems, true);
+		if (res == null) throw new ApplicationException("there are more question marks in the SQL than params defined", "SQL: " + sql + "");
+		return res;
+	}
+
+	private static SQL convert(String sql, List<SQLItems<SQLItem>> items, List<SQLItems<NamedSQLItem>> namedItems, boolean quotedIdentifier)
+			throws ApplicationException, PageException {
 		// if(namedParams.size()==0) return new Pair<String, List<Param>>(sql,params);
 
 		StringBuilder sb = new StringBuilder();
@@ -155,6 +165,14 @@ public final class QueryParamConverter {
 					sb.append(sql, i, ce);
 					i = ce - 1; // the for-loop increment lands us on ce
 					continue;
+				}
+				if (quotedIdentifier && (c == '[' || c == '`')) {
+					int be = SQLComments.identifierEnd(sql, i);
+					if (be != -1) {
+						sb.append(sql, i, be);
+						i = be - 1;
+						continue;
+					}
 				}
 			}
 
@@ -179,7 +197,7 @@ public final class QueryParamConverter {
 						continue;
 					}
 
-					if (++_qm > initialParamSize) throw new ApplicationException("there are more question marks in the SQL than params defined", "SQL: " + sql + "");
+					if (++_qm > initialParamSize) return null;
 				}
 				else if (c == ':') {
 
