@@ -1342,6 +1342,8 @@ public final class Http extends BodyTagImpl {
 				Charset cs = (StringUtil.isEmpty(charset)) ? responseCharset : CharsetUtil.toCharset(charset, responseCharset);
 				if (barr == null) str = contentAsString(rsp, cs, contentEncoding, e);
 				else str = IOUtil.toString(barr, cs);
+				// a UTF-8 byte order mark is not part of the content
+				if (str.length() > 0 && str.charAt(0) == '\uFEFF' && "UTF-8".equalsIgnoreCase(cs.name())) str = str.substring(1);
 				cfhttp.set(KeyConstants._filecontent, str);
 
 				// store to file
