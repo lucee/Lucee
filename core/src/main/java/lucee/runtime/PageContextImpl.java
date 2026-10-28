@@ -3480,11 +3480,11 @@ public final class PageContextImpl extends PageContext {
 			Undefined u = undefinedScope();
 			if (pe == null) {
 				(u.getCheckArguments() ? u.localScope() : u).removeEL(KeyConstants._cfcatch);
-				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).removeEL(KeyImpl.init(name.trim()));
+				if (name != null && !StringUtil.isEmpty(name, true)) removeCatchVariable(u, name.trim());
 			}
 			else {
 				(u.getCheckArguments() ? u.localScope() : u).setEL(KeyConstants._cfcatch, pe.getCatchBlock(config));
-				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.init(name.trim()), pe.getCatchBlock(config));
+				if (name != null && !StringUtil.isEmpty(name, true)) setCatchVariable(u, name.trim(), pe.getCatchBlock(config));
 				if (hasDebugOptions(ConfigPro.DEBUG_EXCEPTION) && !gatewayContext) {
 					/*
 					 * print.e("-----------------------"); print.e("msg:" + pe.getMessage()); print.e("caught:" +
@@ -3493,6 +3493,36 @@ public final class PageContextImpl extends PageContext {
 					debugger.addException(config, exception);
 				}
 			}
+		}
+	}
+
+	/**
+	 * the name of a catch block can be a plain name, which is stored in the (local) scope, or a scoped
+	 * variable name like "variables.err" or "local.err" (LDEV-2659)
+	 */
+	private void setCatchVariable(Undefined u, String name, Object value) {
+		if (name.indexOf('.') == -1 && name.indexOf('[') == -1) {
+			(u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.init(name), value);
+			return;
+		}
+		try {
+			VariableInterpreter.setVariable(this, name, value);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
+
+	private void removeCatchVariable(Undefined u, String name) {
+		if (name.indexOf('.') == -1 && name.indexOf('[') == -1) {
+			(u.getCheckArguments() ? u.localScope() : u).removeEL(KeyImpl.init(name));
+			return;
+		}
+		try {
+			VariableInterpreter.removeVariable(this, name);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
 		}
 	}
 
