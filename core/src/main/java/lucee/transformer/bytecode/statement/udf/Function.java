@@ -596,7 +596,9 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		String name = attr.getName().toLowerCase();
 		// name
 		if ("name".equals(name)) {
-			throw new TransformerException(bc, "Name cannot be defined twice", getStart());
+			// LDEV-2792: a closure or lambda has no name of its own, so the attribute can give it one
+			if (this instanceof Closure || this instanceof Lambda) this.name = toLitString(bc, name, attr.getValue());
+			else throw new TransformerException(bc, "Name cannot be defined twice", getStart());
 		}
 		else if ("returntype".equals(name)) {
 			this.returnType = toLitString(bc, name, attr.getValue());
