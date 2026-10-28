@@ -304,6 +304,8 @@ public final class SQLCaster {
 			try {
 				// LDEV-3118 signed (-128..127) and unsigned (MSSQL, 0..255) tinyint are both allowed
 				short s = Caster.toShortValue(checkRange(value, Byte.MIN_VALUE, 255, "TINYINT"));
+				// LDEV-3118 MSSQL tinyint is unsigned, the driver silently wraps a negative value (-128 -> 128)
+				if (s < 0 && isMSSQL(stat)) throw invalidData(value, "TINYINT");
 				if (s > Byte.MAX_VALUE) stat.setObject(parameterIndex, Short.valueOf(s), type);
 				else stat.setObject(parameterIndex, Byte.valueOf((byte) s), type);
 			}
@@ -968,6 +970,16 @@ public final class SQLCaster {
 			throw invalidData(value, type);
 		}
 		return value;
+	}
+
+	private static boolean isMSSQL(PreparedStatement stat) {
+		try {
+			String name = stat.getConnection().getMetaData().getDatabaseProductName();
+			return name != null && name.indexOf("Microsoft SQL Server") != -1;
+		}
+		catch (SQLException e) {
+			return false;
+		}
 	}
 
 	private static ExpressionException invalidData(Object value, String type) {
