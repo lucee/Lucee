@@ -4382,7 +4382,7 @@ Lucee uses the number of characters in the file.</description>
 		<attribute>
 			<type>string</type>
 			<name>columnKey</name>
-			<alias>columnName,column,keyColumn</alias>
+			<alias>columnName,column,keyColumn,key</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>When return type is set to "struct", the value of this column can be used as key in the struct for every record.
