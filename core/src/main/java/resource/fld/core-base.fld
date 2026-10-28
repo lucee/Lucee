@@ -12766,22 +12766,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
-	<!-- ReleaseComObject -->
-	<function>
-		<name>releaseComObject</name>
-		<class>lucee.runtime.functions.other.ReleaseComObject</class>
-		<description>Releases a COM Object and frees up resources that it used. </description>
-		<argument>
-			<name>comObject</name>
-			<alias>com</alias>
-			<type>any</type>
-			<required>Yes</required>
-		<description>Variable name of a COM object that was created using the function or tag. </description>
-    </argument>
-		<return>
-			<type>any</type>
-		</return>
-	</function>
 
 	<!-- rEEscape -->
 	<function>
