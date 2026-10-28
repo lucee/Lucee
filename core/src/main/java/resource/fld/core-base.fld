@@ -6371,6 +6371,13 @@ Example Values:
 			<required>yes</required>
 			<description>path to a component or component itself</description>
 		</argument>
+		<argument>
+			<name>expand</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>if true, the path is expanded with expandPath() before it is converted to a canonical path, so relative paths and mappings are resolved</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
