@@ -1767,11 +1767,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			}
 			sct.set(KeyConstants._servlets, srv);
 		}
-
-		// sct.setEL("javaAgentSupported", Caster.toBoolean(InstrumentationUtil.isSupported()));
-		sct.setEL("javaAgentSupported", Boolean.TRUE);
-		// sct.setEL("javaAgentPath", ClassUtil.getSourcePathForClass("lucee.runtime.instrumentation.Agent",
-		// ""));
 	}
 
 	/**

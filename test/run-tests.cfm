@@ -1,62 +1,4 @@
 <cfscript>
-    function printClassLoaderUsage() {
-        var config = getPageContext().getConfig();
-        var instr = lucee.runtime.instrumentation.InstrumentationFactory::getInstrumentation(config);
-        var data={};
-        for(var clazz in instr.getAllLoadedClasses()) {
-			var cl=clazz.getClassLoader();
-			var clName=isNull(cl)?"system":cl&"";
-            var classes=data[clName] ?: (data[clName]={});
-			var size=0;
-			if(clName!="system") {
-				var filename=replace(clazz.name,".","/","all");
-                if(left(filename,2)=="[L" && right(filename,1)==";") {
-                    filename=mid(filename,3,len(filename)-3);
-                }
-                else if(left(filename,3)=="[[L" && right(filename,1)==";") {
-                    filename=mid(filename,4,len(filename)-4);
-                }
-                filename=filename&".class";
-                var stream=cl.getResourceAsStream(filename);
-				//[Llucee.runtime.config.ConfigWeb;
-                if(!isNull(stream)) {
-					var barr=stream.readAllBytes();
-					size=len(barr);
-				}
-			}
-			classes[clazz.name]=size;
-        }
-
-		var sizes=queryNew("clName,size,kb,mb","varchar,integer,integer,integer");
-		loop struct=data key="clName" item="classes" {
-			var s=0;
-			loop struct=classes key="className" item="size" {
-				s+=size;
-			}
-			if(s>0) {
-                var row=queryAddRow(sizes);
-                querySetCell(sizes,"clName",clName,row);
-                querySetCell(sizes,"size",s,row);
-                querySetCell(sizes,"kb",int(s/1024),row);
-                querySetCell(sizes,"mb",decimalFormat(s/1024/1024),row);
-            }
-		}
-        querySort(sizes,"size","desc");
-		//dump(sizes);
-        systemOutput("--- ClassLoader Size ----",1,1);
-        loop query=sizes maxrows=10 {
-            systemOutput("#sizes.mb#mb - #sizes.clName#",1,1);
-        }
-
-        loop query=sizes maxrows=10 {
-            //dump(label:sizes.clName,var:data[sizes.clName],expand:false);
-        }
-
-
-    }
-
-
-
 request._start = getTickCount();
 if (execute) {
 
@@ -588,5 +530,4 @@ try {
 
 } // if (execute)
 
-try{printClassLoaderUsage();}catch(ex) {}
 </cfscript>

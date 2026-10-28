@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.lang.instrument.Instrumentation;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -131,7 +130,6 @@ import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.gateway.GatewayEngineImpl;
-import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.jsr223.ScriptEngineFactoryImpl;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.HttpServletRequestDummy;
@@ -1817,11 +1815,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	@Override
 	public TimeZone getThreadTimeZone() {
 		return ThreadLocalPageContext.getTimeZone();
-	}
-
-	@Override
-	public Instrumentation getInstrumentation() {
-		return InstrumentationFactory.getInstrumentation(ThreadLocalPageContext.getConfigServer());
 	}
 
 	public Controler getControler() {

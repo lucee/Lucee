@@ -2560,7 +2560,6 @@ public final class KeyConstants {
 	public static final Key _macAddress = init("macAddress");
 	public static final Key _archModel = init("archModel");
 	public static final Key _executionPath = init("executionPath");
-	public static final Key _javaAgentSupported = init("javaAgentSupported");
 	public static final Key _javaCompilerVersion = init("javaCompilerVersion");
 	public static final Key _loaderVersion = init("loaderVersion");
 	public static final Key _loaderPath = init("loaderPath");
@@ -2884,7 +2883,6 @@ public final class KeyConstants {
 	public static final Key _minLength = init("minLength");
 	public static final Key _maxLength = init("maxLength");
 	public static final Key _singularName = init("singularName");
-	public static final Key _javaAgentPath = init("javaAgentPath");
 	public static final Key _validateParams = init("validateParams");
 	public static final Key _objecttype = init("objecttype");
 	public static final Key _cache_hitcount = init("cache_hitcount");

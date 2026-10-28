@@ -8,7 +8,6 @@
   </description>
 
   <property name="build.compiler" value="extJavac"/>
-  <property name="agent" value="lucee.runtime.instrumentation.ExternalAgent"/>
   <property name="bundleName" value="Lucee Core"/>
   <property name="bundleSymbolicName" value="lucee.core"/>
   
@@ -38,7 +37,6 @@
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
   <property name="javaVersionCoreDefault" value="21"/>
-  <property name="javaVersionAgent" value="21"/>
   <property name="javaVersionLoader" value="21"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
   
@@ -89,7 +87,6 @@
     <property name="trgCore" location="${rootDir}/core/target"/>
     <property name="srcCFML" location="${rootDir}/core/src/main/cfml"/>
     <property name="srcAll" location="${rootDir}/core/src/main"/>
-    <property name="srcInst" location="${rootDir}/instrumentation/src/main/java"/> 
     <property name="ant" location="${rootDir}/ant"/>
 
     <!-- the versions of the libraries that get shaded, defined in loader/pom.xml (already set when Maven starts the build) -->
@@ -367,7 +364,6 @@
     <mkdir dir="${core17}"/>
     <mkdir dir="${core21}"/>
     <mkdir dir="${loader}"/>
-    <mkdir dir="${temp}/agent"/>
     <mkdir dir="${cache}"/>
     <mkdir dir="${tmpContext}"/>
     <mkdir dir="${tmpContext}/cfml"/>
@@ -479,31 +475,7 @@
 
   </target>
 
-  <target name="agent" depends="copyDeployFiles" description="create external-agent  jar used as backup when dynamic agent fails" >
-    <echots message="create external-agent.jar used as backup when dynamic agent fails"/>
-    
-    <!-- compie the source -->
-    <javac 
-      srcdir="${srcInst}" 
-      source="${javaVersionAgent}" 
-      target="${javaVersionAgent}" 
-      destdir="${temp}/agent"
-      includeantruntime="false"
-      debug="true" 
-      debuglevel="lines,vars,source" 
-      classpath="${dependencies}">
-    </javac>
-
-    <!-- create the manifest file -->
-    <jar 
-        basedir="${temp}/agent" 
-        jarfile="${core}/resource/lib/lucee-external-agent.jar" 
-        manifest="${srcInst}/META-INF/MANIFEST.MF"/> 
-    
-
-  </target>
-
-  <target name="_loader" depends="agent" description="compile the source" >
+  <target name="_loader" depends="copyDeployFiles" description="compile the source" >
     <echots message="compile loader"/>
     <!-- compie the source -->
     <javac 
@@ -832,7 +804,6 @@
       <jvmarg value="-Dbasedir=${baseDir}"/>
       <jvmarg value="-Dsrcall=${srcAll}"/>
       <jvmarg value="-Dlucee.allow.reflection=true"/>
-      <!-- <jvmarg value="-Djdk.attach.allowAttachSelf=true"/> -->
       <jvmarg value="-DtestboxArchive=${temp}/archive/testbox.lar"/>
       <jvmarg value="-Dexecute=${testcases}"/>
       <jvmarg value="-DindividualStorageKeys=false"/>
@@ -1021,10 +992,6 @@
 
     <echots message="create-jar-man:${goal}/META-INF/MANIFEST.MF"/>
     <manifest file="${goal}/META-INF/MANIFEST.MF" mode="replace">
-      <attribute name="Premain-Class" value="${mani.core.Premain-Class}"/>
-      <attribute name="Agent-Class" value="${mani.core.Agent-Class}"/>
-      <attribute name="Can-Redefine-Classes" value="${mani.core.Can-Redefine-Classes}"/>
-      <attribute name="Can-Retransform-Classes" value="${mani.core.Can-Retransform-Classes}"/>
       <attribute name="Main-Class" value="${mani.core.Main-Class}"/>
       <attribute name="Bundle-Description" value="${mani.core.Bundle-Description}"/>
       <attribute name="Bundle-DocURL" value="${mani.core.Bundle-DocURL}"/>
