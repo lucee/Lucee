@@ -399,7 +399,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				data.srcCode.setPos(pos);
 				return null;
 			}
-			data.srcCode.removeSpace();
+			comments(data); // LDEV-34 allow comments between the label and the loop
 
 			if (!data.srcCode.forwardIfCurrent("while", '(')) {
 				data.srcCode.setPos(pos);
@@ -601,7 +601,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				data.srcCode.setPos(pos);
 				return null;
 			}
-			data.srcCode.removeSpace();
+			comments(data); // LDEV-34 allow comments between the label and the loop
 
 			if (!data.srcCode.forwardIfCurrent("do", '{') && !data.srcCode.forwardIfCurrent("do ") && !data.srcCode.forwardIfCurrent("do", '/')) {
 				data.srcCode.setPos(pos);
@@ -674,7 +674,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				data.srcCode.setPos(pos);
 				return null;
 			}
-			data.srcCode.removeSpace();
+			comments(data); // LDEV-34 allow comments between the label and the loop
 
 			if (!data.srcCode.forwardIfCurrent("for", '(')) {
 				data.srcCode.setPos(pos);
