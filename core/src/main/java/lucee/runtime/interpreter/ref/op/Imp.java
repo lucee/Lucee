@@ -23,7 +23,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.SecurityInterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
-import lucee.runtime.op.OpUtil;
+import lucee.runtime.op.Caster;
 
 /**
  * imp operation
@@ -49,7 +49,9 @@ public final class Imp extends RefSupport implements Ref {
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
 		if (limited) throw new SecurityInterpreterException("invalid syntax, this operation is not supported.");
-		return OpUtil.imp(pc, left.getValue(pc), right.getValue(pc)) ? Boolean.TRUE : Boolean.FALSE;
+		// LDEV-31 short circuit: if the left side is false the result is true, the right side is not evaluated
+		if (!Caster.toBooleanValue(left.getValue(pc))) return Boolean.TRUE;
+		return Caster.toBooleanValue(right.getValue(pc)) ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	@Override
