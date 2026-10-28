@@ -21,25 +21,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect( result.filecontent.trim() ).toBe( 1 );
 			});
 
-			// Missing [;] or [line feed] after expression; 
-			xit(title = "Checking include run twice with runonce attribute, tag in script", body = function( currentSpec ) {
+			it(title = "Checking include run twice with runonce attribute, tag in script", body = function( currentSpec ) {
 				var result = _InternalRequest(
 					template:"#variables.uri#/test983TwiceTagInScript.cfm"
 				);
 				expect( result.filecontent.trim() ).toBe( 1 );
 			});
 
-			// doesn't error with new lines for each attribute, but returns 2,
-			// because tag in script parsed as variable statement
-			xit(title = "Checking include run twice with runonce attribute, tag in script, newlines", body = function( currentSpec ) {
+			it(title = "Checking include run twice with runonce attribute, tag in script, newlines", body = function( currentSpec ) {
 				var result = _InternalRequest(
 					template:"#variables.uri#/test983TwiceTagInScriptNewLines.cfm"
 				);
 				expect( result.filecontent.trim() ).toBe( 1 );
 			});
 
-			// returns 2 because tag in script parsed as variable statement
-			xit(title = "Checking include run twice with runonce attribute tag in script cached within", body = function( currentSpec ) {
+			it(title = "Checking include run twice with runonce attribute tag in script cached within", body = function( currentSpec ) {
 				var result = _InternalRequest(
 					template:"#variables.uri#/test983TwiceTagInScriptCachedWithin.cfm"
 				);
