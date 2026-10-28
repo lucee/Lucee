@@ -13,8 +13,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 			});
 
 		});
-
-		});
 	}
 
 	private string function createURI( string calledName ) {
