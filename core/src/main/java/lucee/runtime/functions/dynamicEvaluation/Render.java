@@ -27,6 +27,13 @@ public final class Render implements Function {
 	private static final long serialVersionUID = 669811806780804244L;
 
 	public static String call(PageContext pc, String cfml) throws PageException {
-		return Renderer.tag(pc, cfml, false, pc.ignoreScopes()).getOutput();
+		return call(pc, cfml, false);
+	}
+
+	/**
+	 * @param returnOutput if true, the output is not written to the response but returned as a string
+	 */
+	public static String call(PageContext pc, String cfml, boolean returnOutput) throws PageException {
+		return Renderer.tag(pc, cfml, returnOutput, pc.ignoreScopes()).getOutput();
 	}
 }
