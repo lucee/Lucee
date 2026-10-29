@@ -989,6 +989,13 @@ public final class ComponentUtil {
 		return func;
 	}
 
+	/**
+	 * modifier of a function inside an interface that has an implementation, which is inherited by the
+	 * components implementing the interface (LDEV-1835). This is not part of the modifier list of the
+	 * component, only used for interface functions.
+	 */
+	public static final int MODIFIER_DEFAULT = 4;
+
 	public static int toModifier(String str, int emptyValue, int defaultValue) {
 		if (StringUtil.isEmpty(str, true)) return emptyValue;
 		str = str.trim();
@@ -1002,6 +1009,7 @@ public final class ComponentUtil {
 		if (Component.MODIFIER_ABSTRACT == modifier) return "abstract";
 		if (Component.MODIFIER_FINAL == modifier) return "final";
 		if (Component.MODIFIER_NONE == modifier) return "none";
+		if (MODIFIER_DEFAULT == modifier) return "default";
 
 		return defaultValue;
 	}
