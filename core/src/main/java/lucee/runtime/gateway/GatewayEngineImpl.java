@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.BundleException;
 
@@ -49,6 +50,7 @@ import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.thread.ThreadUtil;
@@ -65,6 +67,8 @@ public final class GatewayEngineImpl implements GatewayEngine {
 	private static final Collection.Key AMF_FORWARD = KeyImpl.source("AMF-Forward");
 
 	private Map<String, GatewayEntry> entries = new HashMap<String, GatewayEntry>();
+	// last start/runtime failure per gateway (key is the lower case id), shown in the admin (LDEV-3644)
+	private final Map<String, LastError> lastErrors = new ConcurrentHashMap<String, LastError>();
 	private ConfigWeb config;
 	private Log log;
 	private String id;
@@ -106,12 +110,14 @@ public final class GatewayEngineImpl implements GatewayEngine {
 				// exist but changed
 				g = existing.getGateway();
 				if (g.getState() == Gateway.RUNNING) g.doStop();
+				clearLastError(id);
 				entries.put(id, load(config, ge));
 			}
 		}
 	}
 
 	private void removeEntry(String id) {
+		clearLastError(id);
 		GatewayEntry existing = entries.remove(id);
 		if (existing != null) {
 			Gateway g = existing.getGateway();
@@ -138,6 +144,7 @@ public final class GatewayEngineImpl implements GatewayEngine {
 
 	public void remove(GatewayEntry ge) {
 		String id = ge.getId().toLowerCase().trim();
+		clearLastError(id);
 		GatewayEntry existing = entries.remove(id);
 		Gateway g = null;
 
@@ -162,6 +169,59 @@ public final class GatewayEngineImpl implements GatewayEngine {
 	 */
 	public int getState(String gatewayId) throws PageException {
 		return getGateway(gatewayId).getState();
+	}
+
+	/**
+	 * the message of the last start or runtime failure of the given gateway, an empty string if there
+	 * was none (or the gateway was started successfully since)
+	 * 
+	 * @param gatewayId id of the gateway
+	 * @return the last error message or an empty string
+	 */
+	public String getLastError(String gatewayId) {
+		if (gatewayId == null) return "";
+		LastError le = lastErrors.get(gatewayId.toLowerCase().trim());
+		return le == null ? "" : le.message;
+	}
+
+	/**
+	 * the last start or runtime failure of the given gateway
+	 * 
+	 * @param gatewayId id of the gateway
+	 * @return the exception or null if there is none (or only a message, see getLastError)
+	 */
+	public Throwable getLastException(String gatewayId) {
+		if (gatewayId == null) return null;
+		LastError le = lastErrors.get(gatewayId.toLowerCase().trim());
+		return le == null ? null : le.throwable;
+	}
+
+	void setLastError(String gatewayId, String message, Throwable t) {
+		if (gatewayId == null) return;
+		String msg = message;
+		if (t != null) {
+			PageException pe = t instanceof PageException ? (PageException) t : (t instanceof PageExceptionBox ? ((PageExceptionBox) t).getPageException() : null);
+			String detail = pe == null ? null : pe.getDetail();
+			if (StringUtil.isEmpty(msg, true)) msg = t.getMessage();
+			if (StringUtil.isEmpty(msg, true)) msg = t.getClass().getName();
+			if (!StringUtil.isEmpty(detail, true) && !detail.equals(msg)) msg += "\n" + detail;
+		}
+		if (StringUtil.isEmpty(msg, true)) msg = "unknown error";
+		lastErrors.put(gatewayId.toLowerCase().trim(), new LastError(msg, t));
+	}
+
+	void clearLastError(String gatewayId) {
+		if (gatewayId != null) lastErrors.remove(gatewayId.toLowerCase().trim());
+	}
+
+	private static final class LastError {
+		private final String message;
+		private final Throwable throwable;
+
+		private LastError(String message, Throwable throwable) {
+			this.message = message;
+			this.throwable = throwable;
+		}
 	}
 
 	/**
@@ -503,6 +563,7 @@ public final class GatewayEngineImpl implements GatewayEngine {
 			l = Log.LEVEL_TRACE;
 			break;
 		}
+		if (level == LOGLEVEL_ERROR || level == LOGLEVEL_FATAL) setLastError(gatewayId, message, e);
 		if (e == null) log.log(l, "Gateway:" + gatewayId, message);
 		else {
 			log.log(l, "Gateway:" + gatewayId, message, e);

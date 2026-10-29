@@ -3429,10 +3429,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetGatewayEntries() throws PageException {
-		Map entries = ((GatewayEngineImpl) (configWeb).getGatewayEngine()).getEntries();
+		GatewayEngineImpl engine = (GatewayEngineImpl) (configWeb).getGatewayEngine();
+		Map entries = engine.getEntries();
 		Iterator it = entries.entrySet().iterator();
 		lucee.runtime.type.Query qry = new QueryImpl(
-				new String[] { "class", "bundleName", "bundleVersion", "id", "custom", "cfcPath", "listenerCfcPath", "startupMode", "state", "readOnly" }, 0, "entries");
+				new String[] { "class", "bundleName", "bundleVersion", "id", "custom", "cfcPath", "listenerCfcPath", "startupMode", "state", "lastError", "readOnly" }, 0, "entries");
 		Map.Entry entry;
 		GatewayEntry ge;
 		// Gateway g;
@@ -3453,6 +3454,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAtEL("custom", row, ge.getCustom());
 			qry.setAtEL("readOnly", row, Caster.toBoolean(ge.isReadOnly()));
 			qry.setAtEL("state", row, GatewayEngineImpl.toStringState(GatewayUtil.getState(ge), "failed"));
+			qry.setAtEL("lastError", row, engine.getLastError(ge.getId()));
 
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
@@ -3782,7 +3784,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetGatewayEntry() throws PageException {
 
 		String id = getString("admin", action, "id");
-		Map entries = ((GatewayEngineImpl) configWeb.getGatewayEngine()).getEntries();
+		GatewayEngineImpl engine = (GatewayEngineImpl) configWeb.getGatewayEngine();
+		Map entries = engine.getEntries();
 		Iterator it = entries.keySet().iterator();
 		GatewayEntry ge;
 		// Gateway g;
@@ -3803,6 +3806,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				sct.setEL(KeyConstants._custom, ge.getCustom());
 				sct.setEL(KeyConstants._readOnly, Caster.toBoolean(ge.isReadOnly()));
 				sct.setEL(KeyConstants._state, GatewayEngineImpl.toStringState(GatewayUtil.getState(ge), "failed"));
+				sct.setEL("lastError", engine.getLastError(ge.getId()));
 
 				pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 				return;
