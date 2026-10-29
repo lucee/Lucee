@@ -547,7 +547,7 @@ public final class HSQLDBHandler {
 
 		}
 		catch (ParseException e) {
-			throw new DatabaseException(e.getMessage(), null, sql, null);
+			throw new DatabaseException(e.getMessage(), e.getDetail(), sql, null);
 		}
 
 	}
