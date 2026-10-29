@@ -1,6 +1,7 @@
 package lucee.runtime.monitor;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -8,7 +9,9 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.type.Query;
 
 public final class RequestMonitorProImpl implements RequestMonitorPro {
@@ -63,10 +66,18 @@ public final class RequestMonitorProImpl implements RequestMonitorPro {
 	 * @see lucee.runtime.monitor.RequestMonitorPro#init(lucee.runtime.PageContext)
 	 */
 	@Override
-	public void init(PageContext pc) throws IOException {
+	public void init(PageContext pc) throws IOException, PageException {
 		if (init != null) {
 			try {
 				init.invoke(monitor, new Object[] { pc });
+			}
+			catch (InvocationTargetException ite) {
+				Throwable target = ite.getTargetException();
+				if (Abort.isSilentAbort(target)) {
+					if (target instanceof PageExceptionBox) throw ((PageExceptionBox) target).getPageException();
+					throw (Abort) target;
+				}
+				throw ExceptionUtil.toIOException(ite);
 			}
 			catch (Exception e) {
 				throw ExceptionUtil.toIOException(e);

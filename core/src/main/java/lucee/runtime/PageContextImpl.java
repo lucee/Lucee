@@ -2604,10 +2604,9 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void executeRest(String realPath, boolean throwExcpetion) throws PageException {
-		initallog();
-
 		ApplicationListener listener = null;// config.get ApplicationListener();
 		try {
+			initallog();
 			String pathInfo = req.getPathInfo();
 
 			// charset
@@ -2955,7 +2954,7 @@ public final class PageContextImpl extends PageContext {
 		return getApplicationContext().getDebugOptions();
 	}
 
-	private void initallog() {
+	private void initallog() throws PageException {
 		if (!isGatewayContext() && config.isMonitoringEnabled()) {
 			RequestMonitor[] monitors = config.getRequestMonitors();
 			if (monitors != null) for (int i = 0; i < monitors.length; i++) {
@@ -2965,6 +2964,8 @@ public final class PageContextImpl extends PageContext {
 					}
 					catch (Throwable e) {
 						ExceptionUtil.rethrowIfNecessary(e);
+						// LDEV-3792 a request monitor can abort the request from init(PageContext)
+						if (Abort.isSilentAbort(e)) throw Caster.toPageException(e);
 					}
 				}
 			}
