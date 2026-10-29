@@ -19,6 +19,7 @@
 package lucee.runtime.functions.system;
 
 import java.util.Iterator;
+import java.util.Map;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -33,7 +34,6 @@ import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.functions.arrays.ArraySlice;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -67,16 +67,18 @@ public final class CallStackGet implements Function {
 	}
 
 	public static Object call(PageContext pc, String type, Number noffset, Number nmaxFrames) throws PageException {
-		Array arr = (Array) call(pc);
-
 		int offset = Caster.toIntValue(noffset);
 		int maxFrames = Caster.toIntValue(nmaxFrames);
 
+		Array arr;
 		if (offset > 0 || maxFrames > 0) {
+			// only the requested frames are resolved, resolving the template path of a frame is expensive (LDEV-3697)
 			int sliceFrom = offset + 1;
 			int sliceTo = (maxFrames > 0) ? (int) (maxFrames + offset) : 0;
-			arr = ArraySlice.get(arr, sliceFrom, sliceTo);
+			arr = new ArrayImpl();
+			_getTagContext(pc, arr, new Exception("Stack trace"), LINE_NUMBER, sliceFrom, sliceTo);
 		}
+		else arr = (Array) call(pc);
 
 		if (type.equalsIgnoreCase("array")) return arr;
 
@@ -131,9 +133,24 @@ public final class CallStackGet implements Function {
 	}
 
 	public static void _getTagContext(PageContext pc, Array tagContext, Throwable t, Collection.Key lineNumberName) {
+		_getTagContext(pc, tagContext, t, lineNumberName, 1, 0);
+	}
+
+	/**
+	 * adds the frames of the stacktrace to the tagContext, only the frames from "from" to "to" (both
+	 * inclusive, counting from 1) are added and the (expensive) template resolution is done for those
+	 * only.
+	 * 
+	 * @param from first frame to add
+	 * @param to last frame to add, a value below 1 means all frames until the end
+	 * @return the number of frames processed so far, can be less than the number of frames if "to" was
+	 *         reached.
+	 */
+	private static int _getTagContext(PageContext pc, Array tagContext, Throwable t, Collection.Key lineNumberName, int from, int to) {
 		// Throwable root = t.getRootCause();
 		Throwable cause = t.getCause();
-		if (cause != null) _getTagContext(pc, tagContext, cause, lineNumberName);
+		int pos = 0;
+		if (cause != null) pos = _getTagContext(pc, tagContext, cause, lineNumberName, from, to);
 		StackTraceElement[] traces = t.getStackTrace();
 
 		UDF[] udfs = ((PageContextImpl) pc).getUDFs();
@@ -148,10 +165,14 @@ public final class CallStackGet implements Function {
 			trace = traces[i];
 			template = trace.getFileName();
 			if (trace.getLineNumber() <= 0 || template == null || ResourceUtil.getExtension(template, "").equals("java")) continue;
+			pos++;
+			if (to > 0 && pos > to) break;
 			methodName = trace.getMethodName();
 			if (methodName != null && methodName.startsWith("udfCall") && index > -1) functionName = udfs[index--].getFunctionName();
 
 			else functionName = "";
+
+			if (pos < from) continue;
 
 			item = new StructImpl();
 			line = trace.getLineNumber();
@@ -164,22 +185,38 @@ public final class CallStackGet implements Function {
 			item.setEL(lineNumberName, Double.valueOf(line));
 			tagContext.appendEL(item);
 		}
+		return pos;
 	}
 
 	private static String abs(PageContextImpl pc, String template) {
+		// the same template shows up many times in a request, so remember what it resolved to
+		Map<String, String> cache = pc.getCallStackPaths();
+		String path = cache.get(template);
+		if (path != null) return path;
+
+		path = resolve(pc, template);
+		if (path == null) return template;
+
+		cache.put(template, path);
+		return path;
+	}
+
+	// returns null in case the template cannot be resolved to an existing file
+	private static String resolve(PageContextImpl pc, String template) {
 		ConfigWeb config = pc.getConfig();
 
 		Resource res = config.getResource(template);
 		if (res.exists()) return template;
-		String tmp;
-		PageSource ps = pc == null ? null : pc.getPageSource(template);
-		res = ps == null ? null : ps.getPhyscalFile();
-		if (res == null || !res.exists()) {
-			tmp = ps.getDisplayPath();
-			res = StringUtil.isEmpty(tmp) ? null : config.getResource(tmp);
-			if (res != null && res.exists()) return res.getAbsolutePath();
-		}
-		else return res.getAbsolutePath();
-		return template;
+
+		PageSource ps = pc.getPageSource(template);
+		if (ps == null) return null;
+
+		res = ps.getPhyscalFile();
+		if (res != null && res.exists()) return res.getAbsolutePath();
+
+		String tmp = ps.getDisplayPath();
+		res = StringUtil.isEmpty(tmp) ? null : config.getResource(tmp);
+		if (res != null && res.exists()) return res.getAbsolutePath();
+		return null;
 	}
 }
