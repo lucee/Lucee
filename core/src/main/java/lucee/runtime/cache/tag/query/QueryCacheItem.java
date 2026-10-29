@@ -21,6 +21,7 @@ package lucee.runtime.cache.tag.query;
 import lucee.commons.digest.HashUtil;
 import lucee.runtime.cache.tag.udf.UDFArgConverter;
 import lucee.runtime.type.Query;
+import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.query.QueryResult;
 
 public final class QueryCacheItem extends QueryResultCacheItem {
@@ -52,7 +53,9 @@ public final class QueryCacheItem extends QueryResultCacheItem {
 
 	@Override
 	public Object duplicate(boolean deepCopy) {
-		return new QueryCacheItem((Query) query.duplicate(true), getTags(), getDatasourceName(), getCreationDate());
+		// LDEV-1406: the copy shares the column data with this item and copies it only when it gets written to
+		Query qry = (query instanceof QueryImpl) ? ((QueryImpl) query).duplicateCopyOnWrite() : (Query) query.duplicate(true);
+		return new QueryCacheItem(qry, getTags(), getDatasourceName(), getCreationDate());
 	}
 
 }

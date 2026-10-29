@@ -68,6 +68,16 @@ public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 	protected AtomicInteger size = new AtomicInteger(0);
 	protected Object[] data;
 
+	/**
+	 * copy-on-write flag (LDEV-1406): true while the array {@link #data} may be referenced by another
+	 * column as well (for example the cached query entry and the queries handed out from the cache).
+	 * A shared array is never written to, every method that changes the content calls
+	 * {@link #unshareLocked()} first, which replaces the array with a private copy. A shared array only
+	 * holds values that are not duplicated by a deep copy anyway (null, String, Number, Boolean), see
+	 * {@link #hasOnlyImmutableValues()}.
+	 */
+	protected transient volatile boolean shared;
+
 	protected volatile boolean typeChecked = false;
 	protected QueryImpl query;
 	protected Collection.Key key;
@@ -185,6 +195,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 		synchronized (sync) {
 			resetType();
 			data = new Object[CAPACITY];
+			shared = false;
 			size.set(0);
 		}
 	}
@@ -340,6 +351,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 		}
 		if (!trustType) value = reDefineType(value);
 		synchronized (sync) {
+			if (shared) unshareLocked();
 			data[row - 1] = value;
 		}
 		return value;
@@ -366,6 +378,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 		if (row < 1 || row > size()) return value;
 		synchronized (sync) {
 			value = reDefineType(value);
+			if (shared) unshareLocked();
 			data[row - 1] = value;
 		}
 		return value;
@@ -374,6 +387,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 	@Override
 	public void add(Object value) {
 		query.disableIndex();
+		if (shared) unshare();
 		growTo(size() + 1);
 		data[size.incrementAndGet() - 1] = value;
 	}
@@ -400,6 +414,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 		// query.disconnectCache();
 		if (row < 1 || row > size()) throw new DatabaseException("invalid row number [" + row + "]", "valid rows goes from 1 to " + size(), null, null);
 		synchronized (sync) {
+			if (shared) unshareLocked();
 			Object o = data[row - 1];
 			for (int i = row; i < size(); i++) {
 				data[i - 1] = data[i];
@@ -449,9 +464,50 @@ public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 			Object[] newData = new Object[newSize];
 			System.arraycopy(data, 0, newData, 0, data.length);
 			data = newData;
+			shared = false;
 		}
 	}
 
+	/**
+	 * make sure this column owns its data array before the content gets changed (copy-on-write)
+	 */
+	private void unshare() {
+		synchronized (sync) {
+			unshareLocked();
+		}
+	}
+
+	/**
+	 * same as {@link #unshare()}, the caller must hold the lock on "sync"
+	 */
+	private void unshareLocked() {
+		if (!shared) return;
+		// the values are immutable, so a shallow copy of the array is a full copy
+		data = data.clone();
+		shared = false;
+	}
+
+	/**
+	 * @return true if the data of this column is currently shared with another column, meaning it will
+	 *         be copied on the first write
+	 */
+	public boolean isDataShared() {
+		return shared;
+	}
+
+	/**
+	 * all values are of a type the duplicator returns as is (null, String, Number, Boolean), so the
+	 * array can be shared with a copy instead of duplicating every single value
+	 */
+	private boolean hasOnlyImmutableValues() {
+		if (shared) return true; // a shared array only ever holds such values
+		Object[] data = this.data;
+		for (int i = 0; i < data.length; i++) {
+			Object o = data[i];
+			if (o != null && !(o instanceof String) && !(o instanceof Number) && !(o instanceof Boolean)) return false;
+		}
+		return true;
+	}
 	private Object reDefineType(Object value) {
 		return QueryColumnUtil.reDefineType(this, value);
 	}
@@ -628,7 +684,21 @@ public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 		return clone;
 	}
 
+	/**
+	 * Same as a deep copy, but if possible the clone shares the data with this column and copies it only
+	 * when the clone (or this column) is written to the first time (LDEV-1406).
+	 */
+	public QueryColumnImpl cloneColumnCopyOnWrite(QueryImpl targetQry) {
+		QueryColumnImpl clone = new QueryColumnImpl();
+		populate(clone, true, targetQry, true);
+		return clone;
+	}
+
 	protected void populate(QueryColumnImpl trg, boolean deepCopy, QueryImpl targetQry) {
+		populate(trg, deepCopy, targetQry, false);
+	}
+
+	private void populate(QueryColumnImpl trg, boolean deepCopy, QueryImpl targetQry, boolean copyOnWrite) {
 
 		boolean inside = ThreadLocalDuplication.set(this, trg);
 		try {
@@ -638,6 +708,24 @@ public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 			trg.type = this.type;
 			trg.key = this.key;
 			if (trg.query != null) trg.query.disableIndex();
+
+			if (copyOnWrite && deepCopy) {
+				if (shared) {
+					// a shared array is never modified in place, so no lock needed
+					trg.data = this.data;
+					trg.shared = true;
+					return;
+				}
+				synchronized (sync) {
+					if (hasOnlyImmutableValues()) {
+						// flag both sides, the first one that writes will copy the array
+						shared = true;
+						trg.data = this.data;
+						trg.shared = true;
+						return;
+					}
+				}
+			}
 
 			// we first get data local, because length of the object cannot be changed, the safes us
 			// from
@@ -846,6 +934,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 	}
 
 	public DebugQueryColumn _toDebugColumn() {
+		// the debug column uses the same array and size as this column, so make sure this column owns the array
+		unshare();
 		return new DebugQueryColumn(data, key, query, size, type, typeChecked);
 	}
 
@@ -926,6 +1016,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 			tmp[i] = data[rows[i] - 1];
 		}
 		data = tmp;
+		shared = false;
 	}
 
 	@Override
