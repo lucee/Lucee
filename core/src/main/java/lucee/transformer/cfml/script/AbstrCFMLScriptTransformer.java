@@ -1153,7 +1153,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// body
 		boolean oldInsideFunction = data.insideFunction;
+		java.util.Set<String> oldFinalNames = data.finalNames;
 		data.insideFunction = true;
+		data.finalNames = null;
 		try {
 			// ex block
 			Body prior = data.setParent(body);
@@ -1264,6 +1266,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		}
 		finally {
 			data.insideFunction = oldInsideFunction;
+			data.finalNames = oldFinalNames;
 		}
 		func.setEnd(data.srcCode.getPosition());
 
@@ -1441,7 +1444,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// body
 		boolean oldInsideFunction = data.insideFunction;
+		java.util.Set<String> oldFinalNames = data.finalNames;
 		data.insideFunction = true;
+		data.finalNames = null;
 
 		try {
 			if (data.srcCode.isCurrent('{')) {
@@ -1479,6 +1484,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		}
 		finally {
 			data.insideFunction = oldInsideFunction;
+			data.finalNames = oldFinalNames;
 		}
 
 		func.setEnd(data.srcCode.getPosition());
@@ -2484,6 +2490,31 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	 * @return Ausdruck
 	 * @throws TemplateException
 	 */
+	private static final java.util.Set<String> NOT_A_DECLARATION = new java.util.HashSet<String>(java.util.Arrays.asList("eq", "neq", "gt", "gte", "lt", "lte", "ge", "le", "is",
+			"isnot", "and", "or", "xor", "eqv", "imp", "mod", "contains", "does", "instanceof", "castas", "not"));
+
+	/**
+	 * LDEV-2551: is the current position the start of a final variable declaration (final x = 1)? final is still usable as a variable name
+	 * (final = 1), so it is only a modifier if it is followed by a name
+	 */
+	private boolean isFinalDeclaration(Data data) {
+		int pos = data.srcCode.getPos();
+		try {
+			if (!data.srcCode.forwardIfCurrent("final ")) return false;
+			data.srcCode.removeSpace();
+			char c = data.srcCode.getCurrent();
+			if (!Character.isLetter(c) && c != '_' && c != '$') return false;
+			int start = data.srcCode.getPos();
+			while (data.srcCode.isValidIndex() && (Character.isLetterOrDigit(data.srcCode.getCurrent()) || data.srcCode.getCurrent() == '_' || data.srcCode.getCurrent() == '$'))
+				data.srcCode.next();
+			String word = data.srcCode.substring(start, data.srcCode.getPos() - start).toLowerCase();
+			return !NOT_A_DECLARATION.contains(word);
+		}
+		finally {
+			data.srcCode.setPos(pos);
+		}
+	}
+
 	private Statement expressionStatement(Data data, Body parent) throws TemplateException {
 
 		// first we check if we have an access modifier
@@ -2518,6 +2549,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				comments(data);
 			}
 		}
+		// LDEV-2551: final variable in a function or a template, final x = 1;
+		boolean finalVar = false;
+		if (data.context != CTX_CFC && data.context != CTX_STATIC && isFinalDeclaration(data)) {
+			data.srcCode.forwardIfCurrent("final ");
+			comments(data);
+			finalVar = true;
+		}
 		Body prior = data.setParent(parent);
 		Expression expr = expression(data);
 		data.setParent(prior);
@@ -2530,6 +2568,16 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 				expr = new Assign(v, data.factory.createEmpty(), data.srcCode.getPosition());
 			}
+		}
+
+		if (finalVar) {
+			String key = expr instanceof Assign ? finalKey(data, ((Assign) expr).getVariable()) : null;
+			if (key == null) {
+				data.srcCode.setPos(pos);
+				throw new TemplateException(data.srcCode, "Invalid use of final, a final variable must be declared with a simple name, for example [final x = 1;]");
+			}
+			if (data.finalNames == null) data.finalNames = new java.util.HashSet<String>();
+			data.finalNames.add(key);
 		}
 
 		// if a specific access was defined
