@@ -33,6 +33,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MappingUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -578,6 +579,15 @@ public abstract class PageExceptionImpl extends PageException {
 		return sw.toString();
 	}
 
+	// LDEV-5579: the java stacktrace without the frames of the dynamic invocation wrapper classes
+	private String getFilteredStackTrace() {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		super.printStackTrace(pw);
+		pw.flush();
+		return ExceptionUtil.removeDynamicInvocationFrames(sw.toString());
+	}
+
 	@Override
 	public void printStackTrace() {
 		printStackTrace(System.err);
@@ -593,7 +603,7 @@ public abstract class PageExceptionImpl extends PageException {
 	}
 
 	public void printStackTrace(PrintStream s, PageContext pc) {
-		super.printStackTrace(s);
+		s.print(getFilteredStackTrace());
 
 		/*
 		 * StackTraceElement[] traces = getStackTraceElements(this); StackTraceElement trace;
@@ -609,7 +619,7 @@ public abstract class PageExceptionImpl extends PageException {
 	}
 
 	public void printStackTrace(PrintWriter s, PageContext pc) {
-		super.printStackTrace(s);
+		s.print(getFilteredStackTrace());
 		/*
 		 * StackTraceElement[] traces = getStackTraceElements(this); StackTraceElement trace;
 		 * 
