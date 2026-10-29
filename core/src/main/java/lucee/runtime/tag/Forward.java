@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.tag;
 
+import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.op.Caster;
@@ -53,7 +54,9 @@ public final class Forward extends TagImpl {
 		 * { disp.forward(pageContext. getHttpServletRequest(),pageContext. getHttpServletResponse()); }
 		 * catch (Exception e) { throw Caster.toPageException(e); }
 		 */
-		return SKIP_BODY;
+
+		// like cflocation, the request ends once the forward is done
+		throw new Abort(Abort.SCOPE_REQUEST);
 	}
 
 }
