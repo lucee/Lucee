@@ -1011,6 +1011,23 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("Log level used when the Maven download policy is set to 'warn'. Has no effect when the policy is 'ignore' or 'error'.");
 	protected final ConfigValue<Integer> mavenDownloadPolicyLogLevel = new ConfigValue<>(metaMavenDownloadPolicyLogLevel);
 
+	@SuppressWarnings("unchecked")
+	private static Prop<Integer> metaMavenSignatureVerification = Prop.integer().keys("signatureVerification").parent("maven")
+			.systemPropEnvVar("lucee.maven.signature.verification").defaultValue(ConfigPro.MAVEN_SIGNATURE_VERIFICATION_VERIFY)
+			.choices(
+					new Choice<Integer>(ConfigPro.MAVEN_SIGNATURE_VERIFICATION_VERIFY, "verify")
+							.description("Verify the OpenPGP signature (.asc) of released org.lucee artifacts (core, extensions, pom) against the Lucee release key bundled with Lucee. "
+									+ "The download is rejected when the signature is missing or invalid. Pre-releases (-ALPHA, -BETA, -RC) are published to the Lucee repository, "
+									+ "that has no signatures, so a missing signature is accepted for them, but a signature that is there must be valid."),
+					new Choice<Integer>(ConfigPro.MAVEN_SIGNATURE_VERIFICATION_STRICT, "strict")
+							.description("Like 'verify', but a missing signature is not accepted for pre-releases either."),
+					new Choice<Integer>(ConfigPro.MAVEN_SIGNATURE_VERIFICATION_WARN, "warn", "warning")
+							.description("Verify the signature, but only log a warning and continue when it is missing or invalid."),
+					new Choice<Integer>(ConfigPro.MAVEN_SIGNATURE_VERIFICATION_OFF, "off").description("Do not verify signatures."))
+			.description("Controls the verification of the OpenPGP signatures of org.lucee artifacts downloaded from a Maven repository, "
+					+ "like core updates and extensions. Artifacts of other groups, snapshots and locally provided files (deploy folder, upload, local Maven cache) are not verified.");
+	protected final ConfigValue<Integer> mavenSignatureVerification = new ConfigValue<>(metaMavenSignatureVerification);
+
 	private static Prop<Boolean> metaHandleUnquotedAttributeValueAsString = Prop.bool().keys("handleUnquotedAttributeValueAsString").defaultValue(true)
 			.description("Controls if unquoted tag attributes are treated as literal strings (true) or as variable references (false) for evaluation.");
 	private final ConfigValue<Boolean> handleUnquotedAttributeValueAsString = new ConfigValue<>(metaHandleUnquotedAttributeValueAsString);
@@ -8531,6 +8548,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public void resetMavenDownloadPolicyLogLevel() {
 		mavenDownloadPolicyLogLevel.reset();
+	}
+
+	public int getMavenSignatureVerification() {
+		return mavenSignatureVerification.get(this, root);
+	}
+
+	public void resetMavenSignatureVerification() {
+		mavenSignatureVerification.reset();
 	}
 
 	@Override

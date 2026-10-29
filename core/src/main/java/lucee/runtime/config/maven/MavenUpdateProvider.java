@@ -51,6 +51,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.SerializationSettings;
+import lucee.runtime.mvn.ArtifactSignature;
 import lucee.runtime.op.CastImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
@@ -349,7 +350,8 @@ public final class MavenUpdateProvider {
 		assertDownloadAllowed(strURL);
 		if (!StringUtil.isEmpty(strURL)) {
 			// Use HTTPDownloader with DEBUG logging for Maven operations
-			return HTTPEngine.get(new URL(strURL), null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true);
+			URL url = new URL(strURL);
+			return verified(HTTPEngine.get(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true), url, version);
 		}
 		return getFileStreamFromZipStream(getLoader(version));
 	}
@@ -366,7 +368,14 @@ public final class MavenUpdateProvider {
 		// Use HTTPDownloader with DEBUG logging for Maven operations
 		URL url = new URL(strURL);
 		assertDownloadAllowed(strURL);
-		return HTTPEngine.get(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true);
+		return verified(HTTPEngine.get(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true), url, version);
+	}
+
+	// released org.lucee artifacts must be signed by the Lucee release key
+	private InputStream verified(InputStream is, URL url, Version version) throws IOException {
+		int requirement = ArtifactSignature.requirement(group, version.toString());
+		if (requirement == ArtifactSignature.NOT_SIGNED) return is;
+		return ArtifactSignature.verifiedStream(is, url, group + ":" + artifact + ":" + version, requirement);
 	}
 
 	/*
