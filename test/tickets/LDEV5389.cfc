@@ -1,26 +1,29 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults, testBox ) {
 
-		describe("Testcase for LDEV-5389 - colon not caught", function() {
-			// see line 13;
-			it(title = "colon instead of semi colon not caught", body = function( currentSpec ) {
-				var result = _InternalRequest(
-					template : "#createURI("LDEV3841")#/index.cfm",
-					url: {
-						cgiReadonly: false
-					}
-				):
-				var st = deserializeJson( result.filecontent );
-				expect( st ).toHaveKey( "Readonly" );
-				expect( st.readOnly ).toBe( "false" );
+		describe( "Testcase for LDEV-5389 - colon not caught", function() {
+
+			it( title="colon instead of semi colon after a function call is a syntax error", body=function( currentSpec ) {
+				var uri = createURI( "LDEV5389/colon.cfm" );
+				expect( function() {
+					_InternalRequest( template: uri );
+				} ).toThrow( regex="did you mean \[;\] instead of \[:\]" );
+			});
+
+			it( title="a function as listener still works", body=function( currentSpec ) {
+				var threadName = getOne():function( result ) {};
+				expect( threadName ).notToBeEmpty();
 			});
 		});
 	}
 
-	private string function createURI(string calledName, boolean contract=true){
-		var base = getDirectoryFromPath( getCurrentTemplatePath() );
-		var baseURI = contract ? contractPath( base ) : "/test/#listLast(base,"\/")#";
-		return baseURI & "/" & calledName;
+	private function getOne() {
+		return 1;
+	}
+
+	private string function createURI( string calledName ) {
+		var baseURI = "/test/#listLast( getDirectoryFromPath( getCurrentTemplatePath() ), "\/" )#/";
+		return baseURI & calledName;
 	}
 }
