@@ -167,7 +167,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					}
 					catch ( any e ) {
 						expect( e.type ).toBe( "expression" );
-						expect( e.message ).toBe( "invalid sort type [not_a_valid_sort_type], sort types are [text, textNoCase, numeric]" );
+						expect( e.message ).toBe( "invalid sort type [not_a_valid_sort_type], sort types are [text, textNoCase, numeric, natural, naturalNoCase]" );
 					}
 				});
 
