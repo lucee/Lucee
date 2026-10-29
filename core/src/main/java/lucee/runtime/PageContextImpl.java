@@ -360,6 +360,8 @@ public final class PageContextImpl extends PageContext {
 	private Password serverPassword;
 
 	private PageException pe;
+	// LDEV-3570 set when Application.cfc onError has completed without throwing, so the engine does not log the exception again
+	private boolean errorHandledByListener;
 	// private Throwable requestTimeoutException;
 
 	private boolean ignoreScopes = false;
@@ -803,6 +805,7 @@ public final class PageContextImpl extends PageContext {
 		}
 		includeOnce.clear();
 		pe = null;
+		errorHandledByListener = false;
 		this.literalTimestampWithTSOffset = false;
 		thread = null;
 		tagName = null;
@@ -2896,6 +2899,18 @@ public final class PageContextImpl extends PageContext {
 			ps = null;
 			if (_t != null) ExceptionUtil.rethrowIfNecessary(_t);
 		}
+	}
+
+	/**
+	 * LDEV-3570: Application.cfc onError has handled the current error (completed without throwing).
+	 * The exception is still handed back to the caller of execute, but must not be logged again as an error.
+	 */
+	public void setErrorHandledByListener(boolean errorHandledByListener) {
+		this.errorHandledByListener = errorHandledByListener;
+	}
+
+	public boolean isErrorHandledByListener() {
+		return errorHandledByListener;
 	}
 
 	public boolean show() {
