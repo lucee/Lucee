@@ -18,6 +18,9 @@
  **/
 package lucee.transformer.statement.tag;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.util.SourceCode;
@@ -37,6 +40,7 @@ public final class Attribute {
 	private final boolean isDefaultValue;
 	private String rawValue;
 	private char separator = SEPARATOR_EQUALS; // default to '=' for backwards compatibility
+	private List<Expression> alternatives; // additional values separated by a pipe, for example type="a" | "b"
 
 	public Attribute(boolean dynamicType, String name, Expression value, String type) {
 		this(dynamicType, name, value, type, false);
@@ -93,6 +97,27 @@ public final class Attribute {
 	public Attribute(boolean dynamicType, String name, Expression value, String type, boolean isDefaultValue, char separator) {
 		this(dynamicType, name, value, type, isDefaultValue);
 		this.separator = separator;
+	}
+
+	/**
+	 * Additional values of the attribute, separated by a pipe in the source, for example
+	 * <code>&lt;cfcatch type="a" | "b" name="e"&gt;</code>. The first value is returned by
+	 * {@link #getValue()}.
+	 * 
+	 * @return the additional values, empty if there are none
+	 */
+	public List<Expression> getAlternatives() {
+		if (alternatives == null) return new ArrayList<Expression>();
+		return alternatives;
+	}
+
+	public void addAlternative(Expression alternative) {
+		if (alternatives == null) alternatives = new ArrayList<Expression>();
+		alternatives.add(alternative);
+	}
+
+	public boolean hasAlternatives() {
+		return alternatives != null && !alternatives.isEmpty();
 	}
 
 	public char getSeparator() {

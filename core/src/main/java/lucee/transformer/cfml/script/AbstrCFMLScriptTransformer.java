@@ -2593,6 +2593,27 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	}
 
 	/**
+	 * reads a single type of a catch statement, a (dotted) identifier or a string
+	 * 
+	 * @return the type or null if there is none
+	 */
+	private final Expression catchType(Data data) throws TemplateException {
+		StringBuilder sbType = new StringBuilder();
+		String id;
+		while (true) {
+			id = identifier(data, false);
+			if (id == null) break;
+			sbType.append(id);
+			data.srcCode.removeSpace();
+			if (!data.srcCode.forwardIfCurrent('.')) break;
+			sbType.append('.');
+			data.srcCode.removeSpace();
+		}
+		if (sbType.length() == 0) return string(data);
+		return data.factory.createLitString(sbType.toString());
+	}
+
+	/**
 	 * Liest eine try Block ein <br />
 	 * EBNF:<br />
 	 * <code>;</code>
@@ -2621,45 +2642,51 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			// type
 			int pos = data.srcCode.getPos();
 			Position line = data.srcCode.getPosition();
-			Expression name = null, type = null;
+			Expression name = null;
+			List<Expression> types = new ArrayList<Expression>();
 
-			StringBuilder sbType = new StringBuilder();
-			String id;
-			while (true) {
-				id = identifier(data, false);
-				if (id == null) break;
-				sbType.append(id);
-				data.srcCode.removeSpace();
-				if (!data.srcCode.forwardIfCurrent('.')) break;
-				sbType.append('.');
-				data.srcCode.removeSpace();
-			}
-
-			if (sbType.length() == 0) {
-				type = string(data);
-				if (type == null) throw new TemplateException(data.srcCode, "a catch statement must begin with the throwing type (query, application ...).");
-			}
-			else {
-				type = data.factory.createLitString(sbType.toString());
-			}
+			Expression type = catchType(data);
+			if (type == null) throw new TemplateException(data.srcCode, "a catch statement must begin with the throwing type (query, application ...).");
+			types.add(type);
 
 			// name = expression();
 			comments(data);
+
+			// multi catch, catch( TypeA | TypeB e )
+			while (data.srcCode.isCurrent('|') && !data.srcCode.isCurrent("||")) {
+				data.srcCode.next();
+				comments(data);
+				type = catchType(data);
+				if (type == null) throw new TemplateException(data.srcCode, "invalid multi catch statement, missing the type after the pipe [|].");
+				types.add(type);
+				comments(data);
+			}
+			boolean multi = types.size() > 1;
+			if (multi) {
+				for (Expression t: types) {
+					if (t instanceof LitString && "any".equalsIgnoreCase(((LitString) t).getString())) {
+						throw new TemplateException(data.srcCode, "invalid multi catch statement, the type [any] cannot be combined with other types, it already catches all exceptions.");
+					}
+				}
+			}
 
 			// name
 			if (!data.srcCode.isCurrent(')')) {
 				name = expression(data);
 			}
+			else if (multi) {
+				throw new TemplateException(data.srcCode, "invalid multi catch statement, a variable name is required, for example catch( TypeA | TypeB e ).");
+			}
 			else {
 				data.srcCode.setPos(pos);
 				name = expression(data);
-				type = data.factory.createLitString("any");
+				types.set(0, data.factory.createLitString("any"));
 			}
 			comments(data);
 
 			Body b = new BodyBase(data.factory);
 			try {
-				tryCatchFinally.addCatch(null, type, name, b, line);
+				tryCatchFinally.addCatch(null, types, name, b, line);
 			}
 			catch (TransformerException e) {
 				throw new TemplateException(data.srcCode, e.getMessage());

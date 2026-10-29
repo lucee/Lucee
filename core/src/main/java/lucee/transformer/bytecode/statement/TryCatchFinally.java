@@ -113,13 +113,13 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 	 */
 	private class Catch {
 
-		private ExprString type;
+		private final List<ExprString> types;
 		private Body body;
 		private VariableRef name;
 		private Position line;
 
-		public Catch(ExprString type, VariableRef name, Body body, Position line) {
-			this.type = type;
+		public Catch(List<ExprString> types, VariableRef name, Body body, Position line) {
+			this.types = types;
 			this.name = name;
 			this.body = body;
 			this.line = line;
@@ -237,25 +237,32 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 		while (it.hasNext()) {
 			Catch ct = it.next();
 			// store any for else
-			if (ct.type != null && ct.type instanceof LitString && ((LitString) ct.type).getString().equalsIgnoreCase("any")) {
+			if (ct.types.size() == 1 && ct.types.get(0) != null && ct.types.get(0) instanceof LitString && ((LitString) ct.types.get(0)).getString().equalsIgnoreCase("any")) {
 				ctElse = ct;
 				continue;
 			}
 
 			bc.visitLine(ct.line);
 
-			// pe.typeEqual(type)
-			if (ct.type == null) {
+			Label endIf = new Label();
+			Label startBody = new Label();
+
+			// pe.typeEqual(type), with multiple types (catch( a | b e )) the body is entered when one matches
+			if (ct.types.size() == 1 && ct.types.get(0) == null) {
 				getFactory().TRUE().writeOut(bc, Expression.MODE_VALUE);
+				adapter.ifZCmp(Opcodes.IFEQ, endIf);
 			}
 			else {
-				adapter.loadLocal(pe);
-				ct.type.writeOut(bc, Expression.MODE_REF);
-				adapter.invokeVirtual(Types.PAGE_EXCEPTION, TYPE_EQUAL);
+				int last = ct.types.size() - 1;
+				for (int i = 0; i <= last; i++) {
+					adapter.loadLocal(pe);
+					ct.types.get(i).writeOut(bc, Expression.MODE_REF);
+					adapter.invokeVirtual(Types.PAGE_EXCEPTION, TYPE_EQUAL);
+					if (i < last) adapter.ifZCmp(Opcodes.IFNE, startBody);
+					else adapter.ifZCmp(Opcodes.IFEQ, endIf);
+				}
 			}
-
-			Label endIf = new Label();
-			adapter.ifZCmp(Opcodes.IFEQ, endIf);
+			adapter.visitLabel(startBody);
 
 			catchBody(bc, adapter, ct, pe, lRef, true, true);
 
@@ -317,8 +324,21 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 	 * @param line
 	 */
 	public void addCatch(ExprString type, VariableRef name, Body body, Position line) {
+		List<ExprString> types = new ArrayList<ExprString>();
+		types.add(type);
+		addCatch(types, name, body, line);
+	}
+
+	/**
+	 * @param types one or more types (catch( a | b e )), the catch body is executed if the exception
+	 *            matches one of them
+	 * @param name
+	 * @param body
+	 * @param line
+	 */
+	public void addCatch(List<ExprString> types, VariableRef name, Body body, Position line) {
 		body.setParent(this);
-		catches.add(new Catch(type, name, body, line));
+		catches.add(new Catch(types, name, body, line));
 	}
 
 	/**
@@ -329,14 +349,32 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 	 * @throws TransformerException
 	 */
 	public void addCatch(BytecodeContext bc, Expression type, Expression name, Body b, Position line) throws TransformerException {
+		List<Expression> types = new ArrayList<Expression>();
+		types.add(type);
+		addCatch(bc, types, name, b, line);
+	}
+
+	/**
+	 * @param bc
+	 * @param types one or more types, the catch body is executed if the exception matches one of them
+	 * @param name
+	 * @param b
+	 * @param line
+	 * @throws TransformerException
+	 */
+	public void addCatch(BytecodeContext bc, List<Expression> types, Expression name, Body b, Position line) throws TransformerException {
 		// MUSTMUST
 		// type
-		if (type == null || type instanceof ExprString) {
+		List<ExprString> exprTypes = new ArrayList<ExprString>();
+		for (Expression type: types) {
+			if (type == null || type instanceof ExprString) {
+			}
+			else if (type instanceof Variable) {
+				type = VariableString.toExprString(type);
+			}
+			else throw new TransformerException(bc, "type from catch statement is invalid", type.getStart());
+			exprTypes.add((ExprString) type);
 		}
-		else if (type instanceof Variable) {
-			type = VariableString.toExprString(type);
-		}
-		else throw new TransformerException(bc, "type from catch statement is invalid", type.getStart());
 
 		// name
 		if (name instanceof LitString) {
@@ -347,7 +385,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 		else if (name instanceof Variable) name = new VariableRef((Variable) name, true);
 		else throw new TransformerException(bc, "name from catch statement is invalid", name.getStart());
 
-		addCatch((ExprString) type, (VariableRef) name, b, line);
+		addCatch(exprTypes, (VariableRef) name, b, line);
 	}
 
 	/**
@@ -409,12 +447,21 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 				// param
 				Struct sctParam = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 				sctCatch.setEL(KeyConstants._param, sctParam);
-				if (c.type instanceof LitString) {
-					sctParam.setEL(KeyConstants._type, ((LitString) c.type).getString());
+				if (c.types.size() > 1) {
+					Array arrTypes = new ArrayImpl(8, false);
+					for (ExprString t: c.types) {
+						Struct sctType = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
+						t.dump(sctType);
+						arrTypes.appendEL(sctType);
+					}
+					sctParam.setEL("types", arrTypes);
 				}
-				else if (c.type != null) {
+				else if (c.types.get(0) instanceof LitString) {
+					sctParam.setEL(KeyConstants._type, ((LitString) c.types.get(0)).getString());
+				}
+				else if (c.types.get(0) != null) {
 					Struct sctType = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
-					c.type.dump(sctType);
+					c.types.get(0).dump(sctType);
 					sctParam.setEL(KeyConstants._type, sctType);
 				}
 				if (c.name != null) {
