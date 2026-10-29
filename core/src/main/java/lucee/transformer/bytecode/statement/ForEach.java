@@ -45,6 +45,7 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 
 	private Body body;
 	private VariableRef key;
+	private VariableRef index; // LDEV-1424 optional second variable: for (value, index in collection)
 	private Expression value;
 
 	private final static Method HAS_NEXT = new Method("hasNext", Types.BOOLEAN_VALUE, new Type[] {});
@@ -52,6 +53,8 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 	private final static Method SET = new Method("set", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT });
 	public static final Method LOOP_COLLECTION = new Method("loopCollection", Types.ITERATOR, new Type[] { Types.OBJECT });
 	public static final Method FOR_EACH = new Method("forEach", Types.ITERATOR, new Type[] { Types.OBJECT });
+	public static final Method FOR_EACH_INDEXED = new Method("forEachIndexed", Types.ITERATOR, new Type[] { Types.OBJECT });
+	public static final Method INDEX = new Method("index", Types.OBJECT, new Type[] { Types.ITERATOR });
 
 	public static final Type FOR_EACH_UTIL = Type.getType(ForEachUtil.class);
 	public static final Method RESET = new Method("reset", Types.VOID, new Type[] { Types.ITERATOR });
@@ -74,8 +77,17 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 	 * @param label
 	 */
 	public ForEach(Variable key, Expression value, Body body, Position start, Position end, String label) {
+		this(key, null, value, body, start, end, label);
+	}
+
+	/**
+	 * @param key the variable receiving the value
+	 * @param index optional variable receiving the index (array, query) or the key (struct), can be null
+	 */
+	public ForEach(Variable key, Variable index, Expression value, Body body, Position start, Position end, String label) {
 		super(key.getFactory(), start, end);
 		this.key = new VariableRef(key, false);
+		if (index != null) this.index = new VariableRef(index, false);
 		this.value = value;
 		this.body = body;
 		this.label = label;
@@ -90,11 +102,12 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 		GeneratorAdapter adapter = bc.getAdapter();
 		final int it = adapter.newLocal(Types.ITERATOR);
 		final int item = adapter.newLocal(Types.REFERENCE);
+		final int itemIndex = index == null ? -1 : adapter.newLocal(Types.REFERENCE);
 
 		// Value
 		// ForEachUtil.toIterator(value)
 		value.writeOut(bc, Expression.MODE_REF);
-		adapter.invokeStatic(FOR_EACH_UTIL, FOR_EACH);
+		adapter.invokeStatic(FOR_EACH_UTIL, index == null ? FOR_EACH : FOR_EACH_INDEXED);
 		// adapter.invokeStatic(COLLECTION_UTIL, TO_ITERATOR);
 		// Iterator it=...
 		adapter.storeLocal(it);
@@ -119,6 +132,10 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 		key.writeOut(bc, Expression.MODE_REF);
 		// VariableReference item=...
 		adapter.storeLocal(item);
+		if (index != null) {
+			index.writeOut(bc, Expression.MODE_REF);
+			adapter.storeLocal(itemIndex);
+		}
 
 		// while
 		bc.visitLine(getStart());
@@ -136,6 +153,16 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 		adapter.invokeInterface(Types.ITERATOR, NEXT);
 		adapter.invokeInterface(Types.REFERENCE, SET);
 		adapter.pop();
+
+		// index.set(pc,ForEachUtil.index(it));
+		if (index != null) {
+			adapter.loadLocal(itemIndex);
+			adapter.loadArg(0);
+			adapter.loadLocal(it);
+			adapter.invokeStatic(FOR_EACH_UTIL, INDEX);
+			adapter.invokeInterface(Types.REFERENCE, SET);
+			adapter.pop();
+		}
 
 		// Body
 		body.writeOut(bc);
@@ -191,6 +218,12 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 			Struct left = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			key.dump(left);
 			sct.setEL(KeyConstants._left, left);
+		}
+		// index (second variable)
+		if (index != null) {
+			Struct idx = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
+			index.dump(idx);
+			sct.setEL(KeyConstants._index, idx);
 		}
 		// right
 		{

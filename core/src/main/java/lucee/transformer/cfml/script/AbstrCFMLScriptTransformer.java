@@ -47,6 +47,7 @@ import lucee.runtime.functions.system.CFFunction;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -691,8 +692,26 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			left = expression(data);
 			comments(data);
 		}
+		// LDEV-1424 for (value, index in collection)
+		Expression second = null;
+		if (left != null && data.srcCode.forwardIfCurrent(',')) {
+			comments(data);
+			second = expression(data);
+			comments(data);
+			if (!(left instanceof Variable) || !(second instanceof Variable) || !data.srcCode.isCurrentKeyword("in")) {
+				throw new TemplateException(data.srcCode, "invalid syntax in for statement, the form [for (value, index in collection)] is the only one allowing a second variable");
+			}
+			// for (var value, index in collection) the index is declared as local variable as well
+			Variable l = (Variable) left;
+			Variable r = (Variable) second;
+			if (l.getScope() == Scope.SCOPE_VAR && r.getScope() == Scope.SCOPE_UNDEFINED && !r.ignoredFirstMember() && r.getMembers().size() == 1) {
+				Variable local = data.factory.createVariable(Scope.SCOPE_VAR, line, data.srcCode.getPosition());
+				local.addMember(r.getFirstMember());
+				second = local;
+			}
+		}
 		// middle for
-		if (data.srcCode.forwardIfCurrent(';')) {
+		if (second == null && data.srcCode.forwardIfCurrent(';')) {
 
 			Expression cont = null;
 			Expression update = null;
@@ -739,7 +758,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			if (!(left instanceof Variable)) throw new TemplateException(data.srcCode, "invalid syntax in for statement, left value is invalid");
 
-			return new ForEach((Variable) left, value, body, line, data.srcCode.getPosition(), id);
+			return new ForEach((Variable) left, (Variable) second, value, body, line, data.srcCode.getPosition(), id);
 		}
 		else throw new TemplateException(data.srcCode, "invalid syntax in for statement");
 	}
