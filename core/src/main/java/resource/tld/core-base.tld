@@ -5333,6 +5333,21 @@ Use `reset`, to reset that count and re-enable output of html outside cfoutput t
 		</attribute>
 		<attribute>
 			<type>string</type>
+			<name>whitespaceManagement</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Sets the whitespace management for the rest of the current request, this overrides the setting `whitespaceManagement` in the Application.cfc and the whitespace setting of the Lucee Administrator. Output that was already written before the tag is not changed.
+
+The values are the same as the ones of the whitespace setting in the Lucee Administrator:
+
+- `regular` (or `normal`): the whitespace is not touched.
+- `white-space` (or `simple`): removes consecutive whitespace characters.
+- `white-space-pref` (or `smart`): removes consecutive whitespace characters, but preserves whitespace within code, pre and textarea tags.
+
+When the debug output logging of the Lucee Administrator is enabled, the whitespace management of the response can not be changed per request.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>info</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>

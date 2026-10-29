@@ -83,6 +83,11 @@ public final class CFMLWriterWSPref extends CFMLWriterImpl implements WhiteSpace
 		}
 	}
 
+	@Override
+	void flushWhitespaceBuffer() throws IOException {
+		printBuffer();
+	}
+
 	void printBufferEL() {
 		if (sb.length() > 0) {
 			try {

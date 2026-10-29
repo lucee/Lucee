@@ -593,6 +593,54 @@ public final class AppListenerUtil {
 	 * @param scriptProtect
 	 * @return
 	 */
+	/**
+	 * translates the value of the whitespace management setting (Application.cfc setting
+	 * "whitespaceManagement", attribute "whitespaceManagement" of cfsetting) to one of
+	 * ConfigPro.CFML_WRITER_*. The values are the same as the ones of the whitespace setting in the
+	 * Lucee Administrator.
+	 * 
+	 * @param str the value
+	 * @param defaultValue returned if the value is not valid
+	 * @return one of ConfigPro.CFML_WRITER_* or the default value
+	 */
+	public static int toWhitespaceManagement(String str, int defaultValue) {
+		if (str == null) return defaultValue;
+		str = str.trim().toLowerCase();
+		if ("regular".equals(str) || "normal".equals(str)) return ConfigPro.CFML_WRITER_REGULAR;
+		if ("white-space".equals(str) || "simple".equals(str)) return ConfigPro.CFML_WRITER_WS;
+		if ("white-space-pref".equals(str) || "smart".equals(str)) return ConfigPro.CFML_WRITER_WS_PREF;
+		return defaultValue;
+	}
+
+	/**
+	 * same as toWhitespaceManagement(String,int), but throws an exception if the value is not valid
+	 * 
+	 * @param obj the value
+	 * @return one of ConfigPro.CFML_WRITER_*
+	 * @throws ApplicationException
+	 */
+	public static int toWhitespaceManagement(Object obj) throws ApplicationException {
+		String str = Caster.toString(obj, null);
+		int type = toWhitespaceManagement(str, -1);
+		if (type == -1) {
+			throw new ApplicationException("invalid value [" + (str != null ? str : Caster.toTypeName(obj))
+					+ "] for whitespace management, valid values are [regular, normal, white-space, simple, white-space-pref, smart]");
+		}
+		return type;
+	}
+
+	/**
+	 * the name of the given writer type, as used in the whitespace setting of the Lucee Administrator
+	 * 
+	 * @param type one of ConfigPro.CFML_WRITER_*
+	 * @return the name
+	 */
+	public static String fromWhitespaceManagement(int type) {
+		if (type == ConfigPro.CFML_WRITER_WS) return "white-space";
+		if (type == ConfigPro.CFML_WRITER_WS_PREF) return "white-space-pref";
+		return "regular";
+	}
+
 	public static String translateScriptProtect(int scriptProtect) {
 		if (scriptProtect == ApplicationContext.SCRIPT_PROTECT_NONE) return "none";
 		if (scriptProtect == ApplicationContext.SCRIPT_PROTECT_ALL) return "all";

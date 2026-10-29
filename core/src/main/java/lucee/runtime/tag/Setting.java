@@ -26,6 +26,7 @@ import lucee.runtime.debug.DebuggerUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.ext.tag.BodyTagImpl;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -62,6 +63,23 @@ public final class Setting extends BodyTagImpl {
 			if (!DebuggerUtil.hasDebugOptions(pageContext)) return;
 		}
 		setShowdebug(show);
+	}
+
+	/**
+	 * set the whitespace management for the rest of the request, overrides the setting of the
+	 * application (this.whitespaceManagement in Application.cfc) and of the administrator.
+	 * 
+	 * @param whitespaceManagement regular, normal, white-space, simple, white-space-pref or smart
+	 * @throws PageException
+	 */
+	public void setWhitespacemanagement(String whitespaceManagement) throws PageException {
+		int type = AppListenerUtil.toWhitespaceManagement(whitespaceManagement);
+		try {
+			((PageContextImpl) pageContext).setRequestWriterType(type);
+		}
+		catch (java.io.IOException e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	public void setShow(boolean show) {

@@ -64,6 +64,12 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 
 	public CFMLWriter getCFMLWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp);
 
+	/**
+	 * creates a writer of the given type (one of ConfigPro.CFML_WRITER_*), regardless of the configured
+	 * type
+	 */
+	public CFMLWriter getCFMLWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp, int writerType);
+
 	public TagHandlerPool getTagHandlerPool();
 
 	public String getHash();

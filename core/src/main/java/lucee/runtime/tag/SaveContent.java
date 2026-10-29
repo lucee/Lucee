@@ -18,8 +18,8 @@
  **/
 package lucee.runtime.tag;
 
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
 import lucee.runtime.interpreter.VariableInterpreter;
@@ -81,8 +81,7 @@ public final class SaveContent extends BodyTagTryCatchFinallyImpl {
 		// If trim-attribute is not set by the user, use the whitespace-setting
 		boolean trim = this.trim;
 		if (!hasTrim) {
-			ConfigWebPro config = (ConfigWebPro) pageContext.getConfig();
-			trim = config.getCFMLWriterType() != ConfigPro.CFML_WRITER_REGULAR;
+			trim = ((PageContextImpl) pageContext).getCFMLWriterType() != ConfigPro.CFML_WRITER_REGULAR;
 		}
 
 		String value = trim ? bodyContent.getString().trim() : bodyContent.getString();
