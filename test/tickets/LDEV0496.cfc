@@ -113,6 +113,56 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 				} );
 			}
 
+			describe( "decimal strings with more digits than a double can hold", function(){
+
+				var Double = createObject( "java", "java.lang.Double" );
+
+				it( title="default mode parses to the nearest double", body=function( currentSpec ){
+					application action="update" preciseMath=false;
+					loop list="2305843009213693951.77,20150817112756.892,1234567890.123456789,0.12345678901234567,-98765432109876.54321,+1234567890123456.7" item="local.n" {
+						expect( toString( parseNumber( n ) ) ).toBe( toString( Double.parseDouble( n ) ), n );
+					}
+				} );
+
+				it( title="nearest double of 2305843009213693951.77 is 2^61, not 2^61-256", body=function( currentSpec ){
+					application action="update" preciseMath=false;
+					expect( parseNumber( "2305843009213693951.77" ) ).toBe( 2305843009213693952 );
+				} );
+
+				it( title="decimals within double precision are not affected", body=function( currentSpec ){
+					application action="update" preciseMath=false;
+					expect( parseNumber( "123456789.123456" ) ).toBe( 123456789.123456 );
+					expect( parseNumber( "0.1" ) ).toBe( 0.1 );
+					expect( parseNumber( "-12.5" ) ).toBe( -12.5 );
+				} );
+
+				it( title="preciseMath=false QoQ decimal param and literal use the nearest double", body=function( currentSpec ){
+					application action="update" preciseMath=false;
+					var n = "20150817112756.892";
+					var q = queryExecute(
+						"SELECT ? AS p, #n# AS l, v + 0.5 AS c FROM src WHERE id = 1",
+						[ { value: n, cfsqltype: "cf_sql_decimal" } ],
+						{ dbtype: "query" }
+					);
+					expect( toString( q.p ) ).toBe( toString( Double.parseDouble( n ) ) );
+					expect( toString( q.l ) ).toBe( toString( Double.parseDouble( n ) ) );
+				} );
+
+				it( title="preciseMath=true QoQ decimal param and literal keep all digits", body=function( currentSpec ){
+					application action="update" preciseMath=true;
+					var n = "20150817112756.892";
+					var q = queryExecute(
+						"SELECT ? AS p, #n# AS l, v + 0.5 AS c FROM src WHERE id = 1",
+						[ { value: n, cfsqltype: "cf_sql_decimal" } ],
+						{ dbtype: "query" }
+					);
+					expect( toString( q.p ) ).toBe( n );
+					expect( toString( q.l ) ).toBe( n );
+					expect( toString( q.c ) ).toBe( "20150817112756892.5" );
+				} );
+
+			} );
+
 			describe( "preciseMath=true does exact arithmetic with large numbers", function(){
 
 				beforeEach( function(){
