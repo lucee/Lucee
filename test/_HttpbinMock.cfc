@@ -72,12 +72,13 @@ component {
 
 		var requestLine = buffered.readLine();
 		if ( isNull( requestLine ) || !len( requestLine ) ) {
-			return { method: "GET", path: "/", body: "", headers: {} };
+			return { method: "GET", path: "/", query: "", body: "", headers: {} };
 		}
 
 		var parts = listToArray( requestLine, " " );
 		var method = arrayLen( parts ) gte 1 ? parts[ 1 ] : "GET";
 		var path = arrayLen( parts ) gte 2 ? listFirst( parts[ 2 ], "?" ) : "/";
+		var query = arrayLen( parts ) gte 2 and find( "?", parts[ 2 ] ) ? mid( parts[ 2 ], find( "?", parts[ 2 ] ) + 1 ) : "";
 		var headers = {};
 		var contentLength = 0;
 		var line = buffered.readLine();
@@ -110,7 +111,7 @@ component {
 			body = builder.toString();
 		}
 
-		return { method: uCase( method ), path: path, body: body, headers: headers };
+		return { method: uCase( method ), path: path, query: query, body: body, headers: headers };
 	}
 
 	private struct function _buildResponse( required struct httpRequest, required port ) {
@@ -158,6 +159,42 @@ component {
 		}
 		else if ( reqPath == "/headers" || reqPath == "/headers/" ) {
 			responseBody = serializeJSON( { headers: httpRequest[ "headers" ] } );
+		}
+		else if ( reFind( "^/basic-auth/[^/]+/[^/]+/?$", reqPath ) ) {
+			var expected = "Basic " & toBase64( listGetAt( reqPath, 2, "/" ) & ":" & listGetAt( reqPath, 3, "/" ) );
+			if ( structKeyExists( httpRequest[ "headers" ], "Authorization" ) && httpRequest[ "headers" ][ "Authorization" ] == expected ) {
+				responseBody = serializeJSON( { authenticated: true, user: listGetAt( reqPath, 2, "/" ) } );
+			}
+			else {
+				statusCode = 401;
+				statusText = "Unauthorized";
+				responseBody = "";
+				responseHeaders = "WWW-Authenticate: Basic realm=""Fake Realm""#chr(13)##chr(10)#";
+			}
+		}
+		else if ( reqPath == "/bearer" || reqPath == "/bearer/" ) {
+			var authHeader = structKeyExists( httpRequest[ "headers" ], "Authorization" ) ? httpRequest[ "headers" ][ "Authorization" ] : "";
+			if ( left( authHeader, 7 ) == "Bearer " ) {
+				responseBody = serializeJSON( { authenticated: true, token: mid( authHeader, 8 ) } );
+			}
+			else {
+				statusCode = 401;
+				statusText = "Unauthorized";
+				responseBody = "";
+				responseHeaders = "WWW-Authenticate: Bearer#chr(13)##chr(10)#";
+			}
+		}
+		else if ( reqPath == "/redirect-to" || reqPath == "/redirect-to/" ) {
+			var target = "";
+			var redirectStatus = 302;
+			for ( var pair in listToArray( httpRequest[ "query" ], "&" ) ) {
+				if ( listFirst( pair, "=" ) == "url" ) target = urlDecode( listRest( pair, "=" ) );
+				else if ( listFirst( pair, "=" ) == "status_code" ) redirectStatus = val( listRest( pair, "=" ) );
+			}
+			statusCode = redirectStatus;
+			statusText = "Redirect";
+			responseBody = "";
+			responseHeaders = "Location: #target##chr(13)##chr(10)#";
 		}
 		else if ( reqPath == "/anything" || reqPath == "/anything/" || reqPath == "/delete" || reqPath == "/delete/" ) {
 			responseBody = serializeJSON( {
