@@ -143,8 +143,12 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 		((ThreadQueueImpl) configWeb.getThreadQueue()).setMode(configWeb.getQueueEnable() ? ThreadQueue.MODE_ENABLED : ThreadQueue.MODE_DISABLED);
 
+		// LDEV-3422 warmup with compile, compile the templates and exit, instead of starting the context
+		CFMLEngineImpl engineImpl = (CFMLEngineImpl) ConfigUtil.getEngine(configWeb);
+		if (engineImpl.isWarmupCompilePending()) engineImpl.onWarmupWeb(configWeb);
+
 		// call web.cfc for this context
-		((CFMLEngineImpl) ConfigUtil.getEngine(configWeb)).onStart(configWeb, false);
+		engineImpl.onStart(configWeb, false);
 
 		((GatewayEngineImpl) configWeb.getGatewayEngine()).autoStart();
 
