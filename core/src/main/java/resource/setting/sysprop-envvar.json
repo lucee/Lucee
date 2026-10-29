@@ -406,6 +406,15 @@
 		"default": false
 	},
 	{
+		"sysprop": "lucee.enable.warmup.compile",
+		"envvar": "LUCEE_ENABLE_WARMUP_COMPILE",
+		"desc": "Boolean to enable/disable the compile of all templates (`.cfm`, `.cfc`, `.cfs`) of the mappings during warmup, so the class files exist when the server is started for real. Only has an effect if warmup is enabled (`LUCEE_ENABLE_WARMUP`). Mappings that only have an archive are skipped, templates that fail to compile are logged, but do not fail the warmup",
+		"category": "deployment",
+		"type": "boolean",
+		"default": false,
+		"introduced": "9.0.0.564"
+	},
+	{
 		"sysprop": "lucee.encryption.algorithm",
 		"envvar": "LUCEE_ENCRYPTION_ALGORITHM",
 		"desc": "Default encryption algorithm used when none is specified. The default `cfmx_compat` is not cryptographically secure - strongly recommended to use `AES` instead. Valid values: `CFMX_COMPAT`, `AES`, `BLOWFISH`, `DES`",
