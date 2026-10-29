@@ -3,6 +3,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cfoutput" {
 	function run( testResults, testBox ) {
 		describe( "LDEV-1791 query group compares the values as strings", function() {
 
+			afterEach( function() {
+				structDelete( request, "ldev1791" );
+			});
+
 			it( title="cfloop group: 013, 0013 and 00013 are different groups", body=function( currentSpec ) {
 				var q = queryNew( "artNr", "varchar", [ [ "013" ], [ "0013" ], [ "00013" ] ] );
 				expect( loopGroups( q ) ).toBe( "013,0013,00013" );
