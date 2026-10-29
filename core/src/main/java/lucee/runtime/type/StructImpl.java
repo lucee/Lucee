@@ -253,6 +253,33 @@ public class StructImpl extends StructSupport {
 		}
 	}
 
+	/**
+	 * first key in iteration order without copying the keys, only meaningful for ordered structs
+	 * 
+	 * @return the first key or null if the struct is empty
+	 */
+	public Collection.Key getFirstKey() {
+		synchronized (map) {
+			Iterator<Key> it = map.keySet().iterator();
+			return it.hasNext() ? it.next() : null;
+		}
+	}
+
+	/**
+	 * last key in iteration order without copying the keys, only meaningful for ordered structs
+	 * 
+	 * @return the last key or null if the struct is empty
+	 */
+	public Collection.Key getLastKey() {
+		synchronized (map) {
+			Key last = null;
+			for (Iterator<Key> it = map.keySet().iterator(); it.hasNext();) {
+				last = it.next();
+			}
+			return last;
+		}
+	}
+
 	@Override
 	public Object remove(Collection.Key key) throws PageException {
 		if (!map.containsKey(key)) throw new ExpressionException("can't remove key [" + key + "] from struct, key does not exist");
