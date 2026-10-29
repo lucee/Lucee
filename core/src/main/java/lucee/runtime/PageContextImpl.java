@@ -25,6 +25,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -250,6 +251,7 @@ public final class PageContextImpl extends PageContext {
 	private final LinkedList<UDF> udfs = new LinkedList<UDF>();
 	private final LinkedList<PageSource> pathList = new LinkedList<PageSource>();
 	private final LinkedList<PageSource> includePathList = new LinkedList<PageSource>();
+	private Map<String, String> callStackPaths;
 	private final Set<PageSource> includeOnce = new HashSet<PageSource>();
 
 	/**
@@ -639,6 +641,8 @@ public final class PageContextImpl extends PageContext {
 				}
 			}
 		}
+
+		callStackPaths = null;
 
 		config.releaseCacheHandlers(this);
 
@@ -3572,6 +3576,15 @@ public final class PageContextImpl extends PageContext {
 	public void removeLastPageSource(boolean alsoInclude) {
 		if (!pathList.isEmpty()) pathList.removeLast();
 		if (alsoInclude && !includePathList.isEmpty()) includePathList.removeLast();
+	}
+
+	/**
+	 * cache used by CallStackGet to remember the resolved template paths for the duration of the
+	 * request, see LDEV-3697
+	 */
+	public Map<String, String> getCallStackPaths() {
+		if (callStackPaths == null) callStackPaths = new HashMap<String, String>();
+		return callStackPaths;
 	}
 
 	public UDF[] getUDFs() {

@@ -82,15 +82,20 @@ Otherwise, the value, if specified, is treated as a filename to append the dump 
 		}
 
 		// context
-		var context = GetCurrentContext();
 		var contextLevel = structKeyExists(attrib,'contextLevel') ? attrib.contextLevel : 2;
-		contextLevel = min(contextLevel,arrayLen(context));
+		var context = '[unknown file]:[unknown line]';
 		if (contextLevel > 0) {
-			context = context[contextLevel].template & ":" &
-					context[contextLevel].line;
-		}
-		else {
-			context = '[unknown file]:[unknown line]';
+			// only get the frame needed, resolving the template of every frame of the stack is expensive
+			var frames = callStackGet("array", contextLevel - 1, 1);
+			if (arrayLen(frames)) {
+				context = frames[1].template & ":" & frames[1].lineNumber;
+			}
+			else {
+				// contextLevel is deeper than the stack, use the last frame
+				frames = GetCurrentContext();
+				if (arrayLen(frames))
+					context = frames[arrayLen(frames)].template & ":" & frames[arrayLen(frames)].line;
+			}
 		}
 
 		// format
