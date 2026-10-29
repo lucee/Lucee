@@ -233,6 +233,11 @@ public interface ConfigPro extends Config {
 
 	public String getSessionStorage();
 
+	/**
+	 * @return the mask serializeJSON uses to format dates ("cf", "iso", "isoms" or a custom mask)
+	 */
+	public String getSerializationDateFormat();
+
 	public String getClientStorage();
 
 	public boolean getBufferOutput();

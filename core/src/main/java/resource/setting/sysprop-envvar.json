@@ -1236,6 +1236,15 @@
 		"default": "false (Lucee 6), true (Lucee 7)"
 	},
 	{
+		"sysprop": "lucee.serialization.dateformat",
+		"envvar": "LUCEE_SERIALIZATION_DATEFORMAT",
+		"desc": "Defines how serializeJSON formats date/time values: `cf` keeps the traditional Lucee format (for example `January, 29 2021 11:45:26 -0500`), `iso` (or `iso8601`) produces ISO 8601 (for example `2021-01-29T11:45:26-05:00`), `isoms` is ISO 8601 including milliseconds, any other value is used as a custom date/time mask (for example `yyyy-MM-dd HH:mm:ss`). Can be overridden per application with `this.serialization.dateFormat` in Application.cfc. Same as the setting `serialization.dateFormat` in .CFConfig.json",
+		"category": "application",
+		"functions": [ "serializeJSON" ],
+		"type": "string",
+		"default": "cf"
+	},
+	{
 		"sysprop": "lucee.server.dir",
 		"envvar": "LUCEE_SERVER_DIR",
 		"desc": "Server context directory path. Overrides the default location for Lucee's server configuration directory.",
