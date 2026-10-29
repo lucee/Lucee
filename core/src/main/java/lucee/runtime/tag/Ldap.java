@@ -19,6 +19,7 @@
 package lucee.runtime.tag;
 
 import java.io.IOException;
+import lucee.runtime.type.query.QueryReturnType;
 
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
@@ -74,8 +75,31 @@ public final class Ldap extends TagImpl {
 	private int modifyType = DirContext.REPLACE_ATTRIBUTE;
 	private boolean rebind;
 
+	private int returnType = QueryReturnType.QUERY;
+	private lucee.runtime.type.Collection.Key columnKey;
+
+	/**
+	 * set the value returntype, how a query result is returned: query (default), array (array of structs) or struct (struct of structs, see columnKey)
+	 */
+	public void setReturntype(String returntype) throws lucee.runtime.exp.ApplicationException {
+		this.returnType = QueryReturnType.parse(returntype, "ldap");
+	}
+
+	/**
+	 * set the value columnKey, the column the value of is used as key when returntype is struct
+	 */
+	public void setColumnkey(String columnKey) {
+		this.columnKey = QueryReturnType.toColumnKey(columnKey);
+	}
+
+	private void setQueryResult(String variable, lucee.runtime.type.Query qry) throws PageException {
+		pageContext.setVariable(variable, QueryReturnType.convert(qry, returnType, columnKey));
+	}
+
 	@Override
 	public void release() {
+		returnType = QueryReturnType.QUERY;
+		columnKey = null;
 		action = "query";
 		delimiter = ";";
 		port = 389;
@@ -419,7 +443,7 @@ public final class Ldap extends TagImpl {
 				required("LDAP", action, "attributes", attributes);
 				required("LDAP", action, "name", name);
 				Query qry = client.query(attributes, scope, startrow, maxrows, timeout, sort, sortType, sortDirection, start, separator, filter);
-				pageContext.setVariable(name, qry);
+				setQueryResult(name, qry);
 
 			}
 			else throw new ApplicationException("invalid value for attribute action [" + action + "], valid values are [add,delete,modifydn,modify,query]");

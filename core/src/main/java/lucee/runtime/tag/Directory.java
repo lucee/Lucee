@@ -20,6 +20,7 @@ import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_ERROR;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_OVERWRITE;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_SKIP;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
+import lucee.runtime.type.query.QueryReturnType;
 
 import java.io.File;
 import java.io.IOException;
@@ -152,9 +153,32 @@ public final class Directory extends TagImpl {
 
 	private boolean createPath = true;
 
+	private int returnType = QueryReturnType.QUERY;
+	private lucee.runtime.type.Collection.Key columnKey;
+
+	/**
+	 * set the value returntype, how a query result is returned: query (default), array (array of structs) or struct (struct of structs, see columnKey)
+	 */
+	public void setReturntype(String returntype) throws lucee.runtime.exp.ApplicationException {
+		this.returnType = QueryReturnType.parse(returntype, "directory");
+	}
+
+	/**
+	 * set the value columnKey, the column the value of is used as key when returntype is struct
+	 */
+	public void setColumnkey(String columnKey) {
+		this.columnKey = QueryReturnType.toColumnKey(columnKey);
+	}
+
+	private void setQueryResult(String variable, lucee.runtime.type.Query qry) throws PageException {
+		pageContext.setVariable(variable, QueryReturnType.convert(qry, returnType, columnKey));
+	}
+
 	@Override
 	public void release() {
 		super.release();
+		returnType = QueryReturnType.QUERY;
+		columnKey = null;
 		acl = null;
 		storage = null;
 
@@ -378,6 +402,7 @@ public final class Directory extends TagImpl {
 		// securityManager = pageContext.getConfig().getSecurityManager();
 		if (action.equals("list")) {
 			Object res = actionList(pageContext, directory, serverPassword, type, filter, listInfo, recurse, sort);
+			if (res instanceof Query) res = QueryReturnType.convert((Query) res, returnType, columnKey);
 			if (!StringUtil.isEmpty(name) && res != null) pageContext.setVariable(name, res);
 		}
 		else if (action.equals("create")) actionCreate(pageContext, directory, serverPassword, createPath, mode, acl, storage, nameconflict);

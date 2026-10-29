@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.functions.other;
 
+import lucee.runtime.type.query.QueryReturnType;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -41,6 +42,14 @@ public final class SSLCertificateList implements Function {
 	public static Query call(PageContext pc, String host, double port) throws PageException {
 		if (StringUtil.isEmpty(host, true)) return call(pc);
 		return Admin.getSSLCertificate(pc.getConfig(), host, (int) port);
+	}
+
+	public static Object call(PageContext pc, String host, Number port, String returntype) throws PageException {
+		return call(pc, host, port, returntype, null);
+	}
+
+	public static Object call(PageContext pc, String host, Number port, String returntype, String columnKey) throws PageException {
+		return QueryReturnType.convert(call(pc, host, port), returntype, columnKey, "SSLCertificateList");
 	}
 
 	public static Query call(PageContext pc, String host, Number port) throws PageException {

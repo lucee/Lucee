@@ -1,5 +1,6 @@
 package lucee.runtime.functions.ai;
 
+import lucee.runtime.type.query.QueryReturnType;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.ai.AIEngine;
@@ -19,8 +20,9 @@ public final class AIGetModels extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length != 1) throw new FunctionException(pc, "AIGetModels", 1, 1, args.length);
-		return AIUtil.getModelsAsQuery(toEngine(pc, args[0]));
+		if (args.length < 1 || args.length > 3) throw new FunctionException(pc, "AIGetModels", 1, 3, args.length);
+		return QueryReturnType.convert(AIUtil.getModelsAsQuery(toEngine(pc, args[0])), args.length > 1 ? Caster.toString(args[1]) : null,
+				args.length > 2 ? Caster.toString(args[2]) : null, "AIGetModels");
 	}
 
 	private static AIEngine toEngine(PageContext pc, Object obj) throws PageException {

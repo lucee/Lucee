@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import lucee.runtime.type.query.QueryReturnType;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
@@ -87,9 +88,32 @@ public final class DBInfo extends TagImpl {
 	private String strType;
 	private String filter;
 
+	private int returnType = QueryReturnType.QUERY;
+	private lucee.runtime.type.Collection.Key columnKey;
+
+	/**
+	 * set the value returntype, how a query result is returned: query (default), array (array of structs) or struct (struct of structs, see columnKey)
+	 */
+	public void setReturntype(String returntype) throws lucee.runtime.exp.ApplicationException {
+		this.returnType = QueryReturnType.parse(returntype, "dbinfo");
+	}
+
+	/**
+	 * set the value columnKey, the column the value of is used as key when returntype is struct
+	 */
+	public void setColumnkey(String columnKey) {
+		this.columnKey = QueryReturnType.toColumnKey(columnKey);
+	}
+
+	private void setQueryResult(String variable, lucee.runtime.type.Query qry) throws PageException {
+		pageContext.setVariable(variable, QueryReturnType.convert(qry, returnType, columnKey));
+	}
+
 	@Override
 	public void release() {
 		super.release();
+		returnType = QueryReturnType.QUERY;
+		columnKey = null;
 		datasource = null;
 		name = null;
 		type = TYPE_NONE;
@@ -355,7 +379,7 @@ public final class DBInfo extends TagImpl {
 		}
 		qry.setExecutionTime(stopwatch.time());
 
-		pageContext.setVariable(name, qry);
+		setQueryResult(name, qry);
 	}
 
 	private Map<String, Map<String, SVArray>> toMap(ResultSet result, boolean closeResult, String columnName, String[] additional) throws SQLException {
@@ -446,7 +470,7 @@ public final class DBInfo extends TagImpl {
 
 		qry.setExecutionTime(stopwatch.time());
 
-		pageContext.setVariable(name, qry);
+		setQueryResult(name, qry);
 	}
 
 	private void typeForeignKeys(Connection conn) throws PageException, SQLException {
@@ -464,7 +488,7 @@ public final class DBInfo extends TagImpl {
 
 		qry.setExecutionTime(stopwatch.time());
 
-		pageContext.setVariable(name, qry);
+		setQueryResult(name, qry);
 	}
 
 	private void checkTable(DatabaseMetaData metaData, String _dbName) throws SQLException, ApplicationException {
@@ -578,7 +602,7 @@ public final class DBInfo extends TagImpl {
 		}
 		qry.setExecutionTime(stopwatch.time());
 
-		pageContext.setVariable(name, qry);
+		setQueryResult(name, qry);
 	}
 
 	private void typeProcedures(Connection conn) throws SQLException, PageException {
@@ -594,7 +618,7 @@ public final class DBInfo extends TagImpl {
 		lucee.runtime.type.Query qry = new QueryImpl(metaData.getProcedures(dbname(conn), schema, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
-		pageContext.setVariable(name, qry);
+		setQueryResult(name, qry);
 	}
 
 	private void typeProcedureColumns(Connection conn) throws SQLException, PageException {
@@ -618,7 +642,7 @@ public final class DBInfo extends TagImpl {
 				pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
-		pageContext.setVariable(name, qry);
+		setQueryResult(name, qry);
 	}
 
 	private void typeTerms(DatabaseMetaData metaData) throws SQLException, PageException {
@@ -661,7 +685,7 @@ public final class DBInfo extends TagImpl {
 				throw new ApplicationException("Invalid [dbinfo] type=table filter [" + filter + "]. Supported table types are " + allowedTypes.toString() + ".");
 			}
 		}
-		pageContext.setVariable(name, qry);
+		setQueryResult(name, qry);
 	}
 
 	private String dbname(Connection conn) {
@@ -694,7 +718,7 @@ public final class DBInfo extends TagImpl {
 
 		qry.setExecutionTime(stopwatch.time());
 
-		pageContext.setVariable(name, qry);
+		setQueryResult(name, qry);
 	}
 
 	private void typeUsers(Connection conn) throws PageException, SQLException {
@@ -711,7 +735,7 @@ public final class DBInfo extends TagImpl {
 
 		qry.setExecutionTime(stopwatch.time());
 
-		pageContext.setVariable(name, qry);
+		setQueryResult(name, qry);
 	}
 
 	private void required(String name, String value) throws ApplicationException {

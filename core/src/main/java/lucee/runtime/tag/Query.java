@@ -92,6 +92,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.query.QueryArray;
+import lucee.runtime.type.query.QueryReturnType;
 import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.query.QueryStruct;
 import lucee.runtime.type.query.SimpleQuery;
@@ -174,16 +175,12 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	}
 
 	private static int toReturnType(String strReturntype) throws ApplicationException {
-		strReturntype = strReturntype.toLowerCase().trim();
-
-		if (strReturntype.equals("query")) return RETURN_TYPE_QUERY;
-		if (strReturntype.equals("struct")) return RETURN_TYPE_STRUCT;
-		if (strReturntype.equals("array") || strReturntype.equals("array_of_struct") || strReturntype.equals("array-of-struct") || strReturntype.equals("arrayofstruct")
-				|| strReturntype.equals("array_of_entity") || strReturntype.equals("array-of-entity") || strReturntype.equals("arrayofentities")
-				|| strReturntype.equals("array_of_entities") || strReturntype.equals("array-of-entities") || strReturntype.equals("arrayofentities")) {
-			return RETURN_TYPE_ARRAY;
-		}
-		throw new ApplicationException("Attribute [returntype] of tag [query] has an invalid value", "valid values are [query,array] but value was [" + strReturntype + "]");
+		int rt = QueryReturnType.parse(strReturntype);
+		if (rt == QueryReturnType.QUERY) return RETURN_TYPE_QUERY;
+		if (rt == QueryReturnType.STRUCT) return RETURN_TYPE_STRUCT;
+		if (rt == QueryReturnType.ARRAY) return RETURN_TYPE_ARRAY;
+		throw new ApplicationException("Attribute [returntype] of tag [query] has an invalid value",
+				"valid values are [query,array] but value was [" + strReturntype.toLowerCase().trim() + "]");
 	}
 
 	public static String toReturnType(int rt) {

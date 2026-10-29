@@ -29,6 +29,7 @@ import lucee.runtime.security.SecurityManager;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.query.QueryReturnType;
 
 /**
  * Reads, writes, and deletes keys and values in the system registry. The cfregistry tag is
@@ -81,9 +82,32 @@ public final class Registry extends TagImpl {
 	/** Name of record set to contain returned keys and values. */
 	private String name;
 
+	private int returnType = QueryReturnType.QUERY;
+	private lucee.runtime.type.Collection.Key columnKey;
+
+	/**
+	 * set the value returntype, how a query result is returned: query (default), array (array of structs) or struct (struct of structs, see columnKey)
+	 */
+	public void setReturntype(String returntype) throws lucee.runtime.exp.ApplicationException {
+		this.returnType = QueryReturnType.parse(returntype, "registry");
+	}
+
+	/**
+	 * set the value columnKey, the column the value of is used as key when returntype is struct
+	 */
+	public void setColumnkey(String columnKey) {
+		this.columnKey = QueryReturnType.toColumnKey(columnKey);
+	}
+
+	private void setQueryResult(String variable, lucee.runtime.type.Query qry) throws PageException {
+		pageContext.setVariable(variable, QueryReturnType.convert(qry, returnType, columnKey));
+	}
+
 	@Override
 	public void release() {
 		super.release();
+		returnType = QueryReturnType.QUERY;
+		columnKey = null;
 		value = null;
 		action = -1;
 		sort = null;
@@ -267,7 +291,7 @@ public final class Registry extends TagImpl {
 					}
 				}
 
-				pageContext.setVariable(name, qry);
+				setQueryResult(name, qry);
 			}
 		}
 		catch (Exception e) {

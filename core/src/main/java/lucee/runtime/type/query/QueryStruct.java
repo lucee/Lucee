@@ -9,7 +9,10 @@ import lucee.runtime.db.SQL;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.QueryImpl;
@@ -200,10 +203,31 @@ public final class QueryStruct extends StructImpl implements QueryResult {
 		Key[] columns = q.getColumnNames();
 		int colCount = StructImpl.optimalCapacity(columns.length, 4);
 
+		// no column key, the query must have a single record, the struct is that record (same as cfquery with a datasource)
+		if (columnName == null) {
+			if (rows == 0) return qs;
+			if (rows > 1) throw new ApplicationException("Attribute [columnKey] is required when return type is set to struct and more than one record is returned");
+			qs.setSingleRecord(true);
+			for (Key c: columns) {
+				qs.set(c, q.getAt(c, 1, null));
+			}
+			return qs;
+		}
+
+		if (q.getColumn(columnName, null) == null) {
+			Struct keys = new StructImpl();
+			for (Key c: columns) {
+				keys.set(c, "");
+			}
+			throw StructSupport.invalidKey(null, keys, columnName, "query");
+		}
+
 		Struct tmp;
+		Object k;
 		for (int r = 1; r <= rows; r++) {
 			tmp = new StructImpl(Struct.TYPE_LINKED, colCount);
-			qs.set(Caster.toKey(q.getAt(columnName, r)), tmp);
+			k = q.getAt(columnName, r, null);
+			qs.set(k == null ? KeyImpl.init("") : Caster.toKey(k), tmp);
 			for (Key c: columns) {
 				tmp.setEL(c, q.getAt(c, r, null));
 			}
