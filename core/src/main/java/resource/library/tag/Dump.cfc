@@ -147,7 +147,11 @@ Otherwise, the value, if specified, is treated as a filename to append the dump 
 
 		// sleep(5000);	// simulate long process to test async=true
 
-		if (arguments.attrib.output == "browser") {
+		if (arguments.attrib.output == "browser" && arguments.attrib.format == "text") {
+			// plain text, no html markup (LDEV-2669)
+			echo(result & variables.NEWLINE);
+		}
+		else if (arguments.attrib.output == "browser") {
 
 			echo(variables.NEWLINE & '<!-- ==start== dump #now()# format: #arguments.attrib.format# -->' & variables.NEWLINE);
 			echo('<div id="#dumpID#" class="-lucee-dump">#result#</div>' & variables.NEWLINE);
