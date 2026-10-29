@@ -1297,6 +1297,8 @@ a string must be one of the following values:
 - "numeric": sorts numbers
 - "text": sorts text alphabetically, taking case into account (case sensitive)
 - "textNoCase" (default): sorts text alphabetically, without regard to case (case insensitive)
+- "natural": natural sort, a run of digits is compared by its numeric value ("file2" before "file10"), case sensitive
+- "naturalNoCase": like "natural", but without regard to case (case insensitive)
 
 if you define a closure/function, the closure/function must accept 2 parameters of any type and return:
 -1, if first parameter is "smaller" than second parameter
@@ -10017,6 +10019,8 @@ The following things are considered to be empty:
 			- numeric - sort by number
 			- text - sorts text alphabetically and case sensitive
 			- textNoCase (default) - sorts text alphabetically and ignore case sensitivity
+			- natural - natural sort, a run of digits is compared by its numeric value ("file2" before "file10"), case sensitive
+			- naturalNoCase - like natural, but ignores case sensitivity
 			</description>
 		</argument>
 		<argument>
@@ -15833,6 +15837,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 - numeric: sorts numbers
 - text: sorts text alphabetically, taking case into account (case sensitive)
 - textNoCase: sorts text alphabetically, without regard to case (case insensitive)
+- natural: natural sort, a run of digits is compared by its numeric value ("file2" before "file10"), case sensitive
+- naturalNoCase: like natural, but without regard to case (case insensitive)
 
 or a function to be used as a comparator
 
@@ -15886,6 +15892,8 @@ _- asc (default): ascending (a to z) sort order
 - numeric: sorts numbers
 - text: sorts text alphabetically, taking case into account (case sensitive, defualt)
 - textNoCase: sorts text alphabetically, without regard to case (case insensitive)
+- natural: natural sort, a run of digits is compared by its numeric value ("file2" before "file10"), case sensitive
+- naturalNoCase: like natural, but without regard to case (case insensitive)
 
 or a function to be used as a comparator
 
