@@ -354,6 +354,15 @@ public final class Cache extends BodyTagImpl {
 				throw Caster.toPageException(e);
 			}
 		}
+		else if (action == CACHE_CLIENT && body != null) {
+			// clientcache only sets the response headers, the body of the tag still needs to be output
+			try {
+				pageContext.write(body);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
+		}
 		return EVAL_PAGE;
 	}
 
