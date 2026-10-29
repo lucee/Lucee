@@ -530,6 +530,9 @@ public final class Caster {
 		return Integer.parseInt(strNumber, radix);
 	}
 
+	// an integer with more digits than this can't be accumulated into a double without losing precision
+	private static final int MAX_EXACT_DOUBLE_DIGITS = 15;
+
 	public static double toDoubleValue(String str, boolean alsoFromDate) throws CasterException {
 		if (str == null) return 0;// throw new CasterException("can't cast empty string to a number value");
 		str = StringUtil.trimAllWS(str);
@@ -552,6 +555,7 @@ public final class Caster {
 			isMinus = true;
 		}
 		boolean hasDot = false;
+		int intDigits = 0;
 		// boolean hasExp=false;
 		do {
 			curr = str.charAt(pos);
@@ -596,10 +600,16 @@ public final class Caster {
 					deep *= 10;
 					if (deep > 1000000000000000000000D) return Double.parseDouble(str); // patch for LDEV-2654
 				}
+				else intDigits++;
 
 			}
 		}
 		while (++pos < len);
+
+		// the digit by digit accumulation above loses precision once an integer has more digits than a double
+		// can hold exactly (LDEV-496), Double.parseDouble returns the nearest double. At this point str only
+		// holds digits and an optional sign, so it always parses.
+		if (!hasDot && intDigits > MAX_EXACT_DOUBLE_DIGITS) return Double.parseDouble(str);
 
 		if (deep > 1) {
 			rtn /= deep;
@@ -690,6 +700,7 @@ public final class Caster {
 		}
 
 		boolean hasDot = false;
+		int intDigits = 0;
 		// boolean hasExp=false;
 		do {
 			curr = str.charAt(pos);
@@ -729,10 +740,16 @@ public final class Caster {
 				rtn *= 10;
 				rtn += toDigit(curr);
 				if (hasDot) deep *= 10;
+				else intDigits++;
 			}
 
 		}
 		while (++pos < len);
+
+		// the digit by digit accumulation above loses precision once an integer has more digits than a double
+		// can hold exactly (LDEV-496), Double.parseDouble returns the nearest double. At this point str only
+		// holds digits and an optional sign, so it always parses.
+		if (!hasDot && intDigits > MAX_EXACT_DOUBLE_DIGITS) return Double.parseDouble(str);
 
 		if (deep > 1) {
 			rtn /= deep;
