@@ -493,6 +493,13 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("Suppress content written to response stream when a Component is invoked remotely. Only works if the content was not flushed before.");
 	private final ConfigValue<Boolean> suppressContent = new ConfigValue<>(metaSuppressContent);
 
+	public final static Prop<String> metaSerializationDateFormat = Prop.str().keys("dateFormat").parent("serialization").defaultValue("cf")
+			.description("Defines how serializeJSON formats date/time values. \"cf\" (default) keeps the traditional Lucee format, for example \"January, 29 2021 11:45:26 -0500\". "
+					+ "\"iso\" (or \"iso8601\") produces ISO 8601 like \"2021-01-29T11:45:26-05:00\", \"isoms\" adds milliseconds. "
+					+ "Any other value is used as a custom date/time mask, for example \"yyyy-MM-dd HH:mm:ss\". "
+					+ "Can be overridden per application with this.serialization.dateFormat in Application.cfc.");
+	private final ConfigValue<String> serializationDateFormat = new ConfigValue<>(metaSerializationDateFormat);
+
 	private static Prop<Boolean> metaShowVersion = Prop.bool().keys("showVersion").defaultValue(false)
 			.description("deprected: expose Lucee version information in response header.");
 	private final ConfigValue<Boolean> showVersion = new ConfigValue<>(metaShowVersion);
@@ -4977,6 +4984,16 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	@Override
 	public boolean isShowVersion() {
 		return showVersion.get(this, root);
+	}
+
+	@Override
+	public String getSerializationDateFormat() {
+		return serializationDateFormat.get(this, root);
+	}
+
+	public ConfigServerImpl resetSerializationDateFormat() {
+		serializationDateFormat.reset();
+		return this;
 	}
 
 	public ConfigServerImpl resetShowVersion() {
