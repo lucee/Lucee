@@ -66,7 +66,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex,internalRequ
 				"emptyString": ""
 			};
 
-			loop list="java,perl" item="local.engine" {
+			// the perl engine is provided by the Perl Regex extension in this version, its specs live in that extension
+			loop list="java" item="local.engine" {
 				( function( engine ) {
 					it( title="#engine# engine: results of reFind, reMatch, reReplace and isValid (and the NoCase variants) are as expected", body=function( currentSpec ) {
 						var result = _InternalRequest(
@@ -81,12 +82,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex,internalRequ
 					});
 				} )( engine );
 			}
-
-			it( title="java and perl engine return the same results", body=function( currentSpec ) {
-				var java = deserializeJSON( _InternalRequest( template: "#variables.uri#/results.cfm", urls: { engine: "java" } ).filecontent );
-				var perl = deserializeJSON( _InternalRequest( template: "#variables.uri#/results.cfm", urls: { engine: "perl" } ).filecontent );
-				expect( java ).toBe( perl );
-			});
 
 		});
 	}
