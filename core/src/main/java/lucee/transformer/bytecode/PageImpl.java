@@ -97,6 +97,7 @@ import lucee.transformer.bytecode.visitor.TryCatchFinallyVisitor;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitString;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.statement.Argument;
 import lucee.transformer.statement.HasBodies;
@@ -517,6 +518,18 @@ public final class PageImpl extends BodyBase implements Page {
 		}
 
 		List<Function> tmpFunctions = getFunctions();
+		// LDEV-2919 localMode defined for the component, the function localMode has precedence
+		if (isComponent(comp)) {
+			Attribute attrLocalMode = comp.getAttribute("localmode");
+			if (attrLocalMode != null && attrLocalMode.getValue() instanceof Literal) {
+				int mode = AppListenerUtil.toLocalMode(((Literal) attrLocalMode.getValue()).getString().trim(), -1);
+				if (mode != -1) {
+					for (Function f: tmpFunctions) {
+						f.setComponentLocalMode(mode);
+					}
+				}
+			}
+		}
 		if (false && _comp instanceof TagComponent) {
 			TagComponent tc;
 			List<Function> tmps = new ArrayList<>();
