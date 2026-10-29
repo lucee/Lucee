@@ -47,6 +47,7 @@ public final class Output extends EvaluatorSupport {
 
 	private static String ENCODE_FOR_ = "org.lucee.extension.esapi.functions.EncodeFor";// EncodeForCSS.class.getName();
 	private static String ESAPI_ENCODE = "org.lucee.extension.esapi.functions.ESAPIEncode";
+	private static String PRESERVE_ENCODING = "lucee.runtime.functions.other.PreserveEncoding";
 
 	@Override
 	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib flibs) throws EvaluatorException {
@@ -129,7 +130,7 @@ public final class Output extends EvaluatorSupport {
 							BIF bif = (BIF) member;
 							String cn = bif.getClassDefinition().getClassName();
 
-							if (cn.startsWith(ENCODE_FOR_) || cn.equals(ESAPI_ENCODE)) {
+							if (cn.startsWith(ENCODE_FOR_) || cn.equals(ESAPI_ENCODE) || cn.equals(PRESERVE_ENCODING)) {
 								continue;
 							}
 						}
