@@ -4276,6 +4276,11 @@ public final class Caster {
 	}
 
 	private static Object _castTo(PageContext pc, String strType, Object o) throws PageException {
+		// LDEV-1669 "integer" only accepts whole numbers (also as a numeric string), no booleans
+		if (Decision.isIntegerType(strType)) {
+			if (Decision.isNumber(o) && Decision.isInteger(o)) return o instanceof Number ? o : toDouble(o);
+			throw new CasterException(o, "integer");
+		}
 
 		if (o instanceof Component) {
 			Component comp = ((Component) o);
