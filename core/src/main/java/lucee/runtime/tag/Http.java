@@ -1122,6 +1122,8 @@ public final class Http extends BodyTagImpl {
 			if (locations != null) cfhttp.set(KeyConstants._locations, locations);
 			URL targetURL = rsp.getTargetURL();
 			if (targetURL != null) requestInfo.setEL(KeyConstants._finalUrl, maskUrl(targetURL.toExternalForm()));
+			Struct connection = rsp.getConnectionInfo();
+			if (connection != null) cfhttp.set(KeyConstants._connection, connection);
 
 			// responseHeader
 			lucee.commons.net.http.Header[] headers = rsp.getAllHeaders();
