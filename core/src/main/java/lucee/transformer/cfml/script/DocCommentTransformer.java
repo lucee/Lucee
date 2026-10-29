@@ -24,6 +24,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.transformer.Factory;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
+import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.statement.tag.Attribute;
 
 public final class DocCommentTransformer {
@@ -47,23 +48,50 @@ public final class DocCommentTransformer {
 	}
 
 	private void transform(Factory factory, DocComment dc, ParserString ps) {
+		// the last tag that is allowed to continue on the following lines (like in Javadoc)
+		Attribute continuable = null;
 		while (ps.isValidIndex()) {
 			asterix(ps);
 			ps.removeSpace();
 			// param
 			if (ps.forwardIfCurrent('@')) {
-				dc.addParam(param(factory, ps));
+				Attribute attr = param(factory, ps);
+				dc.addParam(attr);
+				continuable = isMultiLine(attr) ? attr : null;
 			}
-			// hint
 			else {
+				StringBuilder line = new StringBuilder();
 				while (ps.isValidIndex() && ps.getCurrent() != '\n') {
-					dc.addHint(ps.getCurrent());
+					line.append(ps.getCurrent());
 					ps.next();
 				}
-				dc.addHint('\n');
+				// text after a hint or return tag belongs to that tag up to the next tag or an empty line
+				String text = line.toString().trim();
+				if (continuable != null && text.length() > 0) {
+					continuable = new Attribute(true, continuable.getName(), factory.createLitString(((LitString) continuable.getValue()).getString() + "\n" + text), "string");
+					dc.addParam(continuable);
+				}
+				// hint
+				else {
+					continuable = null;
+					for (int i = 0; i < line.length(); i++) {
+						dc.addHint(line.charAt(i));
+					}
+					dc.addHint('\n');
+				}
 			}
 			ps.removeSpace();
 		}
+	}
+
+	/**
+	 * only the tags describing something (hint of the function or an argument, return) can have a
+	 * value over multiple lines, other tags like "inject" are used as simple values
+	 */
+	private static boolean isMultiLine(Attribute attr) {
+		if (!(attr.getValue() instanceof LitString)) return false;
+		String name = attr.getName().toLowerCase();
+		return "hint".equals(name) || "return".equals(name) || name.endsWith(".hint");
 	}
 
 	private Attribute param(Factory factory, ParserString ps) {
