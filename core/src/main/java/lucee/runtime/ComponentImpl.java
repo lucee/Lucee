@@ -91,6 +91,7 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.reflection.Reflector;
+import lucee.runtime.rest.RestUtil;
 import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.ArrayImpl;
@@ -507,7 +508,7 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 		}
 		hasInit = componentPage.hasInit();
 
-		isRestEnabled = properties.meta != null && Caster.toBooleanValue(properties.meta.get("rest", Boolean.FALSE), false);
+		isRestEnabled = RestUtil.isRestEnabled(properties.meta);
 
 		if (base != null) {
 			this.dataMemberDefaultAccess = base.dataMemberDefaultAccess;

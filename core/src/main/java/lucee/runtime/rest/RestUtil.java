@@ -33,10 +33,26 @@ import lucee.runtime.PageContext;
 import lucee.runtime.rest.path.LiteralPath;
 import lucee.runtime.rest.path.Path;
 import lucee.runtime.type.Struct;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 public final class RestUtil {
+
+	/**
+	 * LDEV-3159: check if a component is exposed as REST service based on its metadata. An explicit
+	 * "rest" attribute always wins; if it is not set at all, a "restPath" implies rest=true.
+	 *
+	 * @param meta component metadata (attributes of the component tag), can be null
+	 * @return true if the component is a REST component
+	 */
+	public static boolean isRestEnabled(Struct meta) {
+		if (meta == null) return false;
+		Object rest = meta.get(KeyConstants._rest, null);
+		if (rest != null) return Caster.toBooleanValue(rest, false);
+		return !StringUtil.isEmpty(Caster.toString(meta.get(KeyConstants._restPath, null), null), true);
+	}
 
 	public static String[] splitPath(String path) {
 		return ListUtil.listToStringArray(path, '/');
