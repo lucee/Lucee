@@ -15740,6 +15740,25 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 		</return>
 	</function>
+	<!-- structKeyFirst -->
+	<function>
+		<name>structKeyFirst</name>
+		<class>lucee.runtime.functions.struct.StructKeyFirst</class>
+		<member-name>keyFirst</member-name>
+		<keywords>struct</keywords>
+		<introduced>9.0.0.564</introduced>
+		<description>Returns the first key of an ordered struct (for example created with structNew("ordered") or the [:] syntax, or returned by structToSorted). The key is returned with its original case. Throws an error if the struct is not ordered, because the order of its keys is undefined, and if the struct is empty, like arrayFirst() and arrayLast() do for an empty array.</description>
+		<argument>
+			<name>struct</name>
+			<alias>structure,object</alias>
+			<type>struct</type>
+			<required>Yes</required>
+			<description>An ordered struct from which to return the first key</description>
+		</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
 	<!-- structKeyList -->
 	<function>
 		<name>structKeyList</name>
@@ -15762,6 +15781,25 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<default>,</default>
 			<description>Character that separates keys in list. Default: comma.</description>
     </argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	<!-- structKeyLast -->
+	<function>
+		<name>structKeyLast</name>
+		<class>lucee.runtime.functions.struct.StructKeyLast</class>
+		<member-name>keyLast</member-name>
+		<keywords>struct</keywords>
+		<introduced>9.0.0.564</introduced>
+		<description>Returns the last key of an ordered struct (for example created with structNew("ordered") or the [:] syntax, or returned by structToSorted). The key is returned with its original case. Throws an error if the struct is not ordered, because the order of its keys is undefined, and if the struct is empty, like arrayFirst() and arrayLast() do for an empty array.</description>
+		<argument>
+			<name>struct</name>
+			<alias>structure,object</alias>
+			<type>struct</type>
+			<required>Yes</required>
+			<description>An ordered struct from which to return the last key</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
