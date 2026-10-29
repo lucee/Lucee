@@ -52,7 +52,7 @@ public class MavenInfo implements Function {
 			String columnKey) throws PageException {
 		// validate the returntype before the (possibly slow) lookup
 		int rt = QueryReturnType.parse(returntype, "MavenInfo");
-		return QueryReturnType.convert(call(pc, groupId, artifactId, version, arrScopes, includeOptional, validate), rt, QueryReturnType.toColumnKey(columnKey));
+		return QueryReturnType.convert(call(pc, groupId, artifactId, version, arrScopes, includeOptional, validate), rt, QueryReturnType.toColumnKeys(columnKey));
 	}
 
 	public static Query call(PageContext pc, String groupId, String artifactId, String version, Array arrScopes, boolean includeOptional, boolean validate) throws PageException {

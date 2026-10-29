@@ -12,6 +12,7 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
@@ -190,7 +191,16 @@ public final class QueryStruct extends StructImpl implements QueryResult {
 		this.isSingleRecord = value;
 	}
 
-	public static QueryStruct toQueryStruct(QueryImpl q, Key columnName) throws PageException {
+	/**
+	 * converts the query to a struct
+	 * 
+	 * @param q the query
+	 * @param columnNames the column(s) whose values are used as keys. With more than one column the
+	 *            result is a struct of structs (one level per column) of row structs. If more than one
+	 *            row has the same combination of values, the last row wins. If null, the query must have
+	 *            no more than one record and the struct is that record.
+	 */
+	public static QueryStruct toQueryStruct(QueryImpl q, Key[] columnNames) throws PageException {
 		QueryStruct qs = new QueryStruct(q.getName(), q.getSql(), q.getTemplateLine());
 		qs.setCacheType(q.getCacheType());
 		qs.setCacheId(q.getCacheId(null, null));
@@ -204,8 +214,7 @@ public final class QueryStruct extends StructImpl implements QueryResult {
 		int colCount = StructImpl.optimalCapacity(columns.length, 4);
 
 		// no column key, the query must have a single record, the struct is that record (same as cfquery with a datasource)
-		if (columnName == null) {
-			if (rows == 0) return qs;
+		if (columnNames == null || columnNames.length == 0) {
 			if (rows > 1) throw new ApplicationException("Attribute [columnKey] is required when return type is set to struct and more than one record is returned");
 			qs.setSingleRecord(true);
 			for (Key c: columns) {
@@ -214,25 +223,68 @@ public final class QueryStruct extends StructImpl implements QueryResult {
 			return qs;
 		}
 
-		if (q.getColumn(columnName, null) == null) {
-			Struct keys = new StructImpl();
-			for (Key c: columns) {
-				keys.set(c, "");
+		for (Key columnName: columnNames) {
+			if (q.getColumn(columnName, null) == null) {
+				Struct keys = new StructImpl();
+				for (Key c: columns) {
+					keys.set(c, "");
+				}
+				throw StructSupport.invalidKey(null, keys, columnName, "query");
 			}
-			throw StructSupport.invalidKey(null, keys, columnName, "query");
 		}
 
 		Struct tmp;
-		Object k;
 		for (int r = 1; r <= rows; r++) {
 			tmp = new StructImpl(Struct.TYPE_LINKED, colCount);
-			k = q.getAt(columnName, r, null);
-			qs.set(k == null ? KeyImpl.init("") : Caster.toKey(k), tmp);
 			for (Key c: columns) {
 				tmp.setEL(c, q.getAt(c, r, null));
 			}
+			put(qs, columnNames, tmp, columns, "query");
 		}
 		return qs;
+	}
+
+	/**
+	 * adds a row to the target struct. The key is the value of the column(s) defined by keyColumns in
+	 * that row, with more than one column the row is added to nested structs, one level per column. If
+	 * the key (combination) already exists the row replaces the existing one.
+	 * 
+	 * @param target the struct to add the row to
+	 * @param keyColumns the columns whose values are used as keys
+	 * @param row the row
+	 * @param columnNames all column names, used for the exception if a key column does not exist
+	 * @param source describes the source of the data, used for the exception if a key column does not
+	 *            exist
+	 */
+	public static void put(Struct target, Key[] keyColumns, Struct row, Key[] columnNames, String source) throws PageException {
+		Struct current = target;
+		Object value, sub;
+		Key key;
+		int last = keyColumns.length - 1;
+		for (int i = 0; i <= last; i++) {
+			value = row.get(keyColumns[i], CollectionUtil.NULL);
+			if (value == CollectionUtil.NULL) {
+				Struct keys = new StructImpl();
+				if (columnNames != null) {
+					for (Key c: columnNames) {
+						keys.set(c, "");
+					}
+				}
+				throw StructSupport.invalidKey(null, keys, keyColumns[i], source);
+			}
+			key = value == null ? KeyImpl.init("") : Caster.toKey(value);
+			if (i == last) {
+				current.set(key, row);
+			}
+			else {
+				sub = current.get(key, null);
+				if (!(sub instanceof Struct)) {
+					sub = new StructImpl(Struct.TYPE_LINKED);
+					current.set(key, sub);
+				}
+				current = (Struct) sub;
+			}
+		}
 	}
 
 	@Override

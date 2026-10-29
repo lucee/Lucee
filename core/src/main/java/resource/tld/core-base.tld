@@ -948,7 +948,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<name>columnKey</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the column whose value is used as key when "returntype" is "struct". Required if more than one row is returned.</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
 		</attribute>
 		<attribute>
 			<type>object</type>
@@ -1139,7 +1139,7 @@ Each Database implementation has it's own supported types
 			<name>columnKey</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the column whose value is used as key when "returntype" is "struct". Required if more than one row is returned.</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3196,7 +3196,7 @@ To use cached data, the function must be called with the exact same arguments.
 			<name>columnKey</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the column whose value is used as key when "returntype" is "struct". Required if more than one row is returned.</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -4434,6 +4434,8 @@ Lucee uses the number of characters in the file.</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>When return type is set to "struct", the value of this column can be used as key in the struct for every record.
+				Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column.
+				If the same key (combination) occurs more than once, the last row wins.
 				If not set then the query must not return more than one record, and the keys of the returned struct are the column names
 				and the values are the column values for the single record that is returned. 
 			</description>
@@ -5128,7 +5130,7 @@ Params: [
 			<name>columnKey</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the column whose value is used as key when "returntype" is "struct". Required if more than one row is returned.</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -9758,7 +9760,7 @@ Each type-value pair must start with a hyphen.</description>
 			<name>columnKey</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the column whose value is used as key when "returntype" is "struct". Required if more than one row is returned.</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10151,7 +10153,7 @@ dWord: creates a value of 0 (zero)</description>
 			<name>columnKey</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the column whose value is used as key when "returntype" is "struct". Required if more than one row is returned.</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10306,7 +10308,7 @@ For example, a ratio of 0.7 would give 70% weight to vector search and 30% to ke
 			<name>columnKey</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the column whose value is used as key when "returntype" is "struct". Required if more than one row is returned.</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10532,7 +10534,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>columnKey</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the column whose value is used as key when "returntype" is "struct". Required if more than one row is returned.</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>

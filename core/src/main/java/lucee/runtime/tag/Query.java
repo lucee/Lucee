@@ -94,6 +94,7 @@ import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.query.QueryArray;
 import lucee.runtime.type.query.QueryReturnType;
 import lucee.runtime.type.query.QueryResult;
+import lucee.runtime.type.query.QueryReturnType;
 import lucee.runtime.type.query.QueryStruct;
 import lucee.runtime.type.query.SimpleQuery;
 import lucee.runtime.type.scope.Argument;
@@ -291,7 +292,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	public void setColumnkey(String columnKey) {
 		if (StringUtil.isEmpty(columnKey, true)) return;
-		data.columnName = KeyImpl.init(columnKey);
+		data.columnName = QueryReturnType.toColumnKeys(columnKey);
 	}
 
 	public void setCachedwithin(Object cachedwithin) {
@@ -911,7 +912,14 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		// TODO add missing attrs
 		set(args, "cachedAfter", data.cachedAfter);
 		set(args, "cachedWithin", data.cachedWithin);
-		if (data.columnName != null) set(args, "columnName", data.columnName.getString());
+		if (data.columnName != null) {
+			StringBuilder sbCK = new StringBuilder();
+			for (Key ck: data.columnName) {
+				if (sbCK.length() > 0) sbCK.append(',');
+				sbCK.append(ck.getString());
+			}
+			set(args, "columnName", sbCK.toString());
+		}
 		set(args, KeyConstants._datasource, data.rawDatasource);
 		set(args, "dbtype", data.dbtype);
 		set(args, KeyConstants._debug, data.debug);
@@ -963,8 +971,11 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if (obj != null && obj != data.cachedWithin) data.cachedWithin = obj;
 
 		// columnName
-		Key k = Caster.toKey(args.get("columnName", null), null);
-		if (k != null && k != data.columnName) data.columnName = k;
+		obj = args.get("columnName", null);
+		if (obj != null) {
+			Key[] ks = QueryReturnType.toColumnKeys(Caster.toString(obj, null));
+			if (ks != null) data.columnName = ks;
+		}
 
 		// datasource
 		obj = args.get("datasource", null);

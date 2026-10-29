@@ -3764,7 +3764,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<required>No</required>
 			<introduced>9.0.0.564</introduced>
-			<description>Name of the column whose value is used as key when "returntype" is "struct".</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
 		</argument>
 		<return>
 			<type>any</type>
@@ -4185,7 +4185,7 @@ Specifies the type of results to return:
 			<type>string</type>
 			<required>No</required>
 			<introduced>9.0.0.564</introduced>
-			<description>Name of the column whose value is used as key when "returntype" is "struct".</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
 		</argument>
     <return>
         <type>any</type>
@@ -7128,7 +7128,7 @@ if this attribute is not provided all types are returned.</description>
 			<type>string</type>
 			<required>No</required>
 			<introduced>9.0.0.564</introduced>
-			<description>Name of the column whose value is used as key when "returntype" is "struct".</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
 		</argument>
 		<return>
 			<type>any</type>
@@ -10557,7 +10557,7 @@ Returns a query with the same shape as `mavenInfo`, showing what was resolved.</
 			<type>string</type>
 			<required>No</required>
 			<introduced>9.0.0.564</introduced>
-			<description>Name of the column whose value is used as key when "returntype" is "struct".</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
 		</argument>
 		<return>
 			<description>Returns a query with columns `groupId, artifactId, version, scope, optional, checksum, url, path` describing the resolved artifacts.</description>
@@ -10643,7 +10643,7 @@ Returns a query with the same shape as `mavenInfo`, showing what was resolved.</
 			<type>string</type>
 			<required>No</required>
 			<introduced>9.0.0.564</introduced>
-			<description>Name of the column whose value is used as key when "returntype" is "struct".</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
 		</argument>
 		<return>
 			<description>Returns a query object containing information about the specified Maven artifact and all its dependencies. Each row represents one artifact, with the first row being the requested artifact itself.</description>
@@ -10907,7 +10907,7 @@ Secrets like the `secretKey` and the custom settings of a connection are never r
 			<type>string</type>
 			<required>No</required>
 			<introduced>9.0.0.564</introduced>
-			<description>Name of the column whose value is used as key when "returntype" is "struct".</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
 		</argument>
 		<return>
 			<type>any</type>
@@ -10999,7 +10999,7 @@ This is useful to choose a value for the connection setting `model`, or patterns
 			<type>string</type>
 			<required>No</required>
 			<introduced>9.0.0.564</introduced>
-			<description>Name of the column whose value is used as key when "returntype" is "struct".</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
 		</argument>
 		<return>
 			<type>any</type>
@@ -14464,7 +14464,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<required>No</required>
 			<introduced>9.0.0.564</introduced>
-			<description>Name of the column whose value is used as key when "returntype" is "struct".</description>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
 		</argument>
 	    <return>
 	        <type>any</type>

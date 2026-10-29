@@ -63,7 +63,7 @@ public final class DirectoryList {
 	public static Object call(PageContext pc, String path, boolean recurse, String strListInfo, Object oFilter, String sort, String type, String returntype, String columnKey)
 			throws PageException {
 		int rt = QueryReturnType.parse(returntype, "directoryList");
-		Key ck = QueryReturnType.toColumnKey(columnKey);
+		Key[] ck = QueryReturnType.toColumnKeys(columnKey);
 		int listInfo = toListInfo(strListInfo);
 		// the returntype only applies to a query result, the other list infos return an array of strings
 		if (rt != QueryReturnType.QUERY && listInfo != Directory.LIST_INFO_QUERY_ALL) {
@@ -72,7 +72,7 @@ public final class DirectoryList {
 		return convert(_call(pc, path, recurse, listInfo, oFilter, sort, StringUtil.isEmpty(type) ? Directory.TYPE_ALL : Directory.toType(type)), rt, ck);
 	}
 
-	private static Object convert(Object res, int returnType, Key columnKey) throws PageException {
+	private static Object convert(Object res, int returnType, Key[] columnKey) throws PageException {
 		if (res instanceof Query) return QueryReturnType.convert((Query) res, returnType, columnKey);
 		return res;
 	}

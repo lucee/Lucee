@@ -89,7 +89,7 @@ public final class DBInfo extends TagImpl {
 	private String filter;
 
 	private int returnType = QueryReturnType.QUERY;
-	private lucee.runtime.type.Collection.Key columnKey;
+	private lucee.runtime.type.Collection.Key[] columnKey;
 
 	/**
 	 * set the value returntype, how a query result is returned: query (default), array (array of structs) or struct (struct of structs, see columnKey)
@@ -102,7 +102,7 @@ public final class DBInfo extends TagImpl {
 	 * set the value columnKey, the column the value of is used as key when returntype is struct
 	 */
 	public void setColumnkey(String columnKey) {
-		this.columnKey = QueryReturnType.toColumnKey(columnKey);
+		this.columnKey = QueryReturnType.toColumnKeys(columnKey);
 	}
 
 	private void setQueryResult(String variable, lucee.runtime.type.Query qry) throws PageException {

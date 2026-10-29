@@ -42,7 +42,7 @@ public final class MavenImport implements Function {
 
 	public static Object call(PageContext pc, String pomPath, boolean includeTransitive, boolean includeOptional, String returntype, String columnKey) throws PageException {
 		int rt = QueryReturnType.parse(returntype, "MavenImport");
-		return QueryReturnType.convert(call(pc, pomPath, includeTransitive, includeOptional), rt, QueryReturnType.toColumnKey(columnKey));
+		return QueryReturnType.convert(call(pc, pomPath, includeTransitive, includeOptional), rt, QueryReturnType.toColumnKeys(columnKey));
 	}
 
 	public static Query call(PageContext pc, String pomPath, boolean includeTransitive, boolean includeOptional) throws PageException {

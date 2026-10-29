@@ -257,7 +257,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, this, null, null);
 	}
 
-	public static QueryStruct toStruct(PageContext pc, DatasourceConnection dc, SQL sql, Collection.Key keyName, int maxrow, int fetchsize, TimeSpan timeout, String name,
+	public static QueryStruct toStruct(PageContext pc, DatasourceConnection dc, SQL sql, Collection.Key[] keyName, int maxrow, int fetchsize, TimeSpan timeout, String name,
 			TemplateLine templateLine, boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
 		QueryStruct sct = new QueryStruct(name, sql, templateLine);
 		sct.setDatasourceName(dc.getDatasource().getName());
@@ -274,7 +274,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	private static void execute(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, boolean createUpdateData,
-			boolean allowToCachePreperadeStatement, QueryImpl qry, QueryResult qr, Collection.Key keyName) throws PageException {
+			boolean allowToCachePreperadeStatement, QueryImpl qry, QueryResult qr, Collection.Key[] keyName) throws PageException {
 
 		// MSSQL is handled separatly
 		if (useMSSQLModern && DataSourceUtil.isMSSQLDriver(dc)) {
@@ -386,7 +386,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	private static void executeMSSQL(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, boolean createUpdateData,
-			boolean allowToCachePreperadeStatement, QueryImpl qry, QueryResult qr, Collection.Key keyName) throws PageException {
+			boolean allowToCachePreperadeStatement, QueryImpl qry, QueryResult qr, Collection.Key[] keyName) throws PageException {
 
 		TimeZone tz = ThreadLocalPageContext.getTimeZone(pc);
 
@@ -601,7 +601,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 		return 0;
 	}
 
-	private static boolean fillResult(PageContext pcMayNull, QueryImpl qry, QueryResult qr, Collection.Key keyName, DatasourceConnection dc, ResultSet result, int maxrow,
+	private static boolean fillResult(PageContext pcMayNull, QueryImpl qry, QueryResult qr, Collection.Key[] keyName, DatasourceConnection dc, ResultSet result, int maxrow,
 			boolean closeResult, boolean createGeneratedKeys, TimeZone tz) throws SQLException, IOException, PageException {
 		if (result == null) return false;
 
@@ -744,17 +744,8 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 							}
 						}
 						else {
-							// struct of structs with keyName column as key
-							k = sct.get(keyName, CollectionUtil.NULL);
-							if (k == CollectionUtil.NULL) {
-								Struct keys = new StructImpl();
-								for (Collection.Key tmp: columnNames) {
-									keys.set(tmp, "");
-								}
-								throw StructSupport.invalidKey(null, keys, keyName, "resultset");
-							}
-							if (k == null) k = "";
-							qs.set(KeyImpl.toKey(k), sct);
+							// struct of structs with keyName column(s) as key
+							QueryStruct.put(qs, keyName, sct, columnNames, "resultset");
 						}
 					}
 
