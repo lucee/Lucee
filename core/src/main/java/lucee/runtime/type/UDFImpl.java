@@ -24,6 +24,9 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.servlet.jsp.tagext.BodyContent;
 import lucee.commons.lang.CFTypes;
@@ -284,40 +287,79 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 		String cacheId = CacheHandlerCollectionImpl.createId(this, null, newArgs);
 		CacheHandler cacheHandler = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null).getInstanceMatchingObject(cachedWithin, null);
 
-		if (cacheHandler instanceof CacheHandlerPro) {
-			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pc, cacheId, cachedWithin);
-			if (cacheItem instanceof UDFCacheItem) {
-				UDFCacheItem entry = (UDFCacheItem) cacheItem;
-				try {
-					pc.write(entry.output);
-					return entry.returnValue;
-				}
-				catch (IOException e) {
-					throw Caster.toPageException(e);
-				}
-				finally {
-					if (newArgs != null) pci.getScopeFactory().recycle(pci, newArgs);
-				}
+		UDFCacheItem entry = getCacheItem(pc, cacheHandler, cacheId, cachedWithin);
+		if (entry != null) return writeCacheItem(pci, entry, newArgs);
+
+		// LDEV-1360: cold cache, only one call per cache key executes the function, concurrent calls wait for it
+		if (cacheHandler == null) return executeAndCache(pci, calledName, args, values, doIncludePath, newArgs, null, cacheId, cachedWithin);
+
+		final String flightKey = pc.getConfig().getIdentification().getId() + ":" + cacheId;
+		Flight mine = new Flight();
+		Flight other = IN_FLIGHT.putIfAbsent(flightKey, mine);
+		if (other == null || other.owner == mine.owner) {
+			// we are the first (or the function calls itself with the same arguments, then waiting would be a deadlock)
+			if (other != null) return executeAndCache(pci, calledName, args, values, doIncludePath, newArgs, cacheHandler, cacheId, cachedWithin);
+			try {
+				// a call that finished since we checked the cache
+				entry = getCacheItem(pc, cacheHandler, cacheId, cachedWithin);
+				if (entry != null) return writeCacheItem(pci, entry, newArgs);
+				return executeAndCache(pci, calledName, args, values, doIncludePath, newArgs, cacheHandler, cacheId, cachedWithin);
 			}
-		}
-		else if (cacheHandler != null) { // TODO this else block can be removed when all cache handlers implement CacheHandlerPro
-			CacheItem cacheItem = cacheHandler.get(pc, cacheId);
-			if (cacheItem instanceof UDFCacheItem) {
-				UDFCacheItem entry = (UDFCacheItem) cacheItem;
-				// if(entry.creationdate+properties.cachedWithin>=System.currentTimeMillis()) {
-				try {
-					pc.write(entry.output);
-					return entry.returnValue;
-				}
-				catch (IOException e) {
-					throw Caster.toPageException(e);
-				}
-				finally {
-					if (newArgs != null) pci.getScopeFactory().recycle(pci, newArgs);
-				}
+			finally {
+				IN_FLIGHT.remove(flightKey, mine);
+				mine.latch.countDown();
 			}
 		}
 
+		// somebody else is already executing the function, wait for the result
+		try {
+			long timeout = Math.max(1, pc.getRequestTimeout());
+			other.latch.await(timeout, TimeUnit.MILLISECONDS);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw Caster.toPageException(e);
+		}
+		entry = getCacheItem(pc, cacheHandler, cacheId, cachedWithin);
+		if (entry != null) return writeCacheItem(pci, entry, newArgs);
+
+		// the other call failed (or did not cache), we execute the function ourself
+		return executeAndCache(pci, calledName, args, values, doIncludePath, newArgs, cacheHandler, cacheId, cachedWithin);
+	}
+
+	private static final ConcurrentHashMap<String, Flight> IN_FLIGHT = new ConcurrentHashMap<String, Flight>();
+
+	private static final class Flight {
+		private final Thread owner = Thread.currentThread();
+		private final CountDownLatch latch = new CountDownLatch(1);
+	}
+
+	private UDFCacheItem getCacheItem(PageContext pc, CacheHandler cacheHandler, String cacheId, Object cachedWithin) throws PageException {
+		CacheItem cacheItem = null;
+		if (cacheHandler instanceof CacheHandlerPro) {
+			cacheItem = ((CacheHandlerPro) cacheHandler).get(pc, cacheId, cachedWithin);
+		}
+		else if (cacheHandler != null) { // TODO this else block can be removed when all cache handlers implement CacheHandlerPro
+			cacheItem = cacheHandler.get(pc, cacheId);
+		}
+		return cacheItem instanceof UDFCacheItem ? (UDFCacheItem) cacheItem : null;
+	}
+
+	private Object writeCacheItem(PageContextImpl pci, UDFCacheItem entry, Argument newArgs) throws PageException {
+		try {
+			pci.write(entry.output);
+			return entry.returnValue;
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
+		finally {
+			if (newArgs != null) pci.getScopeFactory().recycle(pci, newArgs);
+		}
+	}
+
+	private Object executeAndCache(PageContextImpl pci, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath, Argument newArgs, CacheHandler cacheHandler,
+			String cacheId, Object cachedWithin) throws PageException {
 		// cached item not found, process and cache result if needed
 		long start = System.nanoTime();
 
@@ -329,12 +371,12 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 
 			if (cacheHandler != null) {
 				String out = bc.getString();
-				cacheHandler.set(pc, cacheId, cachedWithin, new UDFCacheItem(out, rtn, getFunctionName(), getSource(), System.nanoTime() - start));
+				cacheHandler.set(pci, cacheId, cachedWithin, new UDFCacheItem(out, rtn, getFunctionName(), getSource(), System.nanoTime() - start));
 			}
 			return rtn;
 		}
 		finally {
-			BodyContentUtil.flushAndPop(pc, bc);
+			BodyContentUtil.flushAndPop(pci, bc);
 		}
 	}
 
