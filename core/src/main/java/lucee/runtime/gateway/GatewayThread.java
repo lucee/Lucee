@@ -42,6 +42,9 @@ public final class GatewayThread extends ParentThreasRefThread {
 	@Override
 	public void run() {
 		// MUST handle timeout
+		GatewayEngineImpl impl = engine instanceof GatewayEngineImpl ? (GatewayEngineImpl) engine : null;
+		// a (re)start gets a clean slate, an error from this attempt is recorded again below or by the gateway logging it
+		if (impl != null && (action == START || action == RESTART)) impl.clearLastError(gateway.getId());
 		try {
 			if (action == START) gateway.doStart();
 			else if (action == STOP) gateway.doStop();
@@ -51,6 +54,8 @@ public final class GatewayThread extends ParentThreasRefThread {
 			ExceptionUtil.rethrowIfNecessary(ge);
 			addParentStacktrace(ge);
 			engine.log(gateway, GatewayEngine.LOGLEVEL_ERROR, ge.getMessage());
+			// keep the exception itself, so the admin can show it (LDEV-3644)
+			if (impl != null) impl.setLastError(gateway.getId(), ge.getMessage(), ge);
 		}
 	}
 }
