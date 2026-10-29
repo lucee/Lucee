@@ -136,6 +136,25 @@ public class CFMLWriterImpl extends CFMLWriter {
 		this.pc = src.pc;
 		this.autoFlush = src.autoFlush;
 		this.bufferSize = src.bufferSize;
+		onAdopted();
+	}
+
+	/**
+	 * called after the state of another writer was taken over, for writers that need to know what was
+	 * written so far
+	 */
+	void onAdopted() {
+		// nothing to do
+	}
+
+	/**
+	 * @return true if nothing was written so far or the content written so far ends with a line break
+	 *         (if the content was already flushed we do not know, we assume we are not at the start of
+	 *         a line)
+	 */
+	boolean atLineStart() {
+		if (buffer != null && buffer.length() > 0) return buffer.charAt(buffer.length() - 1) == '\n';
+		return !flushed;
 	}
 
 	protected void initOut() throws IOException {

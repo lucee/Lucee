@@ -1373,6 +1373,7 @@
 			"cfmlWriterReg": "Kein white space management",
 			"cfmlWriterWS": "Einfaches white space management, jeder white space welcher einem white space folgt witd ignoriert",
 			"cfmlWriterWSPref": "Schlaues whitespace management, analog zu einfachem whitespace management, aber ignoriert zusätzlich white spaces in den folgenden Tags: code, pre and textarea",
+			"cfmlWriterWSLight": "Leichtes whitespace management, es werden nur leere Zeilen und white spaces am Zeilenende entfernt, Einrückungen und white spaces innerhalb einer Zeile bleiben erhalten, ebenso white spaces in den folgenden Tags: \u0026lt;code\u0026gt;, \u0026lt;pre\u0026gt; und \u0026lt;textarea\u0026gt;",
 			"compiler": "Lucee Compiler Einstellungen, dies beeinflusst wie der Lucee Compiler den Source Code übersetzt. Das ändern dieser Einstellungen löscht alle existierenden Class Files.",
 			"componentcache": "Komponentenpfad Cache",
 			"componentcacheclear": "Komponentenpfad Cache leeren",

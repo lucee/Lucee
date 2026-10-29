@@ -50,6 +50,7 @@ import lucee.runtime.tag.TagHandlerPool;
 import lucee.runtime.writer.CFMLWriter;
 import lucee.runtime.writer.CFMLWriterImpl;
 import lucee.runtime.writer.CFMLWriterWS;
+import lucee.runtime.writer.CFMLWriterWSLight;
 import lucee.runtime.writer.CFMLWriterWSPref;
 
 public final class ConfigWebHelper {
@@ -205,6 +206,8 @@ public final class ConfigWebHelper {
 		if (writerType == ConfigPro.CFML_WRITER_WS) return new CFMLWriterWS(pc, req, rsp, -1, false, cw.closeConnection(), cw.isShowVersion(), cw.contentLength());
 		else if (writerType == ConfigPro.CFML_WRITER_REGULAR)
 			return new CFMLWriterImpl(pc, req, rsp, -1, false, cw.closeConnection(), cw.isShowVersion(), cw.contentLength());
+		else if (writerType == ConfigPro.CFML_WRITER_WS_LIGHT)
+			return new CFMLWriterWSLight(pc, req, rsp, -1, false, cw.closeConnection(), cw.isShowVersion(), cw.contentLength());
 		else return new CFMLWriterWSPref(pc, req, rsp, -1, false, cw.closeConnection(), cw.isShowVersion(), cw.contentLength());
 
 	}
