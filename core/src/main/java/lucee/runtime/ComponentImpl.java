@@ -1381,6 +1381,19 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 	}
 
 	/**
+	 * creates a new instance (including constructor call) of the component this component was called
+	 * on, in case of inheritance that is the top most component and not necessarily the one this
+	 * instance is part of. Used for "new self()".
+	 */
+	public ComponentImpl newInstanceOfCalledComponent(PageContext pc) throws PageException {
+		ComponentImpl t = top;
+		String callPath = t.properties.callPath;
+		String sub = t.properties.subName;
+		if (!StringUtil.isEmpty(sub) && callPath != null && callPath.endsWith("$" + sub)) callPath = callPath.substring(0, callPath.length() - sub.length() - 1);
+		return ComponentLoader.loadComponent(pc, t.cp, callPath, t.properties.realPath, false, false, true, true);
+	}
+
+	/**
 	 * @return return call path
 	 */
 	protected String getCallPath() {

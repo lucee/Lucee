@@ -1792,11 +1792,14 @@ public abstract class AbstrCFMLExprTransformer {
 		if (data.srcCode.forwardIfCurrent("java:") || data.srcCode.forwardIfCurrent("class:")) type = "type:java";
 		else if (data.srcCode.forwardIfCurrent("cfml:") || data.srcCode.forwardIfCurrent("cfc:")) type = "type:cfml";
 
+		// "self" is only a keyword as an unquoted name directly after "new" (late static binding), see LDEV-1708
+		boolean quoted = data.srcCode.isCurrent('"') || data.srcCode.isCurrent('\'');
 		ExprString exprName = readComponentPath(data);
 		if (exprName == null) {
 			data.srcCode.setPos(start);
 			return expr;
 		}
+		if (!quoted && "type:undefined".equals(type) && exprName instanceof LitString && "self".equalsIgnoreCase(((LitString) exprName).getString())) type = "type:self";
 
 		comments(data);
 

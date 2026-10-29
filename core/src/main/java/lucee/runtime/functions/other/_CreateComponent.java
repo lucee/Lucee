@@ -60,10 +60,12 @@ public final class _CreateComponent {
 		// FUTURE expect this always
 		int type = TYPE_BOTH;
 		boolean hasType = false;
+		boolean isSelf = false;
 		if (path.startsWith("type:")) {
 			hasType = true;
 			if ("type:java".equals(path)) type = TYPE_JAVA;
 			else if ("type:cfml".equals(path)) type = TYPE_CFML;
+			else if ("type:self".equals(path)) isSelf = true;
 			path = Caster.toString(objArr[objArr.length - 2]);
 		}
 
@@ -72,7 +74,9 @@ public final class _CreateComponent {
 		// _search would walk every component mapping looking for e.g. /java/lang/StringBuilder.cfc
 		// and never find one. Only short-circuits when type is TYPE_BOTH (default for new operator).
 		boolean skipCfcSearch = type == TYPE_BOTH && isJavaFqn(path);
-		ComponentImpl cfc = (type != TYPE_JAVA && !skipCfcSearch) ? ComponentLoader.searchComponent(pc, null, path, null, null, false, true, true, type == TYPE_CFML) : null;
+		ComponentImpl cfc;
+		if (isSelf) cfc = newSelf(pc);
+		else cfc = (type != TYPE_JAVA && !skipCfcSearch) ? ComponentLoader.searchComponent(pc, null, path, null, null, false, true, true, type == TYPE_CFML) : null;
 		// if type is TYPE_CFML we do not have to check for it here anymore, because the line above has a
 		// cfc or throws an exception
 		Class cls = cfc == null ? cls = loadClass(pc, path, type) : null;
@@ -144,6 +148,18 @@ public final class _CreateComponent {
 		}
 
 		return rtn;
+	}
+
+	/**
+	 * "new self()": creates an instance of the component the current function was called on (late
+	 * static binding), this is not necessarily the component the function is defined in.
+	 */
+	private static ComponentImpl newSelf(PageContext pc) throws PageException {
+		Component active = pc.getActiveComponent();
+		if (!(active instanceof ComponentImpl)) {
+			throw new ApplicationException("[new self()] can only be used inside a component, there is no component to create an instance of here");
+		}
+		return ((ComponentImpl) active).newInstanceOfCalledComponent(pc);
 	}
 
 	/**
