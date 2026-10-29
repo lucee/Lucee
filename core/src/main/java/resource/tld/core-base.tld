@@ -2014,6 +2014,16 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>Text that explains the status code. This attribute is used in conjunction with the
 	statusCode attribute.</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>throwOnError</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Whether to throw an exception when the header can't be set because the response is already committed, for example after a cfflush.
+
+When **true** (default): Throws an exception.
+When **false**: The header and status code are not set, no exception is thrown and a warning is written to the application log.</description>
+		</attribute>
 	</tag>
 	<!-- HtmlBody -->
 	<tag>
