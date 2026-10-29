@@ -46,6 +46,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
+import lucee.runtime.mvn.ArtifactSignature;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.mvn.POM;
 import lucee.runtime.mvn.POMReader;
@@ -505,7 +506,13 @@ public class ExtensionProvider {
 				url = MavenUpdateProvider.toSiblingURL(Caster.toString(detail.get(EXTENSION_EXTENSION), null), ext);
 			}
 			if (url != null) {
-				return HTTPEngine.get(url, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT);
+				InputStream is = HTTPEngine.get(url, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT);
+				// org.lucee artifacts must be signed by the Lucee release key
+				int requirement = ArtifactSignature.requirement(this.group, version.toString());
+				if (requirement != ArtifactSignature.NOT_SIGNED) {
+					return ArtifactSignature.verifiedStream(is, url, this.group + ":" + artifact + ":" + version + ":" + ext, requirement);
+				}
+				return is;
 			}
 		}
 		throw new ApplicationException("there is no [" + ext + "] artifact for [" + this.group + ":" + artifact + ":" + version + "]");

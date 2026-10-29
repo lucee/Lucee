@@ -38,6 +38,7 @@ import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
+import lucee.loader.util.OpenPGPVerifier.VerificationException;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
@@ -698,6 +699,7 @@ public final class MavenUtil {
 											finally {
 												IOUtil.closeEL(is);
 												HTTPUtil.validateDownload(url, response, tmp, pom.getChecksum(), true, ex);
+												verifySignature(tmp, url, pom, type);
 												res.getParentResource().mkdirs();
 												tmp.moveTo(res);
 											}
@@ -735,6 +737,11 @@ public final class MavenUtil {
 										}
 									}
 									break;
+								}
+								catch (VerificationException ve) {
+									// an invalid or missing signature is not transient and must not fall back to another repository
+									if (log != null) log.error("maven", "download of [" + pom + ":" + type + "] from [" + (url != null ? url : r.getUrl()) + "] rejected - " + ve.getMessage());
+									throw ve;
 								}
 								catch (Exception e) {
 									String safeMsg = e.getMessage() == null ? "" : e.getMessage().replace('\n', ' ').replace('\r', ' ');
@@ -1166,5 +1173,21 @@ public final class MavenUtil {
 			}
 		}
 		return defaultValue;
+	}
+
+	/**
+	 * org.lucee artifacts must have a valid signature of the Lucee release key (see
+	 * {@link ArtifactSignature}), the downloaded file is deleted otherwise
+	 */
+	private static void verifySignature(Resource tmp, URL url, POM pom, String type) throws IOException {
+		int requirement = ArtifactSignature.requirement(pom.getGroupId(), pom.getVersion());
+		if (requirement == ArtifactSignature.NOT_SIGNED) return;
+		try {
+			ArtifactSignature.verify(tmp, url, pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + ":" + type, requirement);
+		}
+		catch (IOException | RuntimeException e) {
+			tmp.delete();
+			throw e;
+		}
 	}
 }
