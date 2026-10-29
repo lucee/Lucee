@@ -21,6 +21,9 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 	protected int startLine;
 	protected int endLine;
 	boolean canUseFastPath;
+	// index of the rest parameter, function f( a, ...rest ), -1 if there is none
+	int restIndex = -1;
+	static final Key REST = KeyImpl.init("rest");
 
 	public UDFPropertiesBase() {}
 
