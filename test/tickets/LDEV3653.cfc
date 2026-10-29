@@ -20,17 +20,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cfheader" {
 			} );
 
 			it( title="the default still throws after cfflush", body=function() {
-				var result = request( "default.cfm" );
-				expect( result.filecontent ).toInclude( "[COMMITTED:true]" );
-				expect( result.filecontent ).toInclude( "already committed" );
-				expect( result.filecontent ).notToInclude( "[AFTER]" );
+				expect( function() {
+					request( "default.cfm" );
+				} ).toThrow( regex="header is already committed" );
 			} );
 
 			it( title="throwOnError=true still throws after cfflush", body=function() {
-				var result = request( "explicitTrue.cfm" );
-				expect( result.filecontent ).toInclude( "[COMMITTED:true]" );
-				expect( result.filecontent ).toInclude( "already committed" );
-				expect( result.filecontent ).notToInclude( "[AFTER]" );
+				expect( function() {
+					request( "explicitTrue.cfm" );
+				} ).toThrow( regex="header is already committed" );
 			} );
 
 			it( title="throwOnError=false still sets the header when the response is not committed", body=function() {
