@@ -76,6 +76,47 @@
 			<type>array</type>
 		</return>
 	</function>
+	<!-- _arraySlice -->
+	<function>
+		<name>_arraySlice</name>
+		<class>lucee.runtime.functions.arrays._ArraySlice</class>
+		<status>hidden</status>
+		<keywords>array</keywords>
+		<description>internal function used for the array slice syntax arr[from:to:step]</description>
+		<argument>
+			<name>array</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>the array to slice</description>
+		</argument>
+		<argument>
+			<name>from</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>first index, 1-based, negative counts from the end</description>
+		</argument>
+		<argument>
+			<name>to</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>last index (inclusive), negative counts from the end</description>
+		</argument>
+		<argument>
+			<name>step</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>step, negative walks backwards</description>
+		</argument>
+		<argument>
+			<name>omitted</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>bit mask of the parts omitted in the source code, 1=from, 2=to, 4=step</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
 	<!-- _jsonArray -->
 	<function>
 		<name>_jsonArray</name>
