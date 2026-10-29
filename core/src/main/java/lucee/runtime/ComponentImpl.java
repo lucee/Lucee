@@ -670,8 +670,14 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 
 		// arguments
-		if (iFA.length != cFA.length) {
+		// the implementation may declare more arguments than the interface/abstract function as long as the additional ones are optional (LDEV-170)
+		if (cFA.length < iFA.length) {
 			throw new ApplicationException(_getErrorMessage(cUdf, iUdf), "not the same argument count");
+		}
+		for (int i = iFA.length; i < cFA.length; i++) {
+			if (cFA[i].isRequired()) {
+				throw new ApplicationException(_getErrorMessage(cUdf, iUdf), "additional argument [" + cFA[i].getName() + "] has to be optional");
+			}
 		}
 
 		for (int i = 0; i < iFA.length; i++) {
