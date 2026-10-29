@@ -1089,6 +1089,7 @@ public final class KeyConstants {
 	public static final Key _bundleDirectory = init("bundleDirectory");
 	public static final Key _bundleDirectories = init("bundleDirectories");
 	public static final Key _virtual = init("virtual");
+	public static final Key _vfs = init("vfs");
 	public static final Key _clientMaxAge = init("clientMaxAge");
 	public static final Key _new = init("new");
 	public static final Key _NEW = init("NEW");
