@@ -2083,7 +2083,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Object getFunction(Object coll, Key key, Object[] args) throws PageException {
-		if (config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE) && !gatewayContext) {
+		if (hasDebugOptions(ConfigPro.DEBUG_TEMPLATE) && !gatewayContext) {
 			DebugEntryTemplate debugEntry = debugger.getEntry(this, getCurrentTemplatePageSource(), key.toString());
 			long currTime = getExecutionTime();
 			long time = System.nanoTime();
@@ -2112,7 +2112,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Object getFunctionWithNamedValues(Object coll, Key key, Object[] args) throws PageException {
-		if (config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE) && !gatewayContext) {
+		if (hasDebugOptions(ConfigPro.DEBUG_TEMPLATE) && !gatewayContext) {
 			DebugEntryTemplate debugEntry = debugger.getEntry(this, getCurrentTemplatePageSource(), key.toString());
 			long currTime = getExecutionTime();
 			long time = System.nanoTime();
