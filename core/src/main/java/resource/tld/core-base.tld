@@ -1950,6 +1950,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<description>
 		Leads the request to a different page.
 		This tag acts like the tag cflocation except that the relocation is done directly on the server.
+		Like cflocation, the request ends after the forward, code following the tag is not executed.
 		</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
