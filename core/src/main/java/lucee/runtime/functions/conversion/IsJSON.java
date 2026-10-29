@@ -32,7 +32,7 @@ public final class IsJSON {
 	 * default of the argument "lenient"; true accepts everything the (lenient) interpreter accepts,
 	 * false only accepts JSON as defined by RFC 8259
 	 */
-	public static final boolean DEFAULT_LENIENT = true;
+	public static final boolean DEFAULT_LENIENT = false;
 
 	public static boolean call(PageContext pc, Object obj) {
 		try {

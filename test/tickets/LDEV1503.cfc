@@ -125,6 +125,29 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="json" {
 				});
 			});
 
+			describe( "the default is lenient=false", function() {
+
+				it( title="only strict JSON is valid by default", body=function( currentSpec ) {
+					expect( isJSON( '{"foo":"bar"}' ) ).toBeTrue();
+					expect( isJSON( '{foo:"bar"}' ) ).toBeFalse();
+					expect( isJSON( "{'foo':'bar'}" ) ).toBeFalse();
+					expect( isJSON( '[1,2,]' ) ).toBeFalse();
+					expect( isJSON( '{"a":1} // comment' ) ).toBeFalse();
+					expect( isJSON( '{foo:"bar"}', "json" ) ).toBeFalse();
+				});
+
+				it( title="format json5 and lenient=true still allow the lenient syntax", body=function( currentSpec ) {
+					expect( isJSON( '{foo:"bar"}', "json5" ) ).toBeTrue();
+					expect( isJSON( '{"foo":"bar"}', "json", true ) ).toBeTrue();
+					expect( isJSON( var='{foo:"bar"}', lenient=true ) ).toBeTrue();
+				});
+
+				it( title="isValid json follows the default", body=function( currentSpec ) {
+					expect( isValid( "json", '{"foo":"bar"}' ) ).toBeTrue();
+					expect( isValid( "json", '{foo:"bar"}' ) ).toBeFalse();
+				});
+			});
+
 			describe( "deserializeJSON stays lenient", function() {
 
 				it( title="accepts the unquoted key", body=function( currentSpec ) {
