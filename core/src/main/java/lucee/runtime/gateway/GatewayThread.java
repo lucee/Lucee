@@ -50,7 +50,9 @@ public final class GatewayThread extends ParentThreasRefThread {
 		catch (Throwable ge) {
 			ExceptionUtil.rethrowIfNecessary(ge);
 			addParentStacktrace(ge);
-			engine.log(gateway, GatewayEngine.LOGLEVEL_ERROR, ge.getMessage());
+			String msg = ge.getMessage();
+			if (engine instanceof GatewayEngineImpl) msg = ((GatewayEngineImpl) engine).withLocation(msg, ge); // LDEV-3645
+			engine.log(gateway, GatewayEngine.LOGLEVEL_ERROR, msg);
 		}
 	}
 }
