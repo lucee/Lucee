@@ -620,6 +620,7 @@ public final class KeyConstants {
 	public static final Key _source = init("source");
 	public static final Key _sql = init("sql");
 	public static final Key _sqlPattern = init("sqlPattern");
+	public static final Key _sqlRaw = init("sqlRaw");
 	public static final Key _src = init("src");
 	public static final Key _start = init("start");
 	public static final Key _end = init("end");
