@@ -1,2 +1,0 @@
-component implements="Interface"{
-}

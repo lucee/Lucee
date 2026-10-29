@@ -1,0 +1,3 @@
+component implements="IFirst,ISecond" {
+
+}
