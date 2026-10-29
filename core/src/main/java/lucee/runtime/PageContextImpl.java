@@ -4452,7 +4452,7 @@ public final class PageContextImpl extends PageContext {
 
 		CacheConnection cc = null;
 		if (applicationContext != null) cc = getApplicationContext().getCacheConnection(cacheName, null);
-		if (cc == null) cc = config.getCacheConnections().get(cacheName);
+		if (cc == null) cc = config.getAdminCacheConnections().get(cacheName);
 		if (cc == null) return defaultValue;
 
 		return cc;
@@ -4463,7 +4463,7 @@ public final class PageContextImpl extends PageContext {
 
 		CacheConnection cc = null;
 		if (applicationContext != null) cc = getApplicationContext().getCacheConnection(cacheName, null);
-		if (cc == null) cc = config.getCacheConnections().get(cacheName);
+		if (cc == null) cc = config.getAdminCacheConnections().get(cacheName);
 		if (cc == null) throw CacheUtil.noCache(config, cacheName);
 
 		return cc;

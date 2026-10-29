@@ -3807,7 +3807,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetCacheConnections() throws PageException {
-		Map conns = config.getCacheConnections();
+		Map conns = config.getAdminCacheConnections();
 		Iterator it = conns.entrySet().iterator();
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "class", "bundleName", "bundleVersion", "maven", "name", "custom", "default", "readOnly", "storage" }, 0, "connections");
 		Map.Entry entry;
@@ -3856,7 +3856,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetAIConnections() throws PageException {
 		java.util.Collection<String> names = this.config.getAIEngineNames();
-		Map conns = config.getCacheConnections();
+		Map conns = config.getAdminCacheConnections();
 		Iterator it = conns.entrySet().iterator();
 		lucee.runtime.type.Query qry = new QueryImpl(new Key[] { KeyConstants._default, KeyConstants._label, KeyConstants._name,
 
@@ -3929,7 +3929,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetCacheConnection() throws PageException {
 
 		String name = getString("admin", action, "name");
-		Map conns = config.getCacheConnections();
+		Map conns = config.getAdminCacheConnections();
 		Iterator it = conns.keySet().iterator();
 		CacheConnection cc;
 		CacheConnection dObj = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_OBJECT);

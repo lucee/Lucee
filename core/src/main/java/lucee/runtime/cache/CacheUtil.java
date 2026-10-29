@@ -20,6 +20,8 @@ package lucee.runtime.cache;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
@@ -31,6 +33,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.PasswordImpl;
@@ -40,6 +43,7 @@ import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.MethodInstance;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -155,6 +159,36 @@ public final class CacheUtil {
 		CacheConnection cc = config.getCacheConnections().get(cacheName.toLowerCase().trim());
 		if (cc == null) return defaultValue;
 		return cc;
+	}
+
+	/**
+	 * Returns every cache the current request can use: the caches defined in the administrator plus the
+	 * caches defined by the application of the current request (this.cache.connections). An
+	 * application cache overrides an administrator cache with the same name. Without a request, or for
+	 * a request of another configuration, only the administrator caches are returned.
+	 * 
+	 * @param config the configuration
+	 * @return the caches by lower case name
+	 */
+	public static Map<String, CacheConnection> getCacheConnections(ConfigPro config) {
+		Map<String, CacheConnection> admin = config.getAdminCacheConnections();
+
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc == null || pc.getConfig() != config) return admin;
+
+		ApplicationContext ac = pc.getApplicationContext();
+		if (ac == null) return admin;
+
+		Key[] names = ac.getCacheConnectionNames();
+		if (names == null || names.length == 0) return admin;
+
+		Map<String, CacheConnection> result = new LinkedHashMap<String, CacheConnection>(admin);
+		CacheConnection cc;
+		for (Key name: names) {
+			cc = ac.getCacheConnection(name.getString(), null);
+			if (cc != null) result.put(name.getString().toLowerCase().trim(), cc);
+		}
+		return result;
 	}
 
 	public static CacheException noCache(Config config, String cacheName) {
@@ -305,7 +339,7 @@ public final class CacheUtil {
 
 	public static void releaseAll(Config config) {
 		// Config
-		for (CacheConnection cc: config.getCacheConnections().values()) {
+		for (CacheConnection cc: ((ConfigPro) config).getAdminCacheConnections().values()) {
 			releaseEL(cc);
 		}
 	}

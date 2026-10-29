@@ -53,6 +53,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.ai.AIEngine;
 import lucee.runtime.ai.AIEnginePool;
 import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cfx.CFXTagPool;
@@ -980,7 +981,12 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public Map<String, CacheConnection> getCacheConnections() {
-		return cs.getCacheConnections();
+		return CacheUtil.getCacheConnections(this);
+	}
+
+	@Override
+	public Map<String, CacheConnection> getAdminCacheConnections() {
+		return cs.getAdminCacheConnections();
 	}
 
 	@Override
