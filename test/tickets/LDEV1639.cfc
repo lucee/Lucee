@@ -9,32 +9,37 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="dump,internalReque
 
 			it( title="the tag uses this.tag.dump.format (reference)", body=function( currentSpec ) {
 				var result = req( "tag" );
-				expect( result ).toInclude( "format: text" );
 				expect( result ).toInclude( "Susi" );
+				expect( result ).notToInclude( "<div" );
+				expect( result ).notToInclude( "<table" );
 			});
 
 			it( title="dump() uses this.tag.dump.format", body=function( currentSpec ) {
 				var result = req( "dump" );
-				expect( result ).toInclude( "format: text" );
 				expect( result ).toInclude( "Susi" );
+				expect( result ).notToInclude( "<div" );
+				expect( result ).notToInclude( "<table" );
 			});
 
 			it( title="dump() with a positional argument uses this.tag.dump.format", body=function( currentSpec ) {
 				var result = req( "dumpPositional" );
-				expect( result ).toInclude( "format: text" );
 				expect( result ).toInclude( "Susi" );
+				expect( result ).notToInclude( "<div" );
+				expect( result ).notToInclude( "<table" );
 			});
 
 			it( title="writeDump() uses this.tag.dump.format", body=function( currentSpec ) {
 				var result = req( "writeDump" );
-				expect( result ).toInclude( "format: text" );
 				expect( result ).toInclude( "Susi" );
+				expect( result ).notToInclude( "<div" );
+				expect( result ).notToInclude( "<table" );
 			});
 
 			it( title="writeDump() with a positional argument uses this.tag.dump.format", body=function( currentSpec ) {
 				var result = req( "writeDumpPositional" );
-				expect( result ).toInclude( "format: text" );
 				expect( result ).toInclude( "Susi" );
+				expect( result ).notToInclude( "<div" );
+				expect( result ).notToInclude( "<table" );
 			});
 
 			it( title="dump() and writeDump() give the same output as the tag", body=function( currentSpec ) {
