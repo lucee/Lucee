@@ -19153,6 +19153,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- preserveEncoding -->
+	<function>
+		<name>preserveEncoding</name>
+		<class>lucee.runtime.functions.other.PreserveEncoding</class>
+		<introduced>9.0.0.564</introduced>
+		<keywords>encoding,encodeFor,esapi,xss</keywords>
+		<description>Returns the value unchanged and marks the expression as an exception within a cfoutput tag that has the attribute encodeFor set. The output of the expression is not encoded, which is useful for values that are already encoded or intentionally contain markup. Outside of such a cfoutput tag it simply returns the value.</description>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>The value to output without it being encoded by the encodeFor attribute of the surrounding cfoutput tag.</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+
 	<!-- QueryConvertForGrid -->
 	<function>
 		<name>QueryConvertForGrid</name>
