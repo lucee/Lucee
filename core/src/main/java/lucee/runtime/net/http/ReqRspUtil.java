@@ -494,9 +494,14 @@ public final class ReqRspUtil {
 				|| strContentType.toLowerCase().startsWith("application/x-www-form-urlencoded"));
 
 		if (req.getContentLength() > -1) {
+			RequestBodyCache cache = req instanceof HTTPServletRequestWrap ? ((HTTPServletRequestWrap) req).getBodyCache() : null;
 			ServletInputStream is = null;
 			try {
-				byte[] data = IOUtil.toBytes(is = req.getInputStream());// new byte[req.getContentLength()];
+				byte[] data = cache == null ? null : cache.getBytes();
+				if (data == null) {
+					data = IOUtil.toBytes(is = req.getInputStream());// new byte[req.getContentLength()];
+					if (cache != null) cache.setBytes(data);
+				}
 				Object obj = CollectionUtil.NULL;
 
 				if (deserialized) {
@@ -505,7 +510,7 @@ public final class ReqRspUtil {
 				}
 				if (obj == CollectionUtil.NULL) {
 					if (isBinary) obj = data;
-					else obj = toString(data, cs);
+					else obj = cache == null ? toString(data, cs) : cache.getString(data, cs);
 				}
 
 				return obj;
