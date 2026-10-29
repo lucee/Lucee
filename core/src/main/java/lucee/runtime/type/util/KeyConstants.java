@@ -772,6 +772,7 @@ public final class KeyConstants {
 	public static final Key __toArray = init("_toArray");
 	public static final Key __toQuery = init("_toQuery");
 	public static final Key _onmissingmethod = init("onmissingmethod");
+	public static final Key _onmissingproperty = init("onmissingproperty");
 	public static final Key _onmissingfunction = init("onmissingfunction");
 	public static final Key _functions = init("functions");
 	public static final Key _fullname = init("fullname");
