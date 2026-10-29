@@ -2250,17 +2250,49 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 
 	@Override
 	public Object get(PageContext pc, Collection.Key key) throws PageException {
+		return _get(pc, key, true);
+	}
+
+	private Object _get(PageContext pc, Collection.Key key, boolean useOnMissingProperty) throws PageException {
 		Member member = getMember(pc, key, true, false);
 		if (member != null) return accessorOrValue(member);
 
 		// trigger
-		if (triggerDataMember(pc) && !isPrivateForAccessor(pc)) {
-			return callGetter(pc, key);
+		boolean trigger = triggerDataMember(pc) && !isPrivateForAccessor(pc);
+		if (trigger) {
+			UDF getter = getGetter(pc, key);
+			if (getter != null) return _call(pc, KeyImpl.init("get" + key.getLowerString()), getter, null, ArrayUtil.OBJECT_EMPTY);
 		}
+
+		// onMissingProperty, only for reads from outside of the component, a miss inside never ends up here
+		UDF omp = useOnMissingProperty ? getOnMissingProperty(pc) : null;
+		if (omp != null) return _call(pc, KeyConstants._onmissingproperty, omp, null, new Object[] { key.getString() });
+
+		if (trigger) throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]");
 		throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]",
 				"enable [trigger data member] in administrator to also invoke getters and setters");
 		// throw new ExpressionException("Component ["+getCallName()+"] has no accessible Member with name
 		// ["+name+"]");
+	}
+
+	/**
+	 * LDEV-3260 get the function onMissingProperty, but only when the caller is not part of this
+	 * component. Without the function this is a single lookup on a miss.
+	 */
+	private UDF getOnMissingProperty(PageContext pc) {
+		if (isPrivate(pc)) return null;
+		Member member = getMember(pc, KeyConstants._onmissingproperty, false, false);
+		if (member instanceof UDF) return (UDF) member;
+		return null;
+	}
+
+	private UDF getGetter(PageContext pc, Collection.Key key) {
+		Member member = getMember(pc, KeyImpl.init("get" + key.getLowerString()), false, false);
+		if (member instanceof UDF) {
+			UDF udf = (UDF) member;
+			if (udf.getFunctionArguments().length == 0 && udf.getReturnType() != CFTypes.TYPE_VOID) return udf;
+		}
+		return null;
 	}
 
 	// LDEV-6298 v2: bind shared accessor flyweight to this instance for slow-path extraction.
@@ -2379,7 +2411,8 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 
 	@Override
 	public Object get(Collection.Key key) throws PageException {
-		return get(ThreadLocalPageContext.get(), key);
+		// Java callers (not a read from CFML code) do not trigger onMissingProperty
+		return _get(ThreadLocalPageContext.get(), key, false);
 	}
 
 	@Override
