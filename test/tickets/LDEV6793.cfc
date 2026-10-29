@@ -115,6 +115,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="struct" {
 				expect( log ).toBe( [ "A:null:1", "A:1:2" ] );
 			});
 
+			it( title="reports the old and new value as null with the elvis operator", body=function( currentSpec ) {
+				var log = [];
+				var sct = structNew( type="observable", onChange=function( key, oldValue, newValue, struct ) {
+					log.append( key & ": " & ( oldValue ?: "null" ) & " -> " & ( newValue ?: "null" ) );
+				} );
+				sct.name = "Lucee";
+				sct.name = "Gian";
+				sct.delete( "name" );
+				expect( log ).toBe( [ "NAME: null -> Lucee", "NAME: Lucee -> Gian", "NAME: Gian -> null" ] );
+			});
+
 			it( title="accepts the type in any case", body=function( currentSpec ) {
 				var count = 0;
 				var sct = structNew( type="Observable", onChange=function() { count++; } );
