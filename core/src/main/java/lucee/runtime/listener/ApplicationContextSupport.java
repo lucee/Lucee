@@ -76,6 +76,14 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	protected ConfigWeb config;
 
+	/**
+	 * the default encoding (for example "html") applied to the output of every cfoutput tag that has no
+	 * encodeFor attribute, null if there is no default (no encoding)
+	 */
+	public abstract String getEncodeFor();
+
+	public abstract void setEncodeFor(String encodeFor);
+
 	public ApplicationContextSupport(ConfigWeb config) {
 		this.config = config;
 		tagDefaultAttributeValues = ((ConfigPro) config).getTagDefaultAttributeValues();

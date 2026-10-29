@@ -217,6 +217,7 @@ public final class GetApplicationSettings extends BIF {
 		// sct.setEL(KeyConstants._timeout,TimeZoneUtil.toString(pc.getRequestTimeout()));
 
 		sct.setEL("bufferOutput", Caster.toBoolean(ac.getBufferOutput()));
+		sct.setEL("encodeFor", acs.getEncodeFor() == null ? "" : acs.getEncodeFor());
 		sct.setEL("suppressContent", Caster.toBoolean(ac.getSuppressContent()));
 
 		sct.setEL("enableNullSupport", ac.getFullNullSupport());

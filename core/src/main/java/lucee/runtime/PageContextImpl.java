@@ -917,6 +917,19 @@ public final class PageContextImpl extends PageContext {
 		write(ESAPIUtil.esapiEncode(this, encodeType, value));
 	}
 
+	/**
+	 * writes the value encoded with the default encoding defined for the application (this.encodeFor),
+	 * if there is no such default the value is written as it is. Used for the output of a cfoutput tag
+	 * without encodeFor attribute.
+	 */
+	public void writeEncodeForDefault(String value) throws IOException, PageException {
+		ApplicationContextSupport ac = applicationContext;
+		if (ac == null) ac = getApplicationContext();
+		String encodeForDefault = ac.getEncodeFor();
+		if (encodeForDefault == null) write(value);
+		else write(ESAPIUtil.esapiEncode(this, encodeForDefault, value));
+	}
+
 	@Override
 	public void flush() {
 		try {

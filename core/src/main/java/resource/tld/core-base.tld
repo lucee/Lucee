@@ -8102,7 +8102,7 @@ Valid only for cfinput type="text".</description>
 			<name>behavior</name>
 			<label>Application Behavior</label>
 			<description>General application behavior and configuration</description>
-			<attributes>bufferOutput,cgiReadonly,loginStorage,localMode,locale,timeZone,webCharset,resourceCharset,scopeCascading,searchImplicitScopes,searchResults,enableNULLSupport,nullSupport,preciseMath,typeChecking,compression,wstype,onMissingTemplate,SerializationSettings,tag,logs,cachedAfter,javaSettings,xmlFeatures,regex,sameFormFieldsAsArray,sameURLFieldsAsArray,variableUsage,suppressRemoteComponentContent</attributes>
+			<attributes>bufferOutput,cgiReadonly,loginStorage,localMode,locale,timeZone,webCharset,resourceCharset,scopeCascading,searchImplicitScopes,searchResults,enableNULLSupport,nullSupport,preciseMath,typeChecking,encodeFor,compression,wstype,onMissingTemplate,SerializationSettings,tag,logs,cachedAfter,javaSettings,xmlFeatures,regex,sameFormFieldsAsArray,sameURLFieldsAsArray,variableUsage,suppressRemoteComponentContent</attributes>
 		</group>
 		<group>
 			<name>query</name>
@@ -8430,6 +8430,13 @@ Suport for cookie was removed in Lucee 7
 			<default-value>true</default-value>
 			<rtexprvalue>true</rtexprvalue>
 			<description>If disabled, Lucee ignores type definitions with function arguments and return values</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>encodeFor</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Default encoding (for example html, htmlattribute, javascript, css, url or xml) applied to the output of every cfoutput tag of the application, including templates called with cfinclude. An encodeFor attribute on a cfoutput tag takes precedence. If not set, nothing is encoded.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>

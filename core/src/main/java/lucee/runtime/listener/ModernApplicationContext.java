@@ -194,6 +194,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initSetSessionManagement;
 	private boolean initScriptProtect;
 	private boolean initTypeChecking;
+	private String encodeFor;
+	private boolean initEncodeFor;
 	private boolean initAllowCompression;
 	private boolean initDefaultAttributeValues;
 	private boolean initClientStorage;
@@ -585,6 +587,22 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 			initTypeChecking = true;
 		}
 		return typeChecking;
+	}
+
+	@Override
+	public String getEncodeFor() {
+		if (!initEncodeFor) {
+			String str = Caster.toString(get(component, KeyConstants._encodeFor, null), null);
+			encodeFor = StringUtil.isEmpty(str, true) ? null : str.trim();
+			initEncodeFor = true;
+		}
+		return encodeFor;
+	}
+
+	@Override
+	public void setEncodeFor(String encodeFor) {
+		this.encodeFor = StringUtil.isEmpty(encodeFor, true) ? null : encodeFor.trim();
+		initEncodeFor = true;
 	}
 
 	@Override

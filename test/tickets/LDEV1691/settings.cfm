@@ -1,0 +1,1 @@
+<cfscript>writeOutput( getApplicationSettings().encodeFor );</cfscript>

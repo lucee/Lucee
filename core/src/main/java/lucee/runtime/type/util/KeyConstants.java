@@ -2607,6 +2607,7 @@ public final class KeyConstants {
 	public static final Key _localMode = init("localMode");
 	public static final Key _localScopeMode = init("localScopeMode");
 	public static final Key _bufferOutput = init("bufferOutput");
+	public static final Key _encodeFor = init("encodeFor");
 	public static final Key _bufferTagBodyOutput = init("bufferTagBodyOutput");
 	public static final Key _sessionCluster = init("sessionCluster");
 	public static final Key _clientCluster = init("clientCluster");

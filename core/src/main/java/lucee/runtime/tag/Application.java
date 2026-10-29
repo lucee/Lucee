@@ -105,6 +105,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Boolean secureJson;
 	private String scriptrotect;
 	private Boolean typeChecking;
+	private String encodeFor;
 	private Object datasource;
 	private Object defaultdatasource;
 	private int loginstorage = Scope.SCOPE_UNDEFINED;
@@ -207,6 +208,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		secureJson = null;
 		secureJsonPrefix = null;
 		typeChecking = null;
+		encodeFor = null;
 		suppress = null;
 		loginstorage = Scope.SCOPE_UNDEFINED;
 		scriptrotect = null;
@@ -704,6 +706,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.proxy = proxy;
 	}
 
+	public void setEncodefor(String encodeFor) {
+		this.encodeFor = encodeFor;
+	}
+
 	public void setTypechecking(boolean typeChecking) {
 		this.typeChecking = typeChecking;
 	}
@@ -948,6 +954,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (bufferOutput != null) ac.setBufferOutput(bufferOutput.booleanValue());
 		if (secureJson != null) ac.setSecureJson(secureJson.booleanValue());
 		if (typeChecking != null) ac.setTypeChecking(typeChecking.booleanValue());
+		if (encodeFor != null) acs.setEncodeFor(encodeFor);
 		if (suppress != null) ac.setSuppressContent(suppress.booleanValue());
 		if (secureJsonPrefix != null) ac.setSecureJsonPrefix(secureJsonPrefix);
 		if (setClientCookies != null) ac.setSetClientCookies(setClientCookies.booleanValue());
