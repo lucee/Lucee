@@ -1303,7 +1303,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		HttpServletResponse rsp = pc.getHttpServletResponse();
 		if (rsp == null || rsp.isCommitted()) return;
 		try {
-			rsp.reset();
 			rsp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 			// the request just waited for the queue timeout without getting a slot, so asking the client to
 			// come back after about the same time is reasonable (at least 1 second, the unit of the header)
