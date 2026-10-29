@@ -1,0 +1,3 @@
+<cfscript>
+	new self();
+</cfscript>
