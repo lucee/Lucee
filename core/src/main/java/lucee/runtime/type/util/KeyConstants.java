@@ -836,6 +836,7 @@ public final class KeyConstants {
 	public static final Key _cluster = init("cluster");
 	public static final Key _form = init("form");
 	public static final Key _request = init("request");
+	public static final Key _finalUrl = init("finalUrl");
 	public static final Key _requests = init("requests");
 	public static final Key _session = init("session");
 	public static final Key _cferror = init("cferror");
