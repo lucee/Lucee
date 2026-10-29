@@ -939,6 +939,22 @@ public final class FileResource extends File implements Resource {
 		return super.lastModified();
 	}
 
+	/**
+	 * LDEV-3699: reads what is needed to list this resource (type, size, last modified and on Windows
+	 * the read only and hidden attributes) with a single file system call. Returns null if the
+	 * attributes can't be read, in that case isDirectory(), length(), lastModified() etc. have to be
+	 * used.
+	 */
+	public BasicFileAttributes readListAttributes() {
+		try {
+			provider.read(this);
+			return IS_WINDOWS ? Files.readAttributes(toPath(), DosFileAttributes.class) : Files.readAttributes(toPath(), BasicFileAttributes.class);
+		}
+		catch (IOException e) {
+			return null;
+		}
+	}
+
 	@Override
 	public long length() {
 		try {
