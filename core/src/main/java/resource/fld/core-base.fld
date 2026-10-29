@@ -12513,10 +12513,10 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- queryRecordCount -->
 	<function>
 		<name>queryRecordCount</name>
-		<member-name>recordCount</member-name>
+		<member-name>recordCount,len</member-name>
 		<class>lucee.runtime.functions.query.QueryRecordCount</class>
 		<keywords>query</keywords>
-		<description>row count of given query</description>
+		<description>row count of given query. As a member function it is available as query.recordCount() and as query.len(), the same as arrays and strings</description>
 		<argument>
 			<name>query</name>
 			<type>query</type>
