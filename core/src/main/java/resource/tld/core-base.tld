@@ -8436,7 +8436,7 @@ Suport for cookie was removed in Lucee 7
 			<name>encodeFor</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Default encoding (for example html, htmlattribute, javascript, css, url or xml) applied to the output of every cfoutput tag of the application, including templates called with cfinclude. An encodeFor attribute on a cfoutput tag takes precedence. If not set, nothing is encoded.</description>
+			<description>Default encoding (for example html, htmlattribute, javascript, css, url or xml) applied to the output of every cfoutput tag of the application, including templates called with cfinclude. An encodeFor attribute on a cfoutput tag takes precedence, encodeFor="none" on a cfoutput turns the default off for that tag. If not set, empty or "none", nothing is encoded.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -9833,7 +9833,10 @@ dWord: creates a value of 0 (zero)</description>
 - vbscript: for output inside vbscript
 - xml: for output inside XML
 - xml_attr: for output inside XML Attributes
-- xpath: for output in XPath</description>
+- xpath: for output in XPath
+- none: no encoding, also if a default encoding is defined for the application (this.encodeFor or the attribute encodeFor of cfapplication)
+
+If the attribute is not defined, the default encoding of the application is used, if there is one.</description>
 		</attribute>
 	</tag>
 	

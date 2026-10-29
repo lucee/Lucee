@@ -593,7 +593,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public String getEncodeFor() {
 		if (!initEncodeFor) {
 			String str = Caster.toString(get(component, KeyConstants._encodeFor, null), null);
-			encodeFor = StringUtil.isEmpty(str, true) ? null : str.trim();
+			encodeFor = toEncodeForDefault(str);
 			initEncodeFor = true;
 		}
 		return encodeFor;
@@ -601,7 +601,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public void setEncodeFor(String encodeFor) {
-		this.encodeFor = StringUtil.isEmpty(encodeFor, true) ? null : encodeFor.trim();
+		this.encodeFor = toEncodeForDefault(encodeFor);
 		initEncodeFor = true;
 	}
 

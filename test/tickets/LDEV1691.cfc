@@ -63,6 +63,57 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi" {
 				}).toThrow();
 			});
 
+			it( title="encodeFor=none of the cfoutput outputs as it is, even with this.encodeFor set", body=function( currentSpec ) {
+				expect( req( "none.cfm", "html" ) ).toBe( "[" & val & "]" );
+				expect( req( "none.cfm", "url" ) ).toBe( "[" & val & "]" );
+			});
+
+			it( title="encodeFor=none is not case sensitive", body=function( currentSpec ) {
+				expect( req( "none-case.cfm", "html" ) ).toBe( "[" & val & "]" );
+			});
+
+			it( title="encodeFor=none of the cfoutput with no default for the application", body=function( currentSpec ) {
+				expect( req( "none.cfm" ) ).toBe( "[" & val & "]" );
+				expect( req( "none.cfm", "" ) ).toBe( "[" & val & "]" );
+				expect( req( "none.cfm", "none" ) ).toBe( "[" & val & "]" );
+			});
+
+			it( title="encodeFor=none can be a dynamic value", body=function( currentSpec ) {
+				expect( req( "dynamic.cfm", "html", "none" ) ).toBe( "[" & val & "]" );
+				expect( req( "dynamic.cfm", "html", "NONE" ) ).toBe( "[" & val & "]" );
+				expect( req( "dynamic.cfm", "html", "url" ) ).toBe( "[" & encodeForURL( val ) & "]" );
+			});
+
+			it( title="empty encodeFor of the cfoutput outputs as it is, even with this.encodeFor set", body=function( currentSpec ) {
+				expect( req( "empty.cfm", "html" ) ).toBe( "[" & val & "]" );
+				expect( req( "empty.cfm" ) ).toBe( "[" & val & "]" );
+			});
+
+			it( title="encodeFor=none only affects its own cfoutput", body=function( currentSpec ) {
+				expect( req( "mixed.cfm", "html" ) ).toBe( encodeForHTML( val ) & "|" & val & "|" & encodeForHTML( val ) );
+				expect( req( "mixed.cfm" ) ).toBe( val & "|" & val & "|" & val );
+			});
+
+			it( title="encodeFor=none is not passed to a cfincluded cfoutput, that one uses the default", body=function( currentSpec ) {
+				expect( req( "include-none.cfm", "html" ) ).toBe( val & "|" & encodeForHTML( val ) );
+				expect( req( "include-none.cfm" ) ).toBe( val & "|" & val );
+			});
+
+			it( title="encodeFor=none works with cfoutput query", body=function( currentSpec ) {
+				expect( req( "query-none.cfm", "html" ) ).toBe( val & ";x;" );
+			});
+
+			it( title="this.encodeFor=none is the same as not set", body=function( currentSpec ) {
+				expect( req( "plain.cfm", "none" ) ).toBe( "[" & val & "]" );
+				expect( req( "plain.cfm", " NONE " ) ).toBe( "[" & val & "]" );
+				expect( req( "explicit.cfm", "none" ) ).toBe( encodeForURL( val ) );
+				expect( req( "settings.cfm", "none" ) ).toBe( "" );
+			});
+
+			it( title="attribute encodeFor=none of the tag cfapplication is the same as not set", body=function( currentSpec ) {
+				expect( req( "tag-none.cfm", "html" ) ).toBe( val );
+			});
+
 			it( title="attribute encodeFor of the tag cfapplication", body=function( currentSpec ) {
 				expect( req( "tag.cfm" ) ).toBe( encodeForHTML( val ) );
 			});
@@ -70,9 +121,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi" {
 		});
 	}
 
-	private string function req( required string page, string enc ) {
+	private string function req( required string page, string enc, string type ) {
 		var args = { v: val };
 		if ( !isNull( arguments.enc ) ) args.enc = arguments.enc;
+		if ( !isNull( arguments.type ) ) args.t = arguments.type;
 		var result = _InternalRequest(
 			template: "/test/#listLast( getDirectoryFromPath( getCurrentTemplatepath() ), "\/" )#/LDEV1691/#arguments.page#",
 			url: args

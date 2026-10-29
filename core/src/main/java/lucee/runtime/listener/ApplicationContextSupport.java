@@ -34,6 +34,7 @@ import lucee.runtime.ai.AIEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.esapi.ESAPIUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
@@ -83,6 +84,15 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract String getEncodeFor();
 
 	public abstract void setEncodeFor(String encodeFor);
+
+	/**
+	 * converts the value of this.encodeFor to the default used for cfoutput, an empty value or "none"
+	 * (case insensitive) means there is no default (null).
+	 */
+	protected static String toEncodeForDefault(String encodeFor) {
+		if (ESAPIUtil.isNoEncoding(encodeFor)) return null;
+		return encodeFor.trim();
+	}
 
 	public ApplicationContextSupport(ConfigWeb config) {
 		this.config = config;

@@ -914,7 +914,9 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void writeEncodeFor(String value, String encodeType) throws IOException, PageException {
-		write(ESAPIUtil.esapiEncode(this, encodeType, value));
+		// encodeFor="none" (or empty) is no encoding, in that case the default of the application is not used
+		if (ESAPIUtil.isNoEncoding(encodeType)) write(value);
+		else write(ESAPIUtil.esapiEncode(this, encodeType, value));
 	}
 
 	/**
@@ -926,6 +928,7 @@ public final class PageContextImpl extends PageContext {
 		ApplicationContextSupport ac = applicationContext;
 		if (ac == null) ac = getApplicationContext();
 		String encodeForDefault = ac.getEncodeFor();
+		// getEncodeFor never returns "none", this is the same as not set
 		if (encodeForDefault == null) write(value);
 		else write(ESAPIUtil.esapiEncode(this, encodeForDefault, value));
 	}

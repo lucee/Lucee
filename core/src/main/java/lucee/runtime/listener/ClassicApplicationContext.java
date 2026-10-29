@@ -976,7 +976,7 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public void setEncodeFor(String encodeFor) {
-		this.encodeFor = StringUtil.isEmpty(encodeFor, true) ? null : encodeFor.trim();
+		this.encodeFor = toEncodeForDefault(encodeFor);
 	}
 
 	@Override

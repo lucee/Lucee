@@ -1,0 +1,1 @@
+<cfset q = queryNew( "a", "varchar", [ [ url.v ], [ "x" ] ] )><cfoutput query="q" encodeFor="none">#q.a#;</cfoutput>
