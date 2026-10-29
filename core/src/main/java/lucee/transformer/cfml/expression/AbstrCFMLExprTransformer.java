@@ -1924,8 +1924,18 @@ public abstract class AbstrCFMLExprTransformer {
 	 */
 	private ExprString structElement(Data data) throws TemplateException {
 		comments(data);
-		ExprString name = data.factory.toExprString(assignOp(data));
-		if (name instanceof LitString) ((LitString) name).fromBracket(true);
+		Expression index = assignOp(data);
+		// LDEV-1329: a positive integer literal, like a[1]
+		boolean isIndex = false;
+		if (index instanceof LitNumber) {
+			Number n = ((LitNumber) index).getNumber();
+			isIndex = n != null && n.doubleValue() >= 1 && n.doubleValue() == Math.floor(n.doubleValue()) && n.doubleValue() < Integer.MAX_VALUE;
+		}
+		ExprString name = data.factory.toExprString(index);
+		if (name instanceof LitString) {
+			((LitString) name).fromBracket(true);
+			if (isIndex) ((LitString) name).fromBracketIndex(true);
+		}
 		comments(data);
 		return name;
 	}

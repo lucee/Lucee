@@ -177,6 +177,7 @@ import lucee.runtime.type.LiteralValue;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.SVArray;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
@@ -1844,6 +1845,15 @@ public final class PageContextImpl extends PageContext {
 		Object o = getCollection(coll, key, null);
 		if (o != null) return o;
 		return set(coll, key, new StructImpl());
+	}
+
+	/**
+	 * LDEV-1329: same as touch, but if the collection is created it is an array, used for a[1] = x when a does not exist
+	 */
+	public Object touchArray(Object coll, Collection.Key key) throws PageException {
+		Object o = getCollection(coll, key, null);
+		if (o != null) return o;
+		return set(coll, key, new ArrayImpl());
 	}
 
 	public Object touch(Object coll, Collection.Key key, int access, int modifier) throws PageException {
