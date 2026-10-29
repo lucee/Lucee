@@ -24,6 +24,7 @@ import java.net.URL;
 
 import lucee.commons.io.res.ContentType;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.Struct;
 
 public interface HTTPResponse extends java.io.Closeable {
 
@@ -66,6 +67,15 @@ public interface HTTPResponse extends java.io.Closeable {
 	 * @return the URLs of the redirects that were followed, null if there were none
 	 */
 	public Array getLocations();
+
+	/**
+	 * @return information about the connection that was used for the request, for example if it came
+	 *         from a connection pool, null if the engine has no such information. It is returned in the
+	 *         key "connection" of the cfhttp result.
+	 */
+	public default Struct getConnectionInfo() {
+		return null;
+	}
 
 	/**
 	 * releases the connection, must be called when the response is no longer needed
