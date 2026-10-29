@@ -81,6 +81,16 @@ function checkServletEnv() {
 		return "The deprecated [lucee.loader.servlet.CFMLServlet] is being used. Please configure your web server to use [lucee.loader.servlet.javax.CFMLServlet] for Java EE/javax environments or [lucee.loader.servlet.jakarta.CFMLServlet] for Jakarta EE environments instead.";
 	}
 }
+function formatUptime( required date startTime, required struct txt ) {
+	var total = max( 0, dateDiff( "n", arguments.startTime, now() ) );
+	var days = int( total / 1440 );
+	var hours = int( ( total mod 1440 ) / 60 );
+	var minutes = total mod 60;
+	if ( days > 0 ) return days & " " & ( days == 1 ? txt.uptimeDay : txt.uptimeDays ) & ", " & hours & " " & ( hours == 1 ? txt.uptimeHour : txt.uptimeHours );
+	if ( hours > 0 ) return hours & " " & ( hours == 1 ? txt.uptimeHour : txt.uptimeHours ) & ", " & minutes & " " & ( minutes == 1 ? txt.uptimeMinute : txt.uptimeMinutes );
+	if ( minutes > 0 ) return minutes & " " & ( minutes == 1 ? txt.uptimeMinute : txt.uptimeMinutes );
+	return txt.uptimeLessThanMinute;
+}
 msg=checkServletEnv();
 </cfscript>
 <cfif not isNull(msg)>
@@ -562,6 +572,10 @@ Error Output --->
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.ReleaseDate#</th>
 									<td>#lsDateFormat(server.lucee['release-date'])#</td>
+								</tr>
+								<tr>
+									<th nowrap="nowrap" scope="row">#stText.Overview.serverStarted#</th>
+									<td>#lsDateFormat(systemInfo.startTime)# #lsTimeFormat(systemInfo.startTime)# (#formatUptime(systemInfo.startTime, stText.Overview)#)</td>
 								</tr>
 								<cfif request.singleMode or request.adminType EQ "web">
 								<tr>
