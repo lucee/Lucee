@@ -2579,6 +2579,29 @@ If not specified, falls back to the `timeout` attribute value.</description>
 			<description>Flag allowing to disable connection reuse on one off requests.</description>
 		</attribute>
 		<attribute>
+			<type>any</type>
+			<name>listener</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>9.0</introduced>
+			<description>
+				listener for the http call. the listener can have 3 (optional) functions, "before", "after" and "error" that get triggered before the request is sent, after the response was received and in case of an exception.
+				The functions get the arguments "args" (the attributes of the tag, including the array "params" with all httpparam definitions) and "caller" (template and line of the tag), the function "after" additionally gets the "result" (the result struct, same as the variable defined with the attribute "result"), the function "error" gets "exception".
+				This attribute overwrites any http listener defined in the application.cfc/cfapplication.
+				The functions can modify the request (before) and the result (after) by returning a struct. "before" returns the keys of "args" to overwrite, a "before" that returns a struct as "result" skips the request and uses that struct as the response (for example to use a local cache).
+				"after" returns a struct with the key "result" to replace the result. "error" returns a struct with the key "result" to handle the exception with that result, otherwise the exception is thrown.
+
+				the listener can be a component looking like this:
+				component {
+					function before(args, caller){}
+					function after(args, caller, result){}
+					function error(args, caller, exception){}}
+
+				or a struct looking like this:
+				{before:function(args, caller){}, after:function(args, caller, result){}, error:function(args, caller, exception){}}
+			</description>
+		</attribute>
+		<attribute>
 			<type>object</type>
 			<name>cachedWithin</name>
 			<required>false</required>
@@ -8094,8 +8117,8 @@ Valid only for cfinput type="text".</description>
 		<group>
 			<name>remote</name>
 			<label>Remote Services</label>
-			<description>Configure S3, FTP and proxy settings</description>
-			<attributes>s3,ftp,proxy</attributes>
+			<description>Configure S3, FTP, proxy and http settings</description>
+			<attributes>s3,ftp,proxy,httpListener</attributes>
 		</group>
 		<group>
 			<name>security</name>
@@ -8487,6 +8510,14 @@ Suport for cookie was removed in Lucee 7
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>httpListener</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>9.0</introduced>
+			<description>listener (before, after, error) for the tag http, can be a component or a struct of functions. Can be overwritten with the attribute listener of the tag http.</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>

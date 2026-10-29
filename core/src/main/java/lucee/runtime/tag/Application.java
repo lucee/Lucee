@@ -115,6 +115,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private int localMode = -1;
 	private Object mailListener = null;
 	private TagListener queryListener = null;
+	private TagListener httpListener = null;
 	private SerializationSettings serializationSettings;
 	private Locale locale;
 	private TimeZone timeZone;
@@ -223,6 +224,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		localMode = -1;
 		mailListener = null;
 		queryListener = null;
+		httpListener = null;
 		serializationSettings = null;
 		locale = null;
 		timeZone = null;
@@ -392,6 +394,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 	public void setQuerylistener(Object listener) throws ApplicationException {
 		this.queryListener = Query.toTagListener(listener);
+	}
+
+	public void setHttplistener(Object listener) throws ApplicationException {
+		this.httpListener = Query.toTagListener(listener);
 	}
 
 	public void setSerializationsettings(Struct sct) {
@@ -957,6 +963,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (localMode != -1) ac.setLocalMode(localMode);
 		if (mailListener != null) ac.setMailListener(mailListener);
 		if (queryListener != null) ac.setQueryListener(queryListener);
+		if (httpListener != null) ((ApplicationContextSupport) ac).setHttpListener(httpListener);
 		if (serializationSettings != null) ac.setSerializationSettings(serializationSettings);
 		if (locale != null) ac.setLocale(locale);
 		if (timeZone != null) ac.setTimeZone(timeZone);

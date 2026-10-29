@@ -163,6 +163,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private AuthCookieData authCookie;
 	private Object mailListener;
 	private TagListener queryListener;
+	private TagListener httpListener;
 	private boolean fullNullSupport;
 	private ISerializationSettings serializationSettings;
 	private boolean queryPSQ;
@@ -179,6 +180,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initCustomTypes;
 	private boolean initMailListener;
 	private boolean initQueryListener;
+	private boolean initHttpListener;
 	private boolean initFullNullSupport;
 	private boolean initCachedWithins;
 
@@ -1070,6 +1072,16 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public TagListener getHttpListener() {
+		if (!initHttpListener) {
+			Struct http = Caster.toStruct(get(component, KeyConstants._http, null), null);
+			if (http != null) httpListener = Query.toTagListener(http.get(KeyConstants._listener, null), null);
+			initHttpListener = true;
+		}
+		return httpListener;
+	}
+
+	@Override
 	public TagListener getQueryListener() {
 		if (!initQueryListener) {
 			Struct query = Caster.toStruct(get(component, KeyConstants._query, null), null);
@@ -1644,6 +1656,12 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public void setQueryListener(TagListener listener) {
 		initQueryListener = true;
 		this.queryListener = listener;
+	}
+
+	@Override
+	public void setHttpListener(TagListener listener) {
+		initHttpListener = true;
+		this.httpListener = listener;
 	}
 
 	@Override
