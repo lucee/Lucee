@@ -3756,6 +3756,45 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- ExtensionInstall -->
+	<function>
+		<name>ExtensionInstall</name>
+		<class>lucee.runtime.functions.system.ExtensionInstall</class>
+		<introduced>9.0.0.564</introduced>
+		<keywords>extension,install,maven,dependencies</keywords>
+		<description>Installs an extension at runtime, so a script (for example a CLI script or a task runner) can require the extensions it needs and have them installed on the fly. The extension is available immediately, in the same request.
+
+The extension is defined by its Maven coordinate in gradle short form, `"group:artifact"` or `"group:artifact:version"`, for example `extensionInstall( "org.lucee:mysql-extension:8.0.33.1" )`. Without a version the latest version is installed. If the extension is already installed (any version, when no version is defined), nothing is installed again. If a version is defined, exactly that version is installed, replacing a different installed version.
+
+For old extensions that are not available on Maven, the extension id (UUID) can still be used instead of the coordinate (legacy).
+
+If the coordinate contains a version and the argument `version` is set as well, both must be identical, otherwise an exception is thrown.
+
+Installing an extension changes the server configuration, so the function follows the same write access rules as the admin tag (the general write access setting of the Server Administrator: open, protected or closed). In case write access is protected by the server admin password, pass it with the argument `password` or define it with the system property `lucee.server.admin.password` or the environment variable `LUCEE_SERVER_ADMIN_PASSWORD`.</description>
+		<argument>
+			<name>extension</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Maven coordinate of the extension in gradle short form, `"group:artifact"` or `"group:artifact:version"`. For legacy extensions that are not on Maven, the id (UUID) of the extension.</description>
+		</argument>
+		<argument>
+			<name>version</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Version of the extension, if not defined (or "latest") the latest version is installed. Must match the version in the coordinate, if the coordinate contains one.</description>
+		</argument>
+		<argument>
+			<name>password</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Server admin password, only needed if write access is protected by a password and the password is not defined with the system property `lucee.server.admin.password` / environment variable `LUCEE_SERVER_ADMIN_PASSWORD`.</description>
+		</argument>
+		<return>
+			<description>Struct with the keys id, name, version, maven (coordinate of the installed extension, empty for a legacy extension) and alreadyInstalled (true if nothing had to be installed).</description>
+			<type>struct</type>
+		</return>
+	</function>
+
 	<!-- debugAdd -->
 	<function>
 		<name>debugAdd</name>
