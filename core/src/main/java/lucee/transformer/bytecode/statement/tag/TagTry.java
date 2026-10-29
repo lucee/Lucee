@@ -184,12 +184,20 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 
 			bc.visitLine(tag.getStart());
 
-			// if(pe.typeEqual(@type)
-			adapter.loadLocal(pe);
-			type.writeOut(bc, Expression.MODE_REF);
-			adapter.invokeVirtual(Types.PAGE_EXCEPTION, TYPE_EQUAL);
-
-			adapter.ifZCmp(Opcodes.IFEQ, endIf);
+			// if(pe.typeEqual(@type), with multiple types (type="a" | "b") the body is entered when one matches
+			List<Expression> types = new ArrayList<Expression>();
+			types.add(type);
+			if (attrType != null) types.addAll(attrType.getAlternatives());
+			Label startBody = new Label();
+			int last = types.size() - 1;
+			for (int i = 0; i <= last; i++) {
+				adapter.loadLocal(pe);
+				types.get(i).writeOut(bc, Expression.MODE_REF);
+				adapter.invokeVirtual(Types.PAGE_EXCEPTION, TYPE_EQUAL);
+				if (i < last) adapter.ifZCmp(Opcodes.IFNE, startBody);
+				else adapter.ifZCmp(Opcodes.IFEQ, endIf);
+			}
+			adapter.visitLabel(startBody);
 			catchBody(bc, adapter, tag, pe, true, true);
 
 			adapter.visitJumpInsn(Opcodes.GOTO, endAllIfs);
