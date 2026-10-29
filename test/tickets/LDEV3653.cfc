@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cfheader" {
 				var result = request( "suppressed.cfm" );
 				expect( result.filecontent ).toInclude( "[BEFORE]" );
 				expect( result.filecontent ).toInclude( "[COMMITTED:true]" );
-				expect( result.filecontent ).toInclude( "[AFTER]" );
+				expect( result.filecontent ).toInclude( "[AFTER:2]" );
 				expect( result.filecontent ).notToInclude( "already committed" );
 			} );
 
@@ -15,26 +15,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cfheader" {
 				var result = request( "suppressedTag.cfm" );
 				expect( result.filecontent ).toInclude( "[BEFORE]" );
 				expect( result.filecontent ).toInclude( "[COMMITTED:true]" );
-				expect( result.filecontent ).toInclude( "[AFTER]" );
+				expect( result.filecontent ).toInclude( "[AFTER:2]" );
 				expect( result.filecontent ).notToInclude( "already committed" );
 			} );
 
 			it( title="the default still throws after cfflush", body=function() {
-				expect( function() {
-					request( "default.cfm" );
-				} ).toThrow( regex="header is already committed" );
+				var result = request( "default.cfm" );
+				expect( result.filecontent ).toInclude( "[COMMITTED:true]" );
+				expect( result.filecontent ).toInclude( "already committed" );
+				expect( result.filecontent ).notToInclude( "[AFTER:2]" );
 			} );
 
 			it( title="throwOnError=true still throws after cfflush", body=function() {
-				expect( function() {
-					request( "explicitTrue.cfm" );
-				} ).toThrow( regex="header is already committed" );
+				var result = request( "explicitTrue.cfm" );
+				expect( result.filecontent ).toInclude( "[COMMITTED:true]" );
+				expect( result.filecontent ).toInclude( "already committed" );
+				expect( result.filecontent ).notToInclude( "[AFTER:2]" );
 			} );
 
 			it( title="throwOnError=false still sets the header when the response is not committed", body=function() {
 				var result = request( "notCommitted.cfm" );
 				expect( result.filecontent ).toInclude( "[COMMITTED:false]" );
-				expect( result.filecontent ).toInclude( "[AFTER]" );
+				expect( result.filecontent ).toInclude( "[AFTER:2]" );
 				expect( result.headers ).toHaveKey( "X-LDEV3653" );
 				expect( result.headers[ "X-LDEV3653" ] ).toBe( "early" );
 			} );
