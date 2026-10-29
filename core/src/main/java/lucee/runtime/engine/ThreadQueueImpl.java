@@ -89,8 +89,7 @@ public final class ThreadQueueImpl implements ThreadQueue {
 
 			if (timeout > 0 && (System.currentTimeMillis() - start) >= timeout) {
 				// print.e("- throw timeout(" + Thread.currentThread().getName() + "):" + timeout);
-				throw new IOException("Concurrent request timeout (" + (System.currentTimeMillis() - start) + ") [" + timeout
-						+ " ms] has occurred, server is too busy handling other requests. This timeout setting can be changed in the server administrator.");
+				throw new RequestQueueTimeoutException(System.currentTimeMillis() - start, timeout);
 			}
 		}
 	}
