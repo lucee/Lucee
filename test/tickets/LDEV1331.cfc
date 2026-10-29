@@ -55,7 +55,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="config" {
 
 			it( title="the resolved constant can be used in a placeholder", body=function( currentSpec ) {
 				_constants( { "ldev1331ref": "${LDEV1331_UNDEFINED_VAR:resolved}" } );
-				expect( getPageContext().getConfig().replacePlaceHolder( "${ldev1331ref}" ) ).toBe( "resolved" );
+				expect( variables.cs.replacePlaceHolder( "${ldev1331ref}" ) ).toBe( "resolved" );
 			});
 		});
 	}
