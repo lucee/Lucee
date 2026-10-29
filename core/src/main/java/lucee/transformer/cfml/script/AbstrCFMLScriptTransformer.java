@@ -2521,7 +2521,12 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Body prior = data.setParent(parent);
 		Expression expr = expression(data);
 		data.setParent(prior);
-		checkSemiColonLineFeed(data, true, true, false);
+		if (!checkSemiColonLineFeed(data, false, true, false)) {
+			// LDEV-2146 "if x {" is read as the expression "if" followed by garbage, point at the missing parenthesis
+			String keyword = getKeywordExpectingParenthesis(expr);
+			if (keyword != null) throw new TemplateException(data.srcCode, "Missing [(] after the [" + keyword + "] keyword");
+			checkSemiColonLineFeed(data, true, true, false);
+		}
 
 		// variable declaration (variable in body)
 		if (expr instanceof Variable) {
@@ -2551,6 +2556,21 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			return ((FunctionAsExpression) expr).getFunction();
 
 		return new ExpressionAsStatement(expr);
+	}
+
+	private static String getKeywordExpectingParenthesis(Expression expr) {
+		if (!(expr instanceof Variable)) return null;
+		Variable v = (Variable) expr;
+		if (!ASMUtil.isOnlyDataMember(v)) return null;
+		lucee.transformer.expression.var.Member m = v.getFirstMember();
+		if (!(m instanceof lucee.transformer.expression.var.DataMember)) return null;
+		lucee.transformer.expression.ExprString name = ((lucee.transformer.expression.var.DataMember) m).getName();
+		if (!(name instanceof LitString)) return null;
+		String str = ((LitString) name).getString();
+		if ("if".equalsIgnoreCase(str) || "while".equalsIgnoreCase(str) || "for".equalsIgnoreCase(str) || "switch".equalsIgnoreCase(str) || "catch".equalsIgnoreCase(str)) {
+			return str.toLowerCase();
+		}
+		return null;
 	}
 
 	private final boolean checkSemiColonLineFeed(Data data, boolean throwError, boolean checkNLBefore, boolean allowEmptyCurlyBracked) throws TemplateException {
