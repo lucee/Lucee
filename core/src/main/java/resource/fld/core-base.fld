@@ -15855,6 +15855,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
   - weak: a struct containing weak referenced values, which do not prevent their referents from being made garbage collected. Weak references are most often used to implement simple caches.
   - soft: a struct with soft reference values, which are cleared at the discretion of the garbage collector in response to memory demand.
   - linked: a struct with linked keys, maintain their creation order
+  - observable: a struct that calls the function defined with the argument onChange after a key was set, updated or removed. Requires the argument onChange.
   the type "synchronized" is no longer supported and get ignored, because since version 4.1 all struct/scopes are "thread safe"
 			</description>
 		</argument>
@@ -15866,6 +15867,15 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			listener function that get invoked in case a request key does not exist.
 			</description>
 			<introduced>6.0.0.107</introduced>
+		</argument>
+		<argument>
+			<name>onChange</name>
+			<type>function</type>
+			<required>No</required>
+			<description>
+			listener function for the type "observable", that get invoked after a key was set, updated or removed. The function is called with the arguments (key, oldValue, newValue, struct). For a new key oldValue is null, for a removed key newValue is null. Setting a key calls the function every time, also when the value did not change. Removing a key calls the function once for that key, structClear() calls it once for every key that was removed. The function is called on the thread that did the change, after the change was applied, and an exception thrown by the function is not swallowed (the change is not rolled back). Only changes made directly to the observable struct are reported, not changes inside nested structs or arrays. A copy created with duplicate() is a regular struct without the listener. Can not be combined with onMissingKey.
+			</description>
+			<introduced>9.0.0.564</introduced>
 		</argument>
 		<return>
 			<type>struct</type>
