@@ -63,6 +63,93 @@ public final class IPUtil {
 		return true;
 	}
 
+	/**
+	 * strict check if a string is an IPv4 address in dotted quad notation (a.b.c.d), every part is
+	 * 0-255, written with 1-3 ASCII digits and without leading zeros (so "01" is not valid, because it
+	 * is ambiguous: decimal or octal). This is a pure format check, nothing gets resolved.
+	 */
+	public static boolean isValidIPv4(String ip) {
+		if (ip == null) return false;
+		final int len = ip.length();
+		if (len < 7 || len > 15) return false;
+		int parts = 0;
+		int i = 0;
+		while (i < len) {
+			int start = i;
+			int value = 0;
+			while (i < len && ip.charAt(i) >= '0' && ip.charAt(i) <= '9') {
+				value = value * 10 + (ip.charAt(i) - '0');
+				i++;
+			}
+			int digits = i - start;
+			if (digits < 1 || digits > 3) return false;
+			if (digits > 1 && ip.charAt(start) == '0') return false; // leading zero
+			if (value > 255) return false;
+			parts++;
+			if (i < len) {
+				if (ip.charAt(i) != '.') return false;
+				i++;
+				if (i == len) return false; // trailing dot
+			}
+		}
+		return parts == 4;
+	}
+
+	/**
+	 * strict check if a string is an IPv6 address in the text format of RFC 4291 section 2.2: groups of
+	 * 1-4 hex digits separated by ":", one "::" compression for one or more groups of zeros, and an
+	 * IPv4 address (strict, see isValidIPv4) as the last 32 bits (like ::ffff:1.2.3.4). A zone id
+	 * ("fe80::1%eth0") is not accepted, it is not part of the address. This is a pure format check,
+	 * nothing gets resolved.
+	 */
+	public static boolean isValidIPv6(String ip) {
+		if (ip == null) return false;
+		String str = ip;
+		int len = str.length();
+		if (len < 2 || len > 45) return false;
+
+		// IPv4 in the last 32 bits, replace it with 2 groups
+		if (str.indexOf('.') != -1) {
+			int lastColon = str.lastIndexOf(':');
+			if (lastColon == -1 || !isValidIPv4(str.substring(lastColon + 1))) return false;
+			str = str.substring(0, lastColon + 1) + "0:0";
+			len = str.length();
+		}
+
+		int groups = 0;
+		boolean compressed = false;
+		int i = 0;
+		if (str.charAt(0) == ':') {
+			if (str.charAt(1) != ':') return false;
+			compressed = true;
+			i = 2;
+			if (i == len) return true; // "::"
+		}
+		while (i < len) {
+			int start = i;
+			while (i < len && isHex(str.charAt(i)))
+				i++;
+			int digits = i - start;
+			if (digits < 1 || digits > 4) return false;
+			groups++;
+			if (i == len) break;
+			if (str.charAt(i) != ':') return false;
+			i++;
+			if (i == len) return false; // single trailing colon
+			if (str.charAt(i) == ':') {
+				if (compressed) return false; // only one "::"
+				compressed = true;
+				i++;
+			}
+		}
+		// the compression stands for at least one group
+		return compressed ? groups <= 7 : groups == 8;
+	}
+
+	private static boolean isHex(char c) {
+		return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+	}
+
 	public static boolean isIPv62(String ip) {
 		if (ip.indexOf(':') == -1) return false;
 		String[] arr = ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(ip, ':')));
