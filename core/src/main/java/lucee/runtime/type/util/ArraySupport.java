@@ -35,6 +35,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.EntryArrayIterator;
 
@@ -327,12 +328,28 @@ public abstract class ArraySupport extends AbstractList implements ArrayPro, Lis
 
 	@Override
 	public Object call(PageContext pc, Key methodName, Object[] args) throws PageException {
+		// LDEV-2489 myarray[ 1 ]() calls the function stored at that index
+		UDF udf = getUDFAtIndex(methodName);
+		if (udf != null) return udf.call(pc, methodName, args, false);
 		return MemberUtil.call(pc, this, methodName, args, new short[] { CFTypes.TYPE_ARRAY }, new String[] { "array" });
 	}
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
+		UDF udf = getUDFAtIndex(methodName);
+		if (udf != null) return udf.callWithNamedValues(pc, methodName, args, false);
 		return MemberUtil.callWithNamedValues(pc, this, methodName, args, CFTypes.TYPE_ARRAY, "array");
+	}
+
+	/**
+	 * LDEV-2489 if the name is a valid index of this array and the element at that index is a function,
+	 * return it, otherwise null
+	 */
+	private UDF getUDFAtIndex(Key methodName) {
+		int index = Caster.toIntValue(methodName.getString(), Integer.MIN_VALUE);
+		if (index == Integer.MIN_VALUE) return null;
+		Object value = get(methodName, null);
+		return value instanceof UDF ? (UDF) value : null;
 	}
 
 	@Override
