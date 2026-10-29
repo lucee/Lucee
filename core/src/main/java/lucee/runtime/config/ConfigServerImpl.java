@@ -886,7 +886,9 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.defaultValue(true).description("look for custom tags locally.");
 	private final ConfigValue<Boolean> customTagLocalSearch = new ConfigValue<>(metaDoLocalCustomTag);
 
-	private static Prop<Struct> metaConstants = Prop.sct().keys("constants").defaultValue(new StructImpl()).hidden();
+	private static Prop<Struct> metaConstants = Prop.sct().keys("constants").defaultValue(new StructImpl()).hidden()
+			.description("Named constants that can be used as a placeholder in paths, for example {lib-root} in a mapping or in expandPath. "
+					+ "The values can use the config placeholders ${NAME:default}, {env:NAME}, {system:name} and {secret:name}.");
 	private Struct constants = null;
 
 	public final static Prop<Boolean> metaAllowURLRequestTimeout = Prop.bool().keys("requestTimeoutInURL", "allowUrlRequesttimeout").defaultValue(false)
@@ -4934,11 +4936,42 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (constants == null) {
 			synchronized (SystemUtil.createToken("config", "getConstants")) {
 				if (constants == null) {
-					constants = metaConstants.get(this, root);
+					constants = resolveConstants(metaConstants.get(this, root));
 				}
 			}
 		}
 		return constants;
+	}
+
+	/**
+	 * LDEV-1331: the values of the constants can use the config placeholders ${NAME:default}, {env:NAME}, {system:name} and
+	 * {secret:name}. We do not use the placeholder data of the config here, because it is built from the constants.
+	 */
+	private Struct resolveConstants(Struct raw) {
+		if (raw == null) return raw;
+		Struct resolved = null;
+		Iterator<Entry<Key, Object>> it = raw.entryIterator();
+		Entry<Key, Object> e;
+		Object value;
+		String str, replaced;
+		while (it.hasNext()) {
+			e = it.next();
+			value = e.getValue();
+			if (!(value instanceof CharSequence)) continue;
+			str = value.toString();
+			if (str.indexOf('{') == -1) continue;
+			try {
+				replaced = ConfigUtil.replacePlaceHolder(this, str, null);
+			}
+			catch (RuntimeException re) {
+				LogUtil.log(this, "config", re);
+				continue;
+			}
+			if (replaced == null || replaced.equals(str)) continue;
+			if (resolved == null) resolved = (Struct) raw.duplicate(false);
+			resolved.setEL(e.getKey(), replaced);
+		}
+		return resolved != null ? resolved : raw;
 	}
 
 	public ConfigServerImpl resetConstants() {
