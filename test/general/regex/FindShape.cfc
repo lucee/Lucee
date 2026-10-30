@@ -102,12 +102,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 
 	public void function testDotStarEmptyInputDivergence() {
 		// LDEV-3703: java appends a trailing empty match for non-empty input.
+		// compat follows perl: no empty match straight after a non-empty one.
 		// Empty-string input is [""] on both engines.
 		variables._regex.eachEngine( function( engine ) {
 			assertEquals( [ "" ], reMatchNoCase( ".*", "" ) );
 
 			var rSpace = reMatchNoCase( ".*", " " );
-			if ( engine == "perl" ) assertEquals( [ " " ],      rSpace );
+			if ( engine != "java" ) assertEquals( [ " " ],      rSpace );
 			else                    assertEquals( [ " ", "" ],  rSpace );
 		});
 	}
