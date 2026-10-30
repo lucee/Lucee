@@ -1,0 +1,3 @@
+interface extends="IShape" {
+
+}

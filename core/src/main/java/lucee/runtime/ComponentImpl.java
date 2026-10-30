@@ -649,24 +649,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			throw new ApplicationException(_getErrorMessage(cUdf, iUdf), "access [" + ComponentUtil.toStringAccess(cUdf.getAccess()) + "] has to be at least [public]");
 		}
 
-		// return type (on case the return type is not one of the base types or does not match)
-		if (iUdf.getReturnType() == CFTypes.TYPE_UNKNOW || iUdf.getReturnType() != cUdf.getReturnType()) {
-
-			if (iUdf.getReturnType() == CFTypes.TYPE_UNKNOW && !iUdf.getReturnTypeAsString().equalsIgnoreCase(cUdf.getReturnTypeAsString())) {
-				throw new ApplicationException(_getErrorMessage(cUdf, iUdf), "return type [" + cUdf.getReturnTypeAsString() + "] does not match the "
-						+ ("abstract component/interface") + " function return type [" + iUdf.getReturnTypeAsString() + "]");
+		// return type, the implementation may return a more specific type than the interface/abstract function (covariance, LDEV-1812)
+		if (iUdf.getReturnType() != cUdf.getReturnType() || (iUdf.getReturnType() == CFTypes.TYPE_UNKNOW && !iUdf.getReturnTypeAsString().equalsIgnoreCase(cUdf.getReturnTypeAsString()))) {
+			if (!isCovariantReturnType(pc, iUdf, cUdf)) {
+				throw new ApplicationException(_getErrorMessage(cUdf, iUdf), "return type [" + cUdf.getReturnTypeAsString() + "] does not match the " + ("abstract component/interface")
+						+ " function return type [" + iUdf.getReturnTypeAsString() + "]");
 			}
-
-		}
-
-		if (iUdf.getReturnType() != cUdf.getReturnType()) {
-			throw new ApplicationException(_getErrorMessage(cUdf, iUdf), "return type [" + cUdf.getReturnTypeAsString() + "] does not match the " + ("abstract component/interface")
-					+ " function return type [" + iUdf.getReturnTypeAsString() + "]");
-		}
-		// none base types
-		if (iUdf.getReturnType() == CFTypes.TYPE_UNKNOW && !iUdf.getReturnTypeAsString().equalsIgnoreCase(cUdf.getReturnTypeAsString())) {
-			throw new ApplicationException(_getErrorMessage(cUdf, iUdf), "return type [" + cUdf.getReturnTypeAsString() + "] does not match the " + ("abstract component/interface")
-					+ " function return type [" + iUdf.getReturnTypeAsString() + "]");
 		}
 
 		// arguments
@@ -700,6 +688,36 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			if (iFA[i].isRequired() != cFA[i].isRequired()) {
 				throw new ApplicationException(_getErrorMessage(cUdf, iUdf), "argument [" + cFA[i].getName() + "] should " + (iFA[i].isRequired() ? "" : "not ") + "be required");
 			}
+		}
+	}
+
+	/**
+	 * is the return type of the implementing function a component/interface that is the return type of
+	 * the interface/abstract function, or extends/implements it
+	 */
+	private static boolean isCovariantReturnType(PageContext pc, UDF iUdf, UDF cUdf) {
+		// only component/interface types can be narrowed
+		if (iUdf.getReturnType() != CFTypes.TYPE_UNKNOW || cUdf.getReturnType() != CFTypes.TYPE_UNKNOW) return false;
+		String iType = iUdf.getReturnTypeAsString();
+		String cType = cUdf.getReturnTypeAsString();
+		if (StringUtil.isEmpty(iType, true) || StringUtil.isEmpty(cType, true)) return false;
+		try {
+			PageSource iPS = iUdf.getPageSource();
+			PageSource cPS = cUdf.getPageSource();
+			Page iPage = ComponentLoader.searchPage(pc, iPS, iType.trim(), null, null, false, false);
+			Page cPage = ComponentLoader.searchPage(pc, cPS, cType.trim(), null, null, false, false);
+			if (iPage == null || cPage == null) return false;
+
+			String iName = iPage.getPageSource().getComponentName();
+			if (iName.equalsIgnoreCase(cPage.getPageSource().getComponentName())) return true;
+
+			if (cPage instanceof InterfacePage) return ComponentLoader.searchInterface(pc, cPS, cType.trim(), false, false).instanceOf(iName);
+			return ComponentLoader.searchComponent(pc, cPS, cType.trim(), null, null, false, false, false).instanceOf(iName);
+		}
+		catch (Exception e) {
+			// the type can not be resolved, so it is not compatible
+			ExceptionUtil.rethrowIfNecessary(e);
+			return false;
 		}
 	}
 
