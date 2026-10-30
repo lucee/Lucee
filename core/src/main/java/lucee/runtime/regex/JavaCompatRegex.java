@@ -426,7 +426,7 @@ class JavaCompatRegex extends JavaRegex {
 	@Override
 	public String replace(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
 			if (!m.find()) return strInput;
 			StringBuilder sb = new StringBuilder(strInput.length());
 			m.appendReplacement(sb, Matcher.quoteReplacement(expandReplacement(m, replacement)));
@@ -441,7 +441,7 @@ class JavaCompatRegex extends JavaRegex {
 	@Override
 	public String replaceAll(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
 			if (!m.find()) return strInput;
 			StringBuilder sb = new StringBuilder(strInput.length());
 			do {
