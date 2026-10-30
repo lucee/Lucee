@@ -45,6 +45,7 @@ import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.config.maven.MavenUpdateProvider.Repository;
 import lucee.runtime.config.maven.RepoReader;
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.mvn.POMReader.Dependency;
@@ -645,7 +646,7 @@ public final class MavenUtil {
 						//////// if (log != null) log.info("maven", "download [" + url + "]");
 						URL url;
 						HTTPResponse response;
-						Version version = Version.parseVersion(pom.getVersion());
+						Version version = VersionImpl.parseVersion(pom.getVersion());
 						boolean isSnap = version.is(Version.SNAPSHOT);
 
 						// LDEV-6322: snapshots are only resolved against snapshot-capable repositories (and releases

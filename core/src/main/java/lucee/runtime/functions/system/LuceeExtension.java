@@ -9,6 +9,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.maven.ExtensionProvider;
 import lucee.runtime.config.maven.MavenUpdateProvider;
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -55,7 +56,7 @@ public final class LuceeExtension extends BIF {
 			else if (args.length == 3 || args.length == 4) {
 				ExtensionProvider ep = ExtensionProvider.getInstance(pc.getConfig(), Caster.toString(args[0]).trim());
 				String artifactId = Caster.toString(args[1]).trim();
-				Version version = Version.parseVersion(Caster.toString(args[2]).trim());
+				Version version = VersionImpl.parseVersion(Caster.toString(args[2]).trim());
 
 				// detail
 				Struct sct = new StructImpl();

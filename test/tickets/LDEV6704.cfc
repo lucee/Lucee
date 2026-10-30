@@ -140,7 +140,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven" {
 	}
 
 	private function toVersion( required string version ) {
-		return createObject( "java", "lucee.runtime.config.maven.Version" ).parseVersion( version );
+		return createObject( "java", "lucee.loader.util.VersionImpl" ).parseVersion( version );
 	}
 
 	private string function readCore( required string version ) {

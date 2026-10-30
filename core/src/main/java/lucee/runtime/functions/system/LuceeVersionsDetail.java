@@ -13,6 +13,7 @@ import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.maven.GitHubReleaseProvider;
 import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.config.maven.MavenUpdateProvider.Repository;
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
@@ -27,7 +28,7 @@ public final class LuceeVersionsDetail extends BIF {
 	private static final long serialVersionUID = -4525694087027654154L;
 
 	public static Struct call(PageContext pc, String version) throws PageException {
-		Version v = Version.parseVersion(version, null);
+		Version v = VersionImpl.parseVersion(version, null);
 
 		// releases: Maven Central first, artifacts missing there (lco, light, zero) from GitHub Releases
 		if (v != null && !v.is(Version.SNAPSHOT)) {

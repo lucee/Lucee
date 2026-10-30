@@ -37,6 +37,7 @@ import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.runtime.config.ConfigAdmin.AlreadyInstalledExtension;
 import lucee.runtime.config.maven.ExtensionProvider;
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadQueue;
@@ -318,7 +319,7 @@ public final class DeployHandler {
 			MavenCoordinate coordinate = getGavById(config, ed, investigate, log);
 			ExtensionProvider ep = ExtensionProvider.getInstance(config, coordinate.groupId);
 
-			Version version = StringUtil.isEmpty(ed.getVersion(), true) ? null : Version.parseVersion(ed.getVersion(), null);
+			Version version = StringUtil.isEmpty(ed.getVersion(), true) ? null : VersionImpl.parseVersion(ed.getVersion(), null);
 			// get latest version when no version is defined
 			if (version == null) {
 				// find out the last version still needs some investigated effort, maybe we will improve on that in
@@ -384,7 +385,7 @@ public final class DeployHandler {
 				}
 			}
 			else {
-				version = Version.parseVersion(ed.getVersion());
+				version = VersionImpl.parseVersion(ed.getVersion());
 				if (LogUtil.doesDebug(log) && version != null) {
 					log.debug("main", "use defined [" + version + "] for artifact [" + coordinate.artifactId + "]");
 				}

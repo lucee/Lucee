@@ -374,7 +374,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			BundleContext context = bundleCollection.getBundleContext();
 			List<Bundle> staleCoreBundles = null;
 			for (Bundle b: context.getBundles()) {
-				if ("lucee.core".equals(b.getSymbolicName()) && !b.getVersion().equals(info.getVersion())) {
+				if ("lucee.core".equals(b.getSymbolicName()) && !OSGiUtil.toLucee(b.getVersion()).equals(info.getVersion())) {
 					LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Found stale core bundle [" + b.getSymbolicName() + ":" + b.getVersion()
 							+ "], uninstalling to avoid conflicts with current version [" + info.getVersion() + "]");
 					try {

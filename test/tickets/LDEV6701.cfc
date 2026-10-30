@@ -25,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven" {
 			});
 			it( "does not touch artifacts already provided", function() {
 				var gh = createObject( "java", "lucee.runtime.config.maven.GitHubReleaseProvider" );
-				var Version = createObject( "java", "lucee.runtime.config.maven.Version" );
+				var Version = createObject( "java", "lucee.loader.util.VersionImpl" );
 				var data = createObject( "java", "java.util.LinkedHashMap" ).init();
 				data.put( "jar", "https://repo1.maven.org/lucee.jar" );
 				data.put( "light", "https://repo1.maven.org/lucee-light.jar" );
@@ -40,7 +40,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven" {
 			});
 			it( "does not look up snapshots on GitHub", function() {
 				var gh = createObject( "java", "lucee.runtime.config.maven.GitHubReleaseProvider" );
-				var Version = createObject( "java", "lucee.runtime.config.maven.Version" );
+				var Version = createObject( "java", "lucee.loader.util.VersionImpl" );
 				expect( gh.detail( Version.parseVersion( "7.1.2.200-SNAPSHOT" ) ).size() ).toBe( 0 );
 			});
 		});

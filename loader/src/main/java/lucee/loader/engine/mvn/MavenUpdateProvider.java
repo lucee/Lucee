@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.osgi.framework.Version;
+import lucee.runtime.config.maven.Version;
 import org.xml.sax.SAXException;
 
 import lucee.loader.util.OpenPGPVerifier;
@@ -139,7 +139,7 @@ public class MavenUpdateProvider {
 	}
 
 	public InputStream getCore(Version version) throws IOException, GeneralSecurityException, PageException, SAXException {
-		boolean isSnapshot = version.getQualifier().endsWith("-SNAPSHOT");
+		boolean isSnapshot = version.is(Version.SNAPSHOT);
 		String[] repos = isSnapshot ? repoSnapshots : repoReleases;
 		StringBuilder checked = new StringBuilder();
 		for (String repo: repos) {

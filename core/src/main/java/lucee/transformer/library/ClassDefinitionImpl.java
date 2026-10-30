@@ -437,8 +437,8 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	}
 
 	@Override
-	public Version getVersion() {
-		return version;
+	public lucee.runtime.config.maven.Version getVersion() {
+		return OSGiUtil.toLucee(version);
 	}
 
 	@Override
