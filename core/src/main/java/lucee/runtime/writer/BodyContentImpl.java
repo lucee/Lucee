@@ -57,6 +57,15 @@ public final class BodyContentImpl extends BodyContent {
 
 	}
 
+	/**
+	 * replace the enclosing writer without touching the content of this body
+	 * 
+	 * @param jspWriter the new enclosing writer
+	 */
+	public void setEnclosingWriter(JspWriter jspWriter) {
+		enclosingWriter = jspWriter;
+	}
+
 	@Override
 	public Reader getReader() {
 		return new StringReader(charBuffer.toString());

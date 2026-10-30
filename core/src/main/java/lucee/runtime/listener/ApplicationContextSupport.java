@@ -85,6 +85,15 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	protected ConfigWeb config;
 
+	/**
+	 * @return the whitespace management defined for this application (one of
+	 *         ConfigPro.CFML_WRITER_*) or 0 if the application does not define one, in that case the
+	 *         setting of the configuration is used
+	 */
+	public abstract int getWhitespaceManagement();
+
+	public abstract void setWhitespaceManagement(int whitespaceManagement);
+
 	public ApplicationContextSupport(ConfigWeb config) {
 		this.config = config;
 		tagDefaultAttributeValues = ((ConfigPro) config).getTagDefaultAttributeValues();

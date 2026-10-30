@@ -103,6 +103,41 @@ public class CFMLWriterImpl extends CFMLWriter {
 		return pool.responseBuffer;
 	}
 
+	/**
+	 * writes out content a whitespace writer still holds back, the regular writer holds nothing back
+	 */
+	void flushWhitespaceBuffer() throws IOException {
+		// nothing to do
+	}
+
+	/**
+	 * take over everything that has been written so far (buffered content, html head/body, flushed
+	 * state, response stream) from the given writer, so this writer can replace it in the middle of a
+	 * request. What the given writer holds back for whitespace handling is written out first, so the
+	 * content already written stays as it was processed by the given writer.
+	 * 
+	 * @param src the writer this writer replaces, it must not be used anymore after that call
+	 * @throws IOException
+	 */
+	public final void adoptState(CFMLWriterImpl src) throws IOException {
+		src.flushWhitespaceBuffer();
+		this.out = src.out;
+		this.response = src.response;
+		this.flushed = src.flushed;
+		this.htmlHead = src.htmlHead;
+		this.htmlBody = src.htmlBody;
+		this.buffer = src.buffer;
+		this.closed = src.closed;
+		this.closeConn = src.closeConn;
+		this.contentLength = src.contentLength;
+		this.cacheItem = src.cacheItem;
+		this.request = src.request;
+		this._allowCompression = src._allowCompression;
+		this.pc = src.pc;
+		this.autoFlush = src.autoFlush;
+		this.bufferSize = src.bufferSize;
+	}
+
 	protected void initOut() throws IOException {
 		if (out == null) {
 			out = getOutputStream(false);

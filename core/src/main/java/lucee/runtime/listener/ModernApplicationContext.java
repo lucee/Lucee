@@ -66,6 +66,7 @@ import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -215,6 +216,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initLocalMode;
 	private boolean initBufferOutput;
 	private boolean initSuppressContent;
+	private boolean initWhitespaceManagement;
+	private int whitespaceManagement;
 	private boolean initS3;
 	private boolean initFTP;
 	private boolean ormEnabled;
@@ -1515,6 +1518,30 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public void setSuppressContent(boolean suppressContent) {
 		this.suppressContent = suppressContent;
 		initSuppressContent = true;
+	}
+
+	@Override
+	public int getWhitespaceManagement() {
+		if (!initWhitespaceManagement) {
+			Object o = get(component, KeyConstants._whitespaceManagement, null);
+			if (o != null && !(o instanceof String && ((String) o).trim().isEmpty())) {
+				try {
+					whitespaceManagement = AppListenerUtil.toWhitespaceManagement(o);
+				}
+				catch (ApplicationException e) {
+					throw new PageRuntimeException(e);
+				}
+			}
+			else whitespaceManagement = 0;
+			initWhitespaceManagement = true;
+		}
+		return whitespaceManagement;
+	}
+
+	@Override
+	public void setWhitespaceManagement(int whitespaceManagement) {
+		this.whitespaceManagement = whitespaceManagement;
+		initWhitespaceManagement = true;
 	}
 
 	@Override

@@ -948,6 +948,7 @@ public final class KeyConstants {
 	public static final Key _database = init("database");
 	public static final Key _exception = init("exception");
 	public static final Key _webAdminPassword = init("webAdminPassword");
+	public static final Key _whitespaceManagement = init("whitespaceManagement");
 
 	public static final Key _parsebody = init("parsebody");
 	public static final Key _aroundEach = init("aroundEach");
