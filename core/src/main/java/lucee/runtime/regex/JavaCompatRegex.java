@@ -15,7 +15,8 @@ class JavaCompatRegex extends JavaRegex {
 
 	// Oro's POSIX classes use the Character.isXxx() methods, these are the exact java equivalents
 	private static final String PUNCT = "\\p{Pc}\\p{Pd}\\p{Ps}\\p{Pe}\\p{Po}\\p{Sm}\\p{Sc}\\p{Sk}";
-	private static final String WORD = "\\p{L}\\p{Nd}_";
+	// _ first, inside a class a - after the last char would start a range: [\w-\.]
+	private static final String WORD = "_\\p{L}\\p{Nd}";
 	private static final Map<String, String> POSIX = Map.ofEntries(Map.entry("alpha", "\\p{L}"), Map.entry("digit", "\\p{Nd}"), Map.entry("alnum", "\\p{L}\\p{Nd}"),
 			Map.entry("word", WORD), Map.entry("upper", "\\p{IsUppercase}"), Map.entry("lower", "\\p{IsLowercase}"), Map.entry("space", "\\p{javaWhitespace}"),
 			Map.entry("blank", "\\p{javaSpaceChar}"), Map.entry("punct", PUNCT), Map.entry("graph", "\\p{L}\\p{Nd}" + PUNCT), Map.entry("print", "\\p{L}\\p{Nd}" + PUNCT + "\\p{Z}"),

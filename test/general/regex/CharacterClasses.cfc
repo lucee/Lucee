@@ -246,6 +246,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 		});
 	}
 
+	// a - after \w or [:word:] is a literal, the translation mustn't end in a char that starts a range
+	public void function testDashAfterShorthandWordInsideClass() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			// Preside, via ColdBox
+			assertEquals( 1, reFind( "[\w][\w-\.]*\:[\w][\w-\.]*[^\.]", "coldbox:my-app.x" ) );
+			assertEquals( [ "a-.b_" ], reMatch( "[\w-\.]+", "a-.b_+" ) );
+			assertEquals( [ "a-.b_" ], reMatch( "[[:word:]-.]+", "a-.b_+" ) );
+			assertEquals( [ "a-", "b_" ], reMatch( "[\w-z]+", "a-.b_+" ) );
+		});
+	}
+
 	public void function testShorthandNonAsciiJavaUnchanged() unsupportedRegexEngine="perl,compat" {
 		variables._regex.eachEngine( function( engine ) {
 			assertEquals( [ "caf", "au" ], reMatch( "\w+", "caf#chr(233)# au" ) );
