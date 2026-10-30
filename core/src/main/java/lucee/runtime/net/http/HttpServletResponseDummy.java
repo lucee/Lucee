@@ -181,6 +181,19 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 	@Override
 	public void setContentType(String contentType) {
 		this.contentType = contentType;
+		// Match the servlet contract: a charset parameter also sets the response character encoding.
+		// Callers such as _internalRequest encode the body with getCharacterEncoding(), which otherwise
+		// stays ISO-8859-1 and fails (empty body) when the page contains characters outside that set.
+		if (contentType == null) return;
+		int semi = contentType.lastIndexOf(';');
+		if (semi == -1) return;
+		String param = contentType.substring(semi + 1).trim();
+		if (param.length() >= 8 && param.regionMatches(true, 0, "charset=", 0, 8)) {
+			String cs = param.substring(8).trim();
+			int n = cs.length();
+			if (n >= 2 && ((cs.charAt(0) == '"' && cs.charAt(n - 1) == '"') || (cs.charAt(0) == '\'' && cs.charAt(n - 1) == '\''))) cs = cs.substring(1, n - 1).trim();
+			if (cs.length() > 0) this.charset = cs;
+		}
 	}
 
 	@Override
