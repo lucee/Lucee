@@ -148,6 +148,44 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 		});
 	}
 
+	public void function testBraceWithNothingToRepeatIsLiteral() unsupportedRegexEngine="java" {
+		// at the start of a group or an alternative, or after a modifier group
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( [ "{2}b" ], reMatch( "a|{2}b", "{2}b" ) );
+			assertEquals( [ "{2}a" ], reMatch( "({2}a)", "{2}a" ) );
+			assertEquals( [ "{2,3}a" ], reMatch( "(?:{2,3}a)", "{2,3}a" ) );
+			assertEquals( [ "{2}a" ], reMatch( "(?i){2}a", "{2}a" ) );
+			assertEquals( [ "a{2}" ], reMatch( "a(?i){2}", "a{2}" ) );
+		});
+	}
+
+	// (?#...) is a comment on perl, java doesn't know it
+
+	public void function testCommentGroup() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( [ "ab" ], reMatch( "a(?##comment)b", "ab" ) );
+			assertEquals( [ "ab" ], reMatch( "a(?##)b", "ab" ) );
+			assertEquals( [ "{2}" ], reMatch( "(?##x){2}", "{2}" ) );
+			assertEquals( 1, reFind( "a(?##unclosed", "a" ) );
+		});
+	}
+
+	public void function testQuantifierAfterCommentTakesWholeRun() unsupportedRegexEngine="java" {
+		// perl ends a run of literals at the (, so the quantifier repeats all of it
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( [ "ababab" ], reMatch( "ab(?##x)*", "ababab" ) );
+			assertEquals( [ "abab" ], reMatch( "ab(?##x){2}", "ababab" ) );
+			assertEquals( [ "aaa" ], reMatch( "a(?##x)*", "aaa" ) );
+		});
+	}
+
+	public void function testCommentGroupJavaUnchanged() unsupportedRegexEngine="perl,compat" {
+		variables._regex.eachEngine( function( engine ) {
+			assertTrue( variables._regex.throws( function() { reFind( "a(?##c)b", "ab" ); } ) );
+			assertEquals( [ "b" ], reMatch( "a|{2}b", "{2}b" ) );
+		});
+	}
+
 	public void function testNonAsciiDigitBrace() {
 		// Oro reads {U+0662} as a quantifier that never matches, compat treats it as a literal
 		// (known divergence), java throws

@@ -33,8 +33,11 @@ class JavaCompatRegex extends JavaRegex {
 	// the inline modifiers Oro accepts in (?...)
 	private static final String ORO_MODIFIERS = "iogmsx-";
 
-	// letters java.util.regex accepts after a backslash, Oro reads any other letter as itself
-	private static final String JAVA_ESCAPE_LETTERS = "tnrfaecdDhHsSvVwWpPbBAGZzQERXNkxu";
+	// letters java.util.regex accepts after a backslash, Oro reads any other letter as itself.
+	// \E is only valid after a \Q, which is copied whole
+	private static final String JAVA_ESCAPE_LETTERS = "tnrfaecdDhHsSvVwWpPbBAGZzQRXNkxu";
+	// inside a class java also rejects the anchors, \R and \X
+	private static final String JAVA_CLASS_ESCAPE_LETTERS = "tnrfaecdDhHsSvVwWpPbQNkxu";
 
 	// Oro compiled non-multiline patterns with SINGLELINE_MASK, so . matches \n, and only \n ends a line
 	@Override
@@ -72,9 +75,9 @@ class JavaCompatRegex extends JavaRegex {
 
 	// Translates a CFML/Perl pattern string to java.util.regex syntax.
 	// Oro reads these as literals where java throws or reads them differently: a { that doesn't start a quantifier,
-	// a [ or && inside a class, a letter escape java doesn't know, \xH and \0. POSIX [:name:] becomes \p{...},
+	// a [ or && inside a class, a letter escape java doesn't know, \xH and octal. POSIX [:name:] becomes \p{...},
 	// and \w \W \d \D \s \S \b \B become their Unicode equivalents.
-	// Oro's (?x) is handled here and dropped from the translation, see the comments below.
+	// Oro's (?x) and (?#...) are handled here and dropped from the translation, see the comments below.
 	static String translatePattern(String pattern) {
 		if (pattern.indexOf('{') < 0 && pattern.indexOf('[') < 0 && pattern.indexOf('\\') < 0 && pattern.indexOf("(?") < 0) return pattern;
 		int n = pattern.length();
@@ -88,6 +91,10 @@ class JavaCompatRegex extends JavaRegex {
 		boolean skipped = false;
 		// sb length right after a plain word char literal, so a \b straight after it knows one side
 		int wordEnd = -1;
+		// capturing groups opened so far, Oro reads \NN as octal unless there are that many
+		int groups = 0;
+		// nothing to repeat yet: the start of the pattern, a group or an alternative, or after a modifier group
+		boolean atomStart = true;
 		for (int i = 0; i < n; i++) {
 			char c = pattern.charAt(i);
 			int len = sb.length();
@@ -96,6 +103,8 @@ class JavaCompatRegex extends JavaRegex {
 				if (runStart >= 0) skipped = true;
 				continue;
 			}
+			boolean atStart = atomStart;
+			atomStart = false;
 			if (skipped && "*+?{".indexOf(c) >= 0) {
 				// unless another quantifier follows, which backs it off and then repeats the whole run
 				if (c != '{' && i + 1 < n && isOroQuantifier(pattern, i + 1)) {
@@ -107,22 +116,34 @@ class JavaCompatRegex extends JavaRegex {
 				continue;
 			}
 			skipped = false;
+			if (!inClass && pattern.startsWith("(?#", i)) {
+				// a comment runs to the first ), or the end of the pattern. Oro ends a run of literals at the (,
+				// so a quantifier after the comment repeats the whole run
+				int end = pattern.indexOf(')', i + 3);
+				i = end < 0 ? n - 1 : end;
+				if (runStart >= 0 && i + 1 < n && isOroQuantifier(pattern, i + 1)) sb.insert(runStart, "(?:").append(')');
+				runStart = -1;
+				atomStart = atStart;
+				continue;
+			}
 			int modEnd = !inClass && c == '(' ? modifiersEnd(pattern, i) : -1;
 			if (modEnd > 0) {
 				extended = translateModifiers(pattern, i, modEnd, extended, sb);
 				runStart = -1;
+				atomStart = true;
 				i = modEnd;
 			}
 			else if (c == '\\' && !inClass && !extended && i + 1 < n && (pattern.charAt(i + 1) == 'b' || pattern.charAt(i + 1) == 'B')) {
 				int j = translateBoundary(pattern, i, sb.length() == wordEnd, sb);
-				// it moved the following literal in front of the check
+				// it moved the following literal in front of the check, which starts a run
 				if (j == i + 2) wordEnd = sb.length();
+				runStart = j == i + 2 ? len : -1;
 				i = j;
 			}
 			else if (c == '\\') {
 				// Oro ends a run of literals at these, any other escape is one more literal
 				boolean ends = i + 1 < n && ("AGZwWbBsSdD".indexOf(pattern.charAt(i + 1)) >= 0 || (pattern.charAt(i + 1) >= '1' && pattern.charAt(i + 1) <= '9'));
-				i = translateEscape(pattern, i, inClass, sb);
+				i = translateEscape(pattern, i, inClass, groups, sb);
 				if (!inClass) runStart = ends ? -1 : runStart < 0 ? len : runStart;
 			}
 			else if (inClass) {
@@ -132,10 +153,14 @@ class JavaCompatRegex extends JavaRegex {
 				}
 				else if (c == '[') {
 					int end = pattern.startsWith("[:", i) ? pattern.indexOf(":]", i + 2) : -1;
-					String posix = end < 0 ? null : POSIX.get(pattern.substring(i + 2, end));
+					String name = end < 0 ? null : pattern.substring(i + 2, end);
+					// [:^name:] is the negation, a nested class
+					boolean negated = name != null && name.startsWith("^");
+					String posix = name == null ? null : POSIX.get(negated ? name.substring(1) : name);
 					if (posix == null) sb.append("\\[");
 					else {
-						sb.append(posix);
+						if (negated) sb.append("[^").append(posix).append(']');
+						else sb.append(posix);
 						i = end + 1;
 					}
 				}
@@ -157,8 +182,8 @@ class JavaCompatRegex extends JavaRegex {
 				}
 			}
 			else if (c == '{') {
-				// a quantifier at the very start has nothing to repeat, Oro reads it as a literal
-				int end = i == 0 ? -1 : quantifierEnd(pattern, i);
+				// a quantifier with nothing to repeat, Oro reads it as a literal
+				int end = atStart ? -1 : quantifierEnd(pattern, i);
 				if (end < 0) {
 					sb.append("\\{");
 					if (runStart < 0) runStart = len;
@@ -169,10 +194,18 @@ class JavaCompatRegex extends JavaRegex {
 					i = end;
 				}
 			}
+			else if (c == '(' && i + 2 < n && pattern.charAt(i + 1) == '?' && ":=!".indexOf(pattern.charAt(i + 2)) >= 0) {
+				sb.append(pattern, i, i + 3);
+				runStart = -1;
+				atomStart = true;
+				i += 2;
+			}
 			else {
 				sb.append(c);
 				if (isWordChar(c)) wordEnd = sb.length();
 				runStart = "^$.()|*+?".indexOf(c) >= 0 ? -1 : runStart < 0 ? len : runStart;
+				if (c == '(' || c == '|') atomStart = true;
+				if (c == '(' && (i + 1 == n || pattern.charAt(i + 1) != '?')) groups++;
 			}
 		}
 		return sb.toString();
@@ -239,7 +272,7 @@ class JavaCompatRegex extends JavaRegex {
 	}
 
 	// appends the escape starting at the backslash at index i, returns the index of its last char
-	private static int translateEscape(String pattern, int i, boolean inClass, StringBuilder sb) {
+	private static int translateEscape(String pattern, int i, boolean inClass, int groups, StringBuilder sb) {
 		int n = pattern.length();
 		if (i + 1 == n) {
 			sb.append('\\');
@@ -255,25 +288,30 @@ class JavaCompatRegex extends JavaRegex {
 		}
 		if ((e == 'p' || e == 'P' || e == 'x' || e == 'N') && i + 2 < n && pattern.charAt(i + 2) == '{') return copyTo(pattern, i, '}', sb);
 		if (e == 'k' && i + 2 < n && pattern.charAt(i + 2) == '<') return copyTo(pattern, i, '>', sb);
+		// Oro upper cases the letter, \cz is \cZ
 		if (e == 'c' && i + 2 < n) {
-			sb.append(pattern, i, i + 3);
+			sb.append("\\c").append(Character.toUpperCase(pattern.charAt(i + 2)));
 			return i + 2;
 		}
+		// the hex digits are copied with it, so they can't be mistaken for literals
 		if (e == 'x') {
 			int digits = 0;
 			while (digits < 2 && i + 2 + digits < n && Character.digit(pattern.charAt(i + 2 + digits), 16) >= 0) digits++;
-			if (digits == 1) {
-				sb.append("\\x0").append(pattern.charAt(i + 2));
-				return i + 2;
-			}
-			if (digits == 0) {
-				sb.append("\\x00");
-				return i + 1;
-			}
+			if (digits == 1) sb.append("\\x0").append(pattern.charAt(i + 2));
+			else if (digits == 0) sb.append("\\x00");
+			else sb.append(pattern, i, i + 4);
+			return i + 1 + digits;
 		}
-		else if (e == '0' && (i + 2 == n || pattern.charAt(i + 2) < '0' || pattern.charAt(i + 2) > '7')) {
-			sb.append("\\x00");
-			return i + 1;
+		if (isAsciiDigit(e)) {
+			// a backreference: one digit, or as many as name a group that's already open
+			int end = i + 1, num = 0;
+			while (end < n && isAsciiDigit(pattern.charAt(end))) num = Math.min(num * 10 + pattern.charAt(end++) - '0', 100000);
+			if (!inClass && e != '0' && (end == i + 2 || num <= groups)) {
+				sb.append(pattern, i, end);
+				return end - 1;
+			}
+			// otherwise Oro reads up to three octal digits, java's octal needs a leading 0 and takes a different number
+			if (e <= '7') return appendOctal(pattern, i + 1, sb);
 		}
 		else if (e == 'b' && inClass) {
 			sb.append("\\x08");
@@ -288,12 +326,20 @@ class JavaCompatRegex extends JavaRegex {
 			return i + 1;
 		}
 		// \k and \N without their bracket (handled above) are unknown letters too
-		else if (Character.isLetter(e) && e < 128 && (JAVA_ESCAPE_LETTERS.indexOf(e) < 0 || e == 'k' || e == 'N')) {
+		else if (Character.isLetter(e) && e < 128 && ((inClass ? JAVA_CLASS_ESCAPE_LETTERS : JAVA_ESCAPE_LETTERS).indexOf(e) < 0 || e == 'k' || e == 'N')) {
 			sb.append(e);
 			return i + 1;
 		}
 		sb.append('\\').append(e);
 		return i + 1;
+	}
+
+	// up to three octal digits from start, as \x{..}, returns the index of the last one
+	private static int appendOctal(String pattern, int start, StringBuilder sb) {
+		int end = start, value = 0;
+		while (end < pattern.length() && end < start + 3 && pattern.charAt(end) >= '0' && pattern.charAt(end) <= '7') value = value * 8 + pattern.charAt(end++) - '0';
+		sb.append("\\x{").append(Integer.toHexString(value)).append('}');
+		return end - 1;
 	}
 
 	private static int copyTo(String pattern, int i, char close, StringBuilder sb) {

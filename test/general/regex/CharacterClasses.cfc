@@ -289,6 +289,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 		});
 	}
 
+	public void function testPosixNegated() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( [ "12-" ], reMatch( "[[:^alpha:]]+", "ab12-" ) );
+			assertEquals( [ "ab" ], reMatch( "[^[:^alpha:]]+", "ab12-" ) );
+			assertEquals( [ "-" ], reMatch( "[[:^word:]]+", "a_1-" ) );
+			assertEquals( [ "1" ], reMatchNoCase( "[[:^lower:]]+", "abC1" ) );
+		});
+	}
+
 	// An unescaped [ inside a class is a literal on perl, java reads it as a nested class.
 	// compat escapes it.
 
@@ -360,6 +369,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 			// java defines \k< and \N{, on their own they're literal letters on perl
 			assertEquals( [ "k" ], reMatch( "\k", "aks" ) );
 			assertEquals( [ "N" ], reMatch( "\N", "aNs" ) );
+			// \E without a \Q
+			assertEquals( [ "E" ], reMatch( "\E", "aEs" ) );
+		});
+	}
+
+	public void function testLetterEscapeInsideClassIsLiteral() unsupportedRegexEngine="java" {
+		// anchors and the other escapes java only allows outside a class
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( [ "A", "B", "G", "Z", "z", "R", "X", "E" ], reMatch( "[\A\B\G\Z\z\R\X\E]", "aAbBgGZzRXEe" ) );
+		});
+	}
+
+	public void function testControlEscapeLowerCase() unsupportedRegexEngine="java" {
+		// perl upper cases the letter, \cz is \cZ
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 2, reFind( "\cz", "a#chr(26)#" ) );
+			assertEquals( 2, reFind( "[\cz]", "a#chr(26)#" ) );
+		});
+	}
+
+	public void function testOctalEscape() unsupportedRegexEngine="java" {
+		// perl reads up to three octal digits, and \NN is octal unless that many groups came before it
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 1, reFind( "\0123", "#chr(10)#3" ) );
+			assertEquals( 1, reFind( "\101", "A" ) );
+			assertEquals( 1, reFind( "(a)\18", "a#chr(1)#8" ) );
+			assertEquals( 1, reFind( "(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)\10", "abcdefghijj" ) );
+			// inside a class digits are always octal
+			assertEquals( [ "A" ], reMatch( "[\101]", "aAb" ) );
+			assertEquals( 2, reFind( "[\12]", "a#chr(10)#" ) );
 		});
 	}
 
@@ -378,6 +417,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 			assertTrue( variables._regex.throws( function() { reMatch( "\xg", "a" ); } ) );
 			assertTrue( variables._regex.throws( function() { reMatch( "\0", "a" ); } ) );
 			assertTrue( variables._regex.throws( function() { reMatch( "\q", "a" ); } ) );
+			assertTrue( variables._regex.throws( function() { reMatch( "\E", "a" ); } ) );
+			assertTrue( variables._regex.throws( function() { reMatch( "[\B]", "a" ); } ) );
+			assertTrue( variables._regex.throws( function() { reMatch( "[\101]", "a" ); } ) );
+			assertEquals( 0, reFind( "\cz", chr(26) ) );
+			assertEquals( 0, reFind( "\101", "A" ) );
 		});
 	}
 

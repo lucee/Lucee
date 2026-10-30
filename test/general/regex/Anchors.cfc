@@ -82,6 +82,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 		});
 	}
 
+	// the digits of a hex or octal escape aren't word chars, whatever they spell
+	public void function testWordBoundaryAfterEscape() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 1, reFind( "\x2e\b", ".a . " ) );
+			assertEquals( 0, reFind( "\x2e\b", ". " ) );
+			assertEquals( 1, reFind( "\056\b", ".a . " ) );
+			assertEquals( 2, reFind( "\012\b", " #chr(10)#a" ) );
+			assertEquals( 1, reFind( "\x41\b", "A AB" ) );
+		});
+	}
+
 	public void function testWordBoundaryNonAsciiAtStartPosition() unsupportedRegexEngine="java" {
 		variables._regex.eachEngine( function( engine ) {
 			assertEquals( 0, reFind( "\b#chr(233)#", "caf#chr(233)#", 4 ) );
