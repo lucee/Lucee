@@ -112,7 +112,7 @@ public abstract class CFMLEngineFactorySupport {
 		final int rIndex = version.lastIndexOf(".lco");
 		if (rIndex != -1) version = version.substring(0, rIndex);
 
-		return VersionImpl.parseVersion(version, defaultValue);
+		return VersionImpl.parse(version, true, defaultValue);
 	}
 
 	public static String removeQuotes(String str, final boolean trim) {

@@ -75,7 +75,7 @@ public final class VersionImpl implements Version, Serializable {
 
 	@Override
 	public boolean is(int type) {
-		if (appendix != null && appendix.endsWith("SNAPSHOT")) return type == SNAPSHOT;
+		if (appendix != null && appendix.toUpperCase().endsWith("SNAPSHOT")) return type == SNAPSHOT;
 		return type == RELEASE;
 	}
 

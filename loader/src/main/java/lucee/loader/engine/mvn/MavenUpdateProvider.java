@@ -139,7 +139,7 @@ public class MavenUpdateProvider {
 	}
 
 	public InputStream getCore(Version version) throws IOException, GeneralSecurityException, PageException, SAXException {
-		boolean isSnapshot = version.getQualifier().endsWith("-SNAPSHOT");
+		boolean isSnapshot = version.is(Version.SNAPSHOT);
 		String[] repos = isSnapshot ? repoSnapshots : repoReleases;
 		StringBuilder checked = new StringBuilder();
 		for (String repo: repos) {

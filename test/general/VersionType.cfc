@@ -85,6 +85,29 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="version" {
 				expect( v( "1.0" ).equals( v( "1.0.0.1" ) ) ).toBeFalse();
 			});
 
+			it( "is(SNAPSHOT) ignores the case of the qualifier, like the ordering", function() {
+				expect( v( "1.0.0-snapshot" ).is( VersionClass.SNAPSHOT ) ).toBeTrue();
+				expect( v( "1.0.0-snapshot" ).is( VersionClass.RELEASE ) ).toBeFalse();
+				expect( v( "1.0.0.5-SNAPSHOT" ).is( VersionClass.SNAPSHOT ) ).toBeTrue();
+				expect( v( "1.0.0" ).is( VersionClass.RELEASE ) ).toBeTrue();
+			});
+
+			it( "the loader ignores a name that is not a version (strict toVersion)", function() {
+				var support = createObject( "java", "lucee.loader.engine.CFMLEngineFactorySupport" );
+				var zero = VersionClass.parseVersion( "0.0.0.0" );
+				expect( support.toVersion( "foo", zero ).toString() ).toBe( "0.0.0.0" );
+				expect( support.toVersion( "abc.lco", zero ).toString() ).toBe( "0.0.0.0" );
+				expect( support.toVersion( "7.1.2.200-SNAPSHOT.lco", zero ).toString() ).toBe( "7.1.2.200-SNAPSHOT" );
+			});
+
+			it( "a version with a qualifier survives the round trip through OSGi", function() {
+				var osgiUtil = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
+				loop list="1.0.0-SNAPSHOT,9.0.0.12-ALPHA,7.1.2.200-SNAPSHOT,7.1.2.200,1.2.3" item="local.str" {
+					var back = osgiUtil.toLucee( osgiUtil.toOSGi( v( str ) ) );
+					expect( back.compareTo( v( str ) ) ).toBe( 0, str );
+				}
+			});
+
 			it( "the version of this Lucee is a version of this type", function() {
 				var info = getPageContext().getConfig().getFactory().getEngine().getInfo();
 				var version = info.getVersion();

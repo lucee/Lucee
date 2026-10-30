@@ -104,6 +104,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven" {
 				expect( loaderCore( "7.1.99.3" ) ).toBe( "first:lco" );
 			});
 
+			it( "the loader looks a snapshot up in the snapshot repositories, not in the release repositories", function() {
+				var snap = [ baseUrl & "repo1/" ];
+				var rel = [ baseUrl & "repo2/" ];
+				var mup = createObject( "java", "lucee.loader.engine.mvn.MavenUpdateProvider" ).init(
+					javacast( "String[]", snap ), javacast( "String[]", rel ), "org.lucee", "lucee" );
+				var msg = "";
+				try {
+					mup.getCore( createObject( "java", "lucee.loader.util.VersionImpl" ).parseVersion( "7.1.99.5-SNAPSHOT" ) );
+				}
+				catch ( any e ) {
+					msg = e.message;
+				}
+				expect( msg ).toInclude( baseUrl & "repo1/" );
+				expect( msg ).notToInclude( baseUrl & "repo2/" );
+			});
+
 			it( "the loader fails when no repository has the version", function() {
 				expect( function() {
 					loaderCore( "7.1.99.9" );
