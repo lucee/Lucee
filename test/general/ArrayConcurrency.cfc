@@ -101,6 +101,49 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 		});
 
+		describe( title = "Array concurrency, bulk readers against middle shifts and growth", body = function() {
+
+			it( title = "duplicate() and serializeJson() during middle insert / deleteAt are point in time copies", body = function( currentSpec ) {
+				var arr = seq( 1, 200 );
+				var res = race( arr, function( arr ) {
+					// a copy of a neighbour goes in and comes out again, near the front then near the back, so both
+					// sides shift in place
+					arrayInsertAt( arr, 50, arr[ 50 ] );
+					arrayDeleteAt( arr, 50 );
+					arrayInsertAt( arr, 150, arr[ 150 ] );
+					arrayDeleteAt( arr, 150 );
+				}, function( arr, res ) {
+					try {
+						checkMiddleChurn( duplicate( arr ), "duplicate", res );
+						checkMiddleChurn( deserializeJson( serializeJson( arr ) ), "serializeJson", res );
+					}
+					catch ( any e ) {
+						arrayAppend( res.errors, e.type & ": " & e.message );
+					}
+				} );
+				assertEquals( [], res.errors );
+			});
+
+			it( title = "duplicate() and serializeJson() of a growing array are point in time copies", body = function( currentSpec ) {
+				var arr = [];
+				var res = race( arr, function( arr ) {
+					// clear publishes a small holder, so the refill grows it again and again
+					if ( arrayLen( arr ) >= 1000 ) arrayClear( arr );
+					arrayAppend( arr, arrayLen( arr ) + 1 );
+				}, function( arr, res ) {
+					try {
+						checkGrowth( duplicate( arr ), "duplicate", res );
+						checkGrowth( deserializeJson( serializeJson( arr ) ), "serializeJson", res );
+					}
+					catch ( any e ) {
+						arrayAppend( res.errors, e.type & ": " & e.message );
+					}
+				} );
+				assertEquals( [], res.errors );
+			});
+
+		});
+
 		describe( title = "Array concurrency, writers", body = function() {
 
 			it( title = "parallel arrayAppend keeps every element and adds no padding", body = function( currentSpec ) {
@@ -227,6 +270,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			arrayAppend( arr, next.v++ );
 			arrayDeleteAt( arr, 1 );
 		};
+	}
+
+	// 1..200 ascending by one, with at most one value doubled up by the middle churn writer
+	private function checkMiddleChurn( required array copy, required string label, required struct res ) {
+		var len = arrayLen( arguments.copy );
+		if ( len < 200 || len > 201 ) return arrayAppend( arguments.res.errors, "#arguments.label#: length #len#" );
+		if ( arguments.copy[ 1 ] != 1 || arguments.copy[ len ] != 200 ) return arrayAppend( arguments.res.errors, "#arguments.label#: #arguments.copy[ 1 ]#..#arguments.copy[ len ]#" );
+		for ( var i = 2; i <= len; i++ ) {
+			var step = arguments.copy[ i ] - arguments.copy[ i - 1 ];
+			if ( step != 0 && step != 1 ) return arrayAppend( arguments.res.errors, "#arguments.label#: #arguments.copy[ i - 1 ]# then #arguments.copy[ i ]# at #i#" );
+		}
+	}
+
+	// the growth writer only ever appends len + 1, so any copy is 1..len
+	private function checkGrowth( required array copy, required string label, required struct res ) {
+		var len = arrayLen( arguments.copy );
+		for ( var i = 1; i <= len; i++ ) {
+			if ( arguments.copy[ i ] != i ) return arrayAppend( arguments.res.errors, "#arguments.label#: #arguments.copy[ i ]# at #i# of #len#" );
+		}
 	}
 
 	private array function seq( required numeric from, required numeric to ) {
