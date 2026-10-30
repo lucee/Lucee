@@ -269,13 +269,11 @@ class JavaRegex implements Regex {
 		return matcher.find();
 	}
 
-	// Starts the search at index start without cutting the input there, as Oro's setCurrentOffset() does.
-	// A region on its own has anchoring bounds (^ and \A match at the region start) and opaque bounds
-	// (\b and lookarounds can't see the chars before it), so code that loops reFind from increasing offsets
-	// with a leading ^ re-anchored at every restart, Preside's PresideObjectService._reSearch() for one.
-	// The region end is always the input end, so $ is unchanged. Plain java changes too, see LDEV-6798.
-	private static void startAt(Matcher matcher, int start) {
-		matcher.region(start, matcher.regionEnd()).useAnchoringBounds(false).useTransparentBounds(true);
+	// Starts the search at index start. The region's default bounds cut the input there: ^ and \A match at
+	// the start, and \b can't see the char before it, as on ACF's java engine. Whether java should follow
+	// Oro instead, as compat does, is LDEV-6798.
+	protected void startAt(Matcher matcher, int start) {
+		matcher.region(start, matcher.regionEnd());
 	}
 
 	protected Pattern toPattern(String strPattern, boolean caseSensitive, boolean multiLine) {

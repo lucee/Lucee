@@ -190,9 +190,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 
 	// A start position only moves where the search begins, the input still starts at 1:
 	// ^ and \A don't match at the start position, \b and \B see the char before it.
-	// Runs on all engines, java included, see LDEV-6798.
+	// java anchors at the start position (as ACF's java engine does), whether it should follow perl is LDEV-6798.
 
-	public void function testCaretNotAtStartPosition() {
+	public void function testCaretNotAtStartPosition() unsupportedRegexEngine="java" {
 		variables._regex.eachEngine( function( engine ) {
 			assertEquals( 0, reFind( "^b", "ab", 2 ) );
 			assertEquals( 0, reFind( "\Ab", "ab", 2 ) );
@@ -200,7 +200,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 		});
 	}
 
-	public void function testWordBoundarySeesCharBeforeStartPosition() {
+	public void function testWordBoundarySeesCharBeforeStartPosition() unsupportedRegexEngine="java" {
 		variables._regex.eachEngine( function( engine ) {
 			assertEquals( 0, reFind( "\bb", "ab", 2 ) );
 			assertEquals( 2, reFind( "\Bb", "ab", 2 ) );
@@ -208,10 +208,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 		});
 	}
 
-	public void function testMultilineCaretAtStartPosition() {
+	public void function testMultilineCaretAtStartPosition() unsupportedRegexEngine="java" {
 		variables._regex.eachEngine( function( engine ) {
 			// Oro quirk: a multiline ^ never matches at the start position, even right after \n.
-			// ACF Perl and java match there, compat doesn't emulate it (known divergence)
+			// ACF Perl matches there, compat doesn't emulate it (known divergence)
 			var r = reFind( "(?m)^b", "a#chr(10)#b", 3 );
 			if ( engine == "perl" ) assertEquals( 0, r );
 			else                    assertEquals( 3, r );
@@ -219,18 +219,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 		});
 	}
 
-	public void function testCaretAtStartPositionScopeAll() {
+	public void function testCaretAtStartPositionScopeAll() unsupportedRegexEngine="java" {
 		variables._regex.eachEngine( function( engine ) {
 			assertEquals( [ 3 ], reFind( "(^|,)b", "ab,b", 2, false, "all" ) );
 		});
 	}
 
-	public void function testCaretAtStartPositionPresideReSearch() {
+	public void function testCaretAtStartPositionPresideReSearch() unsupportedRegexEngine="java" {
 		// Preside PresideObjectService._reSearch() restarts reFindNoCase one past each match
 		variables._regex.eachEngine( function( engine ) {
 			var r = reFindNoCase( "(^|\.)task", "taskmanager_task.task_key", 13, true );
 			assertEquals( 17, r.pos[ 1 ] );
 			assertEquals( ".task", r.match[ 1 ] );
+		});
+	}
+
+	public void function testStartPositionJavaUnchanged() unsupportedRegexEngine="perl,compat" {
+		// the input is cut at the start position: ^ and \A match there, \b sees no char before it
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 2, reFind( "^b", "ab", 2 ) );
+			assertEquals( 2, reFind( "\Ab", "ab", 2 ) );
+			assertEquals( 2, reFind( "(?m)^b", "ab", 2 ) );
+			assertEquals( 2, reFind( "\bb", "ab", 2 ) );
+			assertEquals( 0, reFind( "\Bb", "ab", 2 ) );
+			assertEquals( [ 2, 3 ], reFind( "(^|,)b", "ab,b", 2, false, "all" ) );
+			var r = reFindNoCase( "(^|\.)task", "taskmanager_task.task_key", 13, true );
+			assertEquals( 13, r.pos[ 1 ] );
+			assertEquals( "task", r.match[ 1 ] );
 		});
 	}
 }

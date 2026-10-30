@@ -64,6 +64,16 @@ class JavaCompatRegex extends JavaRegex {
 		}
 	}
 
+	// Starts the search at index start without cutting the input there, as Oro's setCurrentOffset() does.
+	// A region on its own has anchoring bounds (^ and \A match at the region start) and opaque bounds
+	// (\b and lookarounds can't see the chars before it), so code that loops reFind from increasing offsets
+	// with a leading ^ re-anchored at every restart, Preside's PresideObjectService._reSearch() for one.
+	// The region end is always the input end, so $ is unchanged.
+	@Override
+	protected void startAt(Matcher matcher, int start) {
+		matcher.region(start, matcher.regionEnd()).useAnchoringBounds(false).useTransparentBounds(true);
+	}
+
 	// Perl doesn't report an empty match where the previous match ended
 	@Override
 	protected boolean findNext(Matcher matcher, int prevEnd) {
