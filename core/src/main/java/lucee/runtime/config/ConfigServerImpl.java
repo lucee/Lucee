@@ -4808,11 +4808,38 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (constants == null) {
 			synchronized (SystemUtil.createToken("config", "getConstants")) {
 				if (constants == null) {
-					constants = metaConstants.get(this, root);
+					constants = normalizeConstants(metaConstants.get(this, root));
 				}
 			}
 		}
 		return constants;
+	}
+
+	/**
+	 * keeps only the constants that have a simple value (stored as string), constants with a complex
+	 * value like a struct or an array or without a name are skipped
+	 *
+	 * @param raw the constants as defined in the configuration
+	 * @return the constants with a simple value
+	 */
+	public static Struct normalizeConstants(Struct raw) {
+		Struct sct = new StructImpl();
+		if (raw == null) return sct;
+
+		Iterator<Entry<Key, Object>> it = raw.entryIterator();
+		Entry<Key, Object> e;
+		String value;
+		Key name;
+		while (it.hasNext()) {
+			e = it.next();
+			value = Caster.toString(e.getValue(), null);
+			if (value == null) continue;
+
+			name = e.getKey();
+			if (StringUtil.isEmpty(name)) continue;
+			sct.setEL(name, value);
+		}
+		return sct;
 	}
 
 	public ConfigServerImpl resetConstants() {
@@ -4945,7 +4972,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public ExtensionProvider[] getExtensionProviders() {
-		throw new RuntimeException("no longer supported, use getRHExtensionProviders() instead.");
+		throw new RuntimeException("no longer supported, extensions are loaded from Maven, use getExtensionProvidersGroupIds() instead.");
 	}
 
 	@Override

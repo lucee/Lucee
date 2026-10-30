@@ -52,10 +52,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="config" {
 	}
 
 	private struct function load( required struct constants ) {
-		var cfg = createObject( "java", "lucee.runtime.config.ConfigUtil" ).getConfigServerImpl( getPageContext().getConfig() );
-		var root = { "constants": arguments.constants };
-		var loaded = createObject( "java", "lucee.runtime.config.ConfigFactoryImpl" ).loadConstants( cfg, root, { "failed": true } );
-		expect( loaded ).notToHaveKey( "failed" );
-		return loaded;
+		return createObject( "java", "lucee.runtime.config.ConfigServerImpl" ).normalizeConstants( duplicate( arguments.constants ) );
 	}
 }
