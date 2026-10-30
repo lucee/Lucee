@@ -18,6 +18,7 @@
  */
 package lucee.runtime.tag;
 
+import lucee.runtime.osgi.BundleServiceImpl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -4906,7 +4907,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			String version = getString("admin", action, "version");
 			boolean removePhysical = getBoolV("removePhysical", true);
 
-			OSGiUtil.removeLocalBundle(name.trim(), OSGiUtil.toVersion(version.trim()), null, removePhysical, false);
+			BundleServiceImpl.getInstance().removeLocal(name.trim(), version.trim(), removePhysical);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

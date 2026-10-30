@@ -169,6 +169,23 @@ public final class BundleServiceImpl implements BundleService {
 		info.put("state", OSGiUtil.toState(b.getState(), "unknown"));
 		info.put("location", b.getLocation());
 		info.put("fragment", Boolean.valueOf(OSGiUtil.isFragment(b)));
+		info.put("headers", OSGiUtil.getHeaders(b));
 		return info;
+	}
+
+	@Override
+	public Map<String, Object> loadFromLocal(String bundleName, String bundleVersion, boolean loadIfNecessary) {
+		Bundle b = OSGiUtil.loadBundleFromLocal(context(), bundleName, toVersion(bundleVersion), null, loadIfNecessary, null);
+		return b == null ? null : toInfo(b);
+	}
+
+	@Override
+	public void removeLocal(String bundleName, String bundleVersion, boolean removeFile) throws IOException {
+		try {
+			OSGiUtil.removeLocalBundle(bundleName, toVersion(bundleVersion), null, removeFile, false);
+		}
+		catch (BundleException be) {
+			throw new IOException(be.getMessage(), be);
+		}
 	}
 }

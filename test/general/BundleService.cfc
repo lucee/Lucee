@@ -49,6 +49,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( isNull( info ) ).toBeTrue();
 			});
 
+			it( "has the manifest headers in the info", function() {
+				var info = service.getBundleInfo( system.name, "" );
+				expect( isStruct( info.headers ) ).toBeTrue();
+				expect( info.headers ).toHaveKey( "Bundle-SymbolicName" );
+			});
+
+			it( "loadFromLocal returns the installed bundle and null for an unknown one", function() {
+				var info = service.loadFromLocal( system.name, "", false );
+				expect( isNull( info ) ).toBeFalse();
+				expect( info.id ).toBe( 0 );
+				expect( isNull( service.loadFromLocal( "does.not.exist", "", false ) ) ).toBeTrue();
+			});
+
+			it( "removeLocal and uninstall do nothing for a bundle that does not exist", function() {
+				service.removeLocal( "does.not.exist", "1.0.0", true );
+				service.uninstall( "does.not.exist", "1.0.0" );
+			});
+
 			it( "throws an IOException for a class the bundle does not have", function() {
 				expect( function() {
 					service.loadClass( system.name, "", "does.not.Exist" );

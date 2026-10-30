@@ -18,6 +18,7 @@
  */
 package lucee.runtime.extension;
 
+import lucee.runtime.osgi.BundleServiceImpl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -979,7 +980,7 @@ public final class RHExtension implements Serializable {
 						ConfigAdmin.updateJar(config, tmpJar, false);
 					}
 					else if (load) {
-						OSGiUtil.loadBundle((BundleFile) obj);
+						BundleServiceImpl.getInstance().install(((BundleFile) obj).getFile(), false);
 					}
 				}
 
