@@ -82,7 +82,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.ai.AIEngine;
 import lucee.runtime.cache.CacheConnection;
-import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cfx.CFXTagPool;
@@ -4619,7 +4618,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					Map<Integer, CacheConnection> tmp = new HashMap<>();
 
 					CacheConnection cc;
-					for (Entry<String, CacheConnection> entry: getAdminCacheConnections().entrySet()) {
+					for (Entry<String, CacheConnection> entry: getCacheConnections().entrySet()) {
 						cc = entry.getValue();
 
 						for (Entry<Integer, String> e: names.entrySet()) {
@@ -4658,12 +4657,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	@Override
-	public Map<String, CacheConnection> getCacheConnections() {
-		return CacheUtil.getCacheConnections(this);
-	}
-
-	@Override
-	public Map<String, CacheConnection> getAdminCacheConnections() {// = new HashMap<String, CacheConnection>()
+	public Map<String, CacheConnection> getCacheConnections() {// = new HashMap<String, CacheConnection>()
 		if (cacheConnection == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getCacheConnections")) {
 				if (cacheConnection == null) {

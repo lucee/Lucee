@@ -2534,7 +2534,7 @@ public final class ConfigAdmin {
 			if (tmp == null) continue;
 			String n = key.getString();
 			if (n != null && n.equalsIgnoreCase(name)) {
-				Map<String, CacheConnection> conns = config.getAdminCacheConnections();
+				Map<String, CacheConnection> conns = config.getCacheConnections();
 				CacheConnection cc = conns.get(n.toLowerCase());
 				if (cc != null) {
 					CacheUtil.releaseEL(cc);

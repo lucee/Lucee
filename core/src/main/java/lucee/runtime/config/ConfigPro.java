@@ -10,7 +10,6 @@ import java.util.Map.Entry;
 import org.osgi.framework.Version;
 
 import lucee.commons.io.log.Log;
-import lucee.runtime.cache.CacheConnection;
 import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
@@ -53,13 +52,6 @@ import lucee.transformer.library.tag.TagLib;
 
 // FUTURE add to Config not necessary all of them!
 public interface ConfigPro extends Config {
-
-	/**
-	 * only the caches defined in the administrator (or the configuration), never the caches defined
-	 * by an application. Use this for everything that manages the configuration, use
-	 * {@link #getCacheConnections()} to get every cache the current request can use.
-	 */
-	public Map<String, CacheConnection> getAdminCacheConnections();
 
 	public static final int CLIENT_BOOLEAN_TRUE = 0;
 	public static final int CLIENT_BOOLEAN_FALSE = 1;

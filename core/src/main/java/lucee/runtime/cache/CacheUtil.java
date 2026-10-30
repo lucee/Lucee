@@ -20,8 +20,8 @@ package lucee.runtime.cache;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
@@ -33,7 +33,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.PasswordImpl;
@@ -161,39 +160,21 @@ public final class CacheUtil {
 		return cc;
 	}
 
-	/**
-	 * Returns every cache the current request can use: the caches defined in the administrator plus the
-	 * caches defined by the application of the current request (this.cache.connections). An
-	 * application cache overrides an administrator cache with the same name. Without a request, or for
-	 * a request of another configuration, only the administrator caches are returned.
-	 * 
-	 * @param config the configuration
-	 * @return the caches by lower case name
-	 */
-	public static Map<String, CacheConnection> getCacheConnections(ConfigPro config) {
-		Map<String, CacheConnection> admin = config.getAdminCacheConnections();
-
-		PageContext pc = ThreadLocalPageContext.get();
-		if (pc == null || pc.getConfig() != config) return admin;
-
-		ApplicationContext ac = pc.getApplicationContext();
-		if (ac == null) return admin;
-
-		Key[] names = ac.getCacheConnectionNames();
-		if (names == null || names.length == 0) return admin;
-
-		Map<String, CacheConnection> result = new LinkedHashMap<String, CacheConnection>(admin);
-		CacheConnection cc;
-		for (Key name: names) {
-			cc = ac.getCacheConnection(name.getString(), null);
-			if (cc != null) result.put(name.getString().toLowerCase().trim(), cc);
-		}
-		return result;
-	}
-
 	public static CacheException noCache(Config config, String cacheName) {
 		StringBuilder sb = new StringBuilder("there is no cache defined with name [").append(cacheName).append("], available caches are [");
-		Iterator<String> it = config.getCacheConnections().keySet().iterator();
+
+		// administrator caches first, then the caches defined by the application of the current request
+		Set<String> names = new LinkedHashSet<String>(config.getCacheConnections().keySet());
+		PageContext pc = ThreadLocalPageContext.get();
+		ApplicationContext ac = pc == null ? null : pc.getApplicationContext();
+		Key[] appNames = ac == null ? null : ac.getCacheConnectionNames();
+		if (appNames != null) {
+			for (Key name: appNames) {
+				if (name != null) names.add(name.getString().toLowerCase().trim());
+			}
+		}
+
+		Iterator<String> it = names.iterator();
 		if (it.hasNext()) {
 			sb.append(it.next());
 		}
@@ -339,7 +320,7 @@ public final class CacheUtil {
 
 	public static void releaseAll(Config config) {
 		// Config
-		for (CacheConnection cc: ((ConfigPro) config).getAdminCacheConnections().values()) {
+		for (CacheConnection cc: config.getCacheConnections().values()) {
 			releaseEL(cc);
 		}
 	}

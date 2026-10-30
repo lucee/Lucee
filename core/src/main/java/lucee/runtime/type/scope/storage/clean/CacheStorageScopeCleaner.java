@@ -29,7 +29,6 @@ import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CacheKeyFilter;
 import lucee.runtime.cache.CacheConnection;
-import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.type.scope.storage.StorageScopeEngine;
 import lucee.runtime.type.scope.storage.StorageScopeListener;
@@ -55,7 +54,7 @@ public final class CacheStorageScopeCleaner extends StorageScopeCleanerSupport {
 	@Override
 	protected void _clean() {
 		ConfigWeb config = engine.getFactory().getConfig();
-		Map<String, CacheConnection> connections = ((ConfigPro) config).getAdminCacheConnections();
+		Map<String, CacheConnection> connections = config.getCacheConnections();
 		CacheConnection cc;
 
 		if (connections != null) {
