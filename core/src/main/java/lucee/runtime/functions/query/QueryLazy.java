@@ -49,6 +49,8 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
+import lucee.runtime.type.query.QueryReturnType;
+import lucee.runtime.type.query.QueryStruct;
 import lucee.runtime.type.query.SimpleQuery;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.util.KeyConstants;
@@ -97,10 +99,10 @@ public final class QueryLazy extends BIF {
 		String user = getString(pc, options, KeyConstants._username, null);
 		String pass = getString(pc, options, KeyConstants._password, null);
 		int returntype = getReturntype(pc, options);
-		Collection.Key columnKey = null;
+		Collection.Key[] columnKey = null;
 		if (returntype == RETURN_TYPE_STRUCT) {
-			columnKey = getKey(pc, options, KeyConstants._columnkey, null);
-			if (StringUtil.isEmpty(columnKey)) throw new ApplicationException("attribute columnKey is required when return type is set to struct");
+			columnKey = QueryReturnType.toColumnKeys(getString(pc, options, KeyConstants._columnkey, null));
+			if (columnKey == null) throw new ApplicationException("attribute columnKey is required when return type is set to struct");
 		}
 		else {
 
@@ -179,7 +181,7 @@ public final class QueryLazy extends BIF {
 		return null;
 	}
 
-	private static void exe(PageContext pc, ResultSet res, TimeZone tz, UDF listener, int blockfactor, int returntype, Collection.Key columnKey, RefBoolean aborted)
+	private static void exe(PageContext pc, ResultSet res, TimeZone tz, UDF listener, int blockfactor, int returntype, Collection.Key[] columnKey, RefBoolean aborted)
 			throws SQLException, PageException, IOException {
 		ResultSetMetaData meta = res.getMetaData();
 
@@ -257,7 +259,7 @@ public final class QueryLazy extends BIF {
 					}
 				}
 				else if (isStruct) {
-					sctRows.set(KeyImpl.toKey(row.get(columnKey)), row);
+					QueryStruct.put(sctRows, columnKey, row, tmpKeys.toArray(new Key[tmpKeys.size()]), "resultset");
 					if (blockfactor == rownbr) {
 						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { sctRows }, true), true)) {
 							rownbr = 0;
@@ -324,13 +326,6 @@ public final class QueryLazy extends BIF {
 	private static String getString(PageContext pc, Struct options, Collection.Key key, String defaultValue) {
 		if (options == null) return defaultValue;
 		String str = Caster.toString(options.get(key, null), null);
-		if (StringUtil.isEmpty(str)) return defaultValue;
-		return str;
-	}
-
-	private static Collection.Key getKey(PageContext pc, Struct options, Collection.Key key, Collection.Key defaultValue) {
-		if (options == null) return defaultValue;
-		Collection.Key str = Caster.toKey(options.get(key, null), null);
 		if (StringUtil.isEmpty(str)) return defaultValue;
 		return str;
 	}

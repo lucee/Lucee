@@ -1,5 +1,6 @@
 package lucee.runtime.functions.system;
 
+import lucee.runtime.type.query.QueryReturnType;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -20,6 +21,14 @@ public final class ExtensionList extends BIF {
 
 	public static Query call(PageContext pc) throws PageException {
 		return call(pc, false);
+	}
+
+	public static Object call(PageContext pc, boolean imageObject, String returntype) throws PageException {
+		return call(pc, imageObject, returntype, null);
+	}
+
+	public static Object call(PageContext pc, boolean imageObject, String returntype, String columnKey) throws PageException {
+		return QueryReturnType.convert(call(pc, imageObject), returntype, columnKey, "ExtensionList");
 	}
 
 	public static Query call(PageContext pc, boolean imageObject) throws PageException {
@@ -66,6 +75,8 @@ public final class ExtensionList extends BIF {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 0) return call(pc);
 		if (args.length == 1) return call(pc, Caster.toBoolean(args[0]));
-		else throw new FunctionException(pc, "ExtensionList", 0, 1, args.length);
+		if (args.length == 2) return call(pc, Caster.toBoolean(args[0]), Caster.toString(args[1]));
+		if (args.length == 3) return call(pc, Caster.toBoolean(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
+		else throw new FunctionException(pc, "ExtensionList", 0, 3, args.length);
 	}
 }

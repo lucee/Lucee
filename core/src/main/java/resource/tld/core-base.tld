@@ -946,6 +946,22 @@ Precedence: the localMode attribute of a function, then the localMode of the com
 	</attribute-groups>
 
 		<attribute>
+			<type>string</type>
+			<name>returntype</name>
+			<values>query,array,struct</values>
+			<default>query</default>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines how the result is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>columnKey</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
+		</attribute>
+		<attribute>
 			<type>object</type>
 			<name>datasource</name>
 			<required>false</required>
@@ -1120,6 +1136,22 @@ Each Database implementation has it's own supported types
 			</group>
 		</attribute-groups>
 
+		<attribute>
+			<type>string</type>
+			<name>returntype</name>
+			<values>query,array,struct</values>
+			<default>query</default>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines how the directory listing is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>columnKey</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
+		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>action</name>
@@ -3197,6 +3229,22 @@ To use cached data, the function must be called with the exact same arguments.
 
 		<attribute>
 			<type>string</type>
+			<name>returntype</name>
+			<values>query,array,struct</values>
+			<default>query</default>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines how the result is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>columnKey</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>returnAsBinary</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -4441,6 +4489,8 @@ Example: param name="url.rating" default="low" set=["low","medium","high"];</des
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>When return type is set to "struct", the value of this column can be used as key in the struct for every record.
+				Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column.
+				If the same key (combination) occurs more than once, the last row wins.
 				If not set then the query must not return more than one record, and the keys of the returned struct are the column names
 				and the values are the column values for the single record that is returned. 
 			</description>
@@ -5121,6 +5171,22 @@ Params: [
 		</group>
 	</attribute-groups>
 
+		<attribute>
+			<type>string</type>
+			<name>returntype</name>
+			<values>query,array,struct</values>
+			<default>query</default>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines how the list of scheduled tasks is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>columnKey</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
+		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>action</name>
@@ -9761,6 +9827,22 @@ Each type-value pair must start with a hyphen.</description>
 
 		<attribute>
 			<type>string</type>
+			<name>returntype</name>
+			<values>query,array,struct</values>
+			<default>query</default>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines how the registry entries (action getAll) is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>columnKey</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>action</name>
 			<values>getAll,get,set,delete</values>
 			<required>true</required>
@@ -10138,6 +10220,22 @@ dWord: creates a value of 0 (zero)</description>
 
 		<attribute>
 			<type>string</type>
+			<name>returntype</name>
+			<values>query,array,struct</values>
+			<default>query</default>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines how the list of collections (action list) is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>columnKey</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>engine</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -10275,6 +10373,22 @@ For example, a ratio of 0.7 would give 70% weight to vector search and 30% to ke
   you must create the collection using either the cfcollection tag or the Lucee Administrator. Use
   cfsearch to search collections you populate with cfindex.</description>
 		<attribute-type>fixed</attribute-type>
+		<attribute>
+			<type>string</type>
+			<name>returntype</name>
+			<values>query,array,struct</values>
+			<default>query</default>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines how the list of indexes (action list) is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>columnKey</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
+		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>name</name>
@@ -10485,6 +10599,22 @@ Permits searching collections by title or displaying a separate title from the k
 		</script>
 		<description>Executes searches against data indexed </description>
 		<attribute-type>fixed</attribute-type>
+		<attribute>
+			<type>string</type>
+			<name>returntype</name>
+			<values>query,array,struct</values>
+			<default>query</default>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines how the search result is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>columnKey</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins. Required if more than one row is returned.</description>
+		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>name</name>

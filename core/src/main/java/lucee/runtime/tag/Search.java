@@ -20,6 +20,7 @@ package lucee.runtime.tag;
 
 import java.util.Iterator;
 import java.util.Map;
+import lucee.runtime.type.query.QueryReturnType;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
@@ -93,9 +94,32 @@ public final class Search extends TagImpl {
 	// private int spellCheckMaxLevel=10;
 	// private String result=null;
 
+	private int returnType = QueryReturnType.QUERY;
+	private lucee.runtime.type.Collection.Key[] columnKey;
+
+	/**
+	 * set the value returntype, how a query result is returned: query (default), array (array of structs) or struct (struct of structs, see columnKey)
+	 */
+	public void setReturntype(String returntype) throws lucee.runtime.exp.ApplicationException {
+		this.returnType = QueryReturnType.parse(returntype, "search");
+	}
+
+	/**
+	 * set the value columnKey, the column the value of is used as key when returntype is struct
+	 */
+	public void setColumnkey(String columnKey) {
+		this.columnKey = QueryReturnType.toColumnKeys(columnKey);
+	}
+
+	private void setQueryResult(String variable, lucee.runtime.type.Query qry) throws PageException {
+		pageContext.setVariable(variable, QueryReturnType.convert(qry, returnType, columnKey));
+	}
+
 	@Override
 	public void release() {
 		super.release();
+		returnType = QueryReturnType.QUERY;
+		columnKey = null;
 		type = SearchCollection.SEARCH_TYPE_SIMPLE;
 		maxrows = -1;
 		criteria = "";
@@ -325,7 +349,7 @@ public final class Search extends TagImpl {
 
 				if (maxrows >= 0 && qry.getRecordcount() >= maxrows) break;
 			}
-			pageContext.setVariable(name, qry);
+			setQueryResult(name, qry);
 		}
 		catch (SearchException se) {
 			throw Caster.toPageException(se);

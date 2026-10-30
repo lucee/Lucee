@@ -1,5 +1,6 @@
 package lucee.runtime.functions.mvn;
 
+import lucee.runtime.type.query.QueryReturnType;
 import java.io.IOException;
 import java.util.List;
 
@@ -40,6 +41,18 @@ public class MavenInfo implements Function {
 
 	public static Query call(PageContext pc, String groupId, String artifactId, String version, Array arrScopes, boolean includeOptional) throws PageException {
 		return call(pc, groupId, artifactId, version, arrScopes, includeOptional, false);
+	}
+
+	public static Object call(PageContext pc, String groupId, String artifactId, String version, Array arrScopes, boolean includeOptional, boolean validate, String returntype)
+			throws PageException {
+		return call(pc, groupId, artifactId, version, arrScopes, includeOptional, validate, returntype, null);
+	}
+
+	public static Object call(PageContext pc, String groupId, String artifactId, String version, Array arrScopes, boolean includeOptional, boolean validate, String returntype,
+			String columnKey) throws PageException {
+		// validate the returntype before the (possibly slow) lookup
+		int rt = QueryReturnType.parse(returntype, "MavenInfo");
+		return QueryReturnType.convert(call(pc, groupId, artifactId, version, arrScopes, includeOptional, validate), rt, QueryReturnType.toColumnKeys(columnKey));
 	}
 
 	public static Query call(PageContext pc, String groupId, String artifactId, String version, Array arrScopes, boolean includeOptional, boolean validate) throws PageException {

@@ -86,7 +86,7 @@ public final class QueryBean implements Serializable {
 	public int nestingLevel = 0;
 	public boolean setReturnVariable = false;
 	public Object rtn;
-	public Key columnName;
+	public Key[] columnName;
 	public boolean literalTimestampWithTSOffset;
 	public boolean previousLiteralTimestampWithTSOffset;
 	public String[] tags = null;

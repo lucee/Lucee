@@ -3843,8 +3843,23 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>If set to true means extension image shows as imageObject instead of base64 string.</description>
 			<introduced>5.3.9.40</introduced>
 		</argument>
+		<argument>
+			<name>returntype</name>
+			<type>string</type>
+			<required>No</required>
+			<default>query</default>
+			<introduced>9.0.0.564</introduced>
+			<description>How the result is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</argument>
+		<argument>
+			<name>columnKey</name>
+			<type>string</type>
+			<required>No</required>
+			<introduced>9.0.0.564</introduced>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
+		</argument>
 		<return>
-			<type>query</type>
+			<type>any</type>
 		</return>
 	</function>
 	
@@ -4257,6 +4272,21 @@ Specifies the type of results to return:
 - `all`: includes both filenames and directory names.
         </description>
     </argument>
+		<argument>
+			<name>returntype</name>
+			<type>string</type>
+			<required>No</required>
+			<default>query</default>
+			<introduced>9.0.0.564</introduced>
+			<description>How the result is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey"). Only allowed when "listInfo" is "query".</description>
+		</argument>
+		<argument>
+			<name>columnKey</name>
+			<type>string</type>
+			<required>No</required>
+			<introduced>9.0.0.564</introduced>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
+		</argument>
     <return>
         <type>any</type>
     </return>
@@ -7200,8 +7230,23 @@ When used, the function automatically validates that the secret exists and throw
 
 if this attribute is not provided all types are returned.</description>
 		</argument>
+		<argument>
+			<name>returntype</name>
+			<type>string</type>
+			<required>No</required>
+			<default>query</default>
+			<introduced>9.0.0.564</introduced>
+			<description>How the result is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</argument>
+		<argument>
+			<name>columnKey</name>
+			<type>string</type>
+			<required>No</required>
+			<introduced>9.0.0.564</introduced>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
+		</argument>
 		<return>
-			<type>query</type>
+			<type>any</type>
 		</return>
 	</function>
 	<!-- getMetadata -->
@@ -10631,9 +10676,24 @@ Returns a query with the same shape as `mavenInfo`, showing what was resolved.</
 			<required>No</required>
 			<description>Only used when `includeTransitive` is true. If false (default), dependencies marked `&lt;optional&gt;true&lt;/optional&gt;` by a dependency are skipped, like Maven does. If true, they are resolved as well. Optional dependencies declared directly in the imported pom are always resolved.</description>
 		</argument>
+		<argument>
+			<name>returntype</name>
+			<type>string</type>
+			<required>No</required>
+			<default>query</default>
+			<introduced>9.0.0.564</introduced>
+			<description>How the result is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</argument>
+		<argument>
+			<name>columnKey</name>
+			<type>string</type>
+			<required>No</required>
+			<introduced>9.0.0.564</introduced>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
+		</argument>
 		<return>
 			<description>Returns a query with columns `groupId, artifactId, version, scope, optional, checksum, url, path` describing the resolved artifacts.</description>
-			<type>query</type>
+			<type>any</type>
 		</return>
 	</function>
 
@@ -10702,9 +10762,24 @@ Returns a query with the same shape as `mavenInfo`, showing what was resolved.</
 			<description>A Maven artifact can be provided from different repositories, not all repositories provide all artifacts. if set to false, Lucee simply picks the most likely repository. 
 			If set to true, Lucee checks all possibilities, what can take a while, so only set to true, if really neded.</description>
 		</argument>
+		<argument>
+			<name>returntype</name>
+			<type>string</type>
+			<required>No</required>
+			<default>query</default>
+			<introduced>9.0.0.564</introduced>
+			<description>How the result is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</argument>
+		<argument>
+			<name>columnKey</name>
+			<type>string</type>
+			<required>No</required>
+			<introduced>9.0.0.564</introduced>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
+		</argument>
 		<return>
 			<description>Returns a query object containing information about the specified Maven artifact and all its dependencies. Each row represents one artifact, with the first row being the requested artifact itself.</description>
-			<type>query</type>
+			<type>any</type>
 		</return>
 	</function>
 	
@@ -10951,8 +11026,23 @@ That object also behaves as a string containing the concatenated plain text part
 		<description>Returns all AI connections available in the current context: the connections defined in the application (for example `this.ai` in the Application.cfc) and the connections configured in the Lucee Administrator. A connection defined in the application with the same name as one in the Administrator replaces it, so it is only listed once.
 
 Secrets like the `secretKey` and the custom settings of a connection are never returned. Use `AIGetMetaData(name)` for the details of a single connection.</description>
+		<argument>
+			<name>returntype</name>
+			<type>string</type>
+			<required>No</required>
+			<default>query</default>
+			<introduced>9.0.0.564</introduced>
+			<description>How the result is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</argument>
+		<argument>
+			<name>columnKey</name>
+			<type>string</type>
+			<required>No</required>
+			<introduced>9.0.0.564</introduced>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
+		</argument>
 		<return>
-			<type>query</type>
+			<type>any</type>
 			<description>Returns a query with one row per AI connection and the columns:
 - name: The name of the connection, as used for example with `CreateAISession(name)`
 - label: The display label of the connection
@@ -11028,8 +11118,23 @@ This is useful to choose a value for the connection setting `model`, or patterns
 2. A default reference (e.g., "default:exception") which will resolve to the configured default connection for that category
 3. A AI session object, the models of the connection of the session are returned</description>
 		</argument>
+		<argument>
+			<name>returntype</name>
+			<type>string</type>
+			<required>No</required>
+			<default>query</default>
+			<introduced>9.0.0.564</introduced>
+			<description>How the result is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</argument>
+		<argument>
+			<name>columnKey</name>
+			<type>string</type>
+			<required>No</required>
+			<introduced>9.0.0.564</introduced>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
+		</argument>
 		<return>
-			<type>query</type>
+			<type>any</type>
 			<description>Returns a query with one row per model and the columns:
 - name: The model name, as used for the setting `model`
 - label: A display label
@@ -14462,8 +14567,23 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	        <default>443</default>
 	        <description>Optional. The port of the host, default is 443. This argument is ignored if the host is not specified.</description>
 	    </argument>
+		<argument>
+			<name>returntype</name>
+			<type>string</type>
+			<required>No</required>
+			<default>query</default>
+			<introduced>9.0.0.564</introduced>
+			<description>How the result is returned: "query" (default), "array" (an array of structs, one struct per row) or "struct" (a struct of structs, the key is the value of the column defined by "columnKey").</description>
+		</argument>
+		<argument>
+			<name>columnKey</name>
+			<type>string</type>
+			<required>No</required>
+			<introduced>9.0.0.564</introduced>
+			<description>Name of the column whose value is used as key when "returntype" is "struct". Can be a comma separated list of columns (for example "country,city"), in that case the result is nested, one struct level per column. If the same key (combination) occurs more than once, the last row wins.</description>
+		</argument>
 	    <return>
-	        <type>query</type>
+	        <type>any</type>
 	        <description>Returns a query object containing details of the SSL certificates. Each row represents a certificate with details such as subject, issuer, valid from, valid to, etc.</description>
 	    </return>
 	</function>

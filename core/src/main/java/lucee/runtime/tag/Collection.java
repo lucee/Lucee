@@ -32,6 +32,7 @@ import lucee.runtime.search.SearchEngine;
 import lucee.runtime.search.SearchException;
 import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.query.QueryReturnType;
 
 /**
  * Allows you to create and administer Collections.
@@ -58,9 +59,32 @@ public final class Collection extends TagImpl {
 	private String embedding;
 	// private boolean categories=false;
 
+	private int returnType = QueryReturnType.QUERY;
+	private lucee.runtime.type.Collection.Key[] columnKey;
+
+	/**
+	 * set the value returntype, how a query result is returned: query (default), array (array of structs) or struct (struct of structs, see columnKey)
+	 */
+	public void setReturntype(String returntype) throws lucee.runtime.exp.ApplicationException {
+		this.returnType = QueryReturnType.parse(returntype, "collection");
+	}
+
+	/**
+	 * set the value columnKey, the column the value of is used as key when returntype is struct
+	 */
+	public void setColumnkey(String columnKey) {
+		this.columnKey = QueryReturnType.toColumnKeys(columnKey);
+	}
+
+	private void setQueryResult(String variable, lucee.runtime.type.Query qry) throws PageException {
+		pageContext.setVariable(variable, QueryReturnType.convert(qry, returnType, columnKey));
+	}
+
 	@Override
 	public void release() {
 		super.release();
+		returnType = QueryReturnType.QUERY;
+		columnKey = null;
 		action = "list";
 		path = null;
 		collection = null;
@@ -216,7 +240,7 @@ public final class Collection extends TagImpl {
 		required("collection", action, "name", name);
 		// if(StringUtil.isEmpty(name))throw new ApplicationException("for action list attribute name is
 		// required");
-		pageContext.setVariable(name, getSearchEngine().getCollectionsAsQuery());
+		setQueryResult(name, getSearchEngine().getCollectionsAsQuery());
 	}
 
 	private void doCategoryList() throws PageException, SearchException {

@@ -1,5 +1,6 @@
 package lucee.runtime.functions.mvn;
 
+import lucee.runtime.type.query.QueryReturnType;
 import java.io.IOException;
 import java.util.List;
 
@@ -33,6 +34,15 @@ public final class MavenImport implements Function {
 
 	public static Query call(PageContext pc, String pomPath, boolean includeTransitive) throws PageException {
 		return call(pc, pomPath, includeTransitive, false);
+	}
+
+	public static Object call(PageContext pc, String pomPath, boolean includeTransitive, boolean includeOptional, String returntype) throws PageException {
+		return call(pc, pomPath, includeTransitive, includeOptional, returntype, null);
+	}
+
+	public static Object call(PageContext pc, String pomPath, boolean includeTransitive, boolean includeOptional, String returntype, String columnKey) throws PageException {
+		int rt = QueryReturnType.parse(returntype, "MavenImport");
+		return QueryReturnType.convert(call(pc, pomPath, includeTransitive, includeOptional), rt, QueryReturnType.toColumnKeys(columnKey));
 	}
 
 	public static Query call(PageContext pc, String pomPath, boolean includeTransitive, boolean includeOptional) throws PageException {

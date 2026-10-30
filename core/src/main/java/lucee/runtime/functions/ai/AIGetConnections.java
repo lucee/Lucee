@@ -1,6 +1,8 @@
 package lucee.runtime.functions.ai;
 
+import lucee.runtime.type.query.QueryReturnType;
 import java.util.HashSet;
+import lucee.runtime.op.Caster;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -36,8 +38,13 @@ public final class AIGetConnections extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length != 0) throw new FunctionException(pc, "AIGetConnections", 0, 0, args.length);
-		return call(pc);
+		if (args.length > 2) throw new FunctionException(pc, "AIGetConnections", 0, 2, args.length);
+		if (args.length == 0) return call(pc);
+		return call(pc, Caster.toString(args[0]), args.length > 1 ? Caster.toString(args[1]) : null);
+	}
+
+	public static Object call(PageContext pc, String returntype, String columnKey) throws PageException {
+		return QueryReturnType.convert(call(pc), returntype, columnKey, "AIGetConnections");
 	}
 
 	public static Query call(PageContext pc) throws PageException {
