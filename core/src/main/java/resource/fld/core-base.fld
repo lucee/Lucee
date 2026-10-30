@@ -8755,6 +8755,9 @@ The following things are considered to be empty:
 			- float or numeric: a numeric value; equivalent to the IsNumeric function.
 			- guid: a Universally Unique Identifier of the form "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" where X is a hexadecimal number.
 			- integer: an integer.
+			- ip: a string containing a valid IPv4 or IPv6 address (format check only, no hostname or DNS lookup).
+			- ipv4: a string containing a valid IPv4 address in dotted quad notation, every part 0-255 without leading zeros (like 192.168.0.1).
+			- ipv6: a string containing a valid IPv6 address (RFC 4291 text format), including the :: compression and an IPv4 address in the last 32 bits (like ::ffff:192.168.0.1). A zone id (like fe80::1%eth0) is not valid.
 			- json: a valid JSON; equivalent to the IsJSON function.
 			- object: a value is an object; equivalent to the IsObject function.
 			- query: a query object; equivalent to the IsQuery function.
