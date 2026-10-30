@@ -129,6 +129,16 @@ public final class HSQLDBHandler {
 	}
 
 	/**
+	 * Quotes an identifier for HSQLDB. Unquoted identifiers are folded to upper case by HSQLDB and can't
+	 * be a reserved word, quoted identifiers are case sensitive. The name is therefore upper cased
+	 * before it is quoted, so the quoted name is the same one that an unquoted reference in the SQL
+	 * resolves to.
+	 */
+	private static String quoteIdentifier(String name) {
+		return "\"" + StringUtil.replace(StringUtil.toUpperCase(name), "\"", "\"\"", false) + "\"";
+	}
+
+	/**
 	 * adds a table to the memory database
 	 *
 	 * @param conn
@@ -176,21 +186,17 @@ public final class HSQLDBHandler {
 		int[] types = query.getTypes();
 
 		String comma = "";
-		// String escape = "\""; // use double qoutes around column and tables names to avoid problems with
-		// reserved words
-		String escape = "";
-
-		StringBuilder create = new StringBuilder("DECLARE LOCAL TEMPORARY TABLE ").append(escape).append(StringUtil.toUpperCase(dbTableName)).append(escape).append(" (");
+		// LDEV-2755: quote the generated identifiers, so reserved words (unique, select, ...) can be used
+		// as table and column names
+		StringBuilder create = new StringBuilder("DECLARE LOCAL TEMPORARY TABLE ").append(quoteIdentifier(dbTableName)).append(" (");
 
 		for (int i = 0; i < cols.length; i++) {
-			String col = StringUtil.toUpperCase(cols[i].getString()); // quoted objects are case insensitive
+			String col = StringUtil.toUpperCase(cols[i].getString()); // upper case, same as HSQLDB folds unquoted names
 			// skip columns not referenced in the SQL (when we know which ones are needed)
 			if (usedColumns != null && !usedColumns.containsKey(col)) continue;
 			String type = (doSimpleTypes) ? (caseSensitive ? "VARCHAR" : "VARCHAR_IGNORECASE") : toUsableType(types[i], caseSensitive);
 			create.append(comma);
-			create.append(escape);
-			create.append(col);
-			create.append(escape);
+			create.append(quoteIdentifier(col));
 			create.append(" ");
 			create.append(type);
 			comma = ",";
@@ -225,17 +231,17 @@ public final class HSQLDBHandler {
 		ArrayList<Integer> targetTypeList = new ArrayList<Integer>();
 		String comma = "";
 
-		StringBuilder insert = new StringBuilder("INSERT INTO  ").append(StringUtil.toUpperCase(dbTableName)).append(" (");
+		StringBuilder insert = new StringBuilder("INSERT INTO  ").append(quoteIdentifier(dbTableName)).append(" (");
 		StringBuilder values = new StringBuilder("VALUES (");
 		// tableCols = null; // set this to avoid optimised loading of only required tables
 		for (int i = 0; i < cols.length; i++) {
-			String col = StringUtil.toUpperCase(cols[i].getString()); // quoted objects are case insensitive in HSQLDB
+			String col = StringUtil.toUpperCase(cols[i].getString()); // upper case, same as HSQLDB folds unquoted names
 			if (tableCols == null || tableCols.containsKey(col)) {
 				// grab the QueryColumn directly by index — avoids O(n) name lookup via getIndexFromKey
 				targetColumns.add(query.getColumn(cols[i]));
 				targetTypeList.add(srcQueryTypes[i]);
 				insert.append(comma);
-				insert.append(col);
+				insert.append(quoteIdentifier(col));
 
 				values.append(comma);
 				values.append("?");
@@ -548,7 +554,7 @@ public final class HSQLDBHandler {
 
 		}
 		catch (ParseException e) {
-			throw new DatabaseException(e.getMessage(), null, sql, null);
+			throw new DatabaseException(e.getMessage(), e.getDetail(), sql, null);
 		}
 
 	}

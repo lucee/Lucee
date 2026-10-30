@@ -35,6 +35,7 @@ import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.Methods;
+import lucee.transformer.bytecode.util.Methods_Caster;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
 import lucee.transformer.expression.Expression;
@@ -126,6 +127,8 @@ public abstract class AbsOpUnary extends ExpressionBase {
 			// write the variable
 			var.setAsCollection(Boolean.TRUE);
 			var.writeOut(bc, mode);
+			// the parent can be any Map or other object castable to a Collection (for example a java.util.LinkedHashMap)
+			adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_COLLECTION);
 
 			// write out last Key
 			getFactory().registerKey(bc, ((DataMember) last).getName(), false);

@@ -599,7 +599,19 @@ public final class SelectParser {
 			}
 			// not like
 			if (raw.forwardIfCurrentAndNoWordNumberAfter("not", "like")) {
-				expr = decisionOpCreate(raw, Operation.OPERATION2_NOT_LIKE, expr);
+				raw.removeSpace();
+				Expression pattern = plusMinusOp(raw);
+				raw.removeSpace();
+				// value NOT LIKE value ESCAPE value
+				if (raw.forwardIfCurrentAndNoWordNumberAfter("escape ")) {
+					raw.removeSpace();
+					Expression escape = plusMinusOp(raw);
+					raw.removeSpace();
+					expr = new Operation1(new Operation3(expr, pattern, escape, Operation.OPERATION3_LIKE), Operation.OPERATION1_NOT);
+				}
+				else {
+					expr = new Operation2(expr, pattern, Operation.OPERATION2_NOT_LIKE);
+				}
 				hasChanged = true;
 			}
 			/*

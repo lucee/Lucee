@@ -24,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -1252,18 +1253,46 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				catch (RequestTimeoutException rte) {
 					if (rte.getThreadDeath() != null) throw rte.getThreadDeath();
 				}
+				catch (RequestQueueTimeoutException rqte) {
+					rejectQueueTimeout(pc, rqte);
+				}
 				catch (NativeException ne) {
 					ExceptionUtil.rethrowIfNecessary(ne.getCause());
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
-					if (t instanceof Exception && !Abort.isSilentAbort(t))
+					// LDEV-3570 do not log an exception that was handled by Application.cfc onError
+					if (t instanceof Exception && !Abort.isSilentAbort(t) && !pc.isErrorHandledByListener())
 						LogUtil.log(pc, LOG_TYPE_NAME, t, t instanceof MissingIncludeException ? Log.LEVEL_WARN : Log.LEVEL_ERROR, "application");
 				}
 			}
 		}
 		finally {
 			factory.releaseLuceePageContext(pc, !exeReqAsync);
+		}
+	}
+
+	/**
+	 * LDEV-3897 the request waited in the request queue until the queue timeout, so it was never
+	 * executed. Log it and answer with 503 Service Unavailable instead of an empty 200.
+	 */
+	static void rejectQueueTimeout(PageContext pc, RequestQueueTimeoutException rqte) {
+		LogUtil.log(pc, LOG_TYPE_NAME, rqte, Log.LEVEL_ERROR, "application");
+		HttpServletResponse rsp = pc.getHttpServletResponse();
+		if (rsp == null || rsp.isCommitted()) return;
+		try {
+			rsp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+			// the request just waited for the queue timeout without getting a slot, so asking the client to
+			// come back after about the same time is reasonable (at least 1 second, the unit of the header)
+			rsp.setHeader("Retry-After", String.valueOf(Math.max(1L, (rqte.getTimeout() + 999L) / 1000L)));
+			byte[] body = "503 Service Unavailable: the server is too busy, please try again later.".getBytes(StandardCharsets.UTF_8);
+			rsp.setContentType("text/plain; charset=UTF-8");
+			rsp.setContentLength(body.length);
+			rsp.getOutputStream().write(body);
+			rsp.flushBuffer();
+		}
+		catch (Exception e) {
+			LogUtil.log(pc, LOG_TYPE_NAME, e, Log.LEVEL_WARN, "application");
 		}
 	}
 

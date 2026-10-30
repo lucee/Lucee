@@ -863,6 +863,11 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		if (obj instanceof UDF) {
 			return ((UDF) obj).call(pc, methodName, args, false);
 		}
+		// LDEV-1059 a query column or other none UDF value found first must not hide a function in the variables scope
+		obj = variable.get(pc, methodName, null);
+		if (obj instanceof UDF) {
+			return ((UDF) obj).call(pc, methodName, args, false);
+		}
 		UDF udf = getUDF(pc, methodName);
 		if (udf != null) {
 			return udf.call(pc, methodName, args, false);
@@ -878,6 +883,11 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
 		Object obj = get(pc, methodName, null);
+		if (obj instanceof UDF) {
+			return ((UDF) obj).callWithNamedValues(pc, methodName, args, false);
+		}
+		// LDEV-1059 a query column or other none UDF value found first must not hide a function in the variables scope
+		obj = variable.get(pc, methodName, null);
 		if (obj instanceof UDF) {
 			return ((UDF) obj).callWithNamedValues(pc, methodName, args, false);
 		}

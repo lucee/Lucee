@@ -39,9 +39,13 @@ import java.util.concurrent.Executor;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 
 public final class ORMConnection implements Connection {
+
+	private static final String DEFAULT_DATASOURCE_NAME = "__default__";
 
 	private ORMSession session;
 	private boolean autoCommit = false;
@@ -205,7 +209,7 @@ public final class ORMConnection implements Connection {
 
 	@Override
 	public void rollback(Savepoint savepoint) throws SQLException {
-		rollback();
+		clearAfterSavepointRollback();
 	}
 
 	@Override
@@ -232,12 +236,14 @@ public final class ORMConnection implements Connection {
 
 	@Override
 	public Savepoint setSavepoint() throws SQLException {
-		throw notSupported();
+		flushForSavepoint();
+		return null;
 	}
 
 	@Override
 	public Savepoint setSavepoint(String name) throws SQLException {
-		throw notSupported();
+		flushForSavepoint();
+		return null;
 	}
 
 	@Override
@@ -298,6 +304,44 @@ public final class ORMConnection implements Connection {
 	@Override
 	public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
 		throw notSupported();
+	}
+
+	/**
+	 * The real savepoint lives on the JDBC connection the ORM session shares with the transaction, and
+	 * is handled by the datasource manager. Here we only make sure pending ORM changes are written to
+	 * that connection, so they are covered by the savepoint.
+	 */
+	private void flushForSavepoint() {
+		try {
+			session.flush(ThreadLocalPageContext.get(), sessionDatasourceName());
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
+	}
+
+	/**
+	 * The JDBC rollback to the savepoint is done on the real connection by the datasource manager. The
+	 * ORM session no longer reflects the database afterwards, so we discard it, the ORM transaction
+	 * itself stays open.
+	 */
+	private void clearAfterSavepointRollback() {
+		try {
+			session.clear(ThreadLocalPageContext.get(), sessionDatasourceName());
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
+	}
+
+	/**
+	 * the application default datasource has no name that can be looked up, the ORM engine addresses it
+	 * with null
+	 */
+	private String sessionDatasourceName() {
+		String name = ds.getName();
+		if (DEFAULT_DATASOURCE_NAME.equalsIgnoreCase(name)) return null;
+		return name;
 	}
 
 	private SQLException notSupported() {

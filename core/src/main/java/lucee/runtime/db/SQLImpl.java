@@ -109,6 +109,12 @@ public final class SQLImpl implements SQL, Serializable {
 
 		if (items.length == 0) return strSQL;
 
+		String str = toString(pattern, false);
+		// LDEV-4424 more question marks than params, retry with [ ] (MSSQL) and ` ` (MySQL) as quoted identifier, e.g. [Country/Entity?]
+		return str != null ? str : toString(pattern, true);
+	}
+
+	private String toString(boolean pattern, boolean quotedIdentifier) {
 		StringBuilder sb = new StringBuilder();
 		int sqlLen = strSQL.length();
 		char c, quoteType = 0, p = 0;
@@ -122,6 +128,14 @@ public final class SQLImpl implements SQL, Serializable {
 					// skip comments for display purposes
 					i = ce - 1; // the for-loop increment lands us on ce
 					continue;
+				}
+				if (quotedIdentifier && (c == '[' || c == '`')) {
+					int ie = SQLComments.identifierEnd(strSQL, i);
+					if (ie != -1) {
+						sb.append(strSQL, i, ie);
+						i = ie - 1;
+						continue;
+					}
 				}
 			}
 
@@ -152,7 +166,9 @@ public final class SQLImpl implements SQL, Serializable {
 				}
 				index++;
 			}
-
+			else if (!inQuotes && c == '?' && !quotedIdentifier) {
+				return null;
+			}
 			else {
 				sb.append(c);
 			}

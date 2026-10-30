@@ -44,14 +44,14 @@ public final class _Execute extends PageContextThread {
 	private String resultVariable;
 	private String exitCodeVariable;
 
-	private boolean aborted;
+	private volatile boolean aborted;
 	private String[] commands;
 	// private static final int BLOCK_SIZE=4096;
 	private Object monitor;
 	private Exception exception;
 	// private String body;
 	private boolean finished;
-	private Process process;
+	private volatile Process process;
 
 	private String directory;
 	private Struct environment;
@@ -118,10 +118,18 @@ public final class _Execute extends PageContextThread {
 				if (onError != null) error = new UDFProcessListener(pc, onError);
 				else redirectErrorStream = true;
 				process = Command.createProcess(pc, commands, directory, environment, redirectErrorStream);
+				if (aborted) {
+					process.destroy();
+					return;
+				}
 				result = Command.execute(pc, process, timeout, progress, error);
 			}
 			else {
 				process = Command.createProcess(pc, commands, directory, environment, redirectErrorStream);
+				if (aborted) {
+					process.destroy();
+					return;
+				}
 				result = Command.execute(process);
 			}
 
@@ -159,7 +167,7 @@ public final class _Execute extends PageContextThread {
 	 */
 	public void abort(boolean terminateProcess) {
 		aborted = true;
-		if (terminateProcess) process.destroy();
+		if (terminateProcess && process != null) process.destroy();
 	}
 
 	/**

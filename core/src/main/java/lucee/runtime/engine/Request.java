@@ -28,6 +28,9 @@ public final class Request extends Thread {
 		try {
 			exe(pc, type, false, true);
 		}
+		catch (RequestQueueTimeoutException rqte) {
+			CFMLEngineImpl.rejectQueueTimeout(pc, rqte);
+		}
 		catch (Throwable _t) {
 		}
 		done = true;

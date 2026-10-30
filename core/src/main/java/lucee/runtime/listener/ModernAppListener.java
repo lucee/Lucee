@@ -481,6 +481,7 @@ public class ModernAppListener extends AppListenerSupport {
 
 	@Override
 	public void onError(PageContext pc, PageException pe) {
+		if (pc instanceof PageContextImpl) ((PageContextImpl) pc).setErrorHandledByListener(false);
 		Component app = getComponent(pc);
 		if (app != null && app.containsKey(KeyConstants._onError) && !Abort.isSilentAbort(pe)) {
 			try {
@@ -489,6 +490,8 @@ public class ModernAppListener extends AppListenerSupport {
 				if (eventName == null) eventName = "";
 
 				call(app, pc, KeyConstants._onError, new Object[] { pe.getCatchBlock(pc.getConfig()), eventName }, true);
+				// LDEV-3570 onError completed without throwing, the error is handled, so the engine must not log it again
+				if (pc instanceof PageContextImpl) ((PageContextImpl) pc).setErrorHandledByListener(true);
 				return;
 			}
 			catch (PageException _pe) {

@@ -919,6 +919,8 @@ public final class Http extends BodyTagImpl {
 
 			StringBuilder acceptEncoding = new StringBuilder();
 			java.util.List<NameValuePair> postParam = eeReqPost != null ? new ArrayList<NameValuePair>() : null;
+			// formfield params with encoded=false, they are sent as they are
+			java.util.Set<NameValuePair> rawFormParams = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<NameValuePair, Boolean>());
 
 			for (int i = 0; i < len; i++) {
 				HttpParamBean param = this.params.get(i);
@@ -940,7 +942,9 @@ public final class Http extends BodyTagImpl {
 							parts.add(new FormBodyPart(param.getName(), new StringBody(param.getValueAsString(), CharsetUtil.toCharset(charset))));
 						}
 						else {
-							postParam.add(new BasicNameValuePair(param.getName(), param.getValueAsString()));
+							NameValuePair nvp = new BasicNameValuePair(param.getName(), param.getValueAsString());
+							postParam.add(nvp);
+							if (param.getEncoded() == ENCODED_NO) rawFormParams.add(nvp);
 						}
 					}
 					// else if(multi!=null)multi.addParameter(param.getName(),param.getValueAsString());
@@ -1034,7 +1038,21 @@ public final class Http extends BodyTagImpl {
 			}
 
 			// post params
-			if (postParam != null && postParam.size() > 0) eeReqPost.setEntity(new org.apache.http.client.entity.UrlEncodedFormEntity(postParam, charset));
+			if (postParam != null && postParam.size() > 0) {
+				if (rawFormParams.isEmpty()) eeReqPost.setEntity(new org.apache.http.client.entity.UrlEncodedFormEntity(postParam, charset));
+				else {
+					// at least one formfield has encoded=false, so we encode the other fields the same way as the
+					// UrlEncodedFormEntity does and add the not encoded ones unchanged
+					Charset cs = CharsetUtil.toCharset(charset);
+					StringBuilder body = new StringBuilder();
+					for (NameValuePair nvp: postParam) {
+						if (body.length() > 0) body.append('&');
+						if (rawFormParams.contains(nvp)) body.append(nvp.getName()).append('=').append(nvp.getValue());
+						else body.append(org.apache.http.client.utils.URLEncodedUtils.format(java.util.Collections.singletonList(nvp), cs));
+					}
+					eeReqPost.setEntity(new StringEntity(body.toString(), org.apache.http.entity.ContentType.create("application/x-www-form-urlencoded", cs)));
+				}
+			}
 
 			if (compression) {
 				acceptEncoding.append("gzip");
@@ -1346,6 +1364,8 @@ public final class Http extends BodyTagImpl {
 				Charset cs = (StringUtil.isEmpty(charset)) ? responseCharset : CharsetUtil.toCharset(charset, responseCharset);
 				if (barr == null) str = contentAsString(rsp, cs, contentEncoding, e);
 				else str = IOUtil.toString(barr, cs);
+				// a UTF-8 byte order mark is not part of the content
+				if (str.length() > 0 && str.charAt(0) == '\uFEFF' && "UTF-8".equalsIgnoreCase(cs.name())) str = str.substring(1);
 				cfhttp.set(KeyConstants._filecontent, str);
 
 				// store to file
