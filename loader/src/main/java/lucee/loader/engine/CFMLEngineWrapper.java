@@ -21,7 +21,6 @@ package lucee.loader.engine;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.instrument.Instrumentation;
 import java.net.URL;
 import java.util.Map;
 import java.util.TimeZone;
@@ -401,11 +400,6 @@ public class CFMLEngineWrapper implements CFMLEngine {
 	@Override
 	public SystemUtil getSystemUtil() {
 		return engine.getSystemUtil();
-	}
-
-	@Override
-	public Instrumentation getInstrumentation() {
-		return engine.getInstrumentation();
 	}
 
 	@Override

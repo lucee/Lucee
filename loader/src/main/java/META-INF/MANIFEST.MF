@@ -1,8 +1,4 @@
 Manifest-Version: 1.0
-Premain-Class: lucee.runtime.instrumentation.Agent
-Agent-Class: lucee.runtime.instrumentation.Agent
-Can-Redefine-Classes: true
-Can-Retransform-Classes: true
 Main-Class: lucee.runtime.script.Main
 Bundle-Description: This jar contains the Lucee loader and the apache felix code.
 Bundle-DocURL: https://docs.lucee.org

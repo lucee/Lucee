@@ -3,7 +3,6 @@
   LDEV-6711: the part of the build of the single jar that is not done by Maven itself.
   The root pom.xml compiles loader and core into one folder, this file is called (by the antrun plugin of the root pom)
   with that folder as "outputDir" and does what needs a running Lucee or the extension cache:
-  - the agent jar
   - the archives (lucee-context.lar, lucee-admin.lar, lucee-doc.lar, testbox.lar) and the json files, created by Lucee itself
   - the bundled extensions, bundles and maven artifacts that are added to the jar
   The properties (rootDir, outputDir, version, dependencies, runtime_classpath ...) are handed over by the root pom.
@@ -36,7 +35,7 @@
 
   <import file="build-core.xml"/>
 
-  <target name="archives" depends="copyDeployFiles,agent,__extract_testbox,addExtensions,addMavenDependencies,addBundles,__build_single">
+  <target name="archives" depends="copyDeployFiles,__extract_testbox,addExtensions,addMavenDependencies,addBundles,__build_single">
     <echots message="done, the archives, extensions and bundles are in ${outputDir}"/>
   </target>
 

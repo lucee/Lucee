@@ -816,17 +816,7 @@
 									<cfset local.v = evaluate( k )>
 									<cfset local.sc = structCount( v )>
 
-									<cftry>
-
-										<cfset local.estSize = byteFormat( sc == 0 ? 0 : sizeOf( v ) )>
-
-										<cfcatch>
-
-											<cfset local.estSize = "not available">
-										</cfcatch>
-									</cftry>
-
-									<cfset renderSectionHeadTR( sectionId, "<b>#k# Scope</b> #sc ? '(~#estSize#)' : '(Empty)' #" )>
+									<cfset renderSectionHeadTR( sectionId, "<b>#k# Scope</b> #sc ? '(#sc# entries)' : '(Empty)' #" )>
 
 									<tr><td colspan="3">
 

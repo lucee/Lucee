@@ -19228,28 +19228,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
-	<!-- sizeOf -->
-	<function>
-		<name>sizeOf</name>
-		<class>lucee.runtime.functions.system.SizeOf</class>
-		<description>this function is experimental, do not use in a production environment. this function returns the size in bytes of a given object.</description>
-		<argument>
-			<name>obj</name>
-			<type>object</type>
-			<required>Yes</required>
-			<description>object to get size for</description>
-	    </argument>
-	    <argument>
-			<name>complex</name>
-			<type>boolean</type>
-			<required>No</required>
-			<description>if set to false, the size is returned, if set to true a struct containing the element count and the size is returned</description>
-	    </argument>
-		<return>
-			<type>any</type>
-		</return>
-	</function>
-	
 	<!-- spanExcluding -->
 	<function>
 		<name>spanExcluding</name>

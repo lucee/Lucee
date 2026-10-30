@@ -18,8 +18,6 @@
  */
 package lucee.runtime.engine;
 
-import lucee.runtime.CFMLFactory;
-import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.config.Config;
@@ -30,8 +28,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.DoubleStruct;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.scope.Scope;
-import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.util.KeyConstants;
 
 class Surveillance {
@@ -83,8 +79,6 @@ class Surveillance {
 		infoMapping(sct, config);
 		// infoResources(sct,config);
 
-		infoScopes(sct, server, config);
-		infoPageContextStack(sct, config.getFactory());
 		// infoQueryCache(sct,config.getFactory());
 		// size+=infoResources(sct,cs);
 
@@ -116,42 +110,8 @@ class Surveillance {
 			size = mapping.getPhysical() != null ? mapping.getPhysical().length() : 0;
 			sct.set("physicalClassLoader", Caster.toDouble(size));
 
-			// pagepool
-			// size = SizeOf.size(mapping.getPageSourcePool());
-			// sct.set(PAGE_POOL, Caster.toDouble(size));
-
 			map.set(!isCustomTagMapping ? mapping.getVirtual() : mapping.getStrPhysical(), sct);
 		}
-	}
-
-	private static void infoScopes(Struct web, Struct server, ConfigWeb config) throws PageException {
-		ScopeContext sc = ((CFMLFactoryImpl) config.getFactory()).getScopeContext();
-		DoubleStruct webScopes = new DoubleStruct();
-		DoubleStruct srvScopes = new DoubleStruct();
-
-		long s;
-		s = sc.getScopesSize(Scope.SCOPE_SESSION);
-		webScopes.set("session", Caster.toDouble(s));
-
-		s = sc.getScopesSize(Scope.SCOPE_APPLICATION);
-		webScopes.set("application", Caster.toDouble(s));
-
-		s = sc.getScopesSize(Scope.SCOPE_CLUSTER);
-		srvScopes.set("thread", Caster.toDouble(s));
-
-		s = sc.getScopesSize(Scope.SCOPE_SERVER);
-		srvScopes.set("server", Caster.toDouble(s));
-
-		s = sc.getScopesSize(Scope.SCOPE_CLIENT);
-		webScopes.set("client", Caster.toDouble(s));
-
-		web.set(KeyConstants._scopes, webScopes);
-		server.set(KeyConstants._scopes, srvScopes);
-	}
-
-	private static void infoPageContextStack(Struct parent, CFMLFactory factory) throws PageException {
-		long size = ((CFMLFactoryImpl) factory).getPageContextsSize();
-		parent.set(KeyConstants._pageContextStack, Caster.toDouble(size));
 	}
 
 }
