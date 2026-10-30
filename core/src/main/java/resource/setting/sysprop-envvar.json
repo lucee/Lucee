@@ -1077,7 +1077,7 @@
 	{
 		"sysprop": "lucee.queue.timeout",
 		"envvar": "LUCEE_QUEUE_TIMEOUT",
-		"desc": "The time in milliseconds a request is held in the queue. If the time is reached, the request is rejected with an exception. If you set it to 0 seconds, the request timeout is used instead",
+		"desc": "The time in milliseconds a request is held in the queue. If the time is reached, the request is rejected with HTTP status 503 (Service Unavailable) and a Retry-After header. If you set it to 0 seconds, the request timeout is used instead",
 		"category": "request",
 		"type": "timespan",
 		"default": 0
