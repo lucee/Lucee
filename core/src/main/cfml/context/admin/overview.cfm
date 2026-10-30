@@ -83,14 +83,35 @@ Error Output --->
     <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
     <script type="text/javascript">
     	var chartTimer;
+    	var chartPollInterval = 5000; // regular delay between polls
+    	var chartPollMaxInterval = 60000; // upper limit for the delay while polls keep failing
+    	var chartPollFailures = 0; // consecutive failed polls
     	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
+		// LDEV-6794: the next poll is always scheduled, whether the current one worked or not,
+		// otherwise a single failed poll stops the charts for good. Failures back off modestly.
+		function scheduleNextRequest(){
+			if (chartTimer === null) // set to null when navigating away from the overview page
+				return;
+			var delay = Math.min(chartPollInterval * Math.pow(2, chartPollFailures), chartPollMaxInterval);
+			chartTimer = setTimeout(requestData, delay);
+		}
 		function requestData(){
 			jQuery.ajax({
 				type: "POST",
 				<cfoutput>url: "./#request.self#?action=chartAjax",</cfoutput>
+				error: function(jqXHR, textStatus, errorThrown){
+					chartPollFailures++;
+					console.warn("admin overview: chart update failed (" + textStatus + (errorThrown ? ": " + errorThrown : "") + "), retrying");
+					scheduleNextRequest();
+				},
 				success: function(result){
-					if (typeof result !== 'object')
+				try {
+					if (typeof result !== 'object' || result === null){
+						// e.g. the login page after the session expired
+						chartPollFailures++;
+						console.warn("admin overview: chart update returned an unexpected response, retrying");
 						return;
+					}
 					var arr =["heap","nonheap"];
 					$.each(arr,function(index,chrt){
 						window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
@@ -127,8 +148,11 @@ Error Output --->
 						}
 						window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
 					});
-					if (chartTimer !== null)
-						chartTimer = setTimeout(requestData, 5000);
+					chartPollFailures = 0;
+				}
+				finally {
+					scheduleNextRequest();
+				}
 				}
 			})
 		}
