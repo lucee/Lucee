@@ -1,3 +1,4 @@
+// per-engine coverage (perl, java, compat) of this backtracking case lives in test/general/regex/DotNewline.cfc, testBigInputNoMatch*
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
 		variables.uri = createURI("LDEV2156");

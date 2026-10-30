@@ -24,6 +24,15 @@ component {
 		application action="update" regex=variables._origEngine;
 	}
 
+	public boolean function throws( required any body ) {
+		try {
+			arguments.body();
+		} catch ( any e ) {
+			return true;
+		}
+		return false;
+	}
+
 	public function eachEngine( required any body ) {
 		var caller = lcase( callStackGet()[ 2 ].function );
 		var meta   = variables._fnMeta[ caller ] ?: {};

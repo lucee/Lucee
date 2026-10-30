@@ -45,7 +45,7 @@ class JavaRegex implements Regex {
 			if (offset > strLen) return 0;
 
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-			if (offset > 1) matcher.region(offset - 1, strLen);
+			if (offset > 1) startAt(matcher, offset - 1);
 			if (!matcher.find()) return 0;
 
 			return matcher.start() + 1;
@@ -62,12 +62,14 @@ class JavaRegex implements Regex {
 			if (offset > strLen) return 0;
 
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-			if (offset > 1) matcher.region(offset - 1, strLen);
+			if (offset > 1) startAt(matcher, offset - 1);
 
 			ArrayImpl arr = null;
-			while (matcher.find()) {
+			int prevEnd = -1;
+			while (findNext(matcher, prevEnd)) {
 				if (arr == null) arr = new ArrayImpl();
 				arr.append(matcher.start() + 1);
+				prevEnd = matcher.end();
 			}
 			return arr == null ? 0 : arr;
 		}
@@ -83,7 +85,7 @@ class JavaRegex implements Regex {
 			if (offset > strLen) return findEmpty();
 
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-			if (offset > 1) matcher.region(offset - 1, strLen);
+			if (offset > 1) startAt(matcher, offset - 1);
 			if (!matcher.find()) return findEmpty();
 
 			return toStruct(matcher, strInput);
@@ -105,10 +107,12 @@ class JavaRegex implements Regex {
 			}
 
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-			if (offset > 1) matcher.region(offset - 1, strLen);
+			if (offset > 1) startAt(matcher, offset - 1);
 
-			while (matcher.find()) {
+			int prevEnd = -1;
+			while (findNext(matcher, prevEnd)) {
 				arr.append(toStruct(matcher, strInput));
+				prevEnd = matcher.end();
 			}
 			if (arr.isEmpty()) arr.add(findEmpty());
 			return arr;
@@ -137,8 +141,10 @@ class JavaRegex implements Regex {
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
 
 			ArrayImpl arr = new ArrayImpl();
-			while (matcher.find()) {
+			int prevEnd = -1;
+			while (findNext(matcher, prevEnd)) {
 				arr.append(strInput.substring(matcher.start(), matcher.end()));
+				prevEnd = matcher.end();
 			}
 			return arr;
 		}
@@ -173,7 +179,7 @@ class JavaRegex implements Regex {
 			do {
 				m.appendReplacement(sb, replacement);
 			}
-			while (m.find());
+			while (findNext(m, m.end()));
 			m.appendTail(sb);
 			return sb.toString();
 		}
@@ -256,6 +262,20 @@ class JavaRegex implements Regex {
 		sct.setEL(KeyConstants._len, lenArray);
 		sct.setEL(KeyConstants._match, matchArray);
 		return sct;
+	}
+
+	// next match for the scope "all" loops, prevEnd is where the previous match ended, -1 before the first
+	protected boolean findNext(Matcher matcher, int prevEnd) {
+		return matcher.find();
+	}
+
+	// Starts the search at index start without cutting the input there, as Oro's setCurrentOffset() does.
+	// A region on its own has anchoring bounds (^ and \A match at the region start) and opaque bounds
+	// (\b and lookarounds can't see the chars before it), so code that loops reFind from increasing offsets
+	// with a leading ^ re-anchored at every restart, Preside's PresideObjectService._reSearch() for one.
+	// The region end is always the input end, so $ is unchanged. Plain java changes too, see LDEV-6798.
+	private static void startAt(Matcher matcher, int start) {
+		matcher.region(start, matcher.regionEnd()).useAnchoringBounds(false).useTransparentBounds(true);
 	}
 
 	protected Pattern toPattern(String strPattern, boolean caseSensitive, boolean multiLine) {
