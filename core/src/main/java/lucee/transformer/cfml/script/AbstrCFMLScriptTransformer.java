@@ -977,6 +977,24 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			// finish
 			if (data.srcCode.isCurrent(')')) break;
 
+			// rest parameter, function f( a, ...rest )
+			if (data.srcCode.forwardIfCurrent("...")) {
+				comments(data);
+				String restName = identifier(data, false);
+				if (restName == null) throw new TemplateException(data.srcCode, "Invalid rest parameter, the name of the parameter is missing after [...]");
+				comments(data);
+				if (!data.srcCode.isCurrent(')')) {
+					throw new TemplateException(data.srcCode, "Invalid rest parameter [..." + restName + "], the rest parameter must be the last parameter");
+				}
+				Map<String, Attribute> restMeta = new HashMap<String, Attribute>();
+				restMeta.put("rest", new Attribute(true, "rest", data.factory.EMPTY(), "boolean"));
+				Argument restArg = new Argument(data.factory.createLitString(restName), data.factory.createLitString("array"), data.factory.createLitBoolean(false), null,
+						data.factory.TRUE(), data.factory.EMPTY(), data.factory.EMPTY(), restMeta);
+				restArg.setTypeExplicit(false);
+				result.add(restArg);
+				break;
+			}
+
 			// attribute
 
 			// name
