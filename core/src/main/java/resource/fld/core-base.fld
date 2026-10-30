@@ -8174,11 +8174,23 @@ The following things are considered to be empty:
 	        <name>format</name>
 	        <type>string</type>
 	        <required>No</required>
-	        <default>json5</default>
 	        <introduced>6.2.0.14</introduced>
 	        <description>The format of the input string. Possible values are:
 	- **json**: Standard JSON format
-	- **json5**: JSON5 format which allows additional features such as comments and unquoted keys</description>
+	- **json5**: JSON5 format which allows additional features such as comments and unquoted keys
+
+If not defined, the format is json5 when the argument lenient is true, otherwise strict JSON.</description>
+	    </argument>
+	    <argument>
+	        <name>lenient</name>
+	        <type>boolean</type>
+	        <required>No</required>
+	        <default>false</default>
+	        <introduced>8.0.1.24</introduced>
+	        <description>Defines how strict the validation is.
+With **false** (the default), only strict JSON as defined by RFC 8259 is valid: object keys and strings must be double quoted, no comments, no trailing commas, no unquoted values. The format json5 is not affected by this argument, as JSON5 is lenient by definition.
+With **true**, the lenient parser of Lucee is used, the same as for deserializeJSON (the format json5 additionally allows comments and unquoted keys). This was the behaviour before Lucee 9.0.
+This argument only influences isJson, deserializeJSON always stays lenient.</description>
 	    </argument>
 	    <return>
 	        <type>boolean</type>
