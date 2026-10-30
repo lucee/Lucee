@@ -47,6 +47,7 @@ import lucee.runtime.functions.system.CFFunction;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -691,8 +692,26 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			left = expression(data);
 			comments(data);
 		}
+		// LDEV-1424 for (value, index in collection)
+		Expression second = null;
+		if (left != null && data.srcCode.forwardIfCurrent(',')) {
+			comments(data);
+			second = expression(data);
+			comments(data);
+			if (!(left instanceof Variable) || !(second instanceof Variable) || !data.srcCode.isCurrentKeyword("in")) {
+				throw new TemplateException(data.srcCode, "invalid syntax in for statement, the form [for (value, index in collection)] is the only one allowing a second variable");
+			}
+			// for (var value, index in collection) the index is declared as local variable as well
+			Variable l = (Variable) left;
+			Variable r = (Variable) second;
+			if (l.getScope() == Scope.SCOPE_VAR && r.getScope() == Scope.SCOPE_UNDEFINED && !r.ignoredFirstMember() && r.getMembers().size() == 1) {
+				Variable local = data.factory.createVariable(Scope.SCOPE_VAR, line, data.srcCode.getPosition());
+				local.addMember(r.getFirstMember());
+				second = local;
+			}
+		}
 		// middle for
-		if (data.srcCode.forwardIfCurrent(';')) {
+		if (second == null && data.srcCode.forwardIfCurrent(';')) {
 
 			Expression cont = null;
 			Expression update = null;
@@ -739,7 +758,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			if (!(left instanceof Variable)) throw new TemplateException(data.srcCode, "invalid syntax in for statement, left value is invalid");
 
-			return new ForEach((Variable) left, value, body, line, data.srcCode.getPosition(), id);
+			return new ForEach((Variable) left, (Variable) second, value, body, line, data.srcCode.getPosition(), id);
 		}
 		else throw new TemplateException(data.srcCode, "invalid syntax in for statement");
 	}
@@ -1187,7 +1206,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// body
 		boolean oldInsideFunction = data.insideFunction;
+		java.util.Set<String> oldFinalNames = data.finalNames;
 		data.insideFunction = true;
+		data.finalNames = null;
 		try {
 			// ex block
 			Body prior = data.setParent(body);
@@ -1307,6 +1328,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		}
 		finally {
 			data.insideFunction = oldInsideFunction;
+			data.finalNames = oldFinalNames;
 		}
 		func.setEnd(data.srcCode.getPosition());
 
@@ -1484,7 +1506,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// body
 		boolean oldInsideFunction = data.insideFunction;
+		java.util.Set<String> oldFinalNames = data.finalNames;
 		data.insideFunction = true;
+		data.finalNames = null;
 
 		try {
 			if (data.srcCode.isCurrent('{')) {
@@ -1522,6 +1546,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		}
 		finally {
 			data.insideFunction = oldInsideFunction;
+			data.finalNames = oldFinalNames;
 		}
 
 		func.setEnd(data.srcCode.getPosition());
@@ -2527,6 +2552,31 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	 * @return Ausdruck
 	 * @throws TemplateException
 	 */
+	private static final java.util.Set<String> NOT_A_DECLARATION = new java.util.HashSet<String>(java.util.Arrays.asList("eq", "neq", "gt", "gte", "lt", "lte", "ge", "le", "is",
+			"isnot", "and", "or", "xor", "eqv", "imp", "mod", "contains", "does", "instanceof", "castas", "not"));
+
+	/**
+	 * LDEV-2551: is the current position the start of a final variable declaration (final x = 1)? final is still usable as a variable name
+	 * (final = 1), so it is only a modifier if it is followed by a name
+	 */
+	private boolean isFinalDeclaration(Data data) {
+		int pos = data.srcCode.getPos();
+		try {
+			if (!data.srcCode.forwardIfCurrent("final ")) return false;
+			data.srcCode.removeSpace();
+			char c = data.srcCode.getCurrent();
+			if (!Character.isLetter(c) && c != '_' && c != '$') return false;
+			int start = data.srcCode.getPos();
+			while (data.srcCode.isValidIndex() && (Character.isLetterOrDigit(data.srcCode.getCurrent()) || data.srcCode.getCurrent() == '_' || data.srcCode.getCurrent() == '$'))
+				data.srcCode.next();
+			String word = data.srcCode.substring(start, data.srcCode.getPos() - start).toLowerCase();
+			return !NOT_A_DECLARATION.contains(word);
+		}
+		finally {
+			data.srcCode.setPos(pos);
+		}
+	}
+
 	private Statement expressionStatement(Data data, Body parent) throws TemplateException {
 
 		// first we check if we have an access modifier
@@ -2561,6 +2611,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				comments(data);
 			}
 		}
+		// LDEV-2551: final variable in a function or a template, final x = 1;
+		boolean finalVar = false;
+		if (data.context != CTX_CFC && data.context != CTX_STATIC && isFinalDeclaration(data)) {
+			data.srcCode.forwardIfCurrent("final ");
+			comments(data);
+			finalVar = true;
+		}
 		Body prior = data.setParent(parent);
 		Expression expr = expression(data);
 		data.setParent(prior);
@@ -2573,6 +2630,16 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 				expr = new Assign(v, data.factory.createEmpty(), data.srcCode.getPosition());
 			}
+		}
+
+		if (finalVar) {
+			String key = expr instanceof Assign ? finalKey(data, ((Assign) expr).getVariable()) : null;
+			if (key == null) {
+				data.srcCode.setPos(pos);
+				throw new TemplateException(data.srcCode, "Invalid use of final, a final variable must be declared with a simple name, for example [final x = 1;]");
+			}
+			if (data.finalNames == null) data.finalNames = new java.util.HashSet<String>();
+			data.finalNames.add(key);
 		}
 
 		// if a specific access was defined

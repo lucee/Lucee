@@ -76,6 +76,33 @@
 			<type>array</type>
 		</return>
 	</function>
+	<!-- _spread -->
+	<function>
+		<name>_spread</name>
+		<class>lucee.runtime.functions.other.Spread</class>
+		<status>hidden</status>
+		<description>internal function used for the spread operator (...) in array literals, struct literals and function calls</description>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>value to spread</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+	<!-- _literalSpreadArray -->
+	<function>
+		<name>_literalSpreadArray</name>
+		<class>lucee.runtime.functions.arrays.LiteralSpreadArray</class>
+		<status>hidden</status>
+		<description>internal function used for literal array definition containing the spread operator</description>
+		<argument-type>dynamic</argument-type>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
 	<!-- _arraySlice -->
 	<function>
 		<name>_arraySlice</name>
@@ -115,6 +142,28 @@
 		</argument>
 		<return>
 			<type>array</type>
+		</return>
+	</function>
+	<!-- _literalSpreadStruct -->
+	<function>
+		<name>_literalSpreadStruct</name>
+		<class>lucee.runtime.functions.struct.LiteralSpreadStruct</class>
+		<status>hidden</status>
+		<description>internal function used for literal struct definition containing the spread operator</description>
+		<argument-type>dynamic</argument-type>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	<!-- _literalSpreadOrderedStruct -->
+	<function>
+		<name>_literalSpreadOrderedStruct</name>
+		<class>lucee.runtime.functions.struct.LiteralSpreadOrderedStruct</class>
+		<status>hidden</status>
+		<description>internal function used for literal ordered struct definition containing the spread operator</description>
+		<argument-type>dynamic</argument-type>
+		<return>
+			<type>struct</type>
 		</return>
 	</function>
 	<!-- _jsonArray -->
@@ -5109,12 +5158,19 @@ EntitySave(entity, [forceInsert])</description>
 		<name>render</name>
 		<class>lucee.runtime.functions.dynamicEvaluation.Render</class>
 		<introduced>5.0.0.0</introduced>
-		<description>Similar to the Evaluate() function, this function executes Lucee tag code that you provide as a string and returns any output as a string.</description>
+		<description>Similar to the Evaluate() function, this function executes Lucee tag code that you provide as a string. By default the output is written to the response, with returnOutput=true the output is returned as a string instead.</description>
 		<argument>
 			<name>code</name>
 			<alias>cfml</alias>
 			<type>string</type>
 			<required>Yes</required>
+		</argument>
+		<argument>
+			<name>returnOutput</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If true, the output of the rendered code is not written to the response, but returned as a string. If false (default), the output is written to the response.</description>
 		</argument>
 		
 		<return>
@@ -8113,7 +8169,7 @@ The following things are considered to be empty:
 	    <name>IsJson</name>
 	    <class>lucee.runtime.functions.conversion.IsJSON</class>
 	    <keywords>decision,json,javascript,json5</keywords>
-	    <description>Evaluates whether a string is in a valid JSON (JavaScript Object Notation) or JSON5 data interchange format.</description>
+	    <description>Evaluates whether a string is valid JSON (JavaScript Object Notation). By default only strict JSON as defined by RFC 8259 is valid; set lenient=true or format="json5" to also accept the relaxed syntax of JSON5. The value is validated only, it is not deserialized.</description>
 	    <argument>
 	        <name>var</name>
 	        <alias>value</alias>
@@ -8125,11 +8181,23 @@ The following things are considered to be empty:
 	        <name>format</name>
 	        <type>string</type>
 	        <required>No</required>
-	        <default>json5</default>
 	        <introduced>6.2.0.14</introduced>
 	        <description>The format of the input string. Possible values are:
 	- **json**: Standard JSON format
-	- **json5**: JSON5 format which allows additional features such as comments and unquoted keys</description>
+	- **json5**: JSON5 format which allows additional features such as comments and unquoted keys
+
+If not defined, the format is json5 when the argument lenient is true, otherwise strict JSON.</description>
+	    </argument>
+	    <argument>
+	        <name>lenient</name>
+	        <type>boolean</type>
+	        <required>No</required>
+	        <default>false</default>
+	        <introduced>8.0.1.24</introduced>
+	        <description>Defines how strict the validation is.
+With **false** (the default), only strict JSON as defined by RFC 8259 is valid: object keys and strings must be double quoted, no comments, no trailing commas, no unquoted values. The format json5 is not affected by this argument, as JSON5 is lenient by definition.
+With **true**, the lenient parser of Lucee is used, the same as for deserializeJSON (the format json5 additionally allows comments and unquoted keys). This was the behaviour before Lucee 9.0.
+This argument only influences isJson, deserializeJSON always stays lenient.</description>
 	    </argument>
 	    <return>
 	        <type>boolean</type>
@@ -12561,10 +12629,10 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- queryRecordCount -->
 	<function>
 		<name>queryRecordCount</name>
-		<member-name>recordCount</member-name>
+		<member-name>recordCount,len</member-name>
 		<class>lucee.runtime.functions.query.QueryRecordCount</class>
 		<keywords>query</keywords>
-		<description>row count of given query</description>
+		<description>row count of given query. As a member function it is available as query.recordCount() and as query.len(), the same as arrays and strings</description>
 		<argument>
 			<name>query</name>
 			<type>query</type>

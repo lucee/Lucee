@@ -2,6 +2,7 @@ package lucee.transformer.cfml.evaluator.func.impl;
 
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.expression.var.BIF;
+import lucee.transformer.bytecode.expression.var.SpreadUtil;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.expression.var.Argument;
@@ -14,6 +15,20 @@ public final class LiteralArray implements FunctionEvaluator {
 	public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {
 		Argument[] args = bif.getArguments();
 		if (args == null || args.length == 0) return null;
+
+		// spread operator
+		if (SpreadUtil.hasSpread(args)) {
+			boolean hasNamed = false;
+			for (int i = 0; i < args.length; i++) {
+				if (args[i] instanceof NamedArgument) hasNamed = true;
+			}
+			if (!hasNamed) return flf.getFunctionLib().getFunction("_literalSpreadArray");
+			for (int i = 0; i < args.length; i++) {
+				if (!(args[i] instanceof NamedArgument) && !SpreadUtil.isSpread(args[i]))
+					throw new TemplateException("invalid argument for literal ordered struct, only named arguments and the spread operator are allowed like [name:\"value\", ...other]");
+			}
+			return flf.getFunctionLib().getFunction("_literalSpreadOrderedStruct");
+		}
 
 		// named arguments
 		if (args[0] instanceof NamedArgument) {
