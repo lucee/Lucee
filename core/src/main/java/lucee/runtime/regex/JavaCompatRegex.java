@@ -1,5 +1,6 @@
 package lucee.runtime.regex;
 
+import java.util.BitSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -32,6 +33,10 @@ class JavaCompatRegex extends JavaRegex {
 	private static final String RUN_SPACE = " \t\n\r\f\u000B";
 	// the inline modifiers Oro accepts in (?...)
 	private static final String ORO_MODIFIERS = "iogmsx-";
+	// the ones that do something, g and o are ignored, and the java flag for each
+	private static final String MOD_LETTERS = "imsx";
+	private static final int[] MOD_FLAGS = { Pattern.CASE_INSENSITIVE, Pattern.MULTILINE, Pattern.DOTALL, Pattern.COMMENTS };
+	private static final int MS = Pattern.MULTILINE | Pattern.DOTALL;
 
 	// letters java.util.regex accepts after a backslash, Oro reads any other letter as itself.
 	// \E is only valid after a \Q, which is copied whole
@@ -90,11 +95,26 @@ class JavaCompatRegex extends JavaRegex {
 	// Oro's (?x) and (?#...) are handled here and dropped from the translation, see the comments below.
 	static String translatePattern(String pattern) {
 		if (pattern.indexOf('{') < 0 && pattern.indexOf('[') < 0 && pattern.indexOf('\\') < 0 && pattern.indexOf("(?") < 0) return pattern;
+		// the inline modifiers set so far and the ones that are on, as java flags
+		int[] mods = new int[2];
+		// Oro compiles in two passes and the second starts with the modifiers the first ended with,
+		// so the last (?m) (?s) (?x) also applies before it, and the last (?i) to the whole pattern
+		if (pattern.indexOf("(?") >= 0) translate(pattern, mods);
+		return translate(pattern, mods);
+	}
+
+	private static String translate(String pattern, int[] mods) {
 		int n = pattern.length();
 		StringBuilder sb = new StringBuilder(n + 16);
+		sb.append(modifiers(mods, Pattern.CASE_INSENSITIVE | MS));
 		boolean inClass = false;
 		// Oro's (?x) is on from where it appears to the end of the pattern, or a (?-x), not to the end of the group like java's
-		boolean extended = false;
+		boolean extended = (mods[1] & Pattern.COMMENTS) != 0;
+		// the same for (?m) and (?s), java turns them off again where the group ends, so after a group that changed
+		// them they're written again, once past any quantifier on the group. Oro's (?i) is in the prefix, see above
+		int depth = 0;
+		BitSet changed = new BitSet();
+		String pending = null;
 		// where the current run of literals starts in sb, and whether (?x) skipped whitespace since its last char:
 		// Oro checks for a quantifier before it skips, so a quantifier after the whitespace is one more literal
 		int runStart = -1;
@@ -107,12 +127,17 @@ class JavaCompatRegex extends JavaRegex {
 		boolean atomStart = true;
 		for (int i = 0; i < n; i++) {
 			char c = pattern.charAt(i);
-			int len = sb.length();
 			if (extended && !inClass && (c == '#' || (runStart >= 0 ? RUN_SPACE.indexOf(c) >= 0 : Character.isWhitespace(c)))) {
 				if (c == '#') while (i + 1 < n && pattern.charAt(i + 1) != '\n') i++;
 				if (runStart >= 0) skipped = true;
 				continue;
 			}
+			if (pending != null && "*+?".indexOf(c) < 0 && !isOroQuantifier(pattern, i) && !pattern.startsWith("(?#", i)) {
+				sb.append(pending);
+				if (depth > 0) changed.set(depth);
+				pending = null;
+			}
+			int len = sb.length();
 			boolean atStart = atomStart;
 			atomStart = false;
 			if (skipped && "*+?{".indexOf(c) >= 0) {
@@ -138,7 +163,10 @@ class JavaCompatRegex extends JavaRegex {
 			}
 			int modEnd = !inClass && c == '(' ? modifiersEnd(pattern, i) : -1;
 			if (modEnd > 0) {
-				extended = translateModifiers(pattern, i, modEnd, extended, sb);
+				String ms = modifiers(mods, applyModifiers(pattern, i, modEnd, mods) & MS);
+				sb.append(ms);
+				if (depth > 0 && !ms.isEmpty()) changed.set(depth);
+				extended = (mods[1] & Pattern.COMMENTS) != 0;
 				runStart = -1;
 				atomStart = true;
 				i = modEnd;
@@ -208,6 +236,7 @@ class JavaCompatRegex extends JavaRegex {
 				sb.append(pattern, i, i + 3);
 				runStart = -1;
 				atomStart = true;
+				changed.clear(++depth);
 				i += 2;
 			}
 			else {
@@ -216,6 +245,11 @@ class JavaCompatRegex extends JavaRegex {
 				runStart = "^$.()|*+?".indexOf(c) >= 0 ? -1 : runStart < 0 ? len : runStart;
 				if (c == '(' || c == '|') atomStart = true;
 				if (c == '(' && (i + 1 == n || pattern.charAt(i + 1) != '?')) groups++;
+				if (c == '(') changed.clear(++depth);
+				else if (c == ')' && depth > 0) {
+					if (changed.get(depth)) pending = modifiers(mods, MS);
+					depth--;
+				}
 			}
 		}
 		return sb.toString();
@@ -229,20 +263,32 @@ class JavaCompatRegex extends JavaRegex {
 		return j < n && pattern.charAt(j) == ')' ? j : -1;
 	}
 
-	// copies the modifier group without x, returns whether (?x) is on after it
-	private static boolean translateModifiers(String pattern, int i, int end, boolean extended, StringBuilder sb) {
-		String flags = pattern.substring(i + 2, end);
-		int minus = flags.indexOf('-');
-		int x = flags.indexOf('x');
-		if (x < 0) {
-			sb.append(pattern, i, end + 1);
-			return extended;
+	// applies the modifier group to mods, returns the flags it names
+	private static int applyModifiers(String pattern, int i, int end, int[] mods) {
+		int named = 0;
+		boolean minus = false;
+		for (int j = i + 2; j < end; j++) {
+			char f = pattern.charAt(j);
+			int k = MOD_LETTERS.indexOf(f);
+			// Oro sets the flags before the - and then clears the ones after it
+			if (f == '-') minus = true;
+			else if (k >= 0) {
+				named |= MOD_FLAGS[k];
+				mods[1] = minus ? mods[1] & ~MOD_FLAGS[k] : mods[1] | MOD_FLAGS[k];
+			}
 		}
-		// Oro sets the flags before the - and then clears the ones after it
-		boolean on = minus < 0 || (x < minus && flags.indexOf('x', minus) < 0);
-		String rest = flags.replace("x", "");
-		if (!rest.isEmpty() && !rest.equals("-")) sb.append("(?").append(rest.endsWith("-") ? rest.substring(0, rest.length() - 1) : rest).append(')');
-		return on;
+		mods[0] |= named;
+		return named;
+	}
+
+	// the java modifier group for the flags in mask that have been set, "" if none have
+	private static String modifiers(int[] mods, int mask) {
+		StringBuilder on = new StringBuilder(), off = new StringBuilder();
+		for (int k = 0; k < 3; k++) {
+			if ((mods[0] & mask & MOD_FLAGS[k]) != 0) ((mods[1] & MOD_FLAGS[k]) != 0 ? on : off).append(MOD_LETTERS.charAt(k));
+		}
+		if (on.length() == 0 && off.length() == 0) return "";
+		return "(?" + on + (off.length() > 0 ? "-" + off : "") + ")";
 	}
 
 	// Oro's test for a quantifier when it decides where a run of literals ends

@@ -157,6 +157,89 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 		});
 	}
 
+	// Oro compiles in two passes and the second starts with the modifiers the first ended with. So the last
+	// (?m) (?s) (?x) also applies before it, and from where each one appears it applies to the end of the
+	// pattern, not the end of the group like java's. The last (?i) applies to the whole pattern
+
+	public void function testModifierAppliesBeforeIt() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 1, reFind( "A(?i)bc", "abc" ) );
+			assertEquals( 0, reFind( "a.c(?-s)x", "a#chr(10)#cx" ) );
+			assertEquals( 1, reFind( "a$#chr(10)#b(?m)x", "a#chr(10)#bx" ) );
+			assertEquals( 1, reFind( "a b(?x)c", "abc" ) );
+		});
+	}
+
+	public void function testModifierAppliesToEndOfPattern() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 1, reFind( "(a(?i)b)c", "aBC" ) );
+			assertEquals( 1, reFind( "(?:(?m)a$)#chr(10)#^b", "a#chr(10)#b" ) );
+			assertEquals( 0, reFind( "(a(?-s)b).c", "ab#chr(10)#c" ) );
+			assertEquals( 1, reFind( "(a(?-s)b).c", "abxc" ) );
+			assertEquals( 0, reFind( "(?-s)a.c(?s)x", "a#chr(10)#cx" ) );
+			assertEquals( 1, reFind( "(?s)a.c(?-s)x", "a#chr(10)#cx" ) );
+			assertEquals( 1, reFind( "(?m)a$#chr(10)#b(?-m)x", "a#chr(10)#bx" ) );
+		});
+	}
+
+	public void function testModifierAfterGroupQuantifier() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 0, reFind( "(?s)x.(a(?-s)b)+.c", "x#chr(10)#ab#chr(10)#c" ) );
+			assertEquals( 1, reFind( "(?s)x.(a(?-s)b)+.c", "x#chr(10)#ababxc" ) );
+			assertEquals( 0, reFind( "(?s)x.(a(?-s)b){2}.c", "x#chr(10)#abab#chr(10)#c" ) );
+			assertEquals( 1, reFind( "(?s)x.(a(?-s)b){2}.c", "x#chr(10)#ababxc" ) );
+			assertEquals( 0, reFind( "(?s)x.(a(?-s)b)*?.c", "x#chr(10)#ab#chr(10)#c" ) );
+			assertEquals( 1, reFind( "(?s)x.(a(?-s)b)*?.c", "x#chr(10)#abxc" ) );
+		});
+	}
+
+	public void function testModifierNestedGroupsAndAlternation() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 0, reFind( "(?s)x.((a(?-s)b)c).d", "x#chr(10)#abc#chr(10)#d" ) );
+			assertEquals( 1, reFind( "(?s)x.((a(?-s)b)c).d", "x#chr(10)#abcxd" ) );
+			assertEquals( 0, reFind( "(?s)(a(?-s)b).|c.", "c#chr(10)#" ) );
+			assertEquals( 1, reFind( "(?s)(a(?-s)b).|c.", "cx" ) );
+		});
+	}
+
+	public void function testModifierCaseInsensitiveWholePattern() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 0, reFind( "(?i)a(?-i)b", "Ab" ) );
+			assertEquals( 1, reFind( "(?i)a(?-i)b", "ab" ) );
+			assertEquals( 0, reFind( "(?i)ab(?-i)c", "ABc" ) );
+			assertEquals( 0, reFind( "a(?i)(?-i)b", "AB" ) );
+		});
+	}
+
+	public void function testModifierCaseInsensitiveUppercaseLiteral() {
+		// Oro lowercases a literal while (?i) is on, and the input only if it's on at the end, so (?i)A matches
+		// a but not A when a (?-i) follows. compat makes the whole pattern case sensitive, so it matches A but
+		// not a (known divergence)
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( engine == "compat" ? 0 : 1, reFind( "(?i)A(?-i)bc", "abc" ) );
+			assertEquals( engine == "perl" ? 0 : 1, reFind( "(?i)A(?-i)bc", "Abc" ) );
+		});
+	}
+
+	// Oro accepts (?g) and (?o) and ignores them
+	public void function testModifierGlobalAndOnce() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 1, reFind( "(?g)a", "a" ) );
+			assertEquals( 1, reFind( "(?o)a", "a" ) );
+			assertEquals( 1, reFind( "(?gio)A", "a" ) );
+		});
+	}
+
+	public void function testModifierJavaUnchanged() unsupportedRegexEngine="perl,compat" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 0, reFind( "A(?i)bc", "abc" ) );
+			assertEquals( 0, reFind( "(a(?i)b)c", "aBC" ) );
+			assertEquals( 1, reFind( "(?i)(a(?-i)b)c", "AbC" ) );
+			assertEquals( 1, reFind( "a b(?x)c", "a bc" ) );
+			assertTrue( variables._regex.throws( function() { reFind( "(?g)a", "a" ); } ) );
+		});
+	}
+
 	// perl only treats \n as a line terminator, java also \r, \r\n, U+0085, U+2028 and U+2029.
 	// compat compiles with UNIX_LINES.
 
