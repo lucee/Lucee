@@ -280,8 +280,10 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			return;
 		}
 
-		// we reload in case the config file was changed from outside
-
+		// we reload in case the config file was changed from outside, the config is held in memory, so
+		// we have to read the file again (that also remembers the new last modified date, so we do not
+		// reload again on the next call)
+		configServer.load(configFile);
 		load(configServer, quick);
 		// LDEV-6743 same as with a new instance, while the engine only has the essential (quick) config,
 		// extensions are not loaded yet, onStart (onBuild with warmup) is called once the full config is
