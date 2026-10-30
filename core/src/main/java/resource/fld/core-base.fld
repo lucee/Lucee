@@ -5158,12 +5158,19 @@ EntitySave(entity, [forceInsert])</description>
 		<name>render</name>
 		<class>lucee.runtime.functions.dynamicEvaluation.Render</class>
 		<introduced>5.0.0.0</introduced>
-		<description>Similar to the Evaluate() function, this function executes Lucee tag code that you provide as a string and returns any output as a string.</description>
+		<description>Similar to the Evaluate() function, this function executes Lucee tag code that you provide as a string. By default the output is written to the response, with returnOutput=true the output is returned as a string instead.</description>
 		<argument>
 			<name>code</name>
 			<alias>cfml</alias>
 			<type>string</type>
 			<required>Yes</required>
+		</argument>
+		<argument>
+			<name>returnOutput</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If true, the output of the rendered code is not written to the response, but returned as a string. If false (default), the output is written to the response.</description>
 		</argument>
 		
 		<return>
