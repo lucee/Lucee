@@ -25,6 +25,7 @@ import lucee.commons.net.URLEncoder;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
@@ -78,6 +79,7 @@ public class InternalRequest implements Function {
 	public static Struct call(final PageContext pc, String template, String method, Object oUrls, Object oForms, Struct cookies, Struct headers, Object body, String strCharset,
 			boolean addToken, boolean throwonerror) throws PageException {
 		method = method.toUpperCase().trim();
+		template = resolveTemplate(pc, template);
 		if (methods.indexOf(method) < 0) throw new FunctionException(pc, "_InternalRequest", 2, "method",
 				"invalid method type [" + method + "], valid types are [" + ListUtil.arrayToList(methods.toArray(new String[0]), ",") + "]");
 		Struct urls = toStruct(oUrls);
@@ -308,6 +310,35 @@ public class InternalRequest implements Function {
 			else list.add(new URLItem(n.getString(), Caster.toString(v), false));
 		}
 		trg.addRaw(null, list.toArray(new URLItem[list.size()]));
+	}
+
+	/**
+	 * LDEV-4038: a template path that does not start with a slash is relative to the directory of the
+	 * calling template, a path with a leading slash (or a windows path) is used as it is.
+	 */
+	private static String resolveTemplate(PageContext pc, String template) throws PageException {
+		if (StringUtil.isEmpty(template)) return template;
+		char first = template.charAt(0);
+		if (first == '/' || first == '\\' || ResourceUtil.isWindowsPath(template)) return template;
+
+		PageSource ps = pc.getCurrentPageSource(null);
+		if (ps == null) return template;
+
+		String caller = ps.getRealpathWithVirtual().replace('\\', '/');
+		String dir = caller.substring(0, caller.lastIndexOf('/') + 1);
+
+		// merge and normalize ./ and ../
+		List<String> parts = new ArrayList<String>();
+		for (String part: (dir + template.replace('\\', '/')).split("/")) {
+			if (part.isEmpty() || part.equals(".")) continue;
+			if (part.equals("..")) {
+				if (parts.isEmpty()) throw new FunctionException(pc, "_InternalRequest", 1, "template",
+						"template path [" + template + "] is relative to the calling template [" + caller + "] and points outside of the root");
+				parts.remove(parts.size() - 1);
+			}
+			else parts.add(part);
+		}
+		return "/" + String.join("/", parts);
 	}
 
 	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, byte[] body, Charset charset, OutputStream os,
