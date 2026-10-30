@@ -140,9 +140,9 @@ public final class DebuggerImpl implements Debugger {
 
 	private static final Key[] PAGE_COLUMNS = new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min, KeyConstants._max, KeyConstants._avg,
 			KeyConstants._app, KeyConstants._load, KeyConstants._query, KeyConstants._total, KeyConstants._src };
-	private static final Key[] QUERY_COLUMNS = new Collection.Key[] { KeyConstants._name, KeyConstants._time, KeyConstants._sql, KeyConstants._sqlPattern, KeyConstants._paramValue,
+	private static final Key[] QUERY_COLUMNS = new Collection.Key[] { KeyConstants._name, KeyConstants._time, KeyConstants._sql, KeyConstants._sqlPattern, KeyConstants._sqlRaw, KeyConstants._paramValue,
 			KeyConstants._paramType, KeyConstants._src, KeyConstants._line, KeyConstants._count, KeyConstants._datasource, KeyConstants._usage, KeyConstants._cacheType };
-	private static final String[] QUERY_COLUMN_TYPES = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "VARCHAR", "ARRAY", "ARRAY", "VARCHAR", "DOUBLE", "DOUBLE", "VARCHAR", "ANY",
+	private static final String[] QUERY_COLUMN_TYPES = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "VARCHAR", "VARCHAR", "ARRAY", "ARRAY", "VARCHAR", "DOUBLE", "DOUBLE", "VARCHAR", "ANY",
 			"VARCHAR" };
 	private static final Key[] GEN_DATA_COLUMNS = new Collection.Key[] { KeyConstants._category, KeyConstants._name, KeyConstants._value };
 	private static final Key[] TIMER_COLUMNS = new Collection.Key[] { KeyConstants._label, KeyConstants._time, KeyConstants._template, KeyConstants._line };
@@ -456,6 +456,7 @@ public final class DebuggerImpl implements Debugger {
 					qryQueries.setAt(KeyConstants._time, row, Long.valueOf(qe.getExecutionTime()));
 					qryQueries.setAt(KeyConstants._sql, row, qe.getSQL().toString());
 					qryQueries.setAt(KeyConstants._sqlPattern, row, ((SQLImpl) qe.getSQL()).toString(true));
+					qryQueries.setAt(KeyConstants._sqlRaw, row, qe.getSQL().getSQLString());
 
 					if (qe instanceof QueryResultEntryImpl) {
 						TemplateLine tl = ((QueryResultEntryImpl) qe).getTemplateLine();

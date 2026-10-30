@@ -39,6 +39,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.scope.ScopeContext;
 
 public final class GetSystemInfo implements Function {
@@ -52,6 +53,8 @@ public final class GetSystemInfo implements Function {
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) config.getFactory();
 		ScopeContext sc = factory.getScopeContext();
 		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+
+		sct.put("startTime", new DateTimeImpl(config.getEngine().uptime()));
 
 		// threads/requests
 		sct.put("activeRequests", factory.getActiveRequests());

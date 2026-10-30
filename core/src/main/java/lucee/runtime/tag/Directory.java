@@ -44,6 +44,7 @@ import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ModeObjectWrap;
+import lucee.commons.io.res.util.ResourceCopyMoveSupport;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.UDFFilter;
 import lucee.commons.io.res.util.WildcardPatternFilter;
@@ -870,7 +871,7 @@ public final class Directory extends TagImpl {
 			newdirectory.getParentResource().mkdirs();
 		}
 		try {
-			directory.moveTo(newdirectory);
+			ResourceCopyMoveSupport.moveDirectory(directory, newdirectory);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -923,7 +924,7 @@ public final class Directory extends TagImpl {
 				if (p != null && p.exists() && storage != null)
 					throw new ApplicationException("parent s3 bucket [" + newdirectory + "] already exists, cannot change region for existing buckets");
 			}
-			ResourceUtil.copyRecursive(directory, newdirectory, f);
+			ResourceCopyMoveSupport.copyDirectory(directory, newdirectory, f);
 			if (clearEmpty) ResourceUtil.removeEmptyFolders(newdirectory, f == null ? null : new NotResourceFilter(filter));
 
 		}

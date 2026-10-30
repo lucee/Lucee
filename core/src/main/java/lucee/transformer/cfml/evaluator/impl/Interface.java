@@ -21,6 +21,7 @@ package lucee.transformer.cfml.evaluator.impl;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.commons.lang.StringUtil;
 import lucee.transformer.Body;
 import lucee.transformer.bytecode.statement.PrintOut;
 import lucee.transformer.bytecode.statement.tag.TagFunction;
@@ -56,7 +57,20 @@ public final class Interface extends Component {
 				}
 				else if (stat instanceof TagFunction) {
 
-					Function.throwIfNotEmpty(t);
+					// a function with a body is a default function (LDEV-1835)
+					Attribute attrModifier = t.getAttribute("modifier");
+					String modifier = null;
+					if (attrModifier != null) {
+						ExprString exprModifier = t.getFactory().toExprString(attrModifier.getValue());
+						if (exprModifier instanceof LitString) modifier = ((LitString) exprModifier).getString().trim();
+					}
+					if (!"default".equalsIgnoreCase(modifier)) {
+						if (Function.hasBody(t) && StringUtil.isEmpty(modifier)) {
+							t.addAttribute(new Attribute(false, "modifier", stat.getFactory().createLitString("default"), "string"));
+						}
+						else Function.throwIfNotEmpty(t);
+					}
+
 					Attribute attr = t.getAttribute("access");
 
 					if (attr != null) {

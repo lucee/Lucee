@@ -41,8 +41,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 expect( isObject(bean) ).toBeTrue();
             });
 
-			it( title = "should NOT load railo/loader/servlet/CFMLServlet with 2 arguments", body = function( currentSpec ) {
-                var servlet = createObject( "java", "railo.loader.servlet.CFMLServlet" );
+			it( title = "should load a class of the loader with 2 arguments", body = function( currentSpec ) {
+                var servlet = createObject( "java", "lucee.loader.servlet.CFMLServlet" );
                 
                 // Assert the object was created successfully
                 expect( isObject(servlet) ).toBeTrue();

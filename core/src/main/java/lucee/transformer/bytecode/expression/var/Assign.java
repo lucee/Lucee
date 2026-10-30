@@ -22,6 +22,8 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import java.util.List;
+
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Scope;
@@ -34,7 +36,9 @@ import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.TypeScope;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
+import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
@@ -49,6 +53,7 @@ public class Assign extends ExpressionBase {
 
 	// Object touch (Object,String)
 	private final static Method TOUCH_KEY = new Method("touch", Types.OBJECT, new Type[] { Types.OBJECT, CK });
+	private final static Method TOUCH_ARRAY_KEY = new Method("touchArray", Types.OBJECT, new Type[] { Types.OBJECT, CK });
 	private final static Method TOUCH_KEY_AM = new Method("touch", Types.OBJECT, new Type[] { Types.OBJECT, CK, Types.INT_VALUE, Types.INT_VALUE });
 
 	// Object set (Object,String,Object)
@@ -141,7 +146,17 @@ public class Assign extends ExpressionBase {
 
 		// undefined
 		boolean doHaveAccessOrModifier = (access > -1 || modifier > 0);
+		// LDEV-1329: a[1] = x creates an array if a does not exist, this is not supported by the fast path
+		boolean hasIndex = false;
 		if (!doHaveAccessOrModifier) {
+			for (int i = 0; i < count - 1; i++) {
+				if (createsArray(i)) {
+					hasIndex = true;
+					break;
+				}
+			}
+		}
+		if (!doHaveAccessOrModifier && !hasIndex) {
 			outer: while (count > 0 && scope != -1 && count <= SET_KEYS[scope].length) {
 
 				for (int i = 0; i < count; i++) {
@@ -172,12 +187,15 @@ public class Assign extends ExpressionBase {
 
 		Type rtn = Types.OBJECT;
 		// boolean last;
-		for (int i = doOnlyScope ? 0 : 1; i < count; i++) {
+		final int startIndex = doOnlyScope ? 0 : 1;
+		for (int i = startIndex; i < count; i++) {
 			adapter.loadArg(0);
 			if (doHaveAccessOrModifier) {
 				boolean last = (i + 1) == count;
 				if (last) adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
 			}
+			// LDEV-1329: the pc loaded last is consumed by the first member
+			else if (createsArray(startIndex + count - 1 - i)) adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
 		}
 		rtn = _writeOutFirst(bc, (variable.getMembers().get(0)), mode, count == 1, doOnlyScope);
 
@@ -201,7 +219,8 @@ public class Assign extends ExpressionBase {
 					ga.push(modifier);
 				}
 
-				adapter.invokeVirtual(doAM ? Types.PAGE_CONTEXT_IMPL : Types.PAGE_CONTEXT, last ? (doAM ? SET_KEY_AM : SET_KEY) : (doAM ? TOUCH_KEY_AM : TOUCH_KEY));
+				if (!last && !doAM && createsArray(i)) adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, TOUCH_ARRAY_KEY);
+				else adapter.invokeVirtual(doAM ? Types.PAGE_CONTEXT_IMPL : Types.PAGE_CONTEXT, last ? (doAM ? SET_KEY_AM : SET_KEY) : (doAM ? TOUCH_KEY_AM : TOUCH_KEY));
 				rtn = Types.OBJECT;
 			}
 
@@ -250,6 +269,21 @@ public class Assign extends ExpressionBase {
 		}
 	}
 
+	/**
+	 * LDEV-1329: is the member at the given index followed by a positive integer literal in brackets, like a in a[1] = x? In that case
+	 * the member is created as an array, not as a struct, if it does not exist.
+	 */
+	private boolean createsArray(int index) {
+		if (access > -1 || modifier > 0) return false;
+		List<Member> members = variable.getMembers();
+		if (index < 0 || index + 1 >= members.size()) return false;
+		Member m = members.get(index);
+		Member next = members.get(index + 1);
+		if (!(m instanceof DataMember) || !(next instanceof DataMember)) return false;
+		ExprString name = ((DataMember) next).getName();
+		return name instanceof LitString && ((LitString) name).fromBracketIndex();
+	}
+
 	private Type _writeOutOneDataMember(BytecodeContext bc, DataMember member, boolean last, boolean doOnlyScope) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 
@@ -267,6 +301,7 @@ public class Assign extends ExpressionBase {
 
 		// pc.get
 		adapter.loadArg(0);
+		if (!last && createsArray(0)) adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
 		if (last) {
 			TypeScope.invokeScope(adapter, variable.getScope());
 			getFactory().registerKey(bc, member.getName(), false);
@@ -278,7 +313,8 @@ public class Assign extends ExpressionBase {
 			adapter.loadArg(0);
 			TypeScope.invokeScope(adapter, variable.getScope());
 			getFactory().registerKey(bc, member.getName(), false);
-			adapter.invokeVirtual(Types.PAGE_CONTEXT, TOUCH_KEY);
+			if (createsArray(0)) adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, TOUCH_ARRAY_KEY);
+			else adapter.invokeVirtual(Types.PAGE_CONTEXT, TOUCH_KEY);
 		}
 		return Types.OBJECT;
 

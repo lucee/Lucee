@@ -47,7 +47,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.ConfigServer;
@@ -556,10 +555,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 	public Map<Integer, PageContextImpl> getActivePageContexts() {
 		return runningPcs;
-	}
-
-	public long getPageContextsSize() {
-		return SizeOf.size(pcs);
 	}
 
 	public long getActiveRequests() {

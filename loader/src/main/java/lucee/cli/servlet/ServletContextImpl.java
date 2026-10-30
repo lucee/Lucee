@@ -131,7 +131,7 @@ public class ServletContextImpl implements ServletContext {
 
 	@Override
 	public RequestDispatcher getRequestDispatcher(final String path) {
-		throw notSupported("getNamedDispatcher(String name)");
+		return new RequestDispatcherImpl(path);
 	}
 
 	@Override

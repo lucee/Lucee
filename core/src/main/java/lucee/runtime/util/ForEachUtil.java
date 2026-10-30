@@ -32,6 +32,7 @@ import lucee.runtime.type.ForEachIteratorable;
 import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Resetable;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.it.EnumAsIt;
 import lucee.runtime.type.util.ListUtil;
 
@@ -62,6 +63,64 @@ public final class ForEachUtil {
 
 		if (o instanceof Iterable && !Decision.isCastableToArray(o)) return ((Iterable) o).iterator();
 		return forEach(toLoopCollection(o));
+	}
+
+	/**
+	 * LDEV-1424 iterator for the form for(value, index in collection), the index (array, query) or the
+	 * key (struct) of the current item is available with {@link #index(Iterator)}.
+	 */
+	public static Iterator forEachIndexed(Object o) throws PageException {
+		Iterator it = forEach(o);
+		Struct sct = null;
+		if (!Decision.isArray(o) && !Decision.isQuery(o) && !Decision.isComponent(o) && Decision.isStruct(o)) {
+			sct = Caster.toStruct(o, null);
+		}
+		return new IndexedIterator(it, sct);
+	}
+
+	public static Object index(Iterator it) {
+		if (it instanceof IndexedIterator) return ((IndexedIterator) it).index;
+		return null;
+	}
+
+	private static final class IndexedIterator implements Iterator, Resetable {
+		private final Iterator it;
+		private final Struct sct;
+		private int count = 0;
+		private Object index;
+
+		private IndexedIterator(Iterator it, Struct sct) {
+			this.it = it;
+			this.sct = sct;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return it.hasNext();
+		}
+
+		@Override
+		public Object next() {
+			Object v = it.next();
+			count++;
+			if (sct != null) {
+				// the iterator returns the keys of the struct, the loop value is the value
+				index = v;
+				return sct.get(Caster.toKey(v, null), null);
+			}
+			index = Integer.valueOf(count);
+			return v;
+		}
+
+		@Override
+		public void remove() {
+			it.remove();
+		}
+
+		@Override
+		public void reset() throws PageException {
+			ForEachUtil.reset(it);
+		}
 	}
 
 	private static Collection toLoopCollection(Object o) throws PageException {

@@ -142,6 +142,7 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private Object mailListener;
 	private TagListener queryListener;
+	private TagListener httpListener;
 
 	private boolean wsMaintainSession;
 
@@ -1087,6 +1088,16 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setQueryListener(TagListener listener) {
 		this.queryListener = listener;
+	}
+
+	@Override
+	public TagListener getHttpListener() {
+		return httpListener;
+	}
+
+	@Override
+	public void setHttpListener(TagListener listener) {
+		this.httpListener = listener;
 	}
 
 	@Override

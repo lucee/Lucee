@@ -18,7 +18,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" label="json" {
 						block comment
 					*/
 				}';
-				expect( isJson( str ) ).toBeTrue();
+				expect( isJson( var=str, lenient=true ) ).toBeTrue();
 				structKeyExists( deserializeJson( str ), "name" ) ;
 			});
 
@@ -26,7 +26,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" label="json" {
 				var str = '{
 					"name" : "lucee" // inline comment
 				}';
-				expect( isJson( str ) ).toBeTrue();
+				expect( isJson( var=str, lenient=true ) ).toBeTrue();
 				structKeyExists( deserializeJson( str ), "name" );
 			});
 

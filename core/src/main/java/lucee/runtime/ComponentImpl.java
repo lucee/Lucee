@@ -91,6 +91,7 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.reflection.Reflector;
+import lucee.runtime.rest.RestUtil;
 import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.ArrayImpl;
@@ -507,7 +508,7 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 		}
 		hasInit = componentPage.hasInit();
 
-		isRestEnabled = properties.meta != null && Caster.toBooleanValue(properties.meta.get("rest", Boolean.FALSE), false);
+		isRestEnabled = RestUtil.isRestEnabled(properties.meta);
 
 		if (base != null) {
 			this.dataMemberDefaultAccess = base.dataMemberDefaultAccess;
@@ -600,7 +601,42 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 		throw nsme;
 	}
 
+	/**
+	 * adds the default functions (functions with an implementation) of the implemented interfaces to
+	 * this component, in case the component or one of its super components does not define a function
+	 * with that name (LDEV-1835). The function of the component wins over the one of a super component,
+	 * which wins over the one of an interface.
+	 */
+	public void registerDefaultFunctions(PageContext pc) throws PageException {
+		if (absFin == null || !absFin.hasAbstractUDFs()) return;
+
+		for (Entry<Key, AbstractFinal.UDFB> entry: absFin.getAbstractUDFBs().entrySet()) {
+			UDF iUdf = entry.getValue().udf;
+			if (iUdf.getModifier() != ComponentUtil.MODIFIER_DEFAULT) continue;
+
+			Key key = entry.getKey();
+			UDF existing = _udfs.get(key);
+			if (existing != null) {
+				// a function inherited from an other default function is replaced by the default function of a more specific interface
+				if (existing.getModifier() != ComponentUtil.MODIFIER_DEFAULT || StringUtil.emptyIfNull(existing.getSource()).equals(iUdf.getSource())) continue;
+			}
+			else {
+				List<String> ambiguous = absFin.getAmbiguousDefault(key);
+				if (ambiguous != null) {
+					// an abstract component does not have to decide
+					if (getModifier() == MODIFIER_ABSTRACT) continue;
+					throw new ApplicationException("component [" + _getPageSource().getDisplayPath() + "] inherits the default function [" + iUdf.getFunctionName()
+							+ "] from more than one interface [" + ListUtil.toList(ambiguous, ", ") + "], the component has to define the function itself");
+				}
+			}
+			registerUDF(key, iUdf instanceof UDFImpl ? ((UDFImpl) iUdf).duplicate(this) : iUdf);
+		}
+	}
+
 	public void checkInterface(PageContext pc, ComponentPageImpl componentPage) throws PageException {
+		// default functions of interfaces (LDEV-1835), usually already done before the component body is executed
+		registerDefaultFunctions(pc);
+
 		/*
 		 * print.e("xxxxxxxxxxxxxxxxxxxxxxxxxxxxx "+ComponentUtil.toModifier(getModifier(),
 		 * "none")+" xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
@@ -1378,6 +1414,19 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 		}
 
 		return table;
+	}
+
+	/**
+	 * creates a new instance (including constructor call) of the component this component was called
+	 * on, in case of inheritance that is the top most component and not necessarily the one this
+	 * instance is part of. Used for "new self()".
+	 */
+	public ComponentImpl newInstanceOfCalledComponent(PageContext pc) throws PageException {
+		ComponentImpl t = top;
+		String callPath = t.properties.callPath;
+		String sub = t.properties.subName;
+		if (!StringUtil.isEmpty(sub) && callPath != null && callPath.endsWith("$" + sub)) callPath = callPath.substring(0, callPath.length() - sub.length() - 1);
+		return ComponentLoader.loadComponent(pc, t.cp, callPath, t.properties.realPath, false, false, true, true);
 	}
 
 	/**
@@ -2236,17 +2285,49 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 
 	@Override
 	public Object get(PageContext pc, Collection.Key key) throws PageException {
+		return _get(pc, key, true);
+	}
+
+	private Object _get(PageContext pc, Collection.Key key, boolean useOnMissingProperty) throws PageException {
 		Member member = getMember(pc, key, true, false);
 		if (member != null) return accessorOrValue(member);
 
 		// trigger
-		if (triggerDataMember(pc) && !isPrivateForAccessor(pc)) {
-			return callGetter(pc, key);
+		boolean trigger = triggerDataMember(pc) && !isPrivateForAccessor(pc);
+		if (trigger) {
+			UDF getter = getGetter(pc, key);
+			if (getter != null) return _call(pc, KeyImpl.init("get" + key.getLowerString()), getter, null, ArrayUtil.OBJECT_EMPTY);
 		}
+
+		// onMissingProperty, only for reads from outside of the component, a miss inside never ends up here
+		UDF omp = useOnMissingProperty ? getOnMissingProperty(pc) : null;
+		if (omp != null) return _call(pc, KeyConstants._onmissingproperty, omp, null, new Object[] { key.getString() });
+
+		if (trigger) throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]");
 		throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]",
 				"enable [trigger data member] in administrator to also invoke getters and setters");
 		// throw new ExpressionException("Component ["+getCallName()+"] has no accessible Member with name
 		// ["+name+"]");
+	}
+
+	/**
+	 * LDEV-3260 get the function onMissingProperty, but only when the caller is not part of this
+	 * component. Without the function this is a single lookup on a miss.
+	 */
+	private UDF getOnMissingProperty(PageContext pc) {
+		if (isPrivate(pc)) return null;
+		Member member = getMember(pc, KeyConstants._onmissingproperty, false, false);
+		if (member instanceof UDF) return (UDF) member;
+		return null;
+	}
+
+	private UDF getGetter(PageContext pc, Collection.Key key) {
+		Member member = getMember(pc, KeyImpl.init("get" + key.getLowerString()), false, false);
+		if (member instanceof UDF) {
+			UDF udf = (UDF) member;
+			if (udf.getFunctionArguments().length == 0 && udf.getReturnType() != CFTypes.TYPE_VOID) return udf;
+		}
+		return null;
 	}
 
 	// LDEV-6298 v2: bind shared accessor flyweight to this instance for slow-path extraction.
@@ -2365,7 +2446,8 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 
 	@Override
 	public Object get(Collection.Key key) throws PageException {
-		return get(ThreadLocalPageContext.get(), key);
+		// Java callers (not a read from CFML code) do not trigger onMissingProperty
+		return _get(ThreadLocalPageContext.get(), key, false);
 	}
 
 	@Override

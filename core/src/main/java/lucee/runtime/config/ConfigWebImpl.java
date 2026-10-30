@@ -1514,6 +1514,11 @@ public final class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
+	public String getSerializationDateFormat() {
+		return cs.getSerializationDateFormat();
+	}
+
+	@Override
 	public DebugEntry[] getDebugEntries() {
 		return cs.getDebugEntries();
 	}

@@ -5,14 +5,15 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" label="json" {
 
 
 			// we allowing, because other parser do as well (some)
-			it( "isJson should allow json5, block comment by default", function(){
+			it( "isJson shouldn't allow json5, block comment by default (lenient=false)", function(){
 				var str = '{
 					"name" : "lucee"
 					/*
 						block comment
 					*/
 				}';
-				expect( isJson( str ) ).toBeTrue();
+				expect( isJson( str ) ).toBeFalse();
+				expect( isJson( var=str, lenient=true ) ).toBeTrue();
 			});
 
 			it( "isJson should allow json5, block comment when format is set to [json5]", function(){
@@ -35,12 +36,12 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" label="json" {
 				expect( isJson( str,"json" ) ).toBeFalse();
 			});
 
-			// we allowing, because other parser do as well (some)
-			it( "isJson should allow json5 inline by default", function(){
+			it( "isJson shouldn't allow json5 inline by default (lenient=false)", function(){
 				var str = '{
 					"name" : "lucee" // inline comment
 				}';
-				expect( isJson( str ) ).toBeTrue();
+				expect( isJson( str ) ).toBeFalse();
+				expect( isJson( var=str, lenient=true ) ).toBeTrue();
 			});
 
 			it( "isJson should allow json5 inline when format is set to [json5]", function(){

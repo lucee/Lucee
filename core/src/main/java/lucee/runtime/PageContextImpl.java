@@ -172,11 +172,13 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Iterator;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.LiteralValue;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.SVArray;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
@@ -1856,6 +1858,15 @@ public final class PageContextImpl extends PageContext {
 		return set(coll, key, new StructImpl());
 	}
 
+	/**
+	 * LDEV-1329: same as touch, but if the collection is created it is an array, used for a[1] = x when a does not exist
+	 */
+	public Object touchArray(Object coll, Collection.Key key) throws PageException {
+		Object o = getCollection(coll, key, null);
+		if (o != null) return o;
+		return set(coll, key, new ArrayImpl());
+	}
+
 	public Object touch(Object coll, Collection.Key key, int access, int modifier) throws PageException {
 		Object o = getCollection(coll, key, null);
 		if (o != null) return o;
@@ -1945,6 +1956,47 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void subparam(String type, String name, final Object value, double min, double max, String strPattern, int maxLength, final boolean isNew) throws PageException {
+		subparam(type, name, value, min, max, strPattern, maxLength, isNew, null);
+	}
+
+	/**
+	 * @param set (LDEV-2938) optional set of allowed values, a list (comma separated) or an array, null
+	 *            for no check. The value is compared case sensitive, as string.
+	 */
+	public void subparam(String type, String name, final Object value, double min, double max, String strPattern, int maxLength, final boolean isNew, Object set)
+			throws PageException {
+		_subparam(type, name, value, min, max, strPattern, maxLength, isNew);
+		if (set != null) checkParamSet(name, value, set);
+	}
+
+	private static void checkParamSet(String name, Object value, Object set) throws PageException {
+		// the allowed values
+		java.util.List<String> allowed = new java.util.ArrayList<String>();
+		if (Decision.isArray(set)) {
+			Object[] arr = Caster.toArray(set).toArray();
+			for (Object o: arr) {
+				String str = Caster.toString(o, null);
+				if (str == null) throw new ExpressionException("The attribute [set] of the tag [param] must only contain simple values");
+				allowed.add(str);
+			}
+		}
+		else {
+			String str = Caster.toString(set, null);
+			if (str == null) throw new ExpressionException("The attribute [set] of the tag [param] must be a list or an array");
+			for (String item: ListUtil.trimItems(ListUtil.listToStringArray(str, ','))) {
+				if (!item.isEmpty()) allowed.add(item);
+			}
+		}
+		if (allowed.isEmpty()) throw new ExpressionException("The attribute [set] of the tag [param] must contain at least one value");
+
+		String str = Caster.toString(value, null);
+		if (str == null) throw new ExpressionException("The parameter [" + name + "] must be a simple value, because the attribute [set] is defined");
+		if (allowed.contains(str)) return;
+
+		throw new ExpressionException("The value [" + str + "] of the parameter [" + name + "] is not one of the allowed values [" + ListUtil.listToList(allowed, ", ") + "]");
+	}
+
+	private void _subparam(String type, String name, final Object value, double min, double max, String strPattern, int maxLength, final boolean isNew) throws PageException {
 
 		// check attributes type
 		if (type == null) type = "any";

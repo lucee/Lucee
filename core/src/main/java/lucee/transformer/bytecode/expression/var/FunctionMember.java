@@ -65,6 +65,12 @@ public abstract class FunctionMember implements NamedMember, Member, Func {
 
 	public void setArguments(Argument[] arguments) {
 		this.arguments = arguments;
+		for (Argument arg: arguments) {
+			if (arg instanceof NamedArgument) {
+				_hasNamedArgs = true;
+				break;
+			}
+		}
 	}
 
 	public boolean hasNamedArgs() {

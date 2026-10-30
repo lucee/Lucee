@@ -22,6 +22,7 @@ import java.text.Collator;
 import java.util.Comparator;
 import java.util.Locale;
 
+import lucee.runtime.type.comparator.NaturalComparator;
 import lucee.runtime.type.comparator.NumberComparator;
 import lucee.runtime.type.comparator.TextComparator;
 
@@ -30,6 +31,10 @@ public final class ComparatorUtil {
 	public static final int SORT_TYPE_TEXT = 1;
 	public static final int SORT_TYPE_TEXT_NO_CASE = 2;
 	public static final int SORT_TYPE_NUMBER = 3;
+	/** natural (human) sort, case sensitive, LDEV-1784 */
+	public static final int SORT_TYPE_NATURAL = 4;
+	/** natural (human) sort, case insensitive, LDEV-1784 */
+	public static final int SORT_TYPE_NATURAL_NO_CASE = 5;
 
 	public static Comparator toComparator(int sortType, boolean orderAsc, Locale l, Comparator defaultValue) {
 		// check sortorder
@@ -42,6 +47,13 @@ public final class ComparatorUtil {
 		else if (sortType == SORT_TYPE_TEXT_NO_CASE) {
 			if (l != null) return toCollator(l, Collator.TERTIARY, orderAsc);
 			return new TextComparator(orderAsc, true);
+		}
+		// natural, the locale is not used for it
+		else if (sortType == SORT_TYPE_NATURAL) {
+			return new NaturalComparator(orderAsc, false);
+		}
+		else if (sortType == SORT_TYPE_NATURAL_NO_CASE) {
+			return new NaturalComparator(orderAsc, true);
 		}
 		// numeric
 		else if (sortType == SORT_TYPE_NUMBER) {

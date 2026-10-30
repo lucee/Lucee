@@ -16,34 +16,34 @@
  */
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	function testNumber() {
-		assertTrue(isJson('{a:1}'));
+		assertTrue(isJson( var='{a:1}', lenient=true ));
 	}
 	function testBoolean() {
-		assertTrue(isJson('{a:true}'));
+		assertTrue(isJson( var='{a:true}', lenient=true ));
 	}
 	function testNull() {
-		assertTrue(isJson('{a:null}'));
+		assertTrue(isJson( var='{a:null}', lenient=true ));
 	}
 
 	function testString() {
-		assertTrue(isJson('{a:"Susi"}'));
+		assertTrue(isJson( var='{a:"Susi"}', lenient=true ));
 	}
 	
 	function testVariableGet1() {
-		assertFalse(isJson('{a:susi}'));
+		assertFalse(isJson( var='{a:susi}', lenient=true ));
 	}
 	function testVariableGet2() {
-		assertTrue(isJson('{a:"##susi##"}'));
+		assertTrue(isJson( var='{a:"##susi##"}', lenient=true ));
 	}
 	function testVariableGet3() {
-		assertTrue(isJson('{a:"##susi##jjj"}'));
+		assertTrue(isJson( var='{a:"##susi##jjj"}', lenient=true ));
 	}
 	function testVariableGet4() {
-		assertFalse(isJson('{a:[a,b,c]}'));
+		assertFalse(isJson( var='{a:[a,b,c]}', lenient=true ));
 	}
 
 	function testVariableSet() {
-		assertFalse(isJson('{a:susi=1}'));
+		assertFalse(isJson( var='{a:susi=1}', lenient=true ));
 	}
 	
 	function testValueString() {
@@ -102,11 +102,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 	function testWhiteSpace() {
 		// we allow white space, even it is not really correct
-		assertTrue(isJson(' {a:1} '));
-		assertTrue(isJson('	{a:1}	'));
-		assertTrue(isJson('
+		assertTrue(isJson( var=' {a:1} ', lenient=true ));
+		assertTrue(isJson( var='	{a:1}	', lenient=true ));
+		assertTrue(isJson( var='
 {a:1}
-'));
+', lenient=true ));
 	}
 
 	// uses files from https://github.com/json5/json5-tests

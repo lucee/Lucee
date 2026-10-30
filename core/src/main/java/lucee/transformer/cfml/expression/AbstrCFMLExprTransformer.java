@@ -46,6 +46,7 @@ import lucee.transformer.bytecode.expression.var.Call;
 import lucee.transformer.bytecode.expression.var.DynAssign;
 import lucee.transformer.bytecode.expression.var.FunctionMember;
 import lucee.transformer.bytecode.expression.var.NamedArgumentImpl;
+import lucee.transformer.bytecode.expression.var.SpreadUtil;
 import lucee.transformer.expression.var.NamedArgument;
 import lucee.transformer.bytecode.expression.var.UDF;
 import lucee.transformer.bytecode.literal.Identifier;
@@ -148,6 +149,7 @@ public abstract class AbstrCFMLExprTransformer {
 	private static final short STATIC = 0;
 	private static final short DYNAMIC = 1;
 	private static FunctionLibFunction GET_STATIC_SCOPE = null;
+	private static FunctionLibFunction ARRAY_SLICE = null;
 	private static FunctionLibFunction GET_SUPER_STATIC_SCOPE = null;
 	private static FunctionLibFunction JSON_ARRAY = null;
 	protected static FunctionLibFunction JSON_STRUCT = null;
@@ -265,6 +267,7 @@ public abstract class AbstrCFMLExprTransformer {
 		if (JSON_ARRAY == null) JSON_ARRAY = getFLF(data, "_literalArray");
 		if (JSON_STRUCT == null) JSON_STRUCT = getFLF(data, "_literalStruct");
 		if (GET_STATIC_SCOPE == null) GET_STATIC_SCOPE = getFLF(data, "_getStaticScope");
+		if (ARRAY_SLICE == null) ARRAY_SLICE = getFLF(data, "_arraySlice");
 		if (GET_SUPER_STATIC_SCOPE == null) GET_SUPER_STATIC_SCOPE = getFLF(data, "_getSuperStaticScope");
 		return data;
 	}
@@ -291,6 +294,72 @@ public abstract class AbstrCFMLExprTransformer {
 		return assignOp(data);
 	}
 
+	private Expression spread(Data data, Expression value, Position start) throws TemplateException {
+		FunctionLibFunction flf = data.flibs == null ? null : data.flibs.getFunction(SpreadUtil.FUNCTION_NAME);
+		if (flf == null) throw new TemplateException(data.srcCode, "The spread operator [...] is not supported in this context");
+		BIF bif = new BIF(data.factory, data.settings, flf, data);
+		bif.setArgType(flf.getArgType());
+		try {
+			bif.setClassDefinition(flf.getFunctionClassDefinition());
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw new PageRuntimeException(t);
+		}
+		bif.setReturnType(flf.getReturnTypeAsString());
+		bif.addArgument(new ArgumentImpl(value, "any"));
+		data.ep.add(flf, bif, data.srcCode);
+		Variable var = data.factory.createVariable(start, data.srcCode.getPosition());
+		var.addMember(bif);
+		return var;
+	}
+
+	/**
+	 * a function call using the spread operator, f(a, ...b, c), is rewritten to
+	 * f(argumentCollection=[a, ...b, c]), the spread operator inside an array literal is handled by the
+	 * literal array evaluator.
+	 */
+	private void rewriteSpreadCall(Data data, FunctionMember fm, ExprString name) throws TemplateException {
+		Argument[] args = fm.getArguments();
+		if (!SpreadUtil.hasSpread(args)) return;
+		for (Argument arg: args) {
+			if (arg instanceof NamedArgument) {
+				throw new TemplateException(data.srcCode, "The spread operator [...] can not be combined with named arguments in the function call [" + ASMUtil.display(name)
+						+ "], use argumentCollection to pass a struct as named arguments");
+			}
+		}
+		FunctionLibFunction flf = data.flibs.getFunction("_literalArray");
+		BIF array = new BIF(data.factory, data.settings, flf, data);
+		array.setArgType(flf.getArgType());
+		try {
+			array.setClassDefinition(flf.getFunctionClassDefinition());
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw new PageRuntimeException(t);
+		}
+		array.setReturnType(flf.getReturnTypeAsString());
+		for (Argument arg: args)
+			array.addArgument(arg);
+		FunctionLibFunction tmp = flf.getEvaluator().pre(array, flf);
+		if (tmp != null && tmp != flf) {
+			array.setFlf(flf = tmp);
+			array.setArgType(flf.getArgType());
+			try {
+				array.setClassDefinition(flf.getFunctionClassDefinition());
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				throw new PageRuntimeException(t);
+			}
+			array.setReturnType(flf.getReturnTypeAsString());
+		}
+		data.ep.add(flf, array, data.srcCode);
+		Variable var = data.factory.createVariable(data.srcCode.getPosition(), data.srcCode.getPosition());
+		var.addMember(array);
+		fm.setArguments(new Argument[] { new NamedArgumentImpl(data.factory.createLitString("argumentCollection"), var, "any", false) });
+	}
+
 	/**
 	 * Liest einen gelableten Funktionsparamter ein <br />
 	 * EBNF:<br />
@@ -304,6 +373,15 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	private Argument functionArgument(Data data, String type, boolean varKeyUpperCase) throws TemplateException {
+		// spread operator
+		if (data.srcCode.isCurrent("...")) {
+			Position start = data.srcCode.getPosition();
+			data.srcCode.forwardIfCurrent("...");
+			comments(data);
+			Expression value = assignOp(data);
+			if (value == null) throw new TemplateException(data.srcCode, "Syntax Error, the spread operator [...] must be followed by an expression");
+			return new ArgumentImpl(spread(data, value, start), null);
+		}
 		Expression expr = assignOp(data);
 		try {
 			if (data.srcCode.forwardIfCurrent(":")) {
@@ -334,6 +412,34 @@ public abstract class AbstrCFMLExprTransformer {
 	 * @return CFXD Element
 	 * @throws TemplateException
 	 */
+	/**
+	 * LDEV-2551: the key used to track final variables, null if the variable is not a plain variable in the scope of the current function or
+	 * script block (members like x.y or x[1] are not final, only the variable itself is)
+	 */
+	protected static String finalKey(Data data, Variable v) {
+		int scope = v.getScope();
+		if (data.insideFunction) {
+			if (scope != Scope.SCOPE_UNDEFINED && scope != Scope.SCOPE_LOCAL && scope != Scope.SCOPE_VAR) return null;
+		}
+		else if (scope != Scope.SCOPE_UNDEFINED && scope != Scope.SCOPE_VARIABLES) return null;
+		java.util.List<lucee.transformer.expression.var.Member> members = v.getMembers();
+		if (members.size() != 1 || !(members.get(0) instanceof lucee.transformer.expression.var.DataMember)) return null;
+		Expression name = ((lucee.transformer.expression.var.DataMember) members.get(0)).getName();
+		if (!(name instanceof LitString)) return null;
+		return ((LitString) name).getString().toLowerCase();
+	}
+
+	/**
+	 * LDEV-2551: a variable declared with final can not be assigned again
+	 */
+	protected void checkFinal(Data data, Variable v) throws TemplateException {
+		if (data.finalNames == null || data.finalNames.isEmpty()) return;
+		String key = finalKey(data, v);
+		if (key != null && data.finalNames.contains(key)) {
+			throw new TemplateException(data.srcCode, "Can't overwrite the final variable [" + key + "], a final variable can only be assigned once");
+		}
+	}
+
 	protected Expression assignOp(Data data) throws TemplateException {
 
 		Expression expr = conditionalOp(data);
@@ -343,6 +449,7 @@ public abstract class AbstrCFMLExprTransformer {
 			if (data.mode == STATIC) expr = new DynAssign(expr, assignOp(data));
 			else {
 				if (expr instanceof Variable) {
+					checkFinal(data, (Variable) expr);
 					Expression value = assignOp(data);
 					expr = new Assign((Variable) expr, value, data.srcCode.getPosition());
 				}
@@ -748,6 +855,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 			// &=
 			if (data.srcCode.isCurrent('=') && expr instanceof Variable) {
+				checkFinal(data, (Variable) expr);
 				data.srcCode.next();
 				comments(data);
 				Expression value = assignOp(data);
@@ -792,6 +900,7 @@ public abstract class AbstrCFMLExprTransformer {
 		// +=
 		// plus|Minus Assignment
 		if (data.srcCode.isCurrent('=') && expr instanceof Variable) {
+			checkFinal(data, (Variable) expr);
 			data.srcCode.next();
 			comments(data);
 			Expression value = assignOp(data);
@@ -827,6 +936,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 	private Expression _modOp(Data data, Expression expr) throws TemplateException {
 		if (data.srcCode.isCurrent('=') && expr instanceof Variable) {
+			checkFinal(data, (Variable) expr);
 			data.srcCode.next();
 			comments(data);
 			Expression right = assignOp(data);
@@ -874,6 +984,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 	private Expression _divMultiOp(Data data, Expression expr, int iOp) throws TemplateException {
 		if (data.srcCode.isCurrent('=') && expr instanceof Variable) {
+			checkFinal(data, (Variable) expr);
 			data.srcCode.next();
 			comments(data);
 			Expression value = assignOp(data);
@@ -927,6 +1038,7 @@ public abstract class AbstrCFMLExprTransformer {
 			end = new Position(leftEnd.line, leftEnd.column + 2, leftEnd.pos + 2, data.srcCode.getSourceOffset());
 		}
 
+		checkFinal(data, (Variable) expr);
 		if (op == Factory.OP_UNARY_CONCAT) return data.factory.opUnaryString((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_POST, op, start, end);
 		return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_POST, op, start, end);
 	}
@@ -947,6 +1059,7 @@ public abstract class AbstrCFMLExprTransformer {
 				Expression expr = clip(data);
 
 				if (expr instanceof Variable) {
+					checkFinal(data, (Variable) expr);
 					return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_MINUS, line, data.srcCode.getPosition());
 				}
 				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_MINUS);
@@ -960,6 +1073,7 @@ public abstract class AbstrCFMLExprTransformer {
 				comments(data);
 				Expression expr = clip(data);
 				if (expr instanceof Variable) {
+					checkFinal(data, (Variable) expr);
 					return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
 				}
 				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_PLUS);
@@ -1556,11 +1670,38 @@ public abstract class AbstrCFMLExprTransformer {
 			if (data.srcCode.forwardIfCurrent('[')) {
 				isStaticChild = false;
 				// get Next Var
-				nameProp = structElement(data);
+				comments(data);
+				Expression[] slice = null;
+				boolean preIndex = data.insideIndex;
+				data.insideIndex = true;
+				try {
+					// LDEV-1813: slice syntax [from:to:step], every part is optional
+					if (data.srcCode.isCurrent(':')) {
+						slice = sliceParts(data, null);
+					}
+					else {
+						Expression first = assignOp(data);
+						comments(data);
+						if (data.srcCode.isCurrent(':')) slice = sliceParts(data, first);
+						else {
+							nameProp = data.factory.toExprString(first);
+							if (nameProp instanceof LitString) ((LitString) nameProp).fromBracket(true);
+						}
+					}
+				}
+				finally {
+					data.insideIndex = preIndex;
+				}
 				namePropUC = nameProp;
 				// Valid Syntax ???
 				if (!data.srcCode.forwardIfCurrent(']')) throw new TemplateException(data.srcCode, "Invalid Syntax Closing []] not found");
 				end = data.srcCode.getPosition();
+				comments(data);
+				if (slice != null) {
+					expr = arraySlice(data, expr, slice, end);
+					invoker = null;
+					continue;
+				}
 			}
 			// .
 			else if (isStaticChild || data.srcCode.forwardIfCurrent('.') || (safeNavigation = data.srcCode.forwardIfCurrent('?', '.'))) {
@@ -1649,8 +1790,65 @@ public abstract class AbstrCFMLExprTransformer {
 		return expr;
 	}
 
+	/**
+	 * LDEV-1813: reads the parts of the slice syntax <code>[from:to:step]</code> after the "from" part.
+	 * The current position is at the first ":". Omitted parts are returned as null.
+	 */
+	private Expression[] sliceParts(Data data, Expression from) throws TemplateException {
+		Expression to = null, step = null;
+		data.srcCode.forwardIfCurrent(':');
+		comments(data);
+		if (!data.srcCode.isCurrent(':') && !data.srcCode.isCurrent(']')) {
+			to = assignOp(data);
+			comments(data);
+		}
+		if (data.srcCode.forwardIfCurrent(':')) {
+			comments(data);
+			if (!data.srcCode.isCurrent(']')) {
+				step = assignOp(data);
+				comments(data);
+			}
+		}
+		return new Expression[] { from, to, step };
+	}
+
+	/**
+	 * LDEV-1813: replaces <code>expr[from:to:step]</code> with a call of the internal function
+	 * _arraySlice
+	 */
+	private Expression arraySlice(Data data, Expression expr, Expression[] parts, Position end) throws TemplateException {
+		if (ARRAY_SLICE == null) throw new TemplateException(data.srcCode, "the slice syntax [from:to:step] is not available, function [_arraySlice] is missing");
+		int omitted = 0;
+		if (parts[0] == null) omitted += 1;
+		if (parts[1] == null) omitted += 2;
+		if (parts[2] == null) omitted += 4;
+
+		BIF bif = ASMUtil.createBif(data, ARRAY_SLICE);
+		ArrayList<FunctionLibFunctionArg> args = ARRAY_SLICE.getArg();
+		bif.addArgument(new ArgumentImpl(expr, args.get(0).getTypeAsString()));
+		for (int i = 0; i < 3; i++) {
+			Expression part = parts[i] != null ? parts[i] : data.factory.createLitNumber(i == 2 ? 1 : 0);
+			bif.addArgument(new ArgumentImpl(part, args.get(i + 1).getTypeAsString()));
+		}
+		bif.addArgument(new ArgumentImpl(data.factory.createLitNumber(omitted), args.get(4).getTypeAsString()));
+
+		Variable var = data.factory.createVariable(expr.getStart(), end);
+		var.addMember(bif);
+		return var;
+	}
+
 	private Expression staticScope(Data data, Expression expr) throws TemplateException {
 		if (data.srcCode.forwardIfCurrent("::")) {
+			// LDEV-1813: inside of an index, "::" not followed by an identifier is the slice syntax, e.g. arr[x::2]
+			if (data.insideIndex) {
+				int pos = data.srcCode.getPos();
+				comments(data);
+				if (!data.srcCode.isCurrentLetter() && !data.srcCode.isCurrent('_') && !data.srcCode.isCurrent('$')) {
+					data.srcCode.setPos(pos - 2);
+					return null;
+				}
+				data.srcCode.setPos(pos);
+			}
 			if (!(expr instanceof Variable)) throw new TemplateException(data.srcCode, "Invalid syntax before [::]");
 
 			Variable old = (Variable) expr;
@@ -1706,11 +1904,14 @@ public abstract class AbstrCFMLExprTransformer {
 		if (data.srcCode.forwardIfCurrent("java:") || data.srcCode.forwardIfCurrent("class:")) type = "type:java";
 		else if (data.srcCode.forwardIfCurrent("cfml:") || data.srcCode.forwardIfCurrent("cfc:")) type = "type:cfml";
 
+		// "self" is only a keyword as an unquoted name directly after "new" (late static binding), see LDEV-1708
+		boolean quoted = data.srcCode.isCurrent('"') || data.srcCode.isCurrent('\'');
 		ExprString exprName = readComponentPath(data);
 		if (exprName == null) {
 			data.srcCode.setPos(start);
 			return expr;
 		}
+		if (!quoted && "type:undefined".equals(type) && exprName instanceof LitString && "self".equalsIgnoreCase(((LitString) exprName).getString())) type = "type:self";
 
 		comments(data);
 
@@ -1924,8 +2125,18 @@ public abstract class AbstrCFMLExprTransformer {
 	 */
 	private ExprString structElement(Data data) throws TemplateException {
 		comments(data);
-		ExprString name = data.factory.toExprString(assignOp(data));
-		if (name instanceof LitString) ((LitString) name).fromBracket(true);
+		Expression index = assignOp(data);
+		// LDEV-1329: a positive integer literal, like a[1]
+		boolean isIndex = false;
+		if (index instanceof LitNumber) {
+			Number n = ((LitNumber) index).getNumber();
+			isIndex = n != null && n.doubleValue() >= 1 && n.doubleValue() == Math.floor(n.doubleValue()) && n.doubleValue() < Integer.MAX_VALUE;
+		}
+		ExprString name = data.factory.toExprString(index);
+		if (name instanceof LitString) {
+			((LitString) name).fromBracket(true);
+			if (isIndex) ((LitString) name).fromBracketIndex(true);
+		}
 		comments(data);
 		return name;
 	}
@@ -1997,6 +2208,13 @@ public abstract class AbstrCFMLExprTransformer {
 
 			int count = getFunctionMemberAttrs(data, name, checkLibrary, fm, flf);
 
+			// spread operator
+			if (SpreadUtil.hasSpread(fm.getArguments())) {
+				if (checkLibrary) throw new TemplateException(data.srcCode,
+						"The spread operator [...] is not supported for the built-in function [" + ASMUtil.display(name) + "], use argumentCollection instead");
+				rewriteSpreadCall(data, fm, name);
+			}
+
 			// Snapshot original arguments before evaluators may modify them
 			fm.snapshotSourceArguments();
 
@@ -2058,7 +2276,7 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	private Expression getListener(Data data) throws TemplateException {
-		if (!data.insideCase && !data.insideTenaryMiddle && data.srcCode.isPreviousIgnoreSpace(')') && data.srcCode.forwardIfCurrent(':')) {
+		if (!data.insideCase && !data.insideTenaryMiddle && !data.insideIndex && data.srcCode.isPreviousIgnoreSpace(')') && data.srcCode.forwardIfCurrent(':')) {
 			int pos = data.srcCode.getPos();
 			comments(data);
 			Expression expr = assignOp(data);
@@ -2085,6 +2303,18 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	private int getFunctionMemberAttrs(Data data, ExprString name, boolean checkLibrary, Func fm, FunctionLibFunction flf) throws TemplateException {
+		// LDEV-1813: a function call inside of an index [...] has arguments of its own, where listeners are allowed again
+		boolean preIndex = data.insideIndex;
+		data.insideIndex = false;
+		try {
+			return getFunctionMemberAttrs0(data, name, checkLibrary, fm, flf);
+		}
+		finally {
+			data.insideIndex = preIndex;
+		}
+	}
+
+	private int getFunctionMemberAttrs0(Data data, ExprString name, boolean checkLibrary, Func fm, FunctionLibFunction flf) throws TemplateException {
 		// Function Attributes
 		ArrayList<FunctionLibFunctionArg> arrFuncLibAtt = null;
 		// int libLen = 0;

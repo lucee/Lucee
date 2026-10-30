@@ -354,12 +354,6 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 			Class<?> clazz = findLoadedClass(name);
 			if (clazz == null) return _loadClass(name, barr, false);
 
-			/*
-			 * Instrumentation instr = InstrumentationFactory.getInstrumentation(config); if (instr != null) {
-			 * try { instr.redefineClasses(new ClassDefinition(clazz, barr)); return clazz; } catch (Exception
-			 * e) { LogUtil.log(InstrumentationFactory.class.getName(), e); } }
-			 */
-
 			return rename(clazz, barr);
 		}
 	}

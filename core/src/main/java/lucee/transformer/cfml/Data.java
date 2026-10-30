@@ -49,6 +49,8 @@ public final class Data {
 
 	public short mode = 0;
 	public boolean insideFunction;
+	// LDEV-2551: names declared final (final x = 1) in the current function body or script block
+	public java.util.Set<String> finalNames;
 	public String tagName;
 	public boolean isCFC;
 	public boolean isInterface;
@@ -59,6 +61,8 @@ public final class Data {
 
 	public boolean insideTenaryMiddle = false;
 	public boolean insideCase = false;
+	// true while reading the start of an index [...] (LDEV-1813), a trailing :xyz is then a slice and not a function listener
+	public boolean insideIndex = false;
 	public boolean hasWriteLog;
 	public boolean hasUpper;
 	public boolean hasCharset;

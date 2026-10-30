@@ -97,6 +97,7 @@ import lucee.transformer.bytecode.visitor.TryCatchFinallyVisitor;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitString;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.statement.Argument;
 import lucee.transformer.statement.HasBodies;
@@ -235,6 +236,7 @@ public final class PageImpl extends BodyBase implements Page {
 	// void init(PageContext pageContext,ComponentPage componentPage)
 	private static final Method INIT_COMPONENT = new Method("init", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.COMPONENT_PAGE_IMPL, Types.BOOLEAN_VALUE });
 
+	private static final Method REGISTER_DEFAULT_FUNCTIONS = new Method("registerDefaultFunctions", Types.VOID, new Type[] { Types.PAGE_CONTEXT });
 	private static final Method CHECK_INTERFACE = new Method("checkInterface", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.COMPONENT_PAGE_IMPL });
 
 	// boolean getOutput()
@@ -517,6 +519,18 @@ public final class PageImpl extends BodyBase implements Page {
 		}
 
 		List<Function> tmpFunctions = getFunctions();
+		// LDEV-2919 localMode defined for the component, the function localMode has precedence
+		if (isComponent(comp)) {
+			Attribute attrLocalMode = comp.getAttribute("localmode");
+			if (attrLocalMode != null && attrLocalMode.getValue() instanceof Literal) {
+				int mode = AppListenerUtil.toLocalMode(((Literal) attrLocalMode.getValue()).getString().trim(), -1);
+				if (mode != -1) {
+					for (Function f: tmpFunctions) {
+						f.setComponentLocalMode(mode);
+					}
+				}
+			}
+		}
 		if (false && _comp instanceof TagComponent) {
 			TagComponent tc;
 			List<Function> tmps = new ArrayList<>();
@@ -602,8 +616,8 @@ public final class PageImpl extends BodyBase implements Page {
 		DecisionIntVisitor div;
 		// Function[] functions = extractFunctions(constr.getUDFProperties());
 		// less/equal than 10 functions
-		if (isInterface()) {}
-		else if (functions.length <= 10) {
+		// interfaces need the udfCall as well, for the functions with an implementation (LDEV-1835)
+		if (functions.length <= 10) {
 			adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, UDF_CALL, null, new Type[] { Types.THROWABLE }, cw);
 			BytecodeContext bc = new BytecodeContext(config, optionalPS, constr, this, keys, cw, className, adapter, UDF_CALL, writeLog(), suppressWSbeforeArg, output, returnValue,
 					sourceCode.getSourceOffset());
@@ -2232,6 +2246,14 @@ public final class PageImpl extends BodyBase implements Page {
 		List<IFunction> funcs = new ArrayList<IFunction>();
 		extractFunctions(bc, body, funcs, pageType);
 		writeUDFProperties(bc, funcs, pageType);
+
+		// default functions of the implemented interfaces, have to be available for the component body (LDEV-1835)
+		if (pageType == IFunction.PAGE_TYPE_COMPONENT) {
+			GeneratorAdapter adapter = bc.getAdapter();
+			adapter.loadArg(1);
+			adapter.loadArg(0);
+			adapter.invokeVirtual(Types.COMPONENT_IMPL, REGISTER_DEFAULT_FUNCTIONS);
+		}
 
 		// writeTags(bc, extractProperties(body));
 
