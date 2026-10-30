@@ -317,6 +317,11 @@ public class CFMLEngineWrapper implements CFMLEngine {
 	}
 
 	@Override
+	public lucee.runtime.osgi.BundleService getBundleService() {
+		return engine.getBundleService();
+	}
+
+	@Override
 	public ClassUtil getClassUtil() {
 		return engine.getClassUtil();
 	}
