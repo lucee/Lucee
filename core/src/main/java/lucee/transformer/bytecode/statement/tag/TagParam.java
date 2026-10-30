@@ -52,7 +52,7 @@ public final class TagParam extends TagBaseNoFinal {
 	private static final Method APPEND_STRING = new Method("append", Types.STRING_BUILDER, new Type[] { Types.STRING });
 	private static final Method TO_STRING = new Method("toString", Types.STRING, new Type[] {});
 	private static final Method SUB_PARAM = new Method("subparam", Types.VOID,
-			new Type[] { Types.STRING, Types.STRING, Types.OBJECT, Types.DOUBLE_VALUE, Types.DOUBLE_VALUE, Types.STRING, Types.INT_VALUE, Types.BOOLEAN_VALUE });
+			new Type[] { Types.STRING, Types.STRING, Types.OBJECT, Types.DOUBLE_VALUE, Types.DOUBLE_VALUE, Types.STRING, Types.INT_VALUE, Types.BOOLEAN_VALUE, Types.OBJECT });
 
 	public TagParam(Factory f, Position start, Position end) {
 		super(f, start, end);
@@ -193,6 +193,11 @@ public final class TagParam extends TagBaseNoFinal {
 		// isNew
 		adapter.loadLocal(isNew, Types.BOOLEAN_VALUE);
 		// adapter.push(true);
+
+		// set (LDEV-2938), the allowed values
+		Attribute attrSet = getAttribute("set");
+		if (attrSet != null) attrSet.getValue().writeOut(bc, Expression.MODE_REF);
+		else ASMConstants.NULL(adapter);
 
 		// subparam
 		adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, SUB_PARAM);

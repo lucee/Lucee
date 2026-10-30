@@ -4085,6 +4085,16 @@ Lucee uses the number of characters in the file.</description>
 			<rtexprvalue>true</rtexprvalue>
 			<description>define the maxLength of a value for this types: email, url and string</description>
 		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>set</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>A list (comma separated) or an array of the allowed values. When the value of the parameter (the existing value or the default) is not one of them, an exception listing the allowed values is thrown.
+The values are compared as strings and case sensitive (like attribute pattern), so "High" is not valid for the set "low,medium,high". Spaces around the items of a list are ignored, the items of an array are used as they are.
+The check happens after the check for the attribute type (if defined), so it can be combined with type and default.
+Example: param name="url.rating" default="low" set=["low","medium","high"];</description>
+		</attribute>
 	</tag>
 
 	<!-- ProcessingDirective -->
