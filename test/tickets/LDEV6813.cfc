@@ -14,8 +14,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="config" {
 			});
 
 			it( "does not report a change after Lucee wrote the config file itself", function() {
-				admin action="getDebug" type="server" password="#variables.adminPassword#" returnVariable="local.debug";
-				var maxLogs = val( debug.maxLogs );
+				admin action="getDebugSetting" type="server" password="#variables.adminPassword#" returnVariable="local.debug";
+				var maxLogs = val( debug.debuggingMaxRecordsLogged );
 				try {
 					admin action="updateDebugSetting" type="server" password="#variables.adminPassword#" maxLogs="#maxLogs + 1#";
 					expect( variables.ConfigAdmin.wasConfigFileChangedOutside( variables.cs ) ).toBeFalse();
