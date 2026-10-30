@@ -90,6 +90,7 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	private String sessionstorage;
 	private Integer scriptProtect;
 	private Boolean typeChecking;
+	private String encodeFor;
 	private Mapping[] mappings;
 	private Mapping[] ctmappings;
 	private Mapping[] cmappings;
@@ -222,6 +223,7 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.sessionstorage = sessionstorage;
 		dbl.scriptProtect = scriptProtect;
 		dbl.typeChecking = typeChecking;
+		dbl.encodeFor = encodeFor;
 		dbl.mappings = mappings;
 		dbl.dataSources = dataSources;
 		dbl.ctmappings = ctmappings;
@@ -968,6 +970,16 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	public CustomType getCustomType(String strType) {
 		// not supported
 		return null;
+	}
+
+	@Override
+	public String getEncodeFor() {
+		return encodeFor;
+	}
+
+	@Override
+	public void setEncodeFor(String encodeFor) {
+		this.encodeFor = toEncodeForDefault(encodeFor);
 	}
 
 	@Override

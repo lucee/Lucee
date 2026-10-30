@@ -46,6 +46,8 @@ import lucee.transformer.statement.tag.Tag;
 public final class Output extends EvaluatorSupport {
 
 	private static String ENCODE_FOR_ = "org.lucee.extension.esapi.functions.EncodeFor";// EncodeForCSS.class.getName();
+	// the encode functions of the esapi extension, they moved to the package guard
+	private static String ENCODE_FOR_GUARD = "org.lucee.extension.guard.functions.EncodeFor";
 	private static String ESAPI_ENCODE = "org.lucee.extension.esapi.functions.ESAPIEncode";
 	private static String PRESERVE_ENCODING = "lucee.runtime.functions.other.PreserveEncoding";
 
@@ -66,7 +68,11 @@ public final class Output extends EvaluatorSupport {
 			 * short encType = ESAPIUtil.toEncodeType( l.getString(),df);
 			 * if(encType!=df)encodeForValue=encodeForValue.getFactory().createLitInteger(encType); }
 			 */
-			addEncodeToChildren(tag.getBody().getStatements().iterator(), encodeForValue);
+			addEncodeToChildren(tag.getBody().getStatements().iterator(), encodeForValue, null);
+		}
+		else {
+			// no encodeFor attribute: the default defined for the application (this.encodeFor) is used at runtime
+			addEncodeToChildren(tag.getBody().getStatements().iterator(), null, Boolean.TRUE);
 		}
 
 		// query
@@ -116,13 +122,13 @@ public final class Output extends EvaluatorSupport {
 		}
 	}
 
-	private void addEncodeToChildren(Iterator it, Expression encodeForValue) {
+	private void addEncodeToChildren(Iterator it, Expression encodeForValue, Boolean useDefault) {
 		Statement stat;
 		while (it.hasNext()) {
 			stat = (Statement) it.next();
 			if (stat instanceof PrintOut) {
 				PrintOut printOut = ((PrintOut) stat);
-				Expression e = encodeForValue.getFactory().removeCastString(printOut.getExpr());
+				Expression e = printOut.getExpr().getFactory().removeCastString(printOut.getExpr());
 				if (!(e instanceof Literal)) {
 					if (e instanceof Variable) {
 						Member member = ((Variable) e).getFirstMember();
@@ -130,21 +136,22 @@ public final class Output extends EvaluatorSupport {
 							BIF bif = (BIF) member;
 							String cn = bif.getClassDefinition().getClassName();
 
-							if (cn.startsWith(ENCODE_FOR_) || cn.equals(ESAPI_ENCODE) || cn.equals(PRESERVE_ENCODING)) {
+							if (cn.startsWith(ENCODE_FOR_) || cn.startsWith(ENCODE_FOR_GUARD) || cn.equals(ESAPI_ENCODE) || cn.equals(PRESERVE_ENCODING)) {
 								continue;
 							}
 						}
 					}
 
-					printOut.setEncodeFor(encodeForValue);
+					if (encodeForValue != null) printOut.setEncodeFor(encodeForValue);
+					else printOut.setUseDefaultEncodeFor(true);
 				}
 			}
 			else if (stat instanceof Tag) {
 				Body b = ((Tag) stat).getBody();
-				if (b != null) addEncodeToChildren(b.getStatements().iterator(), encodeForValue);
+				if (b != null) addEncodeToChildren(b.getStatements().iterator(), encodeForValue, useDefault);
 			}
 			else if (stat instanceof Body) {
-				addEncodeToChildren(((Body) stat).getStatements().iterator(), encodeForValue);
+				addEncodeToChildren(((Body) stat).getStatements().iterator(), encodeForValue, useDefault);
 			}
 		}
 	}

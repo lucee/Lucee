@@ -46,7 +46,10 @@ public final class PrintOut extends StatementBaseNoFinal {
 
 	private boolean checkPSQ;
 
+	private final static Method METHOD_WRITE_ENCODE_DEFAULT = new Method("writeEncodeForDefault", Types.VOID, new Type[] { Types.STRING });
+
 	private Expression encodeFor;
+	private boolean useDefaultEncodeFor;
 
 	/**
 	 * constructor of the class
@@ -66,9 +69,11 @@ public final class PrintOut extends StatementBaseNoFinal {
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 		boolean doEncode = !checkPSQ && encodeFor != null;
+		// no encodeFor attribute, the encoding (if any) defined for the application is applied at runtime
+		boolean doDefaultEncode = !doEncode && !checkPSQ && useDefaultEncodeFor;
 		GeneratorAdapter adapter = bc.getAdapter();
 		adapter.loadArg(0);
-		if (doEncode) adapter.checkCast(Types.PAGE_CONTEXT_IMPL); // FUTURE keyword:encodefore remove
+		if (doEncode || doDefaultEncode) adapter.checkCast(Types.PAGE_CONTEXT_IMPL); // FUTURE keyword:encodefore remove
 
 		ExprString es = bc.getFactory().toExprString(expr);
 		boolean usedExternalizer = false;
@@ -85,6 +90,7 @@ public final class PrintOut extends StatementBaseNoFinal {
 			adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, METHOD_WRITE_ENCODE_STRING); // FUTURE keyword:encodefore remove _IMPL
 			// }
 		}
+		else if (doDefaultEncode) adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, METHOD_WRITE_ENCODE_DEFAULT);
 		else adapter.invokeVirtual(Types.PAGE_CONTEXT, checkPSQ ? METHOD_WRITE_PSQ : METHOD_WRITE);
 	}
 
@@ -107,6 +113,14 @@ public final class PrintOut extends StatementBaseNoFinal {
 	 */
 	public void setCheckPSQ(boolean checkPSQ) {
 		this.checkPSQ = checkPSQ;
+	}
+
+	/**
+	 * the output is encoded with the default encoding defined for the application (this.encodeFor), if
+	 * there is one
+	 */
+	public void setUseDefaultEncodeFor(boolean useDefaultEncodeFor) {
+		this.useDefaultEncodeFor = useDefaultEncodeFor;
 	}
 
 	public void setEncodeFor(Expression encodeFor) {
