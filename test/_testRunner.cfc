@@ -320,6 +320,30 @@ Begin Stack Trace
 	 		// get the result
 
 	}
+	catch ( any diagErr ) {
+		// LDEV-4889 diagnostic: print the full java stack trace of the underlying error, then rethrow unchanged
+		SystemOut.setOut( out );
+		systemOutput( NL & "=== LDEV-4889 DIAG: bundle error: #diagErr.type# #diagErr.message#", true );
+		systemOutput( "=== LDEV-4889 DIAG: detail (original stack trace) ===", true );
+		systemOutput( diagErr.detail, true );
+		systemOutput( "=== LDEV-4889 DIAG: end detail ===", true );
+		try {
+			var diagJe = diagErr.getPageException().getCause();
+			var diagDepth = 0;
+			while ( !isNull( diagJe ) && diagDepth++ < 10 ) {
+				systemOutput( "=== LDEV-4889 DIAG: cause: " & diagJe.getClass().getName() & ": " & ( diagJe.getMessage() ?: "" ), true );
+				for ( var diagEl in diagJe.getStackTrace() ) {
+					systemOutput( TAB & "at " & diagEl.toString(), true );
+				}
+				diagJe = diagJe.getCause();
+			}
+		}
+		catch ( any diagErr2 ) {
+			systemOutput( "=== LDEV-4889 DIAG: could not walk cause chain: #diagErr2.message#", true );
+		}
+		SystemOut.setOut( nullValue() );
+		rethrow;
+	}
 	finally {
 		//SystemOut.setOut(out);
 		//SystemOut.setErr(err);
