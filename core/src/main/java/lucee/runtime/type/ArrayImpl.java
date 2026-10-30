@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -730,10 +731,13 @@ public class ArrayImpl extends ListAsArray {
 		lock();
 		try {
 			x = h;
+			e = x.epoch;
 			b = x.bounds;
 			nd = liveCopy(x, b);
 			n = end(b) - head(b);
 			Arrays.sort(nd, 0, n, comp);
+			// the lock is held, so only the comparator itself can have written; publishing would drop its writes
+			if (h != x || x.bounds != b || x.epoch != e) throw new ConcurrentModificationException("the array was modified by the comparator while being sorted");
 			h = new Holder(nd, 0, n);
 		}
 		finally {
@@ -810,19 +814,10 @@ public class ArrayImpl extends ListAsArray {
 		return duplicate(new ArrayImpl(), deepCopy);
 	}
 
-	// the refs are copied under the lock, the elements are duplicated outside it (LDEV-384). Null elements are
-	// skipped, so trailing nulls are dropped (LDEV-1983)
+	// the refs are copied as a validated lock-free read (see range), the elements are duplicated outside it
+	// (LDEV-384). Null elements are skipped, so trailing nulls are dropped (LDEV-1983)
 	protected Collection duplicate(ArrayImpl arr, boolean deepCopy) {
-		Object[] refs;
-		lock();
-		try {
-			Holder x = h;
-			long b = x.bounds;
-			refs = Arrays.copyOfRange(x.data, head(b), end(b));
-		}
-		finally {
-			unlock();
-		}
+		Object[] refs = range(0, Integer.MAX_VALUE);
 		boolean inside = deepCopy ? ThreadLocalDuplication.set(this, arr) : true;
 		try {
 			Object v;

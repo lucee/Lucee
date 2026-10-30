@@ -200,6 +200,57 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				assertEquals( seq( 1, 4000 ), arr );
 			});
 
+			it( title = "duplicate() doesn't wait for a sort holding the writer lock", body = function( currentSpec ) {
+				var arr = seq( 1, 20 );
+				var state = { appended: false, sorted: false, copies: 0, maxWait: 0 };
+				arrayEach( [ "sort", "duplicate" ], function( role ) {
+					if ( arguments.role == "sort" ) {
+						try {
+							arraySort( arr, function( a, b ) {
+								// one append forces sort's second pass, which runs the comparator under the writer lock
+								if ( !state.appended ) {
+									state.appended = true;
+									arrayAppend( arr, 0 );
+								}
+								sleep( 50 );
+								return arguments.a - arguments.b;
+							} );
+						}
+						finally {
+							state.sorted = true;
+						}
+					}
+					else {
+						while ( !state.sorted ) {
+							var start = getTickCount();
+							duplicate( arr );
+							state.maxWait = max( state.maxWait, getTickCount() - start );
+							state.copies++;
+						}
+					}
+				}, true, 2 );
+				systemOutput( "#state.copies# copies, longest #state.maxWait# ms", true );
+				// the locked pass makes about 25 compares at 50 ms each, a copy that waited for it shows
+				expect( state.maxWait ).toBeLT( 250 );
+			});
+
+			it( title = "a comparator that appends to the array being sorted loses no append", body = function( currentSpec ) {
+				var arr = seq( 1, 20 );
+				var state = { appends: 0 };
+				try {
+					arraySort( arr, function( a, b ) {
+						arrayAppend( arr, 100 );
+						state.appends++;
+						return arguments.a - arguments.b;
+					} );
+				}
+				catch ( any e ) {
+					// throwing is fine (9.0 throws ConcurrentModificationException), dropping the appends is not
+					systemOutput( "sort threw #e.type#: #e.message#", true );
+				}
+				assertEquals( 20 + state.appends, arrayLen( arr ) );
+			});
+
 		});
 
 		describe( title = "Array serialization", body = function() {
