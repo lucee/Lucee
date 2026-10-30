@@ -4117,6 +4117,14 @@ Filter to be used to filter the data copied:
 			<required>no</required>
 			<description>delete content of the directory</description>
 		</argument>
+		<argument>
+			<name>throwOnMissing</name>
+			<introduced>9.0.0.564</introduced>
+			<type>boolean</type>
+			<required>no</required>
+			<default>true</default>
+			<description>if false, no exception is thrown when the directory does not exist. All other errors, for example a non-empty directory without recurse, still throw.</description>
+		</argument>
 		<return>
 			<type>void</type>
 		</return>
@@ -5725,6 +5733,14 @@ If omitted, the file's attributes are maintained.</description>
 			<required>Yes</required>
 		<description>file to delete.</description>
     </argument>
+		<argument>
+			<name>throwOnMissing</name>
+			<introduced>9.0.0.564</introduced>
+			<type>boolean</type>
+			<required>no</required>
+			<default>true</default>
+			<description>if false, no exception is thrown when the file does not exist. All other errors, for example a permission problem, still throw.</description>
+		</argument>
 		<return>
 			<type>void</type>
 		</return>

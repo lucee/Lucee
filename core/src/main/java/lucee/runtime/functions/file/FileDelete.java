@@ -30,13 +30,22 @@ import lucee.runtime.security.SecurityManagerImpl;
 public final class FileDelete {
 
 	public static String call(PageContext pc, Object oSrc) throws PageException {
+		return call(pc, oSrc, true);
+	}
+
+	public static String call(PageContext pc, Object oSrc, boolean throwOnMissing) throws PageException {
 		Resource src = Caster.toResource(pc, oSrc, false);
 		SecurityManagerImpl.checkFileLocation(pc, src);
-		if (!src.exists()) throw new FunctionException(pc, "FileDelete", 1, "source", "source file [" + src + "] does not exist");
+		if (!src.exists()) {
+			if (!throwOnMissing) return null;
+			throw new FunctionException(pc, "FileDelete", 1, "source", "source file [" + src + "] does not exist");
+		}
 		try {
 			src.remove(false);
 		}
 		catch (IOException e) {
+			// somebody else removed it between the check and the delete, that is what throwOnMissing=false is for
+			if (!throwOnMissing && !src.exists()) return null;
 			throw Caster.toPageException(e);
 		}
 		return null;
