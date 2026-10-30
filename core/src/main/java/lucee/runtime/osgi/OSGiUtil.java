@@ -187,6 +187,16 @@ public final class OSGiUtil {
 
 	}
 
+	public static BundleCollection getBundleCollection() {
+		CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigUtil.getCFMLEngine(), null);
+		if (engine == null) throw new IllegalStateException("the engine of this Lucee is not available");
+		return engine.getBundleCollection();
+	}
+
+	public static BundleContext getBundleContext() {
+		return getBundleCollection().getBundleContext();
+	}
+
 	/**
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing
 	 * bundle is unloaded first.
@@ -198,16 +208,6 @@ public final class OSGiUtil {
 	 * @throws IOException
 	 * @throws BundleException
 	 */
-	public static BundleCollection getBundleCollection() {
-		CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigUtil.getCFMLEngine(), null);
-		if (engine == null) throw new IllegalStateException("the engine of this Lucee is not available");
-		return engine.getBundleCollection();
-	}
-
-	public static BundleContext getBundleContext() {
-		return getBundleCollection().getBundleContext();
-	}
-
 	public static Bundle installBundle(BundleContext context, Resource bundle, boolean checkExistence) throws IOException, BundleException {
 		if (checkExistence) {
 			BundleFile bf = BundleFile.getInstance(bundle);
