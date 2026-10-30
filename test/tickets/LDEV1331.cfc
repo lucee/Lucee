@@ -78,7 +78,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="config" {
 		var root = variables.cs.raw();
 		if ( structKeyExists( root, "constants" ) && isStruct( root.constants ) ) {
 			for ( var k in structKeyList( root.constants ) ) {
-				if ( left( k, 7 ) == "ldev1331" ) structDelete( root.constants, k );
+				if ( left( k, len( variables.prefix ) ) == variables.prefix ) structDelete( root.constants, k );
 			}
 		}
 		variables.cs.resetConstants();
