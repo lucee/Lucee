@@ -124,6 +124,8 @@ import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.BundleBuilderFactory;
 import lucee.runtime.osgi.BundleFile;
+import lucee.runtime.osgi.BundleService;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -1278,7 +1280,7 @@ public final class ConfigAdmin {
 		// resJar is a bundle
 		if (bf.isBundle()) {
 			bf = installBundle(config, bf);
-			OSGiUtil.loadBundle(bf);
+			BundleServiceImpl.getInstance().install(bf.getFile(), false);
 			return;
 		}
 
@@ -1349,27 +1351,7 @@ public final class ConfigAdmin {
 		return BundleFile.getInstance(jar);
 	}
 
-	/**
-	 * 
-	 * @param config
-	 * @param is
-	 * @param name
-	 * @param extensionVersion if given jar is no bundle the extension version is used for the bundle
-	 *            created
-	 * @param closeStream
-	 * @return
-	 * @throws IOException
-	 * @throws BundleException
-	 */
-	static Bundle updateBundle(Config config, InputStream is, String name, String extensionVersion, boolean closeStream) throws IOException, BundleException {
-		Object obj = installBundle(config, is, name, extensionVersion, closeStream, false);
-		if (!(obj instanceof BundleFile)) throw new BundleException("input is not an OSGi Bundle.");
-
-		BundleFile bf = (BundleFile) obj;
-		return OSGiUtil.loadBundle(bf);
-	}
-
-	/**
+		/**
 	 * @param config
 	 * @param is
 	 * @param name
@@ -1707,12 +1689,12 @@ public final class ConfigAdmin {
 
 		// now unload (maybe not necessary)
 		if (cd.isBundle()) {
-			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), OSGiUtil.toOSGi(cd.getVersion()), null);
-			if (bl != null) {
+			BundleService bundles = BundleServiceImpl.getInstance();
+			if (bundles.getBundleInfo(cd.getName(), cd.getVersion().toString()) != null) {
 				try {
-					OSGiUtil.uninstall(bl);
+					bundles.uninstall(cd.getName(), cd.getVersion().toString());
 				}
-				catch (BundleException e) {}
+				catch (IOException e) {}
 				// datasources may still hold a driver instance from the uninstalled bundle
 				flushDatasourcesUsingDriver(cd.getClassName());
 			}
@@ -1772,12 +1754,12 @@ public final class ConfigAdmin {
 		// now unload (maybe not necessary)
 		unloadStartupIfNecessary(config, cd, true);
 		if (cd.isBundle()) {
-			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), OSGiUtil.toOSGi(cd.getVersion()), null);
-			if (bl != null) {
+			BundleService bundles = BundleServiceImpl.getInstance();
+			if (bundles.getBundleInfo(cd.getName(), cd.getVersion().toString()) != null) {
 				try {
-					OSGiUtil.uninstall(bl);
+					bundles.uninstall(cd.getName(), cd.getVersion().toString());
 				}
-				catch (BundleException e) {}
+				catch (IOException e) {}
 			}
 		}
 	}
@@ -1860,12 +1842,12 @@ public final class ConfigAdmin {
 
 		// now unload again, JDBC driver can be loaded when necessary
 		if (cd.isBundle()) {
-			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), OSGiUtil.toOSGi(cd.getVersion()), null);
-			if (bl != null) {
+			BundleService bundles = BundleServiceImpl.getInstance();
+			if (bundles.getBundleInfo(cd.getName(), cd.getVersion().toString()) != null) {
 				try {
-					OSGiUtil.uninstall(bl);
+					bundles.uninstall(cd.getName(), cd.getVersion().toString());
 				}
-				catch (BundleException e) {}
+				catch (IOException e) {}
 			}
 		}
 	}
@@ -4282,7 +4264,7 @@ public final class ConfigAdmin {
 				BundleInfo[] bfs = rhext.getMetadata().getBundles();
 				if (bfs != null) {
 					for (BundleInfo bf: bfs) {
-						OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(), null, false, null);
+						BundleServiceImpl.getInstance().loadFromLocal(bf.getSymbolicName(), bf.getVersionAsString(), false);
 					}
 				}
 			}
@@ -5913,7 +5895,14 @@ public final class ConfigAdmin {
 
 		// now we only have BundlesDefs in the array no longer used
 		for (BundleDefinition ctr: candiatesToRemove) {
-			if (ctr != null) OSGiUtil.removeLocalBundleSilently(ctr.getName(), ctr.getVersion(), null, true);
+			if (ctr != null) {
+				try {
+					BundleServiceImpl.getInstance().removeLocal(ctr.getName(), ctr.getVersionAsString(), true);
+				}
+				catch (IOException e) {
+					// silently
+				}
+			}
 		}
 	}
 

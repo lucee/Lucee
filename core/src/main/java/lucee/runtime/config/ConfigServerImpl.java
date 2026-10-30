@@ -18,6 +18,7 @@
  */
 package lucee.runtime.config;
 
+import lucee.runtime.osgi.BundleServiceImpl;
 import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
 
 import java.io.File;
@@ -5359,7 +5360,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 						if (LogUtil.doesInfo(log)) log.info("extensions", "Loading " + bundles.length + " bundles for: " + rhe.getId());
 						for (BundleInfo bi: bundles) {
 							if (LogUtil.doesDebug(log)) log.debug("extensions", "  Loading bundle: " + bi.getSymbolicName() + " v" + bi.getVersion());
-							OSGiUtil.loadBundleFromLocal(bi.getSymbolicName(), bi.getVersion(), null, false, null);
+							BundleServiceImpl.getInstance().loadFromLocal(bi.getSymbolicName(), bi.getVersionAsString(), false);
 						}
 					}
 				}

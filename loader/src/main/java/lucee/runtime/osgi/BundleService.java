@@ -17,7 +17,7 @@ import lucee.StableInMajor;
  * <p>
  * A bundle info is a map with the keys {@code name}, {@code version}, {@code id}, {@code state}
  * (installed, resolved, starting, active, stopping, uninstalled), {@code location} and
- * {@code fragment} (Boolean).
+ * {@code fragment} (Boolean) and {@code headers} (the manifest headers).
  */
 @StableInMajor
 public interface BundleService {
@@ -86,4 +86,19 @@ public interface BundleService {
 	 * @throws IOException when there is no such bundle
 	 */
 	public ClassLoader getClassLoader(String bundleName, String bundleVersion) throws IOException;
+
+	/**
+	 * Load a bundle that is already on this machine, never downloads it.
+	 *
+	 * @param loadIfNecessary install the bundle from the local bundle directories when it is not
+	 *            installed yet
+	 * @return the info of the bundle, null when the bundle is not installed (and not loaded from the
+	 *         local directories)
+	 */
+	public Map<String, Object> loadFromLocal(String bundleName, String bundleVersion, boolean loadIfNecessary);
+
+	/**
+	 * Stop and uninstall a bundle and optionally delete its file from the local bundle directory.
+	 */
+	public void removeLocal(String bundleName, String bundleVersion, boolean removeFile) throws IOException;
 }
