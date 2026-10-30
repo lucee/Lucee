@@ -76,7 +76,7 @@
 
       <jvmarg value="-Dsrc=${tmpContext}"/>
       <jvmarg value="-Dtemp=${temp}/archive"/>
-      <jvmarg value="-Dtestbox=${temp}/testbox/testbox"/>
+      <jvmarg value="-Dtestbox=${temp}/testbox"/>
       <jvmarg value="-DcompileTestBox=${compileTestBox}"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>

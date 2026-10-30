@@ -79,17 +79,28 @@
 		trusted="no";
 
 	if ( len(testBoxArchive) eq 0 ){
-		testboxVersion = "3.2.0";
+		testboxVersion = "7.2.2";
+		globberVersion = "3.2.0";
 		testboxArchive = "#getTempDirectory()#\testbox.zip";
 		testboxUrl ="https://downloads.ortussolutions.com/ortussolutions/testbox/#testboxVersion#/testbox-#testboxVersion#.zip";
+		globberArchive = "#getTempDirectory()#\globber.zip";
+		globberUrl = "https://github.com/Ortus-Solutions/globber/archive/refs/tags/v#globberVersion#.zip";
 
 		systemOutput( "Downloading [#testboxUrl#]", true );
 
 		fileWrite( testboxArchive, FileReadBinary( testboxUrl ) );
 		testboxDir = "#getTempDirectory()#testbox";
 
-		extract( format="zip", source=testboxArchive, target=getTempDirectory() );
+		// the zip has no top level folder
+		extract( format="zip", source=testboxArchive, target=testboxDir );
 		testboxArchive = testboxDir;
+
+		// TestBox needs the globber module, normally installed with CommandBox
+		systemOutput( "Downloading [#globberUrl#]", true );
+		fileWrite( globberArchive, FileReadBinary( globberUrl ) );
+		globberTmpDir = "#getTempDirectory()#globber-tmp";
+		extract( format="zip", source=globberArchive, target=globberTmpDir );
+		directoryCopy( "#globberTmpDir#/globber-#globberVersion#", "#testboxDir#/system/modules/globber", true );
 
 		admin
 			action="updateMapping"
