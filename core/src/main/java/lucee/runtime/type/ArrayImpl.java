@@ -660,6 +660,9 @@ public class ArrayImpl extends ListAsArray {
 			for (int i = end; i < head + newN; i++) {
 				if (d[i] == TOMBSTONE) {
 					EPOCH.setRelease(x, x.epoch + 2);
+					// the slot stores below are plain, so the bump must be visible before any of them; without it ARM
+					// shows stale readers the new slot under the old epoch (jcstress ReuseFillSet / ReuseFillResize)
+					VarHandle.storeStoreFence();
 					break;
 				}
 			}
