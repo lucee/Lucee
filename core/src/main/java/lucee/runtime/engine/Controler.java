@@ -75,11 +75,21 @@ public final class Controler extends ParentThreasRefThread {
 
 	private static final ControllerState INACTIVE = new ControllerStateImpl(false);
 
+	/**
+	 * default delay in seconds before the periodic background tasks (every 10 seconds, every minute,
+	 * every 5 minutes and the one-time startup cleanup) run for the first time, see LDEV-3368
+	 */
+	public static final long DEFAULT_STARTUP_DELAY_SECONDS = 120;
+
 	private int interval;
-	private long lastMinuteInterval = System.currentTimeMillis() - (1000 * 59); // first after a second
-	private long last5MinuteInterval = System.currentTimeMillis() - (1000 * 299); // first after a second
-	private long last10SecondsInterval = System.currentTimeMillis() - (1000 * 9); // first after a second
+	private final long startupDelay = getStartupDelay(); // in milliseconds
+	private final long startupEnd; // point in time, before that the delayed tasks do not run
+	private long lastMinuteInterval;
+	private long last5MinuteInterval;
+	private long last10SecondsInterval;
+	private long lastConfigFileCheck; // the check for changes in the config file is not delayed
 	private long lastHourInterval = System.currentTimeMillis();
+	private volatile boolean startupCleanupPending = true;
 
 	private final Map contextes;
 	// private ScheduleThread scheduleThread;
@@ -102,20 +112,59 @@ public final class Controler extends ParentThreasRefThread {
 		this.state = state;
 		this.configServer = configServer;
 		if (configServer == null) throw new RuntimeException("configServer cannot be null");
+		long now = System.currentTimeMillis();
+		this.startupEnd = now + startupDelay;
+		// the first run is due one second after the startup delay has passed (without delay that is the
+		// next time the controller wakes up)
+		this.last10SecondsInterval = getInitialLastRun(now, startupDelay, 10000);
+		this.lastMinuteInterval = getInitialLastRun(now, startupDelay, 60000);
+		this.last5MinuteInterval = getInitialLastRun(now, startupDelay, 300000);
+		this.lastConfigFileCheck = getInitialLastRun(now, 0, 60000);
 		this.enableGC = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.controller.gc", null), false);
+	}
+
+	/**
+	 * returns the delay in milliseconds the background controller waits after it was created, before it
+	 * executes the periodic tasks for the first time. Configured with the system property
+	 * "lucee.controller.startup.delay" or the environment variable "LUCEE_CONTROLLER_STARTUP_DELAY",
+	 * the value is in seconds.
+	 */
+	public static long getStartupDelay() {
+		return parseStartupDelay(SystemUtil.getSystemPropOrEnvVar("lucee.controller.startup.delay", null));
+	}
+
+	/**
+	 * @param value delay in seconds, an empty or invalid value results in the default, a negative value
+	 *            in 0 (no delay)
+	 * @return delay in milliseconds
+	 */
+	public static long parseStartupDelay(String value) {
+		long seconds = StringUtil.isEmpty(value, true) ? DEFAULT_STARTUP_DELAY_SECONDS : Caster.toLongValue(value.trim(), DEFAULT_STARTUP_DELAY_SECONDS);
+		if (seconds < 0) seconds = 0;
+		return seconds * 1000;
+	}
+
+	/**
+	 * value for the "last run" timestamp of a periodic task, so the task is executed for the first time
+	 * one second after "start + delay"
+	 */
+	public static long getInitialLastRun(long start, long delay, long intervalLength) {
+		return start + delay - (intervalLength - 1000);
 	}
 
 	private static class ControlerThread extends ParentThreasRefThread {
 		private Controler controler;
 		private CFMLFactoryImpl[] factories;
 		private boolean firstRun;
+		private boolean startupCleanup;
 		private long done = -1;
 		private Throwable t;
 		private Log log;
 		private long start;
 
-		public ControlerThread(Controler controler, CFMLFactoryImpl[] factories, boolean firstRun, Log log) {
+		public ControlerThread(Controler controler, CFMLFactoryImpl[] factories, boolean firstRun, boolean startupCleanup, Log log) {
 			this.start = System.currentTimeMillis();
+			this.startupCleanup = startupCleanup;
 			this.controler = controler;
 			this.factories = factories;
 			this.firstRun = firstRun;
@@ -126,7 +175,7 @@ public final class Controler extends ParentThreasRefThread {
 		public void run() {
 			long start = System.currentTimeMillis();
 			try {
-				controler.control(factories, firstRun, log);
+				controler.control(factories, firstRun, startupCleanup, log);
 				done = System.currentTimeMillis() - start;
 			}
 			catch (Throwable t) {
@@ -154,7 +203,14 @@ public final class Controler extends ParentThreasRefThread {
 
 			factories = toFactories(factories, contextes);
 			// start the thread that calls control
-			ControlerThread ct = new ControlerThread(this, factories, firstRun, configServer.getLog("application"));
+			// the one-time cleanup of temp/cache/client files is disk intensive, so it waits until the startup
+			// delay has passed (LDEV-3368)
+			boolean startupCleanup = false;
+			if (startupCleanupPending && factories.length > 0 && System.currentTimeMillis() >= startupEnd) {
+				startupCleanup = true;
+				startupCleanupPending = false;
+			}
+			ControlerThread ct = new ControlerThread(this, factories, firstRun, startupCleanup, configServer.getLog("application"));
 			ct.setName("ControllerThread:" + (++count));
 			ct.start();
 			threads.add(ct);
@@ -240,7 +296,7 @@ public final class Controler extends ParentThreasRefThread {
 
 	}
 
-	private void control(CFMLFactoryImpl[] factories, boolean firstRun, Log log) {
+	private void control(CFMLFactoryImpl[] factories, boolean firstRun, boolean startupCleanup, Log log) {
 		long now = System.currentTimeMillis();
 		boolean do10Seconds = last10SecondsInterval + 10000 < now;
 		if (do10Seconds) last10SecondsInterval = now;
@@ -251,10 +307,16 @@ public final class Controler extends ParentThreasRefThread {
 		boolean do5Minute = last5MinuteInterval + 300000 < now;
 		if (do5Minute) last5MinuteInterval = now;
 
+		// checking the config file for changes is cheap and a change must be picked up quickly, so it is
+		// not delayed (LDEV-3368)
+		boolean doConfigFileCheck = lastConfigFileCheck + 60000 < now;
+		if (doConfigFileCheck) lastConfigFileCheck = now;
+
 		boolean doHour = (lastHourInterval + (1000 * 60 * 60)) < now;
 		if (doHour) lastHourInterval = now;
 
-		// every 10 seconds
+		// every 10 seconds (the deploy folder is already processed synchronously at startup, so the
+		// periodic check can wait for the startup delay)
 		if (do10Seconds) {
 			// deploy extensions, archives ...
 			try {
@@ -265,8 +327,8 @@ public final class Controler extends ParentThreasRefThread {
 				if (log != null) log.error("controler", t);
 			}
 		}
-		// every minute
-		if (doMinute) {
+		// every minute: check the config file for changes (not delayed)
+		if (doConfigFileCheck) {
 
 			try {
 				ConfigAdmin.checkForChangesInConfigFile(configServer);
@@ -280,7 +342,7 @@ public final class Controler extends ParentThreasRefThread {
 		for (int i = 0; i < factories.length; i++) {
 			stopwatch.start();
 			ConfigWeb config = factories[i].getConfig();
-			control(factories[i], do10Seconds, doMinute, doHour, firstRun, i, log);
+			control(factories[i], do10Seconds, doMinute, doHour, startupCleanup, i, log);
 			checkStopWatch(config, stopwatch, "Web Context [" + config.getRootDirectory().getAbsolutePath() + "]");
 		}
 
@@ -306,7 +368,7 @@ public final class Controler extends ParentThreasRefThread {
 		}
 	}
 
-	private void control(CFMLFactoryImpl cfmlFactory, boolean do10Seconds, boolean doMinute, boolean doHour, boolean firstRun, int index, Log log) {
+	private void control(CFMLFactoryImpl cfmlFactory, boolean do10Seconds, boolean doMinute, boolean doHour, boolean startupCleanup, int index, Log log) {
 
 		try {
 			boolean isRunning = cfmlFactory.getUsedPageContextLength() > 0;
@@ -322,7 +384,7 @@ public final class Controler extends ParentThreasRefThread {
 
 			ThreadLocalConfig.register(config);
 
-			if (firstRun) {
+			if (startupCleanup) {
 
 				checkOldClientFile(config, log);
 

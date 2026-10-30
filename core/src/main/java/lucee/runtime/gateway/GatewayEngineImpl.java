@@ -49,9 +49,12 @@ import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageExceptionBox;
+import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.thread.ThreadUtil;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -505,8 +508,46 @@ public final class GatewayEngineImpl implements GatewayEngine {
 		}
 		if (e == null) log.log(l, "Gateway:" + gatewayId, message);
 		else {
-			log.log(l, "Gateway:" + gatewayId, message, e);
+			log.log(l, "Gateway:" + gatewayId, withLocation(message, e), e);
 		}
+	}
+
+	/**
+	 * LDEV-3645: a gateway failure is logged with the Java stack trace only, so add the CFML template
+	 * and line (first entry of the tag context) to the message, unless the message already names it.
+	 */
+	public String withLocation(String message, Throwable t) {
+		try {
+			PageExceptionImpl pe = toPageExceptionImpl(t);
+			if (pe != null) {
+				Array tagContext = pe.getTagContext(config);
+				if (tagContext.size() > 0) {
+					Struct first = (Struct) tagContext.getE(1);
+					String template = Caster.toString(first.get(KeyConstants._template, null), null);
+					if (!StringUtil.isEmpty(template, true)) {
+						String location = template + ":" + Caster.toString(first.get(KeyConstants._line, null), "");
+						if (message == null) return "Failed at [" + location + "]";
+						if (!message.contains(location)) return message + "; Failed at [" + location + "]";
+					}
+				}
+			}
+		}
+		catch (Throwable th) {
+			ExceptionUtil.rethrowIfNecessary(th);
+		}
+		return message;
+	}
+
+	private static PageExceptionImpl toPageExceptionImpl(Throwable t) {
+		// a gateway exception only boxes the PageException, so walk down the causes
+		for (int i = 0; t != null && i < 10; i++) {
+			if (t instanceof PageExceptionImpl) return (PageExceptionImpl) t;
+			if (t instanceof PageExceptionBox && ((PageExceptionBox) t).getPageException() instanceof PageExceptionImpl) {
+				return (PageExceptionImpl) ((PageExceptionBox) t).getPageException();
+			}
+			t = t.getCause();
+		}
+		return null;
 	}
 
 	private Map<String, Component> persistentRemoteCFC;

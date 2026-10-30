@@ -281,7 +281,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-		if (defaultValue != null && countFM == 0 && countDM != 0) return _writeOutCallerUtil(bc, mode);
+		if (defaultValue != null && countDM != 0 && (countFM == 0 || (countFM == 1 && members.get(0) instanceof BIF))) return _writeOutCallerUtil(bc, mode);
 		else if (listener != null) {
 			return _writeOutListener(bc, mode, asCollection);
 		}
@@ -456,7 +456,18 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 
 		// collection
 		RefInteger startIndex = new RefIntegerImpl();
-		_writeOutFirst(bc, (members.get(0)), mode, count == 1, true, defaultValue, startIndex);
+		// a BIF as first member, for example a literal array or struct followed by bracket notation (LDEV-1264)
+		final boolean firstIsBIF = members.get(0) instanceof BIF;
+		int skip;
+		if (firstIsBIF) {
+			_writeOutFirstBIF(bc, (BIF) members.get(0), mode, false, getStart());
+			skip = 1; // the BIF is not a key
+			startIndex.setValue(0);
+		}
+		else {
+			_writeOutFirst(bc, (members.get(0)), mode, count == 1, true, defaultValue, startIndex);
+			skip = startIndex.toInt();
+		}
 
 		// keys
 		Iterator<Member> it = members.iterator();
@@ -464,8 +475,9 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 		av.visitBegin(adapter, Types.COLLECTION_KEY, countDM - startIndex.toInt());
 		int index = 0, i = 0;
 		while (it.hasNext()) {
-			DataMember member = (DataMember) it.next();
-			if (i++ < startIndex.toInt()) continue;
+			Member m = it.next();
+			if (i++ < skip) continue;
+			DataMember member = (DataMember) m;
 			av.visitBeginItem(adapter, index++);
 			getFactory().registerKey(bc, member.getName(), false);
 			av.visitEndItem(bc.getAdapter());

@@ -570,27 +570,13 @@ public final class Directory extends TagImpl {
 			String dir = directory.getCanonicalPath();
 			// fill data to query
 			// query.addRow(list.length);
-			boolean isDir;
 			boolean modeSupported = directory.getResourceProvider().isModeSupported();
 			for (int i = 0; i < list.length; i++) {
-				isDir = list[i].isDirectory();
+				// LDEV-3699 read all the attributes of a local file with a single file system call
+				BasicFileAttributes attrs = readListAttributes(list[i]);
 				query.addRow(1);
 				count++;
-				query.setAt(KeyConstants._name, count, list[i].getName());
-				query.setAt(KeyConstants._size, count, Double.valueOf(isDir ? 0 : list[i].length()));
-				query.setAt(KeyConstants._type, count, isDir ? "Dir" : "File");
-				if (modeSupported) {
-					query.setAt(KeyConstants._mode, count, new ModeObjectWrap(list[i]));
-				}
-				query.setAt(KeyConstants._dateLastModified, count, new Date(list[i].lastModified()));
-				query.setAt(KeyConstants._attributes, count, getFileAttribute(list[i]));
-
-				if (hasMeta) {
-					query.setAt(KeyConstants._meta, count, ((ResourceMetaData) list[i]).getMetaData());
-				}
-
-				query.setAt(KeyConstants._directory, count, dir);
-				if (withPath) query.setAt(KeyConstants._path, count, list[i].getAbsolutePath());
+				fillRow(query, count, list[i], attrs, isDirectory(list[i], attrs), modeSupported, hasMeta, dir, withPath);
 			}
 			return count;
 		}
@@ -604,29 +590,50 @@ public final class Directory extends TagImpl {
 		boolean isDir;
 		boolean modeSupported = directory.getResourceProvider().isModeSupported();
 		for (int i = 0; i < list.length; i++) {
-			isDir = list[i].isDirectory();
+			// LDEV-3699 read all the attributes of a local file with a single file system call
+			BasicFileAttributes attrs = readListAttributes(list[i]);
+			isDir = isDirectory(list[i], attrs);
 			if (filter == null || filter.accept(list[i])) {
 				query.addRow(1);
 				count++;
-				query.setAt(KeyConstants._name, count, list[i].getName());
-				query.setAt(KeyConstants._size, count, Double.valueOf(isDir ? 0 : list[i].length()));
-				query.setAt(KeyConstants._type, count, isDir ? "Dir" : "File");
-				if (modeSupported) {
-					query.setAt(KeyConstants._mode, count, new ModeObjectWrap(list[i]));
-				}
-				query.setAt(KeyConstants._dateLastModified, count, new Date(list[i].lastModified()));
-				query.setAt(KeyConstants._attributes, count, getFileAttribute(list[i]));
-
-				if (hasMeta) {
-					query.setAt(KeyConstants._meta, count, ((ResourceMetaData) list[i]).getMetaData());
-				}
-
-				query.setAt(KeyConstants._directory, count, dir);
-				if (withPath) query.setAt(KeyConstants._path, count, list[i].getAbsolutePath());
+				fillRow(query, count, list[i], attrs, isDir, modeSupported, hasMeta, dir, withPath);
 			}
 			if (recurse && isDir) count = _fillQueryAll(query, list[i], filter, count, hasMeta, recurse, withPath);
 		}
 		return count;
+	}
+
+	private static void fillRow(Query query, int row, Resource res, BasicFileAttributes attrs, boolean isDir, boolean modeSupported, boolean hasMeta, String dir, boolean withPath)
+			throws PageException {
+		query.setAt(KeyConstants._name, row, res.getName());
+		query.setAt(KeyConstants._size, row, Double.valueOf(isDir ? 0 : attrs != null ? attrs.size() : res.length()));
+		query.setAt(KeyConstants._type, row, isDir ? "Dir" : "File");
+		if (modeSupported) {
+			query.setAt(KeyConstants._mode, row, new ModeObjectWrap(res));
+		}
+		query.setAt(KeyConstants._dateLastModified, row, new Date(attrs != null ? attrs.lastModifiedTime().toMillis() : res.lastModified()));
+		query.setAt(KeyConstants._attributes, row, getFileAttribute(res, attrs));
+
+		if (hasMeta) {
+			query.setAt(KeyConstants._meta, row, ((ResourceMetaData) res).getMetaData());
+		}
+
+		query.setAt(KeyConstants._directory, row, dir);
+		if (withPath) query.setAt(KeyConstants._path, row, res.getAbsolutePath());
+	}
+
+	/**
+	 * LDEV-3699: a local file is listed with a single file system call, not one each for isDirectory,
+	 * length, lastModified, hidden and writeable. Returns null for every other resource and if the
+	 * attributes can't be read, then the resource itself is asked.
+	 */
+	private static BasicFileAttributes readListAttributes(Resource res) {
+		if (res instanceof FileResource) return ((FileResource) res).readListAttributes();
+		return null;
+	}
+
+	private static boolean isDirectory(Resource res, BasicFileAttributes attrs) {
+		return attrs != null ? attrs.isDirectory() : res.isDirectory();
 	}
 
 	// this method only exists for performance reasion
@@ -946,6 +953,10 @@ public final class Directory extends TagImpl {
 	}
 
 	public static String getFileAttribute(Resource file) {
+		return getFileAttribute(file, null);
+	}
+
+	private static String getFileAttribute(Resource file, BasicFileAttributes attrs) {
 		// Windows-only attributes (R=ReadOnly, H=Hidden). On Unix, return empty string to avoid unnecessary
 		// syscalls.
 		if (!IS_WINDOWS) return "";
@@ -953,9 +964,10 @@ public final class Directory extends TagImpl {
 		// Optimized: fetch both attributes in a single syscall for FileResource on Windows
 		if (file instanceof FileResource) {
 			try {
-				DosFileAttributes attrs = Files.readAttributes(((FileResource) file).toPath(), DosFileAttributes.class);
-				boolean isReadOnly = attrs.isReadOnly();
-				boolean isHidden = attrs.isHidden();
+				// LDEV-3699 the attributes are already read when listing a directory
+				DosFileAttributes dos = attrs instanceof DosFileAttributes ? (DosFileAttributes) attrs : Files.readAttributes(((FileResource) file).toPath(), DosFileAttributes.class);
+				boolean isReadOnly = dos.isReadOnly();
+				boolean isHidden = dos.isHidden();
 				return isReadOnly ? "R".concat(isHidden ? "H" : "") : isHidden ? "H" : "";
 			}
 			catch (IOException e) {

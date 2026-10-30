@@ -290,8 +290,6 @@ public final class ConfigAdmin {
 		if (!cs.checkForChangesInConfigFile() || !wasConfigFileChangedOutside(cs)) return;
 
 		Resource file = config.getConfigFile();
-		long diff = file.lastModified() - cs.configLastModified();
-		if (diff < 10 && diff > -10) return;
 		// reload
 		try {
 			cs.load(file);
@@ -307,7 +305,7 @@ public final class ConfigAdmin {
 		Resource file = cs.getConfigFile();
 		long diff = file.lastModified() - cs.configLastModified();
 
-		return diff > 10 && diff < -10;
+		return diff > 10 || diff < -10;
 	}
 
 	public void store() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, ConverterException {

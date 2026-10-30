@@ -78,6 +78,8 @@ public class ArrayImpl extends ListAsArray {
 				if (deepCopy) arr.set(e.getKey(), Duplicator.duplicate(e.getValue(), deepCopy));
 				else arr.set(e.getKey(), e.getValue());
 			}
+			// the entry iterator skips null values, keep the length when the array ends with nulls (LDEV-1983)
+			if (arr.size() < size()) arr.resize(size());
 		}
 		catch (PageException ee) {
 		} // MUST habdle this

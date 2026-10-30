@@ -20,6 +20,8 @@ package lucee.runtime.cache;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
@@ -40,6 +42,7 @@ import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.MethodInstance;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -159,7 +162,19 @@ public final class CacheUtil {
 
 	public static CacheException noCache(Config config, String cacheName) {
 		StringBuilder sb = new StringBuilder("there is no cache defined with name [").append(cacheName).append("], available caches are [");
-		Iterator<String> it = config.getCacheConnections().keySet().iterator();
+
+		// administrator caches first, then the caches defined by the application of the current request
+		Set<String> names = new LinkedHashSet<String>(config.getCacheConnections().keySet());
+		PageContext pc = ThreadLocalPageContext.get();
+		ApplicationContext ac = pc == null ? null : pc.getApplicationContext();
+		Key[] appNames = ac == null ? null : ac.getCacheConnectionNames();
+		if (appNames != null) {
+			for (Key name: appNames) {
+				if (name != null) names.add(name.getString().toLowerCase().trim());
+			}
+		}
+
+		Iterator<String> it = names.iterator();
 		if (it.hasNext()) {
 			sb.append(it.next());
 		}

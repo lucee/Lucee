@@ -111,6 +111,15 @@ public final class AsyncRequestMonitor implements RequestMonitorPro {
 						}
 					}
 				}
+				catch (PageException e) {
+					if (logEnabled) {
+						Log log = ThreadLocalPageContext.getLog(pc, "io");
+						if (log != null) {
+							addParentStacktrace(e);
+							log.log(Log.LEVEL_ERROR, "io", e);
+						}
+					}
+				}
 			}
 			finally {
 				ThreadLocalPageContext.release();

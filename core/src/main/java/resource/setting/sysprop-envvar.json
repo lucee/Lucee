@@ -219,6 +219,15 @@
 		"default": 20
 	},
 	{
+		"sysprop": "lucee.controller.startup.delay",
+		"envvar": "LUCEE_CONTROLLER_STARTUP_DELAY",
+		"desc": "Number of seconds the background controller thread waits after startup before it runs its periodic tasks (every 10 seconds, every minute, every 5 minutes) and the one-time cleanup of the temp, cache and client folders for the first time, so a slow starting application is not slowed down by disk intensive maintenance. Set to 0 to run them right after startup as in previous versions. The check for changes in the config file is not delayed. See LDEV-3368",
+		"category": "performance",
+		"type": "numeric",
+		"introduced": "7.1",
+		"default": 120
+	},
+	{
 		"sysprop": "lucee.dap.breakpoint",
 		"envvar": "LUCEE_DAP_BREAKPOINT",
 		"desc": "Controls whether DAP breakpoint support (stepping, stack frames) is enabled. Requires lucee.dap.secret to be set. When true (default), enables bytecode instrumentation for line-by-line stepping and breakpoints. Set to false for console-only mode without stepping overhead. Requires JVM restart to take effect.",
@@ -1079,7 +1088,7 @@
 	{
 		"sysprop": "lucee.queue.timeout",
 		"envvar": "LUCEE_QUEUE_TIMEOUT",
-		"desc": "The time in milliseconds a request is held in the queue. If the time is reached, the request is rejected with an exception. If you set it to 0 seconds, the request timeout is used instead",
+		"desc": "The time in milliseconds a request is held in the queue. If the time is reached, the request is rejected with HTTP status 503 (Service Unavailable) and a Retry-After header. If you set it to 0 seconds, the request timeout is used instead",
 		"category": "request",
 		"type": "timespan",
 		"default": 0

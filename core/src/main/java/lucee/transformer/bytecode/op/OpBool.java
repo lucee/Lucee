@@ -102,11 +102,16 @@ public final class OpBool extends ExpressionBase implements ExprBoolean {
 			adapter.invokeStatic(Types.OP_UTIL, Methods_Operator.OPERATOR_EQV_PC_B_B);
 		}
 		else if (operation == Factory.OP_BOOL_IMP) {
+			// LDEV-31 short circuit: if the left side is false the result is true, the right side is not evaluated
+			left.writeOut(bc, MODE_VALUE);
+			adapter.ifZCmp(Opcodes.IFEQ, doFalse);
 
-			adapter.loadArg(0);
-			left.writeOut(bc, MODE_REF);
-			right.writeOut(bc, MODE_REF);
-			adapter.invokeStatic(Types.OP_UTIL, Methods_Operator.OPERATOR_IMP_PC_B_B);
+			right.writeOut(bc, MODE_VALUE);
+			adapter.visitJumpInsn(Opcodes.GOTO, end);
+
+			adapter.visitLabel(doFalse);
+			adapter.push(true);
+			adapter.visitLabel(end);
 		}
 		return Types.BOOLEAN_VALUE;
 

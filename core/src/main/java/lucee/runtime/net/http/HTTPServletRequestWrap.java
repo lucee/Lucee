@@ -91,8 +91,16 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	private boolean firstRead = true;
 	private byte[] bytes;
 	private File file;
+	private transient RequestBodyCache bodyCache;
 
 	private static final int MAX_MEMORY_SIZE = 1024 * 1024;
+
+	RequestBodyCache getBodyCache() {
+		synchronized (this) {
+			if (bodyCache == null) bodyCache = new RequestBodyCache();
+			return bodyCache;
+		}
+	}
 
 	private String servlet_path;
 	private String request_uri;

@@ -532,6 +532,9 @@ public final class Caster {
 		return Integer.parseInt(strNumber, radix);
 	}
 
+	// a number with more digits than this can't be accumulated into a double without losing precision
+	private static final int MAX_EXACT_DOUBLE_DIGITS = 15;
+
 	public static double toDoubleValue(String str, boolean alsoFromDate) throws CasterException {
 		if (str == null) return 0;// throw new CasterException("can't cast empty string to a number value");
 		str = StringUtil.trimAllWS(str);
@@ -554,6 +557,7 @@ public final class Caster {
 			isMinus = true;
 		}
 		boolean hasDot = false;
+		int digits = 0;
 		// boolean hasExp=false;
 		do {
 			curr = str.charAt(pos);
@@ -594,6 +598,7 @@ public final class Caster {
 			else {
 				rtn *= 10;
 				rtn += toDigit(curr);
+				digits++;
 				if (hasDot) {
 					deep *= 10;
 					if (deep > 1000000000000000000000D) return Double.parseDouble(str); // patch for LDEV-2654
@@ -602,6 +607,11 @@ public final class Caster {
 			}
 		}
 		while (++pos < len);
+
+		// the digit by digit accumulation above loses precision once the number has more digits than a double
+		// can hold exactly (LDEV-496), Double.parseDouble returns the nearest double. At this point str only
+		// holds digits, an optional sign and at most one dot, so it always parses.
+		if (digits > MAX_EXACT_DOUBLE_DIGITS) return Double.parseDouble(str);
 
 		if (deep > 1) {
 			rtn /= deep;
@@ -692,6 +702,7 @@ public final class Caster {
 		}
 
 		boolean hasDot = false;
+		int digits = 0;
 		// boolean hasExp=false;
 		do {
 			curr = str.charAt(pos);
@@ -730,11 +741,17 @@ public final class Caster {
 			else {
 				rtn *= 10;
 				rtn += toDigit(curr);
+				digits++;
 				if (hasDot) deep *= 10;
 			}
 
 		}
 		while (++pos < len);
+
+		// the digit by digit accumulation above loses precision once the number has more digits than a double
+		// can hold exactly (LDEV-496), Double.parseDouble returns the nearest double. At this point str only
+		// holds digits, an optional sign and at most one dot, so it always parses.
+		if (digits > MAX_EXACT_DOUBLE_DIGITS) return Double.parseDouble(str);
 
 		if (deep > 1) {
 			rtn /= deep;

@@ -50,7 +50,7 @@ class JavaRegex implements Regex {
 			if (offset > strLen) return 0;
 
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
-			if (offset > 1) matcher.region(offset - 1, strLen);
+			if (offset > 1) startAt(matcher, offset - 1);
 			if (!matcher.find()) return 0;
 
 			return matcher.start() + 1;
@@ -67,12 +67,14 @@ class JavaRegex implements Regex {
 			if (offset > strLen) return 0;
 
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
-			if (offset > 1) matcher.region(offset - 1, strLen);
+			if (offset > 1) startAt(matcher, offset - 1);
 
 			ArrayImpl arr = null;
-			while (matcher.find()) {
+			int prevEnd = -1;
+			while (findNext(matcher, prevEnd)) {
 				if (arr == null) arr = new ArrayImpl();
 				arr.append(matcher.start() + 1);
+				prevEnd = matcher.end();
 			}
 			return arr == null ? 0 : arr;
 		}
@@ -88,7 +90,7 @@ class JavaRegex implements Regex {
 			if (offset > strLen) return findEmpty();
 
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
-			if (offset > 1) matcher.region(offset - 1, strLen);
+			if (offset > 1) startAt(matcher, offset - 1);
 			if (!matcher.find()) return findEmpty();
 
 			return toStruct(matcher, strInput);
@@ -110,10 +112,12 @@ class JavaRegex implements Regex {
 			}
 
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
-			if (offset > 1) matcher.region(offset - 1, strLen);
+			if (offset > 1) startAt(matcher, offset - 1);
 
-			while (matcher.find()) {
+			int prevEnd = -1;
+			while (findNext(matcher, prevEnd)) {
 				arr.append(toStruct(matcher, strInput));
+				prevEnd = matcher.end();
 			}
 			if (arr.isEmpty()) arr.add(findEmpty());
 			return arr;
@@ -142,8 +146,10 @@ class JavaRegex implements Regex {
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
 
 			ArrayImpl arr = new ArrayImpl();
-			while (matcher.find()) {
+			int prevEnd = -1;
+			while (findNext(matcher, prevEnd)) {
 				arr.append(strInput.substring(matcher.start(), matcher.end()));
+				prevEnd = matcher.end();
 			}
 			return arr;
 		}
@@ -178,7 +184,7 @@ class JavaRegex implements Regex {
 			do {
 				m.appendReplacement(sb, replacement);
 			}
-			while (m.find());
+			while (findNext(m, m.end()));
 			m.appendTail(sb);
 			return sb.toString();
 		}
@@ -261,6 +267,18 @@ class JavaRegex implements Regex {
 		sct.setEL(KeyConstants._len, lenArray);
 		sct.setEL(KeyConstants._match, matchArray);
 		return sct;
+	}
+
+	// next match for the scope "all" loops, prevEnd is where the previous match ended, -1 before the first
+	protected boolean findNext(Matcher matcher, int prevEnd) {
+		return matcher.find();
+	}
+
+	// Starts the search at index start. The region's default bounds cut the input there: ^ and \A match at
+	// the start, and \b can't see the char before it, as on ACF's java engine. Whether java should follow
+	// Oro instead, as compat does, is LDEV-6798.
+	protected void startAt(Matcher matcher, int start) {
+		matcher.region(start, matcher.regionEnd());
 	}
 
 	protected Pattern toPattern(String strPattern, boolean caseSensitive, boolean multiLine) {

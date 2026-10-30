@@ -68,6 +68,7 @@ import lucee.runtime.config.Constants;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.ResetFilter;
 import lucee.runtime.config.maven.ExtensionProvider;
+import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -123,6 +124,8 @@ public final class RHExtension implements Serializable {
 	public static final int RELEASE_TYPE_WEB = 2;
 
 	private static final ExtensionResourceFilter LEX_FILTER = new ExtensionResourceFilter("lex");
+
+	private static final boolean EXTENSIONS_CONFIG_ONLY = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.config.only", null), false);
 
 	private static Set<String> metadataFilesChecked = new HashSet<>();
 	private static RHExtensionCollection collection;
@@ -937,6 +940,11 @@ public final class RHExtension implements Serializable {
 			throw new InvalidVersion("The Extension [" + getMetadata().getName() + "] cannot be loaded, " + Constants.NAME + " Loader Version must be at least ["
 					+ getMetadata().getMinLoaderVersion() + "], update the Lucee.jar first.");
 		}
+		ExtensionDefintion req = getRequiredExtension(info);
+		if (req != null && isOlderThan(req)) {
+			throw new InvalidVersion("The Extension [" + getMetadata().getName() + "] cannot be loaded, version [" + getVersion() + "] is older than the required minimum version ["
+					+ req.getVersion() + "].");
+		}
 	}
 
 	public boolean isValidFor(Info info) {
@@ -948,6 +956,31 @@ public final class RHExtension implements Serializable {
 			return false;
 		}
 		return true;
+	}
+
+	private ExtensionDefintion getRequiredExtension(Info info) {
+		if (!EXTENSIONS_CONFIG_ONLY && info instanceof InfoImpl) {
+			List<ExtensionDefintion> reqExts = ((InfoImpl) info).getRequiredExtension();
+			if (reqExts != null && !reqExts.isEmpty()) {
+				String thisId = getId();
+				if (thisId != null) {
+					for (ExtensionDefintion ed: reqExts) {
+						if (thisId.equalsIgnoreCase(ed.getId())) {
+							return ed;
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	private boolean isOlderThan(ExtensionDefintion ed) {
+		if (StringUtil.isEmpty(ed.getVersion(), true)) return false;
+		Version reqVersion = OSGiUtil.toVersion(ed.getVersion(), null);
+		if (reqVersion == null) return false;
+		Version thisVersion = OSGiUtil.toVersion(getVersion(), null);
+		return thisVersion != null && OSGiUtil.compare(thisVersion, reqVersion) < 0;
 	}
 
 	public void deployBundles(Config config, boolean load) throws IOException, BundleException {

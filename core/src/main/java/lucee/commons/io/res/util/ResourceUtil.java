@@ -1084,6 +1084,8 @@ public final class ResourceUtil {
 	public static void copyRecursive(Resource src, Resource trg, ResourceFilter filter) throws IOException {
 		// print.out(src);
 		// print.out(trg);
+		// stop when the thread was interrupted (request timeout, thread termination), already copied files stay
+		IOUtil.checkInterrupted();
 		if (!src.exists()) return;
 		if (src.isDirectory()) {
 			if (!trg.exists()) trg.createDirectory(true);

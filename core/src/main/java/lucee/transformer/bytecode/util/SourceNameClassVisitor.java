@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
 
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.lang.StringUtil;
@@ -92,7 +93,7 @@ public final class SourceNameClassVisitor extends ClassVisitor {
 		String name = "/" + clazz.getName().replace('.', '/') + ".class";
 		InputStream in = clazz.getResourceAsStream(name);
 		ClassReader classReader = new ClassReader(in);
-		SourceNameClassVisitor visitor = new SourceNameClassVisitor(config, 4, onlyCFC);
+		SourceNameClassVisitor visitor = new SourceNameClassVisitor(config, Opcodes.ASM9, onlyCFC);
 		classReader.accept(visitor, 0);
 		if (visitor.source == null || visitor.source.name == null) return null;
 		return visitor.source;

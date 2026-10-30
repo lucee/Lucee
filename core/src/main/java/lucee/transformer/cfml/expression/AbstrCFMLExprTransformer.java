@@ -834,7 +834,9 @@ public abstract class AbstrCFMLExprTransformer {
 			return new OpVariable((Variable) expr, res, data.srcCode.getPosition());
 		}
 		comments(data);
-		return data.factory.opNumber(expr, expoOp(data), Factory.OP_DBL_MODULUS);
+		// the right side is a divMultiOp (see EBNF above), so "a % b / c" and "a % b * c" are valid, because
+		// the modulus operator has a lower precedence than "*" and "/"
+		return data.factory.opNumber(expr, divMultiOp(data), Factory.OP_DBL_MODULUS);
 	}
 
 	/**
@@ -2072,6 +2074,9 @@ public abstract class AbstrCFMLExprTransformer {
 						throw new TemplateException(data.srcCode, "Boolean [" + (((LitBoolean) expr).getString()) + "] cannot be used as listeners");
 					throw new TemplateException(data.srcCode, "Literal  [" + (((Literal) expr).getString()) + "] cannot be used as listeners for functions");
 				}
+				// LDEV-5389 most likely a typo, [:] instead of [;] after a function call
+				if (expr instanceof Assign || expr instanceof DynAssign)
+					throw new TemplateException(data.srcCode, "an assignment cannot be used as listener for functions, did you mean [;] instead of [:]?");
 				comments(data);
 				return expr;
 			}
