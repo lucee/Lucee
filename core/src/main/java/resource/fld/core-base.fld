@@ -8162,7 +8162,7 @@ The following things are considered to be empty:
 	    <name>IsJson</name>
 	    <class>lucee.runtime.functions.conversion.IsJSON</class>
 	    <keywords>decision,json,javascript,json5</keywords>
-	    <description>Evaluates whether a string is in a valid JSON (JavaScript Object Notation) or JSON5 data interchange format.</description>
+	    <description>Evaluates whether a string is valid JSON (JavaScript Object Notation). By default only strict JSON as defined by RFC 8259 is valid; set lenient=true or format="json5" to also accept the relaxed syntax of JSON5. The value is validated only, it is not deserialized.</description>
 	    <argument>
 	        <name>var</name>
 	        <alias>value</alias>
