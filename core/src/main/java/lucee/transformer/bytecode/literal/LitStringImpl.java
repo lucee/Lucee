@@ -53,6 +53,7 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 	private String str;
 	private String rawSource; // Original source representation for AST dump
 	private boolean fromBracket;
+	private boolean fromBracketIndex;
 	private char quoteChar; // Original quote character (' or ") for AST dump
 
 	/*
@@ -201,6 +202,16 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 	@Override
 	public boolean fromBracket() {
 		return fromBracket;
+	}
+
+	@Override
+	public void fromBracketIndex(boolean fromBracketIndex) {
+		this.fromBracketIndex = fromBracketIndex;
+	}
+
+	@Override
+	public boolean fromBracketIndex() {
+		return fromBracketIndex;
 	}
 
 	/**
