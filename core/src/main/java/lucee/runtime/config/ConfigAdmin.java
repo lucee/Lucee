@@ -1710,7 +1710,7 @@ public final class ConfigAdmin {
 
 		// now unload (maybe not necessary)
 		if (cd.isBundle()) {
-			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), cd.getVersion(), null);
+			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), OSGiUtil.toOSGi(cd.getVersion()), null);
 			if (bl != null) {
 				try {
 					OSGiUtil.uninstall(bl);
@@ -1775,7 +1775,7 @@ public final class ConfigAdmin {
 		// now unload (maybe not necessary)
 		unloadStartupIfNecessary(config, cd, true);
 		if (cd.isBundle()) {
-			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), cd.getVersion(), null);
+			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), OSGiUtil.toOSGi(cd.getVersion()), null);
 			if (bl != null) {
 				try {
 					OSGiUtil.uninstall(bl);
@@ -1863,7 +1863,7 @@ public final class ConfigAdmin {
 
 		// now unload again, JDBC driver can be loaded when necessary
 		if (cd.isBundle()) {
-			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), cd.getVersion(), null);
+			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), OSGiUtil.toOSGi(cd.getVersion()), null);
 			if (bl != null) {
 				try {
 					OSGiUtil.uninstall(bl);
@@ -3200,7 +3200,8 @@ public final class ConfigAdmin {
 
 			if (!localPath.isFile()) {
 				localPath = null;
-				Version v;
+				lucee.runtime.config.maven.Version v;
+				final lucee.runtime.config.maven.Version lv = OSGiUtil.toLucee(version);
 				final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
 				for (final File patch: patches) {
 					v = CFMLEngineFactory.toVersion(patch.getName(), null);
@@ -3209,11 +3210,11 @@ public final class ConfigAdmin {
 						patch.delete();
 					}
 					else {
-						if (v.equals(version)) { // match!
+						if (v.equals(lv)) { // match!
 							localPath = patch;
 						}
 						// delete newer files
-						else if (OSGiUtil.isNewerThan(v, version)) {
+						else if (lucee.runtime.config.maven.Version.compare(v, lv) > 0) {
 							patch.delete();
 						}
 					}
@@ -3953,7 +3954,7 @@ public final class ConfigAdmin {
 			// get patches directory
 			CFMLEngine engine = ConfigUtil.getEngine(config);
 			ConfigServerImpl cs = config;
-			Version v;
+			lucee.runtime.config.maven.Version v;
 			v = CFMLEngineFactory.toVersion(core.getName(), null);
 			Log logger = cs.getLog("deploy");
 			File f = engine.getCFMLEngineFactory().getResourceRoot();

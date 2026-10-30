@@ -190,11 +190,9 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 
 	}
 
-	private static String getStateAsString(Version version) {
+	private static String getStateAsString(lucee.runtime.config.maven.Version version) {
 		String q = version.getQualifier();
-		int index = q.indexOf('-');
-		if (index == -1) return "stable";
-		return q.substring(index + 1);
+		return q.isEmpty() ? "stable" : q;
 	}
 
 	@Override

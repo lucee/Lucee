@@ -270,6 +270,20 @@ public final class OSGiUtil {
 		}
 	}
 
+	/**
+	 * the version type of Lucee (Maven compatible) as the version of an OSGi bundle, null when it is not valid for OSGi
+	 */
+	public static Version toOSGi(lucee.runtime.config.maven.Version version) {
+		return version == null ? null : toVersion(version.toString(), false, null);
+	}
+
+	/**
+	 * the version of an OSGi bundle as the version type of Lucee
+	 */
+	public static lucee.runtime.config.maven.Version toLucee(Version version) {
+		return version == null ? null : lucee.runtime.config.maven.Version.parseVersion(version.toString(), null);
+	}
+
 	public static Version toVersion(String version, Version defaultValue) {
 		return toVersion(version, true, defaultValue);
 	}

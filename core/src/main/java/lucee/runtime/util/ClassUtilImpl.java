@@ -89,10 +89,10 @@ public final class ClassUtilImpl implements ClassUtil {
 	}
 
 	@Override
-	public BIF loadBIF(PageContext pc, String name, String bundleName, Version bundleVersion) throws InstantiationException, IllegalAccessException, BundleException,
+	public BIF loadBIF(PageContext pc, String name, String bundleName, lucee.runtime.config.maven.Version bundleVersion) throws InstantiationException, IllegalAccessException, BundleException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, PageException, IOException {
 		// first of all we chek if itis a class
-		Class<?> res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, bundleVersion, pc.getConfig().getIdentification(),
+		Class<?> res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, OSGiUtil.toOSGi(bundleVersion), pc.getConfig().getIdentification(),
 				JavaSettingsImpl.getBundleDirectories(pc));
 		if (res != null) {
 			if (Reflector.isInstaneOf(res, BIF.class, false)) {
@@ -259,8 +259,8 @@ public final class ClassUtilImpl implements ClassUtil {
 	}
 
 	@Override
-	public Class<?> loadClassByBundle(String className, String name, Version version, Identification id) throws BundleException, IOException {
-		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null));
+	public Class<?> loadClassByBundle(String className, String name, lucee.runtime.config.maven.Version version, Identification id) throws BundleException, IOException {
+		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, OSGiUtil.toOSGi(version), id, JavaSettingsImpl.getBundleDirectories(null));
 	}
 
 	@Override

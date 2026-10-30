@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.osgi.framework.Version;
+import lucee.runtime.config.maven.Version;
 import org.xml.sax.SAXException;
 
 import lucee.loader.util.OpenPGPVerifier;

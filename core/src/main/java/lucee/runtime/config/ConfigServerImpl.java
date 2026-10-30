@@ -7269,7 +7269,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	@Override
 	public JDBCDriver getJDBCDriverByBundle(String bundleName, Version version, JDBCDriver defaultValue) {
 		for (JDBCDriver d: getJDBCDrivers()) {
-			if (d.cd.getName().equals(bundleName) && (version == null || version.equals(d.cd.getVersion()))) return d;
+			if (d.cd.getName().equals(bundleName) && (version == null || version.equals(OSGiUtil.toOSGi(d.cd.getVersion())))) return d;
 		}
 		return defaultValue;
 	}

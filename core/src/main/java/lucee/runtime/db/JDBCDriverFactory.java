@@ -46,7 +46,7 @@ public class JDBCDriverFactory implements PropFactory<JDBCDriver> {
 					cd = ConfigFactoryImpl.getClassDefinition(config, driver, "", config.getIdentification());
 					if (StringUtil.isEmpty(cd.getClassName()) && !StringUtil.isEmpty(cd.getName())) {
 						try {
-							Bundle bundle = OSGiUtil.loadBundle(cd.getName(), cd.getVersion(), config.getIdentification(), null, false);
+							Bundle bundle = OSGiUtil.loadBundle(cd.getName(), OSGiUtil.toOSGi(cd.getVersion()), config.getIdentification(), null, false);
 							String cn = JDBCDriver.extractClassName(bundle);
 							cd = new ClassDefinitionImpl(cn, cd.getName(), cd.getVersionAsString(), config.getIdentification());
 						}
