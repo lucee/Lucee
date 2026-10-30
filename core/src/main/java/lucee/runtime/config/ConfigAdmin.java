@@ -3214,7 +3214,7 @@ public final class ConfigAdmin {
 							localPath = patch;
 						}
 						// delete newer files
-						else if (lucee.runtime.config.maven.Version.compare(v, lv) > 0) {
+						else if (lucee.loader.util.VersionImpl.compare(v, lv) > 0) {
 							patch.delete();
 						}
 					}
@@ -3240,7 +3240,7 @@ public final class ConfigAdmin {
 		// remove extension if there is any
 		final int rIndex = version.lastIndexOf(".lco");
 		if (rIndex != -1) version = version.substring(0, rIndex);
-		return lucee.runtime.config.maven.Version.parseVersion(version, defaultValue);
+		return lucee.loader.util.VersionImpl.parseVersion(version, defaultValue);
 	}
 
 	public void mvnChangeVersionTo(lucee.runtime.config.maven.Version version, Password password, Identification id) throws PageException {
@@ -3271,7 +3271,7 @@ public final class ConfigAdmin {
 							localPath = patch;
 						}
 						// delete newer files
-						else if (lucee.runtime.config.maven.Version.compare(v, version) > 0) {
+						else if (lucee.loader.util.VersionImpl.compare(v, version) > 0) {
 							patch.delete();
 						}
 					}

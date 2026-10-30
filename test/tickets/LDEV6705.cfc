@@ -128,7 +128,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven" {
 		var repos = [ baseUrl & "repo1/", baseUrl & "repo2/" ];
 		var mup = createObject( "java", "lucee.loader.engine.mvn.MavenUpdateProvider" ).init(
 			javacast( "String[]", repos ), javacast( "String[]", repos ), "org.lucee", "lucee" );
-		var stream = mup.getCore( createObject( "java", "lucee.runtime.config.maven.Version" ).parseVersion( version ) );
+		var stream = mup.getCore( createObject( "java", "lucee.loader.util.VersionImpl" ).parseVersion( version ) );
 		try {
 			return toString( stream.readAllBytes(), "UTF-8" );
 		}

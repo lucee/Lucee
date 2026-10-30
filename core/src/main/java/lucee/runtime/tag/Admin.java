@@ -1023,7 +1023,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doMvnChangeVersionTo() throws PageException {
 		try {
-			lucee.runtime.config.maven.Version version = lucee.runtime.config.maven.Version.parseVersion(getString("admin", "changeVersionTo", "version"));
+			lucee.runtime.config.maven.Version version = lucee.loader.util.VersionImpl.parseVersion(getString("admin", "changeVersionTo", "version"));
 			admin.mvnChangeVersionTo(version, password, pageContext.getConfig().getIdentification());
 		}
 		catch (IOException e) {

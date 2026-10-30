@@ -1,5 +1,6 @@
 package lucee.runtime.config.maven;
 
+import lucee.loader.util.VersionImpl;
 import java.nio.charset.StandardCharsets;
 
 import java.io.IOException;
@@ -306,7 +307,7 @@ public class ExtensionProvider {
 					version = last(coordinate.artifactId);
 				}
 				else {
-					version = Version.parseVersion(coordinate.version);
+					version = VersionImpl.parseVersion(coordinate.version);
 				}
 
 				Resource res = getLEXResource((ConfigPro) config, coordinate.artifactId, version);
@@ -401,7 +402,7 @@ public class ExtensionProvider {
 		Version lastRel = null;
 		for (Version v: versions) {
 			if (!v.is(Version.SNAPSHOT)) {
-				if (lastRel == null || Version.compare(lastRel, v) < 0) {
+				if (lastRel == null || VersionImpl.compare(lastRel, v) < 0) {
 					lastRel = v;
 				}
 			}
@@ -412,7 +413,7 @@ public class ExtensionProvider {
 		versions = MavenUpdateProvider.list(this.repos, this.group, artifact, MavenUpdateProvider.TYPE_SNAPSHOT);
 		Version last = null;
 		for (Version v: versions) {
-			if (last == null || Version.compare(last, v) < 0) {
+			if (last == null || VersionImpl.compare(last, v) < 0) {
 				last = v;
 			}
 		}
@@ -678,7 +679,7 @@ public class ExtensionProvider {
 		ep = new ExtensionProvider(null, "org.lucee", MavenUpdateProvider.REPOSITORY_MAVEN_CENTRAL_RELEASES);
 
 		aprint.e(ep.list("yaml-extension"));
-		aprint.e(ep.detail("yaml-extension", Version.parseVersion("2.5.2-BETA")));
+		aprint.e(ep.detail("yaml-extension", VersionImpl.parseVersion("2.5.2-BETA")));
 
 		if (true) return;
 
@@ -689,7 +690,7 @@ public class ExtensionProvider {
 		aprint.e(pom.getArtifact("lex"));
 
 		aprint.e(ep.list("redis-extension"));
-		aprint.e(ep.detail("redis-extension", Version.parseVersion("4.0.1.1-SNAPSHOT")));
+		aprint.e(ep.detail("redis-extension", VersionImpl.parseVersion("4.0.1.1-SNAPSHOT")));
 		// org.lucee:yaml-extension:2.5.2.SNAPSHOT
 
 		if (true) return;
@@ -737,7 +738,7 @@ public class ExtensionProvider {
 		aprint.e(versions);
 
 		start = System.currentTimeMillis();
-		Map<String, Object> detail = ep.detail("mssql-jdbc-extension", Version.parseVersion("6.5.4"));
+		Map<String, Object> detail = ep.detail("mssql-jdbc-extension", VersionImpl.parseVersion("6.5.4"));
 		aprint.e("detail:" + (System.currentTimeMillis() - start));
 		aprint.e(detail);
 

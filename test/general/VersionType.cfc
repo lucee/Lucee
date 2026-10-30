@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="version" {
 
 	function beforeAll() {
-		variables.VersionClass = createObject( "java", "lucee.runtime.config.maven.Version" );
+		variables.VersionClass = createObject( "java", "lucee.loader.util.VersionImpl" );
 	}
 
 	private function v( required string version ) {
@@ -88,7 +88,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="version" {
 			it( "the version of this Lucee is a version of this type", function() {
 				var info = getPageContext().getConfig().getFactory().getEngine().getInfo();
 				var version = info.getVersion();
-				expect( version.getClass().getName() ).toBe( "lucee.runtime.config.maven.Version" );
+				expect( version.getClass().getName() ).toBe( "lucee.loader.util.VersionImpl" );
 				expect( version.toString() ).toBe( server.lucee.version );
 				expect( version.getMajor() ).toBeGTE( 9 );
 			});

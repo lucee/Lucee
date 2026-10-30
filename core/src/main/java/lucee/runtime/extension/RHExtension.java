@@ -1098,8 +1098,8 @@ public final class RHExtension implements Serializable {
 						@Override
 						public int compare(Pair<RHExtension, Resource> l, Pair<RHExtension, Resource> r) {
 							try {
-								return lucee.runtime.config.maven.Version.compare(lucee.runtime.config.maven.Version.parseVersion(r.getName().getVersion()),
-										lucee.runtime.config.maven.Version.parseVersion(l.getName().getVersion()));
+								return lucee.loader.util.VersionImpl.compare(lucee.loader.util.VersionImpl.parseVersion(r.getName().getVersion()),
+										lucee.loader.util.VersionImpl.parseVersion(l.getName().getVersion()));
 							}
 							catch (IOException e) {
 								return 0;

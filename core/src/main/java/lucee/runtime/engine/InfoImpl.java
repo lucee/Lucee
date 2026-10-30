@@ -78,7 +78,7 @@ public final class InfoImpl implements Info {
 	public InfoImpl(Version version, Dictionary<String, String> headers) {
 
 		// version
-		this.version = lucee.runtime.config.maven.Version.parseVersion(version.toString(), lucee.runtime.config.maven.Version.emptyVersion);
+		this.version = lucee.loader.util.VersionImpl.parseVersion(version.toString(), lucee.loader.util.VersionImpl.emptyVersion);
 		this.fullVersionInfo = KeyImpl.createHash64(this.version.toString());
 		this.versionName = headers.get("Minor-Name");
 		if (this.versionName == null) throw new RuntimeException("missing Minor-Name");

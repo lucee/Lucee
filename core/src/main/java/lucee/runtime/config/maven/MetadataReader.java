@@ -1,5 +1,6 @@
 package lucee.runtime.config.maven;
 
+import lucee.loader.util.VersionImpl;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
@@ -125,7 +126,7 @@ public final class MetadataReader extends DefaultHandler {
 					if (content.length() > 0) {
 						List<String> list = ListUtil.listToList(content, ',', true);
 						for (String v: list) {
-							versions.add(Version.parseVersion(v.trim()));
+							versions.add(VersionImpl.parseVersion(v.trim()));
 						}
 					}
 					return versions;
@@ -160,7 +161,7 @@ public final class MetadataReader extends DefaultHandler {
 		if (insideVersion) {
 			insideVersion = false;
 			try {
-				versions.add(Version.parseVersion(content.toString().trim()));
+				versions.add(VersionImpl.parseVersion(content.toString().trim()));
 			}
 			catch (IOException e) {
 				LogUtil.log("MavenReader", e);

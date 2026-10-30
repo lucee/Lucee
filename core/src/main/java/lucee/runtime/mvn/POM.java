@@ -30,6 +30,7 @@ import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.tree.TreeNode;
 import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.config.maven.MavenUpdateProvider.Repository;
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.op.Caster;
@@ -539,7 +540,7 @@ public final class POM {
 			if (!child.isDirectory()) continue;
 			name = child.getName();
 			if (!child.getRealResource(artifactId.trim() + "-" + name + ".jar").isFile() && !child.getRealResource(artifactId.trim() + "-" + name + ".pom").isFile()) continue;
-			v = Version.parseVersion(name, null);
+			v = VersionImpl.parseVersion(name, null);
 			if (v == null) continue;
 			if (latest == null || v.compareTo(latest) > 0) {
 				latest = v;
