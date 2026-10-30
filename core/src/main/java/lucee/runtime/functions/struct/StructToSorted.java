@@ -6,6 +6,7 @@ package lucee.runtime.functions.struct;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import lucee.commons.lang.ComparatorUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
@@ -64,8 +65,10 @@ public final class StructToSorted extends BIF {
 		if (sortType.equalsIgnoreCase("text")) comp = new SortRegisterComparator(pc, isAsc, false, localeSensitive);
 		else if (sortType.equalsIgnoreCase("textnocase")) comp = new SortRegisterComparator(pc, isAsc, true, localeSensitive);
 		else if (sortType.equalsIgnoreCase("numeric")) comp = new NumberSortRegisterComparator(isAsc);
+		else if (sortType.equalsIgnoreCase("natural")) comp = new SortRegisterComparator(pc, isAsc, ComparatorUtil.SORT_TYPE_NATURAL, false);
+		else if (sortType.equalsIgnoreCase("naturalnocase")) comp = new SortRegisterComparator(pc, isAsc, ComparatorUtil.SORT_TYPE_NATURAL_NO_CASE, false);
 		else {
-			throw new ExpressionException("Invalid sort type [" + sortType + "], sort types are [text, textNoCase, numeric]");
+			throw new ExpressionException("Invalid sort type [" + sortType + "], sort types are [text, textNoCase, numeric, natural, naturalNoCase]");
 		}
 
 		Arrays.sort(arr, 0, arr.length, comp);
