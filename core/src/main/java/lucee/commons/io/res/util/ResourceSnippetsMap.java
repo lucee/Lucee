@@ -76,6 +76,8 @@ public final class ResourceSnippetsMap {
 	}
 
 	public static String calcKey(PageSource ps, int startPos, int endPos) {
-		return ps.getDisplayPath() + "@" + ps.getLastAccessTime() + ":" + startPos + "-" + endPos;
+		// the key must be stable across requests (so the cache can hit) and change when the source changes,
+		// ps.getLastAccessTime() changes with every request and must not be part of the key
+		return calcKey(ps.getResource()) + ":" + startPos + "-" + endPos;
 	}
 }
