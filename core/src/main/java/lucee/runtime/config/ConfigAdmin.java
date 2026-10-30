@@ -3737,12 +3737,17 @@ public final class ConfigAdmin {
 
 		stopMonitor(ConfigUtil.toMonitorType(type, Monitor.TYPE_INTERVAL), name);
 
-		Array children = ConfigUtil.getAsArray("monitors", root);
+		// same location as _updateMonitor
+		Struct parent = ConfigUtil.getAsStruct("monitoring", root);
+		Array children = ConfigUtil.getAsArray("monitor", parent);
 		Key[] keys = children.keys();
-		for (Key key: keys) {
-			String _name = key.getString();
+		// from the end, removing an entry shifts the keys of the following entries
+		for (int i = keys.length - 1; i >= 0; i--) {
+			Struct el = Caster.toStruct(children.get(keys[i], null), null);
+			if (el == null) continue;
+			String _name = Caster.toString(el.get(KeyConstants._name, null), null);
 			if (_name != null && _name.equalsIgnoreCase(name)) {
-				children.removeEL(key);
+				children.removeEL(keys[i]);
 			}
 		}
 	}

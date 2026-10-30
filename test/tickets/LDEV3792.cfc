@@ -14,6 +14,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="monitor" javaSetti
 
 	function afterAll() {
 		setMonitoringEnabled( variables.wasEnabled );
+		// the monitor is stored in the server config, remove it, otherwise it stays behind for all following
+		// tests and fails to load there as soon as the config is reloaded and the jar is no longer on the loadPaths
+		admin action="removeMonitor" type="server" password=variables.adminPassword monitorType="request" name="LDEV3792";
+		getConfigServer().resetMonitors();
 	}
 
 	function run( testResults, testBox ) {
