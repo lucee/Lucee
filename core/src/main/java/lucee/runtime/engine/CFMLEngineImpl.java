@@ -1708,6 +1708,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
+	public lucee.runtime.osgi.BundleService getBundleService() {
+		return lucee.runtime.osgi.BundleServiceImpl.getInstance();
+	}
+
+	@Override
 	public ClassUtil getClassUtil() {
 		return new ClassUtilImpl();
 	}

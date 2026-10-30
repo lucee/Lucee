@@ -315,6 +315,11 @@ public interface CFMLEngine {
 
 	public BundleContext getBundleContext();
 
+	/**
+	 * @return the service to work with OSGi bundles, without any OSGi type
+	 */
+	public lucee.runtime.osgi.BundleService getBundleService();
+
 	public ScriptEngineFactory getScriptEngineFactory();
 
 	@Deprecated
