@@ -79,7 +79,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="logs" {
 
 	// if logs are sent to the console, no log files are created and these tests can't run
 	private function areLogsSentToConsole() {
-		return ( getSystemPropOrEnvVar( "lucee_logging_force_appender" ) eq "console" );
+		if ( getSystemPropOrEnvVar( "lucee_logging_force_appender" ) eq "console" ) return true;
+		// the test runner (ant/run-testcases.xml) can also configure the application log with a console appender
+		admin action="getLogSettings" type="server" password="#request.SERVERADMINPASSWORD#" returnVariable="local.logSettings";
+		loop query=logSettings {
+			if ( logSettings.name eq "application" ) return logSettings.appenderClass contains "ConsoleAppender";
+		}
+		return false;
 	}
 
 }
