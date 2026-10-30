@@ -546,6 +546,17 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>string</type>
+			<name>localMode</name>
+			<required>false</required>
+			<rtexprvalue>false</rtexprvalue>
+			<values>classic,modern,true,false</values>
+			<description>Defines how the local scope of the functions of this component is invoked when a variable without a scope definition is used. Must be a literal value.
+- `modern` (or `true`): the local scope is always invoked, so an unscoped assignment creates a local variable.
+- `classic` (or `false`): the local scope is only invoked when the key already exists in it.
+Precedence: the localMode attribute of a function, then the localMode of the component, then `this.localMode` of the Application.cfc (or the cfapplication tag), then the setting of the Administrator. The value applies to the functions (and closures) written in this component file only, it is not inherited by components that extend this component.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>displayName</name>
 			<alias>display</alias>
 			<required>false</required>

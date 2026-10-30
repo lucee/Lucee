@@ -209,6 +209,14 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	}
 
+	/**
+	 * LDEV-2919: localMode defined for the component the function is part of, it only applies if the
+	 * function does not define its own localMode
+	 */
+	public void setComponentLocalMode(int mode) {
+		if (localMode == null && mode != -1) localMode = body.getFactory().createLitInteger(mode);
+	}
+
 	public void register(Page page) {
 		index = page.addFunction(this);
 	}
