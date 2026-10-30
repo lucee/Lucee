@@ -60,11 +60,6 @@ public final class Util {
 		UTF8 = Charset.forName("UTF-8");
 	}
 
-	private static final int QUALIFIER_APPENDIX_SNAPSHOT = 1;
-	private static final int QUALIFIER_APPENDIX_BETA = 2;
-	private static final int QUALIFIER_APPENDIX_RC = 3;
-	private static final int QUALIFIER_APPENDIX_OTHER = 4;
-	private static final int QUALIFIER_APPENDIX_STABLE = 5;
 
 	private final static SimpleDateFormat HTTP_TIME_STRING_FORMAT;
 	static {
@@ -481,54 +476,7 @@ public final class Util {
 	 * @return returns if right is newer than left
 	 */
 	public static boolean isNewerThan(final Version left, final Version right) {
-
-		// major
-		if (left.getMajor() > right.getMajor()) return true;
-		if (left.getMajor() < right.getMajor()) return false;
-
-		// minor
-		if (left.getMinor() > right.getMinor()) return true;
-		if (left.getMinor() < right.getMinor()) return false;
-
-		// micro
-		if (left.getMicro() > right.getMicro()) return true;
-		if (left.getMicro() < right.getMicro()) return false;
-
-		// qualifier
-		// left
-		String q = left.getQualifier();
-		int index = q.indexOf('-');
-		String qla = index == -1 ? "" : q.substring(index + 1).trim();
-		String qln = index == -1 ? q : q.substring(0, index);
-		int ql = isEmpty(qln) ? Integer.MIN_VALUE : Integer.parseInt(qln);
-
-		// right
-		q = right.getQualifier();
-		index = q.indexOf('-');
-		String qra = index == -1 ? "" : q.substring(index + 1).trim();
-		String qrn = index == -1 ? q : q.substring(0, index);
-		int qr = isEmpty(qrn) ? Integer.MIN_VALUE : Integer.parseInt(qrn);
-
-		if (ql > qr) return true;
-		if (ql < qr) return false;
-
-		int qlan = qualifierAppendix2Number(qla);
-		int qran = qualifierAppendix2Number(qra);
-
-		if (qlan > qran) return true;
-		if (qlan < qran) return false;
-
-		if (qlan == QUALIFIER_APPENDIX_OTHER && qran == QUALIFIER_APPENDIX_OTHER) return left.compareTo(right) > 0;
-
-		return false;
-	}
-
-	private static int qualifierAppendix2Number(String str) {
-		if (Util.isEmpty(str, true)) return QUALIFIER_APPENDIX_STABLE;
-		if ("SNAPSHOT".equalsIgnoreCase(str)) return QUALIFIER_APPENDIX_SNAPSHOT;
-		if ("BETA".equalsIgnoreCase(str)) return QUALIFIER_APPENDIX_BETA;
-		if ("RC".equalsIgnoreCase(str)) return QUALIFIER_APPENDIX_RC;
-		return QUALIFIER_APPENDIX_OTHER;
+		return left.compareTo(right) > 0;
 	}
 
 	public static void deleteContent(Resource src, ResourceFilter filter) {
