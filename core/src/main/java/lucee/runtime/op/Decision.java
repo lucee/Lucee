@@ -1419,6 +1419,9 @@ public final class Decision {
 	}
 
 	private static boolean _isCastableTo(PageContext pcMaybeNull, String type, Object o) {
+		// LDEV-1669 "integer" only accepts whole numbers (also as a numeric string), no booleans
+		if (isIntegerType(type)) return isNumber(o) && isInteger(o);
+
 		if (o instanceof Component) {
 			Component comp = ((Component) o);
 			return comp.instanceOf(type);
@@ -1444,6 +1447,10 @@ public final class Decision {
 			}
 		}
 		return false;
+	}
+
+	public static boolean isIntegerType(String type) {
+		return type != null && "integer".equalsIgnoreCase(type.trim());
 	}
 
 	private static boolean isArrayType(String type) {
