@@ -22,7 +22,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.TimeZone;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
@@ -113,7 +112,7 @@ public interface DataSource extends Cloneable {
 	 */
 	public abstract String getConnectionStringTranslated();
 
-	public abstract Connection getConnection(Config config, String user, String pass) throws ClassException, BundleException, SQLException;
+	public abstract Connection getConnection(Config config, String user, String pass) throws ClassException, SQLException;
 
 	/**
 	 * @return Returns the password.

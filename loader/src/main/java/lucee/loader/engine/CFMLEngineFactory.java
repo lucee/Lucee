@@ -289,7 +289,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	public void shutdownFelix() throws BundleException {
 		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "---- Shutdown Felix ----");
 
-		BundleCollection bc = singelton.getBundleCollection();
+		BundleCollection bc = bundleCollection;
 		if (bc == null || bc.felix == null) return;
 		BundleUtil.stop(felix, false);
 	}

@@ -6058,9 +6058,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					catch (ClassException ce) {
 						t = ce;
 					}
-					catch (BundleException be) {
-						t = be;
-					}
 					catch (NoClassDefFoundError ncfe) {
 						t = ncfe;
 					}

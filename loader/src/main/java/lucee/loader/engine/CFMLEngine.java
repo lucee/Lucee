@@ -27,7 +27,6 @@ import java.util.TimeZone;
 
 import javax.script.ScriptEngineFactory;
 
-import org.osgi.framework.BundleContext;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -37,7 +36,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.jsp.JspException;
 import lucee.Info;
-import lucee.loader.osgi.BundleCollection;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -310,10 +308,6 @@ public interface CFMLEngine {
 	 * 
 	 * @return / public abstract Bundle getCoreBundle();
 	 */
-
-	public BundleCollection getBundleCollection();
-
-	public BundleContext getBundleContext();
 
 	/**
 	 * @return the service to work with OSGi bundles, without any OSGi type

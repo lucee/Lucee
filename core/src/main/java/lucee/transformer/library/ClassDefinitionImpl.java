@@ -259,8 +259,15 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	}
 
 	@Override
-	public Class<T> getClazz() throws ClassException, BundleException {
-		return getClazz(false);
+	public Class<T> getClazz() throws ClassException {
+		try {
+			return getClazz(false);
+		}
+		catch (BundleException be) {
+			ClassException ce = new ClassException(be.getMessage());
+			ExceptionUtil.initCauseEL(ce, be);
+			throw ce;
+		}
 	}
 
 	public Class<T> getClazz(boolean forceLoadingClass) throws ClassException, BundleException {

@@ -23,9 +23,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import lucee.runtime.config.maven.Version;
 
 import lucee.commons.lang.ClassException;
@@ -58,14 +55,13 @@ public interface ClassUtil {
 	 * @param bundleName name of the bundle to load from
 	 * @param bundleVersion version of the bundle to load from (if null ignored)
 	 * @return class
-	 * @throws BundleException Bundle Exception
 	 * @throws IOException IO Exception
 	 */
-	public Class<?> loadClass(PageContext pc, String className, String bundleName, String bundleVersion) throws BundleException, IOException;
+	public Class<?> loadClass(PageContext pc, String className, String bundleName, String bundleVersion) throws IOException;
 
 	public BIF loadBIF(PageContext pc, String name) throws InstantiationException, IllegalAccessException;
 
-	public BIF loadBIF(PageContext pc, String name, String bundleName, Version bundleVersion) throws InstantiationException, IllegalAccessException, BundleException,
+	public BIF loadBIF(PageContext pc, String name, String bundleName, Version bundleVersion) throws InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, PageException, IOException;
 
 	/**
@@ -275,9 +271,9 @@ public interface ClassUtil {
 	 */
 	public boolean canConvert(Class<?> from, Class<?> to);
 
-	public Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id) throws IOException, BundleException;
+	public Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id) throws IOException;
 
-	public Class<?> loadClassByBundle(String className, String name, Version version, Identification id) throws BundleException, IOException;
+	public Class<?> loadClassByBundle(String className, String name, Version version, Identification id) throws IOException;
 
 	/**
 	 * loads a Class from a String classname
@@ -433,9 +429,5 @@ public interface ClassUtil {
 	 * @return Returns Class name.
 	 */
 	public String extractName(String className);
-
-	public void start(Bundle bundle) throws BundleException;
-
-	public Bundle addBundle(BundleContext context, InputStream is, boolean closeStream, boolean checkExistence) throws BundleException, IOException;
 
 }

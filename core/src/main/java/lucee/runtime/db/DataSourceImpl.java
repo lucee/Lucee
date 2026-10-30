@@ -83,7 +83,6 @@ public final class DataSourceImpl extends DataSourceSupport {
 	 * @param requestExclusive
 	 * @param alwaysResetConnections
 	 * @param log
-	 * @throws BundleException
 	 * @throws ClassException
 	 * @throws SQLException
 	 */
@@ -91,7 +90,7 @@ public final class DataSourceImpl extends DataSourceSupport {
 			String password, TagListener listener, int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout,
 			boolean blob, boolean clob, int allow, Struct custom, boolean readOnly, boolean validate, boolean storage, TimeZone timezone, String dbdriver, ParamSyntax paramSyntax,
 			boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections, Log log)
-			throws BundleException, ClassException, SQLException {
+			throws ClassException, SQLException {
 
 		super(name, cd, username, ConfigUtil.decrypt(password), listener, blob, clob, connectionLimit, idleTimeout, liveTimeout, minIdle, maxIdle, maxTotal, metaCacheTimeout,
 				timezone, allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, requestExclusive, alwaysResetConnections, literalTimestampWithTSOffset, log);

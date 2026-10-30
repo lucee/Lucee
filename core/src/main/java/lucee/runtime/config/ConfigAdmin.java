@@ -1467,9 +1467,6 @@ public final class ConfigAdmin {
 		catch (ClassException e) {
 			throw Caster.toPageException(e);
 		}
-		catch (BundleException e) {
-			throw Caster.toPageException(e);
-		}
 
 		if (StringUtil.startsWithIgnoreCase(name, "cfx_")) name = name.substring(4);
 		if (StringUtil.isEmpty(name)) throw new ExpressionException("class name can't be an empty value");
@@ -2209,7 +2206,7 @@ public final class ConfigAdmin {
 			Class clazz = cd.getClazz();
 			if (!Reflector.isInstaneOf(clazz, Cache.class, false)) throw new ExpressionException("class [" + clazz.getName() + "] is not of type [" + Cache.class.getName() + "]");
 		}
-		catch (ClassException | BundleException e) {
+		catch (ClassException e) {
 			throw Caster.toPageException(e);
 		}
 
@@ -5882,7 +5879,7 @@ public final class ConfigAdmin {
 	public static void cleanBundles(RHExtension rhe, ConfigPro config, BundleDefinition[] candiatesToRemove) {
 		if (ArrayUtil.isEmpty(candiatesToRemove)) return;
 
-		BundleCollection coreBundles = ConfigUtil.getEngine(config).getBundleCollection();
+		BundleCollection coreBundles = OSGiUtil.getBundleCollection();
 
 		// core master
 		_cleanBundles(candiatesToRemove, coreBundles.core.getSymbolicName(), coreBundles.core.getVersion());

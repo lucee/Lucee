@@ -103,7 +103,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	}
 
 	@Override
-	public Connection getConnection(Config config, String user, String pass) throws ClassException, BundleException, SQLException {
+	public Connection getConnection(Config config, String user, String pass) throws ClassException, SQLException {
 		try {
 			if (user == null) user = username;
 			if (pass == null) pass = password;

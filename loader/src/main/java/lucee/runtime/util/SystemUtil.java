@@ -22,7 +22,6 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
 
-import org.osgi.framework.Bundle;
 
 import jakarta.servlet.ServletContext;
 import lucee.commons.io.log.Log;
@@ -235,8 +234,6 @@ public interface SystemUtil {
 	public void stop(PageContext pc, Throwable t, Log log);
 
 	public String getMacAddress();
-
-	public URL getResource(Bundle bundle, String path);
 
 	/**
 	 * add resource to "java.library.path"
