@@ -601,7 +601,42 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 		throw nsme;
 	}
 
+	/**
+	 * adds the default functions (functions with an implementation) of the implemented interfaces to
+	 * this component, in case the component or one of its super components does not define a function
+	 * with that name (LDEV-1835). The function of the component wins over the one of a super component,
+	 * which wins over the one of an interface.
+	 */
+	public void registerDefaultFunctions(PageContext pc) throws PageException {
+		if (absFin == null || !absFin.hasAbstractUDFs()) return;
+
+		for (Entry<Key, AbstractFinal.UDFB> entry: absFin.getAbstractUDFBs().entrySet()) {
+			UDF iUdf = entry.getValue().udf;
+			if (iUdf.getModifier() != ComponentUtil.MODIFIER_DEFAULT) continue;
+
+			Key key = entry.getKey();
+			UDF existing = _udfs.get(key);
+			if (existing != null) {
+				// a function inherited from an other default function is replaced by the default function of a more specific interface
+				if (existing.getModifier() != ComponentUtil.MODIFIER_DEFAULT || StringUtil.emptyIfNull(existing.getSource()).equals(iUdf.getSource())) continue;
+			}
+			else {
+				List<String> ambiguous = absFin.getAmbiguousDefault(key);
+				if (ambiguous != null) {
+					// an abstract component does not have to decide
+					if (getModifier() == MODIFIER_ABSTRACT) continue;
+					throw new ApplicationException("component [" + _getPageSource().getDisplayPath() + "] inherits the default function [" + iUdf.getFunctionName()
+							+ "] from more than one interface [" + ListUtil.toList(ambiguous, ", ") + "], the component has to define the function itself");
+				}
+			}
+			registerUDF(key, iUdf instanceof UDFImpl ? ((UDFImpl) iUdf).duplicate(this) : iUdf);
+		}
+	}
+
 	public void checkInterface(PageContext pc, ComponentPageImpl componentPage) throws PageException {
+		// default functions of interfaces (LDEV-1835), usually already done before the component body is executed
+		registerDefaultFunctions(pc);
+
 		/*
 		 * print.e("xxxxxxxxxxxxxxxxxxxxxxxxxxxxx "+ComponentUtil.toModifier(getModifier(),
 		 * "none")+" xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");

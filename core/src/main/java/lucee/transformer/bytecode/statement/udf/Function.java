@@ -653,6 +653,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 				String str = StringUtil.emptyIfNull(l.getString()).trim();
 				if ("abstract".equalsIgnoreCase(str)) modifier = Component.MODIFIER_ABSTRACT;
 				else if ("final".equalsIgnoreCase(str)) modifier = Component.MODIFIER_FINAL;
+				else if ("default".equalsIgnoreCase(str)) modifier = ComponentUtil.MODIFIER_DEFAULT;
 			}
 		}
 
@@ -705,6 +706,14 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	public int getIndex() {
 		return index;
+	}
+
+	public final int getModifier() {
+		return modifier;
+	}
+
+	public final void setModifier(int modifier) {
+		this.modifier = modifier;
 	}
 
 	// LDEV-6036: setter for tracking if access modifier was explicitly specified
@@ -916,6 +925,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	private String toModifier(int modifier) {
 		if (Component.MODIFIER_ABSTRACT == modifier) return "ABSTRACT";
 		if (Component.MODIFIER_FINAL == modifier) return "FINAL";
+		if (ComponentUtil.MODIFIER_DEFAULT == modifier) return "DEFAULT";
 		if (Component.MODIFIER_NONE == modifier) return null;
 
 		return null;

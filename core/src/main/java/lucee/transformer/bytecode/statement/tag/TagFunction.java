@@ -241,6 +241,7 @@ public final class TagFunction extends TagBase implements IFunction {
 				String str = StringUtil.emptyIfNull(l.getString()).trim();
 				if ("abstract".equalsIgnoreCase(str)) modifier = Component.MODIFIER_ABSTRACT;
 				else if ("final".equalsIgnoreCase(str)) modifier = Component.MODIFIER_FINAL;
+				else if ("default".equalsIgnoreCase(str)) modifier = ComponentUtil.MODIFIER_DEFAULT;
 				else if ("static".equalsIgnoreCase(str)) isStatic.setValue(true);
 			}
 		}

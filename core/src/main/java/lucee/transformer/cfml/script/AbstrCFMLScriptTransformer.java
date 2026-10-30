@@ -820,6 +820,17 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			return null;
 		}
 
+		// default (LDEV-1835), a function inside an interface that has an implementation
+		boolean isDefault = false;
+		if (data.isInterface) {
+			for (int i = 0; i < tokens.length; i++) {
+				if (tokens[i] != null && "default".equalsIgnoreCase(tokens[i]) && !isDefault) {
+					isDefault = true;
+					tokens[i] = null;
+				}
+			}
+		}
+
 		// access modifier
 		int _access, access = -1;
 		for (int i = 0; i < tokens.length; i++) {
@@ -869,6 +880,11 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 					tokens[i] = null;
 				}
 			}
+		}
+
+		if (isDefault) {
+			if (modifier != Component.MODIFIER_NONE || isStatic) throw new TemplateException(data.srcCode, "invalid syntax, a default function can not have an other modifier");
+			modifier = ComponentUtil.MODIFIER_DEFAULT;
 		}
 
 		// return type
@@ -1133,7 +1149,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		comments(data);
 
 		// LDEV-1818: in an interface, a function signature can end with a line feed instead of a semicolon
-		boolean endsWithLineFeed = !closure && data.isInterface && data.srcCode.hasNLBefore() && !data.srcCode.isCurrent('{')
+		boolean endsWithLineFeed = !closure && data.isInterface && !data.insideFunction && data.srcCode.hasNLBefore() && !data.srcCode.isCurrent('{')
 				&& !data.srcCode.isCurrent(';') && !isAttributeNext(data);
 
 		// attributes
@@ -1257,6 +1273,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						verifyClient, localMode);
 			}
 			else {
+				// LDEV-1835: inside an interface a function with a body is a default function
+				if (!closure && data.isInterface && !oldInsideFunction) {
+					boolean hasBody = !endsWithLineFeed && data.srcCode.isCurrent('{');
+					if (hasBody && func.getModifier() == Component.MODIFIER_NONE) func.setModifier(ComponentUtil.MODIFIER_DEFAULT);
+					else if (!hasBody && func.getModifier() == ComponentUtil.MODIFIER_DEFAULT)
+						throw new TemplateException(data.srcCode, "the default function [" + id + "] needs a body");
+					else if (hasBody && func.getModifier() != ComponentUtil.MODIFIER_DEFAULT)
+						throw new TemplateException(data.srcCode, "the function [" + id + "] is not allowed to have a body inside an interface, use the modifier default");
+				}
 				func.register(data.page);
 				if (!endsWithLineFeed) statement(data, body, CTX_FUNCTION);
 			}
