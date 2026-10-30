@@ -603,7 +603,7 @@ public final class QoQ {
 	 * @throws PageException
 	 */
 	private Object executeExp(PageContext pc, SQL sql, QueryImpl source, Expression exp, int row) throws PageException {
-		if (exp instanceof Value) return ((Value) exp).getValue();
+		if (exp instanceof Value) return getLiteralValue(pc, (Value) exp);
 		if (exp instanceof Column) return executeColumn(pc, sql, source, (Column) exp, row);
 		if (exp instanceof Operation) return executeOperation(pc, sql, source, (Operation) exp, row);
 		if (exp instanceof BracketExpression) return executeBracked(pc, sql, source, (BracketExpression) exp, row);
@@ -611,7 +611,7 @@ public final class QoQ {
 	}
 
 	private Object executeExp(PageContext pc, SQL sql, QueryImpl source, Expression exp, int row, Object columnDefault) throws PageException {
-		if (exp instanceof Value) return ((Value) exp).getValue();
+		if (exp instanceof Value) return getLiteralValue(pc, (Value) exp);
 		if (exp instanceof Column) return executeColumn(pc, sql, source, (Column) exp, row, columnDefault);
 		if (exp instanceof Operation) return executeOperation(pc, sql, source, (Operation) exp, row);
 		if (exp instanceof BracketExpression) return executeBracked(pc, sql, source, (BracketExpression) exp, row);
@@ -636,7 +636,7 @@ public final class QoQ {
 
 		// For a literal value, just fill an array with that value
 		if (exp instanceof Value) {
-			Object value = ((Value) exp).getValue();
+			Object value = getLiteralValue(pc, (Value) exp);
 			for (int i = 0; i < source.getRecordcount(); i++) {
 				result[i] = value;
 			}
@@ -743,7 +743,10 @@ public final class QoQ {
 
 			Object value = executeExp(pc, sql, source, op1.getExp(), row);
 
-			if (o == Operation.OPERATION1_MINUS) return Caster.toDouble(-Caster.toDoubleValue(value));
+			if (o == Operation.OPERATION1_MINUS) {
+				if (value instanceof BigDecimal && ThreadLocalPageContext.preciseMath(pc)) return ((BigDecimal) value).negate();
+				return Caster.toDouble(-Caster.toDoubleValue(value));
+			}
 			if (o == Operation.OPERATION1_PLUS) return Caster.toDouble(value);
 			if (o == Operation.OPERATION1_NOT) return Caster.toBoolean(!Caster.toBooleanValue(value));
 
@@ -944,6 +947,11 @@ public final class QoQ {
 					// The result of any mathmatical operation involving a null is null
 					if (left == null || right == null) {
 						return null;
+					}
+					if (ThreadLocalPageContext.preciseMath(pc)) {
+						BigDecimal rightBD = castForMathBigDecimal(right);
+						if (rightBD.signum() == 0) throw new IllegalQoQException("Divide by zero not allowed.", null, sql, null);
+						return OpUtil.modulusRef(pc, castForMathBigDecimal(left), rightBD);
 					}
 					return Double.valueOf(castForMathDouble(left) % castForMathDouble(right));
 				}
@@ -1280,6 +1288,14 @@ public final class QoQ {
 			return null;
 		}
 
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			BigDecimal rightBD = castForMathBigDecimal(right);
+			if (rightBD.signum() == 0) {
+				throw new IllegalQoQException("Divide by zero not allowed.  Encountered while evaluating [" + expression.toString(true) + "] in row " + row, null, sql, null);
+			}
+			return OpUtil.modulusRef(pc, castForMathBigDecimal(left), rightBD);
+		}
+
 		Double rightDouble = castForMathDouble(right);
 		if (rightDouble == 0) {
 			throw new IllegalQoQException("Divide by zero not allowed.  Encountered while evaluating [" + expression.toString(true) + "] in row " + row, null, sql, null);
@@ -1331,6 +1347,31 @@ public final class QoQ {
 	}
 
 	/**
+	 * Cast value to BigDecimal, accounting for logic such as turning empty strings into zero. Used for
+	 * the arithmetic when preciseMath is enabled.
+	 *
+	 * @param value Value for casting. Must be non-null
+	 * @return Value cast to a BigDecimal
+	 */
+	private BigDecimal castForMathBigDecimal(Object value) throws PageException {
+		if (Caster.toString(value).equals("")) {
+			return BigDecimal.ZERO;
+		}
+		return Caster.toBigDecimal(value);
+	}
+
+	/**
+	 * Value of a literal. A number literal that a double can't hold exactly stays a BigDecimal when
+	 * preciseMath is enabled, otherwise it is a double (LDEV-496).
+	 */
+	private static Object getLiteralValue(PageContext pc, Value value) {
+		if (value instanceof ValueNumber && ThreadLocalPageContext.preciseMath(pc)) {
+			return ((ValueNumber) value).getValue(true);
+		}
+		return value.getValue();
+	}
+
+	/**
 	 * Cast value to Int, accounting for logic such as turning empty strings into zero.
 	 *
 	 * @param value Value for casting. Must be non-null
@@ -1363,6 +1404,10 @@ public final class QoQ {
 			return null;
 		}
 
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return OpUtil.minusRef(pc, castForMathBigDecimal(left), castForMathBigDecimal(right));
+		}
+
 		return Double.valueOf(castForMathDouble(left) - castForMathDouble(right));
 	}
 
@@ -1384,6 +1429,14 @@ public final class QoQ {
 		// The result of any mathmatical operation involving a null is null
 		if (left == null || right == null) {
 			return null;
+		}
+
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			BigDecimal rightBD = castForMathBigDecimal(right);
+			if (rightBD.signum() == 0) {
+				throw new IllegalQoQException("Divide by zero not allowed.  Encountered while evaluating [" + expression.toString(true) + "] in row " + row, null, sql, null);
+			}
+			return OpUtil.divideRef(pc, castForMathBigDecimal(left), rightBD);
 		}
 
 		Double rightDouble = castForMathDouble(right);
@@ -1412,6 +1465,10 @@ public final class QoQ {
 		// The result of any mathmatical operation involving a null is null
 		if (left == null || right == null) {
 			return null;
+		}
+
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return OpUtil.multiplyRef(pc, castForMathBigDecimal(left), castForMathBigDecimal(right));
 		}
 
 		return Double.valueOf(castForMathDouble(left) * castForMathDouble(right));
@@ -1465,6 +1522,18 @@ public final class QoQ {
 		}
 
 		try {
+			if (ThreadLocalPageContext.preciseMath(pc)) {
+				BigDecimal bLeft = Caster.toBigDecimal(left);
+				BigDecimal bRight = Caster.toBigDecimal(right);
+
+				// The result of any mathmatical operation involving a null is null
+				if (left == null || right == null) {
+					return null;
+				}
+
+				return OpUtil.plusRef(pc, bLeft, bRight);
+			}
+
 			Double dLeft = Caster.toDoubleValue(left);
 			Double dRight = Caster.toDoubleValue(right);
 
@@ -1564,6 +1633,10 @@ public final class QoQ {
 			// If null=true is used with query param
 			if (param.isNulls()) return null;
 			try {
+				// with preciseMath a numeric/decimal value a double can't hold exactly stays a BigDecimal (LDEV-496)
+				if ((param.getType() == Types.NUMERIC || param.getType() == Types.DECIMAL) && isLargeNumber(param.getValue()) && ThreadLocalPageContext.preciseMath(pc)) {
+					return Caster.toBigDecimal(param.getValue());
+				}
 				return param.getValueForCF();
 			}
 			catch (PageException e) {

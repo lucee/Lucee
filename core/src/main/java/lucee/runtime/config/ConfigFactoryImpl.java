@@ -2904,17 +2904,17 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			Key name;
 			if (constants != null) {
 				Iterator<Entry<Key, Object>> it = constants.entryIterator();
-				Struct con;
+				String value;
 				Entry<Key, Object> e;
 				while (it.hasNext()) {
 					try {
 						e = it.next();
-						con = Caster.toStruct(it.next(), null);
-						if (con == null) continue;
+						value = Caster.toString(e.getValue(), null);
+						if (value == null) continue;
 
 						name = e.getKey();
 						if (StringUtil.isEmpty(name)) continue;
-						sct.setEL(name, e.getValue());
+						sct.setEL(name, value);
 
 					}
 					catch (Throwable t) {

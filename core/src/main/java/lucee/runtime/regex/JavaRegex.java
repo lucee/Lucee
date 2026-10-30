@@ -4,6 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -22,7 +23,7 @@ class JavaRegex implements Regex {
 	@Override
 	public boolean matches(String strPattern, String strInput) throws PageException {
 		try {
-			return strInput.matches(strPattern);
+			return Pattern.compile(strPattern).matcher(new InterruptibleCharSequence(strInput)).matches();
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -32,7 +33,11 @@ class JavaRegex implements Regex {
 	@Override
 	public boolean matches(String strPattern, String strInput, boolean defaultValue) {
 		try {
-			return strInput.matches(strPattern);
+			return Pattern.compile(strPattern).matcher(new InterruptibleCharSequence(strInput)).matches();
+		}
+		catch (PageRuntimeException e) {
+			// the thread was interrupted, that must not be swallowed
+			throw e;
 		}
 		catch (Exception e) {
 			return defaultValue;
@@ -45,7 +50,7 @@ class JavaRegex implements Regex {
 			int strLen = strInput.length();
 			if (offset > strLen) return 0;
 
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
 			if (offset > 1) matcher.region(offset - 1, strLen);
 			if (!matcher.find()) return 0;
 
@@ -62,7 +67,7 @@ class JavaRegex implements Regex {
 			int strLen = strInput.length();
 			if (offset > strLen) return 0;
 
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
 			if (offset > 1) matcher.region(offset - 1, strLen);
 
 			ArrayImpl arr = null;
@@ -83,7 +88,7 @@ class JavaRegex implements Regex {
 			int strLen = strInput.length();
 			if (offset > strLen) return findEmpty();
 
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
 			if (offset > 1) matcher.region(offset - 1, strLen);
 			if (!matcher.find()) return findEmpty();
 
@@ -105,7 +110,7 @@ class JavaRegex implements Regex {
 				return arr;
 			}
 
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
 			if (offset > 1) matcher.region(offset - 1, strLen);
 
 			while (matcher.find()) {
@@ -122,7 +127,7 @@ class JavaRegex implements Regex {
 	@Override
 	public String match(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
 			if (!matcher.find()) return "";
 
 			return strInput.substring(matcher.start(), matcher.end());
@@ -135,7 +140,7 @@ class JavaRegex implements Regex {
 	@Override
 	public Array matchAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
 
 			ArrayImpl arr = new ArrayImpl();
 			while (matcher.find()) {
@@ -151,7 +156,7 @@ class JavaRegex implements Regex {
 	@Override
 	public String replace(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			return toPattern(strPattern, caseSensitive, multiLine).matcher(strInput).replaceFirst(replacement);
+			return toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput)).replaceFirst(replacement);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -161,7 +166,7 @@ class JavaRegex implements Regex {
 	@Override
 	public String replaceAll(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			return toPattern(strPattern, caseSensitive, multiLine).matcher(strInput).replaceAll(replacement);
+			return toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput)).replaceAll(replacement);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
