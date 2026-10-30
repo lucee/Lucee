@@ -1684,8 +1684,7 @@ public abstract class AbstrCFMLExprTransformer {
 						comments(data);
 						if (data.srcCode.isCurrent(':')) slice = sliceParts(data, first);
 						else {
-							nameProp = data.factory.toExprString(first);
-							if (nameProp instanceof LitString) ((LitString) nameProp).fromBracket(true);
+							nameProp = bracketName(data, first);
 						}
 					}
 				}
@@ -2116,17 +2115,10 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	/**
-	 * Transfomiert ein Collection Element das in eckigen Klammern aufgerufen wird. <br />
-	 * EBNF:<br />
-	 * <code>"[" impOp "]"</code>
-	 * 
-	 * @return CFXD Element
-	 * @throws TemplateException
+	 * Converts the expression inside of brackets, like the 1 in a[1], to the name of the member. LDEV-1329: a positive integer literal is
+	 * marked as index, so a[1] = x creates an array, not a struct, if a does not exist.
 	 */
-	private ExprString structElement(Data data) throws TemplateException {
-		comments(data);
-		Expression index = assignOp(data);
-		// LDEV-1329: a positive integer literal, like a[1]
+	private ExprString bracketName(Data data, Expression index) {
 		boolean isIndex = false;
 		if (index instanceof LitNumber) {
 			Number n = ((LitNumber) index).getNumber();
@@ -2137,7 +2129,6 @@ public abstract class AbstrCFMLExprTransformer {
 			((LitString) name).fromBracket(true);
 			if (isIndex) ((LitString) name).fromBracketIndex(true);
 		}
-		comments(data);
 		return name;
 	}
 
