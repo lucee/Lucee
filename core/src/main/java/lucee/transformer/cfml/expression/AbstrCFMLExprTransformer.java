@@ -46,6 +46,7 @@ import lucee.transformer.bytecode.expression.var.Call;
 import lucee.transformer.bytecode.expression.var.DynAssign;
 import lucee.transformer.bytecode.expression.var.FunctionMember;
 import lucee.transformer.bytecode.expression.var.NamedArgumentImpl;
+import lucee.transformer.bytecode.expression.var.SpreadUtil;
 import lucee.transformer.expression.var.NamedArgument;
 import lucee.transformer.bytecode.expression.var.UDF;
 import lucee.transformer.bytecode.literal.Identifier;
@@ -293,6 +294,72 @@ public abstract class AbstrCFMLExprTransformer {
 		return assignOp(data);
 	}
 
+	private Expression spread(Data data, Expression value, Position start) throws TemplateException {
+		FunctionLibFunction flf = data.flibs == null ? null : data.flibs.getFunction(SpreadUtil.FUNCTION_NAME);
+		if (flf == null) throw new TemplateException(data.srcCode, "The spread operator [...] is not supported in this context");
+		BIF bif = new BIF(data.factory, data.settings, flf, data);
+		bif.setArgType(flf.getArgType());
+		try {
+			bif.setClassDefinition(flf.getFunctionClassDefinition());
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw new PageRuntimeException(t);
+		}
+		bif.setReturnType(flf.getReturnTypeAsString());
+		bif.addArgument(new ArgumentImpl(value, "any"));
+		data.ep.add(flf, bif, data.srcCode);
+		Variable var = data.factory.createVariable(start, data.srcCode.getPosition());
+		var.addMember(bif);
+		return var;
+	}
+
+	/**
+	 * a function call using the spread operator, f(a, ...b, c), is rewritten to
+	 * f(argumentCollection=[a, ...b, c]), the spread operator inside an array literal is handled by the
+	 * literal array evaluator.
+	 */
+	private void rewriteSpreadCall(Data data, FunctionMember fm, ExprString name) throws TemplateException {
+		Argument[] args = fm.getArguments();
+		if (!SpreadUtil.hasSpread(args)) return;
+		for (Argument arg: args) {
+			if (arg instanceof NamedArgument) {
+				throw new TemplateException(data.srcCode, "The spread operator [...] can not be combined with named arguments in the function call [" + ASMUtil.display(name)
+						+ "], use argumentCollection to pass a struct as named arguments");
+			}
+		}
+		FunctionLibFunction flf = data.flibs.getFunction("_literalArray");
+		BIF array = new BIF(data.factory, data.settings, flf, data);
+		array.setArgType(flf.getArgType());
+		try {
+			array.setClassDefinition(flf.getFunctionClassDefinition());
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw new PageRuntimeException(t);
+		}
+		array.setReturnType(flf.getReturnTypeAsString());
+		for (Argument arg: args)
+			array.addArgument(arg);
+		FunctionLibFunction tmp = flf.getEvaluator().pre(array, flf);
+		if (tmp != null && tmp != flf) {
+			array.setFlf(flf = tmp);
+			array.setArgType(flf.getArgType());
+			try {
+				array.setClassDefinition(flf.getFunctionClassDefinition());
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				throw new PageRuntimeException(t);
+			}
+			array.setReturnType(flf.getReturnTypeAsString());
+		}
+		data.ep.add(flf, array, data.srcCode);
+		Variable var = data.factory.createVariable(data.srcCode.getPosition(), data.srcCode.getPosition());
+		var.addMember(array);
+		fm.setArguments(new Argument[] { new NamedArgumentImpl(data.factory.createLitString("argumentCollection"), var, "any", false) });
+	}
+
 	/**
 	 * Liest einen gelableten Funktionsparamter ein <br />
 	 * EBNF:<br />
@@ -306,6 +373,15 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	private Argument functionArgument(Data data, String type, boolean varKeyUpperCase) throws TemplateException {
+		// spread operator
+		if (data.srcCode.isCurrent("...")) {
+			Position start = data.srcCode.getPosition();
+			data.srcCode.forwardIfCurrent("...");
+			comments(data);
+			Expression value = assignOp(data);
+			if (value == null) throw new TemplateException(data.srcCode, "Syntax Error, the spread operator [...] must be followed by an expression");
+			return new ArgumentImpl(spread(data, value, start), null);
+		}
 		Expression expr = assignOp(data);
 		try {
 			if (data.srcCode.forwardIfCurrent(":")) {
@@ -336,6 +412,34 @@ public abstract class AbstrCFMLExprTransformer {
 	 * @return CFXD Element
 	 * @throws TemplateException
 	 */
+	/**
+	 * LDEV-2551: the key used to track final variables, null if the variable is not a plain variable in the scope of the current function or
+	 * script block (members like x.y or x[1] are not final, only the variable itself is)
+	 */
+	protected static String finalKey(Data data, Variable v) {
+		int scope = v.getScope();
+		if (data.insideFunction) {
+			if (scope != Scope.SCOPE_UNDEFINED && scope != Scope.SCOPE_LOCAL && scope != Scope.SCOPE_VAR) return null;
+		}
+		else if (scope != Scope.SCOPE_UNDEFINED && scope != Scope.SCOPE_VARIABLES) return null;
+		java.util.List<lucee.transformer.expression.var.Member> members = v.getMembers();
+		if (members.size() != 1 || !(members.get(0) instanceof lucee.transformer.expression.var.DataMember)) return null;
+		Expression name = ((lucee.transformer.expression.var.DataMember) members.get(0)).getName();
+		if (!(name instanceof LitString)) return null;
+		return ((LitString) name).getString().toLowerCase();
+	}
+
+	/**
+	 * LDEV-2551: a variable declared with final can not be assigned again
+	 */
+	protected void checkFinal(Data data, Variable v) throws TemplateException {
+		if (data.finalNames == null || data.finalNames.isEmpty()) return;
+		String key = finalKey(data, v);
+		if (key != null && data.finalNames.contains(key)) {
+			throw new TemplateException(data.srcCode, "Can't overwrite the final variable [" + key + "], a final variable can only be assigned once");
+		}
+	}
+
 	protected Expression assignOp(Data data) throws TemplateException {
 
 		Expression expr = conditionalOp(data);
@@ -345,6 +449,7 @@ public abstract class AbstrCFMLExprTransformer {
 			if (data.mode == STATIC) expr = new DynAssign(expr, assignOp(data));
 			else {
 				if (expr instanceof Variable) {
+					checkFinal(data, (Variable) expr);
 					Expression value = assignOp(data);
 					expr = new Assign((Variable) expr, value, data.srcCode.getPosition());
 				}
@@ -750,6 +855,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 			// &=
 			if (data.srcCode.isCurrent('=') && expr instanceof Variable) {
+				checkFinal(data, (Variable) expr);
 				data.srcCode.next();
 				comments(data);
 				Expression value = assignOp(data);
@@ -794,6 +900,7 @@ public abstract class AbstrCFMLExprTransformer {
 		// +=
 		// plus|Minus Assignment
 		if (data.srcCode.isCurrent('=') && expr instanceof Variable) {
+			checkFinal(data, (Variable) expr);
 			data.srcCode.next();
 			comments(data);
 			Expression value = assignOp(data);
@@ -829,6 +936,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 	private Expression _modOp(Data data, Expression expr) throws TemplateException {
 		if (data.srcCode.isCurrent('=') && expr instanceof Variable) {
+			checkFinal(data, (Variable) expr);
 			data.srcCode.next();
 			comments(data);
 			Expression right = assignOp(data);
@@ -876,6 +984,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 	private Expression _divMultiOp(Data data, Expression expr, int iOp) throws TemplateException {
 		if (data.srcCode.isCurrent('=') && expr instanceof Variable) {
+			checkFinal(data, (Variable) expr);
 			data.srcCode.next();
 			comments(data);
 			Expression value = assignOp(data);
@@ -929,6 +1038,7 @@ public abstract class AbstrCFMLExprTransformer {
 			end = new Position(leftEnd.line, leftEnd.column + 2, leftEnd.pos + 2, data.srcCode.getSourceOffset());
 		}
 
+		checkFinal(data, (Variable) expr);
 		if (op == Factory.OP_UNARY_CONCAT) return data.factory.opUnaryString((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_POST, op, start, end);
 		return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_POST, op, start, end);
 	}
@@ -949,6 +1059,7 @@ public abstract class AbstrCFMLExprTransformer {
 				Expression expr = clip(data);
 
 				if (expr instanceof Variable) {
+					checkFinal(data, (Variable) expr);
 					return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_MINUS, line, data.srcCode.getPosition());
 				}
 				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_MINUS);
@@ -962,6 +1073,7 @@ public abstract class AbstrCFMLExprTransformer {
 				comments(data);
 				Expression expr = clip(data);
 				if (expr instanceof Variable) {
+					checkFinal(data, (Variable) expr);
 					return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
 				}
 				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_PLUS);
@@ -1792,11 +1904,14 @@ public abstract class AbstrCFMLExprTransformer {
 		if (data.srcCode.forwardIfCurrent("java:") || data.srcCode.forwardIfCurrent("class:")) type = "type:java";
 		else if (data.srcCode.forwardIfCurrent("cfml:") || data.srcCode.forwardIfCurrent("cfc:")) type = "type:cfml";
 
+		// "self" is only a keyword as an unquoted name directly after "new" (late static binding), see LDEV-1708
+		boolean quoted = data.srcCode.isCurrent('"') || data.srcCode.isCurrent('\'');
 		ExprString exprName = readComponentPath(data);
 		if (exprName == null) {
 			data.srcCode.setPos(start);
 			return expr;
 		}
+		if (!quoted && "type:undefined".equals(type) && exprName instanceof LitString && "self".equalsIgnoreCase(((LitString) exprName).getString())) type = "type:self";
 
 		comments(data);
 
@@ -2010,8 +2125,18 @@ public abstract class AbstrCFMLExprTransformer {
 	 */
 	private ExprString structElement(Data data) throws TemplateException {
 		comments(data);
-		ExprString name = data.factory.toExprString(assignOp(data));
-		if (name instanceof LitString) ((LitString) name).fromBracket(true);
+		Expression index = assignOp(data);
+		// LDEV-1329: a positive integer literal, like a[1]
+		boolean isIndex = false;
+		if (index instanceof LitNumber) {
+			Number n = ((LitNumber) index).getNumber();
+			isIndex = n != null && n.doubleValue() >= 1 && n.doubleValue() == Math.floor(n.doubleValue()) && n.doubleValue() < Integer.MAX_VALUE;
+		}
+		ExprString name = data.factory.toExprString(index);
+		if (name instanceof LitString) {
+			((LitString) name).fromBracket(true);
+			if (isIndex) ((LitString) name).fromBracketIndex(true);
+		}
 		comments(data);
 		return name;
 	}
@@ -2082,6 +2207,13 @@ public abstract class AbstrCFMLExprTransformer {
 			}
 
 			int count = getFunctionMemberAttrs(data, name, checkLibrary, fm, flf);
+
+			// spread operator
+			if (SpreadUtil.hasSpread(fm.getArguments())) {
+				if (checkLibrary) throw new TemplateException(data.srcCode,
+						"The spread operator [...] is not supported for the built-in function [" + ASMUtil.display(name) + "], use argumentCollection instead");
+				rewriteSpreadCall(data, fm, name);
+			}
 
 			// Snapshot original arguments before evaluators may modify them
 			fm.snapshotSourceArguments();

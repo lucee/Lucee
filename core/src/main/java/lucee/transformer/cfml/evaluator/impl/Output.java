@@ -49,6 +49,7 @@ public final class Output extends EvaluatorSupport {
 	// the encode functions of the esapi extension, they moved to the package guard
 	private static String ENCODE_FOR_GUARD = "org.lucee.extension.guard.functions.EncodeFor";
 	private static String ESAPI_ENCODE = "org.lucee.extension.esapi.functions.ESAPIEncode";
+	private static String PRESERVE_ENCODING = "lucee.runtime.functions.other.PreserveEncoding";
 
 	@Override
 	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib flibs) throws EvaluatorException {
@@ -135,7 +136,7 @@ public final class Output extends EvaluatorSupport {
 							BIF bif = (BIF) member;
 							String cn = bif.getClassDefinition().getClassName();
 
-							if (cn.startsWith(ENCODE_FOR_) || cn.startsWith(ENCODE_FOR_GUARD) || cn.equals(ESAPI_ENCODE)) {
+							if (cn.startsWith(ENCODE_FOR_) || cn.startsWith(ENCODE_FOR_GUARD) || cn.equals(ESAPI_ENCODE) || cn.equals(PRESERVE_ENCODING)) {
 								continue;
 							}
 						}

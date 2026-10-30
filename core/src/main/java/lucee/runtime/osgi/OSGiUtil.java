@@ -270,6 +270,26 @@ public final class OSGiUtil {
 		}
 	}
 
+	/**
+	 * the version type of Lucee (Maven compatible) as the version of an OSGi bundle, null when it is not valid for OSGi
+	 */
+	public static Version toOSGi(lucee.runtime.config.maven.Version version) {
+		return version == null ? null : toVersion(version.toString(), false, null);
+	}
+
+	/**
+	 * the version of an OSGi bundle as the version type of Lucee
+	 */
+	public static lucee.runtime.config.maven.Version toLucee(Version version) {
+		if (version == null) return null;
+		String q = version.getQualifier();
+		String base = version.getMajor() + "." + version.getMinor() + "." + version.getMicro();
+		if (q.isEmpty()) return lucee.loader.util.VersionImpl.parseVersion(base, null);
+		// the qualifier of an OSGi version holds the build of Lucee (9.0.0.12-ALPHA) or a plain qualifier (1.0.0.SNAPSHOT)
+		char c = q.charAt(0);
+		return lucee.loader.util.VersionImpl.parseVersion(base + (c >= '0' && c <= '9' ? "." : "-") + q, null);
+	}
+
 	public static Version toVersion(String version, Version defaultValue) {
 		return toVersion(version, true, defaultValue);
 	}

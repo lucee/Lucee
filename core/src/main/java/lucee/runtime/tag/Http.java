@@ -42,6 +42,7 @@ import java.util.zip.GZIPInputStream;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
@@ -69,6 +70,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.AbortException;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.HTTPException;
@@ -78,6 +80,8 @@ import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.file.GetFileFromPath;
 import lucee.runtime.functions.system.CallStackGet;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.net.http.CertificateInstaller;
 import lucee.runtime.net.http.MultiPartResponseUtils;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -87,6 +91,7 @@ import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.security.SecurityManagerImpl;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.text.csv.CSVParser;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -310,6 +315,9 @@ public final class Http extends BodyTagImpl {
 	/** When false, disables SSL certificate and hostname verification (like curl -k). */
 	private boolean sslVerify = true;
 
+	/** Listener (before, after, error) for this tag, overrides the listener defined in the application. */
+	private TagListener listener;
+
 	@Override
 	public void release() {
 		super.release();
@@ -361,6 +369,12 @@ public final class Http extends BodyTagImpl {
 		trustStore = null;
 		trustStorePassword = null;
 		sslVerify = true;
+		listener = null;
+	}
+
+	public void setListener(Object listener) throws ApplicationException {
+		if (listener == null) return;
+		this.listener = lucee.runtime.tag.Query.toTagListener(listener);
 	}
 
 	/**
@@ -695,12 +709,224 @@ public final class Http extends BodyTagImpl {
 	@Override
 	public int doEndTag() throws PageException {
 		try {
-			_doEndTag();
+			TagListener tagListener = getTagListener();
+			if (tagListener == null) _doEndTag();
+			else _doEndTag(tagListener);
 			return EVAL_PAGE;
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	private TagListener getTagListener() {
+		if (listener != null) return listener;
+		ApplicationContext ac = pageContext.getApplicationContext();
+		if (ac instanceof ApplicationContextSupport) return ((ApplicationContextSupport) ac).getHttpListener();
+		return null;
+	}
+
+	private void _doEndTag(TagListener tagListener) throws PageException, IOException, GeneralSecurityException {
+		TemplateLine tl = lucee.runtime.tag.Query.toTemplateLine(pageContext, null, ((PageContextImpl) pageContext).getCurrentPageSource(null));
+
+		// before
+		Struct rtn = tagListener.before(pageContext, createListenerArgs(tl));
+		Object response = writeBackListenerArgs(rtn);
+		boolean safeToMemory = !StringUtil.isEmpty(result, true);
+		Struct args = createListenerArgs(tl);
+
+		try {
+			// the listener answered the request itself, no request is made
+			if (response != null) {
+				if (safeToMemory) pageContext.setVariable(result, response);
+			}
+			else _doEndTag();
+		}
+		catch (Exception e) {
+			PageException pe = Caster.toPageException(e);
+			if (pe instanceof AbortException || !tagListener.hasError()) throw pe;
+
+			args.set(KeyConstants._exception, pe.getCatchBlock(pageContext.getConfig()));
+			Struct errRtn = tagListener.error(pageContext, args);
+			args.removeEL(KeyConstants._exception);
+			response = errRtn == null ? null : errRtn.get(KeyConstants._result, null);
+			// without a result from the error listener the error is not handled
+			if (response == null) throw pe;
+			if (safeToMemory) pageContext.setVariable(result, response);
+		}
+
+		// after
+		if (safeToMemory) args.set(KeyConstants._result, pageContext.getVariable(result));
+		Struct afterRtn = tagListener.after(pageContext, args);
+		if (afterRtn != null && safeToMemory) {
+			Object newResult = afterRtn.get(KeyConstants._result, null);
+			if (newResult != null) pageContext.setVariable(result, newResult);
+		}
+	}
+
+	private Struct createListenerArgs(TemplateLine tl) throws PageException {
+		Struct rtn = new StructImpl(Struct.TYPE_LINKED, 4);
+		Struct args = new StructImpl(Struct.TYPE_LINKED, 24);
+
+		setArg(args, KeyConstants._url, url);
+		setArg(args, KeyConstants._method, getMethodAsVerb(method));
+		setArg(args, KeyConstants._charset, charset);
+		setArg(args, KeyConstants._timeout, timeout);
+		setArg(args, "connectionTimeout", connectionTimeout);
+		setArg(args, "socketTimeout", socketTimeout);
+		setArg(args, "redirect", redirect);
+		setArg(args, "userAgent", useragent);
+		setArg(args, KeyConstants._username, username);
+		setArg(args, KeyConstants._password, password);
+		setArg(args, "throwOnError", Boolean.valueOf(throwonerror));
+		setArg(args, KeyConstants._result, result);
+		setArg(args, "cachedWithin", cachedWithin);
+
+		Array arrParams = new ArrayImpl(params.size());
+		for (HttpParamBean param: params) {
+			Struct sct = new StructImpl(Struct.TYPE_LINKED, 6);
+			sct.set(KeyConstants._type, paramTypeAsString(param.getType()));
+			setArg(sct, KeyConstants._name, param.getName());
+			setArg(sct, KeyConstants._value, param.getValue());
+			if (param.getFile() != null) sct.set(KeyConstants._file, param.getFile().getAbsolutePath());
+			if (!StringUtil.isEmpty(param.getMimeType(), true)) sct.set(KeyConstants._mimetype, param.getMimeType());
+			if (param.getEncoded() != ENCODED_AUTO) sct.set(KeyConstants._encoded, Boolean.valueOf(param.getEncoded() == ENCODED_YES));
+			arrParams.appendEL(sct);
+		}
+		args.set(KeyConstants._params, arrParams);
+
+		rtn.setEL(KeyConstants._args, args);
+		rtn.setEL(KeyConstants._caller, tl.toStruct());
+		return rtn;
+	}
+
+	private static void setArg(Struct args, String name, Object value) throws PageException {
+		if (value != null) args.set(name, value);
+	}
+
+	private static void setArg(Struct args, Key name, Object value) throws PageException {
+		if (value != null) args.set(name, value);
+	}
+
+	/**
+	 * apply the values a before listener returned to the tag
+	 * 
+	 * @return the response of the request in case the listener provided one, otherwise null
+	 */
+	private Object writeBackListenerArgs(Struct rtn) throws PageException {
+		if (rtn == null) return null;
+
+		// the listener can return the arguments it got (args and caller) or only the arguments
+		Struct args = rtn;
+		Object obj = rtn.get(KeyConstants._args, null);
+		if (obj instanceof Struct) args = (Struct) obj;
+
+		String str = Caster.toString(args.get(KeyConstants._url, null), null);
+		if (!StringUtil.isEmpty(str, true)) this.url = str.trim();
+
+		str = Caster.toString(args.get(KeyConstants._method, null), null);
+		if (!StringUtil.isEmpty(str, true)) setMethod(str);
+
+		str = Caster.toString(args.get(KeyConstants._charset, null), null);
+		if (!StringUtil.isEmpty(str, true)) this.charset = str.trim();
+
+		TimeSpan ts = Caster.toTimespan(args.get(KeyConstants._timeout, null), null);
+		if (ts != null) this.timeout = ts;
+		ts = Caster.toTimespan(args.get("connectionTimeout", null), null);
+		if (ts != null) this.connectionTimeout = ts;
+		ts = Caster.toTimespan(args.get("socketTimeout", null), null);
+		if (ts != null) this.socketTimeout = ts;
+
+		str = Caster.toString(args.get("redirect", null), null);
+		if (!StringUtil.isEmpty(str, true)) setRedirect(str.trim());
+
+		str = Caster.toString(args.get("userAgent", null), null);
+		if (!StringUtil.isEmpty(str, true)) this.useragent = str;
+
+		str = Caster.toString(args.get(KeyConstants._username, null), null);
+		if (!StringUtil.isEmpty(str, true)) this.username = str;
+
+		str = Caster.toString(args.get(KeyConstants._password, null), null);
+		if (!StringUtil.isEmpty(str, true)) this.password = str;
+
+		Boolean b = Caster.toBoolean(args.get("throwOnError", null), null);
+		if (b != null) this.throwonerror = b.booleanValue();
+
+		// a string is the name of the result variable
+		Object res = args.get(KeyConstants._result, null);
+		if (res instanceof CharSequence && !StringUtil.isEmpty(res.toString(), true)) this.result = res.toString().trim();
+
+		obj = args.get(KeyConstants._params, null);
+		if (obj != null) {
+			Array arr = Caster.toArray(obj);
+			ArrayList<HttpParamBean> list = new ArrayList<HttpParamBean>(arr.size());
+			Iterator<Object> it = arr.valueIterator();
+			while (it.hasNext()) {
+				list.add(toParamBean(Caster.toStruct(it.next())));
+			}
+			this.params.clear();
+			this.params.addAll(list);
+		}
+
+		// a struct as result is the response of the request, in that case no request is made
+		Object top = rtn.get(KeyConstants._result, null);
+		if (top instanceof Struct) return top;
+		if (res instanceof Struct) return res;
+		return null;
+	}
+
+	private HttpParamBean toParamBean(Struct sct) throws PageException {
+		HttpParamBean param = new HttpParamBean();
+		param.setType(paramTypeFromString(Caster.toString(sct.get(KeyConstants._type, null), null)));
+		param.setName(Caster.toString(sct.get(KeyConstants._name, null), null));
+		param.setValue(sct.get(KeyConstants._value, null));
+		String file = Caster.toString(sct.get(KeyConstants._file, null), null);
+		if (!StringUtil.isEmpty(file, true)) param.setFile(ResourceUtil.toResourceNotExisting(pageContext, file));
+		String mt = Caster.toString(sct.get(KeyConstants._mimetype, null), null);
+		if (mt != null) param.setMimeType(mt);
+		Boolean enc = Caster.toBoolean(sct.get(KeyConstants._encoded, null), null);
+		if (enc != null) param.setEncoded(enc.booleanValue() ? ENCODED_YES : ENCODED_NO);
+
+		if (StringUtil.isEmpty(param.getName()) && HttpParamBean.TYPE_BODY != param.getType() && HttpParamBean.TYPE_XML != param.getType())
+			throw new ApplicationException("http listener returned a param of type [" + paramTypeAsString(param.getType()) + "] without a name");
+		if (HttpParamBean.TYPE_FILE == param.getType() && param.getFile() == null)
+			throw new ApplicationException("http listener returned a param of type [file] without the key [file]");
+		return param;
+	}
+
+	private static String paramTypeAsString(int type) {
+		switch (type) {
+		case HttpParamBean.TYPE_URL:
+			return "url";
+		case HttpParamBean.TYPE_FORM:
+			return "formfield";
+		case HttpParamBean.TYPE_CGI:
+			return "cgi";
+		case HttpParamBean.TYPE_HEADER:
+			return "header";
+		case HttpParamBean.TYPE_COOKIE:
+			return "cookie";
+		case HttpParamBean.TYPE_FILE:
+			return "file";
+		case HttpParamBean.TYPE_XML:
+			return "xml";
+		default:
+			return "body";
+		}
+	}
+
+	private static int paramTypeFromString(String type) throws ApplicationException {
+		String t = StringUtil.isEmpty(type, true) ? "" : type.trim().toLowerCase();
+		if (t.equals("url")) return HttpParamBean.TYPE_URL;
+		if (t.equals("formfield") || t.equals("form")) return HttpParamBean.TYPE_FORM;
+		if (t.equals("cgi")) return HttpParamBean.TYPE_CGI;
+		if (t.startsWith("head")) return HttpParamBean.TYPE_HEADER;
+		if (t.equals("cookie")) return HttpParamBean.TYPE_COOKIE;
+		if (t.equals("file")) return HttpParamBean.TYPE_FILE;
+		if (t.equals("xml")) return HttpParamBean.TYPE_XML;
+		if (t.equals("body")) return HttpParamBean.TYPE_BODY;
+		throw new ApplicationException("http listener returned a param with invalid type [" + type
+				+ "], valid types are [url, formfield, cgi, header, cookie, file, xml, body]");
 	}
 
 	private void _doEndTag() throws PageException, IOException, GeneralSecurityException {
@@ -1122,6 +1348,8 @@ public final class Http extends BodyTagImpl {
 			if (locations != null) cfhttp.set(KeyConstants._locations, locations);
 			URL targetURL = rsp.getTargetURL();
 			if (targetURL != null) requestInfo.setEL(KeyConstants._finalUrl, maskUrl(targetURL.toExternalForm()));
+			Struct connection = rsp.getConnectionInfo();
+			if (connection != null) cfhttp.set(KeyConstants._connection, connection);
 
 			// responseHeader
 			lucee.commons.net.http.Header[] headers = rsp.getAllHeaders();

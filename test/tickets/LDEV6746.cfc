@@ -43,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven" {
 	}
 
 	private function versionClass() {
-		return createObject( "java", "lucee.runtime.config.maven.Version" );
+		return createObject( "java", "lucee.loader.util.VersionImpl" );
 	}
 
 	private function toVersion( required string version ) {

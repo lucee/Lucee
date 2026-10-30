@@ -92,7 +92,9 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.query.QueryArray;
+import lucee.runtime.type.query.QueryReturnType;
 import lucee.runtime.type.query.QueryResult;
+import lucee.runtime.type.query.QueryReturnType;
 import lucee.runtime.type.query.QueryStruct;
 import lucee.runtime.type.query.SimpleQuery;
 import lucee.runtime.type.scope.Argument;
@@ -174,16 +176,12 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	}
 
 	private static int toReturnType(String strReturntype) throws ApplicationException {
-		strReturntype = strReturntype.toLowerCase().trim();
-
-		if (strReturntype.equals("query")) return RETURN_TYPE_QUERY;
-		if (strReturntype.equals("struct")) return RETURN_TYPE_STRUCT;
-		if (strReturntype.equals("array") || strReturntype.equals("array_of_struct") || strReturntype.equals("array-of-struct") || strReturntype.equals("arrayofstruct")
-				|| strReturntype.equals("array_of_entity") || strReturntype.equals("array-of-entity") || strReturntype.equals("arrayofentities")
-				|| strReturntype.equals("array_of_entities") || strReturntype.equals("array-of-entities") || strReturntype.equals("arrayofentities")) {
-			return RETURN_TYPE_ARRAY;
-		}
-		throw new ApplicationException("Attribute [returntype] of tag [query] has an invalid value", "valid values are [query,array] but value was [" + strReturntype + "]");
+		int rt = QueryReturnType.parse(strReturntype);
+		if (rt == QueryReturnType.QUERY) return RETURN_TYPE_QUERY;
+		if (rt == QueryReturnType.STRUCT) return RETURN_TYPE_STRUCT;
+		if (rt == QueryReturnType.ARRAY) return RETURN_TYPE_ARRAY;
+		throw new ApplicationException("Attribute [returntype] of tag [query] has an invalid value",
+				"valid values are [query,array] but value was [" + strReturntype.toLowerCase().trim() + "]");
 	}
 
 	public static String toReturnType(int rt) {
@@ -294,7 +292,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	public void setColumnkey(String columnKey) {
 		if (StringUtil.isEmpty(columnKey, true)) return;
-		data.columnName = KeyImpl.init(columnKey);
+		data.columnName = QueryReturnType.toColumnKeys(columnKey);
 	}
 
 	public void setCachedwithin(Object cachedwithin) {
@@ -914,7 +912,14 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		// TODO add missing attrs
 		set(args, "cachedAfter", data.cachedAfter);
 		set(args, "cachedWithin", data.cachedWithin);
-		if (data.columnName != null) set(args, "columnName", data.columnName.getString());
+		if (data.columnName != null) {
+			StringBuilder sbCK = new StringBuilder();
+			for (Key ck: data.columnName) {
+				if (sbCK.length() > 0) sbCK.append(',');
+				sbCK.append(ck.getString());
+			}
+			set(args, "columnName", sbCK.toString());
+		}
 		set(args, KeyConstants._datasource, data.rawDatasource);
 		set(args, "dbtype", data.dbtype);
 		set(args, KeyConstants._debug, data.debug);
@@ -966,8 +971,11 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if (obj != null && obj != data.cachedWithin) data.cachedWithin = obj;
 
 		// columnName
-		Key k = Caster.toKey(args.get("columnName", null), null);
-		if (k != null && k != data.columnName) data.columnName = k;
+		obj = args.get("columnName", null);
+		if (obj != null) {
+			Key[] ks = QueryReturnType.toColumnKeys(Caster.toString(obj, null));
+			if (ks != null) data.columnName = ks;
+		}
 
 		// datasource
 		obj = args.get("datasource", null);

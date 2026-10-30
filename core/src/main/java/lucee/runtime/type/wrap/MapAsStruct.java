@@ -21,6 +21,7 @@ package lucee.runtime.type.wrap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedMap;
 
@@ -79,6 +80,59 @@ public final class MapAsStruct extends StructSupport implements Struct {
 	// insertion ordered (LinkedHashMap) and sorted maps (e.g. TreeMap) keep a defined key order
 	public boolean isOrdered() {
 		return ordered || map instanceof LinkedHashMap || map instanceof SortedMap;
+	}
+
+	/**
+	 * first key in iteration order without copying the keys, only meaningful for ordered structs
+	 * 
+	 * @return the first key or null if the struct is empty
+	 */
+	public Collection.Key getFirstKey() {
+		Object key;
+		if (map instanceof SortedMap) {
+			try {
+				key = ((SortedMap) map).firstKey();
+			}
+			catch (NoSuchElementException e) {
+				return null;
+			}
+		}
+		else {
+			synchronized (map) {
+				Iterator it = map.keySet().iterator();
+				if (!it.hasNext()) return null;
+				key = it.next();
+			}
+		}
+		return KeyImpl.init(StringUtil.toStringNative(key, ""));
+	}
+
+	/**
+	 * last key in iteration order without copying the keys, only meaningful for ordered structs
+	 * 
+	 * @return the last key or null if the struct is empty
+	 */
+	public Collection.Key getLastKey() {
+		Object key;
+		if (map instanceof SortedMap) {
+			try {
+				key = ((SortedMap) map).lastKey();
+			}
+			catch (NoSuchElementException e) {
+				return null;
+			}
+		}
+		else {
+			synchronized (map) {
+				Iterator it = map.keySet().iterator();
+				if (!it.hasNext()) return null;
+				key = it.next();
+				while (it.hasNext()) {
+					key = it.next();
+				}
+			}
+		}
+		return KeyImpl.init(StringUtil.toStringNative(key, ""));
 	}
 
 	@Override

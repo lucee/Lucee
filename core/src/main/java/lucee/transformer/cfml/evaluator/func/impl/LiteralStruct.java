@@ -7,6 +7,7 @@ import lucee.runtime.type.scope.Scope;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.expression.var.BIF;
 import lucee.transformer.bytecode.expression.var.NamedArgumentImpl;
+import lucee.transformer.bytecode.expression.var.SpreadUtil;
 import lucee.transformer.bytecode.expression.var.VariableString;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
@@ -37,10 +38,14 @@ public final class LiteralStruct implements FunctionEvaluator {
 		Expression val;
 		List<Member> members;
 		Argument arg;
-		boolean modified = false, failed = false;
+		boolean modified = false, failed = false, spread = false;
 		Member m = null;
 		for (int i = 0; i < args.length; i++) {
 			arg = args[i];
+			if (SpreadUtil.isSpread(arg)) {
+				spread = true;
+				continue;
+			}
 			if (!(arg instanceof NamedArgument)) {
 				val = arg.getValue();
 				if (val instanceof Variable) {
@@ -84,6 +89,7 @@ public final class LiteralStruct implements FunctionEvaluator {
 			}
 		}
 
+		if (spread) return flf.getFunctionLib().getFunction("_literalSpreadStruct");
 		return null;
 	}
 

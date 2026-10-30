@@ -18,7 +18,7 @@
 package lucee.runtime.db;
 
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.runtime.config.maven.Version;
 
 import lucee.commons.lang.ClassException;
 

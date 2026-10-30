@@ -60,7 +60,7 @@ public final class InfoImpl implements Info {
 
 	// Mod this
 
-	private Version version;
+	private lucee.runtime.config.maven.Version version;
 	private long fullVersionInfo;
 
 	private long releaseTime;
@@ -78,7 +78,7 @@ public final class InfoImpl implements Info {
 	public InfoImpl(Version version, Dictionary<String, String> headers) {
 
 		// version
-		this.version = version;
+		this.version = lucee.loader.util.VersionImpl.parseVersion(version.toString(), lucee.loader.util.VersionImpl.emptyVersion);
 		this.fullVersionInfo = KeyImpl.createHash64(this.version.toString());
 		this.versionName = headers.get("Minor-Name");
 		if (this.versionName == null) throw new RuntimeException("missing Minor-Name");
@@ -140,7 +140,7 @@ public final class InfoImpl implements Info {
 	}
 
 	@Override
-	public Version getVersion() {
+	public lucee.runtime.config.maven.Version getVersion() {
 		return version;
 	}
 

@@ -1,5 +1,6 @@
 package lucee.runtime.config.maven;
 
+import lucee.loader.util.VersionImpl;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -332,7 +333,7 @@ public final class MavenUpdateProvider {
 
 			if (!versions.isEmpty()) {
 				List<Version> sortedList = new ArrayList<>(versions);
-				Collections.sort(sortedList, Version::compare);
+				Collections.sort(sortedList, VersionImpl::compare);
 				return sortedList;
 			}
 

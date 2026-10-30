@@ -53,6 +53,19 @@ public final class BodyContentStack {
 	}
 
 	/**
+	 * replace the base writer, body contents already pushed are re-pointed to the new base writer
+	 * 
+	 * @param newBase the new base writer
+	 */
+	public void replaceBase(CFMLWriter newBase) {
+		CFMLWriter old = this.base;
+		this.base = newBase;
+		for (Entry e = root.after; e != null; e = e.after) {
+			if (e.body != null && e.body.getEnclosingWriter() == old) e.body.setEnclosingWriter(newBase);
+		}
+	}
+
+	/**
 	 * release the BodyContentStack
 	 */
 	public void release() {

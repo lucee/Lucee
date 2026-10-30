@@ -91,7 +91,9 @@ public class HTTPResourceProvider implements ResourceProviderPro {
 
 		path = ResourceUtil.translatePath(ResourceUtil.removeScheme(scheme, path), false, false);
 
-		return new HTTPResource(this, new HTTPConnectionData(path, getSocketTimeout()));
+		HTTPConnectionData data = new HTTPConnectionData(path, getSocketTimeout());
+		data.headers = HTTPApplicationSettings.getHeaders(data);
+		return new HTTPResource(this, data);
 	}
 
 	@Override

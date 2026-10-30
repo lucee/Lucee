@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -1200,7 +1201,9 @@ public final class CFMLTransformer {
 		comment(data.srcCode, true);
 
 		String rawValue = null;
+		boolean hasValue = false;
 		if (isDefaultValue || data.srcCode.forwardIfCurrent('=')) {
+			hasValue = true;
 			comment(data.srcCode, true);
 			// Value
 			int rawStart = data.srcCode.getPos();
@@ -1219,8 +1222,29 @@ public final class CFMLTransformer {
 		}
 		comment(data.srcCode, true);
 
+		// multiple values separated by a pipe, only supported for the attribute type of cfcatch
+		List<Expression> alternatives = null;
+		if (hasValue && "type".equalsIgnoreCase(name) && "catch".equalsIgnoreCase(tag.getName()) && data.srcCode.isCurrent('|')
+				&& !data.srcCode.isCurrent("||")) {
+			alternatives = new ArrayList<Expression>();
+			while (data.srcCode.isCurrent('|') && !data.srcCode.isCurrent("||")) {
+				data.srcCode.next();
+				comment(data.srcCode, true);
+				if (!data.srcCode.isCurrent('"') && !data.srcCode.isCurrent('\'') && !data.srcCode.isCurrent('#')) {
+					throw createTemplateException(data.srcCode,
+							"invalid multi catch, the pipe [|] must be followed by a quoted type, an empty type is not allowed, for example type=\"a\" | \"b\"", tag);
+				}
+				alternatives.add(attributeValue(data, tag, sbType.toString(), parseExpression[0], false, data.factory.createLitString("")));
+				comment(data.srcCode, true);
+			}
+		}
+
 		Attribute attr = new Attribute(dynamic.toBooleanValue(), name, value, sbType.toString());
 		if (rawValue != null) attr.setRawValue(rawValue);
+		if (alternatives != null) {
+			for (Expression alt: alternatives)
+				attr.addAlternative(alt);
+		}
 		return attr;
 	}
 

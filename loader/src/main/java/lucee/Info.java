@@ -40,7 +40,7 @@ public interface Info {
 	/**
 	 * @return Returns the version.
 	 */
-	public org.osgi.framework.Version getVersion();
+	public lucee.runtime.config.maven.Version getVersion();
 
 	/**
 	 * @return returns the state

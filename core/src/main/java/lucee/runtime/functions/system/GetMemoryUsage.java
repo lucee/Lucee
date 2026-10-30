@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.functions.system;
 
+import lucee.runtime.type.query.QueryReturnType;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -32,6 +33,14 @@ public final class GetMemoryUsage implements Function {
 
 	public static Query call(PageContext pc) throws PageException {
 		return call(pc, null);
+	}
+
+	public static Object call(PageContext pc, String type, String returntype) throws PageException {
+		return call(pc, type, returntype, null);
+	}
+
+	public static Object call(PageContext pc, String type, String returntype, String columnKey) throws PageException {
+		return QueryReturnType.convert(call(pc, type), returntype, columnKey, "GetMemoryUsage");
 	}
 
 	public static Query call(PageContext pc, String type) throws PageException {

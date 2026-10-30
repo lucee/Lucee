@@ -165,7 +165,13 @@ Redirtect to entry --->
 							<cfelse>	
 								<td>#qry.driver.getLabel()#</td>
 							</cfif>							
-							<td class="tblContent#css#" nowrap>#qry.state#</td>
+							<td class="tblContent#css#" nowrap>
+								<cfif qry.state EQ "failed" and len( qry.lastError )>
+									<span class="CheckError" title="#encodeForHTMLAttribute( qry.lastError )##Chr(13)#">#qry.state#</span>
+								<cfelse>
+									#qry.state#
+								</cfif>
+							</td>
 							<td>
 								<cfif qry.readonly?:false>
 									#lockedReadOnly()#

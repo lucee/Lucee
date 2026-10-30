@@ -30,6 +30,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Constants;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.Page;
@@ -255,6 +256,19 @@ public class Component extends EvaluatorSupport {
 
 				if (mod == -1) throw new EvaluatorException(
 						"Value [" + ls.getString() + "] from attribute [modifier] of the tag [" + tlt.getFullName() + "] is invalid, valid values are [none, abstract, final]");
+			}
+		}
+
+		// localmode (LDEV-2919)
+		if (isComponent) {
+			attr = tag.getAttribute("localmode");
+			if (attr != null) {
+				Expression expr = tag.getFactory().toExprString(attr.getValue());
+				if (!(expr instanceof LitString)) throw new EvaluatorException(
+						"Attribute [localMode] of the tag [" + tlt.getFullName() + "], must contain a literal value (modern, classic, true or false)");
+				LitString ls = (LitString) expr;
+				if (AppListenerUtil.toLocalMode(ls.getString().trim(), -1) == -1) throw new EvaluatorException("Value [" + ls.getString()
+						+ "] from attribute [localMode] of the tag [" + tlt.getFullName() + "] is invalid, valid values are [modern, classic, true, false]");
 			}
 		}
 

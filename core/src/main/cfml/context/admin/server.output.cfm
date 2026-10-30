@@ -104,10 +104,11 @@ Defaults --->
 						<cfset desc={
 								'regular':stText.setting.cfmlWriterReg,
 								'white-space':stText.setting.cfmlWriterWS,
-								'white-space-pref':stText.setting.cfmlWriterWSPref
+								'white-space-pref':stText.setting.cfmlWriterWSPref,
+								'white-space-light':stText.setting.cfmlWriterWSLight
 									}>
 						
-						<cfloop list="regular,white-space,white-space-pref" index="k">
+						<cfloop list="regular,white-space,white-space-pref,white-space-light" index="k">
 							<input type="radio" class="checkbox" name="cfmlWriter" value="#k#" <cfif setting.cfmlWriter EQ k>checked="checked"</cfif>>
 							<div class="comment">#desc[k]#</div><br> 
 						</cfloop>

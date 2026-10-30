@@ -20,7 +20,7 @@ package lucee.runtime.util;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.op.OpUtil;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 
@@ -220,13 +220,22 @@ public final class NumberIterator {
 
 		Object startValue = query.get(KeyImpl.init(groupName));
 		while (ni.hasNext(true)) {
-			if (!OpUtil.equals(pc, startValue, query.getAt(groupName, ni.next()), caseSensitive)) {
-
+			if (!sameGroup(startValue, query.getAt(groupName, ni.next()), caseSensitive)) {
 				ni.previous();
 				return _load(startIndex, ni.current());
 			}
 		}
 		return _load(startIndex, ni.current());
+	}
+
+	/**
+	 * compares two group values as strings, without any numeric or boolean conversion, so "013" and
+	 * "0013" are different groups
+	 */
+	private static boolean sameGroup(Object left, Object right, boolean caseSensitive) throws PageException {
+		String l = Caster.toString(left);
+		String r = Caster.toString(right);
+		return caseSensitive ? l.equals(r) : l.equalsIgnoreCase(r);
 	}
 
 	/**

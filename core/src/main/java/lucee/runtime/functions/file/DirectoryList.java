@@ -16,13 +16,17 @@
  **/
 package lucee.runtime.functions.file;
 
+import lucee.runtime.type.query.QueryReturnType;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.UDFFilter;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.Query;
 import lucee.runtime.tag.Directory;
 
 public final class DirectoryList {
@@ -49,6 +53,28 @@ public final class DirectoryList {
 
 	public static Object call(PageContext pc, String path, boolean recurse, String strListInfo, Object oFilter, String sort, String type) throws PageException {
 		return _call(pc, path, recurse, toListInfo(strListInfo), oFilter, sort, StringUtil.isEmpty(type) ? Directory.TYPE_ALL : Directory.toType(type));
+	}
+
+	public static Object call(PageContext pc, String path, boolean recurse, String strListInfo, Object oFilter, String sort, String type, String returntype)
+			throws PageException {
+		return call(pc, path, recurse, strListInfo, oFilter, sort, type, returntype, null);
+	}
+
+	public static Object call(PageContext pc, String path, boolean recurse, String strListInfo, Object oFilter, String sort, String type, String returntype, String columnKey)
+			throws PageException {
+		int rt = QueryReturnType.parse(returntype, "directoryList");
+		Key[] ck = QueryReturnType.toColumnKeys(columnKey);
+		int listInfo = toListInfo(strListInfo);
+		// the returntype only applies to a query result, the other list infos return an array of strings
+		if (rt != QueryReturnType.QUERY && listInfo != Directory.LIST_INFO_QUERY_ALL) {
+			throw new FunctionException(pc, "DirectoryList", 8, "returntype", "returntype [" + returntype.trim() + "] can only be used when argument [listInfo] is [query]");
+		}
+		return convert(_call(pc, path, recurse, listInfo, oFilter, sort, StringUtil.isEmpty(type) ? Directory.TYPE_ALL : Directory.toType(type)), rt, ck);
+	}
+
+	private static Object convert(Object res, int returnType, Key[] columnKey) throws PageException {
+		if (res instanceof Query) return QueryReturnType.convert((Query) res, returnType, columnKey);
+		return res;
 	}
 
 	public static Object _call(PageContext pc, String path, boolean recurse, int listInfo, Object oFilter, String sort, int type) throws PageException {

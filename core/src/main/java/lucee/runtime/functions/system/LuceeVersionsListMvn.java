@@ -7,6 +7,7 @@ import java.util.Map;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.maven.MavenUpdateProvider;
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -61,7 +62,7 @@ public final class LuceeVersionsListMvn extends BIF {
 					key = v.cycle();
 					if (t == TYPE_ALL || (t == TYPE_SNAPSHOT && v.is(Version.SNAPSHOT)) || (t == TYPE_RELEASE && v.is(Version.RELEASE))) {
 						existing = map.get(key);
-						if (existing == null || Version.compare(existing, v) < 0) {
+						if (existing == null || VersionImpl.compare(existing, v) < 0) {
 							map.put(key, v);
 						}
 					}

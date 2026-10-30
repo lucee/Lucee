@@ -48,6 +48,14 @@ public final class SortRegisterComparator implements ExceptionComparator {
 	}
 
 	/**
+	 * @param sortType one of the SORT_TYPE constants of ComparatorUtil (LDEV-1784)
+	 */
+	public SortRegisterComparator(PageContext pc, boolean isAsc, int sortType, boolean localeSensitive) {
+		this.ignoreCase = sortType == ComparatorUtil.SORT_TYPE_TEXT_NO_CASE || sortType == ComparatorUtil.SORT_TYPE_NATURAL_NO_CASE;
+		comparator = ComparatorUtil.toComparator(sortType, isAsc, localeSensitive ? ThreadLocalPageContext.getLocale(pc) : null, null);
+	}
+
+	/**
 	 * @return Returns the expressionException.
 	 */
 	@Override

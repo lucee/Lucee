@@ -61,7 +61,8 @@ import org.apache.felix.framework.Felix;
 import org.apache.felix.framework.Logger;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 import org.osgi.framework.launch.Framework;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -101,7 +102,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	// set to false to disable patch loading, for example in major alpha releases
 	private static final boolean PATCH_ENABLED = true;
-	public static final Version VERSION_ZERO = new Version(0, 0, 0, "0");
+	public static final Version VERSION_ZERO = VersionImpl.parseVersion("0.0.0.0", null);
 	private static final String UPDATE_LOCATION = "https://update.lucee.org"; // MUST from server.xml
 	private static final long GB1 = 1024 * 1024 * 1024;
 	private static final long MB100 = 1024 * 1024 * 100;

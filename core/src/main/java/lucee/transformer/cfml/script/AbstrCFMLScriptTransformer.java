@@ -47,6 +47,7 @@ import lucee.runtime.functions.system.CFFunction;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -691,8 +692,26 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			left = expression(data);
 			comments(data);
 		}
+		// LDEV-1424 for (value, index in collection)
+		Expression second = null;
+		if (left != null && data.srcCode.forwardIfCurrent(',')) {
+			comments(data);
+			second = expression(data);
+			comments(data);
+			if (!(left instanceof Variable) || !(second instanceof Variable) || !data.srcCode.isCurrentKeyword("in")) {
+				throw new TemplateException(data.srcCode, "invalid syntax in for statement, the form [for (value, index in collection)] is the only one allowing a second variable");
+			}
+			// for (var value, index in collection) the index is declared as local variable as well
+			Variable l = (Variable) left;
+			Variable r = (Variable) second;
+			if (l.getScope() == Scope.SCOPE_VAR && r.getScope() == Scope.SCOPE_UNDEFINED && !r.ignoredFirstMember() && r.getMembers().size() == 1) {
+				Variable local = data.factory.createVariable(Scope.SCOPE_VAR, line, data.srcCode.getPosition());
+				local.addMember(r.getFirstMember());
+				second = local;
+			}
+		}
 		// middle for
-		if (data.srcCode.forwardIfCurrent(';')) {
+		if (second == null && data.srcCode.forwardIfCurrent(';')) {
 
 			Expression cont = null;
 			Expression update = null;
@@ -739,7 +758,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			if (!(left instanceof Variable)) throw new TemplateException(data.srcCode, "invalid syntax in for statement, left value is invalid");
 
-			return new ForEach((Variable) left, value, body, line, data.srcCode.getPosition(), id);
+			return new ForEach((Variable) left, (Variable) second, value, body, line, data.srcCode.getPosition(), id);
 		}
 		else throw new TemplateException(data.srcCode, "invalid syntax in for statement");
 	}
@@ -820,6 +839,17 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			return null;
 		}
 
+		// default (LDEV-1835), a function inside an interface that has an implementation
+		boolean isDefault = false;
+		if (data.isInterface) {
+			for (int i = 0; i < tokens.length; i++) {
+				if (tokens[i] != null && "default".equalsIgnoreCase(tokens[i]) && !isDefault) {
+					isDefault = true;
+					tokens[i] = null;
+				}
+			}
+		}
+
 		// access modifier
 		int _access, access = -1;
 		for (int i = 0; i < tokens.length; i++) {
@@ -869,6 +899,11 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 					tokens[i] = null;
 				}
 			}
+		}
+
+		if (isDefault) {
+			if (modifier != Component.MODIFIER_NONE || isStatic) throw new TemplateException(data.srcCode, "invalid syntax, a default function can not have an other modifier");
+			modifier = ComponentUtil.MODIFIER_DEFAULT;
 		}
 
 		// return type
@@ -960,6 +995,24 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			comments(data);
 			// finish
 			if (data.srcCode.isCurrent(')')) break;
+
+			// rest parameter, function f( a, ...rest )
+			if (data.srcCode.forwardIfCurrent("...")) {
+				comments(data);
+				String restName = identifier(data, false);
+				if (restName == null) throw new TemplateException(data.srcCode, "Invalid rest parameter, the name of the parameter is missing after [...]");
+				comments(data);
+				if (!data.srcCode.isCurrent(')')) {
+					throw new TemplateException(data.srcCode, "Invalid rest parameter [..." + restName + "], the rest parameter must be the last parameter");
+				}
+				Map<String, Attribute> restMeta = new HashMap<String, Attribute>();
+				restMeta.put("rest", new Attribute(true, "rest", data.factory.EMPTY(), "boolean"));
+				Argument restArg = new Argument(data.factory.createLitString(restName), data.factory.createLitString("array"), data.factory.createLitBoolean(false), null,
+						data.factory.TRUE(), data.factory.EMPTY(), data.factory.EMPTY(), restMeta);
+				restArg.setTypeExplicit(false);
+				result.add(restArg);
+				break;
+			}
 
 			// attribute
 
@@ -1133,7 +1186,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		comments(data);
 
 		// LDEV-1818: in an interface, a function signature can end with a line feed instead of a semicolon
-		boolean endsWithLineFeed = !closure && data.isInterface && data.srcCode.hasNLBefore() && !data.srcCode.isCurrent('{')
+		boolean endsWithLineFeed = !closure && data.isInterface && !data.insideFunction && data.srcCode.hasNLBefore() && !data.srcCode.isCurrent('{')
 				&& !data.srcCode.isCurrent(';') && !isAttributeNext(data);
 
 		// attributes
@@ -1153,7 +1206,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// body
 		boolean oldInsideFunction = data.insideFunction;
+		java.util.Set<String> oldFinalNames = data.finalNames;
 		data.insideFunction = true;
+		data.finalNames = null;
 		try {
 			// ex block
 			Body prior = data.setParent(body);
@@ -1257,6 +1312,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						verifyClient, localMode);
 			}
 			else {
+				// LDEV-1835: inside an interface a function with a body is a default function
+				if (!closure && data.isInterface && !oldInsideFunction) {
+					boolean hasBody = !endsWithLineFeed && data.srcCode.isCurrent('{');
+					if (hasBody && func.getModifier() == Component.MODIFIER_NONE) func.setModifier(ComponentUtil.MODIFIER_DEFAULT);
+					else if (!hasBody && func.getModifier() == ComponentUtil.MODIFIER_DEFAULT)
+						throw new TemplateException(data.srcCode, "the default function [" + id + "] needs a body");
+					else if (hasBody && func.getModifier() != ComponentUtil.MODIFIER_DEFAULT)
+						throw new TemplateException(data.srcCode, "the function [" + id + "] is not allowed to have a body inside an interface, use the modifier default");
+				}
 				func.register(data.page);
 				if (!endsWithLineFeed) statement(data, body, CTX_FUNCTION);
 			}
@@ -1264,6 +1328,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		}
 		finally {
 			data.insideFunction = oldInsideFunction;
+			data.finalNames = oldFinalNames;
 		}
 		func.setEnd(data.srcCode.getPosition());
 
@@ -1441,7 +1506,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// body
 		boolean oldInsideFunction = data.insideFunction;
+		java.util.Set<String> oldFinalNames = data.finalNames;
 		data.insideFunction = true;
+		data.finalNames = null;
 
 		try {
 			if (data.srcCode.isCurrent('{')) {
@@ -1479,6 +1546,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		}
 		finally {
 			data.insideFunction = oldInsideFunction;
+			data.finalNames = oldFinalNames;
 		}
 
 		func.setEnd(data.srcCode.getPosition());
@@ -2484,6 +2552,31 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	 * @return Ausdruck
 	 * @throws TemplateException
 	 */
+	private static final java.util.Set<String> NOT_A_DECLARATION = new java.util.HashSet<String>(java.util.Arrays.asList("eq", "neq", "gt", "gte", "lt", "lte", "ge", "le", "is",
+			"isnot", "and", "or", "xor", "eqv", "imp", "mod", "contains", "does", "instanceof", "castas", "not"));
+
+	/**
+	 * LDEV-2551: is the current position the start of a final variable declaration (final x = 1)? final is still usable as a variable name
+	 * (final = 1), so it is only a modifier if it is followed by a name
+	 */
+	private boolean isFinalDeclaration(Data data) {
+		int pos = data.srcCode.getPos();
+		try {
+			if (!data.srcCode.forwardIfCurrent("final ")) return false;
+			data.srcCode.removeSpace();
+			char c = data.srcCode.getCurrent();
+			if (!Character.isLetter(c) && c != '_' && c != '$') return false;
+			int start = data.srcCode.getPos();
+			while (data.srcCode.isValidIndex() && (Character.isLetterOrDigit(data.srcCode.getCurrent()) || data.srcCode.getCurrent() == '_' || data.srcCode.getCurrent() == '$'))
+				data.srcCode.next();
+			String word = data.srcCode.substring(start, data.srcCode.getPos() - start).toLowerCase();
+			return !NOT_A_DECLARATION.contains(word);
+		}
+		finally {
+			data.srcCode.setPos(pos);
+		}
+	}
+
 	private Statement expressionStatement(Data data, Body parent) throws TemplateException {
 
 		// first we check if we have an access modifier
@@ -2518,6 +2611,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				comments(data);
 			}
 		}
+		// LDEV-2551: final variable in a function or a template, final x = 1;
+		boolean finalVar = false;
+		if (data.context != CTX_CFC && data.context != CTX_STATIC && isFinalDeclaration(data)) {
+			data.srcCode.forwardIfCurrent("final ");
+			comments(data);
+			finalVar = true;
+		}
 		Body prior = data.setParent(parent);
 		Expression expr = expression(data);
 		data.setParent(prior);
@@ -2530,6 +2630,16 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 				expr = new Assign(v, data.factory.createEmpty(), data.srcCode.getPosition());
 			}
+		}
+
+		if (finalVar) {
+			String key = expr instanceof Assign ? finalKey(data, ((Assign) expr).getVariable()) : null;
+			if (key == null) {
+				data.srcCode.setPos(pos);
+				throw new TemplateException(data.srcCode, "Invalid use of final, a final variable must be declared with a simple name, for example [final x = 1;]");
+			}
+			if (data.finalNames == null) data.finalNames = new java.util.HashSet<String>();
+			data.finalNames.add(key);
 		}
 
 		// if a specific access was defined
@@ -2593,6 +2703,27 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	}
 
 	/**
+	 * reads a single type of a catch statement, a (dotted) identifier or a string
+	 * 
+	 * @return the type or null if there is none
+	 */
+	private final Expression catchType(Data data) throws TemplateException {
+		StringBuilder sbType = new StringBuilder();
+		String id;
+		while (true) {
+			id = identifier(data, false);
+			if (id == null) break;
+			sbType.append(id);
+			data.srcCode.removeSpace();
+			if (!data.srcCode.forwardIfCurrent('.')) break;
+			sbType.append('.');
+			data.srcCode.removeSpace();
+		}
+		if (sbType.length() == 0) return string(data);
+		return data.factory.createLitString(sbType.toString());
+	}
+
+	/**
 	 * Liest eine try Block ein <br />
 	 * EBNF:<br />
 	 * <code>;</code>
@@ -2621,45 +2752,51 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			// type
 			int pos = data.srcCode.getPos();
 			Position line = data.srcCode.getPosition();
-			Expression name = null, type = null;
+			Expression name = null;
+			List<Expression> types = new ArrayList<Expression>();
 
-			StringBuilder sbType = new StringBuilder();
-			String id;
-			while (true) {
-				id = identifier(data, false);
-				if (id == null) break;
-				sbType.append(id);
-				data.srcCode.removeSpace();
-				if (!data.srcCode.forwardIfCurrent('.')) break;
-				sbType.append('.');
-				data.srcCode.removeSpace();
-			}
-
-			if (sbType.length() == 0) {
-				type = string(data);
-				if (type == null) throw new TemplateException(data.srcCode, "a catch statement must begin with the throwing type (query, application ...).");
-			}
-			else {
-				type = data.factory.createLitString(sbType.toString());
-			}
+			Expression type = catchType(data);
+			if (type == null) throw new TemplateException(data.srcCode, "a catch statement must begin with the throwing type (query, application ...).");
+			types.add(type);
 
 			// name = expression();
 			comments(data);
+
+			// multi catch, catch( TypeA | TypeB e )
+			while (data.srcCode.isCurrent('|') && !data.srcCode.isCurrent("||")) {
+				data.srcCode.next();
+				comments(data);
+				type = catchType(data);
+				if (type == null) throw new TemplateException(data.srcCode, "invalid multi catch statement, missing the type after the pipe [|].");
+				types.add(type);
+				comments(data);
+			}
+			boolean multi = types.size() > 1;
+			if (multi) {
+				for (Expression t: types) {
+					if (t instanceof LitString && "any".equalsIgnoreCase(((LitString) t).getString())) {
+						throw new TemplateException(data.srcCode, "invalid multi catch statement, the type [any] cannot be combined with other types, it already catches all exceptions.");
+					}
+				}
+			}
 
 			// name
 			if (!data.srcCode.isCurrent(')')) {
 				name = expression(data);
 			}
+			else if (multi) {
+				throw new TemplateException(data.srcCode, "invalid multi catch statement, a variable name is required, for example catch( TypeA | TypeB e ).");
+			}
 			else {
 				data.srcCode.setPos(pos);
 				name = expression(data);
-				type = data.factory.createLitString("any");
+				types.set(0, data.factory.createLitString("any"));
 			}
 			comments(data);
 
 			Body b = new BodyBase(data.factory);
 			try {
-				tryCatchFinally.addCatch(null, type, name, b, line);
+				tryCatchFinally.addCatch(null, types, name, b, line);
 			}
 			catch (TransformerException e) {
 				throw new TemplateException(data.srcCode, e.getMessage());

@@ -32,4 +32,15 @@ public interface LitString extends Literal, ExprString {
 
 	public boolean fromBracket();
 
+	/**
+	 * LDEV-1329: true if the string was created from a positive integer literal inside brackets, like the 1 in a[1], as opposed to
+	 * a["1"]
+	 */
+	public default void fromBracketIndex(boolean fromBracketIndex) {
+	}
+
+	public default boolean fromBracketIndex() {
+		return false;
+	}
+
 }

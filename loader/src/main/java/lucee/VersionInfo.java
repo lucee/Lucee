@@ -33,13 +33,13 @@ import lucee.loader.engine.CFMLEngineFactorySupport;
  */
 public class VersionInfo {
 
-	private static org.osgi.framework.Version version = null;
+	private static lucee.runtime.config.maven.Version version = null;
 	private static long created = -1;
 
 	/**
 	 * @return returns the current version
 	 */
-	public static org.osgi.framework.Version getIntVersion() {
+	public static lucee.runtime.config.maven.Version getIntVersion() {
 		init();
 		return version;
 	}

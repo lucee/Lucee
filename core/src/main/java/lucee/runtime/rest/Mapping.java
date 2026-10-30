@@ -144,7 +144,7 @@ public final class Mapping {
 				ps = pc.toPageSource(children[i], null);
 				cfc = ComponentLoader.loadComponent(pc, ps, children[i].getName(), true, true);
 				meta = cfc.getMetaData(pc);
-				if (Caster.toBooleanValue(meta.get(KeyConstants._rest, null), false)) {
+				if (RestUtil.isRestEnabled(meta)) {
 					path = Caster.toString(meta.get(KeyConstants._restPath, null), null);
 					sources.add(new Source(mapping, cfc.getPageSource(), path));
 				}

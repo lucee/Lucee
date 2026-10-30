@@ -21,6 +21,7 @@ package lucee.runtime.tag;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import lucee.runtime.type.query.QueryReturnType;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -132,9 +133,32 @@ public final class Index extends TagImpl {
 
 	private boolean throwontimeout = false;
 
+	private int returnType = QueryReturnType.QUERY;
+	private lucee.runtime.type.Collection.Key[] columnKey;
+
+	/**
+	 * set the value returntype, how a query result is returned: query (default), array (array of structs) or struct (struct of structs, see columnKey)
+	 */
+	public void setReturntype(String returntype) throws lucee.runtime.exp.ApplicationException {
+		this.returnType = QueryReturnType.parse(returntype, "index");
+	}
+
+	/**
+	 * set the value columnKey, the column the value of is used as key when returntype is struct
+	 */
+	public void setColumnkey(String columnKey) {
+		this.columnKey = QueryReturnType.toColumnKeys(columnKey);
+	}
+
+	private void setQueryResult(String variable, lucee.runtime.type.Query qry) throws PageException {
+		pageContext.setVariable(variable, QueryReturnType.convert(qry, returnType, columnKey));
+	}
+
 	@Override
 	public void release() {
 		super.release();
+		returnType = QueryReturnType.QUERY;
+		columnKey = null;
 		action = null;
 		urlpath = null;
 		type = -1;
@@ -431,7 +455,7 @@ public final class Index extends TagImpl {
 
 	private void doList() throws ApplicationException, PageException {
 		required("index", action, "name", name);
-		pageContext.setVariable(name, collection.getIndexesAsQuery());
+		setQueryResult(name, collection.getIndexesAsQuery());
 	}
 
 	/**

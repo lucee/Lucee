@@ -933,7 +933,7 @@ public final class RHExtension implements Serializable {
 
 	public void validate(Info info) throws ApplicationException {
 		VersionRange minCoreVersion = getMetadata().getMinCoreVersion();
-		if (minCoreVersion != null && !minCoreVersion.isWithin(info.getVersion())) {
+		if (minCoreVersion != null && !minCoreVersion.isWithin(OSGiUtil.toOSGi(info.getVersion()))) {
 			throw new InvalidVersion("The Extension [" + getMetadata().getName() + "] cannot be loaded, " + Constants.NAME + " Version must be at least ["
 					+ minCoreVersion.toString() + "], version is [" + info.getVersion().toString() + "].");
 		}
@@ -945,7 +945,7 @@ public final class RHExtension implements Serializable {
 
 	public boolean isValidFor(Info info) {
 		VersionRange minCoreVersion = getMetadata().getMinCoreVersion();
-		if (minCoreVersion != null && !minCoreVersion.isWithin(info.getVersion())) {
+		if (minCoreVersion != null && !minCoreVersion.isWithin(OSGiUtil.toOSGi(info.getVersion()))) {
 			return false;
 		}
 		if (getMetadata().getMinLoaderVersion() > SystemUtil.getLoaderVersion()) {
@@ -1098,8 +1098,8 @@ public final class RHExtension implements Serializable {
 						@Override
 						public int compare(Pair<RHExtension, Resource> l, Pair<RHExtension, Resource> r) {
 							try {
-								return lucee.runtime.config.maven.Version.compare(lucee.runtime.config.maven.Version.parseVersion(r.getName().getVersion()),
-										lucee.runtime.config.maven.Version.parseVersion(l.getName().getVersion()));
+								return lucee.loader.util.VersionImpl.compare(lucee.loader.util.VersionImpl.parseVersion(r.getName().getVersion()),
+										lucee.loader.util.VersionImpl.parseVersion(l.getName().getVersion()));
 							}
 							catch (IOException e) {
 								return 0;
