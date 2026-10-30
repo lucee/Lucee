@@ -46,6 +46,7 @@ import lucee.transformer.bytecode.expression.var.Call;
 import lucee.transformer.bytecode.expression.var.DynAssign;
 import lucee.transformer.bytecode.expression.var.FunctionMember;
 import lucee.transformer.bytecode.expression.var.NamedArgumentImpl;
+import lucee.transformer.bytecode.expression.var.SpreadUtil;
 import lucee.transformer.expression.var.NamedArgument;
 import lucee.transformer.bytecode.expression.var.UDF;
 import lucee.transformer.bytecode.literal.Identifier;
@@ -293,6 +294,72 @@ public abstract class AbstrCFMLExprTransformer {
 		return assignOp(data);
 	}
 
+	private Expression spread(Data data, Expression value, Position start) throws TemplateException {
+		FunctionLibFunction flf = data.flibs == null ? null : data.flibs.getFunction(SpreadUtil.FUNCTION_NAME);
+		if (flf == null) throw new TemplateException(data.srcCode, "The spread operator [...] is not supported in this context");
+		BIF bif = new BIF(data.factory, data.settings, flf, data);
+		bif.setArgType(flf.getArgType());
+		try {
+			bif.setClassDefinition(flf.getFunctionClassDefinition());
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw new PageRuntimeException(t);
+		}
+		bif.setReturnType(flf.getReturnTypeAsString());
+		bif.addArgument(new ArgumentImpl(value, "any"));
+		data.ep.add(flf, bif, data.srcCode);
+		Variable var = data.factory.createVariable(start, data.srcCode.getPosition());
+		var.addMember(bif);
+		return var;
+	}
+
+	/**
+	 * a function call using the spread operator, f(a, ...b, c), is rewritten to
+	 * f(argumentCollection=[a, ...b, c]), the spread operator inside an array literal is handled by the
+	 * literal array evaluator.
+	 */
+	private void rewriteSpreadCall(Data data, FunctionMember fm, ExprString name) throws TemplateException {
+		Argument[] args = fm.getArguments();
+		if (!SpreadUtil.hasSpread(args)) return;
+		for (Argument arg: args) {
+			if (arg instanceof NamedArgument) {
+				throw new TemplateException(data.srcCode, "The spread operator [...] can not be combined with named arguments in the function call [" + ASMUtil.display(name)
+						+ "], use argumentCollection to pass a struct as named arguments");
+			}
+		}
+		FunctionLibFunction flf = data.flibs.getFunction("_literalArray");
+		BIF array = new BIF(data.factory, data.settings, flf, data);
+		array.setArgType(flf.getArgType());
+		try {
+			array.setClassDefinition(flf.getFunctionClassDefinition());
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw new PageRuntimeException(t);
+		}
+		array.setReturnType(flf.getReturnTypeAsString());
+		for (Argument arg: args)
+			array.addArgument(arg);
+		FunctionLibFunction tmp = flf.getEvaluator().pre(array, flf);
+		if (tmp != null && tmp != flf) {
+			array.setFlf(flf = tmp);
+			array.setArgType(flf.getArgType());
+			try {
+				array.setClassDefinition(flf.getFunctionClassDefinition());
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				throw new PageRuntimeException(t);
+			}
+			array.setReturnType(flf.getReturnTypeAsString());
+		}
+		data.ep.add(flf, array, data.srcCode);
+		Variable var = data.factory.createVariable(data.srcCode.getPosition(), data.srcCode.getPosition());
+		var.addMember(array);
+		fm.setArguments(new Argument[] { new NamedArgumentImpl(data.factory.createLitString("argumentCollection"), var, "any", false) });
+	}
+
 	/**
 	 * Liest einen gelableten Funktionsparamter ein <br />
 	 * EBNF:<br />
@@ -306,6 +373,15 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	private Argument functionArgument(Data data, String type, boolean varKeyUpperCase) throws TemplateException {
+		// spread operator
+		if (data.srcCode.isCurrent("...")) {
+			Position start = data.srcCode.getPosition();
+			data.srcCode.forwardIfCurrent("...");
+			comments(data);
+			Expression value = assignOp(data);
+			if (value == null) throw new TemplateException(data.srcCode, "Syntax Error, the spread operator [...] must be followed by an expression");
+			return new ArgumentImpl(spread(data, value, start), null);
+		}
 		Expression expr = assignOp(data);
 		try {
 			if (data.srcCode.forwardIfCurrent(":")) {
@@ -2085,6 +2161,13 @@ public abstract class AbstrCFMLExprTransformer {
 			}
 
 			int count = getFunctionMemberAttrs(data, name, checkLibrary, fm, flf);
+
+			// spread operator
+			if (SpreadUtil.hasSpread(fm.getArguments())) {
+				if (checkLibrary) throw new TemplateException(data.srcCode,
+						"The spread operator [...] is not supported for the built-in function [" + ASMUtil.display(name) + "], use argumentCollection instead");
+				rewriteSpreadCall(data, fm, name);
+			}
 
 			// Snapshot original arguments before evaluators may modify them
 			fm.snapshotSourceArguments();

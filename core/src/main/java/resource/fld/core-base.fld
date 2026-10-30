@@ -76,6 +76,33 @@
 			<type>array</type>
 		</return>
 	</function>
+	<!-- _spread -->
+	<function>
+		<name>_spread</name>
+		<class>lucee.runtime.functions.other.Spread</class>
+		<status>hidden</status>
+		<description>internal function used for the spread operator (...) in array literals, struct literals and function calls</description>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>value to spread</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+	<!-- _literalSpreadArray -->
+	<function>
+		<name>_literalSpreadArray</name>
+		<class>lucee.runtime.functions.arrays.LiteralSpreadArray</class>
+		<status>hidden</status>
+		<description>internal function used for literal array definition containing the spread operator</description>
+		<argument-type>dynamic</argument-type>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
 	<!-- _arraySlice -->
 	<function>
 		<name>_arraySlice</name>
@@ -115,6 +142,28 @@
 		</argument>
 		<return>
 			<type>array</type>
+		</return>
+	</function>
+	<!-- _literalSpreadStruct -->
+	<function>
+		<name>_literalSpreadStruct</name>
+		<class>lucee.runtime.functions.struct.LiteralSpreadStruct</class>
+		<status>hidden</status>
+		<description>internal function used for literal struct definition containing the spread operator</description>
+		<argument-type>dynamic</argument-type>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	<!-- _literalSpreadOrderedStruct -->
+	<function>
+		<name>_literalSpreadOrderedStruct</name>
+		<class>lucee.runtime.functions.struct.LiteralSpreadOrderedStruct</class>
+		<status>hidden</status>
+		<description>internal function used for literal ordered struct definition containing the spread operator</description>
+		<argument-type>dynamic</argument-type>
+		<return>
+			<type>struct</type>
 		</return>
 	</function>
 	<!-- _jsonArray -->
