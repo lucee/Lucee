@@ -69,6 +69,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 			it( title="plain number literals round half up, like HSQLDB", body=function( currentSpec ) {
 				expect( nativeLiteral( "round( 2.5 )" ) ).toBe( 3 );
+				expect( nativeLiteral( "round( 0.5 )" ) ).toBe( 1 );
 				expect( nativeLiteral( "round( -2.5 )" ) ).toBe( -3 );
 				expect( nativeLiteral( "round( 1.25, 1 )" ) ).toBe( 1.3 );
 				expect( nativeLiteral( "round( -1.25, 1 )" ) ).toBe( -1.3 );
@@ -140,7 +141,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 						}
 					}
 				}
-				var literals = [ "round( 2.5 )", "round( -2.5 )", "round( 0.5 )", "round( 1.25, 1 )", "round( -1.25, 1 )", "round( 2.675, 2 )", "round( 1.005, 2 )", "round( 15, -1 )", "round( 25, -1 )", "round( -15, -1 )", "round( 1234.5678, -2 )", "round( 2.5e0 )", "round( 3.5e0 )", "round( 1.25e0, 1 )", "round( NULL )", "round( NULL, 1 )", "round( 1.5, NULL )" ];
+				// round( 0.5 ) is not compared: some HSQLDB versions (used when an HSQLDB driver is registered) fail with "numeric value out of range" as the result needs more digits than the literal, see the native only test above
+				var literals = [ "round( 2.5 )", "round( -2.5 )", "round( 0.5, 1 )", "round( 1.25, 1 )", "round( -1.25, 1 )", "round( 2.675, 2 )", "round( 1.005, 2 )", "round( 15, -1 )", "round( 25, -1 )", "round( -15, -1 )", "round( 1234.5678, -2 )", "round( 2.5e0 )", "round( 3.5e0 )", "round( 1.25e0, 1 )", "round( NULL )", "round( NULL, 1 )", "round( 1.5, NULL )" ];
 				var qry = queryNew( "v", "double", [ [ 1 ] ] );
 				for ( var lit in literals ) {
 					var nat = queryExecute( sql="SELECT #lit# AS r FROM qry", options={ dbtype: { type: "query", engine: "native" } } );
