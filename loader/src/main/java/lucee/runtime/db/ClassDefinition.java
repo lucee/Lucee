@@ -17,14 +17,13 @@
  */
 package lucee.runtime.db;
 
-import org.osgi.framework.BundleException;
 import lucee.runtime.config.maven.Version;
 
 import lucee.commons.lang.ClassException;
 
 public interface ClassDefinition<T> {
 
-	public Class<T> getClazz() throws ClassException, BundleException;
+	public Class<T> getClazz() throws ClassException;
 
 	public Class<T> getClazz(Class<T> defaultValue);
 

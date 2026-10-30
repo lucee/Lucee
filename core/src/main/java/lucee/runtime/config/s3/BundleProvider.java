@@ -195,7 +195,7 @@ public final class BundleProvider extends DefaultHandler {
 	public static Map<String, List<Info>> getMappings() {
 		Bundle bundle = null;
 		try {
-			bundle = CFMLEngineFactory.getInstance().getBundleContext().getBundle();
+			bundle = OSGiUtil.getBundleContext().getBundle();
 		}
 		catch (Exception e) {
 

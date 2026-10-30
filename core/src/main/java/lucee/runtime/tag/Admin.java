@@ -3478,7 +3478,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		CFMLEngine engine = ConfigUtil.getEngine(config);
-		BundleCollection coreBundles = engine.getBundleCollection();
+		BundleCollection coreBundles = OSGiUtil.getBundleCollection();
 		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
 
 		Struct sct = new StructImpl();
@@ -3554,10 +3554,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetBundles() throws PageException {
 		CFMLEngine engine = ConfigUtil.getEngine(config);
-		BundleCollection coreBundles = engine.getBundleCollection();
+		BundleCollection coreBundles = OSGiUtil.getBundleCollection();
 		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
 
-		List<BundleDefinition> bds = OSGiUtil.getBundleDefinitions(engine.getBundleContext());
+		List<BundleDefinition> bds = OSGiUtil.getBundleDefinitions(OSGiUtil.getBundleContext());
 		Iterator<BundleDefinition> it = bds.iterator();
 		BundleDefinition bd;
 		Bundle b;

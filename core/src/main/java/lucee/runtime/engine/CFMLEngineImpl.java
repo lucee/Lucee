@@ -1697,12 +1697,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	 * public Bundle getCoreBundle() { return bundle; }
 	 */
 
-	@Override
 	public BundleCollection getBundleCollection() {
 		return bundleCollection;
 	}
 
-	@Override
 	public BundleContext getBundleContext() {
 		return bundleCollection.getBundleContext();
 	}

@@ -23,8 +23,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
@@ -61,9 +59,14 @@ public final class ClassUtilImpl implements ClassUtil {
 	}
 
 	@Override
-	public Class<?> loadClass(PageContext pc, String className, String bundleName, String bundleVersion) throws ClassException, BundleException {
+	public Class<?> loadClass(PageContext pc, String className, String bundleName, String bundleVersion) throws IOException {
 		Config config = ThreadLocalPageContext.getConfigServer(pc);
-		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, config.getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
+		try {
+			return lucee.commons.lang.ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, config.getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
+		}
+		catch (BundleException be) {
+			throw new IOException(be.getMessage(), be);
+		}
 	}
 
 	@Override
@@ -89,11 +92,17 @@ public final class ClassUtilImpl implements ClassUtil {
 	}
 
 	@Override
-	public BIF loadBIF(PageContext pc, String name, String bundleName, lucee.runtime.config.maven.Version bundleVersion) throws InstantiationException, IllegalAccessException, BundleException,
+	public BIF loadBIF(PageContext pc, String name, String bundleName, lucee.runtime.config.maven.Version bundleVersion) throws InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, PageException, IOException {
 		// first of all we chek if itis a class
-		Class<?> res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, OSGiUtil.toOSGi(bundleVersion), pc.getConfig().getIdentification(),
-				JavaSettingsImpl.getBundleDirectories(pc));
+		Class<?> res;
+		try {
+			res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, OSGiUtil.toOSGi(bundleVersion), pc.getConfig().getIdentification(),
+					JavaSettingsImpl.getBundleDirectories(pc));
+		}
+		catch (BundleException be) {
+			throw new IOException(be.getMessage(), be);
+		}
 		if (res != null) {
 			if (Reflector.isInstaneOf(res, BIF.class, false)) {
 				try {
@@ -254,13 +263,23 @@ public final class ClassUtilImpl implements ClassUtil {
 	}
 
 	@Override
-	public Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id) throws IOException, BundleException {
-		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, strVersion, id, JavaSettingsImpl.getBundleDirectories(null));
+	public Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id) throws IOException {
+		try {
+			return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, strVersion, id, JavaSettingsImpl.getBundleDirectories(null));
+		}
+		catch (BundleException be) {
+			throw new IOException(be.getMessage(), be);
+		}
 	}
 
 	@Override
-	public Class<?> loadClassByBundle(String className, String name, lucee.runtime.config.maven.Version version, Identification id) throws BundleException, IOException {
-		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, OSGiUtil.toOSGi(version), id, JavaSettingsImpl.getBundleDirectories(null));
+	public Class<?> loadClassByBundle(String className, String name, lucee.runtime.config.maven.Version version, Identification id) throws IOException {
+		try {
+			return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, OSGiUtil.toOSGi(version), id, JavaSettingsImpl.getBundleDirectories(null));
+		}
+		catch (BundleException be) {
+			throw new IOException(be.getMessage(), be);
+		}
 	}
 
 	@Override
@@ -422,13 +441,4 @@ public final class ClassUtilImpl implements ClassUtil {
 		return lucee.commons.lang.ClassUtil.extractName(className);
 	}
 
-	@Override
-	public void start(Bundle bundle) throws BundleException {
-		OSGiUtil.start(bundle);
-	}
-
-	@Override
-	public Bundle addBundle(BundleContext context, InputStream is, boolean closeStream, boolean checkExistence) throws BundleException, IOException {
-		return OSGiUtil.installBundle(context, is, closeStream, checkExistence);
-	}
 }

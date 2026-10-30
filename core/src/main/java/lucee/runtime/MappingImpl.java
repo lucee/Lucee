@@ -202,7 +202,7 @@ public final class MappingImpl implements Mapping {
 
 					if (tmp == null || archMod == tmp.lastModified()) return;
 					CFMLEngine engine = ConfigUtil.getEngine(config);
-					BundleContext bc = engine.getBundleContext();
+					BundleContext bc = OSGiUtil.getBundleContext();
 					try {
 						archiveBundle = OSGiUtil.installBundle(bc, tmp, true);
 					}

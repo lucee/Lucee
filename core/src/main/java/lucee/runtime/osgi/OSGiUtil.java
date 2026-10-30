@@ -198,6 +198,16 @@ public final class OSGiUtil {
 	 * @throws IOException
 	 * @throws BundleException
 	 */
+	public static BundleCollection getBundleCollection() {
+		CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigUtil.getCFMLEngine(), null);
+		if (engine == null) throw new IllegalStateException("the engine of this Lucee is not available");
+		return engine.getBundleCollection();
+	}
+
+	public static BundleContext getBundleContext() {
+		return getBundleCollection().getBundleContext();
+	}
+
 	public static Bundle installBundle(BundleContext context, Resource bundle, boolean checkExistence) throws IOException, BundleException {
 		if (checkExistence) {
 			BundleFile bf = BundleFile.getInstance(bundle);
@@ -415,7 +425,7 @@ public final class OSGiUtil {
 		String classPath = className.replace('.', '/') + ".class";
 
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
-		BundleCollection bc = engine.getBundleCollection();
+		BundleCollection bc = OSGiUtil.getBundleCollection();
 		// first we try to load the class from the Lucee core
 		try {
 			// Lucee is one jar, the system bundle is the core and the classes are loaded by the classloader of Lucee
@@ -517,13 +527,13 @@ public final class OSGiUtil {
 	}
 
 	public static Bundle loadBundle(BundleFile bf) throws IOException, BundleException {
-		return loadBundle(CFMLEngineFactory.getInstance().getBundleContext(), bf);
+		return loadBundle(OSGiUtil.getBundleContext(), bf);
 	}
 
 	private static Bundle loadBundle(BundleContext bc, BundleFile bf) throws IOException, BundleException {
 
 		// check in loaded bundles
-		if (bc == null) bc = CFMLEngineFactory.getInstance().getBundleContext();
+		if (bc == null) bc = OSGiUtil.getBundleContext();
 		Bundle[] bundles = bc.getBundles();
 		for (Bundle b: bundles) {
 			if (bf.getSymbolicName().equals(b.getSymbolicName())) {
@@ -534,7 +544,7 @@ public final class OSGiUtil {
 	}
 
 	private static Bundle loadBundle(BundleContext bc, BundleFile bf, List<VersionDefinition> versionsDefinitions) throws IOException, BundleException {
-		if (bc == null) bc = CFMLEngineFactory.getInstance().getBundleContext();
+		if (bc == null) bc = OSGiUtil.getBundleContext();
 
 		// check in loaded bundles
 		Bundle[] bundles = bc.getBundles();
@@ -742,7 +752,7 @@ public final class OSGiUtil {
 	private static Bundle loadBundle(BundleContext bc, final BundleRange bundleRange, Identification id, List<Resource> addional, boolean startIfNecessary,
 			boolean versionOnlyMattersForDownload, boolean downloadIfNecessary, Boolean printExceptions, Set<String> parents) throws BundleException {
 		try {
-			return _loadBundle(bc == null ? CFMLEngineFactory.getInstance().getBundleContext() : bc, bundleRange, id, addional, startIfNecessary, parents,
+			return _loadBundle(bc == null ? OSGiUtil.getBundleContext() : bc, bundleRange, id, addional, startIfNecessary, parents,
 					versionOnlyMattersForDownload, downloadIfNecessary, printExceptions);
 		}
 		catch (StartFailedException sfe) {
@@ -760,7 +770,7 @@ public final class OSGiUtil {
 		List<Bundle> list = new ArrayList<>();
 		try {
 			for (BundleRange br: bundleRanges) {
-				list.add(_loadBundle(bc == null ? CFMLEngineFactory.getInstance().getBundleContext() : bc, br, id, addional, startIfNecessary, parents,
+				list.add(_loadBundle(bc == null ? OSGiUtil.getBundleContext() : bc, br, id, addional, startIfNecessary, parents,
 						versionOnlyMattersForDownload, downloadIfNecessary, printExceptions));
 			}
 
@@ -773,7 +783,7 @@ public final class OSGiUtil {
 
 	public static Bundle loadBundle(String name, Version version, Identification id, List<Resource> addional, boolean startIfNecessary) throws BundleException {
 		try {
-			return _loadBundle(CFMLEngineFactory.getInstance().getBundleContext(),
+			return _loadBundle(OSGiUtil.getBundleContext(),
 					new BundleRange(name.trim()).setVersionRange(new BundleRange.VersionRange().add(version, VersionDefinition.EQ)), id, addional, startIfNecessary, null, false,
 					true, null);
 		}
@@ -785,7 +795,7 @@ public final class OSGiUtil {
 	public static Bundle loadBundle(BundleContext bc, String name, Version version, Identification id, List<Resource> addional, boolean startIfNecessary,
 			boolean versionOnlyMattersForDownload, boolean downloadIfNecessary, Boolean printExceptions) throws BundleException {
 		try {
-			return _loadBundle(bc == null ? CFMLEngineFactory.getInstance().getBundleContext() : bc,
+			return _loadBundle(bc == null ? OSGiUtil.getBundleContext() : bc,
 					new BundleRange(name.trim()).setVersionRange(new BundleRange.VersionRange().add(version, VersionDefinition.EQ)), id, addional, startIfNecessary, null,
 					versionOnlyMattersForDownload, downloadIfNecessary, printExceptions);
 		}
@@ -801,7 +811,7 @@ public final class OSGiUtil {
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
 
 		// check in loaded bundles
-		if (bc == null) bc = engine.getBundleContext();
+		if (bc == null) bc = OSGiUtil.getBundleContext();
 		Bundle[] bundles = bc.getBundles();
 
 		// Check for circular dependency - if this bundle is already being loaded in the call chain, find
@@ -1356,7 +1366,7 @@ public final class OSGiUtil {
 	 */
 	private static boolean isInstalledAt(File... files) {
 		try {
-			BundleContext bc = CFMLEngineFactory.getInstance().getBundleContext();
+			BundleContext bc = OSGiUtil.getBundleContext();
 			if (bc == null) return false;
 			Bundle[] bundles = bc.getBundles();
 			if (bundles == null) return false;
@@ -1457,7 +1467,7 @@ public final class OSGiUtil {
 	 */
 	public static List<BundleDefinition> getBundleDefinitions() {
 		CFMLEngine engine = ConfigUtil.getCFMLEngine();
-		return getBundleDefinitions(engine.getBundleContext());
+		return getBundleDefinitions(OSGiUtil.getBundleContext());
 	}
 
 	public static List<BundleDefinition> getBundleDefinitions(BundleContext bc) {
@@ -1497,7 +1507,7 @@ public final class OSGiUtil {
 
 	public static Bundle getBundleLoaded(String name, Version version, Bundle defaultValue) {
 		CFMLEngine engine = ConfigUtil.getCFMLEngine();
-		return getBundleLoaded(engine.getBundleContext(), name, version, defaultValue);
+		return getBundleLoaded(OSGiUtil.getBundleContext(), name, version, defaultValue);
 	}
 
 	public static Bundle getBundleLoaded(BundleContext bc, String name, Version version, Bundle defaultValue) {
@@ -1516,7 +1526,7 @@ public final class OSGiUtil {
 
 	public static Bundle loadBundleFromLocal(String name, Version version, List<Resource> addional, boolean loadIfNecessary, Bundle defaultValue) {
 		CFMLEngine engine = ConfigUtil.getCFMLEngine();
-		return loadBundleFromLocal(engine.getBundleContext(), name, version, addional, loadIfNecessary, defaultValue);
+		return loadBundleFromLocal(OSGiUtil.getBundleContext(), name, version, addional, loadIfNecessary, defaultValue);
 	}
 
 	public static Bundle loadBundleFromLocal(BundleContext bc, String name, Version version, List<Resource> addional, boolean loadIfNecessary, Bundle defaultValue) {
@@ -2314,7 +2324,7 @@ public final class OSGiUtil {
 		public Bundle getBundle(Config config, List<Resource> addional, boolean versionOnlyMattersForDownload) throws BundleException {
 			if (bundle == null) {
 				ConfigServerPro cs = ThreadLocalPageContext.getConfigServer(config);
-				bundle = OSGiUtil.loadBundle(CFMLEngineFactory.getInstance().getBundleContext(), name, getVersion(), cs == null ? null : cs.getIdentification(), addional, false,
+				bundle = OSGiUtil.loadBundle(OSGiUtil.getBundleContext(), name, getVersion(), cs == null ? null : cs.getIdentification(), addional, false,
 						versionOnlyMattersForDownload, true, null);
 			}
 			return bundle;
@@ -2535,7 +2545,7 @@ public final class OSGiUtil {
 	}
 
 	public static Bundle getFrameworkBundle(Config config, Bundle defaultValue) {
-		Bundle[] bundles = ConfigUtil.getEngine(config).getBundleContext().getBundles();
+		Bundle[] bundles = OSGiUtil.getBundleContext().getBundles();
 		Bundle b = null;
 		for (int i = 0; i < bundles.length; i++) {
 			b = bundles[i];
@@ -2774,7 +2784,7 @@ public final class OSGiUtil {
 
 			br = toBundleRange(msg.substring(start - 1, end + 1));
 			if (br != null) {
-				if (bc == null) bc = CFMLEngineFactory.getInstance().getBundleContext();
+				if (bc == null) bc = OSGiUtil.getBundleContext();
 				loadBundle(bc, br, config.getIdentification(), null, true, false, true, null, parents);
 			}
 		}
@@ -2791,7 +2801,7 @@ public final class OSGiUtil {
 			if (end == -1) throw new IOException("no end point found");
 			pq = toPackageQuery(msg.substring(start - 1, end + 1));
 			if (pq != null) {
-				if (bc == null) bc = CFMLEngineFactory.getInstance().getBundleContext();
+				if (bc == null) bc = OSGiUtil.getBundleContext();
 				loadBundleByPackage(bc, pq, new HashSet<Bundle>(), true, parents);
 			}
 		}
@@ -2825,7 +2835,7 @@ public final class OSGiUtil {
 			synchronized (SystemUtil.createToken("OSGiUtil", "getEmptyBundleClassLoader")) {
 				if (emptyBundleClassLoader == null) {
 					CFMLEngine eng = CFMLEngineFactory.getInstance();
-					if (bc == null) bc = eng.getBundleContext();
+					if (bc == null) bc = OSGiUtil.getBundleContext();
 
 					String strVersion = Caster.toString(SystemUtil.getLoaderVersion());
 					Version version = toVersion(strVersion);

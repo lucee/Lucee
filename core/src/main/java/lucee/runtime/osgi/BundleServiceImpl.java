@@ -39,7 +39,7 @@ public final class BundleServiceImpl implements BundleService {
 	@Override
 	public boolean isAvailable() {
 		try {
-			return CFMLEngineFactory.getInstance().getBundleContext() != null;
+			return OSGiUtil.getBundleContext() != null;
 		}
 		catch (Exception e) {
 			return false;
@@ -139,7 +139,7 @@ public final class BundleServiceImpl implements BundleService {
 	}
 
 	private static BundleContext context() {
-		return ConfigUtil.getCFMLEngine().getBundleContext();
+		return OSGiUtil.getBundleContext();
 	}
 
 	private static Bundle get(String name, String version) {

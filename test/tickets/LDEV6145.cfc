@@ -27,7 +27,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				var version = "1.0." & randRange( 1, 999999 );
 				var jar = createBundleJar( version );
 				var preferred = createObject( "java", "java.io.File" ).init( variables.bundleDir, variables.symbolicName & "-" & version & ".jar" );
-				var bc = createObject( "java", "lucee.loader.engine.CFMLEngineFactory" ).getInstance().getBundleContext();
+				var bc = createObject( "java", "lucee.runtime.osgi.OSGiUtil" ).getBundleContext();
 				var bundle = bc.installBundle( jar.getAbsolutePath(), createObject( "java", "java.io.FileInputStream" ).init( jar ) );
 				try {
 					var result = improveFileName( jar );

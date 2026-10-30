@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 
 	function beforeAll() {
 		variables.factory = createObject( "java", "lucee.loader.engine.CFMLEngineFactory" ).getInstance();
-		variables.bundleContext = variables.factory.getBundleContext();
+		variables.bundleContext = createObject( "java", "lucee.runtime.osgi.OSGiUtil" ).getBundleContext();
 		variables.jar = getJar();
 	}
 

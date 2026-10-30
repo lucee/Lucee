@@ -19,11 +19,9 @@ package lucee.runtime.util;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 
-import org.osgi.framework.Bundle;
 
 import jakarta.servlet.ServletContext;
 import lucee.commons.digest.Hash;
@@ -222,11 +220,6 @@ public final class SystemUtilImpl implements SystemUtil {
 	@Override
 	public String getMacAddress() {
 		return lucee.commons.io.SystemUtil.getMacAddress(null);
-	}
-
-	@Override
-	public URL getResource(Bundle bundle, String path) {
-		return lucee.commons.io.SystemUtil.getResource(bundle, path);
 	}
 
 	@Override
