@@ -507,7 +507,7 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 		return cs != null ? cs : "ISO-8859-1";
 	}
 
-	private static String getCharsetFromContentType(String contentType) {
+	public static String getCharsetFromContentType(String contentType) {
 		if (contentType == null) return null;
 		int semi = contentType.indexOf(';');
 		while (semi != -1) {

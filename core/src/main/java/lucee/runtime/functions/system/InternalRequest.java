@@ -108,25 +108,13 @@ public class InternalRequest implements Function {
 
 		if (Decision.isBinary(body)) _barr = Caster.toBinary(body);
 		else if (body != null) {
-			Charset cs = null;
-			// get charset
-			if (headers != null) {
-				String strCT = Caster.toString(headers.get(CONTENT_TYPE, null), null);
-				if (strCT != null) {
-					ContentType ct = HTTPUtil.toContentType(strCT, null);
-					if (ct != null) {
-						String strCS = ct.getCharset();
-						if (!StringUtil.isEmpty(strCS)) cs = CharsetUtil.toCharSet(strCS, CharSet.UTF8).toCharset();
-					}
-				}
-			}
-			if (cs == null) cs = CharsetUtil.UTF8;
-
-			String str = Caster.toString(body);
-			_barr = str.getBytes(cs);
+			Charset cs = getContentTypeCharset(headers);
+			if (cs == null) cs = reqCharset;
+			_barr = Caster.toString(body).getBytes(cs);
 		}
 
 		PageContextImpl _pc = createPageContext(pc, template, urls, cookies, headers, _barr, reqCharset, baos, method);
+		setEncoding(_pc, reqCharset);
 		fillForm(_pc, forms, reqCharset);
 		Collection request, session = null;
 		int status;
@@ -231,6 +219,34 @@ public class InternalRequest implements Function {
 		rst.set(KeyConstants._status_code, Double.valueOf(status));
 		if (pe != null) rst.set(KeyConstants._error, pe.getCatchBlock(pc.getConfig()));
 		return rst;
+	}
+
+	private static Charset getContentTypeCharset(Struct headers) {
+		if (headers == null) return null;
+		String strCT = Caster.toString(headers.get(CONTENT_TYPE, null), null);
+		if (strCT == null) return null;
+		ContentType ct = HTTPUtil.toContentType(strCT, null);
+		if (ct == null || StringUtil.isEmpty(ct.getCharset())) return null;
+		return CharsetUtil.toCharSet(ct.getCharset(), CharSet.UTF8).toCharset();
+	}
+
+	/**
+	 * the request is sent in the given charset, so the url and form scope and the body of the request
+	 * have to be read with it (LDEV-4203). A charset in the Content-Type header wins for the body, like
+	 * it does with a request from a client.
+	 */
+	private static void setEncoding(PageContextImpl pc, Charset charset) throws PageException {
+		HttpServletRequest req = HTTPServletRequestWrap.pure(pc.getHttpServletRequest());
+		try {
+			if (req instanceof HttpServletRequestDummy && StringUtil.isEmpty(HttpServletRequestDummy.getCharsetFromContentType(req.getContentType()))) {
+				req.setCharacterEncoding(charset.name());
+			}
+			pc.urlScope().setEncoding(pc.getApplicationContext(), charset.name());
+			pc.formScope().setEncoding(pc.getApplicationContext(), charset.name());
+		}
+		catch (UnsupportedEncodingException uee) {
+			throw Caster.toPageException(uee);
+		}
 	}
 
 	private static Struct toStruct(Object obj) throws PageException {
