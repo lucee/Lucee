@@ -59,11 +59,8 @@ import lucee.runtime.type.wrap.ListAsArray;
  * the epoch, retrying if it was odd or moved (a seqlock read, as StampedLock.validate). Walks are live, one validated
  * point read per step.
  *
- * Writers serialise on the lock, which unsynchronized arrays skip. Append and prepend write the slot, then
- * release-store the new bounds. Pop and shift release-store the new bounds, then tombstone the uncovered slot; a
- * reader that loaded the old bounds and lands on the tombstone retries. A write into a tombstoned slot, and every
- * {@code set}, bumps the epoch by 2 first. Middle deletes and inserts shift the shorter side in place inside an odd
- * epoch: opaque store of epoch + 1, storeStoreFence, the shift, release store of epoch + 2. Growth, clear and sort
+ * Writers serialise on the lock, which unsynchronized arrays skip. Slots removed at the ends are tombstoned, a reused
+ * slot or a {@code set} bumps the epoch by 2, middle shifts run inside an odd epoch, and growth, clear and sort
  * publish a new holder.
  *
  * Serialization goes through the inherited {@code list} slot, which stays null in memory; see
@@ -159,8 +156,6 @@ public class ArrayImpl extends ListAsArray {
 	private static int end(long b) {
 		return (int) b;
 	}
-
-	// ---- readers ----
 
 	// a validated point read: the element at key (negative counts from the end), or END when key is outside the
 	// bounds. The out-of-range answer is validated too, so a reader mid-shift retries rather than reporting a size
@@ -365,8 +360,6 @@ public class ArrayImpl extends ListAsArray {
 		}
 		return true;
 	}
-
-	// ---- writers ----
 
 	@Override
 	public Object append(Object o) throws PageException {
@@ -661,8 +654,7 @@ public class ArrayImpl extends ListAsArray {
 			for (int i = end; i < head + newN; i++) {
 				if (d[i] == TOMBSTONE) {
 					EPOCH.setRelease(x, x.epoch + 2);
-					// the slot stores below are plain, so the bump must be visible before any of them; without it ARM
-					// shows stale readers the new slot under the old epoch (jcstress ReuseFillSet / ReuseFillResize)
+					// the slot stores below are plain, so the bump must be visible first (ARM: jcstress ReuseFillSet / ReuseFillResize)
 					VarHandle.storeStoreFence();
 					break;
 				}
@@ -676,7 +668,7 @@ public class ArrayImpl extends ListAsArray {
 		BOUNDS.setRelease(x, pack(head, newEnd));
 	}
 
-	// ArrayList's 1.5x, of the capacity when the live elements fill it
+	// grows 1.5x like ArrayList, once the live elements fill the capacity
 	private static int growth(Holder x, int n) {
 		return Math.max(x.data.length, n + slack(n));
 	}
@@ -695,9 +687,8 @@ public class ArrayImpl extends ListAsArray {
 		return y;
 	}
 
-	// the comparator is user code, so it runs unlocked on a private copy, published only if nothing changed meanwhile;
-	// any change to the live contents moves the holder, the bounds or the epoch. On a conflict sort once more under the
-	// inflated lock, so contending writers park rather than spin, instead of retrying unbounded or losing their writes
+	// the comparator is user code, so it sorts a private copy unlocked, published only if the holder, bounds and epoch
+	// are unchanged. On a conflict it sorts once more under the inflated lock, rather than retry unbounded
 	@Override
 	public void sortIt(Comparator comp) {
 		if (getDimension() > 1) throw new PageRuntimeException("only 1 dimensional arrays can be sorted");
@@ -753,8 +744,6 @@ public class ArrayImpl extends ListAsArray {
 		return nd;
 	}
 
-	// ---- lazy lock ----
-
 	private void lock() {
 		if (!sync) return;
 		Thread t = Thread.currentThread();
@@ -806,8 +795,6 @@ public class ArrayImpl extends ListAsArray {
 	private void inflate() {
 		if (sync && lock == null) LOCK.compareAndSet(this, null, new ReentrantLock());
 	}
-
-	// ---- copies, iteration, serialization ----
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {

@@ -1,9 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
-	// CFML arrays are synchronized by default (LDEV-2096), but the synchronization used to be per java.util.List
-	// call, so compound operations raced: reads threw raw IndexOutOfBoundsException, iteration threw
-	// ConcurrentModificationException, duplicate() came back truncated. Each spec runs a writer role against
-	// reader roles on one shared array, via parallel arrayEach, and counts what the readers saw go wrong.
+	// CFML arrays are synchronized by default (LDEV-2096). Each spec races a writer role against reader roles on one
+	// shared array, via parallel arrayEach, and counts what the readers saw go wrong.
 
 	variables.DURATION = 1500;
 
