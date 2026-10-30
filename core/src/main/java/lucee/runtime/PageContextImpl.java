@@ -172,6 +172,7 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Iterator;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.LiteralValue;
 import lucee.runtime.type.Query;
@@ -227,6 +228,9 @@ import lucee.runtime.util.VariableUtil;
 import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.runtime.writer.CFMLWriter;
+import lucee.runtime.writer.CFMLWriterImpl;
+import lucee.runtime.writer.CFMLWriterWS;
+import lucee.runtime.writer.CFMLWriterWSPref;
 import lucee.runtime.writer.DevNullBodyContent;
 import lucee.runtime.writer.WriterPool;
 import lucee.transformer.util.SourceCode;
@@ -263,6 +267,10 @@ public final class PageContextImpl extends PageContext {
 
 	private JspWriter writer;
 	private JspWriter forceWriter;
+	// whitespace management defined by the application (Application.cfc) and by the request (cfsetting),
+	// 0 means not defined
+	private int appWriterType;
+	private int requestWriterType;
 	private BodyContentStack bodyContentStack;
 	private DevNullBodyContent devNull;
 	// intentionally not nulled in release() — survives borrow/release cycles for reuse
@@ -804,6 +812,8 @@ public final class PageContextImpl extends PageContext {
 		// Writer
 		writer = null;
 		forceWriter = null;
+		appWriterType = 0;
+		requestWriterType = 0;
 		if (pagesUsed.size() > 0) pagesUsed.clear();
 
 		activeComponent = null;
@@ -1935,6 +1945,47 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void subparam(String type, String name, final Object value, double min, double max, String strPattern, int maxLength, final boolean isNew) throws PageException {
+		subparam(type, name, value, min, max, strPattern, maxLength, isNew, null);
+	}
+
+	/**
+	 * @param set (LDEV-2938) optional set of allowed values, a list (comma separated) or an array, null
+	 *            for no check. The value is compared case sensitive, as string.
+	 */
+	public void subparam(String type, String name, final Object value, double min, double max, String strPattern, int maxLength, final boolean isNew, Object set)
+			throws PageException {
+		_subparam(type, name, value, min, max, strPattern, maxLength, isNew);
+		if (set != null) checkParamSet(name, value, set);
+	}
+
+	private static void checkParamSet(String name, Object value, Object set) throws PageException {
+		// the allowed values
+		java.util.List<String> allowed = new java.util.ArrayList<String>();
+		if (Decision.isArray(set)) {
+			Object[] arr = Caster.toArray(set).toArray();
+			for (Object o: arr) {
+				String str = Caster.toString(o, null);
+				if (str == null) throw new ExpressionException("The attribute [set] of the tag [param] must only contain simple values");
+				allowed.add(str);
+			}
+		}
+		else {
+			String str = Caster.toString(set, null);
+			if (str == null) throw new ExpressionException("The attribute [set] of the tag [param] must be a list or an array");
+			for (String item: ListUtil.trimItems(ListUtil.listToStringArray(str, ','))) {
+				if (!item.isEmpty()) allowed.add(item);
+			}
+		}
+		if (allowed.isEmpty()) throw new ExpressionException("The attribute [set] of the tag [param] must contain at least one value");
+
+		String str = Caster.toString(value, null);
+		if (str == null) throw new ExpressionException("The parameter [" + name + "] must be a simple value, because the attribute [set] is defined");
+		if (allowed.contains(str)) return;
+
+		throw new ExpressionException("The value [" + str + "] of the parameter [" + name + "] is not one of the allowed values [" + ListUtil.listToList(allowed, ", ") + "]");
+	}
+
+	private void _subparam(String type, String name, final Object value, double min, double max, String strPattern, int maxLength, final boolean isNew) throws PageException {
 
 		// check attributes type
 		if (type == null) type = "any";
@@ -3845,6 +3896,59 @@ public final class PageContextImpl extends PageContext {
 		return applicationContext;
 	}
 
+	/**
+	 * the whitespace management that is effective for this request: the one set for the request
+	 * (cfsetting), the one of the application (Application.cfc) or the one of the configuration, in
+	 * that order.
+	 * 
+	 * @return one of ConfigPro.CFML_WRITER_*
+	 */
+	public int getCFMLWriterType() {
+		if (requestWriterType > 0) return requestWriterType;
+		if (appWriterType > 0) return appWriterType;
+		return config.getCFMLWriterType();
+	}
+
+	/**
+	 * set the whitespace management for the current request (cfsetting), this overrides the setting of
+	 * the application and the configuration. Output written before that call is not changed.
+	 * 
+	 * @param writerType one of ConfigPro.CFML_WRITER_*
+	 * @throws IOException
+	 */
+	public void setRequestWriterType(int writerType) throws IOException {
+		requestWriterType = writerType;
+		applyWriterType();
+	}
+
+	private static int writerTypeOf(CFMLWriter w) {
+		if (w instanceof CFMLWriterWS) return ConfigPro.CFML_WRITER_WS;
+		if (w instanceof CFMLWriterWSPref) return ConfigPro.CFML_WRITER_WS_PREF;
+		return ConfigPro.CFML_WRITER_REGULAR;
+	}
+
+	/**
+	 * make sure the root writer is of the type that is effective for this request, if not the root
+	 * writer gets replaced by one of the effective type, taking over what was written so far.
+	 */
+	private void applyWriterType() {
+		CFMLWriter base = bodyContentStack.getBase();
+		// not a plain writer (for example when debug output logging is enabled), nothing to replace
+		if (!(base instanceof CFMLWriterImpl)) return;
+		int type = getCFMLWriterType();
+		if (writerTypeOf(base) == type) return;
+		try {
+			CFMLWriterImpl nw = (CFMLWriterImpl) config.getCFMLWriter(this, req, rsp, type);
+			nw.adoptState((CFMLWriterImpl) base);
+			bodyContentStack.replaceBase(nw);
+			if (writer == base) writer = nw;
+			if (forceWriter == base) forceWriter = nw;
+		}
+		catch (IOException e) {
+			throw new PageRuntimeException(Caster.toPageException(e));
+		}
+	}
+
 	@Override
 	public void setApplicationContext(ApplicationContext ac) {
 
@@ -3855,6 +3959,10 @@ public final class PageContextImpl extends PageContext {
 
 		if (ac != null) this.applicationContext = (ApplicationContextSupport) ac;
 		else return;
+
+		// whitespace management of the application
+		appWriterType = applicationContext.getWhitespaceManagement();
+		applyWriterType();
 
 		int scriptProtect = applicationContext.getScriptProtect();
 

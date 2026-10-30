@@ -24,11 +24,11 @@ package lucee.runtime.functions.other;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
-import lucee.runtime.com.COMObject;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.FunctionNotSupported;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.function.BIF;
@@ -96,7 +96,7 @@ public final class CreateObject extends BIF {
 		}
 		// COM
 		if (type.equals("com")) {
-			return doCOM(pc, toClassName(pc, objClass));
+			throw comNotSupported();
 		}
 		// Component
 		if (type.equals("component") || type.equals("cfc")) {
@@ -179,8 +179,12 @@ public final class CreateObject extends BIF {
 		return JavaProxy.call(pc, className, pathsOrBundleName, delimiterOrBundleVersion);
 	}
 
-	public static Object doCOM(PageContext pc, String className) {
-		return new COMObject(ThreadLocalPageContext.getConfigServer(), className);
+	/**
+	 * COM objects (Windows only) moved to an extension (LDEV-6763)
+	 */
+	public static PageException comNotSupported() {
+		return new ApplicationException("COM objects are no longer part of the Lucee core, createObject(\"com\", ...) and <cfobject type=\"com\"> are not supported anymore",
+				"Install the COM extension (id 221842AA-DCBB-49DE-ADF0E2A28B7F58AC, https://github.com/lucee/extension-com) and use the function createComObject(className) instead.");
 	}
 
 	public static Component doComponent(PageContext pc, String className) throws PageException {

@@ -1356,6 +1356,7 @@ public class CFMLExpressionInterpreter {
 		// first identifier
 		name = identifier(true);
 		Ref refName = null;
+		boolean isSelf = false;
 		if (name != null) {
 			StringBuilder fullName = new StringBuilder();
 			fullName.append(name);
@@ -1372,6 +1373,8 @@ public class CFMLExpressionInterpreter {
 				else break;
 			}
 			refName = new LString(fullName.toString());
+			// "self" is only a keyword as an unquoted name directly after "new" (late static binding), see LDEV-1708
+			isSelf = "self".equalsIgnoreCase(fullName.toString());
 		}
 		else {
 			if (cfml.isCurrentQuoter()) refName = string();
@@ -1385,11 +1388,15 @@ public class CFMLExpressionInterpreter {
 		if (cfml.isCurrent('(')) {
 			FunctionLibFunction function = cs.getFLDs().getFunction("_createComponent");
 			Ref[] arguments = functionArg("_createComponent", true, function, ')');
-			Ref[] args = new Ref[arguments.length + 1];
+			Ref[] args = new Ref[arguments.length + (isSelf ? 2 : 1)];
 			for (int i = 0; i < arguments.length; i++) {
 				args[i] = arguments[i];
 			}
-			args[args.length - 1] = refName;
+			if (isSelf) {
+				args[args.length - 2] = refName;
+				args[args.length - 1] = new LString("type:self");
+			}
+			else args[args.length - 1] = refName;
 			BIFCall bif = new BIFCall(function, args);
 			comments();
 			return bif;

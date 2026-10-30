@@ -129,6 +129,7 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		this.bufferOutput = bufferOutput;
 
 		this.canUseFastPath = calculateCanUseFastPath( arguments );
+		this.restIndex = calculateRestIndex( arguments );
 
 		this.strReturnType = strReturnType;
 		this.returnType = returnType;
@@ -216,6 +217,7 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		int tmp = in.readInt();
 		localMode = tmp == -1 ? null : tmp;
 		canUseFastPath = calculateCanUseFastPath( arguments );
+		restIndex = calculateRestIndex( arguments );
 
 		if (arguments != null && arguments.length > 0) {
 			this.argumentsSet = new HashSet<Collection.Key>();
@@ -261,6 +263,14 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		ExternalizableUtil.writeString(out, Caster.toString(cachedWithin, null));
 
 		out.writeInt(localMode == null ? -1 : localMode.intValue());
+	}
+
+	private static int calculateRestIndex( FunctionArgument[] arguments ) {
+		if (arguments == null || arguments.length == 0) return -1;
+		int last = arguments.length - 1;
+		Struct meta = arguments[last].getMetaData();
+		if (meta != null && meta.containsKey(REST)) return last;
+		return -1;
 	}
 
 	private static boolean calculateCanUseFastPath( FunctionArgument[] arguments ) {

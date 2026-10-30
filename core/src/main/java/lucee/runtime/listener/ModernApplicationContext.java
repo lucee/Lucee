@@ -66,6 +66,7 @@ import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -163,6 +164,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private AuthCookieData authCookie;
 	private Object mailListener;
 	private TagListener queryListener;
+	private TagListener httpListener;
 	private boolean fullNullSupport;
 	private ISerializationSettings serializationSettings;
 	private boolean queryPSQ;
@@ -179,6 +181,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initCustomTypes;
 	private boolean initMailListener;
 	private boolean initQueryListener;
+	private boolean initHttpListener;
 	private boolean initFullNullSupport;
 	private boolean initCachedWithins;
 
@@ -213,6 +216,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initLocalMode;
 	private boolean initBufferOutput;
 	private boolean initSuppressContent;
+	private boolean initWhitespaceManagement;
+	private int whitespaceManagement;
 	private boolean initS3;
 	private boolean initFTP;
 	private boolean ormEnabled;
@@ -1070,6 +1075,16 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public TagListener getHttpListener() {
+		if (!initHttpListener) {
+			Struct http = Caster.toStruct(get(component, KeyConstants._http, null), null);
+			if (http != null) httpListener = Query.toTagListener(http.get(KeyConstants._listener, null), null);
+			initHttpListener = true;
+		}
+		return httpListener;
+	}
+
+	@Override
 	public TagListener getQueryListener() {
 		if (!initQueryListener) {
 			Struct query = Caster.toStruct(get(component, KeyConstants._query, null), null);
@@ -1506,6 +1521,30 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public int getWhitespaceManagement() {
+		if (!initWhitespaceManagement) {
+			Object o = get(component, KeyConstants._whitespaceManagement, null);
+			if (o != null && !(o instanceof String && ((String) o).trim().isEmpty())) {
+				try {
+					whitespaceManagement = AppListenerUtil.toWhitespaceManagement(o);
+				}
+				catch (ApplicationException e) {
+					throw new PageRuntimeException(e);
+				}
+			}
+			else whitespaceManagement = 0;
+			initWhitespaceManagement = true;
+		}
+		return whitespaceManagement;
+	}
+
+	@Override
+	public void setWhitespaceManagement(int whitespaceManagement) {
+		this.whitespaceManagement = whitespaceManagement;
+		initWhitespaceManagement = true;
+	}
+
+	@Override
 	public lucee.runtime.net.s3.Properties getS3() {
 		if (!initS3) {
 			Object o = get(component, KeyConstants._s3, null);
@@ -1644,6 +1683,12 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public void setQueryListener(TagListener listener) {
 		initQueryListener = true;
 		this.queryListener = listener;
+	}
+
+	@Override
+	public void setHttpListener(TagListener listener) {
+		initHttpListener = true;
+		this.httpListener = listener;
 	}
 
 	@Override

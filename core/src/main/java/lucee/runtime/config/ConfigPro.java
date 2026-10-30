@@ -109,6 +109,11 @@ public interface ConfigPro extends Config {
 	public static final int MAVEN_DOWNLOAD_POLICY_WARN = 1;
 	public static final int MAVEN_DOWNLOAD_POLICY_IGNORE = 0;
 
+	public static final int MAVEN_SIGNATURE_VERIFICATION_OFF = 0;
+	public static final int MAVEN_SIGNATURE_VERIFICATION_WARN = 1;
+	public static final int MAVEN_SIGNATURE_VERIFICATION_VERIFY = 2;
+	public static final int MAVEN_SIGNATURE_VERIFICATION_STRICT = 3;
+
 	public Iterator<Entry<String, Class<CacheHandler>>> getCacheHandlers();
 
 	public boolean getDotNotationUpperCase();
@@ -227,6 +232,11 @@ public interface ConfigPro extends Config {
 	public boolean getCGIScopeReadonly();
 
 	public String getSessionStorage();
+
+	/**
+	 * @return the mask serializeJSON uses to format dates ("cf", "iso", "isoms" or a custom mask)
+	 */
+	public String getSerializationDateFormat();
 
 	public String getClientStorage();
 

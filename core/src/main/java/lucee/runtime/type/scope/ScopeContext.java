@@ -30,7 +30,6 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.CFMLFactoryImpl;
@@ -44,7 +43,6 @@ import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExceptionHandler;
-import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.listener.ApplicationContext;
@@ -402,21 +400,6 @@ public final class ScopeContext {
 
 	public Struct getAllCFSessionScopes() {
 		return StructImpl.copy(MapAsStruct.toStruct(this.cfSessionContexts, true), false);
-	}
-
-	/**
-	 * return the size in bytes of all session contexts
-	 *
-	 * @return size in bytes
-	 * @throws ExpressionException
-	 */
-	public long getScopesSize(int scope) throws ExpressionException {
-		if (scope == Scope.SCOPE_APPLICATION) return SizeOf.size(applicationContexts);
-		if (scope == Scope.SCOPE_SERVER) return SizeOf.size(server);
-		if (scope == Scope.SCOPE_SESSION) return SizeOf.size(this.cfSessionContexts);
-		if (scope == Scope.SCOPE_CLIENT) return SizeOf.size(this.cfClientContexts);
-
-		throw new ExpressionException("can only return information of scope that are not request dependent");
 	}
 
 	/**

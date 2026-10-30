@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Locale;
 import java.nio.charset.StandardCharsets;
 
 import lucee.commons.io.res.ContentType;
@@ -31,6 +32,7 @@ import lucee.commons.io.res.util.ReadOnlyResourceSupport;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
+import lucee.commons.net.http.Header;
 import lucee.commons.net.http.HTTPEngineBasic.HTTPDownloaderHeadResponse;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.HTTPEngineInputStream;
@@ -38,6 +40,8 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 
 public final class HTTPResource extends ReadOnlyResourceSupport {
+
+	private static final int MAX_REDIRECTS = 10;
 
 	private final HTTPResourceProvider provider;
 	private final HTTPConnectionData data;
@@ -109,6 +113,10 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 		try {
 			if (http == null) {
 				URL url = getURL();
+				if (data.hasHeaders()) {
+					rsp = invoke(true);
+					return rsp.getContentType();
+				}
 				rsp = HTTPEngine.head(url, data.username, data.password, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, _getTimeout(), true, null,
 						data.userAgent, getProxy(url), null, true);
 				return rsp.getContentType();
@@ -146,6 +154,8 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	public InputStream getInputStream() throws IOException {
 		provider.read(this);
 
+		if (data.hasHeaders()) return getInputStreamWithHeaders();
+
 		URL url = getURL();
 		InputStream is = HTTPEngine.get(url, data.username, data.password, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, _getTimeout(), data.userAgent, getProxy(url));
 		if (is instanceof HTTPEngineInputStream) {
@@ -154,7 +164,76 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 		return is;
 	}
 
+	private InputStream getInputStreamWithHeaders() throws IOException {
+		HTTPResponse rsp = invoke(false);
+		boolean ok = false;
+		try {
+			int sc = rsp.getStatusCode();
+			if (sc < 200 || sc >= 300) {
+				throw new IOException("unable to invoke [" + getURL() + "], status code [" + sc + "]");
+			}
+			InputStream is = rsp.getContentAsStream();
+			if (is == null) return null;
+			HTTPEngineInputStream stream = is instanceof HTTPEngineInputStream ? (HTTPEngineInputStream) is : new HTTPEngineInputStream(rsp, is);
+			meta = stream.getHTTPDownloaderHeadResponse();
+			ok = true;
+			return stream;
+		}
+		finally {
+			if (!ok) HTTPEngine.closeEL(rsp);
+		}
+	}
+
+	/**
+	 * LDEV-3376: a request with the headers defined in the Application.cfc. The headers (and the
+	 * credentials of the path) are only sent to the origin of the resource, a redirect to another
+	 * scheme, host or port is followed without them.
+	 */
+	private HTTPResponse invoke(boolean head) throws IOException {
+		URL origin = getURL();
+		URL url = origin;
+		int redirects = 0;
+		while (true) {
+			boolean same = isSameOrigin(origin, url);
+			HTTPResponse rsp;
+			if (head) {
+				rsp = HTTPEngine.head(url, same ? data.username : null, same ? data.password : null, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, HTTPEngine.DEFAULT_CONNECT_TIMEOUT,
+						_getTimeout(), false, null, data.userAgent, getProxy(url), same ? data.headers : null, true);
+			}
+			else {
+				rsp = HTTPEngine.get(url, same ? data.username : null, same ? data.password : null, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, HTTPEngine.DEFAULT_CONNECT_TIMEOUT,
+						_getTimeout(), false, null, data.userAgent, getProxy(url), same ? data.headers : null, true);
+			}
+			int sc = rsp.getStatusCode();
+			Header location = sc == 301 || sc == 302 || sc == 303 || sc == 307 || sc == 308 ? rsp.getLastHeaderIgnoreCase("location") : null;
+			if (location == null || StringUtil.isEmpty(location.getValue(), true)) return rsp;
+
+			HTTPEngine.closeEL(rsp);
+			if (++redirects > MAX_REDIRECTS) throw new IOException("Maximum redirects (" + MAX_REDIRECTS + ") exceeded for [" + origin + "]");
+			url = new URL(url, location.getValue().trim());
+			String protocol = url.getProtocol().toLowerCase(Locale.ROOT);
+			if (!protocol.equals("http") && !protocol.equals("https")) throw new IOException("invalid redirect location [" + location.getValue() + "]");
+		}
+	}
+
+	private static boolean isSameOrigin(URL a, URL b) {
+		return a.getProtocol().equalsIgnoreCase(b.getProtocol()) && a.getHost().equalsIgnoreCase(b.getHost()) && port(a) == port(b);
+	}
+
+	private static int port(URL url) {
+		return url.getPort() == -1 ? url.getDefaultPort() : url.getPort();
+	}
+
 	private HTTPDownloaderHeadResponse getMeta() throws IOException {
+		if (meta == null && data.hasHeaders()) {
+			HTTPResponse rsp = invoke(true);
+			try {
+				meta = new HTTPDownloaderHeadResponse(rsp);
+			}
+			finally {
+				HTTPEngine.closeEL(rsp);
+			}
+		}
 		if (meta == null) {
 			URL url = getURL();
 			meta = HTTPEngine.head(url, data.username, data.password, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, _getTimeout(), null, getProxy(url));
@@ -185,7 +264,7 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	@Override
 	public Resource getParentResource() {
 		if (isRoot()) return null;
-		return new HTTPResource(provider, new HTTPConnectionData(data.username, data.password, data.host, data.port, path, data.proxyData, data.userAgent));
+		return new HTTPResource(provider, new HTTPConnectionData(data.username, data.password, data.host, data.port, path, data.proxyData, data.userAgent, data.headers));
 	}
 
 	@Override
@@ -197,7 +276,7 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	public Resource getRealResource(String realpath) {
 		realpath = ResourceUtil.merge(path.concat(name), realpath);
 		if (realpath.startsWith("../")) return null;
-		return new HTTPResource(provider, new HTTPConnectionData(data.username, data.password, data.host, data.port, realpath, data.proxyData, data.userAgent));
+		return new HTTPResource(provider, new HTTPConnectionData(data.username, data.password, data.host, data.port, realpath, data.proxyData, data.userAgent, data.headers));
 	}
 
 	@Override

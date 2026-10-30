@@ -59,6 +59,8 @@ public final class Data {
 
 	public boolean insideTenaryMiddle = false;
 	public boolean insideCase = false;
+	// true while reading the start of an index [...] (LDEV-1813), a trailing :xyz is then a slice and not a function listener
+	public boolean insideIndex = false;
 	public boolean hasWriteLog;
 	public boolean hasUpper;
 	public boolean hasCharset;

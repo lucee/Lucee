@@ -50,7 +50,6 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 
 	private static final DateTimeImpl expired = new DateTimeImpl(2145913200000L);
 
-	// private static final Key JAVA_AGENT_PATH = KeyConstants._javaAgentPath;
 	private static final Key RELEASE_DATE = KeyImpl.getInstance("release-date");
 	private static String jep;
 
@@ -159,7 +158,6 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 		java.setEL(KeyConstants._freeMemory, Double.valueOf(rt.freeMemory()));
 		java.setEL(KeyConstants._totalMemory, Double.valueOf(rt.totalMemory()));
 		java.setEL(KeyConstants._maxMemory, Double.valueOf(rt.maxMemory()));
-		java.setEL(KeyConstants._javaAgentSupported, Boolean.TRUE);
 
 		if (jep == null) {
 			String temp = System.getProperty("user.dir", "");

@@ -34,12 +34,15 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.StructListenerImpl;
+import lucee.runtime.type.StructObservableImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.wrap.MapAsStruct;
 
 public final class StructNew extends BIF {
 
 	private static final long serialVersionUID = 2439168907287957648L;
+
+	public static final String TYPE_OBSERVABLE = "observable";
 
 	public static Struct call(PageContext pc) {
 		return new StructImpl();
@@ -50,6 +53,17 @@ public final class StructNew extends BIF {
 	}
 
 	public static Struct call(PageContext pc, String type, UDF onMissingKey) throws PageException {
+		return call(pc, type, onMissingKey, null);
+	}
+
+	public static Struct call(PageContext pc, String type, UDF onMissingKey, UDF onChange) throws PageException {
+		boolean observable = TYPE_OBSERVABLE.equalsIgnoreCase(type == null ? null : type.trim());
+		if (observable) {
+			if (onChange == null) throw new ApplicationException("type [" + type + "] requires the argument onChange to be defined");
+			if (onMissingKey != null) throw new ApplicationException("type [" + type + "] is not supported in combination with onMissingKey listener");
+			return new StructObservableImpl(onChange);
+		}
+		if (onChange != null) throw new ApplicationException("the argument onChange is only supported with type [" + TYPE_OBSERVABLE + "]");
 		int t = toType(type);
 		if (t == StructImpl.TYPE_LINKED_CASESENSITIVE || t == StructImpl.TYPE_CASESENSITIVE) {
 			if (onMissingKey != null) throw new ApplicationException("type [" + type + "] is not supported in combination with onMissingKey listener");
@@ -70,7 +84,7 @@ public final class StructNew extends BIF {
 	public static int toType(String type) throws ApplicationException {
 		int res = toType(type, Struct.TYPE_UNDEFINED);
 		if (res == Struct.TYPE_UNDEFINED)
-			throw new ApplicationException("valid struct types are [normal, weak, linked, soft, synchronized,ordered-casesensitive,casesensitive,max:<number>]");
+			throw new ApplicationException("valid struct types are [normal, weak, linked, soft, synchronized,ordered-casesensitive,casesensitive,max:<number>,observable]");
 		return res;
 	}
 
@@ -96,9 +110,12 @@ public final class StructNew extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 1) return call(pc, Caster.toString(args[0]));
 		if (args.length == 0) return call(pc);
-		throw new FunctionException(pc, "StructNew", 0, 1, args.length);
+		if (args.length > 3) throw new FunctionException(pc, "StructNew", 0, 3, args.length);
+		String type = Caster.toString(args[0]);
+		UDF onMissingKey = args.length > 1 && args[1] != null ? Caster.toFunction(args[1]) : null;
+		UDF onChange = args.length > 2 && args[2] != null ? Caster.toFunction(args[2]) : null;
+		return call(pc, type, onMissingKey, onChange);
 
 	}
 }

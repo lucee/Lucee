@@ -15,13 +15,19 @@ public final class SerializationSettings implements ISerializationSettings {
 	private final boolean preserveCaseForStructKey;
 	private final boolean preserveCaseForQueryColumn;
 	private final int serializeQueryAs;
+	private final String dateFormat;
 
 	public static final SerializationSettings DEFAULT = new SerializationSettings(true, true, SERIALIZE_AS_ROW);
 
 	public SerializationSettings(boolean preserveCaseForStructKey, boolean preserveCaseForQueryColumn, int serializeQueryAs) {
+		this(preserveCaseForStructKey, preserveCaseForQueryColumn, serializeQueryAs, null);
+	}
+
+	public SerializationSettings(boolean preserveCaseForStructKey, boolean preserveCaseForQueryColumn, int serializeQueryAs, String dateFormat) {
 		this.preserveCaseForStructKey = preserveCaseForStructKey;
 		this.preserveCaseForQueryColumn = preserveCaseForQueryColumn;
 		this.serializeQueryAs = serializeQueryAs;
+		this.dateFormat = StringUtil.isEmpty(dateFormat, true) ? null : dateFormat.trim();
 	}
 
 	@Override
@@ -37,6 +43,10 @@ public final class SerializationSettings implements ISerializationSettings {
 	@Override
 	public int getSerializeQueryAs() {
 		return serializeQueryAs;
+	}
+
+	public String getDateFormat() {
+		return dateFormat;
 	}
 
 	public static int toSerializeQueryAs(String str) {
@@ -55,7 +65,8 @@ public final class SerializationSettings implements ISerializationSettings {
 
 	public static SerializationSettings toSerializationSettings(Struct sct) {
 		return new SerializationSettings(Caster.toBooleanValue(sct.get("preserveCaseForStructKey", null), true),
-				Caster.toBooleanValue(sct.get("preserveCaseForQueryColumn", null), false), toSerializeQueryAs(Caster.toString(sct.get("serializeQueryAs", null), null)));
+				Caster.toBooleanValue(sct.get("preserveCaseForQueryColumn", null), false), toSerializeQueryAs(Caster.toString(sct.get("serializeQueryAs", null), null)),
+				Caster.toString(sct.get("dateFormat", null), null));
 	}
 
 	@Override
@@ -64,6 +75,7 @@ public final class SerializationSettings implements ISerializationSettings {
 		sct.setEL("preserveCaseForStructKey", preserveCaseForStructKey);
 		sct.setEL("preserveCaseForQueryColumn", preserveCaseForQueryColumn);
 		sct.setEL("serializeQueryAs", toSerializeQueryAs(serializeQueryAs));
+		if (dateFormat != null) sct.setEL("dateFormat", dateFormat);
 
 		return sct;
 	}

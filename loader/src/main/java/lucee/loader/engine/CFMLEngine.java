@@ -21,7 +21,6 @@ package lucee.loader.engine;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.instrument.Instrumentation;
 import java.net.URL;
 import java.util.Map;
 import java.util.TimeZone;
@@ -245,8 +244,6 @@ public interface CFMLEngine {
 	public HTMLUtil getHTMLUtil();
 
 	public DBUtil getDBUtil();
-
-	public Instrumentation getInstrumentation();
 
 	public abstract ORMUtil getORMUtil();
 

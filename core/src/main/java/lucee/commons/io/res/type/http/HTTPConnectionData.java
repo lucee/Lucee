@@ -20,6 +20,7 @@ package lucee.commons.io.res.type.http;
 
 import lucee.Info;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.net.http.Header;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Constants;
 import lucee.runtime.net.proxy.ProxyData;
@@ -34,8 +35,18 @@ public final class HTTPConnectionData {
 	public ProxyData proxyData;
 	public String path;
 	public String userAgent;
+	public Header[] headers;
 
 	public int timeout;
+
+	public HTTPConnectionData(String username, String password, String host, int port, String path, ProxyData proxyData, String userAgent, Header[] headers) {
+		this(username, password, host, port, path, proxyData, userAgent);
+		this.headers = headers;
+	}
+
+	public boolean hasHeaders() {
+		return headers != null && headers.length > 0;
+	}
 
 	public HTTPConnectionData(String username, String password, String host, int port, String path, ProxyData proxyData, String userAgent) {
 		this.username = username;

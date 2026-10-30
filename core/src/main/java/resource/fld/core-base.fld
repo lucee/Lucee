@@ -103,6 +103,47 @@
 			<type>array</type>
 		</return>
 	</function>
+	<!-- _arraySlice -->
+	<function>
+		<name>_arraySlice</name>
+		<class>lucee.runtime.functions.arrays._ArraySlice</class>
+		<status>hidden</status>
+		<keywords>array</keywords>
+		<description>internal function used for the array slice syntax arr[from:to:step]</description>
+		<argument>
+			<name>array</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>the array to slice</description>
+		</argument>
+		<argument>
+			<name>from</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>first index, 1-based, negative counts from the end</description>
+		</argument>
+		<argument>
+			<name>to</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>last index (inclusive), negative counts from the end</description>
+		</argument>
+		<argument>
+			<name>step</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>step, negative walks backwards</description>
+		</argument>
+		<argument>
+			<name>omitted</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>bit mask of the parts omitted in the source code, 1=from, 2=to, 4=step</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
 	<!-- _literalSpreadStruct -->
 	<function>
 		<name>_literalSpreadStruct</name>
@@ -1346,6 +1387,8 @@ a string must be one of the following values:
 - "numeric": sorts numbers
 - "text": sorts text alphabetically, taking case into account (case sensitive)
 - "textNoCase" (default): sorts text alphabetically, without regard to case (case insensitive)
+- "natural": natural sort, a run of digits is compared by its numeric value ("file2" before "file10"), case sensitive
+- "naturalNoCase": like "natural", but without regard to case (case insensitive)
 
 if you define a closure/function, the closure/function must accept 2 parameters of any type and return:
 -1, if first parameter is "smaller" than second parameter
@@ -8761,6 +8804,9 @@ The following things are considered to be empty:
 			- float or numeric: a numeric value; equivalent to the IsNumeric function.
 			- guid: a Universally Unique Identifier of the form "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" where X is a hexadecimal number.
 			- integer: an integer.
+			- ip: a string containing a valid IPv4 or IPv6 address (format check only, no hostname or DNS lookup).
+			- ipv4: a string containing a valid IPv4 address in dotted quad notation, every part 0-255 without leading zeros (like 192.168.0.1).
+			- ipv6: a string containing a valid IPv6 address (RFC 4291 text format), including the :: compression and an IPv4 address in the last 32 bits (like ::ffff:192.168.0.1). A zone id (like fe80::1%eth0) is not valid.
 			- json: a valid JSON; equivalent to the IsJSON function.
 			- object: a value is an object; equivalent to the IsObject function.
 			- query: a query object; equivalent to the IsQuery function.
@@ -10066,6 +10112,8 @@ The following things are considered to be empty:
 			- numeric - sort by number
 			- text - sorts text alphabetically and case sensitive
 			- textNoCase (default) - sorts text alphabetically and ignore case sensitivity
+			- natural - natural sort, a run of digits is compared by its numeric value ("file2" before "file10"), case sensitive
+			- naturalNoCase - like natural, but ignores case sensitivity
 			</description>
 		</argument>
 		<argument>
@@ -12813,22 +12861,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<return>
 			<type>number</type>
-		</return>
-	</function>
-	<!-- ReleaseComObject -->
-	<function>
-		<name>releaseComObject</name>
-		<class>lucee.runtime.functions.other.ReleaseComObject</class>
-		<description>Releases a COM Object and frees up resources that it used. </description>
-		<argument>
-			<name>comObject</name>
-			<alias>com</alias>
-			<type>any</type>
-			<required>Yes</required>
-		<description>Variable name of a COM object that was created using the function or tag. </description>
-    </argument>
-		<return>
-			<type>any</type>
 		</return>
 	</function>
 
@@ -15764,6 +15796,25 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 		</return>
 	</function>
+	<!-- structKeyFirst -->
+	<function>
+		<name>structKeyFirst</name>
+		<class>lucee.runtime.functions.struct.StructKeyFirst</class>
+		<member-name>keyFirst</member-name>
+		<keywords>struct</keywords>
+		<introduced>9.0.0.564</introduced>
+		<description>Returns the first key of an ordered struct (for example created with structNew("ordered") or the [:] syntax, or returned by structToSorted). The key is returned with its original case. Throws an error if the struct is not ordered, because the order of its keys is undefined, and if the struct is empty, like arrayFirst() and arrayLast() do for an empty array.</description>
+		<argument>
+			<name>struct</name>
+			<alias>structure,object</alias>
+			<type>struct</type>
+			<required>Yes</required>
+			<description>An ordered struct from which to return the first key</description>
+		</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
 	<!-- structKeyList -->
 	<function>
 		<name>structKeyList</name>
@@ -15786,6 +15837,25 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<default>,</default>
 			<description>Character that separates keys in list. Default: comma.</description>
     </argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	<!-- structKeyLast -->
+	<function>
+		<name>structKeyLast</name>
+		<class>lucee.runtime.functions.struct.StructKeyLast</class>
+		<member-name>keyLast</member-name>
+		<keywords>struct</keywords>
+		<introduced>9.0.0.564</introduced>
+		<description>Returns the last key of an ordered struct (for example created with structNew("ordered") or the [:] syntax, or returned by structToSorted). The key is returned with its original case. Throws an error if the struct is not ordered, because the order of its keys is undefined, and if the struct is empty, like arrayFirst() and arrayLast() do for an empty array.</description>
+		<argument>
+			<name>struct</name>
+			<alias>structure,object</alias>
+			<type>struct</type>
+			<required>Yes</required>
+			<description>An ordered struct from which to return the last key</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -15841,6 +15911,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
   - weak: a struct containing weak referenced values, which do not prevent their referents from being made garbage collected. Weak references are most often used to implement simple caches.
   - soft: a struct with soft reference values, which are cleared at the discretion of the garbage collector in response to memory demand.
   - linked: a struct with linked keys, maintain their creation order
+  - observable: a struct that calls the function defined with the argument onChange after a key was set, updated or removed. Requires the argument onChange.
   the type "synchronized" is no longer supported and get ignored, because since version 4.1 all struct/scopes are "thread safe"
 			</description>
 		</argument>
@@ -15852,6 +15923,15 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			listener function that get invoked in case a request key does not exist.
 			</description>
 			<introduced>6.0.0.107</introduced>
+		</argument>
+		<argument>
+			<name>onChange</name>
+			<type>function</type>
+			<required>No</required>
+			<description>
+			listener function for the type "observable", that get invoked after a key was set, updated or removed. The function is called with the arguments (key, oldValue, newValue, struct). For a new key oldValue is null, for a removed key newValue is null. Setting a key calls the function every time, also when the value did not change. Removing a key calls the function once for that key, structClear() calls it once for every key that was removed. The function is called on the thread that did the change, after the change was applied, and an exception thrown by the function is not swallowed (the change is not rolled back). Only changes made directly to the observable struct are reported, not changes inside nested structs or arrays. A copy created with duplicate() is a regular struct without the listener. Can not be combined with onMissingKey.
+			</description>
+			<introduced>9.0.0.564</introduced>
 		</argument>
 		<return>
 			<type>struct</type>
@@ -15882,6 +15962,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 - numeric: sorts numbers
 - text: sorts text alphabetically, taking case into account (case sensitive)
 - textNoCase: sorts text alphabetically, without regard to case (case insensitive)
+- natural: natural sort, a run of digits is compared by its numeric value ("file2" before "file10"), case sensitive
+- naturalNoCase: like natural, but without regard to case (case insensitive)
 
 or a function to be used as a comparator
 
@@ -15935,6 +16017,8 @@ _- asc (default): ascending (a to z) sort order
 - numeric: sorts numbers
 - text: sorts text alphabetically, taking case into account (case sensitive, defualt)
 - textNoCase: sorts text alphabetically, without regard to case (case insensitive)
+- natural: natural sort, a run of digits is compared by its numeric value ("file2" before "file10"), case sensitive
+- naturalNoCase: like natural, but without regard to case (case insensitive)
 
 or a function to be used as a comparator
 
@@ -19139,6 +19223,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- preserveEncoding -->
+	<function>
+		<name>preserveEncoding</name>
+		<class>lucee.runtime.functions.other.PreserveEncoding</class>
+		<introduced>9.0.0.564</introduced>
+		<keywords>encoding,encodeFor,esapi,xss</keywords>
+		<description>Returns the value unchanged and marks the expression as an exception within a cfoutput tag that has the attribute encodeFor set. The output of the expression is not encoded, which is useful for values that are already encoded or intentionally contain markup. Outside of such a cfoutput tag it simply returns the value.</description>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>The value to output without it being encoded by the encodeFor attribute of the surrounding cfoutput tag.</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+
 	<!-- QueryConvertForGrid -->
 	<function>
 		<name>QueryConvertForGrid</name>
@@ -19183,28 +19285,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>
 		<return>
 			<type>number</type>
-		</return>
-	</function>
-	
-	<!-- sizeOf -->
-	<function>
-		<name>sizeOf</name>
-		<class>lucee.runtime.functions.system.SizeOf</class>
-		<description>this function is experimental, do not use in a production environment. this function returns the size in bytes of a given object.</description>
-		<argument>
-			<name>obj</name>
-			<type>object</type>
-			<required>Yes</required>
-			<description>object to get size for</description>
-	    </argument>
-	    <argument>
-			<name>complex</name>
-			<type>boolean</type>
-			<required>No</required>
-			<description>if set to false, the size is returned, if set to true a struct containing the element count and the size is returned</description>
-	    </argument>
-		<return>
-			<type>any</type>
 		</return>
 	</function>
 	

@@ -218,6 +218,11 @@ public final class GetApplicationSettings extends BIF {
 
 		sct.setEL("bufferOutput", Caster.toBoolean(ac.getBufferOutput()));
 		sct.setEL("suppressContent", Caster.toBoolean(ac.getSuppressContent()));
+		{
+			int wm = acs.getWhitespaceManagement();
+			if (wm == 0) wm = ((ConfigPro) pc.getConfig()).getCFMLWriterType();
+			sct.setEL(KeyConstants._whitespaceManagement, AppListenerUtil.fromWhitespaceManagement(wm));
+		}
 
 		sct.setEL("enableNullSupport", ac.getFullNullSupport());
 		sct.setEL("nullSupport", ac.getFullNullSupport());

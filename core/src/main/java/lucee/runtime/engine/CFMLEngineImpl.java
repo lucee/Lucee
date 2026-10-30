@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.lang.instrument.Instrumentation;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -117,6 +116,7 @@ import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.ResetFilter;
+import lucee.runtime.config.WarmupCompile;
 import lucee.runtime.debug.DebuggerPrintStream;
 import lucee.runtime.engine.listener.CFMLServletContextListener;
 import lucee.runtime.exp.Abort;
@@ -131,7 +131,6 @@ import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.gateway.GatewayEngineImpl;
-import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.jsr223.ScriptEngineFactoryImpl;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.HttpServletRequestDummy;
@@ -259,6 +258,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private Boolean asyncReqHandle;
 	private String envExt;
 	private boolean quick;
+	private volatile boolean warmupCompilePending;
 
 	// private static CFMLEngineImpl engine=new CFMLEngineImpl();
 
@@ -1819,11 +1819,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return ThreadLocalPageContext.getTimeZone();
 	}
 
-	@Override
-	public Instrumentation getInstrumentation() {
-		return InstrumentationFactory.getInstrumentation(ThreadLocalPageContext.getConfigServer());
-	}
-
 	public Controler getControler() {
 		return controler;
 	}
@@ -1838,6 +1833,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 			// make sure all .CFConfig.json settings are loaded
 			ConfigUtil.getConfigServerImpl(config).touchAll(null);
+
+			// LDEV-3422 web contexts are loaded lazily, so the templates are compiled (and warmup is finished)
+			// when the first web context is loaded, see onWarmupWeb
+			if (success && WarmupCompile.isEnabled()) {
+				LogUtil.log(config, Log.LEVEL_INFO, "application", "warmup compile is enabled, waiting for the web context to compile the templates of the mappings");
+				warmupCompilePending = true;
+				return;
+			}
 
 			if (success) {
 				String msg = "Lucee warmup completed. Shutting down.";
@@ -1861,6 +1864,36 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				ConfigUtil.getConfigServerImpl(config).touchAll(null);
 			}
 		}
+	}
+
+	public boolean isWarmupCompilePending() {
+		return warmupCompilePending;
+	}
+
+	/**
+	 * LDEV-3422 called when the first web context is loaded while warmup with compile is pending,
+	 * compiles all templates of the mappings and then ends the warmup.
+	 */
+	public void onWarmupWeb(ConfigWebPro config) {
+		synchronized (this) {
+			if (!warmupCompilePending) return;
+			warmupCompilePending = false;
+		}
+		ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
+		WarmupCompile.Result result = WarmupCompile.compile(config);
+		String summary = "Lucee warmup compile: " + result.toSummary();
+		int level = result.getFailed() > 0 ? Log.LEVEL_ERROR : Log.LEVEL_INFO;
+		if (result.getFailed() > 0) System.err.println(summary + ", see the application log for the details");
+		else System.out.println(summary);
+		LogUtil.logGlobal(cs, level, "config", summary);
+		LogUtil.log(config, level, "application", summary);
+
+		// compile errors do not fail the warmup
+		String msg = "Lucee warmup completed. Shutting down.";
+		LogUtil.logGlobal(cs, Log.LEVEL_INFO, "config", msg);
+		LogUtil.log(config, Log.LEVEL_INFO, "application", msg);
+		shutdownFelix();
+		System.exit(0);
 	}
 
 	public void onStart(ConfigWebPro config, boolean reload) {

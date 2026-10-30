@@ -30,6 +30,7 @@ import lucee.transformer.TransformerException;
 import lucee.transformer.Body;
 import lucee.transformer.Page;
 import lucee.transformer.bytecode.StaticBody;
+import lucee.transformer.bytecode.statement.PrintOut;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.EvaluatorSupport;
@@ -90,10 +91,21 @@ public final class Function extends EvaluatorSupport {
 			if (attrModifier != null) {
 				ExprString expr = tag.getFactory().toExprString(attrModifier.getValue());
 				if (!(expr instanceof Literal))
-					throw new EvaluatorException("Attribute modifier of the Tag Function, must be one of the following literal string values: [abstract,final,static]");
+					throw new EvaluatorException("Attribute modifier of the Tag Function, must be one of the following literal string values: [abstract,final,static,default]");
 				String modifier = StringUtil.emptyIfNull(((Literal) expr).getString()).trim();
-				if (!StringUtil.isEmpty(modifier) && !"abstract".equalsIgnoreCase(modifier) && !"final".equalsIgnoreCase(modifier) && !"static".equalsIgnoreCase(modifier))
-					throw new EvaluatorException("Attribute modifier of the Tag Function, must be one of the following literal string values: [abstract,final,static]");
+				boolean isDefault = "default".equalsIgnoreCase(modifier);
+				if (!StringUtil.isEmpty(modifier) && !"abstract".equalsIgnoreCase(modifier) && !"final".equalsIgnoreCase(modifier) && !"static".equalsIgnoreCase(modifier) && !isDefault)
+					throw new EvaluatorException("Attribute modifier of the Tag Function, must be one of the following literal string values: [abstract,final,static,default]");
+				// default is only possible for the functions of an interface (LDEV-1835)
+				if (isDefault) {
+					boolean inInterface = false;
+					try {
+						inInterface = ASMUtil.getAncestorPage(null, tag).isInterface();
+					}
+					catch (TransformerException e) {
+					}
+					if (!inInterface) throw new EvaluatorException("Attribute modifier of the Tag Function can only have the value [default] inside an interface");
+				}
 
 				isStatic = "static".equalsIgnoreCase(modifier);
 				boolean abstr = "abstract".equalsIgnoreCase(modifier);
@@ -175,6 +187,18 @@ public final class Function extends EvaluatorSupport {
 			if (path == null || path.indexOf("/library/function/") == -1)// TODO make better
 				throw new EvaluatorException("The name [" + name + "] is already used by a built in Function");
 		}
+	}
+
+	/**
+	 * does the function have an implementation, that means anything else than argument tags
+	 */
+	public static boolean hasBody(Tag tag) {
+		for (Statement stat: tag.getBody().getStatements()) {
+			if (stat instanceof Tag && ((Tag) stat).getTagLibTag().getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.Argument")) continue;
+			if (stat instanceof PrintOut) continue; // white space
+			return true;
+		}
+		return false;
 	}
 
 	public static void throwIfNotEmpty(Tag tag) throws EvaluatorException {

@@ -406,6 +406,15 @@
 		"default": false
 	},
 	{
+		"sysprop": "lucee.enable.warmup.compile",
+		"envvar": "LUCEE_ENABLE_WARMUP_COMPILE",
+		"desc": "Boolean to enable/disable the compile of all templates (`.cfm`, `.cfc`, `.cfs`) of the mappings during warmup, so the class files exist when the server is started for real. Only has an effect if warmup is enabled (`LUCEE_ENABLE_WARMUP`). Mappings that only have an archive are skipped, templates that fail to compile are logged, but do not fail the warmup",
+		"category": "deployment",
+		"type": "boolean",
+		"default": false,
+		"introduced": "9.0.0.564"
+	},
+	{
 		"sysprop": "lucee.encryption.algorithm",
 		"envvar": "LUCEE_ENCRYPTION_ALGORITHM",
 		"desc": "Default encryption algorithm used when none is specified. The default `cfmx_compat` is not cryptographically secure - strongly recommended to use `AES` instead. Valid values: `CFMX_COMPAT`, `AES`, `BLOWFISH`, `DES`",
@@ -1234,6 +1243,15 @@
 		"type": "boolean",
 		"defaultSince": "7.0",
 		"default": "false (Lucee 6), true (Lucee 7)"
+	},
+	{
+		"sysprop": "lucee.serialization.dateformat",
+		"envvar": "LUCEE_SERIALIZATION_DATEFORMAT",
+		"desc": "Defines how serializeJSON formats date/time values: `cf` keeps the traditional Lucee format (for example `January, 29 2021 11:45:26 -0500`), `iso` (or `iso8601`) produces ISO 8601 (for example `2021-01-29T11:45:26-05:00`), `isoms` is ISO 8601 including milliseconds, any other value is used as a custom date/time mask (for example `yyyy-MM-dd HH:mm:ss`). Can be overridden per application with `this.serialization.dateFormat` in Application.cfc. Same as the setting `serialization.dateFormat` in .CFConfig.json",
+		"category": "application",
+		"functions": [ "serializeJSON" ],
+		"type": "string",
+		"default": "cf"
 	},
 	{
 		"sysprop": "lucee.server.dir",

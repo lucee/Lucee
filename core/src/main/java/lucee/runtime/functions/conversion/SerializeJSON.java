@@ -23,6 +23,7 @@ import java.nio.charset.Charset;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
@@ -82,14 +83,18 @@ public final class SerializeJSON extends BIF implements Function {
 
 	private static String _call(PageContext pc, Object var, Object queryFormat, Charset charset, boolean useSecureJSONPrefix, boolean compact) throws PageException {
 		try {
-			JSONConverter json = new JSONConverter(false, charset, JSONDateFormat.PATTERN_CF, compact);
+			ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+			ISerializationSettings settings = acs.getSerializationSettings();
+
+			// date format: Application.cfc (this.serialization.dateFormat) overrides the configuration
+			String dateFormat = settings instanceof SerializationSettings ? ((SerializationSettings) settings).getDateFormat() : null;
+			if (StringUtil.isEmpty(dateFormat, true)) dateFormat = ((ConfigPro) pc.getConfig()).getSerializationDateFormat();
+			JSONConverter json = new JSONConverter(false, charset, JSONDateFormat.toPattern(dateFormat), compact);
 
 			int qf = JSONConverter.toQueryFormat(queryFormat, SerializationSettings.SERIALIZE_AS_UNDEFINED);
 			if (qf == SerializationSettings.SERIALIZE_AS_UNDEFINED) {
 				if (!StringUtil.isEmpty(queryFormat)) throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 3, "queryFormat",
 						"When var is a Query, argument [queryFormat] must be either a boolean value or a string with the value of [struct], [row], or [column]");
-				ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
-				ISerializationSettings settings = acs.getSerializationSettings();
 				qf = settings.getSerializeQueryAs();
 			}
 

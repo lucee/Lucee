@@ -45,6 +45,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.net.IPUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Util;
@@ -1073,6 +1074,16 @@ public final class Decision {
 		return isString(o);
 	}
 
+	/**
+	 * pure format check for an IP address (LDEV-2434), no DNS lookup or hostname resolution
+	 */
+	private static boolean isIP(Object value, boolean v4, boolean v6) {
+		if (!isSimpleValue(value)) return false;
+		String str = Caster.toString(value, null);
+		if (str == null) return false;
+		return (v4 && IPUtil.isValidIPv4(str)) || (v6 && IPUtil.isValidIPv6(str));
+	}
+
 	public static boolean isValid(PageContext pc, String type, Object value) throws ExpressionException {
 		pc = ThreadLocalPageContext.get(pc);
 		type = StringUtil.toLowerCase(type.trim());
@@ -1113,6 +1124,9 @@ public final class Decision {
 		case 'i':
 			if ("integer".equals(type)) return isInteger(value, false);
 			if ("image".equals(type)) return ImageUtil.isImage(value);
+			if ("ip".equals(type)) return isIP(value, true, true);
+			if ("ipv4".equals(type)) return isIP(value, true, false);
+			if ("ipv6".equals(type)) return isIP(value, false, true);
 			break;
 		case 'j':
 			if ("json".equals(type)) return IsJSON.call(pc, value);
@@ -1162,7 +1176,7 @@ public final class Decision {
 			break;
 		}
 		throw new ExpressionException("invalid type [" + type
-				+ "], valid types are [any,array,binary,boolean,component,creditcard,date,time,email,eurodate,float,numeric,guid,integer,query,simple,ssn,string,struct,telephone,URL,UUID,USdate,variableName,zipcode]");
+				+ "], valid types are [any,array,binary,boolean,component,creditcard,date,time,email,eurodate,float,numeric,guid,integer,ip,ipv4,ipv6,query,simple,ssn,string,struct,telephone,URL,UUID,USdate,variableName,zipcode]");
 
 	}
 
@@ -1409,6 +1423,8 @@ public final class Decision {
 			Component comp = ((Component) o);
 			return comp.instanceOf(type);
 		}
+		// LDEV-1804 type="json": a simple value holding valid JSON (same rules as isJSON), it is not converted
+		if ("json".equalsIgnoreCase(type)) return IsJSON.call(ThreadLocalPageContext.get(pcMaybeNull), o);
 		if (o instanceof Pojo) {
 			pcMaybeNull = ThreadLocalPageContext.get(pcMaybeNull);
 			return pcMaybeNull != null && Caster.toComponent(pcMaybeNull, ((Pojo) o), type, null) != null;

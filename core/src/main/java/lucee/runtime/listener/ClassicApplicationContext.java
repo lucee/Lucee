@@ -129,6 +129,7 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	private Short scopeCascading;
 	private Boolean allowCompression;
 	private Boolean suppressRemoteComponentContent;
+	private int whitespaceManagement;
 
 	private short wstype;
 	private Boolean cgiScopeReadonly;
@@ -141,6 +142,7 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private Object mailListener;
 	private TagListener queryListener;
+	private TagListener httpListener;
 
 	private boolean wsMaintainSession;
 
@@ -228,6 +230,7 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.bufferOutput = bufferOutput;
 		dbl.allowCompression = allowCompression;
 		dbl.suppressRemoteComponentContent = suppressRemoteComponentContent;
+		dbl.whitespaceManagement = whitespaceManagement;
 		dbl.wstype = wstype;
 		dbl.secureJson = secureJson;
 		dbl.secureJsonPrefix = secureJsonPrefix;
@@ -979,6 +982,16 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public int getWhitespaceManagement() {
+		return whitespaceManagement;
+	}
+
+	@Override
+	public void setWhitespaceManagement(int whitespaceManagement) {
+		this.whitespaceManagement = whitespaceManagement;
+	}
+
+	@Override
 	public short getWSType() {
 		return wstype;
 	}
@@ -1075,6 +1088,16 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setQueryListener(TagListener listener) {
 		this.queryListener = listener;
+	}
+
+	@Override
+	public TagListener getHttpListener() {
+		return httpListener;
+	}
+
+	@Override
+	public void setHttpListener(TagListener listener) {
+		this.httpListener = listener;
 	}
 
 	@Override

@@ -71,6 +71,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 	protected Component ownerComponent;
 	public UDFPropertiesBase properties;
 	private final boolean canUseFastPath;
+	private final int restIndex;
 
 	/**
 	 * DO NOT USE THIS CONSTRUCTOR! this constructor is only for deserialize process
@@ -78,12 +79,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 	public UDFImpl() {
 		super(0);
 		this.canUseFastPath = false;
+		this.restIndex = -1;
 	}
 
 	public UDFImpl(PageContext pc, UDFProperties properties) {
 		super(properties.getAccess(), properties.getModifier());
 		this.properties = (UDFPropertiesBase) properties;
 		this.canUseFastPath = ((UDFPropertiesBase) properties).canUseFastPath;
+		this.restIndex = ((UDFPropertiesBase) properties).restIndex;
 	}
 
 	public UDFImpl(UDFProperties properties) {
@@ -91,12 +94,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 
 		this.properties = (UDFPropertiesBase) properties;
 		this.canUseFastPath = ((UDFPropertiesBase) properties).canUseFastPath;
+		this.restIndex = ((UDFPropertiesBase) properties).restIndex;
 	}
 
 	public UDFImpl(UDFProperties properties, Component owner) {
 		super(properties.getAccess(), properties.getModifier());
 		this.properties = (UDFPropertiesBase) properties;
 		this.canUseFastPath = ((UDFPropertiesBase) properties).canUseFastPath;
+		this.restIndex = ((UDFPropertiesBase) properties).restIndex;
 
 		setOwnerComponent(owner);
 	}
@@ -155,6 +160,15 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 		Object _null = NullSupportHelper.NULL(fns);
 
 		for (int i = 0; i < funcArgs.length; i++) {
+			// rest parameter, collects all remaining arguments
+			if (i == restIndex) {
+				Array rest = new ArrayImpl();
+				for (int y = i; y < args.length; y++) {
+					rest.appendEL(args[y]);
+				}
+				newArgs.setEL(funcArgs[i].getName(), rest);
+				return;
+			}
 			// argument defined
 			if (args.length > i && (args[i] != null || fns)) {
 				newArgs.setEL(funcArgs[i].getName(), args[i] == null ? nullOrDefault(pc, funcArgs[i], i, _null) : castToAndClone(pc, funcArgs[i], args[i], i + 1, fns));
@@ -204,6 +218,24 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 			// argument defined
 			name = funcArgs[i].getName();
 			value = values.remove(name, _null);
+			// rest parameter
+			if (i == restIndex) {
+				if (value != _null) {
+					newArgs.set(name, castTo(pc, funcArgs[i], value, i + 1));
+				}
+				else {
+					// collect the remaining positional arguments (argumentCollection with an array)
+					Array rest = new ArrayImpl();
+					int pos = i + 1;
+					Object v;
+					while ((v = values.remove(ArgumentIntKey.init(pos), _null)) != _null) {
+						rest.appendEL(v);
+						pos++;
+					}
+					newArgs.set(name, rest);
+				}
+				continue;
+			}
 			if (value != _null) {
 				newArgs.set(name, value == null ? nullOrDefault(pc, funcArgs[i], i, _null) : castToAndClone(pc, funcArgs[i], value, i + 1, fns));
 				continue;

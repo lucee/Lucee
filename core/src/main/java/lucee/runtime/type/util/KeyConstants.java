@@ -620,6 +620,7 @@ public final class KeyConstants {
 	public static final Key _source = init("source");
 	public static final Key _sql = init("sql");
 	public static final Key _sqlPattern = init("sqlPattern");
+	public static final Key _sqlRaw = init("sqlRaw");
 	public static final Key _src = init("src");
 	public static final Key _start = init("start");
 	public static final Key _end = init("end");
@@ -772,6 +773,7 @@ public final class KeyConstants {
 	public static final Key __toArray = init("_toArray");
 	public static final Key __toQuery = init("_toQuery");
 	public static final Key _onmissingmethod = init("onmissingmethod");
+	public static final Key _onmissingproperty = init("onmissingproperty");
 	public static final Key _onmissingfunction = init("onmissingfunction");
 	public static final Key _functions = init("functions");
 	public static final Key _fullname = init("fullname");
@@ -836,6 +838,7 @@ public final class KeyConstants {
 	public static final Key _cluster = init("cluster");
 	public static final Key _form = init("form");
 	public static final Key _request = init("request");
+	public static final Key _finalUrl = init("finalUrl");
 	public static final Key _requests = init("requests");
 	public static final Key _session = init("session");
 	public static final Key _cferror = init("cferror");
@@ -945,6 +948,7 @@ public final class KeyConstants {
 	public static final Key _database = init("database");
 	public static final Key _exception = init("exception");
 	public static final Key _webAdminPassword = init("webAdminPassword");
+	public static final Key _whitespaceManagement = init("whitespaceManagement");
 
 	public static final Key _parsebody = init("parsebody");
 	public static final Key _aroundEach = init("aroundEach");
@@ -1088,6 +1092,7 @@ public final class KeyConstants {
 	public static final Key _bundleDirectory = init("bundleDirectory");
 	public static final Key _bundleDirectories = init("bundleDirectories");
 	public static final Key _virtual = init("virtual");
+	public static final Key _vfs = init("vfs");
 	public static final Key _clientMaxAge = init("clientMaxAge");
 	public static final Key _new = init("new");
 	public static final Key _NEW = init("NEW");
@@ -2560,7 +2565,6 @@ public final class KeyConstants {
 	public static final Key _macAddress = init("macAddress");
 	public static final Key _archModel = init("archModel");
 	public static final Key _executionPath = init("executionPath");
-	public static final Key _javaAgentSupported = init("javaAgentSupported");
 	public static final Key _javaCompilerVersion = init("javaCompilerVersion");
 	public static final Key _loaderVersion = init("loaderVersion");
 	public static final Key _loaderPath = init("loaderPath");
@@ -2884,7 +2888,6 @@ public final class KeyConstants {
 	public static final Key _minLength = init("minLength");
 	public static final Key _maxLength = init("maxLength");
 	public static final Key _singularName = init("singularName");
-	public static final Key _javaAgentPath = init("javaAgentPath");
 	public static final Key _validateParams = init("validateParams");
 	public static final Key _objecttype = init("objecttype");
 	public static final Key _cache_hitcount = init("cache_hitcount");

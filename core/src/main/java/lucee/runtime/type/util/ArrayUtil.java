@@ -894,7 +894,9 @@ public final class ArrayUtil {
 		if (strSortType.equalsIgnoreCase("text")) sortType = ComparatorUtil.SORT_TYPE_TEXT;
 		else if (strSortType.equalsIgnoreCase("textnocase")) sortType = ComparatorUtil.SORT_TYPE_TEXT_NO_CASE;
 		else if (strSortType.equalsIgnoreCase("numeric")) sortType = ComparatorUtil.SORT_TYPE_NUMBER;
-		else throw new ExpressionException("invalid sort type [" + strSortType + "], sort types are [text, textNoCase, numeric]");
+		else if (strSortType.equalsIgnoreCase("natural")) sortType = ComparatorUtil.SORT_TYPE_NATURAL;
+		else if (strSortType.equalsIgnoreCase("naturalnocase")) sortType = ComparatorUtil.SORT_TYPE_NATURAL_NO_CASE;
+		else throw new ExpressionException("invalid sort type [" + strSortType + "], sort types are [text, textNoCase, numeric, natural, naturalNoCase]");
 
 		return ComparatorUtil.toComparator(sortType, isAsc, localeSensitive ? ThreadLocalPageContext.getLocale(pc) : null, null);
 

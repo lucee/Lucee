@@ -546,6 +546,17 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>string</type>
+			<name>localMode</name>
+			<required>false</required>
+			<rtexprvalue>false</rtexprvalue>
+			<values>classic,modern,true,false</values>
+			<description>Defines how the local scope of the functions of this component is invoked when a variable without a scope definition is used. Must be a literal value.
+- `modern` (or `true`): the local scope is always invoked, so an unscoped assignment creates a local variable.
+- `classic` (or `false`): the local scope is only invoked when the key already exists in it.
+Precedence: the localMode attribute of a function, then the localMode of the component, then `this.localMode` of the Application.cfc (or the cfapplication tag), then the setting of the Administrator. The value applies to the functions (and closures) written in this component file only, it is not inherited by components that extend this component.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>displayName</name>
 			<alias>display</alias>
 			<required>false</required>
@@ -1950,6 +1961,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<description>
 		Leads the request to a different page.
 		This tag acts like the tag cflocation except that the relocation is done directly on the server.
+		Like cflocation, the request ends after the forward, code following the tag is not executed.
 		</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
@@ -2012,6 +2024,16 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>Text that explains the status code. This attribute is used in conjunction with the
 	statusCode attribute.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>throwOnError</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Whether to throw an exception when the header can't be set because the response is already committed, for example after a cfflush.
+
+When **true** (default): Throws an exception.
+When **false**: The header and status code are not set, no exception is thrown and a warning is written to the application log.</description>
 		</attribute>
 	</tag>
 	<!-- HtmlBody -->
@@ -2566,6 +2588,29 @@ If not specified, falls back to the `timeout` attribute value.</description>
 			<rtexprvalue>true</rtexprvalue>
 			<introduced>6.0.0.96</introduced>
 			<description>Flag allowing to disable connection reuse on one off requests.</description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>listener</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>9.0</introduced>
+			<description>
+				listener for the http call. the listener can have 3 (optional) functions, "before", "after" and "error" that get triggered before the request is sent, after the response was received and in case of an exception.
+				The functions get the arguments "args" (the attributes of the tag, including the array "params" with all httpparam definitions) and "caller" (template and line of the tag), the function "after" additionally gets the "result" (the result struct, same as the variable defined with the attribute "result"), the function "error" gets "exception".
+				This attribute overwrites any http listener defined in the application.cfc/cfapplication.
+				The functions can modify the request (before) and the result (after) by returning a struct. "before" returns the keys of "args" to overwrite, a "before" that returns a struct as "result" skips the request and uses that struct as the response (for example to use a local cache).
+				"after" returns a struct with the key "result" to replace the result. "error" returns a struct with the key "result" to handle the exception with that result, otherwise the exception is thrown.
+
+				the listener can be a component looking like this:
+				component {
+					function before(args, caller){}
+					function after(args, caller, result){}
+					function error(args, caller, exception){}}
+
+				or a struct looking like this:
+				{before:function(args, caller){}, after:function(args, caller, result){}, error:function(args, caller, exception){}}
+			</description>
 		</attribute>
 		<attribute>
 			<type>object</type>
@@ -4051,6 +4096,16 @@ Lucee uses the number of characters in the file.</description>
 			<rtexprvalue>true</rtexprvalue>
 			<description>define the maxLength of a value for this types: email, url and string</description>
 		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>set</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>A list (comma separated) or an array of the allowed values. When the value of the parameter (the existing value or the default) is not one of them, an exception listing the allowed values is thrown.
+The values are compared as strings and case sensitive (like attribute pattern), so "High" is not valid for the set "low,medium,high". Spaces around the items of a list are ignored, the items of an array are used as they are.
+The check happens after the check for the attribute type (if defined), so it can be combined with type and default.
+Example: param name="url.rating" default="low" set=["low","medium","high"];</description>
+		</attribute>
 	</tag>
 
 	<!-- ProcessingDirective -->
@@ -5330,6 +5385,21 @@ When set to Yes, cfsetting blocks output of HTML that resides outside cfoutput t
 When used multiple times, this setting is cumulative, so enabling it twice, requires to it to be turned off twice.
 
 Use `reset`, to reset that count and re-enable output of html outside cfoutput tags.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>whitespaceManagement</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Sets the whitespace management for the rest of the current request, this overrides the setting `whitespaceManagement` in the Application.cfc and the whitespace setting of the Lucee Administrator. Output that was already written before the tag is not changed.
+
+The values are the same as the ones of the whitespace setting in the Lucee Administrator:
+
+- `regular` (or `normal`): the whitespace is not touched.
+- `white-space` (or `simple`): removes consecutive whitespace characters.
+- `white-space-pref` (or `smart`): removes consecutive whitespace characters, but preserves whitespace within code, pre and textarea tags.
+
+When the debug output logging of the Lucee Administrator is enabled, the whitespace management of the response can not be changed per request.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -8083,8 +8153,8 @@ Valid only for cfinput type="text".</description>
 		<group>
 			<name>remote</name>
 			<label>Remote Services</label>
-			<description>Configure S3, FTP and proxy settings</description>
-			<attributes>s3,ftp,proxy</attributes>
+			<description>Configure S3, FTP, proxy and http settings</description>
+			<attributes>s3,ftp,proxy,httpListener</attributes>
 		</group>
 		<group>
 			<name>security</name>
@@ -8476,6 +8546,14 @@ Suport for cookie was removed in Lucee 7
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>httpListener</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>9.0</introduced>
+			<description>listener (before, after, error) for the tag http, can be a component or a struct of functions. Can be overwritten with the attribute listener of the tag http.</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
@@ -8980,7 +9058,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>type</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>the type of the argument any (array, binary, boolean, date, guid, numeric, query, string, struct, uuid, component)</description>
+			<description>the type of the argument any (array, binary, boolean, date, guid, numeric, query, string, struct, uuid, component, json). The type json accepts a string containing valid JSON or JSON5 (same rules as the function isJSON), the value is validated only and passed on unchanged as string, it is not deserialized.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -9183,7 +9261,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>returnType</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The data type of the function's return value. If not specified, the default is `any`.</description>
+			<description>The data type of the function's return value. If not specified, the default is `any`. The type `json` requires a string containing valid JSON or JSON5 (same rules as the function isJSON), the value is validated only and returned unchanged.</description>
 		</attribute>
 		
 		<attribute>

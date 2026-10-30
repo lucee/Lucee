@@ -45,6 +45,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLib;
@@ -58,6 +59,14 @@ import lucee.transformer.library.tag.TagLibTagAttr;
 public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	private static final long serialVersionUID = 1384678713928757744L;
+
+	/**
+	 * the listener for the tag http defined in the application (this.http.listener or the attribute
+	 * httpListener of the tag application)
+	 */
+	public abstract TagListener getHttpListener();
+
+	public abstract void setHttpListener(TagListener listener);
 
 	private static Map<Collection.Key, LoggerAndSourceData> _loggers = new ConcurrentHashMap<Collection.Key, LoggerAndSourceData>();
 
@@ -75,6 +84,15 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	protected Object cachedWithinWS;
 
 	protected ConfigWeb config;
+
+	/**
+	 * @return the whitespace management defined for this application (one of
+	 *         ConfigPro.CFML_WRITER_*) or 0 if the application does not define one, in that case the
+	 *         setting of the configuration is used
+	 */
+	public abstract int getWhitespaceManagement();
+
+	public abstract void setWhitespaceManagement(int whitespaceManagement);
 
 	public ApplicationContextSupport(ConfigWeb config) {
 		this.config = config;

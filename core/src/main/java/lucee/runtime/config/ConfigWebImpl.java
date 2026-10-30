@@ -554,6 +554,11 @@ public final class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
+	public CFMLWriter getCFMLWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp, int writerType) {
+		return helper.getCFMLWriter(pc, req, rsp, writerType);
+	}
+
+	@Override
 	public TagHandlerPool getTagHandlerPool() {
 		return helper.getTagHandlerPool();
 	}
@@ -1506,6 +1511,11 @@ public final class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public String getSessionStorage() {
 		return cs.getSessionStorage();
+	}
+
+	@Override
+	public String getSerializationDateFormat() {
+		return cs.getSerializationDateFormat();
 	}
 
 	@Override

@@ -198,8 +198,12 @@ public final class ConfigWebHelper {
 	}
 
 	public CFMLWriter getCFMLWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
-		if (cw.getCFMLWriterType() == ConfigPro.CFML_WRITER_WS) return new CFMLWriterWS(pc, req, rsp, -1, false, cw.closeConnection(), cw.isShowVersion(), cw.contentLength());
-		else if (cw.getCFMLWriterType() == ConfigPro.CFML_WRITER_REGULAR)
+		return getCFMLWriter(pc, req, rsp, cw.getCFMLWriterType());
+	}
+
+	public CFMLWriter getCFMLWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp, int writerType) {
+		if (writerType == ConfigPro.CFML_WRITER_WS) return new CFMLWriterWS(pc, req, rsp, -1, false, cw.closeConnection(), cw.isShowVersion(), cw.contentLength());
+		else if (writerType == ConfigPro.CFML_WRITER_REGULAR)
 			return new CFMLWriterImpl(pc, req, rsp, -1, false, cw.closeConnection(), cw.isShowVersion(), cw.contentLength());
 		else return new CFMLWriterWSPref(pc, req, rsp, -1, false, cw.closeConnection(), cw.isShowVersion(), cw.contentLength());
 

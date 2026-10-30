@@ -1,6 +1,11 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven,extension" {
 
 	function beforeAll() {
+		// the fake org.lucee artifacts served by the local repository have no Lucee signature (LDEV-1554)
+		variables.sigProp = "lucee.maven.signature.verification";
+		variables.orgSigPolicy = createObject( "java", "java.lang.System" ).getProperty( variables.sigProp );
+		createObject( "java", "java.lang.System" ).setProperty( variables.sigProp, "off" );
+		createObject( "java", "lucee.runtime.config.ConfigServerImpl" ).instance.resetMavenSignatureVerification();
 		variables.root = getTempDirectory() & "LDEV6523-" & createUUID() & "/";
 		variables.repo = root & "repo/";
 		variables.cache = root & "cache/";
@@ -27,6 +32,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven,extension" {
 	}
 
 	function afterAll() {
+		if ( isNull( variables.orgSigPolicy ) ) createObject( "java", "java.lang.System" ).clearProperty( variables.sigProp );
+		else createObject( "java", "java.lang.System" ).setProperty( variables.sigProp, variables.orgSigPolicy );
+		createObject( "java", "lucee.runtime.config.ConfigServerImpl" ).instance.resetMavenSignatureVerification();
 		if ( !isNull( variables.httpServer ) ) httpServer.stop( 0 );
 		if ( directoryExists( variables.root ) ) directoryDelete( variables.root, true );
 	}

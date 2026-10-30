@@ -22,8 +22,11 @@ import java.nio.charset.StandardCharsets;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.CharsetX;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.ext.tag.TagImpl;
@@ -56,6 +59,12 @@ public final class Header extends TagImpl {
 
 	private CharsetX charset;
 
+	/**
+	 * if true (default), an exception is thrown when the response is already committed, if false the
+	 * header/status is skipped and a warning is written to the application log.
+	 */
+	private boolean throwOnError = true;
+
 	@Override
 	public void release() {
 		super.release();
@@ -65,6 +74,7 @@ public final class Header extends TagImpl {
 		statuscode = 0;
 		hasStatucCode = false;
 		charset = null;
+		throwOnError = true;
 	}
 
 	/**
@@ -113,11 +123,31 @@ public final class Header extends TagImpl {
 		this.charset = CharsetUtil.toCharsetX(charset);
 	}
 
+	/**
+	 * @param throwOnError if false, no exception is thrown when the response is already committed, the
+	 *            header is skipped and a warning is logged instead.
+	 */
+	public void setThrowonerror(boolean throwOnError) {
+		this.throwOnError = throwOnError;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 
 		HttpServletResponse rsp = pageContext.getHttpServletResponse();
-		if (rsp.isCommitted()) throw new TemplateException("can't assign value to header, header is already committed");
+		if (rsp.isCommitted()) {
+			String msg = "can't assign value to header, header is already committed";
+			if (throwOnError) throw new TemplateException(msg);
+
+			Log log = ThreadLocalPageContext.getLog(pageContext, "application");
+			if (LogUtil.doesWarn(log)) {
+				StringBuilder sb = new StringBuilder("cfheader skipped, header is already committed");
+				if (name != null) sb.append(", name [").append(name).append("]");
+				if (hasStatucCode) sb.append(", statusCode [").append(statuscode).append("]");
+				log.log(Log.LEVEL_WARN, "cfheader", sb.toString());
+			}
+			return SKIP_BODY;
+		}
 
 		// set name value
 		if (name != null) {
