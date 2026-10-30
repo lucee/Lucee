@@ -716,6 +716,8 @@ public final class StoredProc extends BodyTagTryCatchFinallySupport {
 			}
 		}
 		catch (SQLException e) {
+			// LDEV-4213
+			DatasourceConnectionImpl.markSuspect(dc, e);
 			getLog().error(StoredProc.class.getSimpleName(), e);
 			DatabaseException dbe = new DatabaseException(e, new SQLImpl(sql), dc);
 			String details = String.format("Parameter types passed (%d): %s", this.params.size(), getParamTypesPassed());

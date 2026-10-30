@@ -22,6 +22,7 @@ import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
@@ -161,6 +162,8 @@ public final class QueryLazy extends BIF {
 			while (true);
 		}
 		catch (SQLException e) {
+			// LDEV-4213
+			DatasourceConnectionImpl.markSuspect(dc, e);
 			throw new DatabaseException(e, sql, dc);
 		}
 		catch (Throwable e) {

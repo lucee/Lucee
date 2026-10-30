@@ -104,10 +104,13 @@ public final class DatasourceConnectionFactory extends BasePooledObjectFactory<D
 		}
 
 		try {
-			if (dc.getDatasource().validate() && !DataSourceUtil.isValid(dc, 1)) {
+			// LDEV-4213 a connection that threw a SQLException is validated once, even when validate is set to false
+			DatasourceConnectionImpl suspect = dc instanceof DatasourceConnectionImpl && ((DatasourceConnectionImpl) dc).isSuspect() ? (DatasourceConnectionImpl) dc : null;
+			if ((suspect != null || dc.getDatasource().validate()) && !DataSourceUtil.isValid(dc, 1)) {
 				if (LogUtil.doesDebug(log)) log.log(Log.LEVEL_DEBUG, "connection", "datasource connection failed isValid check: " + datasource.getName());
 				return false;
 			}
+			if (suspect != null) suspect.clearSuspect();
 		}
 		catch (Exception e) {
 			LogUtil.log(config, "connection", e, Log.LEVEL_ERROR, logName);
