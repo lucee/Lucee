@@ -104,6 +104,11 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	private long start;
 	private String result = null;
 
+	/**
+	 * true as long as the ActiveLock this tag registered with the PageContext has not been released
+	 */
+	private boolean activeLockRegistered = false;
+
 	@Override
 	public void release() {
 		super.release();
@@ -116,6 +121,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 		id = "anonymous";
 		timeoutInMillis = 0;
 		result = null;
+		activeLockRegistered = false;
 	}
 
 	/**
@@ -259,9 +265,11 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 			pageContext.setVariable(result, cflock);
 		}
 		start = System.nanoTime();
+		activeLockRegistered = false;
 		try {
 			((PageContextImpl) pageContext).setActiveLock(new ActiveLock(type, name, timeoutInMillis)); // this has to be first, otherwise LockTimeoutException has nothing to
 			// release
+			activeLockRegistered = true;
 			data = manager.lock(type, name, timeoutInMillis, pageContext.getId());
 		}
 		catch (LockTimeoutException e) {
@@ -305,6 +313,9 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	}
 
 	private void _release(PageContext pc, long exe) {
+		// the ActiveLock has to be released exactly once, a second release would remove the entry of an
+		// outer lock or fail with an EmptyStackException that hides the original exception
+		activeLockRegistered = false;
 		ActiveLock al = ((PageContextImpl) pc).releaseActiveLock();
 		// listener
 		((ConfigWebPro) pc.getConfig()).getActionMonitorCollector().log(pageContext, "lock", "Lock", exe, al.name + ":" + al.timeoutInMillis);
@@ -313,7 +324,20 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 
 	@Override
 	public void doFinally() {
-		_release(pageContext, System.nanoTime() - start);
-		if (name != null) manager.unlock(data);
+		// the generated code can call doFinally a second time when the first call throws while a return,
+		// break or continue is executed in the body, in that case there is nothing left to release, so the
+		// original exception is not replaced by a follow up error
+		if (!activeLockRegistered) return;
+		try {
+			_release(pageContext, System.nanoTime() - start);
+		}
+		finally {
+			// the lock must be given back, even when releasing the ActiveLock entry or logging to the action monitors fails
+			if (name != null) {
+				LockData d = data;
+				data = null;
+				manager.unlock(d);
+			}
+		}
 	}
 }
