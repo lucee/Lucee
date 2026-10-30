@@ -648,7 +648,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public final static Prop<String> metaErrorTemplate404 = Prop.str().keys("errorMissingTemplate", "missingErrorTemplate", "template404").access(SecurityManager.TYPE_DEBUGGING)
 			.defaultValue("/lucee/templates/error/error." + (Constants.getCFMLTemplateExtensions()[0])).description(
-					"This setting specifies the custom file path for the template rendered whenever a requested resource is not found on the server, ensuring a controlled and helpful response for status 404 missing page exceptions.");
+					"This setting specifies the custom file path for the template rendered whenever a requested resource is not found on the server, ensuring a controlled and helpful response for status 404 missing page exceptions. "
+					+ "If this setting is not defined but the general error template is, the general error template is used for missing pages as well.");
 	private final ConfigValue<String> errorMissingTemplate = new ConfigValue<>(metaErrorTemplate404);
 
 	private static Prop<Password> metaPassword = Prop.custom(PasswordFactory.getInstance()).keys("hspw", "adminhspw", "adminpw", "pw", "adminpassword", "password")
@@ -3746,7 +3747,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public String getErrorTemplate(int statusCode) {
-		if (statusCode == 404) return errorMissingTemplate.get(this, root);
+		if (statusCode == 404) {
+			// LDEV-4194 without an explicit missing template setting, an explicit general error template also handles missing templates
+			if (!metaErrorTemplate404.isDefined(root) && metaErrorTemplate500.isDefined(root)) return errorGeneralTemplate.get(this, root);
+			return errorMissingTemplate.get(this, root);
+		}
 		return errorGeneralTemplate.get(this, root);
 	}
 
