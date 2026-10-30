@@ -126,10 +126,30 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 			URL url = toURL();
 			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
 			int code = HTTPEngine4Impl.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getStatusCode();
+			// LDEV-5387: some servers (S3 presigned URLs, servers without HEAD support) reject HEAD but serve
+			// GET, so check those with the GET request that would be made anyway
+			if (rejectsHead(code)) {
+				HTTPResponse rsp = null;
+				try {
+					rsp = HTTPEngine4Impl.get(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null);
+					code = rsp.getStatusCode();
+				}
+				finally {
+					HTTPEngine.closeEL(rsp);
+				}
+			}
 			headStatusCode = code;
 			return code;
 		}
 		return http.getStatusCode();
+	}
+
+	/**
+	 * status codes a server returns for a HEAD request it does not support or (like S3 presigned URLs,
+	 * signed for GET only) does not accept, while a GET to the same URL can still succeed
+	 */
+	private static boolean rejectsHead(int code) {
+		return code == 400 || code == 403 || code == 405 || code == 501;
 	}
 
 	public ContentType getContentType() throws IOException, GeneralSecurityException {
