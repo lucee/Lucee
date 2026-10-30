@@ -2,12 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	
 
 	public void function testSaveLoad(){
-		local.y="abc";
-		variables.z="def";
-
-		local.x=function() {
-			return y&z;
-		}
+		local.x=new LDEV1830.ClosureFactory().createClosure();
 		local.os=objectSave(x);
 		local.o=objectLoad(os);
 
@@ -17,18 +12,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	public void function testSaveLoadInner() {
 
-		local.inner=function() {
-			local.y="abc";
-			variables.z="def";
-
-			local.x=function() {
-				return y&z;
-			}
-			local.os=objectSave(x);
-			local.o=objectLoad(os);
-
-			return o();
-		}
+		local.inner=new LDEV1830.ClosureFactory().createInner();
 
 		assertEquals("abcdef",inner());
 	}
