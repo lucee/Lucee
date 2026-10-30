@@ -66,6 +66,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 		});
 	}
 
+	// compat only tests one side of \b when a literal word char is on the other.
+	// A group, a quantified literal and (?x) take the full lookaround, a single char between two \b takes both shortcuts
+	public void function testWordBoundaryNonAsciiNotNextToLiteral() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 7, reFind( "\b(caf#chr(233)#)\b", "xcaf#chr(233)# caf#chr(233)#" ) );
+			assertEquals( 0, reFind( "\b#chr(233)#+", "caf#chr(233)#" ) );
+			assertEquals( 3, reFind( "\b#chr(233)#+", "a #chr(233)#" ) );
+			// in (?x) perl reads a quantifier after whitespace in a literal run as a literal, see Quantifiers.cfc
+			assertEquals( 0, reFind( "(?x)\b #chr(233)# * caf", "caf" ) );
+			assertEquals( 1, reFind( "(?x)\b #chr(233)# * caf", "#chr(233)#*caf" ) );
+			assertEquals( 3, reFind( "\b#chr(233)#\b", "a #chr(233)# b" ) );
+			assertEquals( 0, reFind( "\b#chr(233)#\b", "caf#chr(233)#" ) );
+			assertEquals( 2, reFind( "\B#chr(233)#\B", "f#chr(233)#e" ) );
+		});
+	}
+
 	public void function testWordBoundaryNonAsciiAtStartPosition() unsupportedRegexEngine="java" {
 		variables._regex.eachEngine( function( engine ) {
 			assertEquals( 0, reFind( "\b#chr(233)#", "caf#chr(233)#", 4 ) );

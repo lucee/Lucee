@@ -221,4 +221,88 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 			else                    assertEquals( "XX", r );
 		});
 	}
+
+	// In (?x), Oro skips whitespace and comments inside a run of literals after it has checked for a quantifier,
+	// so a quantifier after the whitespace is a literal. Perl and java read it as a quantifier.
+	// compat escapes it.
+
+	public void function testExtendedSpaceBeforeQuantifierIsLiteral() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 1, reFind( "(?x)a *b", "a*b" ) );
+			assertEquals( 0, reFind( "(?x)a *b", "aab" ) );
+			assertEquals( 1, reFind( "(?x)a +b", "a+b" ) );
+			assertEquals( 1, reFind( "(?x)a ?b", "a?b" ) );
+			assertEquals( 1, reFind( "(?x)a {2}b", "a{2}b" ) );
+			assertEquals( 0, reFind( "(?x)a {2}b", "aab" ) );
+			assertEquals( 1, reFind( "(?x)ab * c", "ab*c" ) );
+		});
+	}
+
+	public void function testExtendedWhitespaceKindsBeforeQuantifier() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 1, reFind( "(?x)a  *b", "a*b" ) );
+			assertEquals( 1, reFind( "(?x)a#chr(9)#*b", "a*b" ) );
+			assertEquals( 1, reFind( "(?x)a#chr(10)#*b", "a*b" ) );
+			assertEquals( 1, reFind( "(?x)a ##c#chr(10)#*b", "a*b" ) );
+		});
+	}
+
+	public void function testExtendedEscapedLiteralInRun() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 1, reFind( "(?x)a\. *b", "a.*b" ) );
+			assertEquals( 0, reFind( "(?x)a\. *b", "a..b" ) );
+		});
+	}
+
+	public void function testExtendedSecondQuantifierTakesWholeRun() unsupportedRegexEngine="java" {
+		// the literal * is backed off by the ? after it, and the ? then quantifies the whole run: (?:ab)*?c
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( [ "ababc" ], reMatch( "(?x)ab *?c", "ababc" ) );
+			assertEquals( 4, reFind( "(?x)ab *?c", "ab*c" ) );
+		});
+	}
+
+	public void function testExtendedQuantifierOutsideRun() {
+		// after a group, a class or an escape like \d there's no run, so all engines quantify
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 3, reFind( "(?x)(a) *b", "a*b" ) );
+			assertEquals( 3, reFind( "(?x)[a] *b", "a*b" ) );
+			assertEquals( 1, reFind( "(?x)\d *b", "11b" ) );
+			assertEquals( 1, reFind( "(?x)a* b", "aab" ) );
+		});
+	}
+
+	// Oro's (?x) also differs on what it skips: whitespace in a class is literal, it stays on to the end
+	// of the pattern rather than the group, and a unicode space is only skipped between atoms
+
+	public void function testExtendedWhitespaceInClassIsLiteral() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 2, reFind( "(?x)[ ]", "a b" ) );
+			assertEquals( [ "a b" ], reMatch( "(?x)[a b]+", "a b" ) );
+		});
+	}
+
+	public void function testExtendedAppliesToEndOfPattern() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 1, reFind( "((?x)a b) c", "abc" ) );
+			assertEquals( 0, reFind( "((?x)a b) c", "ab c" ) );
+			assertEquals( 1, reFind( "(?x)a b(?-x) c", "ab c" ) );
+			assertEquals( 1, reFind( "(?ix)A b", "ab" ) );
+		});
+	}
+
+	public void function testExtendedUnicodeSpace() unsupportedRegexEngine="java" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 1, reFind( "(?x)a#chr(8195)#b", "a#chr(8195)#b" ) );
+			assertEquals( 0, reFind( "(?x)a#chr(8195)#b", "ab" ) );
+			assertEquals( 1, reFind( "(?x)(a)#chr(8195)#b", "ab" ) );
+		});
+	}
+
+	public void function testExtendedJavaUnchanged() unsupportedRegexEngine="perl,compat" {
+		variables._regex.eachEngine( function( engine ) {
+			assertEquals( 1, reFind( "(?x)a *b", "aab" ) );
+			assertEquals( 3, reFind( "(?x)a *b", "a*b" ) );
+		});
+	}
 }

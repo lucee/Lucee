@@ -27,6 +27,11 @@ class JavaCompatRegex extends JavaRegex {
 	private static final Map<Character, String> SHORTHAND = Map.of('w', W, 'W', "[^" + WORD + "]", 'd', "\\p{Nd}", 'D', "\\P{Nd}", 's', "\\p{javaWhitespace}", 'S',
 			"\\P{javaWhitespace}", 'b', "(?:(?<=" + W + ")(?!" + W + ")|(?<!" + W + ")(?=" + W + "))", 'B', "(?:(?<=" + W + ")(?=" + W + ")|(?<!" + W + ")(?!" + W + "))");
 
+	// the whitespace Oro's (?x) skips inside a run of literals, between atoms it skips any Character.isWhitespace()
+	private static final String RUN_SPACE = " \t\n\r\f\u000B";
+	// the inline modifiers Oro accepts in (?...)
+	private static final String ORO_MODIFIERS = "iogmsx-";
+
 	// letters java.util.regex accepts after a backslash, Oro reads any other letter as itself
 	private static final String JAVA_ESCAPE_LETTERS = "tnrfaecdDhHsSvVwWpPbBAGZzQERXNkxu";
 
@@ -68,15 +73,56 @@ class JavaCompatRegex extends JavaRegex {
 	// Oro reads these as literals where java throws or reads them differently: a { that doesn't start a quantifier,
 	// a [ or && inside a class, a letter escape java doesn't know, \xH and \0. POSIX [:name:] becomes \p{...},
 	// and \w \W \d \D \s \S \b \B become their Unicode equivalents.
+	// Oro's (?x) is handled here and dropped from the translation, see the comments below.
 	static String translatePattern(String pattern) {
-		if (pattern.indexOf('{') < 0 && pattern.indexOf('[') < 0 && pattern.indexOf('\\') < 0) return pattern;
+		if (pattern.indexOf('{') < 0 && pattern.indexOf('[') < 0 && pattern.indexOf('\\') < 0 && pattern.indexOf("(?") < 0) return pattern;
 		int n = pattern.length();
 		StringBuilder sb = new StringBuilder(n + 16);
 		boolean inClass = false;
+		// Oro's (?x) is on from where it appears to the end of the pattern, or a (?-x), not to the end of the group like java's
+		boolean extended = false;
+		// where the current run of literals starts in sb, and whether (?x) skipped whitespace since its last char:
+		// Oro checks for a quantifier before it skips, so a quantifier after the whitespace is one more literal
+		int runStart = -1;
+		boolean skipped = false;
+		// sb length right after a plain word char literal, so a \b straight after it knows one side
+		int wordEnd = -1;
 		for (int i = 0; i < n; i++) {
 			char c = pattern.charAt(i);
-			if (c == '\\') {
+			int len = sb.length();
+			if (extended && !inClass && (c == '#' || (runStart >= 0 ? RUN_SPACE.indexOf(c) >= 0 : Character.isWhitespace(c)))) {
+				if (c == '#') while (i + 1 < n && pattern.charAt(i + 1) != '\n') i++;
+				if (runStart >= 0) skipped = true;
+				continue;
+			}
+			if (skipped && "*+?{".indexOf(c) >= 0) {
+				// unless another quantifier follows, which backs it off and then repeats the whole run
+				if (c != '{' && i + 1 < n && isOroQuantifier(pattern, i + 1)) {
+					sb.insert(runStart, "(?:").append(')').append(c);
+					runStart = -1;
+				}
+				else sb.append('\\').append(c);
+				skipped = false;
+				continue;
+			}
+			skipped = false;
+			int modEnd = !inClass && c == '(' ? modifiersEnd(pattern, i) : -1;
+			if (modEnd > 0) {
+				extended = translateModifiers(pattern, i, modEnd, extended, sb);
+				runStart = -1;
+				i = modEnd;
+			}
+			else if (c == '\\' && !inClass && !extended && i + 1 < n && (pattern.charAt(i + 1) == 'b' || pattern.charAt(i + 1) == 'B')) {
+				int j = translateBoundary(pattern, i, sb.length() == wordEnd, sb);
+				// it moved the following literal in front of the check
+				if (j == i + 2) wordEnd = sb.length();
+				i = j;
+			}
+			else if (c == '\\') {
+				// Oro ends a run of literals at these, any other escape is one more literal
+				boolean ends = i + 1 < n && ("AGZwWbBsSdD".indexOf(pattern.charAt(i + 1)) >= 0 || (pattern.charAt(i + 1) >= '1' && pattern.charAt(i + 1) <= '9'));
 				i = translateEscape(pattern, i, inClass, sb);
+				if (!inClass) runStart = ends ? -1 : runStart < 0 ? len : runStart;
 			}
 			else if (inClass) {
 				if (c == ']') {
@@ -100,6 +146,7 @@ class JavaCompatRegex extends JavaRegex {
 			}
 			else if (c == '[') {
 				inClass = true;
+				runStart = -1;
 				sb.append(c);
 				if (i + 1 < n && pattern.charAt(i + 1) == '^') sb.append(pattern.charAt(++i));
 				// a ] straight after [ or [^ is a literal
@@ -111,15 +158,83 @@ class JavaCompatRegex extends JavaRegex {
 			else if (c == '{') {
 				// a quantifier at the very start has nothing to repeat, Oro reads it as a literal
 				int end = i == 0 ? -1 : quantifierEnd(pattern, i);
-				if (end < 0) sb.append("\\{");
+				if (end < 0) {
+					sb.append("\\{");
+					if (runStart < 0) runStart = len;
+				}
 				else {
 					sb.append(pattern, i, end + 1);
+					runStart = -1;
 					i = end;
 				}
 			}
-			else sb.append(c);
+			else {
+				sb.append(c);
+				if (isWordChar(c)) wordEnd = sb.length();
+				runStart = "^$.()|*+?".indexOf(c) >= 0 ? -1 : runStart < 0 ? len : runStart;
+			}
 		}
 		return sb.toString();
+	}
+
+	// index of the ) closing an Oro inline modifier group like (?ix) that starts at i, -1 if it isn't one
+	private static int modifiersEnd(String pattern, int i) {
+		int n = pattern.length(), j = i + 2;
+		if (j > n || pattern.charAt(i + 1) != '?') return -1;
+		while (j < n && ORO_MODIFIERS.indexOf(pattern.charAt(j)) >= 0) j++;
+		return j < n && pattern.charAt(j) == ')' ? j : -1;
+	}
+
+	// copies the modifier group without x, returns whether (?x) is on after it
+	private static boolean translateModifiers(String pattern, int i, int end, boolean extended, StringBuilder sb) {
+		String flags = pattern.substring(i + 2, end);
+		int minus = flags.indexOf('-');
+		int x = flags.indexOf('x');
+		if (x < 0) {
+			sb.append(pattern, i, end + 1);
+			return extended;
+		}
+		// Oro sets the flags before the - and then clears the ones after it
+		boolean on = minus < 0 || (x < minus && flags.indexOf('x', minus) < 0);
+		String rest = flags.replace("x", "");
+		if (!rest.isEmpty() && !rest.equals("-")) sb.append("(?").append(rest.endsWith("-") ? rest.substring(0, rest.length() - 1) : rest).append(')');
+		return on;
+	}
+
+	// Oro's test for a quantifier when it decides where a run of literals ends
+	private static boolean isOroQuantifier(String pattern, int j) {
+		char c = pattern.charAt(j);
+		if (c == '*' || c == '+' || c == '?') return true;
+		if (c != '{') return false;
+		int n = pattern.length(), k = j + 1;
+		if (k >= n || !Character.isDigit(pattern.charAt(k))) return false;
+		while (k < n && Character.isDigit(pattern.charAt(k))) k++;
+		if (k < n && pattern.charAt(k) == ',') k++;
+		while (k < n && Character.isDigit(pattern.charAt(k))) k++;
+		return k < n && pattern.charAt(k) == '}';
+	}
+
+	private static boolean isWordChar(char c) {
+		return Character.isLetterOrDigit(c) || c == '_';
+	}
+
+	// \b and \B with a literal word char on one side only need to test the other side.
+	// java tries a pattern's first node at every position, so a leading lookbehind is tried on every char:
+	// \bund becomes u(?<!Wu)nd, which only looks behind where the u matched
+	private static int translateBoundary(String pattern, int i, boolean afterWord, StringBuilder sb) {
+		boolean b = pattern.charAt(i + 1) == 'b';
+		if (afterWord) {
+			sb.append(b ? "(?!" : "(?=").append(W).append(')');
+			return i + 1;
+		}
+		int n = pattern.length();
+		if (i + 2 < n && isWordChar(pattern.charAt(i + 2)) && (i + 3 == n || "?*+{".indexOf(pattern.charAt(i + 3)) < 0)) {
+			char c = pattern.charAt(i + 2);
+			sb.append(c).append(b ? "(?<!" : "(?<=").append(W).append(c).append(')');
+			return i + 2;
+		}
+		sb.append(SHORTHAND.get(pattern.charAt(i + 1)));
+		return i + 1;
 	}
 
 	// appends the escape starting at the backslash at index i, returns the index of its last char
