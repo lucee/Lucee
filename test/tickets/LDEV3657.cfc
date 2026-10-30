@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	function run( testResults, testBox ) {
 
-		describe( title="LDEV-3657 transaction savepoints with ORM code", skip=noOrm(), body=function() {
+		describe( title="LDEV-3657 transaction savepoints with ORM code", skip=( noOrm() || preLDEV3657() ), body=function() {
 
 			it( title="transactionSetSavepoint() after ORM code", body=function( currentSpec ) {
 				var r = scenario( "unnamed" );
@@ -67,7 +67,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 		});
 
-		describe( title="LDEV-3657 transaction savepoints with ORM code and a named datasource", skip=noOrm(), body=function() {
+		describe( title="LDEV-3657 transaction savepoints with ORM code and a named datasource", skip=( noOrm() || preLDEV3657() ), body=function() {
 
 			it( title="save A, savepoint, save B, rollback to savepoint, commit only keeps A", body=function( currentSpec ) {
 				var r = scenario( "rollbackToSavepoint", true );
@@ -98,6 +98,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	private boolean function noOrm() {
 		return ( structCount( server.getTestService( "orm" ) ) eq 0 );
+	}
+
+	// savepoint support with ORM was added to core in 7.1 (LDEV-3657)
+	private boolean function preLDEV3657() {
+		return getVersion().minorFloat < 7.1;
+	}
+
+	private struct function getVersion() {
+		var arr = listToArray( server.lucee.version, "." );
+		return { major: arr[ 1 ], minor: arr[ 2 ], minorFloat: ( arr[ 1 ] & "." & arr[ 2 ] ) + 0 };
 	}
 
 }
