@@ -86,7 +86,8 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 	private String serverName = "localhost";
 	private int port = 80;
 
-	private String characterEncoding = "ISO-8859-1";
+	// explicitly set character encoding, null means "use the charset of the Content-Type, else ISO-8859-1"
+	private String characterEncoding;
 
 	private String contentType;
 	private byte[] inputData = new byte[0];
@@ -500,7 +501,27 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 
 	@Override
 	public String getCharacterEncoding() {
-		return characterEncoding;
+		if (characterEncoding != null) return characterEncoding;
+		// servlet contract: without an explicit encoding, the charset parameter of the Content-Type is used
+		String cs = getCharsetFromContentType(getContentType());
+		return cs != null ? cs : "ISO-8859-1";
+	}
+
+	private static String getCharsetFromContentType(String contentType) {
+		if (contentType == null) return null;
+		int semi = contentType.indexOf(';');
+		while (semi != -1) {
+			int next = contentType.indexOf(';', semi + 1);
+			String param = (next == -1 ? contentType.substring(semi + 1) : contentType.substring(semi + 1, next)).trim();
+			if (param.length() >= 8 && param.regionMatches(true, 0, "charset=", 0, 8)) {
+				String cs = param.substring(8).trim();
+				int n = cs.length();
+				if (n >= 2 && ((cs.charAt(0) == '"' && cs.charAt(n - 1) == '"') || (cs.charAt(0) == '\'' && cs.charAt(n - 1) == '\''))) cs = cs.substring(1, n - 1).trim();
+				if (cs.length() > 0) return cs;
+			}
+			semi = next;
+		}
+		return null;
 	}
 
 	@Override
