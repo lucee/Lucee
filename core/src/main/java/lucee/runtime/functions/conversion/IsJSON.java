@@ -23,29 +23,47 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.interpreter.StrictJSONValidator;
 import lucee.runtime.op.Caster;
 
 public final class IsJSON {
 
-	public static boolean call(PageContext pc, Object obj) {
-		String str = Caster.toString(obj, null);
-		if (StringUtil.isEmpty(str, true)) return false;
+	/**
+	 * default of the argument "lenient"; true accepts everything the (lenient) interpreter accepts,
+	 * false only accepts JSON as defined by RFC 8259
+	 */
+	public static final boolean DEFAULT_LENIENT = true;
 
+	public static boolean call(PageContext pc, Object obj) {
 		try {
-			new JSONExpressionInterpreter(false, JSONExpressionInterpreter.FORMAT_JSON5).interpret(pc, str);
-			return true;
+			return call(pc, obj, null, DEFAULT_LENIENT);
 		}
-		catch (PageException e) {
+		catch (ApplicationException e) {
+			// not possible, only an invalid format throws
 			return false;
 		}
 	}
 
 	public static boolean call(PageContext pc, Object obj, String strFormat) throws ApplicationException {
+		return call(pc, obj, strFormat, DEFAULT_LENIENT);
+	}
 
-		int format = StringUtil.isEmpty(strFormat, true) ? JSONExpressionInterpreter.FORMAT_JSON5 : JSONExpressionInterpreter.toFormat(strFormat);
+	/**
+	 * @param strFormat "json", "json5" or empty/null; when empty, "json5" is used if lenient, otherwise
+	 *            the strict JSON of RFC 8259
+	 * @param lenient when false, only JSON as defined by RFC 8259 is valid (format "json5" stays JSON5,
+	 *            as this is a superset by definition)
+	 */
+	public static boolean call(PageContext pc, Object obj, String strFormat, boolean lenient) throws ApplicationException {
+		int format = StringUtil.isEmpty(strFormat, true) ? 0 : JSONExpressionInterpreter.toFormat(strFormat);
 
 		String str = Caster.toString(obj, null);
 		if (StringUtil.isEmpty(str, true)) return false;
+
+		if (!lenient && format != JSONExpressionInterpreter.FORMAT_JSON5) {
+			return StrictJSONValidator.isValid(str);
+		}
+		if (format == 0) format = JSONExpressionInterpreter.FORMAT_JSON5;
 
 		try {
 			new JSONExpressionInterpreter(false, format).interpret(pc, str);
