@@ -26,7 +26,6 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.AbortException;
 import lucee.runtime.exp.PageException;
 
 /**
@@ -34,6 +33,8 @@ import lucee.runtime.exp.PageException;
  * request has written so far and runs the target template in the current request.
  */
 final class RequestDispatcherImpl implements RequestDispatcher {
+
+	private static final String ABORT_EXCEPTION = "lucee.runtime.exp.AbortException";
 
 	private final String path;
 
@@ -49,13 +50,22 @@ final class RequestDispatcherImpl implements RequestDispatcher {
 		try {
 			pc.doInclude(path, false);
 		}
-		catch (final AbortException ae) {
-			// an abort in the forwarded template ends the forwarded request, which is what a forward waits for
-			return;
-		}
 		catch (final PageException pe) {
+			// an abort in the forwarded template ends the forwarded request, which is what a forward waits for
+			if (isAbort(pe)) return;
 			throw new ServletException(pe);
 		}
+	}
+
+	/**
+	 * the loader has no compile time dependency to the core, so the abort exception of the core is
+	 * detected by name in the class hierarchy of the exception
+	 */
+	private static boolean isAbort(final Throwable t) {
+		for (Class<?> clazz = t.getClass(); clazz != null; clazz = clazz.getSuperclass()) {
+			if (ABORT_EXCEPTION.equals(clazz.getName())) return true;
+		}
+		return false;
 	}
 
 	@Override
