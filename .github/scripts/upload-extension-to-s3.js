@@ -7,11 +7,15 @@
 // are not on Maven Central and the lite .lex only references them by coordinate:
 //   org/lucee/<jarArtifactId>/<version>/<jarArtifactId>-<version>.jar (+ .pom, .sha1, version and artifact maven-metadata.xml)
 // Called by .github/workflows/extension-s3-upload.yml (workflow_call) from every extension build (LDEV-XXXX).
+// LDEV-6804: when R2_ENDPOINT, R2_BUCKET, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY are set, the same files (not the artifact and
+// group metadata, which are derived from the whole repository) are also uploaded to the Cloudflare R2 bucket the Maven bridge worker
+// serves from (see r2.js). That upload does not depend on the S3 cut-off and a failure fails the run.
 import { S3Client, ListObjectsV2Command, GetBucketLocationCommand, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { inflateRawSync } from 'node:zlib';
 import { join, basename, relative } from 'node:path';
+import { r2Config, r2Key, uploadToR2 } from './r2.js';
 import { DEFAULT_ORG_LUCEE_PREFIX, GROUP_METADATA_KEY, mavenTimestamp, sortVersions, findLatestRelease, xmlEscape, rebuildCdnGroupIndex } from './maven-group-metadata.js';
 
 // The one place the extension cut-off is defined (same date as core S3_CUTOFF in ant/upload_to_s3.cfm, LDEV-6537):
@@ -210,7 +214,11 @@ async function run() {
   if (!bucket) throw new Error('INPUT_S3_BUCKET is required');
 
   const d = decide(version);
-  if (!d.upload) { log(d.reason); return; }
+  const r2 = r2Config(process.env);
+  const toS3 = d.upload && (dryRun || !!process.env.INPUT_S3_ACCESS_KEY);
+  if (!d.upload) log(d.reason);
+  else if (!toS3) log('no S3 credentials, not uploading to S3', 'WARN');
+  if (!toS3 && !r2.enabled) { log('nothing to upload'); return; }
 
   const found = findInputs(dir, version);
   // the flattened POM tells us the artifactId, unless the caller passes one
@@ -266,12 +274,29 @@ async function run() {
   puts.push({ key: `${vbase}maven-metadata.xml`, body: versionMetadataXml(artifactId, version, ts, versionExts), type: 'application/xml' });
 
   if (dryRun) {
-    puts.forEach(p => log(`DRY RUN would upload ${bucket}/${p.key}`));
-    extraArtifacts.forEach(a => log(`DRY RUN would update ${DEFAULT_ORG_LUCEE_PREFIX}${a}/maven-metadata.xml`));
-    log(`DRY RUN would update ${base}maven-metadata.xml and the group metadata`);
+    if (toS3) {
+      puts.forEach(p => log(`DRY RUN would upload ${bucket}/${p.key}`));
+      extraArtifacts.forEach(a => log(`DRY RUN would update ${DEFAULT_ORG_LUCEE_PREFIX}${a}/maven-metadata.xml`));
+      log(`DRY RUN would update ${base}maven-metadata.xml and the group metadata`);
+    }
+    if (r2.enabled) puts.forEach(p => log(`DRY RUN would upload to R2 ${r2.bucket}/${r2Key(r2, p.key, version)}`));
     return;
   }
 
+  // S3 and R2 are independent: a failure of one does not stop the other, but fails the run
+  const errors = [];
+  if (toS3) {
+    try { await publishToS3({ bucket, region, puts, base, artifactId, version, ts, extraArtifacts }); }
+    catch (e) { log(`S3 upload failed: ${e.message}`, 'ERROR'); errors.push(e); }
+  }
+  if (r2.enabled) {
+    try { await uploadToR2(r2, version, puts, log); }
+    catch (e) { log(`R2 upload failed: ${e.message}`, 'ERROR'); errors.push(e); }
+  }
+  if (errors.length) throw errors[0];
+}
+
+async function publishToS3({ bucket, region, puts, base, artifactId, version, ts, extraArtifacts }) {
   const c = await client(process.env.INPUT_S3_ACCESS_KEY, process.env.INPUT_S3_SECRET_KEY, bucket, region);
   for (const p of puts) {
     await c.send(new PutObjectCommand({ Bucket: bucket, Key: p.key, Body: p.body, ContentType: p.type }));

@@ -3,6 +3,9 @@
 #   artifact and org/lucee group metadata + index.html, like organize-extensions.yml does by hand.
 # RC/BETA/ALPHA builds also upload the extension's own org.lucee jar(s) from the full .lex (not on Maven Central, the lite .lex
 #   only references them) and fail when the lite .lex references a jar the full .lex does not contain (LDEV-6721).
+# LDEV-6804: the same files are also uploaded to the Cloudflare R2 bucket behind the Maven bridge worker, when the org variables
+#   R2_ENDPOINT and R2_BUCKET (optional R2_PREFIX, R2_SNAPSHOT_PREFIX) and the secrets R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY are
+#   set. That upload is independent of the S3 cut-off below; once the variables are set a missing secret or a failed upload fails the run.
 # The cut-off (2027-03-01, LDEV-6537) is defined once, in .github/scripts/upload-extension-to-s3.js:
 #   before: every build incl. SNAPSHOT; from then on: SNAPSHOT skipped, RC/BETA/ALPHA/final Maven layout only.
 #
@@ -46,6 +49,10 @@ on:
         required: false
       S3_SECRET_KEY_DOWNLOAD:
         required: false
+      R2_ACCESS_KEY_ID:
+        required: false
+      R2_SECRET_ACCESS_KEY:
+        required: false
 
 jobs:
   upload:
@@ -58,15 +65,17 @@ jobs:
       cancel-in-progress: false
       queue: max
     steps:
-      - name: Check S3 credentials
+      - name: Check S3 and R2 configuration
         id: creds
         env:
           K: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
+          R2: ${{ vars.R2_ENDPOINT != '' && vars.R2_BUCKET != '' }}
         run: |
-          if [ -z "$K" ]; then
-            echo "::warning::S3_ACCESS_ID_DOWNLOAD / S3_SECRET_KEY_DOWNLOAD not available to this repository, skipping the S3 upload"
+          if [ -z "$K" ] && [ "$R2" != "true" ]; then
+            echo "::warning::S3_ACCESS_ID_DOWNLOAD / S3_SECRET_KEY_DOWNLOAD not available to this repository and R2 (R2_ENDPOINT, R2_BUCKET) not configured, skipping the upload"
             echo "ok=false" >> "$GITHUB_OUTPUT"
           else
+            [ -n "$K" ] || echo "::notice::no S3 credentials, uploading to R2 only"
             echo "ok=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -92,7 +101,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Upload to S3 (Maven layout)
+      - name: Upload to S3 and R2 (Maven layout)
         if: steps.creds.outputs.ok == 'true'
         working-directory: lucee-scripts/.github/scripts
         env:
@@ -104,6 +113,12 @@ jobs:
           INPUT_S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
           INPUT_S3_BUCKET: lucee-downloads
           INPUT_S3_REGION: us-east-1
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          R2_PREFIX: ${{ vars.R2_PREFIX }}
+          R2_SNAPSHOT_PREFIX: ${{ vars.R2_SNAPSHOT_PREFIX }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
         run: |
           npm ci --no-audit --no-fund
           npm test
