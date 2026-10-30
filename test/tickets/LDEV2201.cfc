@@ -167,6 +167,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" {
 
 			});
 
+			it( "spread in a call works together with a rest parameter (LDEV-6786)", function() {
+				function collect( a, ...rest ) {
+					return rest;
+				}
+				var args = [ 2, 3, 4 ];
+				expect( collect( 1, ...args ) ).toBe( [ 2, 3, 4 ] );
+				expect( collect( ...args ) ).toBe( [ 3, 4 ] );
+				expect( collect( 0, ...args, 5 ) ).toBe( [ 2, 3, 4, 5 ] );
+				// a rest parameter function can forward its own rest array with a spread
+				function forward( ...all ) {
+					return collect( ...all );
+				}
+				expect( forward( 1, 2, 3 ) ).toBe( [ 2, 3 ] );
+				expect( [ ...collect( 1, 2, 3 ), ...collect( 1, 4 ) ] ).toBe( [ 2, 3, 4 ] );
+			});
+
 			it( "a spread file compiles and runs", function() {
 				expect( run_( "ok-parse.cfm" ).fileContent.trim() ).toBe( "1,2,3" );
 			});
