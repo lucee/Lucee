@@ -119,7 +119,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	private void function setMaxLogs( required any maxLogs ){
-		admin action="updateDebugSetting" type="server" password="#request.SERVERADMINPASSWORD#" maxLogs="#arguments.maxLogs#";
+		admin action="updateDebugSetting" type="server" password="#request.SERVERADMINPASSWORD#" maxLogs="#arguments.maxLogs#" debuggingMaxRecordsLogged="#arguments.maxLogs#";
 	}
 
 	private string function createURI( string calledName ){
