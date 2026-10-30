@@ -49,6 +49,8 @@ public final class Data {
 
 	public short mode = 0;
 	public boolean insideFunction;
+	// LDEV-2551: names declared final (final x = 1) in the current function body or script block
+	public java.util.Set<String> finalNames;
 	public String tagName;
 	public boolean isCFC;
 	public boolean isInterface;

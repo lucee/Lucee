@@ -412,6 +412,34 @@ public abstract class AbstrCFMLExprTransformer {
 	 * @return CFXD Element
 	 * @throws TemplateException
 	 */
+	/**
+	 * LDEV-2551: the key used to track final variables, null if the variable is not a plain variable in the scope of the current function or
+	 * script block (members like x.y or x[1] are not final, only the variable itself is)
+	 */
+	protected static String finalKey(Data data, Variable v) {
+		int scope = v.getScope();
+		if (data.insideFunction) {
+			if (scope != Scope.SCOPE_UNDEFINED && scope != Scope.SCOPE_LOCAL && scope != Scope.SCOPE_VAR) return null;
+		}
+		else if (scope != Scope.SCOPE_UNDEFINED && scope != Scope.SCOPE_VARIABLES) return null;
+		java.util.List<lucee.transformer.expression.var.Member> members = v.getMembers();
+		if (members.size() != 1 || !(members.get(0) instanceof lucee.transformer.expression.var.DataMember)) return null;
+		Expression name = ((lucee.transformer.expression.var.DataMember) members.get(0)).getName();
+		if (!(name instanceof LitString)) return null;
+		return ((LitString) name).getString().toLowerCase();
+	}
+
+	/**
+	 * LDEV-2551: a variable declared with final can not be assigned again
+	 */
+	protected void checkFinal(Data data, Variable v) throws TemplateException {
+		if (data.finalNames == null || data.finalNames.isEmpty()) return;
+		String key = finalKey(data, v);
+		if (key != null && data.finalNames.contains(key)) {
+			throw new TemplateException(data.srcCode, "Can't overwrite the final variable [" + key + "], a final variable can only be assigned once");
+		}
+	}
+
 	protected Expression assignOp(Data data) throws TemplateException {
 
 		Expression expr = conditionalOp(data);
@@ -421,6 +449,7 @@ public abstract class AbstrCFMLExprTransformer {
 			if (data.mode == STATIC) expr = new DynAssign(expr, assignOp(data));
 			else {
 				if (expr instanceof Variable) {
+					checkFinal(data, (Variable) expr);
 					Expression value = assignOp(data);
 					expr = new Assign((Variable) expr, value, data.srcCode.getPosition());
 				}
@@ -826,6 +855,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 			// &=
 			if (data.srcCode.isCurrent('=') && expr instanceof Variable) {
+				checkFinal(data, (Variable) expr);
 				data.srcCode.next();
 				comments(data);
 				Expression value = assignOp(data);
@@ -870,6 +900,7 @@ public abstract class AbstrCFMLExprTransformer {
 		// +=
 		// plus|Minus Assignment
 		if (data.srcCode.isCurrent('=') && expr instanceof Variable) {
+			checkFinal(data, (Variable) expr);
 			data.srcCode.next();
 			comments(data);
 			Expression value = assignOp(data);
@@ -905,6 +936,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 	private Expression _modOp(Data data, Expression expr) throws TemplateException {
 		if (data.srcCode.isCurrent('=') && expr instanceof Variable) {
+			checkFinal(data, (Variable) expr);
 			data.srcCode.next();
 			comments(data);
 			Expression right = assignOp(data);
@@ -952,6 +984,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 	private Expression _divMultiOp(Data data, Expression expr, int iOp) throws TemplateException {
 		if (data.srcCode.isCurrent('=') && expr instanceof Variable) {
+			checkFinal(data, (Variable) expr);
 			data.srcCode.next();
 			comments(data);
 			Expression value = assignOp(data);
@@ -1005,6 +1038,7 @@ public abstract class AbstrCFMLExprTransformer {
 			end = new Position(leftEnd.line, leftEnd.column + 2, leftEnd.pos + 2, data.srcCode.getSourceOffset());
 		}
 
+		checkFinal(data, (Variable) expr);
 		if (op == Factory.OP_UNARY_CONCAT) return data.factory.opUnaryString((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_POST, op, start, end);
 		return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_POST, op, start, end);
 	}
@@ -1025,6 +1059,7 @@ public abstract class AbstrCFMLExprTransformer {
 				Expression expr = clip(data);
 
 				if (expr instanceof Variable) {
+					checkFinal(data, (Variable) expr);
 					return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_MINUS, line, data.srcCode.getPosition());
 				}
 				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_MINUS);
@@ -1038,6 +1073,7 @@ public abstract class AbstrCFMLExprTransformer {
 				comments(data);
 				Expression expr = clip(data);
 				if (expr instanceof Variable) {
+					checkFinal(data, (Variable) expr);
 					return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
 				}
 				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_PLUS);
