@@ -832,7 +832,9 @@ public abstract class AbstrCFMLExprTransformer {
 			return new OpVariable((Variable) expr, res, data.srcCode.getPosition());
 		}
 		comments(data);
-		return data.factory.opNumber(expr, expoOp(data), Factory.OP_DBL_MODULUS);
+		// the right side is a divMultiOp (see EBNF above), so "a % b / c" and "a % b * c" are valid, because
+		// the modulus operator has a lower precedence than "*" and "/"
+		return data.factory.opNumber(expr, divMultiOp(data), Factory.OP_DBL_MODULUS);
 	}
 
 	/**
