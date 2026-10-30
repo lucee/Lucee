@@ -339,7 +339,8 @@ public final class ConfigUtil {
 					while (it.hasNext()) {
 						e = it.next();
 						if (StringUtil.startsWithIgnoreCase(str, "{" + e.getKey().getString() + "}")) {
-							String value = (String) e.getValue();
+							String value = Caster.toString(e.getValue(), null);
+							if (value == null) continue;
 							str = checkResult(str, config.getResource(value).getReal(str.substring(e.getKey().getString().length() + 2)));
 							break;
 						}

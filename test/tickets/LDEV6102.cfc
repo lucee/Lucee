@@ -6,12 +6,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi,extension" {
 
 	function beforeAll() {
 		variables.esapiVersionBefore = getEsapiVersion();
-
-		admin action="getRHExtensionProviders"
-			type="web"
-			password="#request.WEBADMINPASSWORD#"
-			returnVariable="local.providers";
-		variables.providerURL = providers.url[ 1 ];
 	}
 
 	function run( testResults, testBox ) {
@@ -20,19 +14,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi,extension" {
 			it( title="installing an ESAPI version older than the required one is rejected", skip=isConfigOnly(), body=function( currentSpec ) {
 				expect( variables.esapiVersionBefore ).notToBeEmpty( "ESAPI extension should be installed" );
 
-				var downloadURL = variables.providerURL & "/rest/extension/provider/full/" & variables.esapiExtId &
-								  "?type=all&coreVersion=" & server.lucee.version & "&version=" & variables.oldEsapiVersion;
-
-				cfhttp( url=downloadURL, result="local.httpResult" ) {
-					cfhttpparam( type="header", name="accept", value="application/cfml" );
-				}
-				expect( httpResult.status_code ).toBe( 200, "Extension download should succeed" );
-
 				expect( function() {
-					admin action="updateRHExtension"
+					admin action="updateExtension"
 						type="web"
 						password="#request.WEBADMINPASSWORD#"
-						source="#httpResult.fileContent#";
+						id="#variables.esapiExtId#"
+						groupId="org.lucee"
+						artifactId="esapi-extension"
+						version="#variables.oldEsapiVersion#";
 				}).toThrow( regex="version \[" & replace( variables.oldEsapiVersion, ".", "\.", "all" ) & "\] is older than the required minimum version \[[0-9.]+\]" );
 
 				// the installed version did not change and the extension still works
