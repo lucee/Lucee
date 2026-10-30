@@ -1423,6 +1423,8 @@ public final class Decision {
 			Component comp = ((Component) o);
 			return comp.instanceOf(type);
 		}
+		// LDEV-1804 type="json": a simple value holding valid JSON (same rules as isJSON), it is not converted
+		if ("json".equalsIgnoreCase(type)) return IsJSON.call(ThreadLocalPageContext.get(pcMaybeNull), o);
 		if (o instanceof Pojo) {
 			pcMaybeNull = ThreadLocalPageContext.get(pcMaybeNull);
 			return pcMaybeNull != null && Caster.toComponent(pcMaybeNull, ((Pojo) o), type, null) != null;

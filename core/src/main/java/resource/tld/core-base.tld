@@ -9047,7 +9047,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>type</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>the type of the argument any (array, binary, boolean, date, guid, numeric, query, string, struct, uuid, component)</description>
+			<description>the type of the argument any (array, binary, boolean, date, guid, numeric, query, string, struct, uuid, component, json). The type json accepts a string containing valid JSON or JSON5 (same rules as the function isJSON), the value is validated only and passed on unchanged as string, it is not deserialized.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -9250,7 +9250,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>returnType</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The data type of the function's return value. If not specified, the default is `any`.</description>
+			<description>The data type of the function's return value. If not specified, the default is `any`. The type `json` requires a string containing valid JSON or JSON5 (same rules as the function isJSON), the value is validated only and returned unchanged.</description>
 		</attribute>
 		
 		<attribute>
