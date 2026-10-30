@@ -524,6 +524,28 @@ jobs:
         INPUT_S3_BUCKET: ${{ env.S3_DOWNLOAD_BUCKET }}
         INPUT_S3_REGION: ${{ env.S3_DOWNLOAD_REGION }}
 
+    - name: Upload the build to Cloudflare R2 (Maven layout, next to S3)
+      # LDEV-6804: same Maven layout files as the S3 upload (org/lucee/lucee/<version>/...), so S3 and cdn.lucee.org can be retired.
+      # Independent of the S3 cut-off (LDEV-6537). Runs only when R2 is configured (org variables R2_ENDPOINT and R2_BUCKET),
+      # from then on a missing secret or a failed upload fails the job. Not skipped when an earlier step failed, so a published
+      # version is never left without its R2 copy; only a cancelled run skips it.
+      # SNAPSHOTs go to <R2_PREFIX><R2_SNAPSHOT_PREFIX> (default snapshots/, as in the Maven bridge worker), everything else to <R2_PREFIX>.
+      if: ${{ !cancelled() && env.DID_DEPLOY == 'true' && env.VERSION != '' && vars.R2_ENDPOINT != '' && vars.R2_BUCKET != '' }}
+      env:
+        INPUT_VERSION: ${{ env.VERSION }}
+        INPUT_DIR: ${{ github.workspace }}/loader/target
+        INPUT_POM: ${{ github.workspace }}/loader/.flattened-pom.xml
+        R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+        R2_BUCKET: ${{ vars.R2_BUCKET }}
+        R2_PREFIX: ${{ vars.R2_PREFIX }}
+        R2_SNAPSHOT_PREFIX: ${{ vars.R2_SNAPSHOT_PREFIX }}
+        R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+        R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      run: |
+        cd .github/scripts
+        npm ci --no-audit --no-fund
+        node upload-core-to-r2.js
+
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@d0a4676d0e0b938bc201470d88276b7c74c712b3 # v2.24.0
       if: always()

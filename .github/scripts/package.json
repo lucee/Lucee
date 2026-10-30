@@ -5,7 +5,7 @@
   "main": "organize-s3-artifacts.js",
   "type": "module",
   "scripts": {
-    "test": "node --test maven-group-metadata.test.js upload-extension-to-s3.test.js"
+    "test": "node --test maven-group-metadata.test.js upload-extension-to-s3.test.js r2.test.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.490.0"
