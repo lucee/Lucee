@@ -4572,6 +4572,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String cfmlWriter = "regular";
 		if (wt == ConfigPro.CFML_WRITER_WS) cfmlWriter = "white-space";
 		else if (wt == ConfigPro.CFML_WRITER_WS_PREF) cfmlWriter = "white-space-pref";
+		else if (wt == ConfigPro.CFML_WRITER_WS_LIGHT) cfmlWriter = "white-space-light";
 
 		sct.set("cfmlWriter", cfmlWriter);
 		sct.set("bufferOutput", Caster.toBoolean(config.getBufferOutput()));

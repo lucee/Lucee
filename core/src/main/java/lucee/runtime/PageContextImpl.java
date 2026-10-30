@@ -231,6 +231,7 @@ import lucee.runtime.writer.BodyContentUtil;
 import lucee.runtime.writer.CFMLWriter;
 import lucee.runtime.writer.CFMLWriterImpl;
 import lucee.runtime.writer.CFMLWriterWS;
+import lucee.runtime.writer.CFMLWriterWSLight;
 import lucee.runtime.writer.CFMLWriterWSPref;
 import lucee.runtime.writer.DevNullBodyContent;
 import lucee.runtime.writer.WriterPool;
@@ -3934,6 +3935,7 @@ public final class PageContextImpl extends PageContext {
 	private static int writerTypeOf(CFMLWriter w) {
 		if (w instanceof CFMLWriterWS) return ConfigPro.CFML_WRITER_WS;
 		if (w instanceof CFMLWriterWSPref) return ConfigPro.CFML_WRITER_WS_PREF;
+		if (w instanceof CFMLWriterWSLight) return ConfigPro.CFML_WRITER_WS_LIGHT;
 		return ConfigPro.CFML_WRITER_REGULAR;
 	}
 

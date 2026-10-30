@@ -5398,6 +5398,7 @@ The values are the same as the ones of the whitespace setting in the Lucee Admin
 - `regular` (or `normal`): the whitespace is not touched.
 - `white-space` (or `simple`): removes consecutive whitespace characters.
 - `white-space-pref` (or `smart`): removes consecutive whitespace characters, but preserves whitespace within code, pre and textarea tags.
+- `white-space-light` (or `light`): only removes empty lines and trailing whitespace, the indentation and the whitespace within a line is kept. Content within code, pre and textarea tags is not touched.
 
 When the debug output logging of the Lucee Administrator is enabled, the whitespace management of the response can not be changed per request.</description>
 		</attribute>

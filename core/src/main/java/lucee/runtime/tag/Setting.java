@@ -69,7 +69,7 @@ public final class Setting extends BodyTagImpl {
 	 * set the whitespace management for the rest of the request, overrides the setting of the
 	 * application (this.whitespaceManagement in Application.cfc) and of the administrator.
 	 * 
-	 * @param whitespaceManagement regular, normal, white-space, simple, white-space-pref or smart
+	 * @param whitespaceManagement regular, normal, white-space, simple, white-space-pref, smart, white-space-light or light
 	 * @throws PageException
 	 */
 	public void setWhitespacemanagement(String whitespaceManagement) throws PageException {

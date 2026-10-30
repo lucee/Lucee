@@ -609,6 +609,7 @@ public final class AppListenerUtil {
 		if ("regular".equals(str) || "normal".equals(str)) return ConfigPro.CFML_WRITER_REGULAR;
 		if ("white-space".equals(str) || "simple".equals(str)) return ConfigPro.CFML_WRITER_WS;
 		if ("white-space-pref".equals(str) || "smart".equals(str)) return ConfigPro.CFML_WRITER_WS_PREF;
+		if ("white-space-light".equals(str) || "light".equals(str)) return ConfigPro.CFML_WRITER_WS_LIGHT;
 		return defaultValue;
 	}
 
@@ -624,7 +625,7 @@ public final class AppListenerUtil {
 		int type = toWhitespaceManagement(str, -1);
 		if (type == -1) {
 			throw new ApplicationException("invalid value [" + (str != null ? str : Caster.toTypeName(obj))
-					+ "] for whitespace management, valid values are [regular, normal, white-space, simple, white-space-pref, smart]");
+					+ "] for whitespace management, valid values are [regular, normal, white-space, simple, white-space-pref, smart, white-space-light, light]");
 		}
 		return type;
 	}
@@ -638,6 +639,7 @@ public final class AppListenerUtil {
 	public static String fromWhitespaceManagement(int type) {
 		if (type == ConfigPro.CFML_WRITER_WS) return "white-space";
 		if (type == ConfigPro.CFML_WRITER_WS_PREF) return "white-space-pref";
+		if (type == ConfigPro.CFML_WRITER_WS_LIGHT) return "white-space-light";
 		return "regular";
 	}
 

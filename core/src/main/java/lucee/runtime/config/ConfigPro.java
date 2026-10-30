@@ -78,6 +78,7 @@ public interface ConfigPro extends Config {
 	public static final int CFML_WRITER_REGULAR = 1;
 	public static final int CFML_WRITER_WS = 2;
 	public static final int CFML_WRITER_WS_PREF = 3;
+	public static final int CFML_WRITER_WS_LIGHT = 4;
 
 	public static final String DEFAULT_STORAGE_SESSION = "memory";
 	public static final String DEFAULT_STORAGE_CLIENT = "cookie";

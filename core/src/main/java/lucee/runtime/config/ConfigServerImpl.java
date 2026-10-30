@@ -973,7 +973,10 @@ public final class ConfigServerImpl implements ConfigServerPro {
 							"Basic Compression: Aggressively removes most whitespace and line breaks. Fast execution, but can occasionally impact the layout of pre-formatted text."),
 
 					new Choice<Integer>(ConfigPro.CFML_WRITER_WS_PREF, "white-space-pref", "smart").description(
-							"Advanced Optimization: Uses an intelligent algorithm to remove unnecessary whitespace while preserving critical spacing (e.g., inside 'pre' or 'textarea' tags)."))
+							"Advanced Optimization: Uses an intelligent algorithm to remove unnecessary whitespace while preserving critical spacing (e.g., inside 'pre' or 'textarea' tags)."),
+
+					new Choice<Integer>(ConfigPro.CFML_WRITER_WS_LIGHT, "white-space-light", "light").description(
+							"Light Cleanup: Only removes empty lines and trailing whitespace, indentation and the whitespace within a line is kept. Content of 'pre', 'code' and 'textarea' tags is not touched."))
 			.description(
 					"Specifies the white-space management strategy for the output stream. Using 'smart' optimization can significantly reduce page weight without breaking HTML layout.");
 	protected final ConfigValue<Integer> cfmlWriter = new ConfigValue<>(metaCfmlWriter);

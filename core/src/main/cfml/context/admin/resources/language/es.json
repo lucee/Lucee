@@ -1343,6 +1343,7 @@
 			"cfmlWriterReg": "Gestión de espacios en blanco desactivada",
 			"cfmlWriterWS": "Gestión simple de espacios en blanco: se eliminan todos los caracteres de espacio en blanco que siguen a otro espacio en blanco",
 			"cfmlWriterWSPref": "Gestión inteligente de espacios en blanco: se eliminan todos los caracteres de espacio en blanco que siguen a otro espacio en blanco, pero se mantienen los espacios en blanco dentro de las etiquetas: \u0026lt;code\u0026gt;, \u0026lt;pre\u0026gt; y \u0026lt;textarea\u0026gt;",
+			"cfmlWriterWSLight": "Gestión ligera de espacios en blanco: solo se eliminan las líneas vacías y los espacios en blanco al final de la línea, se mantienen la sangría y los espacios dentro de una línea, así como los espacios en blanco dentro de las etiquetas: \u0026lt;code\u0026gt;, \u0026lt;pre\u0026gt; y \u0026lt;textarea\u0026gt;",
 			"compiler": "Configuraciones del compilador de Lucee, esto afecta cómo el compilador de Lucee analiza el código fuente. Cambiar esta configuración borra todos los archivos de clase existentes y provoca una recompilación.",
 			"componentcache": "Caché de rutas de componentes",
 			"componentcacheclear": "Limpiar caché de rutas de componentes",

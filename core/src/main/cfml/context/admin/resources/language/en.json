@@ -1402,6 +1402,7 @@
       "cfmlWriterReg": "No whitespace management",
       "cfmlWriterWS": "Simple whitespace management - every whitespace character that follows whitespace is removed",
       "cfmlWriterWSPref": "Smart whitespace management - every whitespace character that follows a whitespace is removed, but whitespace inside the tags: \u0026lt;code\u0026gt;, \u0026lt;pre\u0026gt; and \u0026lt;textarea\u0026gt; is kept",
+      "cfmlWriterWSLight": "Light whitespace management - only empty lines and trailing whitespace are removed, indentation and whitespace within a line is kept, whitespace inside the tags: \u0026lt;code\u0026gt;, \u0026lt;pre\u0026gt; and \u0026lt;textarea\u0026gt; is kept as well",
       "compiler": "Lucee compiler settings affect how the Lucee Compiler parses the source code. Changing these settings flushes all existing class files and triggers a recompilation.",
       "componentcache": "Component path Cache",
       "componentcacheclear": "Clear Component Paths Cache",

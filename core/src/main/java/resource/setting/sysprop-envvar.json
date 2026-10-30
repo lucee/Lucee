@@ -153,7 +153,7 @@
 	{
 		"sysprop": "lucee.cfml.writer",
 		"envvar": "LUCEE_CFML_WRITER",
-		"desc": "Specifies the CFML writer type (white-space or regular) for output buffering",
+		"desc": "Specifies the CFML writer type (regular, white-space, white-space-pref or white-space-light) for output buffering",
 		"category": "compiler",
 		"type": "string",
 		"default": null
