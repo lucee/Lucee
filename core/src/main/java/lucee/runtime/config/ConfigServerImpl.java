@@ -661,7 +661,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	private static Prop<Mapping> metaMappings = Prop.custom(MappingFactory.getInstance(MappingFactory.TYPE_REGULAR), Prop.TYPE_MAP).keys("mappings", "CFMappings").lowerCaseKeys()
 			.description("Maps logical paths to storage locations, supporting local filesystems and virtual providers like S3. "
-					+ "Includes controls for 'physical' vs 'archive' priority, 'toplevel' browser visibility, 'inspectTemplate' change-detection rules, "
+					+ "Includes controls for 'physical' vs 'archive' priority, 'webAccessible' browser visibility, 'inspectTemplate' change-detection rules, "
 					+ "and 'listener' configurations for Application.cfc discovery.");
 	private Mapping[] uncheckedMappings;
 	private Mapping[] mappings;
@@ -669,14 +669,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private static Prop<Mapping> metaCustomTagMappings = Prop.custom(MappingFactory.getInstance(MappingFactory.TYPE_CUSTOM_TAG), Prop.TYPE_LIST)
 			.keys("customTagMappings", "customTagPaths")
 			.description("Acts as a component classpath. Maps virtual handles to local or cloud-based directories (S3, etc.) and .lar archives. "
-					+ "Controls 'primary' source priority, 'inspectTemplate' caching, and 'toplevel' remote access for component resolution.");
+					+ "Controls 'primary' source priority, 'inspectTemplate' caching, and 'webAccessible' remote access for component resolution.");
 	private Mapping[] uncheckedCustomTagMappings;
 	private Mapping[] customTagMappings;
 
 	private static Prop<Mapping> metaComponentMappings = Prop.custom(MappingFactory.getInstance(MappingFactory.TYPE_COMPONENT), Prop.TYPE_LIST)
 			.keys("componentMappings", "componentPaths")
 			.description("Acts as a component classpath. Maps virtual handles to local or cloud-based directories (S3, etc.) and .lar archives. "
-					+ "Controls 'primary' source priority, 'inspectTemplate' caching, and 'toplevel' remote access for component resolution.");
+					+ "Controls 'primary' source priority, 'inspectTemplate' caching, and 'webAccessible' remote access for component resolution.");
 	private Mapping[] uncheckedComponentMappings;
 	private Mapping[] componentMappings;
 

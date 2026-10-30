@@ -217,7 +217,7 @@
 	<h2>#stText.Components.componentMappings#</h2>
 	<div class="itemintro">#stText.Components.componentMappingsDesc#</div>
 
-	<cfset renderSettings("ComponentMappings",{columns:["virtual","physical","archive","primary","listenerType","listenerMode","readonly","hidden","toplevel"
+	<cfset renderSettings("ComponentMappings",{columns:["virtual","physical","archive","primary","listenerType","listenerMode","readonly","hidden","webAccessible"
 		,"inspect","inspectTemplateIntervalSlow","inspectTemplateIntervalFast"], value:addPrimary(mappings)} )>
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl checkboxtbl">

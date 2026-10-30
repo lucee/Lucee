@@ -139,15 +139,15 @@
 					</td>
 				</tr>
 				<tr>
-					<th scope="row">#stText.Mappings.ToplevelHead#</th>
+					<th scope="row">#stText.Mappings.WebAccessibleHead#</th>
 					<td nowrap>
 						<cfif mapping.readOnly>
-							#iif(mapping.toplevel,de("Yes"),de("No"))#
+							#iif(mapping.webAccessible,de("Yes"),de("No"))#
 						<cfelse>
-							<input type="checkbox" class="checkbox" name="toplevel_#mapping.id#" 
-							value="yes" <cfif mapping.toplevel>checked</cfif>>
+							<input type="checkbox" class="checkbox" name="webAccessible_#mapping.id#" 
+							value="yes" <cfif mapping.webAccessible>checked</cfif>>
 						</cfif>
-						<div class="comment">#stText.Mappings.ToplevelDesc#</div>
+						<div class="comment">#stText.Mappings.WebAccessibleDesc#</div>
 					</td>
 				</tr>
 				<cfif hasAccess>
@@ -178,7 +178,7 @@ this.mappings["#encodeForHTML(mapping.virtual)#"]=<cfif len(mapping.strPhysical)
 
 }</cfif>;
 &nbsp;
-// "#stText.setting.inspecttemplate#"/"#stText.Mappings.ToplevelHead#" setting not supported with application type mappings
+// "#stText.setting.inspecttemplate#"/"#stText.Mappings.WebAccessibleHead#" setting not supported with application type mappings
 </cfsavecontent>
 <cfset renderCodingTip( codeSample, "", true )>
 

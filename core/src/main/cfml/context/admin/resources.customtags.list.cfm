@@ -300,7 +300,7 @@
 	<h2>#stText.customTags.customtagMappings#</h2>
 	<div class="itemintro">#stText.customTags.customtagMappingsDesc#</div>
 
-	<cfset renderSettings("CustomtagMappings",{columns:["virtual","physical","archive","primary","listenerType","listenerMode","readonly","hidden","toplevel"
+	<cfset renderSettings("CustomtagMappings",{columns:["virtual","physical","archive","primary","listenerType","listenerMode","readonly","hidden","webAccessible"
 		,"inspect","inspectTemplateIntervalSlow","inspectTemplateIntervalFast"], value:addPrimary(mappings)} )>
 
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
