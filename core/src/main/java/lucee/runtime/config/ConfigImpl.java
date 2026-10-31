@@ -3564,7 +3564,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					}
 					else {
 						err = new PrintWriter(tmp);
-						System.setOut(tmp);
+						System.setErr(tmp);
 
 					}
 				}
