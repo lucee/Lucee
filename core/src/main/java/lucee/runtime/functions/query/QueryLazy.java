@@ -68,6 +68,8 @@ public final class QueryLazy extends BIF {
 	private static final Key BLOCKFACTOR = KeyConstants._blockfactor;
 	private static final Key MAXROWS = KeyConstants._maxrows;
 	private static final Key COLUMNKEY = KeyConstants._columnkey;
+	// aliases of columnKey, the same as defined for the tag cfquery (queryExecute)
+	private static final Key[] COLUMNKEY_ALIASES = new Key[] { KeyImpl.init("columnName"), KeyConstants._column, KeyImpl.init("keyColumn") };
 
 	public static String call(PageContext pc, String sql, UDF listener) throws PageException {
 		return call(pc, sql, listener, null, null);
@@ -105,6 +107,12 @@ public final class QueryLazy extends BIF {
 		Collection.Key columnKey = null;
 		if (returntype == RETURN_TYPE_STRUCT) {
 			columnKey = getKey(pc, options, COLUMNKEY, null);
+			if (StringUtil.isEmpty(columnKey)) {
+				for (Key alias: COLUMNKEY_ALIASES) {
+					columnKey = getKey(pc, options, alias, null);
+					if (!StringUtil.isEmpty(columnKey)) break;
+				}
+			}
 			if (StringUtil.isEmpty(columnKey)) throw new ApplicationException("attribute columnKey is required when return type is set to struct");
 		}
 		else {
