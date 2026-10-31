@@ -652,7 +652,7 @@
 	{
 		"sysprop": "lucee.logging.force.appender",
 		"envvar": "LUCEE_LOGGING_FORCE_APPENDER",
-		"desc": "If set, override the default log4j appender, which is usually resource (log files), use console to log all logs to console",
+		"desc": "If set, override the default log4j appender, which is usually resource (log files), use console to log all logs to console. With console, the global out.log and err.log are not written either, those entries and the log stream type of lucee.system.out and lucee.system.err go to the console instead",
 		"category": "logging",
 		"type": "string",
 		"default": null
