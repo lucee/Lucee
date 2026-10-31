@@ -135,11 +135,12 @@
 	{
 		"sysprop": "lucee.cfid.url.allow",
 		"envvar": "LUCEE_CFID_URL_ALLOW",
-		"desc": "Controls whether Lucee accepts CFID values from URL query strings. Set to `false` to enhance security by requiring CFIDs to be passed via cookies only. Setting this to `false` is strongly recommended for all production environments. Replaces lucee.read.cfid.from.url in Lucee 6.2.1.59",
+		"desc": "Controls whether Lucee accepts CFID and CFTOKEN values from URL query strings. If disabled, they are only accepted from cookies (LDEV-5664). Starting with Lucee 9.0 this is disabled by default, which is a breaking change for applications that pass CFID and CFTOKEN in the URL (for example clients without cookies, or redirect and SSO flows). Set to `true` to restore the previous behaviour, this is not recommended for production environments, as it makes session fixation easier. Replaces lucee.read.cfid.from.url in Lucee 6.2.1.59",
 		"category": "session",
 		"type": "boolean",
 		"introduced": "6.2.1.59",
-		"default": true
+		"defaultSince": "9.0",
+		"default": false
 	},
 	{
 		"sysprop": "lucee.cfid.url.log",
@@ -1114,7 +1115,7 @@
 	{
 		"sysprop": "lucee.read.cfid.from.url",
 		"envvar": "LUCEE_READ_CFID_FROM_URL",
-		"desc": "Controls whether Lucee accepts CFID values from URL query strings. Set to `false` to enhance security by requiring CFIDs to be passed via cookies only. Setting this to `false` is strongly recommended for all production environments. Replaced by lucee.cfid.url.allow in Lucee 6.2.1.59",
+		"desc": "Controls whether Lucee accepts CFID and CFTOKEN values from URL query strings. Takes precedence over lucee.cfid.url.allow if both are set. Replaced by lucee.cfid.url.allow in Lucee 6.2.1.59, see there for the default",
 		"category": "session",
 		"type": "boolean",
 		"deprecated": "6.2.1.59",
