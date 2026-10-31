@@ -100,14 +100,34 @@ public final class ReqRspUtil {
 		return tmp;
 	}
 
+	/**
+	 * Sets a value, replacing every existing item with that name (as HttpServletResponse.setHeader does
+	 * according to the servlet specification): the first match is replaced in place, any further
+	 * matches are removed.
+	 */
 	public static Pair<String, Object>[] set(Pair<String, Object>[] items, String name, Object value) {
+		int first = -1;
+		int matches = 0;
 		for (int i = 0; i < items.length; i++) {
 			if (items[i].getName().equalsIgnoreCase(name)) {
-				items[i] = new Pair<String, Object>(name, value);
-				return items;
+				if (first == -1) first = i;
+				matches++;
 			}
 		}
-		return add(items, name, value);
+		if (first == -1) return add(items, name, value);
+
+		Pair<String, Object>[] result = items;
+		if (matches > 1) {
+			result = new Pair[items.length - matches + 1];
+			int idx = 0;
+			for (int i = 0; i < items.length; i++) {
+				if (i == first) result[idx++] = new Pair<String, Object>(name, value);
+				else if (!items[i].getName().equalsIgnoreCase(name)) result[idx++] = items[i];
+			}
+			return result;
+		}
+		result[first] = new Pair<String, Object>(name, value);
+		return result;
 	}
 
 	/**
