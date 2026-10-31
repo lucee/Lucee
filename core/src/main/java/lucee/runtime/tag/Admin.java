@@ -41,6 +41,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
@@ -55,6 +57,7 @@ import jakarta.servlet.jsp.tagext.Tag;
 import lucee.VersionInfo;
 import lucee.commons.digest.Base64Encoder;
 import lucee.commons.digest.HashUtil;
+import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
@@ -188,6 +191,7 @@ import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.spooler.SpoolerEngine;
 import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.spooler.remote.RemoteClientTask;
+import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -1207,7 +1211,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Struct errors = null;
 		if (!stopOnError) errors = new StructImpl(StructImpl.TYPE_LINKED);
 
-		doCompileMapping(MAPPING_REGULAR, getString("admin", action, "virtual").toLowerCase(), stopOnError, getBool("ignoreScopes", null), errors);
+		doCompileMapping(MAPPING_REGULAR, getString("admin", action, "virtual").toLowerCase(), stopOnError, getBool("ignoreScopes", null), errors, getCompileThreads());
 
 		// Set errorVariable or throw if errors occurred
 		if (errors != null && errors.size() > 0) {
@@ -1242,6 +1246,22 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private Mapping doCompileMapping(short mappingType, String virtual, boolean stoponerror, Boolean ignoreScopes, Struct errors) throws PageException {
+		return doCompileMapping(mappingType, virtual, stoponerror, ignoreScopes, errors, 1);
+	}
+
+	/**
+	 * reads the optional attribute "threads" (default 1) and limits it to the number of available
+	 * processors
+	 */
+	private int getCompileThreads() throws PageException {
+		Object value = attributes.get("threads", null);
+		if (value == null) return 1;
+		int threads = Caster.toIntValue(value, -1);
+		if (threads < 1) throw new ApplicationException("Attribute [threads] for tag [admin] must be a number greater than or equal to 1, got [" + Caster.toString(value, "") + "]");
+		return Math.min(threads, Math.max(1, Runtime.getRuntime().availableProcessors()));
+	}
+
+	private Mapping doCompileMapping(short mappingType, String virtual, boolean stoponerror, Boolean ignoreScopes, Struct errors, int threads) throws PageException {
 
 		if (StringUtil.isEmpty(virtual)) return null;
 
@@ -1258,7 +1278,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			if (mapping.getVirtualLowerCaseWithSlash().equals(virtual)) {
 				boolean errorsPassedIn = errors != null;
 				if (errors == null) errors = stoponerror ? null : new StructImpl(StructImpl.TYPE_LINKED);
-				doCompileFile(mapping, mapping.getPhysical(), "", errors, ignoreScopes);
+				if (threads > 1) doCompileFilesParallel(mapping, mapping.getPhysical(), errors, ignoreScopes, threads);
+				else doCompileFile(mapping, mapping.getPhysical(), "", errors, ignoreScopes);
 				if (errors != null && errors.size() > 0 && !errorsPassedIn) {
 					StringBuilder sb = new StringBuilder();
 					Iterator<String> it = errors.keySet().iterator();
@@ -1289,69 +1310,229 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			}
 			else if (file.isFile()) {
 				PageSource ps = mapping.getPageSource(path);
-
-				PageContextImpl pci = (PageContextImpl) pageContext;
-				boolean envIgnoreScopes = pci.ignoreScopes();
 				try {
-					if (explicitIgnoreScope != null) pci.setIgnoreScopes(explicitIgnoreScope);
-					((PageSourceImpl) ps).clear();
-					((PageSourceImpl) ps).loadPage(pageContext, explicitIgnoreScope != null);
-					// pageContext.compile(ps);
+					compilePage(pageContext, ps, explicitIgnoreScope);
 				}
 				catch (PageException pe) {
-					String template = ps.getDisplayPath();
-
-					if (errors != null) {
-						// Store structured error information
-						Struct errorInfo = new StructImpl();
-						errorInfo.set("message", pe.getMessage());
-						errorInfo.set("detail", pe.getDetail());
-
-						if (pe instanceof PageExceptionImpl) {
-							try {
-								PageExceptionImpl pei = (PageExceptionImpl) pe;
-								Array context = pei.getTagContext(configWeb);
-								if (context.size() > 0) {
-									Struct firstContext = (Struct) context.getE(1);
-									errorInfo.set("line", firstContext.get("line", null));
-									errorInfo.set("column", firstContext.get("column", null));
-								}
-							}
-							catch (Throwable t) {
-								ExceptionUtil.rethrowIfNecessary(t);
-							}
-						}
-
-						errors.put(template, errorInfo);
-					}
-					else {
-						// Original behavior for throwing
-						StringBuilder msg = new StringBuilder(pe.getMessage());
-						msg.append(", Error Occurred in File [");
-						msg.append(template);
-						if (pe instanceof PageExceptionImpl) {
-							try {
-								PageExceptionImpl pei = (PageExceptionImpl) pe;
-								Array context = pei.getTagContext(configWeb);
-								if (context.size() > 0) {
-									msg.append(":");
-									msg.append(Caster.toString(((Struct) context.getE(1)).get("line")));
-								}
-							}
-							catch (Throwable t) {
-								ExceptionUtil.rethrowIfNecessary(t);
-							}
-						}
-						msg.append("]");
-						throw new ApplicationException(msg.toString());
-					}
-
-				}
-				finally {
-					pci.setIgnoreScopes(envIgnoreScopes);
+					handleCompileError(ps, pe, errors);
 				}
 			}
 		}
+	}
+
+	/**
+	 * (re)compiles a single page using the given PageContext. The ignoreScopes setting of that
+	 * PageContext is only changed for the duration of the compilation, so every thread must use its own
+	 * PageContext.
+	 */
+	private static void compilePage(PageContext pc, PageSource ps, Boolean explicitIgnoreScope) throws PageException {
+		PageContextImpl pci = (PageContextImpl) pc;
+		boolean envIgnoreScopes = pci.ignoreScopes();
+		try {
+			if (explicitIgnoreScope != null) pci.setIgnoreScopes(explicitIgnoreScope);
+			((PageSourceImpl) ps).clear();
+			((PageSourceImpl) ps).loadPage(pc, explicitIgnoreScope != null);
+			// pageContext.compile(ps);
+		}
+		finally {
+			pci.setIgnoreScopes(envIgnoreScopes);
+		}
+	}
+
+	/**
+	 * handles a compile error: when errors is not null the error is stored in it, otherwise an
+	 * exception is thrown. Must be called from the request thread only, the errors struct is not
+	 * thread safe.
+	 */
+	private void handleCompileError(PageSource ps, PageException pe, Struct errors) throws PageException {
+		String template = ps.getDisplayPath();
+
+		if (errors != null) {
+			// Store structured error information
+			Struct errorInfo = new StructImpl();
+			errorInfo.set("message", pe.getMessage());
+			errorInfo.set("detail", pe.getDetail());
+
+			if (pe instanceof PageExceptionImpl) {
+				try {
+					PageExceptionImpl pei = (PageExceptionImpl) pe;
+					Array context = pei.getTagContext(configWeb);
+					if (context.size() > 0) {
+						Struct firstContext = (Struct) context.getE(1);
+						errorInfo.set("line", firstContext.get("line", null));
+						errorInfo.set("column", firstContext.get("column", null));
+					}
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+			}
+
+			errors.put(template, errorInfo);
+		}
+		else {
+			// Original behavior for throwing
+			StringBuilder msg = new StringBuilder(pe.getMessage());
+			msg.append(", Error Occurred in File [");
+			msg.append(template);
+			if (pe instanceof PageExceptionImpl) {
+				try {
+					PageExceptionImpl pei = (PageExceptionImpl) pe;
+					Array context = pei.getTagContext(configWeb);
+					if (context.size() > 0) {
+						msg.append(":");
+						msg.append(Caster.toString(((Struct) context.getE(1)).get("line")));
+					}
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+			}
+			msg.append("]");
+			throw new ApplicationException(msg.toString());
+		}
+	}
+
+	private void collectCompileSources(Mapping mapping, Resource file, String path, List<PageSource> sources) {
+		if (ResourceUtil.exists(file)) {
+			if (file.isDirectory()) {
+				Resource[] files = file.listResources(FILTER_CFML_TEMPLATES);
+				if (files != null) for (int i = 0; i < files.length; i++) {
+					collectCompileSources(mapping, files[i], path + '/' + files[i].getName(), sources);
+				}
+			}
+			else if (file.isFile()) {
+				sources.add(mapping.getPageSource(path));
+			}
+		}
+	}
+
+	/**
+	 * Same as doCompileFile, but the templates are compiled by up to "threads" worker threads. Every
+	 * worker has its own (stateless) clone of the PageContext, so neither the PageContext nor the
+	 * ignoreScopes setting is shared between threads. The errors struct is only touched by the calling
+	 * thread, after all workers are done, in the same order a single threaded compilation would have
+	 * used. Because the templates are handed out in that order and a failure only prevents templates
+	 * from being picked up that come later, the first error (in template order) is the same as for a
+	 * single threaded compilation.
+	 */
+	private void doCompileFilesParallel(Mapping mapping, Resource root, Struct errors, Boolean explicitIgnoreScope, int threads) throws PageException {
+		final List<PageSource> sources = new ArrayList<PageSource>();
+		collectCompileSources(mapping, root, "", sources);
+		final int size = sources.size();
+		final int count = Math.min(threads, size);
+
+		// nothing to parallelize
+		if (count < 2) {
+			for (PageSource ps: sources) {
+				try {
+					compilePage(pageContext, ps, explicitIgnoreScope);
+				}
+				catch (PageException pe) {
+					handleCompileError(ps, pe, errors);
+				}
+			}
+			return;
+		}
+
+		// without a place to collect the errors, we stop at the first error
+		final boolean stopOnAnyError = errors == null;
+		final boolean parentIgnoreScopes = ((PageContextImpl) pageContext).ignoreScopes();
+		final Throwable[] failures = new Throwable[size]; // every slot is written by one thread only, the join makes it visible to the caller
+		final AtomicInteger next = new AtomicInteger();
+		final AtomicBoolean stop = new AtomicBoolean();
+		final PageContextImpl[] pcs = new PageContextImpl[count];
+		final Thread[] workers = new Thread[count];
+		final CFMLFactory factory = pageContext.getConfig().getFactory();
+		boolean interrupted = false;
+		try {
+			// the clones are created by the request thread, as they are derived from the request
+			for (int i = 0; i < count; i++) {
+				pcs[i] = ThreadUtil.clonePageContext(pageContext, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, true, false, false);
+				pcs[i].setIgnoreScopes(parentIgnoreScopes);
+			}
+
+			for (int i = 0; i < count; i++) {
+				final PageContextImpl pc = pcs[i];
+				workers[i] = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						ThreadLocalPageContext.registerChild(pc);
+						try {
+							while (!stop.get()) {
+								int index = next.getAndIncrement();
+								if (index >= size) break;
+								try {
+									compilePage(pc, sources.get(index), explicitIgnoreScope);
+								}
+								catch (Throwable t) {
+									failures[index] = t;
+									// a PageException is a regular compile error, everything else is fatal
+									if (stopOnAnyError || !(t instanceof PageException)) stop.set(true);
+								}
+							}
+						}
+						finally {
+							// the clone belongs to this thread, so it is released by this thread
+							try {
+								factory.releasePageContext(pc);
+							}
+							finally {
+								ThreadLocalPageContext.release();
+							}
+						}
+					}
+				}, "compile-mapping-" + i);
+				workers[i].setDaemon(true);
+				workers[i].start();
+			}
+
+			// wait for all workers, if we get interrupted we stop handing out templates but still wait for the
+			// templates in process, so nothing is running anymore when we return
+			for (int i = 0; i < count; i++) {
+				while (true) {
+					try {
+						if (workers[i] != null) workers[i].join();
+						break;
+					}
+					catch (InterruptedException ie) {
+						interrupted = true;
+						stop.set(true);
+					}
+				}
+			}
+		}
+		finally {
+			stop.set(true);
+			for (int i = 0; i < count; i++) {
+				if (workers[i] != null) {
+					// only reached with a running worker when starting a worker failed
+					while (workers[i].isAlive()) {
+						try {
+							workers[i].join();
+						}
+						catch (InterruptedException ie) {
+							interrupted = true;
+						}
+					}
+				}
+				// a clone without a worker was never handed over, so we release it here
+				if (pcs[i] != null && workers[i] == null) factory.releasePageContext(pcs[i]);
+			}
+			if (interrupted) Thread.currentThread().interrupt();
+		}
+
+		// report in template order
+		for (int i = 0; i < size; i++) {
+			Throwable t = failures[i];
+			if (t == null) continue;
+			if (t instanceof PageException) handleCompileError(sources.get(i), (PageException) t, errors);
+			else if (t instanceof RuntimeException) throw (RuntimeException) t;
+			else if (t instanceof java.lang.Error) throw (java.lang.Error) t;
+			else throw Caster.toPageException(t);
+		}
+
+		if (interrupted) throw new ApplicationException("Compilation of mapping [" + mapping.getVirtual() + "] was interrupted");
 	}
 
 	/**
