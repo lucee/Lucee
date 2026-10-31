@@ -125,7 +125,6 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 						Caster.toLongValue(ConfigFactoryImpl.getAttr(config, dataSource, "metaCacheTimeout"), 60000),
 						ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "blob"), true),
 						ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "clob"), true),
-						Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "allow"), DataSource.ALLOW_ALL),
 						ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "validate"), false),
 						ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, dataSource, "storage"), false),
 						ConfigFactoryImpl.getAttr(config, dataSource, "timezone"), ConfigUtil.getAsStruct(config, dataSource, true, "custom"),
@@ -164,12 +163,12 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 
 	private static DataSourceImpl createDatasource(ConfigPro config, String datasourceName, ClassDefinition cd, String server, String databasename, int port, String dsn,
 			String bundleName, String bundleVersion, String user, String pass, TagListener listener, int connectionLimit, int idleTimeout, int liveTimeout, int minIdle,
-			int maxIdle, int maxTotal, long metaCacheTimeout, boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom,
+			int maxIdle, int maxTotal, long metaCacheTimeout, boolean blob, boolean clob, boolean validate, boolean storage, String timezone, Struct custom,
 			String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections)
 			throws BundleException, ClassException, SQLException {
 
 		return new DataSourceImpl(datasourceName, cd, server, dsn, bundleName, bundleVersion, databasename, port, user, pass, listener, connectionLimit, idleTimeout, liveTimeout,
-				minIdle, maxIdle, maxTotal, metaCacheTimeout, blob, clob, allow, custom, false, validate, storage,
+				minIdle, maxIdle, maxTotal, metaCacheTimeout, blob, clob, custom, false, validate, storage,
 				StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive,
 				alwaysResetConnections, ThreadLocalPageContext.getLog(config, "application"));
 

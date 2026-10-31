@@ -959,13 +959,13 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 	private static void setDatasource(ConfigServerImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
 			int port, String dsn, String bundleName, String bundleVersion, String user, String pass, TagListener listener, int connectionLimit, int idleTimeout, int liveTimeout,
-			int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom,
+			int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, boolean blob, boolean clob, boolean validate, boolean storage, String timezone, Struct custom,
 			String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections)
 			throws BundleException, ClassException, SQLException {
 
 		datasources.put(datasourceName.toLowerCase(),
 				new DataSourceImpl(datasourceName, cd, server, dsn, bundleName, bundleVersion, databasename, port, user, pass, listener, connectionLimit, idleTimeout, liveTimeout,
-						minIdle, maxIdle, maxTotal, metaCacheTimeout, blob, clob, allow, custom, false, validate, storage,
+						minIdle, maxIdle, maxTotal, metaCacheTimeout, blob, clob, custom, false, validate, storage,
 						StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout,
 						requestExclusive, alwaysResetConnections, ThreadLocalPageContext.getLog(config, "application")));
 

@@ -299,15 +299,15 @@ component {
 	* @blob Enable binary large object retrieval (BLOB)
 	* @clob Enable long text retrieval (CLOB)
 	* @validate Validate the connection before use (only works with JDBC 4.0 Drivers)
-	* @allowedSelect allow database permission for select
-	* @allowedInsert allow database permission for insert
-	* @allowedUpdate allow database permission for update
-	* @allowedDelete allow database permission for delete
-	* @allowedAlter allow database permission for alter
-	* @allowedDrop allow database permission for drop
-	* @allowedRevoke allow database permission for revoke
-	* @allowedCreate allow database permission for create
-	* @allowedGrant allow database permission for grant
+	* @allowedSelect deprecated and ignored, per-datasource SQL restrictions were removed in Lucee 9
+	* @allowedInsert deprecated and ignored, per-datasource SQL restrictions were removed in Lucee 9
+	* @allowedUpdate deprecated and ignored, per-datasource SQL restrictions were removed in Lucee 9
+	* @allowedDelete deprecated and ignored, per-datasource SQL restrictions were removed in Lucee 9
+	* @allowedAlter deprecated and ignored, per-datasource SQL restrictions were removed in Lucee 9
+	* @allowedDrop deprecated and ignored, per-datasource SQL restrictions were removed in Lucee 9
+	* @allowedRevoke deprecated and ignored, per-datasource SQL restrictions were removed in Lucee 9
+	* @allowedCreate deprecated and ignored, per-datasource SQL restrictions were removed in Lucee 9
+	* @allowedGrant deprecated and ignored, per-datasource SQL restrictions were removed in Lucee 9
 	* @storage Allow to use this datasource as client/session storage.
 	* @customUseUnicode Should the driver use Unicode character encodings when handling strings?
 	* @customCharacterEncoding Should only be used when the driver can't determine the character set mapping, or you are trying to 'force' the driver to use a character set that MySQL either doesn't natively support (such as UTF-8)If it is set to true, what character encoding should the driver use when dealing with strings?
@@ -414,15 +414,6 @@ component {
 			validate="#getArguments(arguments, 'validate',false)#"
 			storage="#getArguments(arguments, 'storage',false)#"
 
-			allowed_select="#getArguments(arguments, 'allowedSelect',false)#"
-			allowed_insert="#getArguments(arguments, 'allowedInsert',false)#"
-			allowed_update="#getArguments(arguments, 'allowedUpdate',false)#"
-			allowed_delete="#getArguments(arguments, 'allowedDelete',false)#"
-			allowed_alter="#getArguments(arguments, 'allowedAlter',false)#"
-			allowed_drop="#getArguments(arguments, 'allowedDrop',false)#"
-			allowed_revoke="#getArguments(arguments, 'allowedRevoke',false)#"
-			allowed_create="#getArguments(arguments, 'allowedCreate',false)#"
-			allowed_grant="#getArguments(arguments, 'allowedGrant',false)#"
 			verify="#arguments.verify#"
 			custom="#arguments.custom#"
 			dbdriver="#arguments.type#"
