@@ -23,10 +23,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -1348,8 +1348,9 @@ public final class ASMUtil {
 		return Opcodes.V28;
 	}
 
-	private static Map<Type, String> names = new HashMap<>();
-	private static Map<Type, String> descriptors = new HashMap<>();
+	// used by every compilation, so it needs to be thread safe (compiling in parallel)
+	private static Map<Type, String> names = new ConcurrentHashMap<>();
+	private static Map<Type, String> descriptors = new ConcurrentHashMap<>();
 
 	public static String getClassName(Type type) {
 		String name = names.get(type);

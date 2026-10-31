@@ -36,26 +36,38 @@ public final class ListQualify extends BIF {
 	private static final long serialVersionUID = -7450079285934992224L;
 
 	public static String call(PageContext pc, String list, String qualifier) {
-		return call(pc, list, qualifier, ",", "all", false, false);
+		return qualify(list, qualifier, ",", "all", false, false);
 	}
 
 	public static String call(PageContext pc, String list, String qualifier, String delimiter) {
-		return call(pc, list, qualifier, delimiter, "all", false, false);
+		return qualify(list, qualifier, delimiter, "all", false, false);
 	}
 
 	public static String call(PageContext pc, String list, String qualifier, String delimiter, String elements) {
-		return call(pc, list, qualifier, delimiter, elements, false, false);
+		return qualify(list, qualifier, delimiter, elements, false, false);
 	}
 
 	public static String call(PageContext pc, String list, String qualifier, String delimiter, String elements, boolean includeEmptyFields) {
-		return call(pc, list, qualifier, delimiter, elements, includeEmptyFields, false);
+		return qualify(list, qualifier, delimiter, elements, includeEmptyFields, false);
 	}
 
-	public static String call(PageContext pc, String list, String qualifier, String delimiter, String elements, boolean includeEmptyFields, boolean psq // this is used only
+	public static String call(PageContext pc, String list, String qualifier, String delimiter, String elements, boolean includeEmptyFields, boolean multiCharacterDelimiter)
+			throws PageException {
+		return call(pc, list, qualifier, delimiter, elements, includeEmptyFields, multiCharacterDelimiter, false);
+	}
+
+	public static String call(PageContext pc, String list, String qualifier, String delimiter, String elements, boolean includeEmptyFields, boolean multiCharacterDelimiter,
+			boolean psq // this is used only
 	// internally by lucee,
 	// search for "PSQ-BIF" in
 	// code
-	) {
+	) throws PageException {
+		if (!ListUtil.isMultiCharDelimiter(delimiter, multiCharacterDelimiter)) return qualify(list, qualifier, delimiter, elements, includeEmptyFields, psq);
+		char c = ListUtil.freeChar(list, qualifier);
+		return ListUtil.unmask(qualify(ListUtil.mask(list, delimiter, c), qualifier, String.valueOf(c), elements, includeEmptyFields, psq), delimiter, c);
+	}
+
+	private static String qualify(String list, String qualifier, String delimiter, String elements, boolean includeEmptyFields, boolean psq) {
 
 		if (list.length() == 0) return "";
 		if (psq) list = StringUtil.replace(list, "'", "''", false);
@@ -197,8 +209,10 @@ public final class ListQualify extends BIF {
 		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]));
 		if (args.length == 5)
 			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]), Caster.toBooleanValue(args[4]));
+		if (args.length == 6) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]),
+				Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]));
 
-		throw new FunctionException(pc, "ListQualify", 2, 5, args.length);
+		throw new FunctionException(pc, "ListQualify", 2, 6, args.length);
 	}
 
 }

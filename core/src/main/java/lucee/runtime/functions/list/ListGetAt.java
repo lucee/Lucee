@@ -47,11 +47,19 @@ public final class ListGetAt extends BIF {
 		return rtn;
 	}
 
+	public static String call(PageContext pc, String list, Number posNumber, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
+		if (!ListUtil.isMultiCharDelimiter(delimiter, multiCharacterDelimiter)) return call(pc, list, posNumber, delimiter, includeEmptyFields);
+		char c = ListUtil.freeChar(list);
+		return ListUtil.unmask(call(pc, ListUtil.mask(list, delimiter, c), posNumber, String.valueOf(c), includeEmptyFields), delimiter, c);
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), ",", false);
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), false);
 		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]));
-		throw new FunctionException(pc, "ListGetAt", 2, 4, args.length);
+		if (args.length == 5)
+			return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), Caster.toBooleanValue(args[4]));
+		throw new FunctionException(pc, "ListGetAt", 2, 5, args.length);
 	}
 }
