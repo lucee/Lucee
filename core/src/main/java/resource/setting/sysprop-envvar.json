@@ -408,7 +408,7 @@
 	{
 		"sysprop": "lucee.enable.warmup.compile",
 		"envvar": "LUCEE_ENABLE_WARMUP_COMPILE",
-		"desc": "Boolean to enable/disable the compile of all templates (`.cfm`, `.cfc`, `.cfs`) of the mappings during warmup, so the class files exist when the server is started for real. Only has an effect if warmup is enabled (`LUCEE_ENABLE_WARMUP`). Mappings that only have an archive are skipped, templates that fail to compile are logged, but do not fail the warmup",
+		"desc": "Boolean to enable/disable the compile of all templates (`.cfm`, `.cfc`, `.cfs`) of the mappings during warmup, so the class files exist when the server is started for real. Only has an effect if warmup is enabled (`LUCEE_ENABLE_WARMUP`). Mappings that only have an archive are skipped, templates that fail to compile are logged, but do not fail the warmup. The exception is a component whose `javasettings` maven dependencies can not be resolved, that fails the warmup",
 		"category": "deployment",
 		"type": "boolean",
 		"default": false,
