@@ -43,6 +43,14 @@ public final class OpBool extends ExpressionBase implements ExprBoolean {
 	private ExprBoolean right;
 	private int operation;
 
+	public ExprBoolean getLeft() {
+		return left;
+	}
+
+	public ExprBoolean getRight() {
+		return right;
+	}
+
 	/**
 	 *
 	 * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(lucee.transformer.bytecode.BytecodeContext,
