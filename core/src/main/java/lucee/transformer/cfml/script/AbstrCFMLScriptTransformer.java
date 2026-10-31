@@ -2301,8 +2301,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private final Statement __singleAttrStatement(Body parent, Data data, TagLibTag tlt, boolean allowTwiceAttr) throws TemplateException {
 		String tagName = tlt.getName();
 		if (data.srcCode.forwardIfCurrent(tagName)) {
-			// the name has to be followed by a space, a line feed, a semicolon or the end of the block
-			if (!data.srcCode.isAfterLast() && !Character.isWhitespace(data.srcCode.getCurrent()) && !data.srcCode.isCurrent(';') && !data.srcCode.isCurrent('}')) {
+			// the name has to be followed by a space, a line feed, a semicolon, the end of the block or, for a
+			// tag with a body, the opening bracket of the body (LDEV-5310)
+			if (!data.srcCode.isAfterLast() && !Character.isWhitespace(data.srcCode.getCurrent()) && !data.srcCode.isCurrent(';') && !data.srcCode.isCurrent('}')
+					&& !(tlt.getHasBody() && data.srcCode.isCurrent('{'))) {
 				data.srcCode.setPos(data.srcCode.getPos() - tagName.length());
 				return null;
 			}
