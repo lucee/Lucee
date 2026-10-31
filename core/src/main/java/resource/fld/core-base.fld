@@ -7949,12 +7949,24 @@ Default list delimiter: comma character.</description>
 		</argument>
 		<argument>
 			<name>numIterations</name>
-			<type>number</type>
+			<alias>iterations</alias>
+			<type>any</type>
 			<required>No</required>
-			<description>The number of times to iterate hashing.
+			<description>The number of times to iterate hashing (a number).
 			A greater number of iterations will result in a cryptographically stronger hash but will also take more time to generate that hash.
 			The default value is 1. 
-			For algorithm quick, only 1 is allowed </description>
+			For algorithm quick, only 1 is allowed.
+			For compatibility with Adobe ColdFusion, which has outputEncoding as the 4th argument, a non numeric value (hex, base64 or base64url) passed as 4th positional argument is handled as outputEncoding and the 5th positional argument as number of iterations.</description>
+		</argument>
+		<argument>
+			<name>outputEncoding</name>
+			<type>any</type>
+			<required>No</required>
+			<description>The format of the returned hash value (the digest). Supported are the following values:
+- hex: (default) the digest as upper case hexadecimal string.
+- base64: the digest as base64 string (with padding).
+- base64url: the digest as url safe base64 string (using - and _ instead of + and /, without padding).
+For algorithm quick, only hex is allowed.</description>
 		</argument>
 		<return>
 			<type>string</type>
