@@ -82,6 +82,7 @@ public final class QueryBean implements Serializable {
 	public TimeZone timezone;
 	public TimeZone tmpTZ;
 	public boolean lazy;
+	public Boolean includeSQL;
 	public Object params;
 	public int nestingLevel = 0;
 	public boolean setReturnVariable = false;
@@ -122,6 +123,7 @@ public final class QueryBean implements Serializable {
 		timezone = null;
 		tmpTZ = null;
 		lazy = false;
+		includeSQL = null;
 		params = null;
 		nestingLevel = 0;
 		rtn = null;

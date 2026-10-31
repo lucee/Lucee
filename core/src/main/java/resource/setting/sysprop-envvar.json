@@ -1070,6 +1070,16 @@
 		"default": 0
 	},
 	{
+		"sysprop": "lucee.query.result.includesql",
+		"envvar": "LUCEE_QUERY_RESULT_INCLUDESQL",
+		"desc": "Defines if the struct defined with the attribute `result` of cfquery (or the option `result` of queryExecute) contains the keys `sql` and `sqlparameters`. Set to `false` to leave them out, for example to save memory on queries with many parameters. Can be overridden per application with `this.query.includeSQL` and per query with the attribute `includeSQL`. Default: true",
+		"category": "query",
+		"tags": [ "cfquery" ],
+		"functions": [ "queryExecute" ],
+		"type": "boolean",
+		"default": true
+	},
+	{
 		"sysprop": "lucee.queue.enable",
 		"envvar": "LUCEE_QUEUE_ENABLE",
 		"desc": "Boolean value to enable or disable the Lucee request queue",

@@ -4700,6 +4700,19 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>boolean</type>
+			<name>includeSQL</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+			Only used together with the attribute "result". Defines if the result struct contains the keys "sql" and "sqlparameters".
+			Set to false to leave them out, for example to save memory when running queries with a lot of parameters.
+			If not set, the setting "this.query.includeSQL" in the Application.cfc is used, then the environment variable
+			"LUCEE_QUERY_RESULT_INCLUDESQL" (system property "lucee.query.result.includesql"), the default is true.
+			Note that "sql" contains the SQL string with "?" placeholders, the parameter values are in "sqlparameters".
+			</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
 			<name>lazy</name>
 			<status>deprecated</status>
 			<required>false</required>
