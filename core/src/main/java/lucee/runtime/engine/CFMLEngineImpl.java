@@ -117,6 +117,7 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.ResetFilter;
 import lucee.runtime.config.WarmupCompile;
+import lucee.runtime.config.WarmupJavaSettings;
 import lucee.runtime.debug.DebuggerPrintStream;
 import lucee.runtime.engine.listener.CFMLServletContextListener;
 import lucee.runtime.exp.Abort;
@@ -1833,6 +1834,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (warmup) {
 			// LDEV-6744 a failing or timed out onBuild() must fail the warmup (non zero exit code)
 			boolean success = onStartCall(config, reload, true);
+			// LDEV-5281 a javasettings maven dependency that could not be resolved while compiling fails the warmup
+			boolean mavenFailed = WarmupJavaSettings.hasFailures();
+			if (mavenFailed) {
+				success = false;
+				warmupMavenFailures(config);
+			}
 
 			// make sure all .CFConfig.json settings are loaded
 			ConfigUtil.getConfigServerImpl(config).touchAll(null);
@@ -1852,7 +1859,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				LogUtil.log(config, Log.LEVEL_INFO, "application", msg);
 			}
 			else {
-				String msg = "Lucee warmup failed, onBuild() threw an exception or did not finish in time. Shutting down.";
+				String msg = mavenFailed ? "Lucee warmup failed, the maven dependencies of a javasettings could not be resolved. Shutting down."
+						: "Lucee warmup failed, onBuild() threw an exception or did not finish in time. Shutting down.";
 				System.err.println(msg);
 				LogUtil.logGlobal(config, Log.LEVEL_ERROR, "config", msg);
 				LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);
@@ -1891,12 +1899,28 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		LogUtil.logGlobal(cs, level, "config", summary);
 		LogUtil.log(config, level, "application", summary);
 
-		// compile errors do not fail the warmup
+		// compile errors do not fail the warmup, except an unresolved javasettings maven dependency (LDEV-5281)
+		if (WarmupJavaSettings.hasFailures()) {
+			warmupMavenFailures(cs);
+			String msg = "Lucee warmup failed, the maven dependencies of a javasettings could not be resolved. Shutting down.";
+			System.err.println(msg);
+			LogUtil.logGlobal(cs, Log.LEVEL_ERROR, "config", msg);
+			LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);
+			shutdownFelix();
+			System.exit(1);
+		}
 		String msg = "Lucee warmup completed. Shutting down.";
 		LogUtil.logGlobal(cs, Log.LEVEL_INFO, "config", msg);
 		LogUtil.log(config, Log.LEVEL_INFO, "application", msg);
 		shutdownFelix();
 		System.exit(0);
+	}
+
+	private static void warmupMavenFailures(Config config) {
+		for (String failure: WarmupJavaSettings.getFailures()) {
+			System.err.println("Lucee warmup: " + failure);
+			LogUtil.log(config, Log.LEVEL_ERROR, "application", "warmup: " + failure);
+		}
 	}
 
 	public void onStart(ConfigWebPro config, boolean reload) {
