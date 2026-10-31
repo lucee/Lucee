@@ -49,6 +49,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.DatasourceConnPool;
@@ -296,6 +297,10 @@ public final class Controler extends ParentThreasRefThread {
 
 	}
 
+	public static boolean isDeployCheckDue(boolean do10Seconds, ConfigServer cs) {
+		return do10Seconds && ConfigUtil.getConfigServerImpl(cs).isDeployWatch();
+	}
+
 	private void control(CFMLFactoryImpl[] factories, boolean firstRun, boolean startupCleanup, Log log) {
 		long now = System.currentTimeMillis();
 		boolean do10Seconds = last10SecondsInterval + 10000 < now;
@@ -316,8 +321,8 @@ public final class Controler extends ParentThreasRefThread {
 		if (doHour) lastHourInterval = now;
 
 		// every 10 seconds (the deploy folder is already processed synchronously at startup, so the
-		// periodic check can wait for the startup delay)
-		if (do10Seconds) {
+		// periodic check can wait for the startup delay), unless disabled with deployWatch (LDEV-5018)
+		if (isDeployCheckDue(do10Seconds, configServer)) {
 			// deploy extensions, archives ...
 			try {
 				DeployHandler.deploy(configServer, configServer.getLog("deploy"), false);

@@ -534,6 +534,10 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("By default client management can be enabled. This behaviour can be overridden by the tag cfapplication.");
 	private final ConfigValue<Boolean> clientManagement = new ConfigValue<>(metaClientManagement);
 
+	public final static Prop<Boolean> metaDeployWatch = Prop.bool().keys("deployWatch").systemPropEnvVar("lucee.deploy.watch").defaultValue(true).description(
+			"By default Lucee checks the deploy folder (extensions, archives, ...) every 10 seconds for new files. Set this to false to disable this periodic check, for example on a production server. The deploy folder is still processed once when Lucee starts.");
+	private final ConfigValue<Boolean> deployWatch = new ConfigValue<>(metaDeployWatch);
+
 	public final static Prop<Boolean> metaClientCookies = Prop.bool().keys("clientCookies").defaultValue(true)
 			.description("Enable or disable client cookies. This behaviour can be overridden by the tag cfapplication.");
 	private final ConfigValue<Boolean> clientCookies = new ConfigValue<>(metaClientCookies);
@@ -2085,6 +2089,15 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public ConfigServerImpl resetSessionManagement() {
 		sessionManagement.reset();
+		return this;
+	}
+
+	public boolean isDeployWatch() {
+		return deployWatch.get(this, root);
+	}
+
+	public ConfigServerImpl resetDeployWatch() {
+		deployWatch.reset();
 		return this;
 	}
 
