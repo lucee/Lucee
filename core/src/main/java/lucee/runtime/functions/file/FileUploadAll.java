@@ -29,6 +29,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.tag.FileTag;
 import lucee.runtime.tag.util.FileUtil;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 
 public final class FileUploadAll extends BIF implements Function {
 
@@ -69,6 +70,16 @@ public final class FileUploadAll extends BIF implements Function {
 
 	public static Array call(PageContext pc, String destination, String accept, String nameConflict, boolean strict, Object allowedExtensions, Object blockedExtensions,
 			String mode, String attributes, Object acl) throws PageException {
+		return call(pc, destination, accept, nameConflict, strict, allowedExtensions, blockedExtensions, mode, attributes, acl, false, null);
+	}
+
+	public static Array call(PageContext pc, String destination, String accept, String nameConflict, boolean strict, Object allowedExtensions, Object blockedExtensions,
+			String mode, String attributes, Object acl, boolean continueOnError) throws PageException {
+		return call(pc, destination, accept, nameConflict, strict, allowedExtensions, blockedExtensions, mode, attributes, acl, continueOnError, null);
+	}
+
+	public static Array call(PageContext pc, String destination, String accept, String nameConflict, boolean strict, Object allowedExtensions, Object blockedExtensions,
+			String mode, String attributes, Object acl, boolean continueOnError, String errors) throws PageException {
 		int nc = FileUtil.toNameConflict(nameConflict);
 
 		// mode
@@ -86,7 +97,10 @@ public final class FileUploadAll extends BIF implements Function {
 			blockedFilter = FileUtil.toExtensionFilter(blockedExtensions);
 		}
 
-		return FileTag.actionUploadAll(pc, destination, nc, accept, allowedFilter, blockedFilter, strict, m, attributes, acl, null);
+		Array errs = continueOnError ? new ArrayImpl() : null;
+		Array result = FileTag.actionUploadAll(pc, destination, nc, accept, allowedFilter, blockedFilter, strict, m, attributes, acl, null, continueOnError, errs);
+		if (errs != null && !StringUtil.isEmpty(errors, true)) pc.setVariable(errors.trim(), errs);
+		return result;
 	}
 
 	@Override
@@ -104,6 +118,10 @@ public final class FileUploadAll extends BIF implements Function {
 				Caster.toString(args[5]), Caster.toString(args[6]), Caster.toString(args[7]));
 		else if (args.length == 9) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), args[4],
 				Caster.toString(args[5]), Caster.toString(args[6]), Caster.toString(args[7]), args[8]);
-		else throw new FunctionException(pc, "FileUploadAll", 1, 9, args.length);
+		else if (args.length == 10) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), args[4],
+				Caster.toString(args[5]), Caster.toString(args[6]), Caster.toString(args[7]), args[8], Caster.toBooleanValue(args[9]));
+		else if (args.length == 11) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), args[4],
+				Caster.toString(args[5]), Caster.toString(args[6]), Caster.toString(args[7]), args[8], Caster.toBooleanValue(args[9]), Caster.toString(args[10]));
+		else throw new FunctionException(pc, "FileUploadAll", 1, 11, args.length);
 	}
 }
