@@ -1278,6 +1278,8 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 				}
 			}
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "log")) {
+				// the console appender is forced for all logs, so out.log and err.log are not used
+				if (LogUtil.isForceConsoleAppender()) return iserror ? CFMLEngineImpl.CONSOLE_ERR : CFMLEngineImpl.CONSOLE_OUT;
 				try {
 					CFMLEngineFactory factory = ConfigUtil.getCFMLEngineFactory(config);
 					Resource root = ResourceUtil.toResource(factory.getResourceRoot());
