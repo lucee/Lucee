@@ -1929,6 +1929,25 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>Name of the result value (default:cffile)</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>continueOnError</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>9.0.0.0</introduced>
+			<description>for action "upload" and "uploadAll":
+false (default): the first file that is rejected throws an exception.
+true: a rejected file (file type not allowed, file already exists, form field not found) does not throw an exception and for "uploadAll" the remaining files are still uploaded. The result of a rejected file has fileWasSaved=false and the keys reason, message, detail, clientFile, clientFileExt and clientFileName.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>errors</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>9.0.0.0</introduced>
+			<description>for action "upload" and "uploadAll", only used when continueOnError is true:
+name of the variable that receives an array with one struct (reason, message, detail, clientFile, clientFileExt, clientFileName) for every rejected file, default is "cffile.uploadAllErrors" (when the attribute result is not used). reason is one of INVALID_FILE_TYPE, FILE_EXISTS or FORM_FILE_NOT_FOUND.</description>
+		</attribute>
+		<attribute>
 			<type>any</type>
 			<name>allowedExtensions</name>
 			<alias>allowExtension,allowedExtension</alias>
