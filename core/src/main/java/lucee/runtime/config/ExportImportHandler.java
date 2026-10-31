@@ -138,7 +138,7 @@ public final class ExportImportHandler {
 			list.add(m);
 			m.put("virtual", mapping.getVirtual());
 			m.put("inspect", ConfigUtil.inspectTemplate(mi.getInspectTemplateRaw(), ""));
-			m.put("toplevel", mapping.isTopLevel());
+			m.put("webAccessible", mapping.isTopLevel());
 			m.put("readonly", mapping.isReadonly());
 			m.put("hidden", mapping.isHidden());
 			m.put("physicalFirst", mapping.isPhysicalFirst());

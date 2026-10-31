@@ -674,8 +674,8 @@
       "physicalmissing": "Please enter a value for the resource (row ",
       "primaryhead": "Primary",
       "primaryheaddescription": "Sets where Lucee-files will first be searched",
-      "topleveldesc": "Make this mapping web-accessible (i.e., accessible via a browser or remote HTTP call, not supported for Application.cfc mappings)",
-      "toplevelhead": "Web Accessible",
+      "webaccessibledesc": "Make this mapping web-accessible (i.e., accessible via a browser or remote HTTP call, not supported for Application.cfc mappings)",
+      "webaccessiblehead": "Web Accessible",
       "trustedhead": "Inspect",
       "trustedheaddescription": "",
       "virtualhead": "Virtual"

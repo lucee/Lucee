@@ -867,7 +867,9 @@ public final class ConfigAdmin {
 			el.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
 		else el.removeEL(KeyImpl.init("inspectTemplateIntervalFast"));
 
-		el.setEL("topLevel", Caster.toString(toplevel));
+		el.setEL("webAccessible", Caster.toString(toplevel));
+		// remove the legacy name (alias) so we do not end up with duplicates
+		el.removeEL(KeyImpl.init("topLevel"));
 		el.setEL("readOnly", Caster.toString(readOnly));
 
 		// set / to the end
@@ -3985,7 +3987,9 @@ public final class ConfigAdmin {
 			virtual = StringUtil.unwrap(attr.getValue("mapping-virtual-path"));
 			name = ListUtil.trim(virtual, "/");
 			readOnly = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-readonly")), false);
-			topLevel = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-top-level")), false);
+			String strWebAccessible = StringUtil.unwrap(attr.getValue("mapping-web-accessible"));
+			if (StringUtil.isEmpty(strWebAccessible, true)) strWebAccessible = StringUtil.unwrap(attr.getValue("mapping-top-level"));
+			topLevel = Caster.toBooleanValue(strWebAccessible, false);
 
 			listMode = ConfigUtil.toListenerMode(StringUtil.unwrap(attr.getValue("mapping-listener-mode")), -1);
 			listType = ConfigUtil.toListenerType(StringUtil.unwrap(attr.getValue("mapping-listener-type")), -1);
@@ -4597,7 +4601,12 @@ public final class ConfigAdmin {
 					if (StringUtil.isEmpty(strSingleton, true)) strSingleton = map.get("listenersingleton");
 					singleton = Caster.toBoolean(strSingleton, null);
 
-					toplevel = Caster.toBooleanValue(map.get("toplevel"), false);
+					str = map.get("webAccessible");
+					if (StringUtil.isEmpty(str, true)) str = map.get("webaccessible");
+					if (StringUtil.isEmpty(str, true)) str = map.get("web-accessible");
+					if (StringUtil.isEmpty(str, true)) str = map.get("topLevel");
+					if (StringUtil.isEmpty(str, true)) str = map.get("toplevel");
+					toplevel = Caster.toBooleanValue(str, false);
 					readonly = Caster.toBooleanValue(map.get("readonly"), false);
 					_updateMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast, toplevel, lmode, ltype, singleton,
 							readonly);

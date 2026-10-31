@@ -685,7 +685,7 @@ component {
 			archive=arguments.archive
 			primary=arguments.primary
 			inspect=arguments.inspect
-			toplevel=true
+			webAccessible=true
 			remoteClients=variables.remoteClients;
 	}
 

@@ -66,7 +66,10 @@ public class MappingFactory implements PropFactory<Mapping> {
 
 		boolean readonly = ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, el, "readonly"), false);
 		boolean hidden = ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, el, "hidden"), false);
-		boolean toplevel = ConfigFactoryImpl.toBoolean(ConfigFactoryImpl.getAttr(config, el, "toplevel"), true);
+		// "webAccessible" is the primary name, "topLevel" is kept as an alias for existing configs
+		String strWebAccessible = ConfigFactoryImpl.getAttr(config, el, "webAccessible");
+		if (StringUtil.isEmpty(strWebAccessible, true)) strWebAccessible = ConfigFactoryImpl.getAttr(config, el, "toplevel");
+		boolean toplevel = ConfigFactoryImpl.toBoolean(strWebAccessible, true);
 
 		boolean appMapping = false;
 		boolean ignoreVirtual = false;
@@ -204,7 +207,9 @@ public class MappingFactory implements PropFactory<Mapping> {
 
 		properties.setEL(KeyConstants._hidden, PropFactory.createSimple("boolean", "If true, mapping is not visible in Admin."));
 
-		properties.setEL(KeyImpl.init("toplevel"), PropFactory.createSimple("boolean", "If true, search for files in this mapping if not found in current directory."));
+		Struct webAccessible = PropFactory.createSimple("boolean", "If true, the mapping is web accessible, i.e. files in this mapping can be called directly via a browser or remote HTTP call.");
+		properties.setEL(KeyImpl.init("webAccessible"), webAccessible);
+		properties.setEL(KeyImpl.init("topLevel"), webAccessible); // alias
 
 		return sct;
 	}

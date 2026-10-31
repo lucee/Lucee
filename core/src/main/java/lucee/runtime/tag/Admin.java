@@ -1155,7 +1155,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			attrs.putValue("mapping-hidden", Caster.toString(mapping.isHidden()));
 			attrs.putValue("mapping-physical-first", Caster.toString(mapping.isPhysicalFirst()));
 			attrs.putValue("mapping-readonly", Caster.toString(mapping.isReadonly()));
-			attrs.putValue("mapping-top-level", Caster.toString(mapping.isTopLevel()));
+			attrs.putValue("mapping-web-accessible", Caster.toString(mapping.isTopLevel()));
 			attrs.putValue("mapping-inspect", ConfigUtil.inspectTemplate(mapping.getInspectTemplateRaw(), ""));
 			attrs.putValue("mapping-listener-type", ConfigUtil.toListenerType(mapping.getListenerType(), ""));
 			attrs.putValue("mapping-listener-mode", ConfigUtil.toListenerMode(mapping.getListenerMode(), ""));
@@ -2248,7 +2248,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateMapping(getString("admin", action, "virtual"), getString("admin", action, "physical"), getString("admin", action, "archive"),
 				getString("admin", action, "primary"), ConfigUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED),
 				getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED), getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED),
-				Caster.toBooleanValue(getString("toplevel", "true")), ConfigUtil.toListenerMode(getString("listenerMode", ""), -1),
+				Caster.toBooleanValue(getString("webAccessible", getString("toplevel", "true"))), ConfigUtil.toListenerMode(getString("listenerMode", ""), -1),
 				ConfigUtil.toListenerType(getString("listenerType", ""), -1), getBool("listenerSingleton", null), Caster.toBooleanValue(getString("readonly", "false"))
 
 		);
@@ -2282,7 +2282,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sct.set("inspect", ConfigUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
 			sct.set("inspectTemplateIntervalSlow", m.getInspectTemplateAutoInterval(true));
 			sct.set("inspectTemplateIntervalFast", m.getInspectTemplateAutoInterval(false));
-			sct.set("toplevel", Caster.toBoolean(m.isTopLevel()));
+			sct.set("webAccessible", Caster.toBoolean(m.isTopLevel()));
+			sct.set("toplevel", Caster.toBoolean(m.isTopLevel())); // legacy name, kept so existing scripts keep working
 			sct.set("source", Prop.toSource(m.getSource(), ""));
 
 			pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
@@ -2303,7 +2304,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		Mapping[] mappings = config.getMappings();
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect",
-				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast", "toplevel", "listenerType", "listenerMode", "source" }, mappings.length, "query");
+				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast", "webAccessible", "toplevel", "listenerType", "listenerMode", "source" }, mappings.length, "query");
 
 		for (int i = 0; i < mappings.length; i++) {
 			MappingImpl m = (MappingImpl) mappings[i];
@@ -2319,7 +2320,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("inspect", row, ConfigUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
 			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
 			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
-			qry.setAt("toplevel", row, Caster.toBoolean(m.isTopLevel()));
+			qry.setAt("webAccessible", row, Caster.toBoolean(m.isTopLevel()));
+			qry.setAt("toplevel", row, Caster.toBoolean(m.isTopLevel())); // legacy name, kept so existing scripts keep working
 			qry.setAt("listenerType", row, ConfigUtil.toListenerType(m.getListenerType(), "inherit"));
 			qry.setAt("listenerMode", row, ConfigUtil.toListenerMode(m.getListenerMode(), "inherit"));
 			qry.setAt("source", row, Prop.toSource(m.getSource(), ""));
