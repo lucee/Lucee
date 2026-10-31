@@ -252,7 +252,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 											js,
 
-											JavaSettingsImpl.readJavaSettings(pc, sct)
+											JavaSettingsImpl.readJavaSettings(pc, sct, "interface [" + i.getPageSource().getDisplayPath() + "]")
 
 									);
 								}
@@ -269,7 +269,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 					}
 
 					// current
-					js = JavaSettingsImpl.merge(pc.getConfig(), js, JavaSettingsImpl.readJavaSettings(pc, properties.meta));
+					js = JavaSettingsImpl.merge(pc.getConfig(), js, JavaSettingsImpl.readJavaSettings(pc, properties.meta, "component [" + pageSource.getDisplayPath() + "]"));
 					if (mergeConfig) js = JavaSettingsImpl.merge(pc.getConfig(), ((ConfigPro) pc.getConfig()).getJavaSettings(), js);
 
 					return this.cp.setJavaSettings(js);
