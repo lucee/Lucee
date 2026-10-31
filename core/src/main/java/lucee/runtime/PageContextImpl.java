@@ -2464,7 +2464,7 @@ public final class PageContextImpl extends PageContext {
 						variablesScope().setEL(KeyConstants._cfcatch, catchBlock);
 						variablesScope().setEL(KeyConstants._catch, catchBlock);
 						variablesScope().setEL(KeyConstants._error, pe.getErrorBlock(this, new ErrorPageImpl()));
-						doInclude(template, false);
+						doIncludeErrorTemplate(template);
 						return;
 					}
 					catch (PageException e) {
@@ -2480,6 +2480,24 @@ public final class PageContextImpl extends PageContext {
 			}
 			catch (Exception e) {}
 		}
+	}
+
+	/**
+	 * include the configured error template. The template is usually a virtual path, but it can also
+	 * be the absolute path to a file, in that case the virtual lookup finds nothing and we fall back to
+	 * the file itself.
+	 */
+	private void doIncludeErrorTemplate(String template) throws PageException {
+		PageSource[] sources = getRelativePageSources(template);
+		PageSource best = PageSourceImpl.best(sources);
+		if (best == null || !PageSourceImpl.pageExist(best)) {
+			Resource res = config.getResource(template);
+			if (res.isAbsolute() && res.isFile()) {
+				PageSource ps = toPageSource(res, null);
+				if (ps != null) sources = new PageSource[] { ps };
+			}
+		}
+		_doInclude(sources, false, getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 
 	private int getStatusCode(PageException pe) {
