@@ -84,13 +84,23 @@ public final class ListSetAt extends BIF {
 		return sb.toString();
 	}
 
+	public static String call(PageContext pc, String list, Number posNumber, String value, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter)
+			throws PageException {
+		if (!ListUtil.isMultiCharDelimiter(delimiter, multiCharacterDelimiter)) return call(pc, list, posNumber, value, delimiter, includeEmptyFields);
+		// the value is set as it is, the elements are joined with the whole delimiter
+		char c = ListUtil.freeChar(list, value);
+		return ListUtil.unmask(call(pc, ListUtil.mask(list, delimiter, c), posNumber, value, String.valueOf(c), includeEmptyFields), delimiter, c);
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toNumber(pc, args[1]), Caster.toString(args[2]));
 		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toNumber(pc, args[1]), Caster.toString(args[2]), Caster.toString(args[3]));
 		if (args.length == 5)
 			return call(pc, Caster.toString(args[0]), Caster.toNumber(pc, args[1]), Caster.toString(args[2]), Caster.toString(args[3]), Caster.toBooleanValue(args[4]));
+		if (args.length == 6) return call(pc, Caster.toString(args[0]), Caster.toNumber(pc, args[1]), Caster.toString(args[2]), Caster.toString(args[3]),
+				Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]));
 
-		throw new FunctionException(pc, "ListSetAt", 3, 5, args.length);
+		throw new FunctionException(pc, "ListSetAt", 3, 6, args.length);
 	}
 }

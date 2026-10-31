@@ -44,13 +44,20 @@ public final class ListLen extends BIF {
 		return Caster.toNumber(pc, ListUtil.len(list, delimter, !includeEmptyFields));
 	}
 
+	public static Number call(PageContext pc, String list, String delimter, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
+		if (!ListUtil.isMultiCharDelimiter(delimter, multiCharacterDelimiter)) return call(pc, list, delimter, includeEmptyFields);
+		char c = ListUtil.freeChar(list);
+		return call(pc, ListUtil.mask(list, delimter, c), String.valueOf(c), includeEmptyFields);
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 1) return call(pc, Caster.toString(args[0]));
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]), Caster.toBooleanValue(args[3]));
 
-		throw new FunctionException(pc, "ListFirst", 1, 3, args.length);
+		throw new FunctionException(pc, "ListLen", 1, 4, args.length);
 	}
 
 }
