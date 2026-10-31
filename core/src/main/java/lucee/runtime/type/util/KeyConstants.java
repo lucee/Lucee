@@ -3064,6 +3064,9 @@ public final class KeyConstants {
 	public static final Key _clientfileext = init("clientfileext");
 	public static final Key _clientfilename = init("clientfilename");
 	public static final Key _attemptedserverfile = init("attemptedserverfile");
+	public static final Key _reason = init("reason");
+	public static final Key _uploadallerrors = init("uploadallerrors");
+	public static final Key _dest = init("dest");
 	public static final Key _serverdirectory = init("serverdirectory");
 	public static final Key _serverfilename = init("serverfilename");
 	public static final Key _serverfile = init("serverfile");

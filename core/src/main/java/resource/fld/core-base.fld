@@ -5634,6 +5634,14 @@ If omitted, the file's attributes are maintained.</description>
 			<required>no</required>
 			<description>only used for S3 Resources</description>
     	</argument>
+		<argument>
+			<name>continueOnError</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>false (default): the first file that is rejected throws an exception.
+if set to true, a rejected file (file type not allowed, file already exists, form field not found) does not throw an exception, the returned struct has fileWasSaved=false and the keys reason, message, detail, clientFile, clientFileExt and clientFileName.</description>
+			<introduced>9.0.0.0</introduced>
+    	</argument>
 		<return>
 			<type>struct</type>
 		</return>
@@ -5689,7 +5697,6 @@ if set to false, it supports file extension/mimetypes in the accept attribute</d
     	</argument>
 		<argument>
 			<name>mode</name>
-			<name>strict</name>
 			<type>string</type>
 			<required>no</required>
 			<description>Applies only to Solaris and HP-UX. Permissions. Octal values of UNIX chmod command. Assigned to owner, group, and other, respectively.</description>
@@ -5706,6 +5713,21 @@ If omitted, the file's attributes are maintained.</description>
 			<type>object</type>
 			<required>no</required>
 			<description>only used for S3 Resources</description>
+    	</argument>
+		<argument>
+			<name>continueOnError</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>false (default): the first file that is rejected throws an exception and the remaining files are not processed.
+if set to true, the remaining files are still uploaded when a file is rejected (file type not allowed, file already exists). The entry of a rejected file in the returned array has fileWasSaved=false and the keys reason, message, detail, clientFile, clientFileExt and clientFileName.</description>
+			<introduced>9.0.0.0</introduced>
+    	</argument>
+		<argument>
+			<name>errors</name>
+			<type>string</type>
+			<required>no</required>
+			<description>Name of the variable that receives an array with one struct (reason, message, detail, clientFile, clientFileExt, clientFileName) for every rejected file. Only used when continueOnError is true. reason is one of INVALID_FILE_TYPE, FILE_EXISTS or FORM_FILE_NOT_FOUND.</description>
+			<introduced>9.0.0.0</introduced>
     	</argument>
 		<return>
 			<type>array</type>
