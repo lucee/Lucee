@@ -150,6 +150,7 @@ public class POM {
 
 	static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String scope, String optional,
 			String checksum, int dependencyScope, int dependencyScopeManagement, boolean triggeerLoad, Log log) {
+		MavenUtil.validateCoordinates(groupId, artifactId, version);
 		String id = toId(localDirectory, groupId, artifactId, version, scope, optional, dependencyScope, dependencyScopeManagement);
 		return cache.computeIfAbsent(id, k -> new POM(localDirectory, repositories, groupId, artifactId, version, scope, optional, checksum, dependencyScope,
 				dependencyScopeManagement, triggeerLoad, log));
@@ -464,6 +465,8 @@ public class POM {
 	}
 
 	Resource local(Resource dir, String extension) {
+		MavenUtil.validateCoordinates(groupId, artifactId, version);
+		MavenUtil.validateCoordinate("extension", extension, false);
 		Resource parent = dir.getRealResource(groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/");
 		if (!parent.isDirectory()) parent.mkdirs();
 		return parent.getRealResource(artifactId + "-" + version + "." + extension);
@@ -472,6 +475,8 @@ public class POM {
 	public URL getArtifactX(String type, Collection<Repository> repositories) throws IOException {
 		if (repositories == null || repositories.isEmpty()) repositories = getRepositories();
 
+		MavenUtil.validateCoordinates(groupId, artifactId, version);
+		MavenUtil.validateCoordinate("type", type, false);
 		StringBuilder sb = null;
 		String scriptName = groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/" + artifactId + "-" + version + "." + type;
 		URL url = null;
