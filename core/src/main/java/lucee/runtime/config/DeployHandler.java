@@ -19,6 +19,7 @@
 package lucee.runtime.config;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -143,13 +144,22 @@ public final class DeployHandler {
 				if (engine != null && !StringUtil.isEmpty(extensionIds, true) && !extensionIds.equals(engine.getEnvExt())) {
 					try {
 						engine.setEnvExt(extensionIds);
-						List<ExtensionDefintion> extensions = RHExtension.toExtensionDefinitions(extensionIds);
+						List<String> malformed = new ArrayList<String>();
+						List<ExtensionDefintion> extensions = RHExtension.toExtensionDefinitions(extensionIds, malformed);
 						Resource configDir = CFMLEngineImpl.getSeverContextConfigDirectory(engine.getCFMLEngineFactory());
 						Map<ExtensionDefintion, Boolean> results = DeployHandler.deployExtensions(config, extensions.toArray(new ExtensionDefintion[extensions.size()]), log, force,
 								false);
 						boolean sucess = true;
 						for (Boolean b: results.values()) {
 							if (!Boolean.TRUE.equals(b)) sucess = false;
+						}
+						// LDEV-5272 malformed entries are failures as well, they are not silently dropped
+						for (String m: malformed) {
+							sucess = false;
+							String msg = "Failed to install the extensions defined in the system property [lucee.extensions] or environment variable [LUCEE_EXTENSIONS], malformed entry "
+									+ m;
+							log.log(Log.LEVEL_ERROR, "deploy handler", msg);
+							System.err.println(msg);
 						}
 
 						if (sucess && configDir != null) ConfigFactory.updateRequiredExtension(engine, configDir, log);

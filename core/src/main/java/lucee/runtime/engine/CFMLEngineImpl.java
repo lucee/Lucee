@@ -236,6 +236,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private static final String LOG_NAME = "deploy";
 	private static final String LOG_TYPE_NAME = "request";
 
+	/**
+	 * LDEV-5272 when true, an extension defined in lucee.extensions / LUCEE_EXTENSIONS that cannot be
+	 * installed (or an entry that cannot be parsed) aborts the startup
+	 */
+	public static final String SETTING_EXTENSIONS_FAIL_ON_ERROR = "lucee.extensions.fail.on.error";
+	private static final boolean EXTENSIONS_FAIL_ON_ERROR = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar(SETTING_EXTENSIONS_FAIL_ON_ERROR, null), false);
+
 	private static Map<String, CFMLFactory> initContextes = MapFactory.<String, CFMLFactory>getConcurrentMap();
 	private static Map<String, CFMLFactory> contextes = MapFactory.<String, CFMLFactory>getConcurrentMap();
 	private ConfigServerImpl configServer = null;
@@ -259,6 +266,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private String envExt;
 	private boolean quick;
 	private volatile boolean warmupCompilePending;
+	private volatile String extensionInstallFailure;
 
 	// private static CFMLEngineImpl engine=new CFMLEngineImpl();
 
@@ -515,10 +523,21 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (StringUtil.isEmpty(extensionIds, true)) extensionIds = StringUtil.unwrap(SystemUtil.getSystemPropOrEnvVar("lucee.extensions", null));
 
 		this.envExt = null;
+		// LDEV-5272 failures of the extensions defined in the env variable or system property
+		Set<String> envExtensionIds = new HashSet<String>();
+		List<String> envExtensionFailures = new ArrayList<String>();
 		if (!StringUtil.isEmpty(extensionIds, true)) {
 			this.envExt = extensionIds;
 			LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Extensions to install defined in env variable or system property:" + extensionIds);
-			extensions = toSet(extensions, RHExtension.toExtensionDefinitions(extensionIds));
+			List<String> malformed = new ArrayList<String>();
+			List<ExtensionDefintion> envDefinitions = RHExtension.toExtensionDefinitions(extensionIds, malformed);
+			for (ExtensionDefintion ed: envDefinitions) {
+				envExtensionIds.add(ed.getId() + "");
+			}
+			for (String m: malformed) {
+				envExtensionFailures.add("malformed entry " + m);
+			}
+			extensions = toSet(extensions, envDefinitions);
 		}
 
 		// install extension defined in .CFConfig.json
@@ -539,6 +558,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 						sucess = false;
 						if (failedSB.length() > 0) failedSB.append(", ");
 						failedSB.append(e.getKey().toString());
+						if (envExtensionIds.contains(e.getKey().getId() + "")) envExtensionFailures.add("failed to install [" + e.getKey() + "]");
 					}
 					// success
 					else {
@@ -551,12 +571,32 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			catch (PageException e) {
 				LogUtil.log(LOG_NAME, LOG_TYPE_NAME, e);
 				sucess = false;
+				if (!envExtensionIds.isEmpty()) envExtensionFailures.add("the installation failed with an exception: " + e.getMessage());
 			}
 			if (sucess && configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, null);
 			if (successSB.length() > 0) LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Successfully installed the following extensions: " + successSB);
-			if (failedSB.length() > 0) LogUtil.log(cs, Log.LEVEL_ERROR, LOG_NAME, LOG_TYPE_NAME, "Failed to install the following extensions: " + failedSB);
+			if (failedSB.length() > 0) {
+				String msg = "Failed to install the following extensions: " + failedSB;
+				LogUtil.log(cs, Log.LEVEL_ERROR, LOG_NAME, LOG_TYPE_NAME, msg);
+				System.err.println(msg);
+			}
 		}
 		else if (configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, null);
+
+		// LDEV-5272 invalid extensions defined in the env variable or system property
+		if (!envExtensionFailures.isEmpty()) {
+			String msg = "Failed to install the extensions defined in the system property [lucee.extensions] or environment variable [LUCEE_EXTENSIONS] ["
+					+ extensionIds + "]: " + String.join("; ", envExtensionFailures);
+			LogUtil.log(cs, Log.LEVEL_ERROR, LOG_NAME, LOG_TYPE_NAME, msg);
+			System.err.println(msg);
+			this.extensionInstallFailure = msg;
+			if (EXTENSIONS_FAIL_ON_ERROR && !isWarmup()) {
+				// the startup is aborted, with warmup the process exits with a non zero exit code, see onStart
+				// stop OSGi, otherwise its threads keep a standalone process (like the CLI) alive after the failed startup
+				shutdownFelix();
+				throw new IllegalStateException(msg + ". Startup aborted because [" + SETTING_EXTENSIONS_FAIL_ON_ERROR + "] is enabled.");
+			}
+		}
 
 		// extension to remove (we only have to remove in case we did not install an other version)
 
@@ -1827,12 +1867,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	public void onStart(ConfigServerImpl config, boolean reload) throws Exception {
-		Boolean build = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", ""), null);
-		if (build == null) build = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.build", ""), null);
-		boolean warmup = Boolean.TRUE.equals(build);
-		if (warmup) {
+		if (isWarmup()) {
+			// LDEV-5272 extensions defined in lucee.extensions that could not be installed fail the warmup, onBuild() is not called
+			String extFailure = extensionInstallFailure;
 			// LDEV-6744 a failing or timed out onBuild() must fail the warmup (non zero exit code)
-			boolean success = onStartCall(config, reload, true);
+			boolean success = extFailure == null && onStartCall(config, reload, true);
 
 			// make sure all .CFConfig.json settings are loaded
 			ConfigUtil.getConfigServerImpl(config).touchAll(null);
@@ -1852,7 +1891,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				LogUtil.log(config, Log.LEVEL_INFO, "application", msg);
 			}
 			else {
-				String msg = "Lucee warmup failed, onBuild() threw an exception or did not finish in time. Shutting down.";
+				String msg = extFailure != null ? "Lucee warmup failed, " + extFailure + ". Shutting down."
+						: "Lucee warmup failed, onBuild() threw an exception or did not finish in time. Shutting down.";
 				System.err.println(msg);
 				LogUtil.logGlobal(config, Log.LEVEL_ERROR, "config", msg);
 				LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);
@@ -1867,6 +1907,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				ConfigUtil.getConfigServerImpl(config).touchAll(null);
 			}
 		}
+	}
+
+	private static boolean isWarmup() {
+		Boolean build = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", ""), null);
+		if (build == null) build = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.build", ""), null);
+		return Boolean.TRUE.equals(build);
 	}
 
 	public boolean isWarmupCompilePending() {

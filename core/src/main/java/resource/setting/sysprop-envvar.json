@@ -440,6 +440,14 @@
 		"default": true
 	},
 	{
+		"sysprop": "lucee.extensions.fail.on.error",
+		"envvar": "LUCEE_EXTENSIONS_FAIL_ON_ERROR",
+		"desc": "A boolean value that makes an invalid `LUCEE_EXTENSIONS` (`lucee.extensions`) fatal on startup. When true, the startup is aborted if an extension defined in `LUCEE_EXTENSIONS` cannot be installed or an entry of the list cannot be parsed. When false (default), the error is written to the deploy log and to stderr and the startup continues. In warmup mode (`LUCEE_ENABLE_WARMUP`) such a failure always makes the process exit with a non-zero exit code, independent of this setting",
+		"category": "extensions",
+		"type": "boolean",
+		"default": false
+	},
+	{
 		"sysprop": "lucee.extensions.config.only",
 		"envvar": "LUCEE_EXTENSIONS_CONFIG_ONLY",
 		"desc": "Controls whether the manifest's Require-Extension entries are honoured on startup. When true, they are ignored, and the full lucee jar behaves like lucee-light at the extension-install layer (only the config file and the lucee.extensions env var drive installs). Bundled .lex files in the jar still copy to disk on boot but only install if referenced. No-op on lucee-light. Default false; Lucee 8 will default to true.",
