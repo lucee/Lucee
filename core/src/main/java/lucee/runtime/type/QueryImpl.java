@@ -75,6 +75,7 @@ import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLItem;
@@ -345,6 +346,8 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 			while (true);
 		}
 		catch (SQLException e) {
+			// LDEV-4213
+			DatasourceConnectionImpl.markSuspect(dc, e);
 			throw new DatabaseException(e, sql, dc);
 		}
 		catch (Throwable e) {
@@ -476,6 +479,8 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 			while (true);
 		}
 		catch (SQLException e) {
+			// LDEV-4213
+			DatasourceConnectionImpl.markSuspect(dc, e);
 			throw new DatabaseException(e, sql, dc);
 		}
 		catch (Throwable e) {

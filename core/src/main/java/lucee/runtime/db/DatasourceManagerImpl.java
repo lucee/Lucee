@@ -199,7 +199,9 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 			// LDEV-6503 a request timeout or an interrupt/stop can abort the driver in the middle of reading a
 			// response, so the connection may still hold unread data and the next borrower would get another
 			// query's result. never return it to the pool, invalidate it, that keeps the pool accounting (LDEV-5966)
-			if (isAborted(pc)) invalidate(dc);
+			// LDEV-4213 the same for a connection a SQLException told us is gone, that is also what ends up here
+			// at the end of a transaction for a connection that was managed (kept) until then
+			if (isAborted(pc) || isBroken(dc)) invalidate(dc);
 			else dc.release();
 		}
 	}
@@ -208,6 +210,10 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		if (Thread.currentThread().isInterrupted()) return true;
 		pc = ThreadLocalPageContext.get(pc);
 		return pc instanceof PageContextImpl && ((PageContextImpl) pc).getTimeoutStackTrace() != null;
+	}
+
+	private static boolean isBroken(DatasourceConnection dc) {
+		return dc instanceof DatasourceConnectionImpl && ((DatasourceConnectionImpl) dc).isBroken();
 	}
 
 	private static void invalidate(DatasourceConnection dc) {
