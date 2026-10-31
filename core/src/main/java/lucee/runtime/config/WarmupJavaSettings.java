@@ -90,7 +90,16 @@ public final class WarmupJavaSettings {
 		ConfigServer cs = ThreadLocalPageContext.getConfigServer();
 		if (cs == null) throw new IOException("the maven dependencies can not be resolved, the server configuration is not available");
 
-		MavenCoordinate[] arrCoordinates = coordinates.toArray(new MavenCoordinate[coordinates.size()]);
+		download(cs, coordinates.toArray(new MavenCoordinate[coordinates.size()]));
+	}
+
+	/**
+	 * Resolves the maven coordinates including their transitive dependencies, downloads all artifacts
+	 * and verifies that every one of them exists locally.
+	 * 
+	 * @throws IOException if an artifact can not be resolved or downloaded
+	 */
+	public static void download(ConfigServer cs, MavenCoordinate[] arrCoordinates) throws IOException {
 		String list = "[" + MavenUtil.toString(arrCoordinates) + "]";
 		JavaSettings js = JavaSettingsImpl.getInstance(cs, arrCoordinates);
 		Collection<Resource> jars;
