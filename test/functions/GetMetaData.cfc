@@ -13,7 +13,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					assertEquals("class,datatype,dimensions,name,type", listSort( meta.keyList(), "text") );
 					assertEquals("any",meta.datatype);
 					assertEquals(1,meta.dimensions);
-					assertEquals("unsynchronized",meta.type);
+					assertEquals("synchronized",meta.type);
 				});
 
 				it( title = 'Checking 2 dim array', body = function( currentSpec ) {
@@ -33,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					assertEquals("class,datatype,dimensions,name,type", listSort( meta.keyList(), "text" ) );
 					assertEquals("string",meta.datatype);
 					assertEquals(1,meta.dimensions);
-					assertEquals("unsynchronized",meta.type);
+					assertEquals("synchronized",meta.type);
 				});
 
 			});
