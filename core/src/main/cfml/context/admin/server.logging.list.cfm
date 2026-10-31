@@ -176,7 +176,33 @@ Redirtect to entry --->
 				</tfoot>
 			 </table>
 		</cfformClassic>
-		
+
+		<!--- the loggers defined in the Application.cfc --->
+		<cfset tipLogs=[]>
+		<cfloop query="logs">
+			<cfif logs.readonly or logs.source EQ "sysprop_envvar"><cfcontinue/></cfif>
+			<cfset tipAppender=appenders[logs.appenderClass]?:nullValue()>
+			<cfset tipLog={
+				level:logs.level
+				,appenderClass:logs.appenderClass
+				,appenderBundleName:logs.appenderBundleName?:""
+				,appenderBundleVersion:logs.appenderBundleVersion?:""
+				,appenderArgs:logs.appenderArgs?:{}
+				,layoutClass:logs.layoutClass?:""
+				,layoutBundleName:logs.layoutBundleName?:""
+				,layoutBundleVersion:logs.layoutBundleVersion?:""
+				,layoutArgs:logs.layoutArgs?:{}
+			}>
+			<cfset tipLogs.append( "	" & logTipValue( logs.name ) & ": " & logTipDefinition( tipLog, !isNull(tipAppender) && !isNull(tipAppender.getLayout), "	" ) )>
+		</cfloop>
+		<cfif arrayLen( tipLogs )>
+<cfsavecontent variable="codeSample">
+this.logs = {
+#tipLogs.toList( "," & chr( 10 ) )#
+};
+</cfsavecontent>
+			<cfset renderCodingTip( codeSample )>
+		</cfif>
 	</cfif>
 </cfoutput>
 <script>
