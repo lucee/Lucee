@@ -499,6 +499,44 @@ public final class FormatUtil {
 		return df;
 	}
 
+	/**
+	 * CFML uses "nn" for the minutes of a date/time mask, in a java pattern "n" is the nano of the
+	 * second. This converts a run of 1 or 2 "n" outside of quotes to the same number of "m", all other
+	 * characters are not touched ("mm" is minutes in a java pattern and still is). The named masks
+	 * (short, medium, long, full, iso, ...) are returned as they are.
+	 */
+	public static String convertMinutesNN(String mask) {
+		if (mask == null || mask.indexOf('n') == -1) return mask;
+		if (mask.equalsIgnoreCase("short") || mask.equalsIgnoreCase("medium") || mask.equalsIgnoreCase("long") || mask.equalsIgnoreCase("full") || mask.equalsIgnoreCase("iso8601")
+				|| mask.equalsIgnoreCase("iso") || mask.equalsIgnoreCase("isoms") || mask.equalsIgnoreCase("isomillis") || mask.equalsIgnoreCase("javascript")) {
+			return mask;
+		}
+		StringBuilder sb = new StringBuilder(mask.length());
+		boolean inside = false;
+		int len = mask.length();
+		char c;
+		for (int i = 0; i < len; i++) {
+			c = mask.charAt(i);
+			if (c == '\'') {
+				// an escaped quote ('') toggles twice
+				inside = !inside;
+				sb.append(c);
+			}
+			else if (c == 'n' && !inside) {
+				int end = i;
+				while (end < len && mask.charAt(end) == 'n')
+					end++;
+				int count = end - i;
+				char r = count <= 2 ? 'm' : 'n';
+				for (int y = 0; y < count; y++)
+					sb.append(r);
+				i = end - 1;
+			}
+			else sb.append(c);
+		}
+		return sb.toString();
+	}
+
 	public static FormatterWrapper getDateTimeFormatter(Locale locale, String mask) {
 		return getDateTimeFormatter(locale, mask, (ZoneId) null);
 	}
