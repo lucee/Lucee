@@ -270,6 +270,8 @@ public final class OpenAISession extends AISessionSupport {
 							if (prev != null) {
 								r.addPart(prev, index++, false);
 								prev = null;
+								// the listener asked to cancel (LDEV-5110), stop reading, closing the reader closes the connection
+								if (r.isCancelled()) break;
 							}
 							if (!line.startsWith("data: ")) continue;
 							line = line.substring(6);
@@ -277,7 +279,7 @@ public final class OpenAISession extends AISessionSupport {
 							LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "response chunk recieved send by [" + openaiEngine.getLabel() + "]: " + line, "ai", "application");
 							prev = Caster.toStruct(interpreter.interpret(null, line));
 						}
-						if (prev != null) {
+						if (prev != null && !r.isCancelled()) {
 							r.addPart(prev, index, true);
 						}
 					}
