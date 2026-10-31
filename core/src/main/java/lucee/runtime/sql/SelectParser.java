@@ -114,15 +114,20 @@ public final class SelectParser {
 				if (raw.forwardIfCurrentAndNoWordNumberAfter("by")) {
 					groupByExpressions(raw, select);
 					raw.removeSpace();
-
-					// having
-					if (raw.forwardIfCurrentAndNoWordNumberAfter("having")) havingExpressions(raw, select);
-					raw.removeSpace();
 				}
 				else {
 					throw new SQLParserException("Incomplete group by clause (stop at:" + raw.getCurrent() + ")");
 				}
 			}
+
+			// having (LDEV-4300: also valid without group by, then the whole result is a single group)
+			if (raw.forwardIfCurrentAndNoWordNumberAfter("having")) {
+				havingExpressions(raw, select);
+				if (select.getGroupbys().length == 0 && !select.hasAggregateSelect()) {
+					throw new SQLParserException("HAVING without GROUP BY requires an aggregate in the select list");
+				}
+			}
+			raw.removeSpace();
 			select.calcAdditionalColumns(allColumns);
 			allColumns = new HashSet<Key>();
 			selects.addSelect(select);
