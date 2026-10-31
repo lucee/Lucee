@@ -41,6 +41,14 @@ public final class AIUtil {
 	private static final Key STATUS_DETAILS = KeyImpl.init("statusDetails");
 	public static final AI INSTANCE = new AIImpl();
 
+	/**
+	 * @return true when the listener asked to cancel the inquiry, a null listener or one that can not
+	 *         cancel never does
+	 */
+	public static boolean isCancelled(AIResponseListener listener) {
+		return listener instanceof CancelableAIResponseListener && ((CancelableAIResponseListener) listener).isCancelled();
+	}
+
 	public static PageException toException(AIEngine engine, String msg, String type, String code, int statusCode) {
 		String appendix = "";
 		if ("model_not_found".equals(code) || msg.equals("invalid_model") || msg.indexOf("models") != -1) {

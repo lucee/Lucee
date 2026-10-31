@@ -6,6 +6,7 @@ import java.util.List;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.ai.AIResponseListener;
+import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Response;
 import lucee.runtime.ai.Part;
 import lucee.runtime.ai.PartImpl;
@@ -84,13 +85,22 @@ public final class OpenAIStreamResponse implements Response {
 				if (!StringUtil.isEmpty(str, true)) {
 					answer.append(str);
 					if (listener != null) listener.listen(str, index, complete);
+					if (isCancelled()) return;
 				}
 			}
 			else {
 				binaryParts.add(new PartImpl(null, binaryParts.size(), p.getAsBinary(), p.getContentType()));
 				if (listener != null) listener.listen(p.getAsBinary(), p.getContentType(), index, binaryParts.size() - 1, complete);
+				if (isCancelled()) return;
 			}
 		}
+	}
+
+	/**
+	 * @return true when the listener asked to cancel, no further chunks must be read
+	 */
+	public boolean isCancelled() {
+		return AIUtil.isCancelled(listener);
 	}
 
 	@Override
