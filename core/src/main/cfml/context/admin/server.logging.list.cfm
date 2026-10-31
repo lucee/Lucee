@@ -67,6 +67,8 @@ Redirtect to entry --->
 	<cfif access NEQ "yes">
 		<cfset noAccess(stText.Settings.cache.noAccess)>
 	</cfif>
+
+	<div class="comment"><a href="https://docs.lucee.org/recipes/log-files.html" target="_blank" rel="noopener">#stText.Settings.logging.docsLink#</a></div>
 	
 	<!---- READ ONLY ---->
 	<cfif request.adminType EQ "web" and hasReadOnly>

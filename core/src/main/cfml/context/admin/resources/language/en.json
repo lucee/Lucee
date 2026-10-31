@@ -1645,6 +1645,7 @@
         "appender": "Appender",
         "desc": "List of existing Logs for this environment",
         "detailDesc": "Log settings for a specific Log",
+        "docsLink": "What do the log files contain? See the log files documentation",
         "layout": "Layout",
         "level": "Level",
         "name": "Name",
