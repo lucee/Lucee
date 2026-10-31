@@ -150,6 +150,7 @@ public final class POM {
 
 	static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String scope, String optional,
 			String checksum, int dependencyScope, int dependencyScopeManagement, boolean triggeerLoad, Log log) {
+		MavenUtil.validateCoordinates(groupId, artifactId, version);
 		triggeerLoad = false;
 		String id = toId(localDirectory, groupId, artifactId, version, scope, optional, dependencyScope, dependencyScopeManagement);
 		final boolean load = triggeerLoad;
@@ -482,6 +483,8 @@ public final class POM {
 	}
 
 	public static Resource local(Resource dir, String groupId, String artifactId, String version, String extension) {
+		MavenUtil.validateCoordinates(groupId, artifactId, version);
+		MavenUtil.validateCoordinate("extension", extension, false);
 		Resource parent = localDir(dir, groupId, artifactId, version);
 		if (!parent.isDirectory()) parent.mkdirs();
 		return parent.getRealResource(artifactId + "-" + version + "." + extension);
@@ -489,11 +492,13 @@ public final class POM {
 
 	/** Pure path resolution for the {@code {mvnDir}/{group}/{artifact}/{version}/} directory. No side effects. */
 	public static Resource localDir(Resource dir, String groupId, String artifactId, String version) {
+		MavenUtil.validateCoordinates(groupId, artifactId, version);
 		return dir.getRealResource(groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/");
 	}
 
 	/** Pure path resolution for the {@code {mvnDir}/{group}/{artifact}/} directory. No side effects. */
 	public static Resource localArtifactDir(Resource dir, String groupId, String artifactId) {
+		MavenUtil.validateCoordinates(groupId, artifactId, null);
 		return dir.getRealResource(groupId.replace('.', '/') + "/" + artifactId);
 	}
 
@@ -502,6 +507,8 @@ public final class POM {
 
 		Repository[] repos = MavenUtil.sort(repositories);
 
+		MavenUtil.validateCoordinates(groupId, artifactId, version);
+		MavenUtil.validateCoordinate("type", type, false);
 		StringBuilder sb = null;
 		String scriptName = groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/" + artifactId + "-" + version + "." + type;
 
