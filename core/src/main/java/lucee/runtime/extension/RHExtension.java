@@ -1704,6 +1704,23 @@ public final class RHExtension implements Serializable {
 	}
 
 	public static List<ExtensionDefintion> toExtensionDefinitions(String str) {
+		List<String> malformed = new ArrayList<String>();
+		List<ExtensionDefintion> rtn = toExtensionDefinitions(str, malformed);
+		for (String m: malformed) {
+			LogUtil.log(Log.LEVEL_ERROR, "deploy", "extension", "Ignoring the malformed extension definition " + m);
+		}
+		return rtn;
+	}
+
+	/**
+	 * LDEV-5272 same as toExtensionDefinitions(String), but entries that cannot be turned into an
+	 * extension definition are not silently dropped, a description of every one of them is added to
+	 * the malformed list
+	 * 
+	 * @param str comma separated list of extension definitions
+	 * @param malformed receives a description of every entry that could not be parsed
+	 */
+	public static List<ExtensionDefintion> toExtensionDefinitions(String str, List<String> malformed) {
 		// first we split the list
 		List<ExtensionDefintion> rtn = new ArrayList<ExtensionDefintion>();
 		if (StringUtil.isEmpty(str)) return rtn;
@@ -1712,17 +1729,31 @@ public final class RHExtension implements Serializable {
 		if (ArrayUtil.isEmpty(arr)) return rtn;
 		ExtensionDefintion ed;
 		for (int i = 0; i < arr.length; i++) {
-			ed = toExtensionDefinition(arr[i]);
+			if (StringUtil.isEmpty(arr[i], true)) continue; // an empty entry (for example a trailing comma) is not an extension
+			int reported = malformed == null ? 0 : malformed.size();
+			ed = toExtensionDefinition(arr[i], malformed);
 			if (ed != null) rtn.add(ed);
+			else if (malformed != null && malformed.size() == reported) {
+				malformed.add(describeMalformed(arr[i], "it is not a valid extension id, maven coordinate or extension file, or the extension could not be resolved"));
+			}
 		}
 		return rtn;
+	}
+
+	private static String describeMalformed(String entry, String reason) {
+		return "[" + entry + "]: " + reason;
 	}
 
 	// TODO call public static ExtensionDefintion toExtensionDefinition(String id, Map<String, String>
 	// data)
 	public static ExtensionDefintion toExtensionDefinition(String s) {
+		return toExtensionDefinition(s, null);
+	}
+
+	private static ExtensionDefintion toExtensionDefinition(String s, List<String> malformed) {
 		if (StringUtil.isEmpty(s, true)) return null;
 		s = s.trim();
+		String entry = s;
 
 		String[] arrr;
 		int index;
@@ -1763,7 +1794,8 @@ public final class RHExtension implements Serializable {
 						IOUtil.copy(res, trg);
 					}
 					catch (IOException e) {
-						e.printStackTrace();
+						LogUtil.log("deploy", "extension", e);
+						if (malformed != null) malformed.add(describeMalformed(entry, "failed to copy the extension file [" + res + "]: " + e.getMessage()));
 					}
 				}
 				if (!trg.isFile()) continue;
@@ -1772,7 +1804,8 @@ public final class RHExtension implements Serializable {
 					return getInstance(c, trg, log).toExtensionDefinition();
 				}
 				catch (Exception e) {
-					e.printStackTrace();
+					LogUtil.log("deploy", "extension", e);
+					if (malformed != null) malformed.add(describeMalformed(entry, "failed to read the extension file [" + trg + "]: " + e.getMessage()));
 				}
 			}
 		}
