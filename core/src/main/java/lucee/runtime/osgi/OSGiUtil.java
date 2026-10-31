@@ -44,6 +44,8 @@ import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.apache.felix.framework.Logger;
@@ -860,6 +862,10 @@ public final class OSGiUtil {
 				return b;
 			}
 			catch (Exception e) {
+				// a downloaded bundle that needs a newer Java must not be reported as "not available"
+				if (e instanceof StartFailedException && ((StartFailedException) e).bundleException instanceof UnsupportedJavaVersionException) {
+					throw (StartFailedException) e;
+				}
 				log(e);
 				downloadException = e;
 			}
@@ -1559,6 +1565,85 @@ public final class OSGiUtil {
 	}
 
 	private static Bundle _start(Bundle bundle, Set<String> parents) throws BundleException {
+		try {
+			return _start2(bundle, parents);
+		}
+		catch (BundleException be) {
+			throw improveJavaVersionError(bundle, be);
+		}
+	}
+
+	/**
+	 * if the bundle failed to start because it needs a newer Java than the one running, replace the
+	 * generic exception with one that names the bundle, the required and the running Java version
+	 */
+	private static BundleException improveJavaVersionError(Bundle bundle, BundleException be) {
+		if (bundle == null || be instanceof UnsupportedJavaVersionException) return be;
+
+		int required = -1;
+		Throwable t = be;
+		for (int i = 0; i < 20 && t != null; i++) {
+			if (t instanceof UnsupportedClassVersionError) {
+				// "... (class file version 55.0), this version of the Java Runtime only recognizes class file versions up to 52.0"
+				Matcher m = CLASS_FILE_VERSION.matcher(String.valueOf(t.getMessage()));
+				if (m.find()) required = Caster.toIntValue(m.group(1), -1) - 44;
+				break;
+			}
+			t = t.getCause() == t ? null : t.getCause();
+		}
+		if (required == -1) required = getRequiredJavaVersion(bundle);
+
+		int running = Runtime.version().feature();
+		if (required <= running) return be;
+
+		return new UnsupportedJavaVersionException("The OSGi Bundle [" + bundle.getSymbolicName() + ":" + bundle.getVersion() + "] requires Java [" + required
+				+ "] or newer, but Lucee is running on Java [" + running + "] (java.version [" + System.getProperty("java.version") + "]). Use a version of this bundle built for Java ["
+				+ running + "] or run Lucee with Java [" + required + "] or newer. Original error: " + be.getMessage(), be);
+	}
+
+	private static final Pattern CLASS_FILE_VERSION = Pattern.compile("class file version (\\d+)");
+	private static final Pattern EE_VERSION = Pattern.compile("\\(version(?:>=|=)\\s*(\\d+(?:\\.\\d+)*)\\)");
+
+	/**
+	 * the minimal Java version the bundle declares with osgi.ee (Require-Capability or
+	 * Bundle-RequiredExecutionEnvironment), -1 if it does not declare one
+	 */
+	private static int getRequiredJavaVersion(Bundle bundle) {
+		BundleRevision revision = bundle.adapt(BundleRevision.class);
+		if (revision == null) return -1;
+		int required = -1;
+		for (Requirement req: revision.getRequirements("osgi.ee")) {
+			String filter = req.getDirectives().get("filter");
+			if (filter == null) continue;
+			// the filter can list alternatives, the bundle runs if one of them is available
+			int min = -1;
+			Matcher m = EE_VERSION.matcher(filter);
+			while (m.find()) {
+				int v = toJavaFeatureVersion(m.group(1));
+				if (v != -1 && (min == -1 || v < min)) min = v;
+			}
+			if (min > required) required = min;
+		}
+		return required;
+	}
+
+	// 1.8 -> 8, 11 -> 11
+	private static int toJavaFeatureVersion(String version) {
+		String[] arr = version.split("\\.");
+		if (arr.length > 1 && "1".equals(arr[0])) return Caster.toIntValue(arr[1], -1);
+		return Caster.toIntValue(arr[0], -1);
+	}
+
+	private static final class UnsupportedJavaVersionException extends BundleException {
+
+		private static final long serialVersionUID = 4932L;
+
+		UnsupportedJavaVersionException(String msg, BundleException cause) {
+			super(msg, cause.getType(), cause);
+		}
+	}
+
+	private static Bundle _start2(Bundle bundle, Set<String> parents) throws BundleException {
 		if (bundle == null) return bundle;
 		String bn = toString(bundle);
 		if (bundlesThreadLocal.get().contains(bn)) {
