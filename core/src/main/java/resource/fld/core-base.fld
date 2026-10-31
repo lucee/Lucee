@@ -1756,7 +1756,8 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
             binary data into a string; must be one of the following:
 - hex: characters 0-9 and A-F represent the hexadecimal value of each byte
 - UU: data is encoded using the UNIX UUencode algorithm
-- base64: data is encoded using the Base64 algorithm</description>
+- base64: data is encoded using the Base64 algorithm
+- base64url: data is encoded using the URL and filename safe Base64 alphabet (- and _ instead of + and /), as specified by IETF RFC 4648 section 5, as used for example by JWT, OAuth and PKCE. The padding (=) is optional when decoding.</description>
     </argument>
     <argument>
 			<name>precise</name>
@@ -1790,7 +1791,8 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
 		<description>A string that specifies the encoding method to use to represent the data; one of the following:
 - Hex: use the characters 0-9 and A-F to represent the hexadecimal value of each byte.
 - UU: use the UNIX UUencode algorithm to convert the data
-- Base64: use the Base64 algorithm to convert the data, as specified by IETF RFC 2045, at www.ietf.org/rfc/rfc2045.txt.</description>
+- Base64: use the Base64 algorithm to convert the data, as specified by IETF RFC 2045, at www.ietf.org/rfc/rfc2045.txt.
+- Base64URL: use the URL and filename safe Base64 alphabet (- and _ instead of + and /) without padding, as specified by IETF RFC 4648 section 5, at www.ietf.org/rfc/rfc4648.txt. This is the encoding used by JWT, OAuth and PKCE.</description>
     </argument>
 		<return>
 			<type>string</type>
@@ -3963,6 +3965,7 @@ You may also specify other algorithm names as well as the feedback mode and padd
 			<default>uu</default>
 		    <description>The binary encoding used to represent the data as a string. Must be the same as the algorithm used to encrypt the string.
 - Base64: the Base64 algorithm, as specified by IETF RFC 2045
+- Base64URL: the URL and filename safe Base64 algorithm without padding, as specified by IETF RFC 4648 section 5
 - Hex: the characters A-F and 0-9 represent the hexadecimal byte values
 - UU(default): the UNIX standard UUEncode algorithm</description>
         </argument>
@@ -4714,6 +4717,7 @@ You may also specify other algorithm names as well as the feedback mode and padd
 			<default>uu</default>
             <description>The binary encoding used to represent the data as a string. Must be the same as the algorithm used to encrypt the string.
 - Base64: the Base64 algorithm, as specified by IETF RFC 2045.
+- Base64URL: the URL and filename safe Base64 algorithm without padding, as specified by IETF RFC 4648 section 5.
 - Hex: the characters A-F and 0-9 represent the hexadecimal byte values.
 - UU(default): the UNIX standard UUEncode algorithm .
             </description>

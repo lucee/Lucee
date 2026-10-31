@@ -52,6 +52,62 @@ public final class Base64Encoder {
 		return Base64.getEncoder().encodeToString(data);
 	}
 
+	/**
+	 * Translates the specified byte array into a Base64 string using the URL and filename safe alphabet
+	 * of RFC 4648 section 5 (- and _ instead of + and /), without padding.
+	 *
+	 * @param data the byte array (not null)
+	 * @return the translated Base64URL string (not null)
+	 */
+	public static String encodeUrl(byte[] data) {
+		if (data == null) return "";
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(data);
+	}
+
+	/**
+	 * Translates the specified Base64URL string (RFC 4648 section 5) into a byte array. The padding is
+	 * optional.
+	 *
+	 * @param data the Base64URL string (not null)
+	 * @param precise if true the input must only consist of characters of the URL safe alphabet, with
+	 *            optional correct padding. If false, characters outside of the alphabet are skipped
+	 *            and the standard alphabet is accepted as well.
+	 * @return the byte array (not null)
+	 * @throws CoderException
+	 */
+	public static byte[] decodeUrl(String data, boolean precise) throws CoderException {
+		if (StringUtil.isEmpty(data)) return new byte[0];
+		if (!precise) {
+			byte[] res = decodeLenient(data);
+			if (res.length == 0) throw new CoderException("cannot convert the input to a binary");
+			return res;
+		}
+
+		// A-Z, a-z, 0-9, - and _, followed by optional padding
+		int end = data.length();
+		int count = 0;
+		while (end > 0 && data.charAt(end - 1) == '=') {
+			end--;
+			count++;
+		}
+		if (count > 2) throw new CoderException("invalid padding length [" + count + "], maximal length is [2]");
+		char c;
+		for (int i = 0; i < end; i++) {
+			c = data.charAt(i);
+			if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '-' || c == '_') continue;
+			throw new CoderException("invalid character [" + c + "] in base64url string at position [" + (i + 1) + "]");
+		}
+		if (end % 4 == 1) throw new CoderException("cannot convert the input to a binary, invalid length (" + data.length() + ") of the string");
+		if (count > 0 && data.length() % 4 != 0) throw new CoderException("cannot convert the input to a binary, invalid padding for length (" + data.length() + ") of the string");
+
+		try {
+			return Base64.getUrlDecoder().decode(data);
+		}
+		catch (IllegalArgumentException iae) {
+			throw new CoderException("cannot convert the input to a binary: " + iae.getMessage());
+		}
+	}
+
 	public static String decodeAsString(String data, boolean precise) throws CoderException {
 		return new String(decode(data, precise), StandardCharsets.UTF_8);
 	}
