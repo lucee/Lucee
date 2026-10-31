@@ -275,13 +275,15 @@ public class Component extends EvaluatorSupport {
 					throw new EvaluatorException(
 							"Invalid javasettings attribute. Struct literal syntax is not supported for javasettings, use a json string: javasettings='{maven:[\"groupId:artifactId:version\"]}'");
 				}
-				// Validate JSON syntax at compile time (LDEV-5927)
-				try {
-					new JSONExpressionInterpreter().interpret(null, val);
-				}
-				catch (Exception e) {
-					throw new EvaluatorException("Invalid JSON in javasettings attribute: " + e.getMessage()
-							+ ". Ensure the JSON is valid: javasettings='{maven:[\"groupId:artifactId:version\"]}'");
+				// Validate JSON syntax at compile time (LDEV-5927), a reference to a json file is validated when it is read
+				if (!StringUtil.endsWithIgnoreCase(val.trim(), ".json")) {
+					try {
+						new JSONExpressionInterpreter().interpret(null, val);
+					}
+					catch (Exception e) {
+						throw new EvaluatorException("Invalid JSON in javasettings attribute: " + e.getMessage()
+								+ ". Ensure the JSON is valid: javasettings='{maven:[\"groupId:artifactId:version\"]}'");
+					}
 				}
 			}
 		}
