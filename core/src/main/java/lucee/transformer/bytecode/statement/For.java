@@ -20,7 +20,9 @@ package lucee.transformer.bytecode.statement;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
 
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -30,7 +32,10 @@ import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.expression.LocalExpression;
+import lucee.transformer.bytecode.expression.var.Assign;
 import lucee.transformer.bytecode.util.ASMUtil;
+import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.statement.HasBody;
 
@@ -42,6 +47,12 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 	private Body body;
 
 	// private static final int I=1;
+
+	private static final Method IS_LOOP_COUNTER = new Method("isLoopCounter", Type.BOOLEAN_TYPE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT });
+	private static final Method COMPARE_DOUBLE = new Method("compareLoop", Type.INT_TYPE, new Type[] { Type.DOUBLE_TYPE, Type.DOUBLE_TYPE });
+	private static final Method COMPARE_DOUBLE_OBJECT = new Method("compareLoop", Type.INT_TYPE, new Type[] { Types.PAGE_CONTEXT, Type.DOUBLE_TYPE, Types.OBJECT });
+	private static final Method DOUBLE_VALUE = new Method("doubleValue", Type.DOUBLE_TYPE, new Type[] {});
+	private static final Method VALUE_OF = new Method("valueOf", Types.DOUBLE, new Type[] { Type.DOUBLE_TYPE });
 
 	Label beforeUpdate = new Label();
 	Label end = new Label();
@@ -75,6 +86,14 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 		beforeUpdate = new Label(); // LDEV-5922 fresh labels per emission, a finally body is written more than once
 		end = new Label();
 		GeneratorAdapter adapter = bc.getAdapter();
+
+		// LDEV-4473 a plain counting loop (for (i = 1; i <= n; i++)) keeps its counter in a double
+		ForCounter counter = ForCounter.detect(condition, update, body);
+		if (counter != null) {
+			_writeOutCounter(bc, counter);
+			return;
+		}
+
 		Label beforeInit = new Label();
 		Label afterInit = new Label();
 		Label afterUpdate = new Label();
@@ -105,6 +124,126 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 		// ExpressionUtil.visitLine(bc, getEndLine());
 		adapter.visitLabel(end);
 
+	}
+
+	Expression getInit() {
+		return init;
+	}
+
+	Expression getCondition() {
+		return condition;
+	}
+
+	Expression getUpdate() {
+		return update;
+	}
+
+	/**
+	 * Same loop as the generic version, but while the counter holds a plain number (checked once after
+	 * the init) it is kept in a Java double, so the loop does not have to look up the variable and
+	 * convert its value for the condition and the update. The counter is still written back to its
+	 * scope in every iteration, so the body, the condition and the code after the loop see exactly the
+	 * values they would see without this optimization, break, continue and labels work the same as in
+	 * the generic version. If the counter is not a plain number (or precise math is enabled) the generic
+	 * code in the same loop is used. ForCounter makes sure nothing in the loop can change the counter.
+	 */
+	private void _writeOutCounter(BytecodeContext bc, ForCounter counter) throws TransformerException {
+		GeneratorAdapter adapter = bc.getAdapter();
+		Factory f = bc.getFactory();
+		Label beforeInit = new Label();
+		Label afterInit = new Label();
+		Label afterUpdate = new Label();
+		Label genericUpdate = new Label();
+		Label genericCondition = new Label();
+		Label noCounter = new Label();
+
+		int lFast = adapter.newLocal(Type.BOOLEAN_TYPE);
+		int lCounter = adapter.newLocal(Type.DOUBLE_TYPE);
+		int lBoxed = adapter.newLocal(Types.DOUBLE);
+		int lValue = adapter.newLocal(Types.OBJECT);
+
+		bc.visitLine(getStart());
+		adapter.visitLabel(beforeInit);
+		if (init != null) {
+			init.writeOut(bc, Expression.MODE_VALUE);
+			adapter.pop();
+		}
+
+		// is the counter a plain number?
+		adapter.push(false);
+		adapter.storeLocal(lFast);
+		adapter.push(0d);
+		adapter.storeLocal(lCounter);
+		adapter.visitInsn(Opcodes.ACONST_NULL);
+		adapter.storeLocal(lBoxed);
+
+		counter.createVariable(f).writeOut(bc, Expression.MODE_REF);
+		adapter.storeLocal(lValue);
+		adapter.loadArg(0);
+		adapter.loadLocal(lValue);
+		adapter.invokeStatic(Types.OP_UTIL, IS_LOOP_COUNTER);
+		adapter.storeLocal(lFast);
+		adapter.loadLocal(lFast);
+		adapter.ifZCmp(GeneratorAdapter.EQ, noCounter);
+		adapter.loadLocal(lValue);
+		adapter.checkCast(Types.NUMBER);
+		adapter.invokeVirtual(Types.NUMBER, DOUBLE_VALUE);
+		adapter.storeLocal(lCounter);
+		adapter.visitLabel(noCounter);
+
+		adapter.visitJumpInsn(Opcodes.GOTO, afterUpdate);
+		adapter.visitLabel(afterInit);
+
+		body.writeOut(bc);
+
+		// update
+		adapter.visitLabel(beforeUpdate);
+		adapter.loadLocal(lFast);
+		adapter.ifZCmp(GeneratorAdapter.EQ, genericUpdate);
+		adapter.loadLocal(lCounter);
+		adapter.push(Math.abs(counter.step));
+		adapter.visitInsn(counter.step < 0 ? Opcodes.DSUB : Opcodes.DADD);
+		adapter.dup2();
+		adapter.storeLocal(lCounter);
+		adapter.invokeStatic(Types.DOUBLE, VALUE_OF);
+		adapter.storeLocal(lBoxed);
+		{
+			Assign assign = new Assign(counter.createVariable(f), new LocalExpression(f, getStart(), getEnd(), lBoxed, Types.DOUBLE), getEnd());
+			ASMUtil.pop(adapter, assign.writeOutAsType(bc, Expression.MODE_VALUE));
+		}
+		adapter.visitJumpInsn(Opcodes.GOTO, afterUpdate);
+
+		adapter.visitLabel(genericUpdate);
+		update.writeOut(bc, Expression.MODE_VALUE);
+		ASMUtil.pop(adapter, update, Expression.MODE_VALUE);
+
+		// condition
+		adapter.visitLabel(afterUpdate);
+		adapter.loadLocal(lFast);
+		adapter.ifZCmp(GeneratorAdapter.EQ, genericCondition);
+		if (counter.literalBound != null) {
+			adapter.loadLocal(lCounter);
+			adapter.push(counter.literalBound.doubleValue());
+			adapter.invokeStatic(Types.OP_UTIL, COMPARE_DOUBLE);
+		}
+		else {
+			adapter.loadArg(0);
+			adapter.loadLocal(lCounter);
+			counter.bound.writeOut(bc, Expression.MODE_REF);
+			adapter.invokeStatic(Types.OP_UTIL, COMPARE_DOUBLE_OBJECT);
+		}
+		int jump;
+		if (counter.comparison == Factory.OP_DEC_LT) jump = Opcodes.IFLT;
+		else if (counter.comparison == Factory.OP_DEC_LTE) jump = Opcodes.IFLE;
+		else if (counter.comparison == Factory.OP_DEC_GT) jump = Opcodes.IFGT;
+		else jump = Opcodes.IFGE;
+		adapter.visitJumpInsn(jump, afterInit);
+		adapter.visitJumpInsn(Opcodes.GOTO, end);
+
+		adapter.visitLabel(genericCondition);
+		condition.writeOut(bc, Expression.MODE_VALUE);
+		adapter.visitJumpInsn(Opcodes.IFNE, afterInit);
+		adapter.visitLabel(end);
 	}
 
 	@Override

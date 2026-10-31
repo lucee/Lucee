@@ -36,6 +36,10 @@ import lucee.transformer.statement.HasBody;
 public final class DoWhile extends StatementBaseNoFinal implements FlowControlBreak, FlowControlContinue, HasBody {
 
 	private ExprBoolean expr;
+
+	public ExprBoolean getExpr() {
+		return expr;
+	}
 	private Body body;
 
 	private Label begin = new Label();
