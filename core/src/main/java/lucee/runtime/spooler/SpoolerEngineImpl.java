@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -39,7 +40,6 @@ import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
-import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigUtil;
@@ -83,7 +83,6 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 	private final SerializableObject token = new SerializableObject();
 	private SpoolerThread thread;
 	// private ExecutionPlan[] plans;
-	private long count = 0;
 	private Log logX;
 	private int add = 0;
 
@@ -332,9 +331,12 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 		if (task.closed()) dirClosed.mkdirs();
 		else dirOpen.mkdirs();
 
+		// the id has to be unique across all instances sharing the spool directory, so it can not be a counter
+		// of this instance: time (keeps the tasks in order) and a random part. Task files written by older
+		// versions have 8 digit counter ids, they are still read like any other file.
 		String id = null;
 		do {
-			id = StringUtil.addZeros(++count, 8);
+			id = System.currentTimeMillis() + "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
 		}
 		while (dirOpen.getRealResource(id + ".tsk").exists() || dirClosed.getRealResource(id + ".tsk").exists());
 		return id;
