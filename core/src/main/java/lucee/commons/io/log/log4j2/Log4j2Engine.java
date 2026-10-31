@@ -97,8 +97,7 @@ public final class Log4j2Engine extends LogEngine {
 	@Override
 	public ClassDefinition appenderClassDefintion(String className) {
 		// we define the old classes for all existing log entries
-		if ("console".equalsIgnoreCase(className) || "lucee.commons.io.log.log4j.appender.ConsoleAppender".equals(className)
-				|| "lucee.commons.io.log.log4j2.appender.ConsoleAppender".equals(className)) {
+		if (LogUtil.isConsoleAppender(className)) {
 			return new ClassDefinitionImpl(ConsoleAppender.class);
 		}
 		if ("resource".equalsIgnoreCase(className) || "lucee.commons.io.log.log4j.appender.RollingResourceAppender".equals(className)
