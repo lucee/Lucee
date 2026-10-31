@@ -136,6 +136,51 @@ public final class ListUtil {
 
 	}
 
+	/**
+	 * casts a list to Array object, stops scanning once limit elements are found
+	 *
+	 * @param limit 0 no limit, positive the rest of the list is the last element, negative only the
+	 *            first n elements
+	 */
+	public static Array listToArray(String list, String delimiter, boolean includeEmptyFields, boolean multiCharDelim, int limit) {
+		if (limit == 0) return listToArray(list, delimiter, includeEmptyFields, multiCharDelim);
+
+		boolean multi = multiCharDelim && delimiter.length() > 1;
+		char[] del = delimiter.toCharArray();
+		int dl = multi ? delimiter.length() : (del.length == 0 ? 0 : 1);
+		boolean remainder = limit > 0;
+		int max = Math.abs(limit);
+		int len = list.length();
+
+		Array array = new ArrayImpl();
+		int from = 0;
+		int index;
+		while (array.size() < (remainder ? max - 1 : max) && (index = indexOfDelim(list, from, delimiter, del, multi)) != -1) {
+			if (includeEmptyFields || from < index) array.appendEL(list.substring(from, index));
+			from = index + dl;
+		}
+		if (array.size() < max) {
+			if (remainder && !includeEmptyFields && dl > 0) {
+				while (from < len && (multi ? list.startsWith(delimiter, from) : contains(del, list.charAt(from)))) {
+					from += dl;
+				}
+			}
+			if (includeEmptyFields || from < len) array.appendEL(list.substring(from));
+		}
+		return array;
+	}
+
+	private static int indexOfDelim(String list, int from, String delimiter, char[] del, boolean multi) {
+		if (multi) return list.indexOf(delimiter, from);
+		int len = list.length();
+		// empty delimiter, every char is an element
+		if (del.length == 0) return from + 1 < len ? from + 1 : -1;
+		for (int i = from; i < len; i++) {
+			if (contains(del, list.charAt(i))) return i;
+		}
+		return -1;
+	}
+
 	private static Array listToArray(String list, String delimiter, boolean multiCharDelim) {
 		if (!multiCharDelim || delimiter.length() == 0) return listToArray(list, delimiter);
 		if (delimiter.length() == 1) return listToArray(list, delimiter.charAt(0));

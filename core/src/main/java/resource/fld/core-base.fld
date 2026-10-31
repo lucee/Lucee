@@ -10308,6 +10308,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<required>No</required>
 			<description>specifying whether the delimiters parameter specifies a multi-character delimiter. The default is false. If this parameter is true, the delimiters parameter must specify a single delimiter consisting of multiple characters. This parameter enables the ListToArray function to convert a list such as the following to an array of color names: red:|orange:|yellow:|green:|blue:|indigo:|violet.</description>
 		</argument>
+		<argument>
+			<name>limit</name>
+			<type>numeric</type>
+			<required>No</required>
+			<default>0</default>
+			<description>maximum number of elements, the list is only scanned until the limit is reached. 0 (default) means no limit. A positive limit returns at most that many elements, with the rest of the list as the last element, e.g. listToArray( "a,b,c,d", ",", false, false, 2 ) returns [ "a", "b,c,d" ]. A negative limit returns only the first n elements, e.g. -2 returns [ "a", "b" ].</description>
+		</argument>
 		
 		<return>
 			<type>array</type>
