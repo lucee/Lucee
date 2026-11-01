@@ -54,7 +54,15 @@ import lucee.runtime.type.util.ListUtil;
 
 public final class DeployHandler {
 
-	private static final ResourceFilter ALL_EXT = new ExtensionResourceFilter(new String[] { ".lex", ".lar", ".lco", ".json" });
+	private static final ResourceFilter ALL_EXT_FILES = new ExtensionResourceFilter(new String[] { ".lex", ".lar", ".lco", ".json", ".pom" });
+
+	// LDEV-5607 a pom.xml is accepted as well as a *.pom
+	private static final ResourceFilter ALL_EXT = new ResourceFilter() {
+		@Override
+		public boolean accept(Resource res) {
+			return ALL_EXT_FILES.accept(res) || (!res.isDirectory() && DeployPom.isPom(res.getName()));
+		}
+	};
 
 	/**
 	 * deploys all files found
@@ -99,6 +107,10 @@ public final class DeployHandler {
 							// Lucee core
 							else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) {
 								ConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
+							}
+							// LDEV-5607 pom, installs the dependencies it declares
+							else if (!child.isDirectory() && DeployPom.isPom(child.getName())) {
+								DeployPom.deploy((ConfigPro) config, child, log);
 							}
 							// CFConfig
 							else if ("json".equalsIgnoreCase(ext)) {
