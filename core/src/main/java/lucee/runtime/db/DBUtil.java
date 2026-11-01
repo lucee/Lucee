@@ -26,6 +26,8 @@ import lucee.transformer.library.ClassDefinitionImpl;
 
 public final class DBUtil {
 
+	public static final String SUPPORTED_TYPES = "db2, firebird, h2, mssql, mysql, oracle, postgresql, sybase";
+
 	private static DataSourceDefintion DB2;
 	private static DataSourceDefintion FIREBIRD;
 	private static DataSourceDefintion H2;
