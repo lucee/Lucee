@@ -149,6 +149,9 @@ public final class POM {
 	static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String classifier, String extension,
 			String scope, String optional, String checksum, int dependencyScope, int dependencyScopeManagement, boolean transitive, Collection<String> exclusions,
 			boolean triggeerLoad, Log log) {
+		MavenUtil.validateCoordinates(groupId, artifactId, version);
+		MavenUtil.validateCoordinate("classifier", classifier, false);
+		MavenUtil.validateCoordinate("extension", extension, false);
 		triggeerLoad = false;
 		final List<String> excl = MavenUtil.toExclusions(exclusions);
 		String id = toId(localDirectory, groupId, artifactId, version, classifier, extension, scope, optional, dependencyScope, dependencyScopeManagement, transitive, excl);
@@ -560,6 +563,10 @@ public final class POM {
 	 * artifactId-version[-classifier].extension
 	 */
 	public static String toFileName(String artifactId, String version, String classifier, String extension) {
+		MavenUtil.validateCoordinate("artifactId", artifactId, false);
+		MavenUtil.validateCoordinate("version", version, false);
+		MavenUtil.validateCoordinate("classifier", classifier, false);
+		MavenUtil.validateCoordinate("extension", extension, false);
 		return artifactId + "-" + version + (StringUtil.isEmpty(classifier, true) ? "" : "-" + classifier.trim()) + "." + extension;
 	}
 
@@ -567,12 +574,14 @@ public final class POM {
 	 * path of the artifact relative to the repository root, the POM never has a classifier
 	 */
 	public String toScriptName(String extension) {
+		MavenUtil.validateCoordinates(groupId, artifactId, version);
 		return groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/"
 				+ toFileName(artifactId, version, "pom".equalsIgnoreCase(extension) ? null : classifier, extension);
 	}
 
 	/** Pure path resolution for the {@code {mvnDir}/{group}/{artifact}/{version}/} directory. No side effects. */
 	public static Resource localDir(Resource dir, String groupId, String artifactId, String version) {
+		MavenUtil.validateCoordinates(groupId, artifactId, version);
 		return dir.getRealResource(groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/");
 	}
 
@@ -605,6 +614,7 @@ public final class POM {
 
 	/** Pure path resolution for the {@code {mvnDir}/{group}/{artifact}/} directory. No side effects. */
 	public static Resource localArtifactDir(Resource dir, String groupId, String artifactId) {
+		MavenUtil.validateCoordinates(groupId, artifactId, null);
 		return dir.getRealResource(groupId.replace('.', '/') + "/" + artifactId);
 	}
 

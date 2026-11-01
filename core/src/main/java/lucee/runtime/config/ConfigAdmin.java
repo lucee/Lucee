@@ -754,6 +754,28 @@ public final class ConfigAdmin {
 		maven.append(coordinate.populate(new StructImpl(Struct.TYPE_LINKED)));
 	}
 
+	/**
+	 * LDEV-5607 adds the maven coordinates to the server wide javasettings, the same entries a maven
+	 * dependency of an extension creates, and resets the javasettings so they are used right away.
+	 */
+	static void updateMaven(ConfigPro config, List<MavenCoordinate> coordinates) throws PageException {
+		try {
+			ConfigAdmin admin = new ConfigAdmin(config, null, true);
+			synchronized (SystemUtil.createToken("updateMaven", "javasettings")) {
+				for (MavenCoordinate coordinate: coordinates) {
+					admin._updateMaven(coordinate);
+				}
+				admin.store(false);
+			}
+			ResetFilter filter = new ResetFilter();
+			filter.add("resetJavaSettings");
+			filter.reset(config);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
 	private void _removeMaven(MavenUtil.MavenCoordinate coordinate) {
 		// MUST not sure if we really should remove them
 	}

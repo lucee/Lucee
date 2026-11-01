@@ -51,6 +51,7 @@ import lucee.runtime.config.maven.RepoReader;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -401,6 +402,9 @@ public final class MavenUtil {
 			this.scope = scope;
 			this.optional = optional;
 			this.checksum = checksum;
+			validateCoordinates(groupId, artifactId, version);
+			validateCoordinate("classifier", this.classifier, false);
+			validateCoordinate("extension", this.extension, false);
 		}
 
 		public MavenCoordinate setDependency(int d) {
@@ -1214,6 +1218,55 @@ public final class MavenUtil {
 		throw new ApplicationException("Unable to parse Maven data from the provided input of type [" + Caster.toTypeName(obj) + "]. Supported formats are: "
 				+ "1) A Struct with keys 'groupId', 'artifactId', and 'version' (optionally 'classifier', 'extension', 'scope', 'optional', 'checksum', 'transitive' and 'exclusions'), or "
 				+ "2) A String in the format 'group:artifact:version[:classifier][@extension]'. Ensure the input conforms to one of these formats.");
+	}
+
+	private static final String UNSAFE_COORDINATE_CHARS = "/\\:*?\"<>|%#";
+
+	/**
+	 * validate the parts of a maven coordinate that end up in a local path or a repository URL. Empty
+	 * values are accepted here, whether a part is required is checked by the caller.
+	 * 
+	 * @throws PageRuntimeException wrapping an ApplicationException if a part is not safe
+	 */
+	public static void validateCoordinates(String groupId, String artifactId, String version) {
+		validateCoordinate("groupId", groupId, true);
+		validateCoordinate("artifactId", artifactId, false);
+		validateCoordinate("version", version, false);
+	}
+
+	public static void validateCoordinate(String name, String value, boolean dotSeparated) {
+		String msg = checkCoordinate(name, value, dotSeparated);
+		if (msg != null) throw new PageRuntimeException(new ApplicationException(msg));
+	}
+
+	private static String checkCoordinate(String name, String value, boolean dotSeparated) {
+		if (value == null) return null;
+		String str = value.trim();
+		if (str.isEmpty()) return null;
+
+		char c;
+		for (int i = 0; i < str.length(); i++) {
+			c = str.charAt(i);
+			if (Character.isISOControl(c) || Character.isWhitespace(c) || Character.isSpaceChar(c) || UNSAFE_COORDINATE_CHARS.indexOf(c) != -1) {
+				return "Invalid Maven " + name + " [" + printable(str) + "], the character at position " + (i + 1)
+						+ " is not allowed. A coordinate part must not contain whitespace, control characters or any of the characters [/ \\ : * ? \" < > | % #].";
+			}
+		}
+		if (".".equals(str) || str.indexOf("..") != -1 || (dotSeparated && (str.charAt(0) == '.' || str.charAt(str.length() - 1) == '.'))) {
+			return "Invalid Maven " + name + " [" + printable(str) + "], a coordinate part must not contain empty or relative path segments like [..].";
+		}
+		return null;
+	}
+
+	private static String printable(String str) {
+		StringBuilder sb = new StringBuilder();
+		char c;
+		for (int i = 0; i < str.length() && i < 128; i++) {
+			c = str.charAt(i);
+			sb.append(Character.isISOControl(c) ? '?' : c);
+		}
+		if (str.length() > 128) sb.append("...");
+		return sb.toString();
 	}
 
 	// LDEV-6250: not called — Maven does not restrict version format (see

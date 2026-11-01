@@ -24,18 +24,24 @@ import lucee.commons.cli.CommandResult;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.PageContextThread;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.process.UDFProcessListener;
+import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 
 /*
- * Execute external processes
+ * Execute external processes. The worker runs on a virtual thread when virtual threads are allowed
+ * (see ThreadUtil.ALLOW_VIRTUAL_THREADS), otherwise on a daemon platform thread.
  */
-public final class _Execute extends PageContextThread {
+public final class _Execute implements Runnable {
+
+	private final PageContext pageContext;
+	private volatile Thread thread;
 
 	private Resource outputfile;
 	private Resource errorFile;
@@ -44,14 +50,14 @@ public final class _Execute extends PageContextThread {
 	private String resultVariable;
 	private String exitCodeVariable;
 
-	private boolean aborted;
+	private volatile boolean aborted;
 	private String[] commands;
 	// private static final int BLOCK_SIZE=4096;
 	private Object monitor;
-	private Exception exception;
+	private volatile Exception exception;
 	// private String body;
-	private boolean finished;
-	private Process process;
+	private volatile boolean finished;
+	private volatile Process process;
 
 	private String directory;
 	private Struct environment;
@@ -78,7 +84,7 @@ public final class _Execute extends PageContextThread {
 	 */
 	public _Execute(PageContext pageContext, Object monitor, String[] commands, Resource outputfile, String variable, Resource errorFile, String errorVariable, String directory,
 			Struct environment, String resultVariable, String exitCodeVariable, UDF onProgress, UDF onError, long timeout) {
-		super(pageContext);
+		this.pageContext = pageContext;
 		this.monitor = monitor;
 		this.commands = commands;
 		this.outputfile = outputfile;
@@ -98,13 +104,43 @@ public final class _Execute extends PageContextThread {
 		this.timeout = timeout;
 	}
 
+	/**
+	 * Starts the worker, on a virtual thread when virtual threads are allowed, otherwise on a daemon
+	 * platform thread.
+	 */
+	public void start() {
+		Thread t = ThreadUtil.getThread(this);
+		// virtual threads are always daemon threads and do not allow to change that
+		if (!t.isVirtual()) t.setDaemon(true);
+		thread = t;
+		t.start();
+	}
+
+	/**
+	 * waits until the worker has ended
+	 */
+	public void join() throws InterruptedException {
+		thread.join();
+	}
+
+	/**
+	 * waits at most the given milliseconds for the worker to end
+	 */
+	public void join(long millis) throws InterruptedException {
+		thread.join(millis);
+	}
+
 	@Override
-	public void run(PageContext pc) {
+	public void run() {
+		// remember the thread the PageContext was bound to, to bind it back when the worker is done
+		Thread parent = pageContext.getThread();
+		ThreadLocalPageContext.register(pageContext);// register the PageContext to this thread
 		try {
-			_run(pc);
+			_run(pageContext);
 		}
-		catch (Exception e) {
-			e.printStackTrace();
+		finally {
+			ThreadLocalPageContext.release();
+			if (parent != null) ((PageContextImpl) pageContext).setThread(parent);
 		}
 	}
 
@@ -159,7 +195,8 @@ public final class _Execute extends PageContextThread {
 	 */
 	public void abort(boolean terminateProcess) {
 		aborted = true;
-		if (terminateProcess) process.destroy();
+		Process p = process;
+		if (terminateProcess && p != null) p.destroy();
 	}
 
 	/**
