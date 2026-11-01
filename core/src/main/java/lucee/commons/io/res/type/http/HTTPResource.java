@@ -25,6 +25,7 @@ import java.net.URL;
 import java.util.Locale;
 import java.nio.charset.StandardCharsets;
 
+import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -161,7 +162,9 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 		if (is instanceof HTTPEngineInputStream) {
 			meta = ((HTTPEngineInputStream) is).getHTTPDownloaderHeadResponse();
 		}
-		return is;
+		// LDEV-6821: a stream that does not support mark() makes IOUtil.getReader() close it and open the
+		// resource again (a second GET request) after checking for a BOM
+		return IOUtil.toBufferedInputStream(is);
 	}
 
 	private InputStream getInputStreamWithHeaders() throws IOException {
@@ -177,7 +180,7 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 			HTTPEngineInputStream stream = is instanceof HTTPEngineInputStream ? (HTTPEngineInputStream) is : new HTTPEngineInputStream(rsp, is);
 			meta = stream.getHTTPDownloaderHeadResponse();
 			ok = true;
-			return stream;
+			return IOUtil.toBufferedInputStream(stream);
 		}
 		finally {
 			if (!ok) HTTPEngine.closeEL(rsp);
