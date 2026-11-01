@@ -2950,13 +2950,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doUpdateDatasource() throws PageException {
-		int allow = (getBoolV("allowed_select", false) ? DataSource.ALLOW_SELECT : 0) + (getBoolV("allowed_insert", false) ? DataSource.ALLOW_INSERT : 0)
-				+ (getBoolV("allowed_update", false) ? DataSource.ALLOW_UPDATE : 0) + (getBoolV("allowed_delete", false) ? DataSource.ALLOW_DELETE : 0)
-				+ (getBoolV("allowed_alter", false) ? DataSource.ALLOW_ALTER : 0) + (getBoolV("allowed_drop", false) ? DataSource.ALLOW_DROP : 0)
-				+ (getBoolV("allowed_revoke", false) ? DataSource.ALLOW_REVOKE : 0) + (getBoolV("allowed_grant", false) ? DataSource.ALLOW_GRANT : 0)
-				+ (getBoolV("allowed_create", false) ? DataSource.ALLOW_CREATE : 0);
-		if (allow == 0) allow = DataSource.ALLOW_ALL;
-
 		String cn = getString("admin", action, "classname");
 		if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cn)) {
 			attributes.set(KeyConstants._classname, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
@@ -3018,7 +3011,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		DataSourcePro ds = null;
 		try {
 			ds = new DataSourceImpl(name, cd, host, dsn, bundleName, bundleVersion, database, port, username, password, null, connLimit, idleTimeout, liveTimeout, minIdle, maxIdle,
-					maxTotal, metaCacheTimeout, blob, clob, allow, custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout,
+					maxTotal, metaCacheTimeout, blob, clob, custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout,
 					requestExclusive, alwaysResetConnections, ThreadLocalPageContext.getLog(pageContext, "application"));
 		}
 		catch (Exception e) {
@@ -3028,7 +3021,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (verify) _doVerifyDatasource(ds, username, password);
 		// print.out("limit:"+connLimit);
 		admin.updateDataSource(id, bundleName, bundleVersion, name, newName, cd, dsn, username, password, host, database, port, connLimit, idleTimeout, liveTimeout, minIdle,
-				maxIdle, metaCacheTimeout, blob, clob, allow, validate, storage, timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive,
+				maxIdle, metaCacheTimeout, blob, clob, validate, storage, timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive,
 				alwaysResetConnections);
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetDataSources();
@@ -4292,16 +4285,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.setEL(KeyConstants._passwordEncrypted, ConfigUtil.encrypt(d.getPassword()));
 		sct.setEL(KeyConstants._username, d.getUsername());
 		sct.setEL(KeyConstants._readonly, Caster.toBoolean(d.isReadOnly()));
-		sct.setEL(KeyConstants._select, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_SELECT)));
-		sct.setEL(KeyConstants._delete, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DELETE)));
-		sct.setEL(KeyConstants._update, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_UPDATE)));
-		sct.setEL(KeyConstants._insert, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
-		sct.setEL(KeyConstants._create, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_CREATE)));
-		sct.setEL(KeyConstants._insert, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
-		sct.setEL(KeyConstants._drop, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DROP)));
-		sct.setEL(KeyConstants._grant, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_GRANT)));
-		sct.setEL(KeyConstants._revoke, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_REVOKE)));
-		sct.setEL(KeyConstants._alter, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_ALTER)));
 
 		//////////////////////
 		// open connections

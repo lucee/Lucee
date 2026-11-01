@@ -96,7 +96,6 @@ public final class AppListenerUtil {
 	public static final Collection.Key IDLE_TIMEOUT = KeyConstants._idleTimeout;
 	public static final Collection.Key LIVE_TIMEOUT = KeyConstants._liveTimeout;
 	public static final Collection.Key META_CACHE_TIMEOUT = KeyConstants._metaCacheTimeout;
-	public static final Collection.Key ALLOW = KeyConstants._allow;
 	public static final Collection.Key DISABLE_UPDATE = KeyConstants._disableUpdate;
 
 	private static final TimeSpan FIVE_MINUTES = new TimeSpanImpl(0, 0, 5, 0);
@@ -237,7 +236,7 @@ public final class AppListenerUtil {
 						Caster.toBooleanValue(data.get(KeyConstants._blob, null), false), Caster.toBooleanValue(data.get(KeyConstants._clob, null), false),
 						Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), -1),
 						Caster.toIntValue(data.get("minIdle", null), 0), Caster.toIntValue(data.get("maxIdle", null), 0), Caster.toIntValue(data.get("maxTotal", null), 0),
-						Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone, Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
+						Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone,
 						Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
 						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
 						Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), readliteralTimestampWithTSOffset(data), log);
@@ -261,7 +260,7 @@ public final class AppListenerUtil {
 					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), -1),
 					Caster.toIntValue(data.get("minIdle", null), 0), Caster.toIntValue(data.get("maxIdle", null), 0), Caster.toIntValue(data.get("maxTotal", null), 0),
 					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(KeyConstants._blob, null), false),
-					Caster.toBooleanValue(data.get(KeyConstants._clob, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
+					Caster.toBooleanValue(data.get(KeyConstants._clob, null), false), Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
 					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), timezone, "",
 					ParamSyntaxImpl.toParamSyntax(data, ParamSyntaxImpl.DEFAULT), readliteralTimestampWithTSOffset(data),
 					Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
