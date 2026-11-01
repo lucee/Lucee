@@ -42,6 +42,8 @@ public final class _Execute implements Runnable {
 
 	private final PageContext pageContext;
 	private volatile Thread thread;
+	// the thread that started the worker and that the PageContext belongs to
+	private volatile Thread caller;
 
 	private Resource outputfile;
 	private Resource errorFile;
@@ -113,6 +115,7 @@ public final class _Execute implements Runnable {
 		// virtual threads are always daemon threads and do not allow to change that
 		if (!t.isVirtual()) t.setDaemon(true);
 		thread = t;
+		caller = Thread.currentThread();
 		t.start();
 	}
 
@@ -132,15 +135,15 @@ public final class _Execute implements Runnable {
 
 	@Override
 	public void run() {
-		// remember the thread the PageContext was bound to, to bind it back when the worker is done
-		Thread parent = pageContext.getThread();
 		ThreadLocalPageContext.register(pageContext);// register the PageContext to this thread
+		// the caller already gave up (timeout) before the worker got to run
+		if (aborted) bindToCaller();
 		try {
 			_run(pageContext);
 		}
 		finally {
 			ThreadLocalPageContext.release();
-			if (parent != null) ((PageContextImpl) pageContext).setThread(parent);
+			bindToCaller();
 		}
 	}
 
@@ -197,6 +200,13 @@ public final class _Execute implements Runnable {
 		aborted = true;
 		Process p = process;
 		if (terminateProcess && p != null) p.destroy();
+		// the worker can still be unwinding, but the caller is going on with the PageContext, so it must be bound to the caller again right away
+		bindToCaller();
+	}
+
+	private void bindToCaller() {
+		Thread c = caller;
+		if (c != null) ((PageContextImpl) pageContext).setThread(c);
 	}
 
 	/**
