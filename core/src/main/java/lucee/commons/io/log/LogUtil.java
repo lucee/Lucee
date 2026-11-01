@@ -21,6 +21,7 @@ package lucee.commons.io.log;
 import java.nio.charset.StandardCharsets;
 
 import java.io.File;
+import java.io.PrintStream;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -39,6 +40,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 /**
@@ -49,8 +51,28 @@ public final class LogUtil {
 	public static Resource ERR, OUT;
 	private static int MIN_LEVEL;
 
+	private static final boolean FORCE_CONSOLE_APPENDER;
+
 	static {
 		MIN_LEVEL = LogUtil.toLevel(SystemUtil.getSystemPropOrEnvVar("lucee.system.log.level", null), Log.LEVEL_WARN);
+		FORCE_CONSOLE_APPENDER = isConsoleAppender(SystemUtil.getSystemPropOrEnvVar("lucee.logging.force.appender", null));
+	}
+
+	/**
+	 * is the given appender name or class name the console appender (including the names used by older
+	 * Lucee versions)
+	 */
+	public static boolean isConsoleAppender(String appender) {
+		return "console".equalsIgnoreCase(appender) || "lucee.commons.io.log.log4j.appender.ConsoleAppender".equals(appender)
+				|| "lucee.commons.io.log.log4j2.appender.ConsoleAppender".equals(appender);
+	}
+
+	/**
+	 * is the console appender forced for all logs (lucee.logging.force.appender), in that case nothing
+	 * must be written to the log files, this includes the global out.log and err.log
+	 */
+	public static boolean isForceConsoleAppender() {
+		return FORCE_CONSOLE_APPENDER;
 	}
 
 	private static final ThreadLocal<Boolean> insideGetTimeZone = new ThreadLocal<Boolean>();
@@ -304,6 +326,13 @@ public final class LogUtil {
 		if (level < MIN_LEVEL) return;
 
 		try {
+			if (FORCE_CONSOLE_APPENDER) {
+				// the original console streams, System.out/err can be redirected to out.log/err.log by the config
+				PrintStream console = level > Log.LEVEL_DEBUG ? CFMLEngineImpl.CONSOLE_ERR : CFMLEngineImpl.CONSOLE_OUT;
+				console.println(FormatUtil.format(SystemOut.FORMAT, new Date(System.currentTimeMillis()), getTimeZone(null)) + " " + type + " " + msg);
+				console.flush();
+				return;
+			}
 			Resource log;
 			boolean check = false;
 			if (level > Log.LEVEL_DEBUG) {
