@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>lucee.test.ldev6820</groupId>
+  <artifactId>logging</artifactId>
+  <version>1.0</version>
+  <packaging>jar</packaging>
+  <!-- log4j-core is provided by Lucee, the classes must not be loaded together with a second copy of log4j-core -->
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.26.0</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>
