@@ -65,6 +65,8 @@ public final class POM {
 	private final String optional;
 	private final int dependencyScope;
 	private final int dependencyScopeManagement;
+	private final boolean transitive;
+	private final List<String> exclusions;
 
 	private List<POM> dependencies;
 	private List<POM> dependencyManagement;
@@ -128,24 +130,51 @@ public final class POM {
 
 	static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String classifier, String extension,
 			String scope, String optional, String checksum, int dependencyScope, int dependencyScopeManagement, boolean triggeerLoad, Log log) {
+		return getInstance(localDirectory, repositories, groupId, artifactId, version, classifier, extension, scope, optional, checksum, dependencyScope, dependencyScopeManagement,
+				true, null, triggeerLoad, log);
+	}
+
+	/**
+	 * @param transitive false to resolve only this artifact and none of the artifacts it depends on
+	 * @param exclusions groupId:artifactId patterns (* is a wildcard) of artifacts that are skipped when
+	 *            resolving the dependencies, null for none. They are applied to the whole dependency
+	 *            tree below this POM.
+	 */
+	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, String classifier, String extension, int dependencyScope,
+			boolean transitive, Collection<String> exclusions, Log log) {
+		return getInstance(localDirectory, null, groupId, artifactId, version, classifier, extension, null, null, null, dependencyScope, SCOPES_FOR_MANAGEMENT, transitive,
+				exclusions, true, log);
+	}
+
+	static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String classifier, String extension,
+			String scope, String optional, String checksum, int dependencyScope, int dependencyScopeManagement, boolean transitive, Collection<String> exclusions,
+			boolean triggeerLoad, Log log) {
 		MavenUtil.validateCoordinates(groupId, artifactId, version);
 		MavenUtil.validateCoordinate("classifier", classifier, false);
 		MavenUtil.validateCoordinate("extension", extension, false);
 		triggeerLoad = false;
-		String id = toId(localDirectory, groupId, artifactId, version, classifier, extension, scope, optional, dependencyScope, dependencyScopeManagement);
+		final List<String> excl = MavenUtil.toExclusions(exclusions);
+		String id = toId(localDirectory, groupId, artifactId, version, classifier, extension, scope, optional, dependencyScope, dependencyScopeManagement, transitive, excl);
 		final boolean load = triggeerLoad;
 		return cache.computeIfAbsent(id, k -> new POM(localDirectory, repositories, groupId, artifactId, version, classifier, extension, scope, optional, checksum, dependencyScope,
-				dependencyScopeManagement, load, log));
+				dependencyScopeManagement, transitive, excl, load, log));
 	}
 
 	private static String toId(Resource localDirectory, String groupId, String artifactId, String version, String classifier, String extension, String scope, String optional,
-			int dependencyScope, int dependencyScopeManagement) {
+			int dependencyScope, int dependencyScopeManagement, boolean transitive, List<String> exclusions) {
 		return localDirectory + ":" + groupId + ":" + artifactId + ":" + version + (StringUtil.isEmpty(classifier, true) ? "" : ":" + classifier.trim())
-				+ (StringUtil.isEmpty(extension, true) ? "" : "@" + extension.trim()) + ":" + scope + ":" + optional + ":" + dependencyScope + ":" + dependencyScopeManagement;
+				+ (StringUtil.isEmpty(extension, true) ? "" : "@" + extension.trim()) + ":" + scope + ":" + optional + ":" + dependencyScope + ":" + dependencyScopeManagement
+				+ optionsId(transitive, exclusions);
+	}
+
+	private static String optionsId(boolean transitive, List<String> exclusions) {
+		String id = transitive ? "" : "#nontransitive";
+		if (!exclusions.isEmpty()) id += "#exclusions=" + String.join(",", exclusions);
+		return id;
 	}
 
 	private POM(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String classifier, String extension, String scope,
-			String optional, String checksum, int dependencyScope, int dependencyScopeManagement, boolean triggeerLoad, Log list) {
+			String optional, String checksum, int dependencyScope, int dependencyScopeManagement, boolean transitive, List<String> exclusions, boolean triggeerLoad, Log list) {
 
 		if (groupId == null) throw new IllegalArgumentException("groupId cannot be null");
 		if (artifactId == null) throw new IllegalArgumentException("artifactId cannot be null");
@@ -189,6 +218,8 @@ public final class POM {
 		this.optional = optional == null ? null : optional.trim();
 		this.dependencyScopeManagement = dependencyScopeManagement;
 		this.dependencyScope = dependencyScope;
+		this.transitive = transitive;
+		this.exclusions = exclusions;
 		this.log = log;
 		if (triggeerLoad) initXMLAsync();
 
@@ -251,7 +282,7 @@ public final class POM {
 					Dependency p = reader.getParent();
 					if (p != null) {
 						// chicken egg, because there is no parent yet, this cannot use properties from parent
-						this.parent = MavenUtil.toPOM(this.localDirectory, initRepositories, p, reader.getProperties(), dependencyScope, dependencyScopeManagement, log);
+						this.parent = MavenUtil.toPOM(this.localDirectory, initRepositories, p, reader.getProperties(), dependencyScope, dependencyScopeManagement, exclusions, log);
 						// parent.init();
 					}
 					isInitParent = true;
@@ -294,7 +325,9 @@ public final class POM {
 
 					initProperties();
 					if (reader == null) SystemUtil.sleep(1000);
-					if (dependencyScope > 0) dependencies = MavenUtil.getDependencies(reader.getDependencies(), this, parent, properties, localDirectory, false, log);
+					if (dependencyScope > 0) {
+						dependencies = transitive ? MavenUtil.getDependencies(reader.getDependencies(), this, parent, properties, localDirectory, false, log) : new ArrayList<>();
+					}
 					isInitDependencies = true;
 				}
 			}
@@ -477,6 +510,26 @@ public final class POM {
 
 	public Resource getLocalDirectory() {
 		return localDirectory;
+	}
+
+	public boolean isTransitive() {
+		return transitive;
+	}
+
+	/**
+	 * @return groupId:artifactId patterns of the artifacts that are skipped when resolving the
+	 *         dependencies
+	 */
+	public List<String> getExclusions() {
+		return exclusions;
+	}
+
+	/**
+	 * the id extended with the options that change the resolved dependencies, the same as id() for a POM
+	 * that resolves everything
+	 */
+	public String idWithOptions() {
+		return id() + optionsId(transitive, exclusions);
 	}
 
 	public String id() {
