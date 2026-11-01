@@ -593,6 +593,14 @@ function renderSysPropEnvVar(name, value, text="",defaultValue=true,boolean isEx
 	// converts the class of a built in appender/layout to the short name (console, resource, classic, pattern ...), any other class is returned as it is
 	function logTipShortName( required string className, required string type ) {
 		var cn = trim( arguments.className );
+		// the types of the JUL log engine
+		var julTypes = {
+			"lucee.commons.io.log.JULLogEngine$ConsoleAppenderType": "console",
+			"lucee.commons.io.log.JULLogEngine$ResourceAppenderType": "resource",
+			"lucee.commons.io.log.JULLogEngine$ClassicLayoutType": "classic",
+			"lucee.commons.io.log.JULLogEngine$PatternLayoutType": "pattern"
+		};
+		if ( structKeyExists( julTypes, cn ) ) return julTypes[ cn ];
 		var known = arguments.type == "appender" ? "console,resource,datasource" : "classic,pattern,html,xml,json,datadog";
 		var prefixes = [ "lucee.commons.io.log.log4j2.", "org.lucee.extension.log4j.", "org.apache.logging.log4j.core.layout." ];
 		for ( var prefix in prefixes ) {
@@ -623,26 +631,32 @@ function renderSysPropEnvVar(name, value, text="",defaultValue=true,boolean isEx
 		return "{" & chr( 10 ) & lines.toList( "," & chr( 10 ) ) & chr( 10 ) & arguments.indent & "}";
 	}
 
-	// the class of an appender/layout, as simple name for the built in ones, as struct for a bundle
-	function logTipClass( required string className, string bundleName = "", string bundleVersion = "", required string type ) {
+	// the class of an appender/layout, as simple name for the built in ones, as struct with the maven coordinates, only as last fallback as struct with the (deprecated) OSGi bundle
+	function logTipClass( required string className, string bundleName = "", string bundleVersion = "", string maven = "", required string type ) {
+		var cn = trim( arguments.className );
+		if ( len( trim( arguments.maven ) ) ) {
+			return "{ class: " & logTipValue( cn ) & ", maven: " & logTipValue( trim( arguments.maven ) ) & " }";
+		}
+		var shortName = logTipShortName( cn, arguments.type );
+		if ( shortName != cn ) return logTipValue( shortName );
 		if ( len( trim( arguments.bundleName ) ) ) {
-			var parts = [ "class: " & logTipValue( trim( arguments.className ) ), "bundleName: " & logTipValue( trim( arguments.bundleName ) ) ];
+			var parts = [ "class: " & logTipValue( cn ), "bundleName: " & logTipValue( trim( arguments.bundleName ) ) ];
 			if ( len( trim( arguments.bundleVersion ) ) ) parts.append( "bundleVersion: " & logTipValue( trim( arguments.bundleVersion ) ) );
 			return "{ " & parts.toList( ", " ) & " }";
 		}
-		return logTipValue( logTipShortName( arguments.className, arguments.type ) );
+		return logTipValue( cn );
 	}
 
 	// returns the definition of a logger, to be used inside "this.logs", no layout is written when the appender defines its own layout
 	function logTipDefinition( required struct log, boolean appenderDefinesLayout = false, string indent = "" ) {
 		var i = arguments.indent & "	";
 		var lines = [];
-		lines.append( i & "appender: " & logTipClass( arguments.log.appenderClass, arguments.log.appenderBundleName ?: "", arguments.log.appenderBundleVersion ?: "", "appender" ) );
+		lines.append( i & "appender: " & logTipClass( arguments.log.appenderClass, arguments.log.appenderBundleName ?: "", arguments.log.appenderBundleVersion ?: "", arguments.log.appenderMaven ?: "", "appender" ) );
 		if ( isStruct( arguments.log.appenderArgs ?: "" ) && structCount( arguments.log.appenderArgs ) ) {
 			lines.append( i & "appenderArguments: " & logTipArguments( arguments.log.appenderArgs, i ) );
 		}
 		if ( !arguments.appenderDefinesLayout && len( trim( arguments.log.layoutClass ?: "" ) ) ) {
-			lines.append( i & "layout: " & logTipClass( arguments.log.layoutClass, arguments.log.layoutBundleName ?: "", arguments.log.layoutBundleVersion ?: "", "layout" ) );
+			lines.append( i & "layout: " & logTipClass( arguments.log.layoutClass, arguments.log.layoutBundleName ?: "", arguments.log.layoutBundleVersion ?: "", arguments.log.layoutMaven ?: "", "layout" ) );
 			if ( isStruct( arguments.log.layoutArgs ?: "" ) && structCount( arguments.log.layoutArgs ) ) {
 				lines.append( i & "layoutArguments: " & logTipArguments( arguments.log.layoutArgs, i ) );
 			}

@@ -442,10 +442,12 @@ function showLayout() {
 			,appenderClass:log.appenderClass
 			,appenderBundleName:log.appenderBundleName?:""
 			,appenderBundleVersion:log.appenderBundleVersion?:""
+			,appenderMaven:log.appenderMaven?:""
 			,appenderArgs:log.appenderArgs?:{}
 			,layoutClass:log.layoutClass?:""
 			,layoutBundleName:log.layoutBundleName?:""
 			,layoutBundleVersion:log.layoutBundleVersion?:""
+			,layoutMaven:log.layoutMaven?:""
 			,layoutArgs:log.layoutArgs?:{}
 		}>
 		<cfset tipAppenderDefinesLayout=!isNull(appender) && !isNull(appender.getLayout)>

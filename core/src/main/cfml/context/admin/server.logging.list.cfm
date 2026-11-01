@@ -187,10 +187,12 @@ Redirtect to entry --->
 				,appenderClass:logs.appenderClass
 				,appenderBundleName:logs.appenderBundleName?:""
 				,appenderBundleVersion:logs.appenderBundleVersion?:""
+				,appenderMaven:logs.appenderMaven?:""
 				,appenderArgs:logs.appenderArgs?:{}
 				,layoutClass:logs.layoutClass?:""
 				,layoutBundleName:logs.layoutBundleName?:""
 				,layoutBundleVersion:logs.layoutBundleVersion?:""
+				,layoutMaven:logs.layoutMaven?:""
 				,layoutArgs:logs.layoutArgs?:{}
 			}>
 			<cfset tipLogs.append( "	" & logTipValue( logs.name ) & ": " & logTipDefinition( tipLog, !isNull(tipAppender) && !isNull(tipAppender.getLayout), "	" ) )>
