@@ -93,6 +93,13 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 				String dbdriver = ConfigFactoryImpl.getAttr(config, dataSource, "dbdriver");
 				if (StringUtil.isEmpty(dbdriver, true)) dbdriver = ConfigFactoryImpl.getAttr(config, dataSource, "type");
 				cd = resolveJDBCDriverClassDefinition(config, cd, dsId, dbdriver);
+
+				// LDEV-5801 the datasource is kept, but it can't connect, the exception is thrown when the datasource is used
+				if (cd == null || !cd.hasClass()) {
+					ConfigFactoryImpl.log(config, Log.LEVEL_WARN, "datasource [" + name + "] has no JDBC driver class: [class] is not set and [id] ["
+							+ ConfigFactoryImpl.getAttr(config, dataSource, "id") + "] / [type] [" + ConfigFactoryImpl.getAttr(config, dataSource, "type") + "] / [dbdriver] ["
+							+ ConfigFactoryImpl.getAttr(config, dataSource, "dbdriver") + "] do not match an installed JDBC driver extension");
+				}
 				int idle = Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "idleTimeout"), -1);
 				if (idle == -1) idle = Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "connectionTimeout"), -1);
 				int defLive = 15;
