@@ -3500,8 +3500,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private Query _doGetLogSettings() throws PageException {
 		// TODO no longer go via getLoggers
 		Map<String, LoggerAndSourceData> loggers = ConfigUtil.getConfigServerImpl(config).getLoggers();
-		Query qry = new QueryImpl(new String[] { "name", "level", "appenderClass", "appenderBundleName", "appenderBundleVersion", "appenderArgs", "layoutClass", "layoutBundleName",
-				"layoutBundleVersion", "layoutArgs", "readonly", "source" }, 0, lucee.runtime.type.util.ListUtil.last("logs", '.'));
+		Query qry = new QueryImpl(new String[] { "name", "level", "appenderClass", "appenderBundleName", "appenderBundleVersion", "appenderMaven", "appenderArgs", "layoutClass",
+				"layoutBundleName", "layoutBundleVersion", "layoutMaven", "layoutArgs", "readonly", "source" }, 0, lucee.runtime.type.util.ListUtil.last("logs", '.'));
 		int row = 0;
 		Iterator<Entry<String, LoggerAndSourceData>> it = loggers.entrySet().iterator();
 		Entry<String, LoggerAndSourceData> e;
@@ -3517,17 +3517,27 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAtEL("appenderClass", row, logger.getAppenderClassDefinition().getClassName());
 			qry.setAtEL("appenderBundleName", row, logger.getAppenderClassDefinition().getName());
 			qry.setAtEL("appenderBundleVersion", row, logger.getAppenderClassDefinition().getVersionAsString());
+			qry.setAtEL("appenderMaven", row, toMavenString(logger.getAppenderClassDefinition()));
 
 			qry.setAtEL("appenderArgs", row, toStruct(logger.getAppenderArgs(true)));
 			qry.setAtEL("layoutClass", row, logger.getLayoutClassDefinition().getClassName());
 			qry.setAtEL("layoutBundleName", row, logger.getLayoutClassDefinition().getName());
 			qry.setAtEL("layoutBundleVersion", row, logger.getLayoutClassDefinition().getVersionAsString());
+			qry.setAtEL("layoutMaven", row, toMavenString(logger.getLayoutClassDefinition()));
 
 			qry.setAtEL("layoutArgs", row, toStruct(logger.getLayoutArgs(true)));
 			qry.setAtEL("readonly", row, logger.getReadOnly());
 			qry.setAtEL("source", row, Prop.toSource(logger.getSource(), ""));
 		}
 		return qry;
+	}
+
+	/**
+	 * @return the Maven coordinates of the class definition as string, null if it is not defined by Maven
+	 */
+	private static String toMavenString(ClassDefinition cd) throws PageException {
+		if (!ClassDefinitionImpl.isMaven(cd)) return null;
+		return MavenUtil.toString(((ClassDefinitionImpl<?>) cd).getMaven());
 	}
 
 	private Object toStruct(Map<String, String> map) {
@@ -4983,11 +4993,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		LogEngine eng = config.getLogEngine();
 		// appender
 		ClassDefinition acd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "appender", true, config.getIdentification());
-		if (!acd.isBundle()) acd = eng.appenderClassDefintion(acd.getClassName());
+		if (!acd.isBundle() && !ClassDefinitionImpl.isMaven(acd)) acd = eng.appenderClassDefintion(acd.getClassName());
 
 		// layout
 		ClassDefinition lcd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "layout", true, config.getIdentification());
-		if (!lcd.isBundle()) lcd = eng.layoutClassDefintion(lcd.getClassName());
+		if (!lcd.isBundle() && !ClassDefinitionImpl.isMaven(lcd)) lcd = eng.layoutClassDefintion(lcd.getClassName());
 
 		admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, acd, Caster.toStruct(getObject("admin", "UpdateLogSettings", "appenderArgs")), lcd,
 				Caster.toStruct(getObject("admin", "UpdateLogSettings", "layoutArgs")));
