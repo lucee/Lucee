@@ -224,7 +224,7 @@ public final class AppListenerUtil {
 		Object oConnStr = data.get(CONNECTION_STRING, null);
 		if (oConnStr != null) {
 			// FUTURE remove this
-			String className = Caster.toString(data.get(KeyConstants._class));
+			String className = Caster.toString(data.get(KeyConstants._class, null), null);
 			if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(className)) {
 				data.set(KeyConstants._class, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
 			}
@@ -247,9 +247,17 @@ public final class AppListenerUtil {
 			}
 		}
 		// then for {type:... , host:... , ...}
-		String type = Caster.toString(data.get(KeyConstants._type));
+		// LDEV-5801 tell which datasource is incomplete and what is supported, instead of "key [type] doesn't exist"
+		String type = Caster.toString(data.get(KeyConstants._type, null), null);
+		if (StringUtil.isEmpty(type, true)) {
+			throw new ApplicationException("Datasource [" + name + "] does not define how to find the JDBC driver. Either define [type] (supported types: "
+					+ DBUtil.SUPPORTED_TYPES + "), or [connectionString] together with [class] (the JDBC driver class, plus [bundleName] and [bundleVersion] or [maven]).");
+		}
 		DataSourceDefintion dbt = DBUtil.getDataSourceDefintionForType(config, type, null);
-		if (dbt == null) throw new ApplicationException("no datasource type [" + type + "] found");
+		if (dbt == null) {
+			throw new ApplicationException("Datasource [" + name + "] has no datasource type [" + type + "], supported types: " + DBUtil.SUPPORTED_TYPES
+					+ ". For any other database define [connectionString] together with [class] (the JDBC driver class, plus [bundleName] and [bundleVersion] or [maven]).");
+		}
 		try {
 
 			int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
