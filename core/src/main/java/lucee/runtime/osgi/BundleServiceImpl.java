@@ -209,7 +209,12 @@ public final class BundleServiceImpl implements BundleService {
 		info.put("state", OSGiUtil.toState(b.getState(), "unknown"));
 		info.put("location", b.getLocation());
 		info.put("fragment", Boolean.valueOf(OSGiUtil.isFragment(b)));
-		info.put("headers", OSGiUtil.getHeaders(b));
+		try {
+			info.put("headers", OSGiUtil.getHeaders(b));
+		}
+		catch (IllegalStateException ise) {
+			info.put("headers", new StructImpl(Struct.TYPE_LINKED));
+		}
 		return info;
 	}
 
