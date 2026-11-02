@@ -682,6 +682,8 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport = fullNullSupport;
+		// NullSupportHelper.full() only uses the server setting as long as no application overrides it
+		ModernApplicationContext.hasCustomNullSupportSetting = true;
 	}
 
 	@Override
