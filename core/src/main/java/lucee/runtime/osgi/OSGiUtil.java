@@ -53,6 +53,7 @@ import org.osgi.framework.BundleReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.framework.wiring.FrameworkWiring;
 import org.osgi.resource.Requirement;
 
 import jakarta.servlet.Servlet;
@@ -2554,6 +2555,27 @@ public final class OSGiUtil {
 			if (b != null && isFrameworkBundle(b)) return b;
 		}
 		return defaultValue;
+	}
+
+	public static List<String> uninstallOtherVersions(BundleContext context, String bundleName, String keepVersion) {
+		List<Bundle> stale = new ArrayList<>();
+		List<String> versions = new ArrayList<>();
+		for (Bundle b: context.getBundles()) {
+			String v = OSGiUtil.toLucee(b.getVersion()).toString();
+			if (bundleName.equals(b.getSymbolicName()) && !v.equals(keepVersion)) {
+				try {
+					b.uninstall();
+					stale.add(b);
+					versions.add(v);
+				}
+				catch (BundleException ignored) {}
+			}
+		}
+		if (!stale.isEmpty()) {
+			FrameworkWiring fw = context.getBundle(0).adapt(FrameworkWiring.class);
+			fw.refreshBundles(stale);
+		}
+		return versions;
 	}
 
 	public static boolean isFrameworkBundle(Bundle b) {

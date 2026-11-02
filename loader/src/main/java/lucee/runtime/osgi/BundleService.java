@@ -92,6 +92,14 @@ public interface BundleService {
 	public Map<String, Object> getRequirements(String bundleName, String bundleVersion) throws IOException;
 
 	/**
+	 * uninstalls all installed versions of the bundle except the given one and refreshes the framework
+	 * so nothing keeps using them
+	 *
+	 * @return the versions that got uninstalled
+	 */
+	public List<String> uninstallOtherVersions(String bundleName, String keepVersion);
+
+	/**
 	 * installs the bundle when it is not installed yet (from the local bundle directory or by
 	 * downloading it)
 	 *

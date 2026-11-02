@@ -119,6 +119,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( info.id ).toBe( 0 );
 			});
 
+			it( "uninstallOtherVersions leaves the given version alone and ignores unknown bundles", function() {
+				var core = service.listCoreBundles()[ 1 ];
+				expect( service.uninstallOtherVersions( core.name, core.version ) ).toBeEmpty();
+				expect( service.uninstallOtherVersions( "does.not.exist", "1.0.0" ) ).toBeEmpty();
+				expect( isNull( service.getBundleInfo( core.name, core.version ) ) ).toBeFalse();
+			});
+
 			it( "throws an IOException for a class the bundle does not have", function() {
 				expect( function() {
 					service.loadClass( system.name, "", "does.not.Exist" );

@@ -32,7 +32,6 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.jar.Manifest;
 
-import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
 
 import lucee.Info;
@@ -70,10 +69,6 @@ public final class InfoImpl implements Info {
 	private String level;
 	private List<ExtensionDefintion> requiredExtensions;
 	public String requiredExtensionsRaw;
-
-	public InfoImpl(Bundle bundle) {
-		this(bundle.getVersion(), bundle.getHeaders());
-	}
 
 	public InfoImpl(Version version, Dictionary<String, String> headers) {
 
@@ -202,26 +197,11 @@ public final class InfoImpl implements Info {
 				+ requiredExtensionsRaw;
 	}
 
-	public static Properties getDefaultProperties(Bundle bundle) {
+	public static Properties getDefaultProperties() {
 		InputStream is = null;
 		Properties prop = new Properties();
 		String keyToValidate = "felix.log.level";
 		try {
-			// check the bundle for the default.properties
-			if (bundle != null) {
-				try {
-					is = bundle.getEntry("default.properties").openStream();
-					prop.load(is);
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-				}
-				finally {
-					IOUtil.closeEL(is);
-				}
-			}
-			if (prop.getProperty(keyToValidate) != null) return prop;
-
 			// Lucee is one jar, the default.properties in the root is the one of Felix
 			prop = new Properties();
 			Class clazz = PageSourceImpl.class;
@@ -302,21 +282,10 @@ public final class InfoImpl implements Info {
 
 	}
 
-	public static Manifest getManifest(Bundle bundle) {
+	public static Manifest getManifest() {
 		InputStream is = null;
 		Manifest manifest;
 		try {
-			// check the bundle for the default.properties
-			if (bundle != null) {
-				try {
-					manifest = load(bundle.getEntry("META-INF/MANIFEST.MF").openStream());
-					if (manifest != null) return manifest;
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-				}
-			}
-
 			// try from core classloader without leading slash
 			Class clazz = PageSourceImpl.class;
 			ClassLoader cl = clazz.getClassLoader();
