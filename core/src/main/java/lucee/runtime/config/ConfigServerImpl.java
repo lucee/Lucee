@@ -55,6 +55,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -1412,6 +1413,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private volatile boolean fldExtensionIdsPending;
 	private int extensionsLoadCount = 0;
 	private Map<String, RHExtension> extensionsLoading;
+	private final ReentrantLock extensionsLock = new ReentrantLock();
 
 	private static Prop<ResourceProviderDef> metaDefaultResourceProviderDef = Prop.custom(ResourceProviderDefFactory.getInstance(false)).keys("defaultResourceProvider")
 			.description("Defines the primary Resource Provider for the engine, responsible for handling standard file system operations. "
@@ -5193,7 +5195,10 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 		if (extensionsX == null) {
 			boolean loaded = false;
-			synchronized (SystemUtil.createToken("config", "extensions")) {
+			// a ReentrantLock instead of synchronized: on Java 21 a virtual thread blocked in a monitor is pinned to its carrier thread, so the
+			// startBundles tasks below could never get a carrier (LDEV-6812)
+			extensionsLock.lock();
+			try {
 				if (extensionsX == null) {
 					// re-entered by the loading thread, e.g. uninstalling an orphaned extension asks for the other installed extensions (LDEV-6462)
 					if (extensionsLoading != null) return extensionsLoading.values().toArray(new RHExtension[extensionsLoading.size()]);
@@ -5329,6 +5334,9 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					}
 				}
 			}
+			finally {
+				extensionsLock.unlock();
+			}
 			// outside the extensions lock, so we never wait for the tld/fld lock while holding it
 			if (loaded) resetPendingExtensionIds();
 		}
@@ -5381,10 +5389,12 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public ConfigServerImpl resetRHExtensions() {
 		if (extensionsX != null) {
-			synchronized (SystemUtil.createToken("config", "extensions")) {
-				if (extensionsX != null) {
-					extensionsX = null;
-				}
+			extensionsLock.lock();
+			try {
+				extensionsX = null;
+			}
+			finally {
+				extensionsLock.unlock();
 			}
 		}
 
@@ -8034,6 +8044,9 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public void load(Resource configFile) throws IOException, PageException {
 
+		// read the file first, so an unreadable file leaves a running configuration untouched
+		Struct newRoot = readConfigFile(configFile);
+
 		// we have an update
 		if (this.loadTime != 0) {
 			try {
@@ -8044,33 +8057,31 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			}
 		}
 
-		try {
-			root = ConfigFile.read(configFile, null);
-		}
-		catch (Exception e) {
-			// rename buggy config files
-			if (configFile.exists()) {
-				Resource bugFile;
-				int count = 1;
-				Resource configDir = configFile.getParentResource();
-				while ((bugFile = configDir.getRealResource("corrupt-" + (count++) + "-" + ConfigFactory.CONFIG_FILE_NAMES[0] + ".")).exists()) {}
-
-				LogUtil.log(this, Log.LEVEL_ERROR, ConfigFactory.class.getName(),
-						"The configuration file [" + configFile
-								+ "] contained syntax errors and could not be read. A new configuration file has been created, and the invalid file has been renamed to [" + bugFile
-								+ "].");
-				LogUtil.log(ThreadLocalPageContext.get(), ConfigFactory.class.getName(), e);
-
-				IOUtil.copy(configFile, bugFile);
-				configFile.delete();
-			}
-			ConfigFile.createConfigFile(configFile);
-			root = ConfigFile.read(configFile, null);
-		}
+		root = newRoot;
 		this.setConfigLastModified();
 		this.loadTime = System.currentTimeMillis();
 
 		createSaltAndPW(root);
+	}
+
+	/**
+	 * Reads the config file. A missing (or empty) file is created with the default configuration, a
+	 * file that exists but can not be read or parsed is never replaced or renamed, instead a
+	 * ConfigFileException is thrown.
+	 */
+	private static Struct readConfigFile(Resource configFile) throws IOException, PageException {
+		if (!configFile.exists() || configFile.length() == 0) {
+			ConfigFile.createConfigFile(configFile);
+		}
+		try {
+			Struct data = ConfigFile.read(configFile, null);
+			if (data == null) throw new ApplicationException("the file does not contain a JSON struct");
+			return data;
+		}
+		catch (Exception e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+			throw new ConfigFileException(configFile, e);
+		}
 	}
 
 	public void createSaltAndPW() throws IOException {

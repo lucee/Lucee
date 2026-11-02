@@ -19,6 +19,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.transformer.library.ClassDefinitionImpl;
 
 public class LogFactory implements PropFactory<LoggerAndSourceData> {
 
@@ -114,7 +115,7 @@ public class LogFactory implements PropFactory<LoggerAndSourceData> {
 					tmp = StringUtil.trim(ConfigFactoryImpl.getAttr(config, data, "appender"), "");
 					cdAppender = config.getLogEngine().appenderClassDefintion(tmp);
 				}
-				else if (!cdAppender.isBundle()) {
+				else if (!cdAppender.isBundle() && !ClassDefinitionImpl.isMaven(cdAppender)) {
 					cdAppender = config.getLogEngine().appenderClassDefintion(cdAppender.getClassName());
 				}
 				appenderArgs = ConfigFactoryImpl.toArguments(data, "appenderArguments", true, false);
@@ -125,7 +126,7 @@ public class LogFactory implements PropFactory<LoggerAndSourceData> {
 					tmp = StringUtil.trim(ConfigFactoryImpl.getAttr(config, data, "layout"), "");
 					cdLayout = config.getLogEngine().layoutClassDefintion(tmp);
 				}
-				else if (!cdLayout.isBundle()) {
+				else if (!cdLayout.isBundle() && !ClassDefinitionImpl.isMaven(cdLayout)) {
 					cdLayout = config.getLogEngine().layoutClassDefintion(cdLayout.getClassName());
 				}
 				layoutArgs = ConfigFactoryImpl.toArguments(data, "layoutArguments", true, false);
