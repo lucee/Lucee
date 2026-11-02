@@ -32,9 +32,12 @@ import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.tag.listener.TagListener;
@@ -154,7 +157,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 			if (d != null && !isFromUninstalledBundle(d.getClass())) return d;
 			// the cached driver (if any) comes from a bundle that was uninstalled, drop it and resolve again
 			driver = null;
-			return driver = _initializeDriver(cd, config);
+			return driver = _initializeDriver(name, cd, config);
 		}
 	}
 
@@ -167,7 +170,10 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		}
 	}
 
-	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws Exception {
+	private static Driver _initializeDriver(String dsName, ClassDefinition cd, Config config) throws Exception {
+		// LDEV-5801 without a class name there is nothing to load, tell what is missing instead of failing with [null]
+		if (cd == null || !cd.hasClass()) throw noDriverClass(dsName, config);
+
 		// load the class
 		Class<?> clazz = cd.getClazz();
 		if (isFromUninstalledBundle(clazz)) {
@@ -184,6 +190,39 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 			if (isFromUninstalledBundle(clazz)) throw driverNotAvailable(cd, uninstalled);
 		}
 		return (Driver) ClassUtil.newInstance(clazz);
+	}
+
+	/**
+	 * LDEV-5801 the datasource has no JDBC driver class, because none of the settings that define the driver
+	 * ([class], [id], [type], [dbdriver]) did result in a driver.
+	 */
+	private static ApplicationException noDriverClass(String dsName, Config config) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("No JDBC driver defined for the datasource").append(StringUtil.isEmpty(dsName, true) ? "" : " [" + dsName + "]").append(". ");
+		sb.append("The driver is defined by [class] (the JDBC driver class, together with [bundleName] and [bundleVersion] or [maven]), ");
+		sb.append("or by [type] / [dbdriver] / [id] matching the id of an installed JDBC driver extension");
+		String ids = getInstalledDriverIds(config);
+		if (ids.length() > 0) sb.append(" (installed: ").append(ids).append(")");
+		sb.append(".");
+		return new ApplicationException(sb.toString());
+	}
+
+	private static String getInstalledDriverIds(Config config) {
+		try {
+			if (!(config instanceof ConfigPro)) return "";
+			JDBCDriver[] drivers = ((ConfigPro) config).getJDBCDrivers();
+			if (drivers == null) return "";
+			StringBuilder sb = new StringBuilder();
+			for (JDBCDriver d: drivers) {
+				if (d == null || StringUtil.isEmpty(d.id, true)) continue;
+				if (sb.length() > 0) sb.append(", ");
+				sb.append(d.id);
+			}
+			return sb.toString();
+		}
+		catch (Exception e) {
+			return "";
+		}
 	}
 
 	private static ClassException driverNotAvailable(ClassDefinition cd, Bundle bundle) {
@@ -208,7 +247,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws PageException {
 		try {
 			// Driver driver = _initializeDriver(_initializeCD(jdbc, cd, config),config);
-			Driver driver = _initializeDriver(cd, config);
+			Driver driver = _initializeDriver(null, cd, config);
 			_getConnection(config, driver, connStrTranslated, user, pass);
 		}
 		catch (Exception e) {
