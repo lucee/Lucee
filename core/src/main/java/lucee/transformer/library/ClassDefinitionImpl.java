@@ -332,6 +332,13 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		return maven != null;
 	}
 
+	/**
+	 * @return true if the given class definition is defined by Maven coordinates
+	 */
+	public static boolean isMaven(ClassDefinition<?> cd) {
+		return cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl<?>) cd).isMaven();
+	}
+
 	public GAVSO[] getMaven() throws ApplicationException {
 		if (gavsos == null) {
 			List<GAVSO> gavsos = MavenUtil.toGAVSOs(maven);
