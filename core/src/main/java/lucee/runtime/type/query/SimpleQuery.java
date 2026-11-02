@@ -122,11 +122,6 @@ public final class SimpleQuery implements Query, ResultSet, Objects, QueryResult
 
 		// ResultSet result=null;
 		stat = null;
-		// check SQL Restrictions
-		if (dc.getDatasource().hasSQLRestriction()) {
-			QueryUtil.checkSQLRestriction(pc, dc, sql);
-		}
-
 		// Stopwatch stopwatch=new Stopwatch(Stopwatch.UNIT_NANO);
 		// stopwatch.start();
 		long start = System.nanoTime();

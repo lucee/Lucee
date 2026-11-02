@@ -23,7 +23,6 @@ import java.util.Map;
 import coldfusion.sql.DataSourceDef;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -45,16 +44,16 @@ public final class DatSourceDefImpl implements DataSourceDef {
 	@Override
 	public Struct getAllowedSQL() {
 		Struct allow = new StructImpl();
-		allow.setEL(KeyConstants._alter, Caster.toBoolean(ds.hasAllow(DataSource.ALLOW_ALTER)));
-		allow.setEL(KeyConstants._create, Caster.toBoolean(ds.hasAllow(DataSource.ALLOW_CREATE)));
-		allow.setEL(KeyConstants._delete, Caster.toBoolean(ds.hasAllow(DataSource.ALLOW_DELETE)));
-		allow.setEL(KeyConstants._drop, Caster.toBoolean(ds.hasAllow(DataSource.ALLOW_DROP)));
-		allow.setEL(KeyConstants._grant, Caster.toBoolean(ds.hasAllow(DataSource.ALLOW_GRANT)));
-		allow.setEL(KeyConstants._insert, Caster.toBoolean(ds.hasAllow(DataSource.ALLOW_INSERT)));
-		allow.setEL(KeyConstants._revoke, Caster.toBoolean(ds.hasAllow(DataSource.ALLOW_REVOKE)));
-		allow.setEL(KeyConstants._select, Caster.toBoolean(ds.hasAllow(DataSource.ALLOW_SELECT)));
-		allow.setEL("storedproc", Caster.toBoolean(true));// TODO
-		allow.setEL(KeyConstants._update, Caster.toBoolean(ds.hasAllow(DataSource.ALLOW_UPDATE)));
+		allow.setEL(KeyConstants._alter, Boolean.TRUE);
+		allow.setEL(KeyConstants._create, Boolean.TRUE);
+		allow.setEL(KeyConstants._delete, Boolean.TRUE);
+		allow.setEL(KeyConstants._drop, Boolean.TRUE);
+		allow.setEL(KeyConstants._grant, Boolean.TRUE);
+		allow.setEL(KeyConstants._insert, Boolean.TRUE);
+		allow.setEL(KeyConstants._revoke, Boolean.TRUE);
+		allow.setEL(KeyConstants._select, Boolean.TRUE);
+		allow.setEL("storedproc", Boolean.TRUE);
+		allow.setEL(KeyConstants._update, Boolean.TRUE);
 		return allow;
 	}
 
