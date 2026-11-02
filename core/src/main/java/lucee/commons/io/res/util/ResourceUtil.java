@@ -386,7 +386,9 @@ public final class ResourceUtil {
 		if (isUNC) {
 			res = pc.getConfig().getResource(destination.replace('/', '\\'));
 		}
-		else if (!destination.startsWith("..")) res = pc.getConfig().getResource(destination);
+		// LDEV-6821: res is already the resource for destination, creating it again would throw away what it
+		// has cached, for example the result of the HEAD request of a http resource
+		else if (res == null && !destination.startsWith("..")) res = pc.getConfig().getResource(destination);
 		if (res != null && res.isAbsolute()) return res;
 
 		return getRealResource(pc, destination, res);

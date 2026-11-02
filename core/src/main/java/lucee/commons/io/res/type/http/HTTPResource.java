@@ -49,6 +49,14 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	private final String path;
 	private final String name;
 	private HTTPResponse http;
+	// LDEV-6821: true while http is a GET response whose body has not been read yet, getInputStream() uses
+	// it instead of sending another GET request
+	private boolean httpUnread;
+	// LDEV-6821: the HEAD response, so asking for the content type after exists() does not send a second
+	// HEAD request
+	private HTTPResponse headResponse;
+	// LDEV-6821: length is calculated only once, calculating it can consume the body of the response
+	private volatile Long contentLength;
 	// LDEV-5912: status code of the HEAD request, kept for this resource (as 8.0 does), so a sequence of
 	// checks like exists(), isFile() and isReadable() sends only one HEAD request
 	private volatile Integer headStatusCode;
@@ -107,15 +115,42 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 		return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
 	}
 
-	private HTTPResponse getHTTPResponse(boolean create) throws IOException, GeneralSecurityException {
+	private synchronized HTTPResponse getHTTPResponse(boolean create) throws IOException, GeneralSecurityException {
 		if (create || http == null) {
 			URL url = toURL();
 			// TODO Support for proxy
 			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
 
 			http = HTTPEngine4Impl.get(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null);
+			httpUnread = true;
 		}
 		return http;
+	}
+
+	/**
+	 * LDEV-6821: returns the GET response that was already made for this resource and not read yet (by
+	 * the fallback of getStatusCode() or by length()), or null. The response can be used only once.
+	 */
+	private synchronized HTTPResponse takeUnreadResponse() {
+		if (http != null && httpUnread) {
+			httpUnread = false;
+			return http;
+		}
+		return null;
+	}
+
+	private synchronized void markRead() {
+		httpUnread = false;
+	}
+
+	private HTTPResponse getHeadResponse() throws IOException, GeneralSecurityException {
+		HTTPResponse rsp = headResponse;
+		if (rsp == null) {
+			URL url = toURL();
+			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
+			headResponse = rsp = HTTPEngine4Impl.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null);
+		}
+		return rsp;
 	}
 
 	private int getStatusCode() throws IOException, GeneralSecurityException {
@@ -123,20 +158,23 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 			Integer cached = headStatusCode;
 			if (cached != null) return cached.intValue();
 
-			URL url = toURL();
-			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
-			int code = HTTPEngine4Impl.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getStatusCode();
+			int code = getHeadResponse().getStatusCode();
 			// LDEV-5387: some servers (S3 presigned URLs, servers without HEAD support) reject HEAD but serve
 			// GET, so check those with the GET request that would be made anyway
 			if (rejectsHead(code)) {
-				HTTPResponse rsp = null;
-				try {
-					rsp = HTTPEngine4Impl.get(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null);
-					code = rsp.getStatusCode();
+				URL url = toURL();
+				ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
+				HTTPResponse rsp = HTTPEngine4Impl.get(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null);
+				code = rsp.getStatusCode();
+				if (code >= 200 && code <= 299) {
+					// LDEV-6821: keep the response (status, headers and body), so reading the resource does not
+					// send the same GET request again
+					synchronized (this) {
+						http = rsp;
+						httpUnread = true;
+					}
 				}
-				finally {
-					HTTPEngine.closeEL(rsp);
-				}
+				else HTTPEngine.closeEL(rsp);
 			}
 			headStatusCode = code;
 			return code;
@@ -153,12 +191,9 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	}
 
 	public ContentType getContentType() throws IOException, GeneralSecurityException {
-		if (http == null) {
-			URL url = toURL();
-			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
-			return HTTPEngine4Impl.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getContentType();
-		}
-		return http.getContentType();
+		HTTPResponse rsp = http;
+		if (rsp == null) rsp = getHeadResponse();
+		return rsp.getContentType();
 	}
 
 	@Override
@@ -192,12 +227,15 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 		// ResourceUtil.checkGetInputStreamOK(this);
 		// provider.lock(this);
 		provider.read(this);
-		HTTPResponse method;
-		try {
-			method = getHTTPResponse(true);
-		}
-		catch (GeneralSecurityException e) {
-			throw ExceptionUtil.toIOException(e);
+		HTTPResponse method = takeUnreadResponse();
+		if (method == null) {
+			try {
+				method = getHTTPResponse(true);
+				markRead();
+			}
+			catch (GeneralSecurityException e) {
+				throw ExceptionUtil.toIOException(e);
+			}
 		}
 		try {
 			int code = method.getStatusCode();
@@ -290,8 +328,15 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	public long length() {
 		HTTPResponse rsp = null;
 		try {
+			Long cached = contentLength;
+			if (cached != null) return cached.longValue();
 			if (!exists()) return 0;
-			return (rsp = getHTTPResponse(false)).getContentLength();
+			rsp = getHTTPResponse(false);
+			// without a Content-Length header the length is calculated by reading the body
+			if (rsp.getLastHeaderIgnoreCase("Content-Length") == null) markRead();
+			long len = rsp.getContentLength();
+			contentLength = Long.valueOf(len);
+			return len;
 		}
 		catch (Exception e) {
 			return 0;
@@ -307,18 +352,26 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	}
 
 	public void setProxyData(ProxyData pd) {
-		this.http = null;
+		resetResponses();
 		this.data.setProxyData(pd);
 	}
 
 	public void setUserAgent(String userAgent) {
-		this.http = null;
+		resetResponses();
 		this.data.userAgent = userAgent;
 	}
 
 	public void setTimeout(int timeout) {
-		this.http = null;
+		resetResponses();
 		data.timeout = timeout;
+	}
+
+	private synchronized void resetResponses() {
+		this.http = null;
+		this.httpUnread = false;
+		this.headResponse = null;
+		this.headStatusCode = null;
+		this.contentLength = null;
 	}
 
 	private int _getTimeout() {
