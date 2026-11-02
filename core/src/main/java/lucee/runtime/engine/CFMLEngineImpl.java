@@ -105,6 +105,7 @@ import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.config.ConfigFactory;
 import lucee.runtime.config.ConfigFactory.UpdateInfo;
 import lucee.runtime.config.ConfigFactoryImpl;
+import lucee.runtime.config.ConfigFileException;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
@@ -126,6 +127,7 @@ import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.MissingIncludeException;
 import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.PageServletException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.extension.ExtensionDefintion;
@@ -990,6 +992,18 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					return tmp;
 				}
 				configServer = tmp;
+			}
+			catch (ConfigFileException cfe) {
+				// LDEV-5750 an existing config file that can not be read must stop the startup, falling back to a
+				// default configuration would hide the problem and drop all settings
+				String msg = cfe.getMessage() + "\n" + cfe.getDetail();
+				System.err.println("ERROR: " + msg);
+				LogUtil.logGlobal(Log.LEVEL_ERROR, "startup", msg);
+				if (isWarmup()) {
+					shutdownFelix();
+					System.exit(1);
+				}
+				throw new PageRuntimeException(cfe);
 			}
 			catch (Exception e) {
 				e.printStackTrace();

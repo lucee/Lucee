@@ -8034,6 +8034,9 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public void load(Resource configFile) throws IOException, PageException {
 
+		// read the file first, so an unreadable file leaves a running configuration untouched
+		Struct newRoot = readConfigFile(configFile);
+
 		// we have an update
 		if (this.loadTime != 0) {
 			try {
@@ -8044,33 +8047,31 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			}
 		}
 
-		try {
-			root = ConfigFile.read(configFile, null);
-		}
-		catch (Exception e) {
-			// rename buggy config files
-			if (configFile.exists()) {
-				Resource bugFile;
-				int count = 1;
-				Resource configDir = configFile.getParentResource();
-				while ((bugFile = configDir.getRealResource("corrupt-" + (count++) + "-" + ConfigFactory.CONFIG_FILE_NAMES[0] + ".")).exists()) {}
-
-				LogUtil.log(this, Log.LEVEL_ERROR, ConfigFactory.class.getName(),
-						"The configuration file [" + configFile
-								+ "] contained syntax errors and could not be read. A new configuration file has been created, and the invalid file has been renamed to [" + bugFile
-								+ "].");
-				LogUtil.log(ThreadLocalPageContext.get(), ConfigFactory.class.getName(), e);
-
-				IOUtil.copy(configFile, bugFile);
-				configFile.delete();
-			}
-			ConfigFile.createConfigFile(configFile);
-			root = ConfigFile.read(configFile, null);
-		}
+		root = newRoot;
 		this.setConfigLastModified();
 		this.loadTime = System.currentTimeMillis();
 
 		createSaltAndPW(root);
+	}
+
+	/**
+	 * Reads the config file. A missing (or empty) file is created with the default configuration, a
+	 * file that exists but can not be read or parsed is never replaced or renamed, instead a
+	 * ConfigFileException is thrown.
+	 */
+	private static Struct readConfigFile(Resource configFile) throws IOException, PageException {
+		if (!configFile.exists() || configFile.length() == 0) {
+			ConfigFile.createConfigFile(configFile);
+		}
+		try {
+			Struct data = ConfigFile.read(configFile, null);
+			if (data == null) throw new ApplicationException("the file does not contain a JSON struct");
+			return data;
+		}
+		catch (Exception e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+			throw new ConfigFileException(configFile, e);
+		}
 	}
 
 	public void createSaltAndPW() throws IOException {

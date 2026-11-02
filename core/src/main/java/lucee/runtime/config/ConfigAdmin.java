@@ -290,6 +290,8 @@ public final class ConfigAdmin {
 		this.optionalPW = optionalPW;
 	}
 
+	private static volatile long lastFailedReload = -1;
+
 	public static void checkForChangesInConfigFile(Config config) {
 		ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
 		if (!cs.checkForChangesInConfigFile() || !wasConfigFileChangedOutside(cs)) return;
@@ -297,6 +299,8 @@ public final class ConfigAdmin {
 		Resource file = config.getConfigFile();
 		long diff = file.lastModified() - cs.configLastModified();
 		if (diff < 10 && diff > -10) return;
+		// LDEV-5750 do not retry (and log again) as long as the file is unchanged since the last failed reload
+		if (file.lastModified() == lastFailedReload) return;
 		// reload
 		try {
 			cs.load(file);
@@ -305,6 +309,11 @@ public final class ConfigAdmin {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
+			// LDEV-5750 the running configuration is kept, the file is not touched
+			lastFailedReload = file.lastModified();
+			LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_ERROR, "deploy", ConfigAdmin.class.getName(),
+					"the configuration file [" + file + "] was changed but could not be reloaded, the running configuration is kept: " + t.getMessage());
+			LogUtil.log(ThreadLocalPageContext.getConfigServer(config), "deploy", t);
 		}
 	}
 
