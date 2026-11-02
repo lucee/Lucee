@@ -285,6 +285,16 @@ public final class POM {
 		}
 	}
 
+	/**
+	 * the reader is set by initXML(), which either sets it or throws an exception, so it must never be
+	 * null at this point. If it is, fail with a clear message instead of a NullPointerException.
+	 */
+	private void checkReader() throws IOException {
+		if (reader == null) {
+			throw new IOException("failed to load the pom file for [" + toString() + "], the pom reader is not available");
+		}
+	}
+
 	private void initDependencies() throws IOException {
 		if (!isInitDependencies) {
 			synchronized (token) {
@@ -292,7 +302,7 @@ public final class POM {
 					if (log != null) log.debug("maven", "int dependencies for " + this);
 
 					initProperties();
-					if (reader == null) SystemUtil.sleep(1000);
+					checkReader();
 					if (dependencyScope > 0) dependencies = MavenUtil.getDependencies(reader.getDependencies(), this, parent, properties, localDirectory, false, log);
 					isInitDependencies = true;
 				}
@@ -307,6 +317,7 @@ public final class POM {
 					if (log != null) log.debug("maven", "init dependency management for " + this);
 
 					initProperties();
+					checkReader();
 
 					if (dependencyScopeManagement > 0)
 						dependencyManagement = MavenUtil.getDependencyManagement(reader.getDependencyManagements(), this, parent, properties, localDirectory, log);
