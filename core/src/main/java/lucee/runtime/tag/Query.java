@@ -115,6 +115,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	public static final int RETURN_TYPE_STORED_PROC = 4;
 
 	private static final boolean USE_LOCAL_SCOPE = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.tag.populate.localscope", "true"), true);
+	private static final boolean INCLUDE_SQL_DEFAULT = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.query.result.includesql", "true"), true);
 	private static final boolean QOQ_CASE_SENSITIVE_DEFAULT = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.caseSensitive", "false"), false);
 
 	public boolean orgPSQ;
@@ -304,6 +305,27 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	public void setLazy(boolean lazy) {
 		data.lazy = lazy;
+	}
+
+	/**
+	 * set the value includeSQL, defines if the struct defined with the attribute "result" contains the
+	 * keys "sql" and "sqlparameters". When not set, the Application.cfc setting "this.query.includeSQL"
+	 * and then the environment variable "LUCEE_QUERY_RESULT_INCLUDESQL" are used, default is true.
+	 *
+	 * @param includeSQL value to set
+	 */
+	public void setIncludesql(boolean includeSQL) {
+		data.includeSQL = Boolean.valueOf(includeSQL);
+	}
+
+	private static boolean includeSQL(PageContext pc, QueryBean data) {
+		if (data.includeSQL != null) return data.includeSQL.booleanValue();
+		ApplicationContext ac = pc.getApplicationContext();
+		if (ac instanceof ApplicationContextSupport) {
+			Boolean b = ((ApplicationContextSupport) ac).getQueryIncludeSQL();
+			if (b != null) return b.booleanValue();
+		}
+		return INCLUDE_SQL_DEFAULT;
 	}
 
 	/**
@@ -728,7 +750,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 							sct.setEL(KeyConstants._executionTime, Caster.toDouble(time / 1000000));
 							sct.setEL(KeyConstants._executionTimeNano, Caster.toDouble(time));
 							if (cacheId != null) sct.setEL(KeyConstants._cachedWithinId, cacheId);
-							sct.setEL(KeyConstants._SQL, sqlQuery.getSQLString());
+							if (includeSQL(pageContext, data)) sct.setEL(KeyConstants._SQL, sqlQuery.getSQLString());
 
 							if (!Decision.isArray(obj)) sct.setEL(KeyConstants._RECORDCOUNT, Caster.toDouble(1));
 
@@ -845,7 +867,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			meta.setEL(KeyConstants._executionTime, Caster.toDouble(queryResult.getExecutionTime() / 1000000));
 			meta.setEL(KeyConstants._executionTimeNano, Caster.toDouble(queryResult.getExecutionTime()));
 			if (cacheId != null) meta.setEL(KeyConstants._cachedWithinId, cacheId);
-			if (sqlQuery != null) meta.setEL(KeyConstants._SQL, sqlQuery.getSQLString());
+			boolean includeSQL = sqlQuery != null && includeSQL(pageContext, data);
+			if (includeSQL) meta.setEL(KeyConstants._SQL, sqlQuery.getSQLString());
 
 			// GENERATED KEYS
 			lucee.runtime.type.Query qi = Caster.toQuery(queryResult, null);
@@ -874,7 +897,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 
 			// sqlparameters
-			if (sqlQuery != null) {
+			if (includeSQL) {
 				SQLItem[] params = sqlQuery.getItems();
 				if (params != null && params.length > 0) {
 					Array arr = new ArrayImpl(params.length);
@@ -992,6 +1015,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		// debug
 		Boolean b = Caster.toBoolean(args.get("debug", null), null);
 		if (b != null && b != data.debug) data.debug = b.booleanValue();
+
+		// includeSQL
+		b = Caster.toBoolean(args.get("includeSQL", null), null);
+		if (b != null) data.includeSQL = b;
 
 		// lazy
 		b = Caster.toBoolean(args.get("lazy", null), null);

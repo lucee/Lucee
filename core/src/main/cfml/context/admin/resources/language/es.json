@@ -663,8 +663,8 @@
 			"physicalmissing": "Por favor ingresa un valor para el recurso (fila ",
 			"primaryhead": "Primario",
 			"primaryheaddescription": "Establece dónde se buscarán primero los archivos de Lucee",
-			"topleveldesc": "Hacer que este mapeo sea accesible a través de la web (es decir, accesible mediante un navegador o llamada HTTP remota)",
-			"toplevelhead": "Acceso web",
+			"webaccessibledesc": "Hacer que este mapeo sea accesible a través de la web (es decir, accesible mediante un navegador o llamada HTTP remota)",
+			"webaccessiblehead": "Acceso web",
 			"trustedhead": "Inspeccionar",
 			"virtualhead": "Virtual"
 		},

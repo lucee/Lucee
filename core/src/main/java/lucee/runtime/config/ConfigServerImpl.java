@@ -648,7 +648,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public final static Prop<String> metaErrorTemplate404 = Prop.str().keys("errorMissingTemplate", "missingErrorTemplate", "template404").access(SecurityManager.TYPE_DEBUGGING)
 			.defaultValue("/lucee/templates/error/error." + (Constants.getCFMLTemplateExtensions()[0])).description(
-					"This setting specifies the custom file path for the template rendered whenever a requested resource is not found on the server, ensuring a controlled and helpful response for status 404 missing page exceptions.");
+					"This setting specifies the custom file path for the template rendered whenever a requested resource is not found on the server, ensuring a controlled and helpful response for status 404 missing page exceptions. "
+					+ "If this setting is not defined but the general error template is, the general error template is used for missing pages as well.");
 	private final ConfigValue<String> errorMissingTemplate = new ConfigValue<>(metaErrorTemplate404);
 
 	private static Prop<Password> metaPassword = Prop.custom(PasswordFactory.getInstance()).keys("hspw", "adminhspw", "adminpw", "pw", "adminpassword", "password")
@@ -661,7 +662,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	private static Prop<Mapping> metaMappings = Prop.custom(MappingFactory.getInstance(MappingFactory.TYPE_REGULAR), Prop.TYPE_MAP).keys("mappings", "CFMappings").lowerCaseKeys()
 			.description("Maps logical paths to storage locations, supporting local filesystems and virtual providers like S3. "
-					+ "Includes controls for 'physical' vs 'archive' priority, 'toplevel' browser visibility, 'inspectTemplate' change-detection rules, "
+					+ "Includes controls for 'physical' vs 'archive' priority, 'webAccessible' browser visibility, 'inspectTemplate' change-detection rules, "
 					+ "and 'listener' configurations for Application.cfc discovery.");
 	private Mapping[] uncheckedMappings;
 	private Mapping[] mappings;
@@ -669,14 +670,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private static Prop<Mapping> metaCustomTagMappings = Prop.custom(MappingFactory.getInstance(MappingFactory.TYPE_CUSTOM_TAG), Prop.TYPE_LIST)
 			.keys("customTagMappings", "customTagPaths")
 			.description("Acts as a component classpath. Maps virtual handles to local or cloud-based directories (S3, etc.) and .lar archives. "
-					+ "Controls 'primary' source priority, 'inspectTemplate' caching, and 'toplevel' remote access for component resolution.");
+					+ "Controls 'primary' source priority, 'inspectTemplate' caching, and 'webAccessible' remote access for component resolution.");
 	private Mapping[] uncheckedCustomTagMappings;
 	private Mapping[] customTagMappings;
 
 	private static Prop<Mapping> metaComponentMappings = Prop.custom(MappingFactory.getInstance(MappingFactory.TYPE_COMPONENT), Prop.TYPE_LIST)
 			.keys("componentMappings", "componentPaths")
 			.description("Acts as a component classpath. Maps virtual handles to local or cloud-based directories (S3, etc.) and .lar archives. "
-					+ "Controls 'primary' source priority, 'inspectTemplate' caching, and 'toplevel' remote access for component resolution.");
+					+ "Controls 'primary' source priority, 'inspectTemplate' caching, and 'webAccessible' remote access for component resolution.");
 	private Mapping[] uncheckedComponentMappings;
 	private Mapping[] componentMappings;
 
@@ -3746,7 +3747,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public String getErrorTemplate(int statusCode) {
-		if (statusCode == 404) return errorMissingTemplate.get(this, root);
+		if (statusCode == 404) {
+			// LDEV-4194 without an explicit missing template setting, an explicit general error template also handles missing templates
+			if (!metaErrorTemplate404.isDefined(root) && metaErrorTemplate500.isDefined(root)) return errorGeneralTemplate.get(this, root);
+			return errorMissingTemplate.get(this, root);
+		}
 		return errorGeneralTemplate.get(this, root);
 	}
 

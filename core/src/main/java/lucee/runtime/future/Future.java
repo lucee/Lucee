@@ -3,6 +3,7 @@ package lucee.runtime.future;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
@@ -17,6 +18,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Struct;
@@ -46,26 +48,58 @@ public final class Future implements Objects {
 			new String[][] { new String[] { "closure", "yes", "function" }, new String[] { "timezone", "no", "timespan" } },
 			new String[][] { new String[] { "closure", "yes", "function" }, new String[] { "timezone", "no", "timespan" } } };
 
+	/**
+	 * Holder for the executor shared by runAsync and all the then/error steps (LDEV-4397). It is created
+	 * lazily on first use. Before this, every single step created its own single thread executor, so the
+	 * number of concurrent threads was unbounded and a burst could fail with "unable to create new native
+	 * thread".
+	 * 
+	 * Every step runs in its own thread with its own PageContext (see CallableUDF), registered on entry and
+	 * released in a finally block, so no state is carried over between steps. Waiting for the result of a
+	 * previous step (then/error) happens in the calling thread and never inside the executor, so chained
+	 * steps can not starve each other.
+	 */
+	private static final class SharedExecutor {
+
+		private static final ExecutorService INSTANCE = create();
+
+		private static ExecutorService create() {
+			// virtual threads are cheap, so there is no need to limit them (Java 21+, unless disabled with
+			// lucee.allow.virtual.threads=false)
+			if (ThreadUtil.ALLOW_VIRTUAL_THREADS) return Executors.newVirtualThreadPerTaskExecutor();
+
+			// virtual threads disabled: reuse platform threads that are idle for up to 60 seconds. The pool
+			// is deliberately not bounded with a queue, a runAsync that waits for another runAsync (nested
+			// get) could otherwise dead lock.
+			final AtomicInteger counter = new AtomicInteger();
+			return Executors.newCachedThreadPool(r -> {
+				Thread t = new Thread(r, "lucee-async-" + counter.incrementAndGet());
+				t.setDaemon(true);
+				// a pooled thread outlives the request that created it, so it must not keep that request's context classloader
+				t.setContextClassLoader(Future.class.getClassLoader());
+				return t;
+			});
+		}
+	}
+
+	private static java.util.concurrent.Future<Object> submit(CallableUDF callable) {
+		return SharedExecutor.INSTANCE.submit(callable);
+	}
+
 	public Future(java.util.concurrent.Future<Object> future, long timeout) {
 		this.future = future;
 		this.timeout = timeout;
 	}
 
 	public static Future _then(PageContext pc, UDF udf, long timeout) {
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		java.util.concurrent.Future<Object> f = executor.submit(new CallableUDF(pc, udf, ARG_NULL));
-		executor.shutdown();
-		return new Future(f, timeout);
+		return new Future(submit(new CallableUDF(pc, udf, ARG_NULL)), timeout);
 	}
 
 	public Future then(PageContext pc, UDF udf, long timeout) throws PageException {
 		if (this.hasError) return this;
 		try {
 			Object arg = get(pc, -1);
-			ExecutorService executor = Executors.newSingleThreadExecutor();
-			java.util.concurrent.Future<Object> f = executor.submit(new CallableUDF(pc, udf, arg));
-			executor.shutdown();
-			return new Future(f, timeout);
+			return new Future(submit(new CallableUDF(pc, udf, arg)), timeout);
 		}
 		catch (Exception e) {
 			return handleExecutionError(pc, e);
@@ -109,10 +143,7 @@ public final class Future implements Objects {
 	}
 
 	private Future executeErrorHandler(PageContext pc, UDF udf, long timeout, Exception e) {
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		java.util.concurrent.Future<Object> f = executor.submit(new CallableUDF(pc, udf, Caster.toPageException(e).getCatchBlock(ThreadLocalPageContext.getConfigServer(pc))));
-		executor.shutdown();
-		return new Future(f, timeout);
+		return new Future(submit(new CallableUDF(pc, udf, Caster.toPageException(e).getCatchBlock(ThreadLocalPageContext.getConfigServer(pc)))), timeout);
 	}
 
 	public boolean cancel() {

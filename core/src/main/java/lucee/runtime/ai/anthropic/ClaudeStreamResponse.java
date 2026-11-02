@@ -6,6 +6,7 @@ import java.util.List;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.ai.AIResponseListener;
+import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Response;
 import lucee.runtime.ai.Part;
 import lucee.runtime.ai.PartImpl;
@@ -64,6 +65,7 @@ public final class ClaudeStreamResponse implements Response {
 					if (p.isText()) continue;
 					binaryParts.add(new PartImpl(null, binaryParts.size(), p.getAsBinary(), p.getContentType()));
 					if (listener != null) listener.listen(p.getAsBinary(), p.getContentType(), index, binaryParts.size() - 1, complete);
+					if (isCancelled()) return;
 				}
 			}
 			return;
@@ -82,6 +84,13 @@ public final class ClaudeStreamResponse implements Response {
 
 		answer.append(text);
 		if (listener != null) listener.listen(text, index, complete);
+	}
+
+	/**
+	 * @return true when the listener asked to cancel, no further chunks must be read
+	 */
+	public boolean isCancelled() {
+		return AIUtil.isCancelled(listener);
 	}
 
 	@Override

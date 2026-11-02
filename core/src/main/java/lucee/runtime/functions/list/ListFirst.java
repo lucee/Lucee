@@ -50,13 +50,21 @@ public final class ListFirst extends BIF {
 		return ListUtil.first(list, delimiter, !includeEmptyFields, cnt);
 	}
 
+	public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields, Number count, boolean multiCharacterDelimiter) throws PageException {
+		if (!ListUtil.isMultiCharDelimiter(delimiter, multiCharacterDelimiter)) return call(pc, list, delimiter, includeEmptyFields, count);
+		char c = ListUtil.freeChar(list);
+		return ListUtil.unmask(call(pc, ListUtil.mask(list, delimiter, c), String.valueOf(c), includeEmptyFields, count), delimiter, c);
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 1) return call(pc, Caster.toString(args[0]), ",", false, 1);
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), false, 1);
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]), 1);
 		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]), Caster.toDoubleValue(args[3]));
+		if (args.length == 5)
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]), Caster.toDoubleValue(args[3]), Caster.toBooleanValue(args[4]));
 
-		throw new FunctionException(pc, "ListFirst", 1, 4, args.length);
+		throw new FunctionException(pc, "ListFirst", 1, 5, args.length);
 	}
 }

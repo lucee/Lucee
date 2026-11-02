@@ -754,6 +754,28 @@ public final class ConfigAdmin {
 		maven.append(coordinate.populate(new StructImpl(Struct.TYPE_LINKED)));
 	}
 
+	/**
+	 * LDEV-5607 adds the maven coordinates to the server wide javasettings, the same entries a maven
+	 * dependency of an extension creates, and resets the javasettings so they are used right away.
+	 */
+	static void updateMaven(ConfigPro config, List<MavenCoordinate> coordinates) throws PageException {
+		try {
+			ConfigAdmin admin = new ConfigAdmin(config, null, true);
+			synchronized (SystemUtil.createToken("updateMaven", "javasettings")) {
+				for (MavenCoordinate coordinate: coordinates) {
+					admin._updateMaven(coordinate);
+				}
+				admin.store(false);
+			}
+			ResetFilter filter = new ResetFilter();
+			filter.add("resetJavaSettings");
+			filter.reset(config);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
 	private void _removeMaven(MavenUtil.MavenCoordinate coordinate) {
 		// MUST not sure if we really should remove them
 	}
@@ -867,7 +889,9 @@ public final class ConfigAdmin {
 			el.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
 		else el.removeEL(KeyImpl.init("inspectTemplateIntervalFast"));
 
-		el.setEL("topLevel", Caster.toString(toplevel));
+		el.setEL("webAccessible", Caster.toString(toplevel));
+		// remove the legacy name (alias) so we do not end up with duplicates
+		el.removeEL(KeyImpl.init("topLevel"));
 		el.setEL("readOnly", Caster.toString(readOnly));
 
 		// set / to the end
@@ -1497,7 +1521,6 @@ public final class ConfigAdmin {
 	 * @param metaCacheTimeout
 	 * @param blob
 	 * @param clob
-	 * @param allow
 	 * @param validate
 	 * @param storage
 	 * @param timezone
@@ -1513,7 +1536,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateDataSource(String id, String bundleName, String bundleVersion, String name, String newName, ClassDefinition cd, String dsn, String username, String password,
 			String host, String database, int port, int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, long metaCacheTimeout, boolean blob,
-			boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax paramSyntax,
+			boolean clob, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax paramSyntax,
 			boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections) throws PageException {
 
 		checkWriteAccess();
@@ -1582,7 +1605,7 @@ public final class ConfigAdmin {
 				el.setEL(KeyConstants._metaCacheTimeout, Caster.toString(metaCacheTimeout));
 				el.setEL(KeyConstants._blob, Caster.toString(blob));
 				el.setEL(KeyConstants._clob, Caster.toString(clob));
-				el.setEL(KeyConstants._allow, Caster.toString(allow));
+				if (el.containsKey(KeyConstants._allow)) el.removeEL(KeyConstants._allow);
 				el.setEL(KeyConstants._validate, Caster.toString(validate));
 				el.setEL(KeyConstants._storage, Caster.toString(storage));
 				el.setEL(KeyConstants._custom, custom);
@@ -1647,7 +1670,6 @@ public final class ConfigAdmin {
 		el.setEL("clob", Caster.toString(clob));
 		el.setEL("validate", Caster.toString(validate));
 		el.setEL("storage", Caster.toString(storage));
-		if (allow > -1) el.setEL("allow", Caster.toString(allow));
 		el.setEL("custom", custom);
 
 		if (!StringUtil.isEmpty(dbdriver)) el.setEL("dbdriver", Caster.toString(dbdriver));
@@ -3985,7 +4007,9 @@ public final class ConfigAdmin {
 			virtual = StringUtil.unwrap(attr.getValue("mapping-virtual-path"));
 			name = ListUtil.trim(virtual, "/");
 			readOnly = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-readonly")), false);
-			topLevel = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-top-level")), false);
+			String strWebAccessible = StringUtil.unwrap(attr.getValue("mapping-web-accessible"));
+			if (StringUtil.isEmpty(strWebAccessible, true)) strWebAccessible = StringUtil.unwrap(attr.getValue("mapping-top-level"));
+			topLevel = Caster.toBooleanValue(strWebAccessible, false);
 
 			listMode = ConfigUtil.toListenerMode(StringUtil.unwrap(attr.getValue("mapping-listener-mode")), -1);
 			listType = ConfigUtil.toListenerType(StringUtil.unwrap(attr.getValue("mapping-listener-type")), -1);
@@ -4597,7 +4621,12 @@ public final class ConfigAdmin {
 					if (StringUtil.isEmpty(strSingleton, true)) strSingleton = map.get("listenersingleton");
 					singleton = Caster.toBoolean(strSingleton, null);
 
-					toplevel = Caster.toBooleanValue(map.get("toplevel"), false);
+					str = map.get("webAccessible");
+					if (StringUtil.isEmpty(str, true)) str = map.get("webaccessible");
+					if (StringUtil.isEmpty(str, true)) str = map.get("web-accessible");
+					if (StringUtil.isEmpty(str, true)) str = map.get("topLevel");
+					if (StringUtil.isEmpty(str, true)) str = map.get("toplevel");
+					toplevel = Caster.toBooleanValue(str, false);
 					readonly = Caster.toBooleanValue(map.get("readonly"), false);
 					_updateMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast, toplevel, lmode, ltype, singleton,
 							readonly);

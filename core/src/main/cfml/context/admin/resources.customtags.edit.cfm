@@ -134,7 +134,7 @@ this.customtagpaths["#mapping.virtual#"]=<cfif len(mapping.strPhysical) && !len(
 &nbsp;&nbsp;&nbsp;#del#archive:"#mapping.strArchive#"<cfset del=","></cfif><cfif count==2 && !mapping.PhysicalFirst>
 &nbsp;&nbsp;&nbsp;#del#primary:"<cfif mapping.PhysicalFirst>physical<cfelse>archive</cfif>"<cfset del=","></cfif>}</cfif>;
 &nbsp;
-// "#stText.setting.inspecttemplate#"/"#stText.Mappings.ToplevelHead#" setting not supported with application type mappings
+// "#stText.setting.inspecttemplate#"/"#stText.Mappings.WebAccessibleHead#" setting not supported with application type mappings
 </cfsavecontent>
 <cfset renderCodingTip( codeSample, "", true )>
 

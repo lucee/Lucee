@@ -27,6 +27,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.util.ListUtil;
 
 public final class ListDeleteAt extends BIF {
 
@@ -45,13 +46,21 @@ public final class ListDeleteAt extends BIF {
 		return _call(pc, list, Caster.toIntValue(posNumber), del.toCharArray(), includeEmptyFields);
 	}
 
+	public static String call(PageContext pc, String list, Number posNumber, String del, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
+		if (!ListUtil.isMultiCharDelimiter(del, multiCharacterDelimiter)) return call(pc, list, posNumber, del, includeEmptyFields);
+		char c = ListUtil.freeChar(list);
+		return ListUtil.unmask(call(pc, ListUtil.mask(list, del, c), posNumber, String.valueOf(c), includeEmptyFields), del, c);
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), ",", false);
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), false);
 		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]));
+		if (args.length == 5)
+			return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), Caster.toBooleanValue(args[4]));
 
-		throw new FunctionException(pc, "ListDeleteAt", 2, 4, args.length);
+		throw new FunctionException(pc, "ListDeleteAt", 2, 5, args.length);
 	}
 
 	public static String _call(PageContext pc, String list, int pos, char[] del, boolean includeEmptyFields) throws ExpressionException {

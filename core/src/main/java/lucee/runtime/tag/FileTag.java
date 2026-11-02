@@ -69,6 +69,7 @@ import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.tag.util.FileUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateImpl;
@@ -103,6 +104,10 @@ public final class FileTag extends BodyTagImpl {
 	private static final int ACTION_TOUCH = 9;
 	private static final int ACTION_DELETE = 10;
 	private static final int ACTION_READ_BINARY = 11;
+	private static final String REASON_INVALID_FILE_TYPE = "INVALID_FILE_TYPE";
+	private static final String REASON_FILE_EXISTS = "FILE_EXISTS";
+	private static final String REASON_FORM_FILE_NOT_FOUND = "FORM_FILE_NOT_FOUND";
+
 	private static final String DETAIL = "You can set a [allowedExtension] and a [blockedExtension] list as an argument/attribute with the tag [cffile] and the functions [fileUpload] and [fileUploadAll]. "
 			+ "In addition you can configure this via the Application.cfc, [this.blockedExtForFileUpload] property, the [" + SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST
 			+ "] System property or the [" + SystemUtil.convertSystemPropToEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST)
@@ -167,6 +172,8 @@ public final class FileTag extends BodyTagImpl {
 	private boolean createPath = false;
 
 	private String result = null;
+	private boolean continueOnError = false;
+	private String errors = null;
 
 	private String serverPassword = null;
 	private Object acl = null;
@@ -205,6 +212,8 @@ public final class FileTag extends BodyTagImpl {
 		strict = true;
 		createPath = false;
 		result = null;
+		continueOnError = false;
+		errors = null;
 		serverPassword = null;
 		cachedWithin = null;
 	}
@@ -414,6 +423,22 @@ public final class FileTag extends BodyTagImpl {
 	 */
 	public void setResult(String result) {
 		this.result = result;
+	}
+
+	/**
+	 * for action "upload" and "uploadAll": when true the upload does not stop at a file that is
+	 * rejected (type not allowed, file already exists), the problem is reported instead (LDEV-5348).
+	 */
+	public void setContinueonerror(boolean continueOnError) {
+		this.continueOnError = continueOnError;
+	}
+
+	/**
+	 * for action "upload" and "uploadAll": name of the variable that receives an array with the error
+	 * of every rejected file, only used when continueOnError is true.
+	 */
+	public void setErrors(String errors) {
+		this.errors = errors;
 	}
 
 	@Override
@@ -882,8 +907,9 @@ public final class FileTag extends BodyTagImpl {
 	 */
 
 	public void actionUpload() throws PageException {
-		FormItem item = getFormItem(pageContext, filefield);
-		Struct cffile = _actionUpload(pageContext, item, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword);
+		Array errs = continueOnError ? new ArrayImpl() : null;
+		Struct cffile = actionUpload(pageContext, filefield, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl,
+				serverPassword, continueOnError, errs);
 		if (StringUtil.isEmpty(result)) {
 			pageContext.undefinedScope().set(KeyConstants._file, cffile);
 			pageContext.undefinedScope().set(KeyConstants._cffile, cffile);
@@ -891,16 +917,39 @@ public final class FileTag extends BodyTagImpl {
 		else {
 			pageContext.setVariable(result, cffile);
 		}
+		storeErrors(errs, StringUtil.isEmpty(result) ? cffile : null);
 	}
 
 	public static Struct actionUpload(PageContext pageContext, String filefield, String strDestination, int nameconflict, String accept, ResourceFilter allowedExtensions,
 			ResourceFilter blockedExtensions, boolean strict, int mode, String attributes, Object acl, String serverPassword) throws PageException {
-		FormItem item = getFormItem(pageContext, filefield);
-		return _actionUpload(pageContext, item, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword);
+		return actionUpload(pageContext, filefield, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword, false,
+				null);
+	}
+
+	/**
+	 * @param continueOnError if true a rejected file does not throw an exception, the result struct
+	 *            then has fileWasSaved=false and the error information, the error is also added to
+	 *            the array "errors"
+	 */
+	public static Struct actionUpload(PageContext pageContext, String filefield, String strDestination, int nameconflict, String accept, ResourceFilter allowedExtensions,
+			ResourceFilter blockedExtensions, boolean strict, int mode, String attributes, Object acl, String serverPassword, boolean continueOnError, Array errors)
+			throws PageException {
+		FormItem item;
+		try {
+			item = getFormItem(pageContext, filefield);
+		}
+		catch (UploadFailure uf) {
+			if (!continueOnError) throw uf;
+			return failed(pageContext, uf, null, errors);
+		}
+		return _actionUpload(pageContext, item, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword,
+				continueOnError, errors);
 	}
 
 	public void actionUploadAll() throws PageException {
-		Array arr = actionUploadAll(pageContext, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword);
+		Array errs = continueOnError ? new ArrayImpl() : null;
+		Array arr = actionUploadAll(pageContext, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword,
+				continueOnError, errs);
 		if (StringUtil.isEmpty(result)) {
 			Struct sct;
 			if (arr != null && arr.size() > 0) sct = (Struct) arr.getE(1);
@@ -908,22 +957,123 @@ public final class FileTag extends BodyTagImpl {
 
 			pageContext.undefinedScope().set(KeyConstants._file, sct);
 			pageContext.undefinedScope().set(KeyConstants._cffile, sct);
+			storeErrors(errs, sct);
 		}
 		else {
 			pageContext.setVariable(result, arr);
+			storeErrors(errs, null);
 		}
+	}
+
+	private void storeErrors(Array errs, Struct defaultTarget) throws PageException {
+		if (errs == null) return;
+		if (!StringUtil.isEmpty(errors, true)) pageContext.setVariable(errors.trim(), errs);
+		// ACF default location is cffile.uploadAllErrors
+		else if (defaultTarget != null) defaultTarget.set(KeyConstants._uploadallerrors, errs);
 	}
 
 	public static Array actionUploadAll(PageContext pageContext, String strDestination, int nameconflict, String accept, ResourceFilter allowedExtensions,
 			ResourceFilter blockedExtensions, boolean strict, int mode, String attributes, Object acl, String serverPassword) throws PageException {
+		return actionUploadAll(pageContext, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword, false, null);
+	}
+
+	/**
+	 * @param continueOnError if true a rejected file does not stop the upload of the other files, the
+	 *            result array then contains an entry with fileWasSaved=false and the error
+	 *            information for that file, the error is also added to the array "errors"
+	 */
+	public static Array actionUploadAll(PageContext pageContext, String strDestination, int nameconflict, String accept, ResourceFilter allowedExtensions,
+			ResourceFilter blockedExtensions, boolean strict, int mode, String attributes, Object acl, String serverPassword, boolean continueOnError, Array errors)
+			throws PageException {
 		FormItem[] items = getFormItems(pageContext);
 		Struct sct = null;
 		Array arr = new ArrayImpl();
 		for (int i = 0; i < items.length; i++) {
-			sct = _actionUpload(pageContext, items[i], strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword);
+			sct = _actionUpload(pageContext, items[i], strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword,
+					continueOnError, errors);
 			arr.appendEL(sct);
 		}
 		return arr;
+	}
+
+	private static Struct _actionUpload(PageContext pageContext, FormItem formItem, String strDestination, int nameconflict, String accept, ResourceFilter allowedExtensions,
+			ResourceFilter blockedExtensions, boolean strict, int mode, String attributes, Object acl, String serverPassword, boolean continueOnError, Array errors)
+			throws PageException {
+		if (!continueOnError) return _actionUpload(pageContext, formItem, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl,
+				serverPassword);
+		try {
+			return _actionUpload(pageContext, formItem, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword);
+		}
+		catch (UploadFailure uf) {
+			return failed(pageContext, uf, formItem, errors);
+		}
+	}
+
+	private static Struct failed(PageContext pageContext, UploadFailure uf, FormItem formItem, Array errors) throws PageException {
+		Struct err = new StructImpl(Struct.TYPE_LINKED);
+		err.set(KeyConstants._reason, uf.getReason());
+		err.set(KeyConstants._message, uf.getMessage());
+		err.set(KeyConstants._detail, StringUtil.emptyIfNull(uf.getDetail()));
+
+		String clientFile = "", clientFileExt = "", clientFileName = "";
+		if (formItem != null) {
+			String str = formItem.getName();
+			while (str.indexOf('\\') != -1)
+				str = str.replace('\\', '/');
+			Resource res = pageContext.getConfig().getResource(str);
+			clientFile = res.getName();
+			clientFileExt = ResourceUtil.getExtension(res, "");
+			clientFileName = ResourceUtil.getName(res);
+		}
+		err.set(KeyConstants._clientfile, clientFile);
+		err.set(KeyConstants._clientfileext, clientFileExt);
+		err.set(KeyConstants._clientfilename, clientFileName);
+		Struct extra = uf.getExtra();
+		if (extra != null) {
+			java.util.Iterator<Key> it = extra.keyIterator();
+			while (it.hasNext()) {
+				Key k = it.next();
+				err.set(k, extra.get(k, null));
+			}
+		}
+		if (errors != null) errors.appendEL(err);
+
+		// the entry in the result is a copy with the information that the file was not saved
+		Struct sct = new StructImpl(Struct.TYPE_LINKED);
+		java.util.Iterator<Key> it = err.keyIterator();
+		while (it.hasNext()) {
+			Key k = it.next();
+			sct.set(k, err.get(k, null));
+		}
+		sct.set(KeyConstants._filewassaved, Boolean.FALSE);
+		return sct;
+	}
+
+	/**
+	 * a file that is rejected by the upload, for example because of its type or because the destination
+	 * file already exists. The tag/function throws it as a regular application exception unless
+	 * continueOnError is set.
+	 */
+	private static final class UploadFailure extends ApplicationException {
+
+		private static final long serialVersionUID = 1L;
+
+		private final String reason;
+		private final Struct extra;
+
+		private UploadFailure(String reason, String message, String detail, Struct extra) {
+			super(message, detail);
+			this.reason = reason;
+			this.extra = extra;
+		}
+
+		private String getReason() {
+			return reason;
+		}
+
+		private Struct getExtra() {
+			return extra;
+		}
 	}
 
 	private static Struct _actionUpload(PageContext pageContext, FormItem formItem, String strDestination, int nameconflict, String accept, ResourceFilter allowedExtensions,
@@ -1017,7 +1167,9 @@ public final class FileTag extends BodyTagImpl {
 		if (destination.exists()) {
 			fileExisted = true;
 			if (nameconflict == NAMECONFLICT_ERROR) {
-				throw new ApplicationException("Destination file [" + destination + "] already exists");
+				Struct info = new StructImpl(Struct.TYPE_LINKED);
+				info.setEL(KeyConstants._dest, destination.getAbsolutePath());
+				throw new UploadFailure(REASON_FILE_EXISTS, "Destination file [" + destination + "] already exists", null, info);
 			}
 			else if (nameconflict == NAMECONFLICT_SKIP) {
 				cffile.set(KeyConstants._fileexisted, Caster.toBoolean(fileExisted));
@@ -1091,19 +1243,19 @@ public final class FileTag extends BodyTagImpl {
 
 		// allowed (when explicitly allowed we not have to check if blocked)
 		if (allowedExtensions != null) {
-			if (hasExt && !allowedExtensions.accept(clientFile)) throw new ApplicationException(
+			if (hasExt && !allowedExtensions.accept(clientFile)) throw new UploadFailure(REASON_INVALID_FILE_TYPE,
 					"Upload of files with extension [" + ext
 							+ "] is not permitted. The tag cffile/function fileUpload[All] only allows the following extensions in this context [" + allowedExtensions + "].",
-					DETAIL);
+					DETAIL, null);
 			return hasExt ? ext : null;
 		}
 
 		// blocked by the tag/function
 		if (blockedExtensions != null) {
 			if (FileUtil.isBlockAll(blockedExtensions) || (hasExt && blockedExtensions.accept(clientFile))) {
-				throw new ApplicationException("Upload of " + (hasExt ? "files with extension [" + ext + "]" : "files without an extension")
+				throw new UploadFailure(REASON_INVALID_FILE_TYPE, "Upload of " + (hasExt ? "files with extension [" + ext + "]" : "files without an extension")
 						+ " is not permitted. The tag cffile/function fileUpload[All] does not allow the following extensions in this context [" + blockedExtensions + "].",
-						DETAIL);
+						DETAIL, null);
 			}
 			return hasExt ? ext : null;
 		}
@@ -1116,11 +1268,18 @@ public final class FileTag extends BodyTagImpl {
 			blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
 
 		String[] types = ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ','));
-		if (FileUtil.isBlockAll(types)) throw new ApplicationException(
-				"Upload of " + (hasExt ? "files with extension [" + ext + "]" : "files without an extension") + " is not permitted, all file uploads are blocked.", DETAIL);
+		if (FileUtil.isBlockAll(types)) throw new UploadFailure(REASON_INVALID_FILE_TYPE,
+				"Upload of " + (hasExt ? "files with extension [" + ext + "]" : "files without an extension") + " is not permitted, all file uploads are blocked.", DETAIL, null);
 		if (hasExt && new ExtensionResourceFilter(false, true, false, types).accept(clientFile))
-			throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.", DETAIL);
+			throw new UploadFailure(REASON_INVALID_FILE_TYPE, "Upload of files with extension [" + ext + "] is not permitted.", DETAIL, null);
 		return hasExt ? ext : null;
+	}
+
+	private static Struct typeInfo(String accept, String contentType) {
+		Struct info = new StructImpl(Struct.TYPE_LINKED);
+		info.setEL(KeyConstants._accept, StringUtil.emptyIfNull(accept));
+		info.setEL(KeyConstants._mimetype, StringUtil.emptyIfNull(contentType));
+		return info;
 	}
 
 	private static void checkContentType(String contentType, String accept, ResourceFilter allowedExtensions, ResourceFilter blockedExtensions, Resource clientFile, boolean strict,
@@ -1149,10 +1308,11 @@ public final class FileTag extends BodyTagImpl {
 			}
 		}
 		if (strict && ListUtil.listContainsNoCase(StringUtil.emptyIfNull(accept), "." + ext, ",", false, false) != -1)
-			throw new ApplicationException("When the value of the attribute STRICT is TRUE, only MIME types are allowed in the attribute(s): ACCEPT.",
-					" set [" + accept + "] to MIME type.");
-		throw new ApplicationException("The MIME type of the uploaded file [" + contentType + "] was rejected by the server.",
-				" Only the following type(s) are allowed, [" + StringUtil.emptyIfNull(accept) + "].  Verify that you are uploading a file of the appropriate type. ");
+			throw new UploadFailure(REASON_INVALID_FILE_TYPE, "When the value of the attribute STRICT is TRUE, only MIME types are allowed in the attribute(s): ACCEPT.",
+					" set [" + accept + "] to MIME type.", typeInfo(accept, contentType));
+		throw new UploadFailure(REASON_INVALID_FILE_TYPE, "The MIME type of the uploaded file [" + contentType + "] was rejected by the server.",
+				" Only the following type(s) are allowed, [" + StringUtil.emptyIfNull(accept) + "].  Verify that you are uploading a file of the appropriate type. ",
+				typeInfo(accept, contentType));
 	}
 
 	/**
@@ -1165,7 +1325,7 @@ public final class FileTag extends BodyTagImpl {
 		// check filefield
 		if (StringUtil.isEmpty(filefield)) {
 			FormItem[] items = getFormItems(pageContext);
-			if (ArrayUtil.isEmpty(items)) throw new ApplicationException("No uploaded files in found in Form");
+			if (ArrayUtil.isEmpty(items)) throw new UploadFailure(REASON_FORM_FILE_NOT_FOUND, "No uploaded files in found in Form", null, null);
 			return items[0];
 		}
 
@@ -1183,8 +1343,9 @@ public final class FileTag extends BodyTagImpl {
 			String add = ".";
 			if (sb.length() > 0) add = ", valid field names are [" + sb + "].";
 
-			if (pageContext.formScope().get(filefield, null) == null) throw new ApplicationException("Form field [" + filefield + "] is not a file field" + add);
-			throw new ApplicationException("Form field [" + filefield + "] doesn't exist or has no content" + add);
+			if (pageContext.formScope().get(filefield, null) == null)
+				throw new UploadFailure(REASON_FORM_FILE_NOT_FOUND, "Form field [" + filefield + "] is not a file field" + add, null, null);
+			throw new UploadFailure(REASON_FORM_FILE_NOT_FOUND, "Form field [" + filefield + "] doesn't exist or has no content" + add, null, null);
 		}
 
 		return fileItem;

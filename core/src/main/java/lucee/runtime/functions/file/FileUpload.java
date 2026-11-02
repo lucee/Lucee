@@ -28,6 +28,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.tag.FileTag;
 import lucee.runtime.tag.util.FileUtil;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
 
 public final class FileUpload extends BIF implements Function {
@@ -76,6 +77,11 @@ public final class FileUpload extends BIF implements Function {
 
 	public static Struct call(PageContext pc, String destination, String fileField, String accept, String nameConflict, boolean strict, Object allowedExtensions,
 			Object blockedExtensions, String mode, String attributes, Object acl) throws PageException {
+		return call(pc, destination, fileField, accept, nameConflict, strict, allowedExtensions, blockedExtensions, mode, attributes, acl, false);
+	}
+
+	public static Struct call(PageContext pc, String destination, String fileField, String accept, String nameConflict, boolean strict, Object allowedExtensions,
+			Object blockedExtensions, String mode, String attributes, Object acl, boolean continueOnError) throws PageException {
 
 		int nc = FileUtil.toNameConflict(nameConflict);
 
@@ -94,7 +100,8 @@ public final class FileUpload extends BIF implements Function {
 			blockedFilter = FileUtil.toExtensionFilter(blockedExtensions);
 		}
 
-		return FileTag.actionUpload(pc, fileField, destination, nc, accept, allowedFilter, blockedFilter, strict, m, attributes, acl, null);
+		return FileTag.actionUpload(pc, fileField, destination, nc, accept, allowedFilter, blockedFilter, strict, m, attributes, acl, null, continueOnError,
+				continueOnError ? new ArrayImpl() : null);
 	}
 
 	@Override
@@ -115,6 +122,8 @@ public final class FileUpload extends BIF implements Function {
 				Caster.toBooleanValue(args[4]), args[5], Caster.toString(args[6]), Caster.toString(args[7]), Caster.toString(args[8]));
 		else if (args.length == 10) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]),
 				Caster.toBooleanValue(args[4]), args[5], Caster.toString(args[6]), Caster.toString(args[7]), Caster.toString(args[8]), args[9]);
-		else throw new FunctionException(pc, "FileUpload", 1, 10, args.length);
+		else if (args.length == 11) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]),
+				Caster.toBooleanValue(args[4]), args[5], Caster.toString(args[6]), Caster.toString(args[7]), Caster.toString(args[8]), args[9], Caster.toBooleanValue(args[10]));
+		else throw new FunctionException(pc, "FileUpload", 1, 11, args.length);
 	}
 }

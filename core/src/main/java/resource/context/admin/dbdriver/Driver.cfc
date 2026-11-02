@@ -20,16 +20,7 @@
 		connectionLimit:"",
 		ConnectionTimeout:"10",
 		blob:false,
-		clob:false,
-		allowed_select:true,
-		allowed_insert:true,
-		allowed_update:true,
-		allowed_delete:true,
-		allowed_alter:true,
-		allowed_revoke:true,
-		allowed_drop:true,
-		allowed_grant:true,
-		allowed_create:true
+		clob:false
 	)>
 	
 	

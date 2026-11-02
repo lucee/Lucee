@@ -135,11 +135,12 @@
 	{
 		"sysprop": "lucee.cfid.url.allow",
 		"envvar": "LUCEE_CFID_URL_ALLOW",
-		"desc": "Controls whether Lucee accepts CFID values from URL query strings. Set to `false` to enhance security by requiring CFIDs to be passed via cookies only. Setting this to `false` is strongly recommended for all production environments. Replaces lucee.read.cfid.from.url in Lucee 6.2.1.59",
+		"desc": "Controls whether Lucee accepts CFID and CFTOKEN values from URL query strings. If disabled, they are only accepted from cookies (LDEV-5664). Starting with Lucee 9.0 this is disabled by default, which is a breaking change for applications that pass CFID and CFTOKEN in the URL (for example clients without cookies, or redirect and SSO flows). Set to `true` to restore the previous behaviour, this is not recommended for production environments, as it makes session fixation easier. Replaces lucee.read.cfid.from.url in Lucee 6.2.1.59",
 		"category": "session",
 		"type": "boolean",
 		"introduced": "6.2.1.59",
-		"default": true
+		"defaultSince": "9.0",
+		"default": false
 	},
 	{
 		"sysprop": "lucee.cfid.url.log",
@@ -408,7 +409,7 @@
 	{
 		"sysprop": "lucee.enable.warmup.compile",
 		"envvar": "LUCEE_ENABLE_WARMUP_COMPILE",
-		"desc": "Boolean to enable/disable the compile of all templates (`.cfm`, `.cfc`, `.cfs`) of the mappings during warmup, so the class files exist when the server is started for real. Only has an effect if warmup is enabled (`LUCEE_ENABLE_WARMUP`). Mappings that only have an archive are skipped, templates that fail to compile are logged, but do not fail the warmup",
+		"desc": "Boolean to enable/disable the compile of all templates (`.cfm`, `.cfc`, `.cfs`) of the mappings during warmup, so the class files exist when the server is started for real. Only has an effect if warmup is enabled (`LUCEE_ENABLE_WARMUP`). Mappings that only have an archive are skipped, templates that fail to compile are logged, but do not fail the warmup. The exception is a component whose `javasettings` maven dependencies can not be resolved, that fails the warmup",
 		"category": "deployment",
 		"type": "boolean",
 		"default": false,
@@ -438,6 +439,14 @@
 		"category": "extensions",
 		"type": "boolean",
 		"default": true
+	},
+	{
+		"sysprop": "lucee.extensions.fail.on.error",
+		"envvar": "LUCEE_EXTENSIONS_FAIL_ON_ERROR",
+		"desc": "A boolean value that makes an invalid `LUCEE_EXTENSIONS` (`lucee.extensions`) fatal on startup. When true, the startup is aborted if an extension defined in `LUCEE_EXTENSIONS` cannot be installed or an entry of the list cannot be parsed. When false (default), the error is written to the deploy log and to stderr and the startup continues. In warmup mode (`LUCEE_ENABLE_WARMUP`) such a failure always makes the process exit with a non-zero exit code, independent of this setting",
+		"category": "extensions",
+		"type": "boolean",
+		"default": false
 	},
 	{
 		"sysprop": "lucee.extensions.config.only",
@@ -644,7 +653,7 @@
 	{
 		"sysprop": "lucee.logging.force.appender",
 		"envvar": "LUCEE_LOGGING_FORCE_APPENDER",
-		"desc": "If set, override the default log4j appender, which is usually resource (log files), use console to log all logs to console",
+		"desc": "If set, override the default log4j appender, which is usually resource (log files), use console to log all logs to console. With console, the global out.log and err.log are not written either, those entries and the log stream type of lucee.system.out and lucee.system.err go to the console instead",
 		"category": "logging",
 		"type": "string",
 		"default": null
@@ -1070,6 +1079,16 @@
 		"default": 0
 	},
 	{
+		"sysprop": "lucee.query.result.includesql",
+		"envvar": "LUCEE_QUERY_RESULT_INCLUDESQL",
+		"desc": "Defines if the struct defined with the attribute `result` of cfquery (or the option `result` of queryExecute) contains the keys `sql` and `sqlparameters`. Set to `false` to leave them out, for example to save memory on queries with many parameters. Can be overridden per application with `this.query.includeSQL` and per query with the attribute `includeSQL`. Default: true",
+		"category": "query",
+		"tags": [ "cfquery" ],
+		"functions": [ "queryExecute" ],
+		"type": "boolean",
+		"default": true
+	},
+	{
 		"sysprop": "lucee.queue.enable",
 		"envvar": "LUCEE_QUEUE_ENABLE",
 		"desc": "Boolean value to enable or disable the Lucee request queue",
@@ -1096,7 +1115,7 @@
 	{
 		"sysprop": "lucee.read.cfid.from.url",
 		"envvar": "LUCEE_READ_CFID_FROM_URL",
-		"desc": "Controls whether Lucee accepts CFID values from URL query strings. Set to `false` to enhance security by requiring CFIDs to be passed via cookies only. Setting this to `false` is strongly recommended for all production environments. Replaced by lucee.cfid.url.allow in Lucee 6.2.1.59",
+		"desc": "Controls whether Lucee accepts CFID and CFTOKEN values from URL query strings. Takes precedence over lucee.cfid.url.allow if both are set. Replaced by lucee.cfid.url.allow in Lucee 6.2.1.59, see there for the default",
 		"category": "session",
 		"type": "boolean",
 		"deprecated": "6.2.1.59",

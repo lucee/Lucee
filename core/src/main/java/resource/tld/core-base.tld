@@ -1929,6 +1929,25 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>Name of the result value (default:cffile)</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>continueOnError</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>9.0.0.0</introduced>
+			<description>for action "upload" and "uploadAll":
+false (default): the first file that is rejected throws an exception.
+true: a rejected file (file type not allowed, file already exists, form field not found) does not throw an exception and for "uploadAll" the remaining files are still uploaded. The result of a rejected file has fileWasSaved=false and the keys reason, message, detail, clientFile, clientFileExt and clientFileName.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>errors</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>9.0.0.0</introduced>
+			<description>for action "upload" and "uploadAll", only used when continueOnError is true:
+name of the variable that receives an array with one struct (reason, message, detail, clientFile, clientFileExt, clientFileName) for every rejected file, default is "cffile.uploadAllErrors" (when the attribute result is not used). reason is one of INVALID_FILE_TYPE, FILE_EXISTS or FORM_FILE_NOT_FOUND.</description>
+		</attribute>
+		<attribute>
 			<type>any</type>
 			<name>allowedExtensions</name>
 			<alias>allowExtension,allowedExtension</alias>
@@ -4697,6 +4716,19 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>
 			the timezone used to convert a date object to a timestamp (string), this value is needed when your database runs in another timezone and you are not using cfqueryparam to to insert dates.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>includeSQL</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+			Only used together with the attribute "result". Defines if the result struct contains the keys "sql" and "sqlparameters".
+			Set to false to leave them out, for example to save memory when running queries with a lot of parameters.
+			If not set, the setting "this.query.includeSQL" in the Application.cfc is used, then the environment variable
+			"LUCEE_QUERY_RESULT_INCLUDESQL" (system property "lucee.query.result.includesql"), the default is true.
+			Note that "sql" contains the SQL string with "?" placeholders, the parameter values are in "sqlparameters".
+			</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>

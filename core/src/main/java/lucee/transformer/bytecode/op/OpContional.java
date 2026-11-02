@@ -39,6 +39,18 @@ public final class OpContional extends ExpressionBase {
 	private Expression left;
 	private Expression right;
 
+	public ExprBoolean getCondition() {
+		return cont;
+	}
+
+	public Expression getLeft() {
+		return left;
+	}
+
+	public Expression getRight() {
+		return right;
+	}
+
 	/**
 	 *
 	 * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(lucee.transformer.bytecode.BytecodeContext,

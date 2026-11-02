@@ -665,8 +665,8 @@
 			"physicalmissing": "Bitte geben Sie einen Wert für die Ressource an. (Zeile ",
 			"primaryhead": "Primär",
 			"primaryheaddescription": "Legt fest, wo cfm-Dateien vorrangig gesucht werden.",
-			"topleveldesc": "Macht dieses Mapping zugreifbar übers Web (Zugreifbar über Browser oder andere HTTP Zugriffe)",
-			"toplevelhead": "Web Zugänglich",
+			"webaccessibledesc": "Macht dieses Mapping zugreifbar übers Web (Zugreifbar über Browser oder andere HTTP Zugriffe)",
+			"webaccessiblehead": "Web Zugänglich",
 			"trustedhead": "Inspizieren",
 			"virtualhead": "Virtuell"
 		},

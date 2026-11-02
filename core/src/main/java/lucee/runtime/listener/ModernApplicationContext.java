@@ -257,6 +257,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initQoQCaseSensitive;
 	private Boolean qoqCaseSensitive;
 	private boolean initQoQEngine;
+	private boolean initQueryIncludeSQL;
+	private Boolean queryIncludeSQL;
 	private String qoqEngine;
 	private boolean initProxyData;
 	private boolean initBlockedExtForFileUpload;
@@ -2294,6 +2296,16 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public void setQueryVarUsage(int varUsage) {
 		this.queryVarUsage = varUsage;
 		this.initQueryVarUsage = true;
+	}
+
+	@Override
+	public Boolean getQueryIncludeSQL() {
+		if (!initQueryIncludeSQL) {
+			Struct qry = Caster.toStruct(get(component, KeyConstants._query, null), null);
+			if (qry != null) queryIncludeSQL = Caster.toBoolean(qry.get("includeSQL", null), null);
+			initQueryIncludeSQL = true;
+		}
+		return queryIncludeSQL;
 	}
 
 	private Struct getQoQStruct() {

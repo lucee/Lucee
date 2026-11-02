@@ -68,7 +68,9 @@ Otherwise, the value, if specified, is treated as a filename to append the dump 
 			attrib.output="browser";
 
 		//eval
+		attrib['pathRoot'] = "";
 		if(not structKeyExists(attrib,'var') and structKeyExists(attrib,'eval')) {
+			attrib['pathRoot'] = trim(attrib.eval);
 			if(not len(attrib.label))
 				attrib['label'] = attrib.eval;
 			// eval not supported when caller has "Handle unquoted tag attribute values as strings." disabled
@@ -143,6 +145,7 @@ Otherwise, the value, if specified, is treated as a filename to append the dump 
 		var dumpID = createId();
 
 		var hasReference = structKeyExists(arguments.meta,'hasReference') && arguments.meta.hasReference;
+		variables.pathRoot = arguments.attrib.pathRoot ?: "";
 		var result = this[ arguments.attrib.format ](arguments.meta, arguments.context, arguments.attrib.expand, arguments.attrib.output, hasReference, 0, dumpID);
 
 		// sleep(5000);	// simulate long process to test async=true
@@ -419,10 +422,13 @@ Otherwise, the value, if specified, is treated as a filename to append the dump 
 						  required string hasReference ,
 						  required string level ,
 						  required string dumpID,
-						  struct cssColors={}) {
+						  struct cssColors={},
+						  struct pathCtx={mode:"derive", path:variables.pathRoot ?: ""}) {
 
 		var NL = variables.NEWLINE;
 		var id = createId();
+		var pscope = pathScope(arguments.meta, arguments.pathCtx, arguments.level);
+		var qcols = [];
 		var rtn = "";
 		var columnCount = structKeyExists(arguments.meta,'data') ? listLen(arguments.meta.data.columnlist) : 0;
 		var title = !arguments.level ? ' title="#arguments.context#"' : '';
@@ -475,10 +481,48 @@ Otherwise, the value, if specified, is treated as a filename to append the dump 
 				});
 			});
 			L.initialized = true;
+		},
+		getPathElement: function(evt){
+			var el = evt.target && evt.target.closest ? evt.target.closest("[data-path]") : null;
+			return el && el.closest(".-lucee-dump") ? el : null;
+		},
+		copyText: function(text){
+			var L = window.__Lucee;
+			if (navigator.clipboard && window.isSecureContext)
+				navigator.clipboard.writeText(text).catch(function(){ L.copyTextFallback(text); });
+			else
+				L.copyTextFallback(text);
+		},
+		copyTextFallback: function(text){
+			var ta = document.createElement("textarea");
+			ta.value = text;
+			ta.style.position = "fixed";
+			ta.style.opacity = "0";
+			document.body.appendChild(ta);
+			ta.select();
+			try {
+				document.execCommand("copy");
+			}
+			finally {
+				document.body.removeChild(ta);
+			}
 		}
 	}
 
 	document.addEventListener("DOMContentLoaded", __Lucee.onDocumentReady);
+	document.addEventListener("mouseover", function(evt) {
+		var el = __Lucee.getPathElement(evt);
+		if (el && !el.title)
+			el.title = el.getAttribute("data-path") + " (click to copy)";
+	});
+	document.addEventListener("click", function(evt) {
+		var el = __Lucee.getPathElement(evt);
+		if (!el || evt.target.closest(".collapse-trigger") || String(window.getSelection()).length)
+			return;
+		__Lucee.copyText(el.getAttribute("data-path"));
+		el.style.opacity = 0.5;
+		setTimeout(function(){ el.style.opacity = ""; }, 200);
+	});
 </script>' & variables.NEWLINE);
 
 				Request.__Lucee_dump.headerWritten = true;
@@ -531,15 +575,41 @@ Otherwise, the value, if specified, is treated as a filename to append the dump 
 			loop query=arguments.meta.data {
 				var c = 1;
 				var hidden = !arguments.expand && len(id) ? ' class="d-none" ' : '';
+				var rowPath = "";
+				var rowNum = arguments.meta.data.currentRow;
+				var key = arguments.meta.data.data1;
 
-				arrayAppend(rows, '<tr#hidden#>');
+				if (pscope.mode == "struct" && columnCount == 3 && !isStruct(key))
+					rowPath = pathKey(pscope.path, key);
+				else if (pscope.mode == "array" && columnCount == 3 && isNumeric(key))
+					rowPath = pscope.path & "[" & key & "]";
+				else if (pscope.mode == "query" && rowNum == 1) {
+					for (var col=2; col <= columnCount-1; col++)
+						arrayAppend(qcols, arguments.meta.data["data" & col]);
+				}
+
+				arrayAppend(rows, '<tr#hidden##pathAttr(rowPath)#>');
 
 				for (var col=1; col <= columnCount-1; col++) {
 					var node = arguments.meta.data["data" & col];
+					var cellPath = "";
+					var childCtx = {mode:"none", path:""};
+
+					if (pscope.mode == "query" && rowNum > 1 && col > 1 && isNumeric(key) && arrayLen(qcols) >= col-1 && !isStruct(qcols[col-1]))
+						cellPath = pathKey(pscope.path, qcols[col-1]) & "[" & key & "]";
+					else if (col == 1 && isStruct(node) && (pscope.mode == "pass" || pscope.mode == "this"))
+						childCtx = {mode:pscope.mode == "this" ? "access" : "derive", path:pscope.path};
+					else if (col == 2 && pscope.mode == "component" && isSimpleValue(key) && key == "this")
+						childCtx = {mode:"this", path:pscope.path};
+					else if (col > 1)
+						cellPath = rowPath;
+
+					if (len(cellPath) && pscope.mode != "component")
+						childCtx = {mode:"derive", path:cellPath};
 
 					if (isStruct(node)) {
 
-						var value = this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level + 1,arguments.dumpID, arguments.cssColors);
+						var value = this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level + 1,arguments.dumpID, arguments.cssColors, childCtx);
 
 						arrayAppend(rows, '<td class="#doHighlight(arguments.meta, c) ? 'luceeH' : 'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
 						arrayAppend(rows, value);
@@ -547,7 +617,7 @@ Otherwise, the value, if specified, is treated as a filename to append the dump 
 					}
 					else {
 
-						arrayAppend(rows, '<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>');
+						arrayAppend(rows, '<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#"#pscope.mode == "query" ? pathAttr(cellPath) : ""#>' & HTMLEditFormat(node) & '</td>');
 					}
 
 					c *= 2;
@@ -560,6 +630,48 @@ Otherwise, the value, if specified, is treated as a filename to append the dump 
 		arrayAppend(rows, '</table>');
 
 		return head & arrayToList(rows, "");
+	}
+
+
+	/* ==================================================================================================
+	   paths of the elements of a dump (used by the html format)										=
+	================================================================================================== */
+	private struct function pathScope(required struct meta, required struct ctx, required numeric level) {
+		var mode = arguments.ctx.mode;
+		var base = arguments.ctx.path;
+
+		if (mode == "derive") {
+			var type = structKeyExists(arguments.meta, "type") ? arguments.meta.type : "";
+			if (listFindNoCase("struct,array,query,component", type))
+				mode = type;
+			else if (!arguments.level && !structKeyExists(arguments.meta, "title"))
+				mode = "pass";	// the table around a dump that has a label
+			else
+				mode = "none";
+		}
+		else if (mode == "access") {
+			var title = structKeyExists(arguments.meta, "title") ? arguments.meta.title : "";
+			if (listFindNoCase("remote,public,package", title))
+				mode = "struct";
+			else if (listFindNoCase("private,Properties", title)) {
+				mode = "struct";
+				base = "variables";
+			}
+			else
+				mode = "none";
+		}
+
+		return {mode:mode, path:base};
+	}
+
+	private string function pathKey(required string base, required string key) {
+		if (reFind("^[a-zA-Z_$][a-zA-Z0-9_$]*$", arguments.key))
+			return len(arguments.base) ? arguments.base & "." & arguments.key : arguments.key;
+		return arguments.base & "['" & replace(arguments.key, "'", "''", "all") & "']";
+	}
+
+	private string function pathAttr(required string path) {
+		return len(arguments.path) ? ' data-path="' & HTMLEditFormat(arguments.path) & '"' : '';
 	}
 
 

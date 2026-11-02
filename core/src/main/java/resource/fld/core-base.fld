@@ -1756,7 +1756,8 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
             binary data into a string; must be one of the following:
 - hex: characters 0-9 and A-F represent the hexadecimal value of each byte
 - UU: data is encoded using the UNIX UUencode algorithm
-- base64: data is encoded using the Base64 algorithm</description>
+- base64: data is encoded using the Base64 algorithm
+- base64url: data is encoded using the URL and filename safe Base64 alphabet (- and _ instead of + and /), as specified by IETF RFC 4648 section 5, as used for example by JWT, OAuth and PKCE. The padding (=) is optional when decoding.</description>
     </argument>
     <argument>
 			<name>precise</name>
@@ -1790,7 +1791,8 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
 		<description>A string that specifies the encoding method to use to represent the data; one of the following:
 - Hex: use the characters 0-9 and A-F to represent the hexadecimal value of each byte.
 - UU: use the UNIX UUencode algorithm to convert the data
-- Base64: use the Base64 algorithm to convert the data, as specified by IETF RFC 2045, at www.ietf.org/rfc/rfc2045.txt.</description>
+- Base64: use the Base64 algorithm to convert the data, as specified by IETF RFC 2045, at www.ietf.org/rfc/rfc2045.txt.
+- Base64URL: use the URL and filename safe Base64 alphabet (- and _ instead of + and /) without padding, as specified by IETF RFC 4648 section 5, at www.ietf.org/rfc/rfc4648.txt. This is the encoding used by JWT, OAuth and PKCE.</description>
     </argument>
 		<return>
 			<type>string</type>
@@ -3863,6 +3865,45 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- ExtensionInstall -->
+	<function>
+		<name>ExtensionInstall</name>
+		<class>lucee.runtime.functions.system.ExtensionInstall</class>
+		<introduced>9.0.0.564</introduced>
+		<keywords>extension,install,maven,dependencies</keywords>
+		<description>Installs an extension at runtime, so a script (for example a CLI script or a task runner) can require the extensions it needs and have them installed on the fly. The extension is available immediately, in the same request.
+
+The extension is defined by its Maven coordinate in gradle short form, `"group:artifact"` or `"group:artifact:version"`, for example `extensionInstall( "org.lucee:mysql-extension:8.0.33.1" )`. Without a version the latest version is installed. If the extension is already installed (any version, when no version is defined), nothing is installed again. If a version is defined, exactly that version is installed, replacing a different installed version.
+
+For old extensions that are not available on Maven, the extension id (UUID) can still be used instead of the coordinate (legacy).
+
+If the coordinate contains a version and the argument `version` is set as well, both must be identical, otherwise an exception is thrown.
+
+Installing an extension changes the server configuration, so the function follows the same write access rules as the admin tag (the general write access setting of the Server Administrator: open, protected or closed). In case write access is protected by the server admin password, pass it with the argument `password` or define it with the system property `lucee.server.admin.password` or the environment variable `LUCEE_SERVER_ADMIN_PASSWORD`.</description>
+		<argument>
+			<name>extension</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Maven coordinate of the extension in gradle short form, `"group:artifact"` or `"group:artifact:version"`. For legacy extensions that are not on Maven, the id (UUID) of the extension.</description>
+		</argument>
+		<argument>
+			<name>version</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Version of the extension, if not defined (or "latest") the latest version is installed. Must match the version in the coordinate, if the coordinate contains one.</description>
+		</argument>
+		<argument>
+			<name>password</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Server admin password, only needed if write access is protected by a password and the password is not defined with the system property `lucee.server.admin.password` / environment variable `LUCEE_SERVER_ADMIN_PASSWORD`.</description>
+		</argument>
+		<return>
+			<description>Struct with the keys id, name, version, maven (coordinate of the installed extension, empty for a legacy extension) and alreadyInstalled (true if nothing had to be installed).</description>
+			<type>struct</type>
+		</return>
+	</function>
+
 	<!-- debugAdd -->
 	<function>
 		<name>debugAdd</name>
@@ -3924,6 +3965,7 @@ You may also specify other algorithm names as well as the feedback mode and padd
 			<default>uu</default>
 		    <description>The binary encoding used to represent the data as a string. Must be the same as the algorithm used to encrypt the string.
 - Base64: the Base64 algorithm, as specified by IETF RFC 2045
+- Base64URL: the URL and filename safe Base64 algorithm without padding, as specified by IETF RFC 4648 section 5
 - Hex: the characters A-F and 0-9 represent the hexadecimal byte values
 - UU(default): the UNIX standard UUEncode algorithm</description>
         </argument>
@@ -4675,6 +4717,7 @@ You may also specify other algorithm names as well as the feedback mode and padd
 			<default>uu</default>
             <description>The binary encoding used to represent the data as a string. Must be the same as the algorithm used to encrypt the string.
 - Base64: the Base64 algorithm, as specified by IETF RFC 2045.
+- Base64URL: the URL and filename safe Base64 algorithm without padding, as specified by IETF RFC 4648 section 5.
 - Hex: the characters A-F and 0-9 represent the hexadecimal byte values.
 - UU(default): the UNIX standard UUEncode algorithm .
             </description>
@@ -5591,6 +5634,14 @@ If omitted, the file's attributes are maintained.</description>
 			<required>no</required>
 			<description>only used for S3 Resources</description>
     	</argument>
+		<argument>
+			<name>continueOnError</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>false (default): the first file that is rejected throws an exception.
+if set to true, a rejected file (file type not allowed, file already exists, form field not found) does not throw an exception, the returned struct has fileWasSaved=false and the keys reason, message, detail, clientFile, clientFileExt and clientFileName.</description>
+			<introduced>9.0.0.0</introduced>
+    	</argument>
 		<return>
 			<type>struct</type>
 		</return>
@@ -5646,7 +5697,6 @@ if set to false, it supports file extension/mimetypes in the accept attribute</d
     	</argument>
 		<argument>
 			<name>mode</name>
-			<name>strict</name>
 			<type>string</type>
 			<required>no</required>
 			<description>Applies only to Solaris and HP-UX. Permissions. Octal values of UNIX chmod command. Assigned to owner, group, and other, respectively.</description>
@@ -5663,6 +5713,21 @@ If omitted, the file's attributes are maintained.</description>
 			<type>object</type>
 			<required>no</required>
 			<description>only used for S3 Resources</description>
+    	</argument>
+		<argument>
+			<name>continueOnError</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>false (default): the first file that is rejected throws an exception and the remaining files are not processed.
+if set to true, the remaining files are still uploaded when a file is rejected (file type not allowed, file already exists). The entry of a rejected file in the returned array has fileWasSaved=false and the keys reason, message, detail, clientFile, clientFileExt and clientFileName.</description>
+			<introduced>9.0.0.0</introduced>
+    	</argument>
+		<argument>
+			<name>errors</name>
+			<type>string</type>
+			<required>no</required>
+			<description>Name of the variable that receives an array with one struct (reason, message, detail, clientFile, clientFileExt, clientFileName) for every rejected file. Only used when continueOnError is true. reason is one of INVALID_FILE_TYPE, FILE_EXISTS or FORM_FILE_NOT_FOUND.</description>
+			<introduced>9.0.0.0</introduced>
     	</argument>
 		<return>
 			<type>array</type>
@@ -7949,12 +8014,24 @@ Default list delimiter: comma character.</description>
 		</argument>
 		<argument>
 			<name>numIterations</name>
-			<type>number</type>
+			<alias>iterations</alias>
+			<type>any</type>
 			<required>No</required>
-			<description>The number of times to iterate hashing.
+			<description>The number of times to iterate hashing (a number).
 			A greater number of iterations will result in a cryptographically stronger hash but will also take more time to generate that hash.
 			The default value is 1. 
-			For algorithm quick, only 1 is allowed </description>
+			For algorithm quick, only 1 is allowed.
+			For compatibility with Adobe ColdFusion, which has outputEncoding as the 4th argument, a non numeric value (hex, base64 or base64url) passed as 4th positional argument is handled as outputEncoding and the 5th positional argument as number of iterations.</description>
+		</argument>
+		<argument>
+			<name>outputEncoding</name>
+			<type>any</type>
+			<required>No</required>
+			<description>The format of the returned hash value (the digest). Supported are the following values:
+- hex: (default) the digest as upper case hexadecimal string.
+- base64: the digest as base64 string (with padding).
+- base64url: the digest as url safe base64 string (using - and _ instead of + and /, without padding).
+For algorithm quick, only hex is allowed.</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -9469,6 +9546,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<default>false</default>
 			<description>if set to true, empty values are included as well</description>
 		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listDeleteAt("1, 2, 3", 2, ", ", false, true) returns "1, 3". If false (default), every character of delimiters is a delimiter of its own.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -9569,6 +9653,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<default>false</default>
 			<description>if set to true, empty values are included as well</description>
 		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listFind("a::b::c", "b", "::", false, true) returns 2. If false (default), every character of delimiters is a delimiter of its own.</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
@@ -9607,6 +9698,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<required>No</required>
 			<default>false</default>
 			<description>if set to true, empty values are included as well</description>
+		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listFindNoCase("a::b::c", "B", "::", false, true) returns 2. If false (default), every character of delimiters is a delimiter of its own.</description>
 		</argument>
 		<return>
 			<type>number</type>
@@ -9647,6 +9745,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<default>1</default>
 			<description>specifies how many items to return from the beginning of the list. default is 1.</description>
 		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listFirst("a::b::c", "::", false, 1, true) returns "a". If false (default), every character of delimiters is a delimiter of its own.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -9684,6 +9789,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<required>No</required>
 			<default>false</default>
 			<description>if set to true, empty values are included as well</description>
+		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listGetAt("a::b::c", 2, "::", false, true) returns "b". If false (default), every character of delimiters is a delimiter of its own.</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -9728,6 +9840,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
 		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listInsertAt("1, 3", 2, 2, ", ", false, true) returns "1, 2, 3"; the whole delimiter is inserted behind the new element. If false (default), every character of delimiters is a delimiter of its own.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -9765,6 +9884,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<default>false</default>
 			<description>if set to true, empty values are included as well</description>
 		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listIndexExists("a::b::c", 3, "::", false, true) returns true. If false (default), every character of delimiters is a delimiter of its own.</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -9795,6 +9921,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
+		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listItemTrim("a :: b :: c", "::", false, true) returns "a::b::c". If false (default), every character of delimiters is a delimiter of its own.</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -9835,6 +9968,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<required>No</required>
 			<description>specifies how many items to return from the end of the list. default is 1.</description>
 		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listLast("a::b::c", "::", false, 1, true) returns "c". If false (default), every character of delimiters is a delimiter of its own.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -9865,6 +10005,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
+		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listLen("a::b::c", "::", false, true) returns 3. If false (default), every character of delimiters is a delimiter of its own.</description>
 		</argument>
 		<return>
 			<type>number</type>
@@ -9904,6 +10051,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<default>true</default>
 			<description>if false it cleans up empty fields.</description>
 			<introduced>5.3.5.17</introduced>
+		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listPrepend("2, 3", 1, ", ", true, true) returns "1, 2, 3"; the whole delimiter is inserted behind the new element. If false (default), every character of delimiters is a delimiter of its own.</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -9952,6 +10106,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
+		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listQualify("a::b::c", "'", "::", "all", false, true) returns 'a'::'b'::'c'. If false (default), every character of delimiters is a delimiter of its own.</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -10050,6 +10211,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
             <required>No</required>
             <description>specifies how many items to skip from the beginning of the list. default is 1.</description>
         </argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listRest("a::b::c", "::", false, 1, true) returns "b::c". If false (default), every character of delimiters is a delimiter of its own.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -10089,6 +10257,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
 		</argument>		
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listGetDuplicates("a::b::a", "::", false, false, true) returns "a". If false (default), every character of delimiters is a delimiter of its own.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -10120,6 +10295,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<required>false</required>
 			<default>false</default>
 			<description>if set to true, the duplicate value test will not be case sensitive</description>
+		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listRemoveDuplicates("a::b::a", "::", false, true) returns "a::b". If false (default), every character of delimiters is a delimiter of its own.</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -10163,6 +10345,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
+		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listSetAt("1, 2, 3", 2, "x", ", ", false, true) returns "1, x, 3". If false (default), every character of delimiters is a delimiter of its own.</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -10218,6 +10407,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
+		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listSort("c::a::b", "text", "asc", "::", false, true) returns "a::b::c". If false (default), every character of delimiters is a delimiter of its own.</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -10304,6 +10500,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
 		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listValueCount("a::b::a", "a", "::", false, true) returns 2. If false (default), every character of delimiters is a delimiter of its own.</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
@@ -10341,6 +10544,13 @@ This argument only influences isJson, deserializeJSON always stays lenient.</des
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
+		</argument>
+		<argument>
+			<name>multiCharacterDelimiter</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if true, the whole delimiters string is used as one delimiter, e.g. listValueCountNoCase("a::b::A", "a", "::", false, true) returns 2. If false (default), every character of delimiters is a delimiter of its own.</description>
 		</argument>
 		<return>
 			<type>number</type>

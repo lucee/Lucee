@@ -4,7 +4,7 @@
 
 	<div class="pageintro">#stText.Mappings.IntroText#</div>
 
-	<cfset renderSettings("Mappings",{columns:["virtual","physical","archive","primary","listenerType","listenerMode","readonly","hidden","toplevel"
+	<cfset renderSettings("Mappings",{columns:["virtual","physical","archive","primary","listenerType","listenerMode","readonly","hidden","webAccessible"
 		,"inspect","inspectTemplateIntervalSlow","inspectTemplateIntervalFast"], value:addPrimary(mappings)} )>
 	
 
@@ -79,7 +79,7 @@
 								<cfelse>
 								#stText.setting['inspecttemplateInheritShort']#&nbsp;(#stText.setting['inspecttemplate'&performanceSettings.inspectTemplate&'Short']?:''#)
 								</cfif>
-								<input type="hidden" name="toplevel_#mappings.currentrow#" value="#mappings.toplevel#">
+								<input type="hidden" name="webAccessible_#mappings.currentrow#" value="#mappings.webAccessible#">
 							</td>
 							<!--- ListenerType --->
 							<td nowrap="nowrap">
@@ -243,11 +243,11 @@
 					</tr>
 					<tr>
 						<th scope="row">
-							#stText.Mappings.ToplevelHead#
+							#stText.Mappings.WebAccessibleHead#
 						</th>
 						<td>
-							<input type="checkbox" class="checkbox" name="toplevel_1" value="yes" checked="checked">
-							#stText.mappings.topleveldesc#
+							<input type="checkbox" class="checkbox" name="webAccessible_1" value="yes" checked="checked">
+							#stText.mappings.webaccessibledesc#
 						</td>
 					</tr>
 					<cfmodule template="remoteclients.cfm" colspan="2" line=true>

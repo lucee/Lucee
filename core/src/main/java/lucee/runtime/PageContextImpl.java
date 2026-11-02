@@ -395,7 +395,8 @@ public final class PageContextImpl extends PageContext {
 		{
 			Boolean tmp = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", null), null);
 			if (tmp == null) tmp = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.cfid.url.allow", null), null);
-			READ_CFID_FROM_URL = tmp == null ? true : tmp.booleanValue();
+			// LDEV-5664: CFID and CFTOKEN from the URL are not accepted unless explicitly enabled
+			READ_CFID_FROM_URL = tmp == null ? false : tmp.booleanValue();
 		}
 
 		{

@@ -454,6 +454,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		return null;
 	}
 
+	/**
+	 * default for the attribute "includeSQL" of cfquery (this.query.includeSQL), null if not defined
+	 */
+	public Boolean getQueryIncludeSQL() {
+		return null;
+	}
+
 
 	/**
 	 * returns the AI connections defined by the application itself (for example "this.ai" in the Application.cfc), the key is

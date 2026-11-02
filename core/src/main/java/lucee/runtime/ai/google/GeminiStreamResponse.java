@@ -7,6 +7,7 @@ import lucee.commons.digest.Base64Encoder;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.ai.AIResponseListener;
+import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Part;
 import lucee.runtime.ai.PartImpl;
 import lucee.runtime.ai.Response;
@@ -88,6 +89,7 @@ public final class GeminiStreamResponse implements Response {
 							if (listener != null) {
 								listener.listen(binary, mime, chunkIndex, predIndex++, complete);
 							}
+							if (isCancelled()) return;
 						}
 						catch (CoderException e) {
 							throw new PageRuntimeException(e);
@@ -121,6 +123,7 @@ public final class GeminiStreamResponse implements Response {
 									if (listener != null) {
 										listener.listen(text, "text/plain", chunkIndex, partIndex, complete);
 									}
+									if (isCancelled()) return;
 								}
 
 								// B. Handle Inline Data (Images)
@@ -141,6 +144,7 @@ public final class GeminiStreamResponse implements Response {
 											if (listener != null) {
 												listener.listen(binary, mime, chunkIndex, partIndex, complete);
 											}
+											if (isCancelled()) return;
 										}
 										catch (CoderException e) {
 											throw new PageRuntimeException(e);
@@ -154,6 +158,13 @@ public final class GeminiStreamResponse implements Response {
 				}
 			}
 		}
+	}
+
+	/**
+	 * @return true when the listener asked to cancel, no further chunks must be read
+	 */
+	public boolean isCancelled() {
+		return AIUtil.isCancelled(listener);
 	}
 
 	@Override

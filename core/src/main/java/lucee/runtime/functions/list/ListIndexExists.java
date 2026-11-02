@@ -45,12 +45,20 @@ public final class ListIndexExists extends BIF {
 		return ListUtil.listToArrayRemoveEmpty(list, delimiter).get(Caster.toIntValue(index), null) != null;
 	}
 
+	public static boolean call(PageContext pc, String list, Number index, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
+		if (!ListUtil.isMultiCharDelimiter(delimiter, multiCharacterDelimiter)) return call(pc, list, index, delimiter, includeEmptyFields);
+		char c = ListUtil.freeChar(list);
+		return call(pc, ListUtil.mask(list, delimiter, c), index, String.valueOf(c), includeEmptyFields);
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]));
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]));
 		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]));
+		if (args.length == 5)
+			return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), Caster.toBooleanValue(args[4]));
 
-		throw new FunctionException(pc, "ListIndexExists", 2, 4, args.length);
+		throw new FunctionException(pc, "ListIndexExists", 2, 5, args.length);
 	}
 }

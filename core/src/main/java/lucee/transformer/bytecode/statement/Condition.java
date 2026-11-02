@@ -41,6 +41,17 @@ public final class Condition extends StatementBaseNoFinal implements HasBodies {
 	private Pair _else;
 
 	/**
+	 * @return the conditions of the if/else-if branches, the else branch has none
+	 */
+	public java.util.List<ExprBoolean> getConditions() {
+		java.util.List<ExprBoolean> list = new ArrayList<ExprBoolean>(ifs.size());
+		for (Pair pair: ifs) {
+			list.add(pair.condition);
+		}
+		return list;
+	}
+
+	/**
 	 * Constructor of the class
 	 * 
 	 * @param f

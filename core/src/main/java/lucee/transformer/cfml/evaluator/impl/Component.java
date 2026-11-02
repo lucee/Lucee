@@ -18,6 +18,7 @@
  */
 package lucee.transformer.cfml.evaluator.impl;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +30,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Constants;
+import lucee.runtime.config.WarmupJavaSettings;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -290,6 +292,18 @@ public class Component extends EvaluatorSupport {
 					throw new EvaluatorException("Invalid JSON in javasettings attribute: " + e.getMessage()
 							+ ". Ensure the JSON is valid: javasettings='{maven:[\"groupId:artifactId:version\"]}'");
 				}
+
+				// LDEV-5281 warmup downloads the maven dependencies, so they are available when the server is started for real
+				if (WarmupJavaSettings.isWarmup()) {
+					try {
+						WarmupJavaSettings.resolve(val, getSourceName(page));
+					}
+					catch (IOException e) {
+						EvaluatorException ee = new EvaluatorException(e.getMessage());
+						ExceptionUtil.initCauseEL(ee, e);
+						throw ee;
+					}
+				}
 			}
 		}
 
@@ -302,6 +316,12 @@ public class Component extends EvaluatorSupport {
 					throw new EvaluatorException("Attribute [initmethod] of the tag [" + tlt.getFullName() + "], must contain a literal string value");
 			}
 		}
+	}
+
+	private static String getSourceName(Page page) {
+		SourceCode sc = page.getSourceCode();
+		if (sc instanceof PageSourceCode) return ((PageSourceCode) sc).getPageSource().getDisplayPath();
+		return "inline code";
 	}
 
 	private String toString(Set<String> set) {

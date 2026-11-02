@@ -53,6 +53,13 @@ public final class ListSort extends BIF {
 		return ListUtil.sortIgnoreEmpty(ListUtil.trim(list, delimiter), sortType, sortOrder, delimiter);
 	}
 
+	public static String call(PageContext pc, String list, String sortType, String sortOrder, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter)
+			throws PageException {
+		if (!ListUtil.isMultiCharDelimiter(delimiter, multiCharacterDelimiter)) return call(pc, list, sortType, sortOrder, delimiter, includeEmptyFields);
+		char c = ListUtil.freeChar(list);
+		return ListUtil.unmask(call(pc, ListUtil.mask(list, delimiter, c), sortType, sortOrder, String.valueOf(c), includeEmptyFields), delimiter, c);
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
@@ -60,7 +67,9 @@ public final class ListSort extends BIF {
 		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]));
 		if (args.length == 5)
 			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]), Caster.toBooleanValue(args[4]));
+		if (args.length == 6) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]),
+				Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]));
 
-		throw new FunctionException(pc, "ListSort", 2, 5, args.length);
+		throw new FunctionException(pc, "ListSort", 2, 6, args.length);
 	}
 }

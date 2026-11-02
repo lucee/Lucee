@@ -20,6 +20,7 @@ package lucee.runtime.db;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -871,6 +872,7 @@ public final class QoQ {
 				}
 				break;
 			case 'r':
+				if (op.equals("round")) return executeRound(value, null, false, isExactNumber(source, operators[0]), sql);
 				if (op.equals("rtrim")) return StringUtil.rtrim(Caster.toString(value), null);
 				if (op.equals("rand")) return executeRand(pc, value, sql, operation);
 				break;
@@ -957,6 +959,9 @@ public final class QoQ {
 					return Math.pow(castForMathDouble(left), castForMathDouble(right));
 				}
 				break;
+			case 'r':
+				if (op.equals("round")) return executeRound(left, right, true, isExactNumber(source, operators[0]), sql);
+				break;
 
 			}
 
@@ -976,6 +981,96 @@ public final class QoQ {
 
 		throw new DatabaseException("unsupported sql statement (" + op + ") ", null, sql, null);
 
+	}
+
+	/**
+	 * HSQLDB rounds DECIMAL and integer values (and plain number literals) half up, but DOUBLE values
+	 * half even. The value types of a native query are not reliable for this (a DECIMAL column holds
+	 * doubles), so the declared type of the column or the shape of the expression decides.
+	 */
+	private static boolean isExactNumber(QueryImpl source, Expression exp) throws PageException {
+		if (exp instanceof BracketExpression) return isExactNumber(source, ((BracketExpression) exp).getExp());
+		if (exp instanceof ValueNumber) {
+			String str = ((ValueNumber) exp).getString();
+			return str.indexOf('e') == -1 && str.indexOf('E') == -1;
+		}
+		if (exp instanceof ColumnExpression) {
+			ColumnExpression ce = (ColumnExpression) exp;
+			if (ce.isParam()) return false;
+			switch (source.getColumn(ce.getColumn()).getType()) {
+			case Types.DECIMAL:
+			case Types.NUMERIC:
+			case Types.INTEGER:
+			case Types.BIGINT:
+			case Types.SMALLINT:
+			case Types.TINYINT:
+				return true;
+			default:
+				return false;
+			}
+		}
+		if (exp instanceof Operation1) {
+			Operation1 op1 = (Operation1) exp;
+			if (op1.getOperator() != Operation.OPERATION1_MINUS && op1.getOperator() != Operation.OPERATION1_PLUS) return false;
+			return isExactNumber(source, op1.getExp());
+		}
+		if (exp instanceof Operation2) {
+			Operation2 op2 = (Operation2) exp;
+			switch (op2.getOperator()) {
+			case Operation.OPERATION2_PLUS:
+			case Operation.OPERATION2_MINUS:
+			case Operation.OPERATION2_MULTIPLY:
+			case Operation.OPERATION2_DIVIDE:
+				return isExactNumber(source, op2.getLeft()) && isExactNumber(source, op2.getRight());
+			default:
+				return false;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * round( value [, numDigits=0 ] ), same results as the HSQLDB ROUND function: DOUBLE values round
+	 * half even, DECIMAL and integer values (and plain number literals) round half up, see isExactNumber. A negative
+	 * numDigits rounds to the left of the decimal point. A null value or a null numDigits gives null.
+	 */
+	private Object executeRound(Object value, Object digits, boolean hasDigits, boolean exact, SQL sql) throws PageException {
+		// The result of any mathmatical operation involving a null is null
+		if (value == null) return null;
+
+		int scale = 0;
+		if (hasDigits) {
+			if (digits == null) return null;
+			double d = castForMathDouble(digits);
+			if (d != Math.rint(d) || Math.abs(d) > Integer.MAX_VALUE) {
+				throw new IllegalQoQException("round() expects a whole number of digits as second argument, but got [" + Caster.toString(digits) + "]", null, sql, null);
+			}
+			scale = (int) d;
+		}
+
+		if (value instanceof BigDecimal) {
+			BigDecimal bd = (BigDecimal) value;
+			if (scale >= bd.scale()) return bd;
+			return bd.setScale(scale, RoundingMode.HALF_UP).setScale(Math.max(scale, 0));
+		}
+		if (value instanceof BigInteger) {
+			if (scale >= 0) return value;
+			return new BigDecimal((BigInteger) value).setScale(scale, RoundingMode.HALF_UP).toBigIntegerExact();
+		}
+		if (value instanceof Integer || value instanceof Long || value instanceof Short || value instanceof Byte) {
+			long l = ((Number) value).longValue();
+			if (scale >= 0) return value;
+			long rounded = BigDecimal.valueOf(l).setScale(scale, RoundingMode.HALF_UP).longValueExact();
+			if (value instanceof Long) return Long.valueOf(rounded);
+			return Integer.valueOf(Math.toIntExact(rounded));
+		}
+
+		double dbl = castForMathDouble(value);
+		if (Double.isNaN(dbl) || Double.isInfinite(dbl)) return Double.valueOf(dbl);
+		RoundingMode mode = exact ? RoundingMode.HALF_UP : RoundingMode.HALF_EVEN;
+		BigDecimal bd = BigDecimal.valueOf(dbl);
+		if (scale >= bd.scale()) return Double.valueOf(dbl);
+		return Double.valueOf(bd.setScale(scale, mode).doubleValue());
 	}
 
 	private Integer executeCount(PageContext pc, SQL sql, QueryImpl source, Expression[] inputs) throws PageException {

@@ -32,6 +32,11 @@ public final class Coder {
 	 * Field <code>ENCODING_BASE64</code>
 	 */
 	public static final short ENCODING_BASE64 = 2;
+	/**
+	 * Field <code>ENCODING_BASE64URL</code>, Base64 with the URL and filename safe alphabet (RFC 4648
+	 * section 5)
+	 */
+	public static final short ENCODING_BASE64URL = 3;
 
 	/**
 	 * @param type
@@ -44,7 +49,8 @@ public final class Coder {
 		if (type.equals("hex")) return decode(ENCODING_HEX, value, precise);
 		if (type.equals("uu")) return decode(ENCODING_UU, value, precise);
 		if (type.equals("base64")) return decode(ENCODING_BASE64, value, precise);
-		throw new CoderException("Invalid encoding definition [" + type + "]. Valid encodings are [hex, uu, base64].");
+		if (type.equals("base64url")) return decode(ENCODING_BASE64URL, value, precise);
+		throw new CoderException("Invalid encoding definition [" + type + "]. Valid encodings are [hex, uu, base64, base64url].");
 	}
 
 	/**
@@ -57,6 +63,7 @@ public final class Coder {
 		if (type == ENCODING_UU) return UUCoder.decode(value);
 		else if (type == ENCODING_HEX) return HexCoder.decode(value);
 		else if (type == ENCODING_BASE64) return Base64Coder.decode(value, precise);
+		else if (type == ENCODING_BASE64URL) return Base64Coder.decodeUrl(value, precise);
 		throw new CoderException("Invalid encoding definition");
 	}
 
@@ -71,7 +78,8 @@ public final class Coder {
 		if (type.equals("hex")) return encode(ENCODING_HEX, value);
 		if (type.equals("uu")) return encode(ENCODING_UU, value);
 		if (type.equals("base64")) return encode(ENCODING_BASE64, value);
-		throw new CoderException("Invalid encoding definition [" + type + "]. Valid encodings are [hex, uu, base64].");
+		if (type.equals("base64url")) return encode(ENCODING_BASE64URL, value);
+		throw new CoderException("Invalid encoding definition [" + type + "]. Valid encodings are [hex, uu, base64, base64url].");
 	}
 
 	/**
@@ -84,6 +92,7 @@ public final class Coder {
 		if (type == ENCODING_UU) return UUCoder.encode(value);
 		else if (type == ENCODING_HEX) return HexCoder.encode(value);
 		else if (type == ENCODING_BASE64) return Base64Coder.encode(value);
+		else if (type == ENCODING_BASE64URL) return Base64Coder.encodeUrl(value);
 		throw new CoderException("Invalid encoding definition");
 	}
 }

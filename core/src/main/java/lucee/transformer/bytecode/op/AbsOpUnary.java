@@ -86,6 +86,22 @@ public abstract class AbsOpUnary extends ExpressionBase {
 	private final short type;
 	private final int operation;
 
+	public Variable getVariable() {
+		return var;
+	}
+
+	public Expression getValue() {
+		return value;
+	}
+
+	public short getUnaryType() {
+		return type;
+	}
+
+	public int getOperation() {
+		return operation;
+	}
+
 	public AbsOpUnary(Variable var, Expression value, short type, int operation, Position start, Position end) {
 		super(var.getFactory(), start, end);
 		this.var = var;
