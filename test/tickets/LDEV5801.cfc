@@ -262,6 +262,95 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="jdbc" {
 				expect(	error.message ).notToInclude( "specified name [null] could be found" );
 			});
 		});
+
+		describe( title="LDEV-5801 datasource without any JDBC driver class (no database needed)", body=function() {
+
+			// the exception is thrown before any connection is made, so no database is needed
+			it(title="struct datasource with only [dbdriver], no [type] or [class]", body = function( currentSpec ) {
+				var ds = getDriverlessDatasource();
+				ds[ "dbdriver" ] = "PostgreSQL";
+				var e = getDbinfoError( ds );
+				expectNoDriverError( e, "" );
+			});
+
+			it(title="struct datasource with neither [type], [class] nor [dbdriver]", body = function( currentSpec ) {
+				var e = getDbinfoError( getDriverlessDatasource() );
+				expectNoDriverError( e, "" );
+			});
+
+			it(title="struct datasource with [connectionString] but without [class]", body = function( currentSpec ) {
+				var ds = getDriverlessDatasource();
+				ds[ "connectionString" ] = "jdbc:postgresql://localhost:15432/lucee";
+				var e = getDbinfoError( ds );
+				expectNoDriverError( e, "" );
+			});
+
+			it(title="struct datasource with invalid [type]", body = function( currentSpec ) {
+				var ds = getDriverlessDatasource();
+				ds[ "type" ] = "PostgreSQLInvalid";
+				var e = getDbinfoError( ds );
+				expect( e.message ).toInclude( "PostgreSQLInvalid" );
+				expect( e.message ).notToInclude( "[null]" );
+			});
+
+			it(title="config datasource with only [dbdriver], no [type] or [class]", body = function( currentSpec ) {
+				var ds = createDriverlessConfigDatasource( "only_dbdriver_nodb", { "dbdriver": "PostgreSQL" } );
+				var e = getDbinfoError( ds );
+				expectNoDriverError( e, ds );
+				expect( e.message ).toInclude( "dbdriver" );
+			});
+
+			it(title="config datasource with neither [dbdriver], [type] nor [class]", body = function( currentSpec ) {
+				var ds = createDriverlessConfigDatasource( "nothing_nodb", {} );
+				var e = getDbinfoError( ds );
+				expectNoDriverError( e, ds );
+			});
+
+			it(title="config datasource with invalid [type]", body = function( currentSpec ) {
+				var ds = createDriverlessConfigDatasource( "invalid_type_nodb", { "type": "PostgreSQLInvalid" } );
+				var e = getDbinfoError( ds );
+				expectNoDriverError( e, ds );
+			});
+		});
+
+	}
+
+	private function getDriverlessDatasource() {
+		return {
+			"host": "localhost",
+			"port": "15432",
+			"database": "lucee",
+			"username": "lucee",
+			"password": "lucee"
+		};
+	}
+
+	private function createDriverlessConfigDatasource( required string name, required struct extra ) {
+		var dsn = "ldev5801-" & arguments.name;
+		var _ds = getDriverlessDatasource();
+		structAppend( _ds, arguments.extra );
+		configImport( { "datasources": { "#dsn#": _ds } }, "server", request.serverAdminPassword );
+		tmpConfigDatasources[ dsn ] = true;
+		return dsn;
+	}
+
+	private function getDbinfoError( required any ds ) {
+		try {
+			dbinfo datasource="#arguments.ds#" name="local.result" type="dbnames";
+		}
+		catch ( any e ) {
+			return e;
+		}
+		fail( "dbinfo should throw an exception for a datasource without a JDBC driver" );
+	}
+
+	private function expectNoDriverError( required any e, required string dsName ) {
+		expect( e.message ).notToInclude( "[null]" );
+		expect( e.message ).notToInclude( "cannot load class through its string name" );
+		expect( e.message ).notToInclude( "doesn't exist" );
+		expect( e.message ).toInclude( "class" );
+		expect( e.message ).toInclude( "type" );
+		if ( len( arguments.dsName ) ) expect( e.message ).toInclude( arguments.dsName );
 	}
 
 	private function createConfigDatasource( ds, name ) {

@@ -1835,6 +1835,12 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 						// still no bundle!
 						if (!cd.isBundle()) cd = patchJDBCClass(config, cd);
+
+						// LDEV-5801 the datasource is kept, but it can't connect, the exception is thrown when the datasource is used
+						if (!cd.hasClass()) {
+							log(config, Log.LEVEL_WARN, "datasource [" + e.getKey() + "] has no JDBC driver class: [class] is not set and [id] [" + getAttr(config, dataSource, "id")
+									+ "] / [type] [" + getAttr(config, dataSource, "type") + "] do not match an installed JDBC driver extension, [dbdriver] does not select a driver");
+						}
 						int idle = Caster.toIntValue(getAttr(config, dataSource, "idleTimeout"), -1);
 						if (idle == -1) idle = Caster.toIntValue(getAttr(config, dataSource, "connectionTimeout"), -1);
 						int defLive = 15;
