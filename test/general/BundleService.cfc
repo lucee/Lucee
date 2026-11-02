@@ -142,12 +142,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 					expect( isNull( service.getBundleInfo( name, "1.0.0.1" ) ) ).toBeTrue();
 					expect( isNull( service.getBundleInfo( name, "1.0.0.2" ) ) ).toBeFalse();
 
-					// the core bundle and unknown bundles are not touched
+					// the core bundle (with its own version) and unknown bundles are not touched
+					var core = service.listCoreBundles()[ 1 ];
+					expect( osgiUtil.uninstallOtherVersions( context, core.name, core.version ) ).toBeEmpty();
 					expect( osgiUtil.uninstallOtherVersions( context, "does.not.exist", "1.0.0" ) ).toBeEmpty();
 				}
 				finally {
-					try { service.uninstall( name, "1.0.0.1" ); } catch ( any e ) {}
-					try { service.uninstall( name, "1.0.0.2" ); } catch ( any e ) {}
+					for ( var v in [ "1.0.0.1", "1.0.0.2" ] ) {
+						if ( !isNull( service.getBundleInfo( name, v ) ) ) service.uninstall( name, v );
+					}
 					if ( directoryExists( dir ) ) directoryDelete( dir, true );
 				}
 			});
