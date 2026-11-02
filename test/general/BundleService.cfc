@@ -87,6 +87,38 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( isNull( service.getBundleState( createObject( "java", "java.lang.String" ).getClass() ) ) ).toBeTrue();
 			});
 
+			it( "has no bundle for a class loader that is not a bundle class loader", function() {
+				var cl = createObject( "java", "java.lang.ClassLoader" ).getSystemClassLoader();
+				expect( isNull( service.getBundleInfo( cl ) ) ).toBeTrue();
+			});
+
+			it( "gives name, version, id and state for the class loader of a bundle", function() {
+				var checked = false;
+				for ( var b in service.listBundles() ) {
+					if ( b.id != 0 && b.state == "active" && !b.fragment ) {
+						try {
+							var cl = service.getClassLoader( b.name, b.version );
+							var info = service.getBundleInfo( cl );
+							if ( !isNull( info ) ) {
+								expect( info.name ).toBe( b.name );
+								expect( info.version ).toBe( b.version );
+								expect( info.id ).toBe( b.id );
+								expect( info.state ).toBe( "active" );
+								checked = true;
+								break;
+							}
+						}
+						catch ( any e ) {}
+					}
+				}
+				expect( checked ).toBeTrue( "no active bundle besides the system bundle to check" );
+			});
+
+			it( "loadBundle returns the info of an installed bundle", function() {
+				var info = service.loadBundle( system.name, "" );
+				expect( info.id ).toBe( 0 );
+			});
+
 			it( "throws an IOException for a class the bundle does not have", function() {
 				expect( function() {
 					service.loadClass( system.name, "", "does.not.Exist" );

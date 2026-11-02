@@ -803,7 +803,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		ClassLoader cl = CFMLEngineFactory.getInstance().getCFMLEngineFactory().getClass().getClassLoader();
 		InputStream is = cl.getResourceAsStream("extensions/.index");
 		if (is == null) is = cl.getResourceAsStream("/extensions/.index");
-		if (is == null) is = SystemUtil.getResourceAsStream(null, "/extensions/.index");
+		if (is == null) is = SystemUtil.getResourceAsStream("/extensions/.index");
 
 		if (is == null) {
 			// no index means no bundled extensions (e.g. the light build), nothing to deploy

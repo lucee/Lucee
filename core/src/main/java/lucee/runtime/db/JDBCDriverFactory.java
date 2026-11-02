@@ -1,7 +1,5 @@
 package lucee.runtime.db;
 
-import org.osgi.framework.Bundle;
-
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -12,7 +10,6 @@ import lucee.runtime.config.PropFactory;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.KeyImpl;
@@ -46,8 +43,7 @@ public class JDBCDriverFactory implements PropFactory<JDBCDriver> {
 					cd = ConfigFactoryImpl.getClassDefinition(config, driver, "", config.getIdentification());
 					if (StringUtil.isEmpty(cd.getClassName()) && !StringUtil.isEmpty(cd.getName())) {
 						try {
-							Bundle bundle = OSGiUtil.loadBundle(cd.getName(), OSGiUtil.toOSGi(cd.getVersion()), config.getIdentification(), null, false);
-							String cn = JDBCDriver.extractClassName(bundle);
+							String cn = JDBCDriver.extractClassName(cd.getName(), cd.getVersionAsString());
 							cd = new ClassDefinitionImpl(cn, cd.getName(), cd.getVersionAsString(), config.getIdentification());
 						}
 						catch (Throwable t) {

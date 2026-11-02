@@ -37,7 +37,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
-import org.osgi.framework.BundleReference;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -61,6 +60,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.java.JavaProxy;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.JavaProxyUtilImpl;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.UDF;
 import lucee.runtime.util.JavaProxyUtil;
@@ -495,7 +495,7 @@ public final class JavaProxyFactory {
 			if (cl instanceof PhysicalClassLoader) {
 				return cl;
 			}
-			else if (cl instanceof BundleReference) {
+			else if (BundleServiceImpl.getInstance().getBundleInfo(cl) != null) {
 				return PhysicalClassLoaderFactory.getRPCClassLoader(pc.getConfig(), cl, false);
 			}
 		}

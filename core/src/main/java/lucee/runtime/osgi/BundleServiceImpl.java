@@ -11,6 +11,7 @@ import java.util.Map;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.BundleReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleWiring;
 
@@ -123,6 +124,20 @@ public final class BundleServiceImpl implements BundleService {
 	}
 
 	@Override
+	public Map<String, Object> getBundleInfo(ClassLoader classLoader) {
+		if (classLoader instanceof BundleReference) {
+			Bundle b = ((BundleReference) classLoader).getBundle();
+			Map<String, Object> info = new StructImpl(Struct.TYPE_LINKED);
+			info.put("name", b.getSymbolicName());
+			info.put("version", OSGiUtil.toLucee(b.getVersion()).toString());
+			info.put("id", Long.valueOf(b.getBundleId()));
+			info.put("state", OSGiUtil.toState(b.getState(), "unknown"));
+			return info;
+		}
+		return null;
+	}
+
+	@Override
 	public String getBundleState(Class<?> clazz) {
 		Bundle b = OSGiUtil.getBundleFromClass(clazz, null);
 		return b == null ? null : OSGiUtil.toState(b.getState(), "unknown");
@@ -227,7 +242,12 @@ public final class BundleServiceImpl implements BundleService {
 		info.put("version", OSGiUtil.toLucee(b.getVersion()).toString());
 		info.put("id", Long.valueOf(b.getBundleId()));
 		info.put("state", OSGiUtil.toState(b.getState(), "unknown"));
-		info.put("location", b.getLocation());
+		try {
+			info.put("location", b.getLocation());
+		}
+		catch (IllegalStateException ise) {
+			info.put("location", null);
+		}
 		info.put("fragment", Boolean.valueOf(OSGiUtil.isFragment(b)));
 		try {
 			info.put("headers", OSGiUtil.getHeaders(b));
@@ -236,6 +256,11 @@ public final class BundleServiceImpl implements BundleService {
 			info.put("headers", new StructImpl(Struct.TYPE_LINKED));
 		}
 		return info;
+	}
+
+	@Override
+	public Map<String, Object> loadBundle(String bundleName, String bundleVersion) throws IOException {
+		return toInfo(load(bundleName, bundleVersion));
 	}
 
 	@Override

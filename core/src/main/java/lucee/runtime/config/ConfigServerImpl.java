@@ -8754,7 +8754,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		public static void createConfigFile(Resource configFile) throws IOException {
 			String resource = "/resource/config/server.json";
 			InputStream is = InfoImpl.class.getResourceAsStream(resource);
-			if (is == null) is = SystemUtil.getResourceAsStream(null, resource);
+			if (is == null) is = SystemUtil.getResourceAsStream(resource);
 			if (is == null) throw new IOException("File [" + resource + "] does not exist.");
 
 			configFile = configFile.getAbsoluteResource();

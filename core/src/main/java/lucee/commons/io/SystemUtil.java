@@ -58,9 +58,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.BundleReference;
 
 import com.sun.management.OperatingSystemMXBean;
 
@@ -107,6 +105,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
@@ -124,6 +123,10 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 public final class SystemUtil {
+
+	// the framework (system) bundle
+	private static final long FRAMEWORK_BUNDLE_ID = 0;
+
 
 	public static final int MEMORY_TYPE_ALL = lucee.runtime.util.SystemUtil.MEMORY_TYPE_ALL;
 	public static final int MEMORY_TYPE_HEAP = lucee.runtime.util.SystemUtil.MEMORY_TYPE_HEAP;
@@ -1281,40 +1284,6 @@ public final class SystemUtil {
 		return sb.toString();
 	}
 
-	public static URL getResource(Bundle bundle, String path) {
-		String pws, pns;
-		if (path.startsWith("/")) {
-			pws = path;
-			pns = path.substring(1);
-		}
-		else {
-			pws = "/" + path;
-			pns = path;
-		}
-
-		URL url = null;
-		if (bundle != null) {
-			try {
-				url = bundle.getEntry(pns);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-			}
-		}
-
-		// core class loader
-		if (url == null) {
-			Class<?> clazz = PageSourceImpl.class;
-			ClassLoader cl = clazz.getClassLoader();
-			url = cl.getResource(pns);
-			if (url == null) {
-				url = cl.getResource(pws);
-			}
-		}
-		return url;
-
-	}
-
 	/**
 	 * converts a System property format to its equivalent Environment variable, e.g. an input of
 	 * "lucee.conf.name" will return "LUCEE_CONF_NAME"
@@ -1566,34 +1535,7 @@ public final class SystemUtil {
 	}
 
 	public static InputStream getResourceAsStream(String path) {
-		return getResourceAsStream((Bundle) null, path);
-	}
-
-	public static InputStream getResourceAsStream(Bundle bundle, String path) {
-		// check the bundle for the resource
 		InputStream is;
-		if (bundle == null) {
-			ClassLoader cl = PageSourceImpl.class.getClassLoader();
-			if (cl instanceof BundleReference) {
-				bundle = ((BundleReference) cl).getBundle();
-			}
-		}
-		if (bundle != null) {
-			try {
-				URL entry = bundle.getEntry(path);
-				is = entry != null ? entry.openStream() : null;
-				if (is != null) return is;
-				if (path.startsWith("/")) {
-					URL e = bundle.getEntry(path.substring(1));
-					is = e == null ? null : e.openStream();
-				}
-				if (is != null) return is;
-
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-			}
-		}
 
 		// try from core classloader
 		ClassLoader cl = PageSourceImpl.class.getClassLoader();
@@ -1748,9 +1690,9 @@ public final class SystemUtil {
 			if (!unique || !context.contains(cl)) {
 				context.add(cl);
 				if (id != null) {
-					if (cl instanceof BundleReference) {
-						Bundle b = ((BundleReference) cl).getBundle();
-						id.append(b.getSymbolicName()).append(':').append(b.getVersion()).append(';');
+					Map<String, Object> bundle = BundleServiceImpl.getInstance().getBundleInfo(cl);
+					if (bundle != null) {
+						id.append(bundle.get("name")).append(':').append(bundle.get("version")).append(';');
 					}
 					else {
 						id.append(cl).append(';');
@@ -1823,10 +1765,8 @@ public final class SystemUtil {
 
 	private static boolean isFromBundle(Class<?> clazz) {
 		if (clazz == null) return false;
-		if (!(clazz.getClassLoader() instanceof BundleReference)) return false;
-
-		BundleReference br = (BundleReference) clazz.getClassLoader();
-		return !OSGiUtil.isFrameworkBundle(br.getBundle());
+		Map<String, Object> bundle = BundleServiceImpl.getInstance().getBundleInfo(clazz);
+		return bundle != null && !Long.valueOf(FRAMEWORK_BUNDLE_ID).equals(bundle.get("id"));
 	}
 
 	private static boolean _isSystem(Class<?> clazz) {

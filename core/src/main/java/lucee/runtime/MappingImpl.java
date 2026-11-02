@@ -27,9 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-
 import jakarta.servlet.ServletContext;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
@@ -43,7 +40,6 @@ import lucee.commons.lang.MappingUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.PhysicalClassLoaderFactory;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
@@ -53,7 +49,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -96,7 +92,7 @@ public final class MappingImpl implements Mapping {
 
 	private ApplicationListener appListener;
 
-	private Bundle archiveBundle;
+	private Map<String, Object> archiveBundle;
 
 	private long archMod;
 
@@ -201,10 +197,8 @@ public final class MappingImpl implements Mapping {
 					Resource tmp = ConfigUtil.getResource(cs, strArchive, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot, true);
 
 					if (tmp == null || archMod == tmp.lastModified()) return;
-					CFMLEngine engine = ConfigUtil.getEngine(config);
-					BundleContext bc = OSGiUtil.getBundleContext();
 					try {
-						archiveBundle = OSGiUtil.installBundle(bc, tmp, true);
+						archiveBundle = BundleServiceImpl.getInstance().install(toLocalFile(tmp), false);
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
@@ -221,11 +215,30 @@ public final class MappingImpl implements Mapping {
 		}
 	}
 
+	private static java.io.File toLocalFile(Resource res) throws IOException {
+		if (res instanceof java.io.File) return (java.io.File) res;
+		// not a local resource (ram, S3, ...), the bundle needs a local file to be installed from
+		Resource tmp = SystemUtil.getTempFile("lar", false);
+		IOUtil.copy(res, tmp);
+		return ResourceUtil.toFile(tmp);
+	}
+
+	private Class<?> loadArchiveClass(String className) throws IOException, ClassNotFoundException {
+		return BundleServiceImpl.getInstance().loadClass((String) archiveBundle.get("name"), (String) archiveBundle.get("version"), className);
+	}
+
 	@Override
 	public Class<?> getArchiveClass(String className) throws ClassNotFoundException {
 		getArchive();// this calls init the archive if necessary
 		if (archiveBundle != null) {
-			return archiveBundle.loadClass(className);
+			try {
+				return loadArchiveClass(className);
+			}
+			catch (IOException e) {
+				ClassNotFoundException cnfe = new ClassNotFoundException(e.getMessage());
+				cnfe.initCause(e);
+				throw cnfe;
+			}
 		}
 		// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);
 		throw new ClassNotFoundException("there is no archive context to load " + className + " from it");
@@ -235,10 +248,10 @@ public final class MappingImpl implements Mapping {
 	public Class<?> getArchiveClass(String className, Class<?> defaultValue) {
 		getArchive();// this calls init the archive if necessary
 		try {
-			if (archiveBundle != null) return archiveBundle.loadClass(className);
+			if (archiveBundle != null) return loadArchiveClass(className);
 			// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);
 		}
-		catch (ClassNotFoundException e) {}
+		catch (ClassNotFoundException | IOException e) {}
 
 		return defaultValue;
 	}
