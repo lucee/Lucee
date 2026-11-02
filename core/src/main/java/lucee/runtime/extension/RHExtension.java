@@ -18,6 +18,7 @@
  */
 package lucee.runtime.extension;
 
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.osgi.BundleServiceImpl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -44,7 +45,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.runtime.config.maven.Version;
 
 import lucee.Info;
 import lucee.commons.digest.Hash;
@@ -424,11 +425,11 @@ public final class RHExtension implements Serializable {
 						if (e.getFilename().startsWith("id_" + ed.getId() + "_")) {
 							ext = e.getRHExtension();
 							try {
-								if (match == null || OSGiUtil.compare(OSGiUtil.toVersion(match.getVersion()), OSGiUtil.toVersion(ext.getVersion())) > 0) {
+								if (match == null || VersionImpl.compare(VersionImpl.parse(match.getVersion(), true), VersionImpl.parse(ext.getVersion(), true)) > 0) {
 									match = ext;
 								}
 							}
-							catch (BundleException ex) {}
+							catch (IOException ex) {}
 						}
 					}
 					if (match != null) {
@@ -444,11 +445,11 @@ public final class RHExtension implements Serializable {
 							if (e.getKey().startsWith("id_" + ed.getId() + "_")) {
 								ext = _getInstance(config, e.getValue(), ed, log).getRHExtension();
 								try {
-									if (match == null || OSGiUtil.compare(OSGiUtil.toVersion(match.getVersion()), OSGiUtil.toVersion(ext.getVersion())) > 0) {
+									if (match == null || VersionImpl.compare(VersionImpl.parse(match.getVersion(), true), VersionImpl.parse(ext.getVersion(), true)) > 0) {
 										match = ext;
 									}
 								}
-								catch (BundleException ex) {}
+								catch (IOException ex) {}
 							}
 						}
 						if (match != null) {
@@ -1996,10 +1997,11 @@ public final class RHExtension implements Serializable {
 			pair = existing.get(id);
 			version = Caster.toString(child.get(KeyConstants._version, null), null);
 			if (StringUtil.isEmpty(version)) continue;
-			Version nv = OSGiUtil.toVersion(version);
+			Version nv = VersionImpl.parse(version, true, null);
+			if (nv == null) continue;
 			if (pair != null) {
 				if (toremove == null) toremove = new ArrayList<>();
-				toremove.add(Caster.toInteger(OSGiUtil.isNewerThan(pair.getName(), nv) ? e.getKey() : pair.getValue()));
+				toremove.add(Caster.toInteger((VersionImpl.compare(pair.getName(), nv) > 0) ? e.getKey() : pair.getValue()));
 
 			}
 			existing.put(id, new Pair<Version, Key>(nv, e.getKey()));

@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.BundleException;
 
+import lucee.loader.util.VersionImpl;
 import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -237,11 +238,11 @@ public final class JavaSettingsImpl implements JavaSettings {
 						existing = map.get(key);
 						if (existing != null) {
 							try {
-								if (OSGiUtil.compare(OSGiUtil.toVersion(existing.getVersion()), OSGiUtil.toVersion(p.getVersion())) < 0) {
+								if (VersionImpl.compare(VersionImpl.parse(existing.getVersion(), true), VersionImpl.parse(p.getVersion(), true)) < 0) {
 									map.put(key, p);
 								}
 							}
-							catch (BundleException e) {
+							catch (IOException e) {
 								map.put(key, p);
 							}
 

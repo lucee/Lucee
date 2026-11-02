@@ -3,7 +3,8 @@ package lucee.runtime.functions.system;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -66,7 +67,7 @@ public final class LuceeVersionsListS3 extends BIF {
 					key = new StringBuilder().append(v.getMajor()).append('.').append(v.getMinor()).append('.').append(v.getMicro()).toString();
 					if (t == TYPE_ALL || (t == TYPE_SNAPSHOT && v.getQualifier().endsWith("-SNAPSHOT")) || (t == TYPE_RELEASE && !v.getQualifier().endsWith("-SNAPSHOT"))) {
 						existing = map.get(key);
-						if (existing == null || OSGiUtil.compare(existing.getVersion(), v) < 0) {
+						if (existing == null || VersionImpl.compare(existing.getVersion(), v) < 0) {
 							map.put(key, e);
 						}
 					}

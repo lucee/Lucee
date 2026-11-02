@@ -23,7 +23,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ClassUtil;
@@ -518,7 +519,7 @@ public final class FunctionLibFunction {
 	}
 
 	public void setIntroduced(String introduced) {
-		this.introduced = OSGiUtil.toVersion(introduced, null);
+		this.introduced = VersionImpl.parse(introduced, true, null);
 	}
 
 	public Version getIntroduced() {

@@ -18,6 +18,7 @@
  */
 package lucee.runtime.tag;
 
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.osgi.BundleServiceImpl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -50,7 +51,7 @@ import java.util.regex.Pattern;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.runtime.config.maven.Version;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.jsp.tagext.Tag;
@@ -1018,10 +1019,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doChangeVersionTo() throws PageException {
 		try {
-			Version version = OSGiUtil.toVersion(getString("admin", "changeVersionTo", "version"));
+			Version version = VersionImpl.parse(getString("admin", "changeVersionTo", "version"), true);
 			admin.changeVersionTo(version, password, pageContext.getConfig().getIdentification());
 		}
-		catch (BundleException e) {
+		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
 	}
@@ -3666,17 +3667,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetBundle() throws PageException {
 		String symbolicName = getString("admin", "getBundle", "symbolicName", true);
-		Version version = OSGiUtil.toVersion(getString("version", null), null);
+		Version version = VersionImpl.parse(getString("version", null), true, null);
 
 		BundleDefinition bd;
 		BundleFile bf = null;
-		Bundle b = OSGiUtil.getBundleLoaded(symbolicName, version, null);
+		Bundle b = OSGiUtil.getBundleLoaded(symbolicName, OSGiUtil.toOSGi(version), null);
 		if (b != null) {
 			bd = new BundleDefinition(b);
 		}
 		else {
 			try {
-				bf = OSGiUtil.getBundleFile(symbolicName, version, null, null, false);
+				bf = OSGiUtil.getBundleFile(symbolicName, OSGiUtil.toOSGi(version), null, null, false);
 				bd = bf.toBundleDefinition();
 				b = bd.getLoadedBundle();
 
@@ -3696,7 +3697,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set(KeyConstants._symbolicName, bd.getName());
 		sct.set(KeyConstants._title, bd.getName());
 		sct.set(KeyConstants._version, bd.getVersionAsString());
-		sct.set(KeyConstants._usedBy, _usedBy(bd.getName(), bd.getVersion(), coreBundles, extBundles));
+		sct.set(KeyConstants._usedBy, _usedBy(bd.getName(), OSGiUtil.toLucee(bd.getVersion()), coreBundles, extBundles));
 		try {
 			if (b != null) {
 				sct.set(KeyConstants._path, b.getLocation());
@@ -3781,7 +3782,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt(KeyConstants._symbolicName, row, bd.getName());
 			qry.setAt(KeyConstants._title, row, bd.getName());
 			qry.setAt(KeyConstants._version, row, bd.getVersionAsString());
-			qry.setAt(KeyConstants._usedBy, row, _usedBy(bd.getName(), bd.getVersion(), coreBundles, extBundles));
+			qry.setAt(KeyConstants._usedBy, row, _usedBy(bd.getName(), OSGiUtil.toLucee(bd.getVersion()), coreBundles, extBundles));
 			BundleFile bf = null;
 			try {
 				if (b != null) {
@@ -3871,7 +3872,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		// core
 		for (Map<String, Object> info: coreBundles) {
-			if (_eq(name, version, (String) info.get("name"), OSGiUtil.toVersion((String) info.get("version"), false, null))) {
+			if (_eq(name, version, (String) info.get("name"), VersionImpl.parse((String) info.get("version"), false, null))) {
 				extensions.add("Lucee");
 				break;
 			}
@@ -3883,7 +3884,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		RHExtension[] rhextensions = ci.getRHExtensions();
 		while (itt.hasNext()) {
 			bd = itt.next();
-			if (_eq(name, version, bd.getName(), bd.getVersion())) {
+			if (_eq(name, version, bd.getName(), OSGiUtil.toLucee(bd.getVersion()))) {
 				_findExtension(rhextensions, bd, extensions);
 			}
 		}
@@ -3901,7 +3902,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				bundles = e.getMetadata().getBundles();
 				if (bundles != null) {
 					for (BundleInfo b: bundles) {
-						if (_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), b.getVersion())) {
+						if (_eq(bd.getName(), OSGiUtil.toLucee(bd.getVersion()), b.getSymbolicName(), OSGiUtil.toLucee(b.getVersion()))) {
 							set.add(e.getMetadata().getName());
 						}
 					}

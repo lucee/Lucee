@@ -48,7 +48,8 @@ import java.util.TimeZone;
 import javax.script.ScriptEngineFactory;
 
 import org.osgi.framework.Constants;
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 import org.osgi.framework.launch.Framework;
 
 import jakarta.servlet.ServletConfig;
@@ -374,7 +375,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				throw Caster.toPageRuntimeException(e);
 			}
 		}
-		this.info = new InfoImpl(bundleCollection.getCoreVersion(), bundleCollection.getCoreHeaders());
+		this.info = new InfoImpl(OSGiUtil.toLucee(bundleCollection.getCoreVersion()), bundleCollection.getCoreHeaders());
 
 		// remove older or newer lucee-core bundles to avoid conflicts
 		for (String stale: OSGiUtil.uninstallOtherVersions(bundleCollection.getBundleContext(), "lucee.core", info.getVersion().toString())) {
@@ -449,7 +450,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				Version edVersion, installedVersion;
 				while (it.hasNext()) {
 					ed = it.next();
-					edVersion = OSGiUtil.toVersion(ed.getVersion(), null);
+					edVersion = VersionImpl.parse(ed.getVersion(), true, null);
 					if (ed.getVersion() == null) {
 						continue; // no version definition no update
 					}
@@ -462,8 +463,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 								installed = RHExtension.getInstalledDifferentVersion(cs, ed, null);
 								// we have another version installed
 								if (installed != null) {
-									installedVersion = OSGiUtil.toVersion(installed.getVersion(), null);
-									if (installedVersion != null && OSGiUtil.isNewerThan(edVersion, installedVersion)) {
+									installedVersion = VersionImpl.parse(installed.getVersion(), true, null);
+									if (installedVersion != null && (VersionImpl.compare(edVersion, installedVersion) > 0)) {
 										LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
 												"Lucee requires a never version [" + edVersion + "] than the insatlled version [" + installedVersion + "] for Extension [" + ed + "]");
 										extensions.add(ed);
@@ -479,7 +480,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 						if (add) {
 							Version since = ed.getSince();
-							if (since == null || updateInfo.oldVersion == null || !OSGiUtil.isNewerThan(since, updateInfo.oldVersion)) continue; // not installed we do not update
+							if (since == null || updateInfo.oldVersion == null || !(VersionImpl.compare(since, updateInfo.oldVersion) > 0)) continue; // not installed we do not update
 
 							LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Detected newer [" + since + ":" + updateInfo.oldVersion + "] Extension version [" + ed + "]");
 							extensions.add(ed);

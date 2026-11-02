@@ -5,7 +5,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
@@ -135,7 +136,7 @@ public final class ExtensionDefintion {
 	public Version getSince() {
 		String since = params.get("since");
 		if (StringUtil.isEmpty(since)) return null;
-		return OSGiUtil.toVersion(since, null);
+		return VersionImpl.parse(since, true, null);
 	}
 
 	@Override
@@ -253,18 +254,18 @@ public final class ExtensionDefintion {
 		String[] arr = ListUtil.listToStringArray(filename, '_');
 
 		// maven
-		if (arr.length == 4 && arr[0].equals("mvn") && OSGiUtil.toVersion(arr[3], null) != null) {
+		if (arr.length == 4 && arr[0].equals("mvn") && VersionImpl.parse(arr[3], true, null) != null) {
 			return new ExtensionDefintion().setCoordinate(new MavenCoordinate(arr[1], arr[2], arr[3]));
 		}
 		// id
-		if (arr.length == 3 && arr[0].equals("id") && Decision.isUUId(arr[1]) && OSGiUtil.toVersion(arr[2], null) != null) {
+		if (arr.length == 3 && arr[0].equals("id") && Decision.isUUId(arr[1]) && VersionImpl.parse(arr[2], true, null) != null) {
 			return new ExtensionDefintion(arr[1], arr[2]);
 		}
 		if (filename.length() > 37) {
 			String uuid = filename.substring(0, 35);
 			if (Decision.isUUId(uuid) && filename.charAt(35) == '-') {
 				String version = filename.substring(36, index);
-				if (OSGiUtil.toVersion(version, null) != null) {
+				if (VersionImpl.parse(version, true, null) != null) {
 					return new ExtensionDefintion(uuid, version);
 				}
 			}

@@ -384,7 +384,7 @@ public final class MavenUpdateProvider {
 	 * GeneralSecurityException, SAXException, BundleException {
 	 * 
 	 * MavenUpdateProvider mup = new MavenUpdateProvider(); Map<String, Object> map =
-	 * mup.detail(OSGiUtil.toVersion("6.1.0.719-SNAPSHOT")); print.e(map); }
+	 * mup.detail(VersionImpl.parse("6.1.0.719-SNAPSHOT", true)); print.e(map); }
 	 */
 
 	public Map<String, Object> detail(Version version, String requiredArtifactExtension, boolean throwException) throws IOException, SAXException, PageException {

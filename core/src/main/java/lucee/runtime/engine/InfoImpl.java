@@ -29,7 +29,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 
 import lucee.Info;
 import lucee.commons.io.IOUtil;

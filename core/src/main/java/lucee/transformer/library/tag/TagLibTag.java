@@ -30,7 +30,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
@@ -619,7 +620,7 @@ public final class TagLibTag {
 
 	public void setBundleVersion(String bundleVersion) {
 		// TODO allow 1.0.0.0-2.0.0.0,3.0.0.0
-		this.bundleVersion = OSGiUtil.toVersion(bundleVersion.trim(), null);
+		this.bundleVersion = VersionImpl.parse(bundleVersion.trim(), true, null);
 	}
 
 	/**
@@ -938,7 +939,7 @@ public final class TagLibTag {
 	}
 
 	public void setIntroduced(String introduced) {
-		this.introduced = OSGiUtil.toVersion(introduced, null);
+		this.introduced = VersionImpl.parse(introduced, true, null);
 	}
 
 	public Version getIntroduced() {

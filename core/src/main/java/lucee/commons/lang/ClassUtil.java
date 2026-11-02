@@ -42,7 +42,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.FileUtil;
@@ -150,7 +151,7 @@ public final class ClassUtil {
 		// version
 		Version version = null;
 		if (!StringUtil.isEmpty(strVersion, true)) {
-			version = OSGiUtil.toVersion(strVersion.trim(), null);
+			version = VersionImpl.parse(strVersion.trim(), true, null);
 			if (version == null) throw new ClassException("Version definition [" + strVersion + "] is invalid.");
 		}
 		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional, versionOnlyMattersForDownload);
