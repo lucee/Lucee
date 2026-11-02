@@ -149,6 +149,7 @@ import lucee.runtime.op.IOImpl;
 import lucee.runtime.op.JavaProxyUtilImpl;
 import lucee.runtime.op.OperationImpl;
 import lucee.runtime.op.StringsImpl;
+import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.spooler.SpoolerEngine;
@@ -1762,6 +1763,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public lucee.runtime.osgi.BundleService getBundleService() {
+		try {
+			// install the OSGi extension if OSGi is needed and not available (LDEV-6829)
+			OSGiExtensionInstaller.ensureAvailable(ThreadLocalPageContext.getConfigServer(), "the BundleService");
+		}
+		catch (ApplicationException ae) {
+			throw new PageRuntimeException(ae);
+		}
 		return lucee.runtime.osgi.BundleServiceImpl.getInstance();
 	}
 

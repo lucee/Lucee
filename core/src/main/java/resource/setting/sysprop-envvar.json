@@ -441,6 +441,14 @@
 		"default": true
 	},
 	{
+		"sysprop": "lucee.osgi.autoinstall",
+		"envvar": "LUCEE_OSGI_AUTOINSTALL",
+		"desc": "A boolean value that controls whether Lucee installs the OSGi extension (org.lucee:osgi-extension) automatically when something needs OSGi (an extension with bundles, a class definition with a bundle name, a mapping archive or a call to the BundleService) and no OSGi implementation is available. The extension is resolved offline first (installed, bundled .lex or the extension folder), then from Maven, and is installed in server scope. When false, nothing is installed and an error telling you to install the OSGi extension is thrown instead. Default true",
+		"category": "extensions",
+		"type": "boolean",
+		"default": true
+	},
+	{
 		"sysprop": "lucee.extensions.fail.on.error",
 		"envvar": "LUCEE_EXTENSIONS_FAIL_ON_ERROR",
 		"desc": "A boolean value that makes an invalid `LUCEE_EXTENSIONS` (`lucee.extensions`) fatal on startup. When true, the startup is aborted if an extension defined in `LUCEE_EXTENSIONS` cannot be installed or an entry of the list cannot be parsed. When false (default), the error is written to the deploy log and to stderr and the startup continues. In warmup mode (`LUCEE_ENABLE_WARMUP`) such a failure always makes the process exit with a non-zero exit code, independent of this setting",

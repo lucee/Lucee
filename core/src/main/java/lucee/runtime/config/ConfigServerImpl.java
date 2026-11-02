@@ -211,6 +211,7 @@ import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.EnvClassLoader;
+import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
@@ -5362,6 +5363,12 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		Log log = config.getLog("deploy");
 		if (LogUtil.doesInfo(log)) log.info("extensions", "Starting bundles for extension: " + rhe.getId() + " v" + rhe.getVersion());
 		if (rhe.getMetadata().isStartBundles()) {
+			try {
+				OSGiExtensionInstaller.ensureAvailableFor(config, rhe);
+			}
+			catch (ApplicationException ae) {
+				throw new BundleException(ae.getMessage(), ae);
+			}
 			if (!firstLoad) {
 				if (LogUtil.doesDebug(log)) log.debug("extensions", "Deploying bundles (not first load): " + rhe.getId());
 				rhe.deployBundles(config, true);

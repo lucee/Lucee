@@ -126,6 +126,7 @@ import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.BundleService;
 import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.osgi.BundleInfo;
+import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
@@ -4079,6 +4080,8 @@ public final class ConfigAdmin {
 	public static RHExtension _updateRHExtension(ConfigPro config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force, short action, Log log)
 			throws PageException {
 		try {
+			// an extension that needs OSGi can only be installed when OSGi is there (LDEV-6829)
+			OSGiExtensionInstaller.ensureAvailableFor(config, rhext);
 			ConfigAdmin admin = new ConfigAdmin(config, null, true);
 			return admin.updateExtension(config, rhext, filter, reload, force, action, log);
 		}
