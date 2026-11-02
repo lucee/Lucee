@@ -66,6 +66,7 @@ import lucee.commons.io.compress.CompressUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.log.AppenderDefinition;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
@@ -3493,7 +3494,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// TODO no longer go via getLoggers
 		Map<String, LoggerAndSourceData> loggers = ConfigUtil.getConfigServerImpl(config).getLoggers();
 		Query qry = new QueryImpl(new String[] { "name", "level", "appenderClass", "appenderBundleName", "appenderBundleVersion", "appenderMaven", "appenderArgs", "layoutClass",
-				"layoutBundleName", "layoutBundleVersion", "layoutMaven", "layoutArgs", "readonly", "source" }, 0, lucee.runtime.type.util.ListUtil.last("logs", '.'));
+				"layoutBundleName", "layoutBundleVersion", "layoutMaven", "layoutArgs", "readonly", "source", "appenders" }, 0, lucee.runtime.type.util.ListUtil.last("logs", '.'));
 		int row = 0;
 		Iterator<Entry<String, LoggerAndSourceData>> it = loggers.entrySet().iterator();
 		Entry<String, LoggerAndSourceData> e;
@@ -3506,20 +3507,42 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			// row++;
 			qry.setAtEL("name", row, e.getKey());
 			qry.setAtEL("level", row, LogUtil.levelToString(logger.getLevel(), ""));
-			qry.setAtEL("appenderClass", row, logger.getAppenderClassDefinition().getClassName());
-			qry.setAtEL("appenderBundleName", row, logger.getAppenderClassDefinition().getName());
-			qry.setAtEL("appenderBundleVersion", row, logger.getAppenderClassDefinition().getVersionAsString());
-			qry.setAtEL("appenderMaven", row, toMavenString(logger.getAppenderClassDefinition()));
+			// the first appender is also returned with the single appender columns, "appenders" has all of them (LDEV-6792)
+			ClassDefinition acd = logger.getAppenderClassDefinition();
+			ClassDefinition lcd = logger.getLayoutClassDefinition();
+			if (lcd == null) lcd = new ClassDefinitionImpl();
+			qry.setAtEL("appenderClass", row, acd.getClassName());
+			qry.setAtEL("appenderBundleName", row, acd.getName());
+			qry.setAtEL("appenderBundleVersion", row, acd.getVersionAsString());
+			qry.setAtEL("appenderMaven", row, toMavenString(acd));
 
 			qry.setAtEL("appenderArgs", row, toStruct(logger.getAppenderArgs(true)));
-			qry.setAtEL("layoutClass", row, logger.getLayoutClassDefinition().getClassName());
-			qry.setAtEL("layoutBundleName", row, logger.getLayoutClassDefinition().getName());
-			qry.setAtEL("layoutBundleVersion", row, logger.getLayoutClassDefinition().getVersionAsString());
-			qry.setAtEL("layoutMaven", row, toMavenString(logger.getLayoutClassDefinition()));
+			qry.setAtEL("layoutClass", row, lcd.getClassName());
+			qry.setAtEL("layoutBundleName", row, lcd.getName());
+			qry.setAtEL("layoutBundleVersion", row, lcd.getVersionAsString());
+			qry.setAtEL("layoutMaven", row, toMavenString(lcd));
 
 			qry.setAtEL("layoutArgs", row, toStruct(logger.getLayoutArgs(true)));
 			qry.setAtEL("readonly", row, logger.getReadOnly());
 			qry.setAtEL("source", row, Prop.toSource(logger.getSource(), ""));
+
+			Array appenders = new ArrayImpl();
+			for (AppenderDefinition ad: logger.getAppenders()) {
+				ClassDefinition layout = ad.layout != null ? ad.layout : new ClassDefinitionImpl();
+				Struct entry = new StructImpl(Struct.TYPE_LINKED);
+				entry.setEL("appenderClass", ad.appender.getClassName());
+				entry.setEL("appenderBundleName", ad.appender.getName());
+				entry.setEL("appenderBundleVersion", ad.appender.getVersionAsString());
+				entry.setEL("appenderMaven", toMavenString(ad.appender));
+				entry.setEL("appenderArgs", toStruct(ad.appenderArgs));
+				entry.setEL("layoutClass", layout.getClassName());
+				entry.setEL("layoutBundleName", layout.getName());
+				entry.setEL("layoutBundleVersion", layout.getVersionAsString());
+				entry.setEL("layoutMaven", toMavenString(layout));
+				entry.setEL("layoutArgs", toStruct(ad.layoutArgs));
+				appenders.appendEL(entry);
+			}
+			qry.setAtEL("appenders", row, appenders);
 		}
 		return qry;
 	}
@@ -4965,18 +4988,58 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (l == -1) throw new ApplicationException("Invalid log level name [" + str + "], valid log level names are [INFO,DEBUG,WARN,ERROR,FATAL,TRACE]");
 
 		LogEngine eng = config.getLogEngine();
-		// appender
-		ClassDefinition acd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "appender", true, config.getIdentification());
-		if (!acd.isBundle() && !ClassDefinitionImpl.isMaven(acd)) acd = eng.appenderClassDefintion(acd.getClassName());
 
-		// layout
-		ClassDefinition lcd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "layout", true, config.getIdentification());
-		if (!lcd.isBundle() && !ClassDefinitionImpl.isMaven(lcd)) lcd = eng.layoutClassDefintion(lcd.getClassName());
+		// more than one appender (LDEV-6792), then the appender and layout attributes are only the layout for the appenders without layout
+		Object oAppenders = attributes.get("appenders", null);
+		Array arr = oAppenders == null ? null : Caster.toArray(oAppenders);
+		if (arr != null && arr.size() > 0) {
+			ClassDefinition defaultLayout = null;
+			if (attributes.get("layoutClass", null) != null || attributes.get("layoutMaven", null) != null) defaultLayout = toLayoutClassDefinition(eng, attributes);
+			Map<String, String> defaultLayoutArgs = defaultLayout == null ? null : ConfigFactoryImpl.toArguments(attributes, "layoutArgs", true, false);
 
-		admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, acd, Caster.toStruct(getObject("admin", "UpdateLogSettings", "appenderArgs")), lcd,
-				Caster.toStruct(getObject("admin", "UpdateLogSettings", "layoutArgs")));
+			List<AppenderDefinition> appenders = new ArrayList<AppenderDefinition>();
+			Iterator<Object> it = arr.valueIterator();
+			while (it.hasNext()) {
+				Struct entry = Caster.toStruct(it.next());
+				ClassDefinition acd = toAppenderClassDefinition(eng, entry);
+				ClassDefinition lcd;
+				Map<String, String> layoutArgs;
+				if (entry.get("layoutClass", null) != null || entry.get("layoutMaven", null) != null) {
+					lcd = toLayoutClassDefinition(eng, entry);
+					layoutArgs = ConfigFactoryImpl.toArguments(entry, "layoutArgs", true, false);
+				}
+				else {
+					lcd = defaultLayout;
+					layoutArgs = defaultLayoutArgs;
+				}
+				appenders.add(new AppenderDefinition(acd, ConfigFactoryImpl.toArguments(entry, "appenderArgs", true, false), lcd, layoutArgs));
+			}
+			admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, appenders);
+		}
+		else {
+			// appender
+			ClassDefinition acd = toAppenderClassDefinition(eng, attributes);
+
+			// layout
+			ClassDefinition lcd = toLayoutClassDefinition(eng, attributes);
+
+			admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, acd, Caster.toStruct(getObject("admin", "UpdateLogSettings", "appenderArgs")), lcd,
+					Caster.toStruct(getObject("admin", "UpdateLogSettings", "layoutArgs")));
+		}
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetLoggers();
+	}
+
+	private ClassDefinition toAppenderClassDefinition(LogEngine eng, Struct data) throws PageException {
+		ClassDefinition acd = ClassDefinitionImpl.toClassDefinitionImpl(data, "appender", true, config.getIdentification());
+		if (!acd.isBundle() && !ClassDefinitionImpl.isMaven(acd)) acd = eng.appenderClassDefintion(acd.getClassName());
+		return acd;
+	}
+
+	private ClassDefinition toLayoutClassDefinition(LogEngine eng, Struct data) throws PageException {
+		ClassDefinition lcd = ClassDefinitionImpl.toClassDefinitionImpl(data, "layout", true, config.getIdentification());
+		if (!lcd.isBundle() && !ClassDefinitionImpl.isMaven(lcd)) lcd = eng.layoutClassDefintion(lcd.getClassName());
+		return lcd;
 	}
 
 	private void doUpdateSSLCertificate() throws PageException {

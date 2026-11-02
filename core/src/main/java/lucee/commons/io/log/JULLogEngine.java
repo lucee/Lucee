@@ -127,12 +127,18 @@ public final class JULLogEngine implements LogEngine {
 
 	@Override
 	public Log getLogger(Config config, Object appender, String name, int level) throws PageException {
-		if (!(appender instanceof Handler)) throw new IllegalArgumentException("the appender [" + appender + "] was not created by the JUL log engine");
+		// a logger with several appenders (LDEV-6792) gets them in an AppenderList
+		Object[] appenders = AppenderList.unpack(appender);
+		for (Object a: appenders) {
+			if (!(a instanceof Handler)) throw new IllegalArgumentException("the appender [" + a + "] was not created by the JUL log engine");
+		}
 		// an anonymous logger is not registered with the LogManager, so it cannot clash with the loggers of other libraries
 		Logger logger = Logger.getAnonymousLogger();
 		logger.setUseParentHandlers(false);
 		logger.setLevel(toLevel(level));
-		logger.addHandler((Handler) appender);
+		for (Object a: appenders) {
+			logger.addHandler((Handler) a);
+		}
 		return new JULLog(logger, level);
 	}
 
@@ -265,7 +271,19 @@ public final class JULLogEngine implements LogEngine {
 
 	@Override
 	public void closeAppender(Object appender) throws PageException {
-		if (appender instanceof Handler) ((Handler) appender).close();
+		// a logger with several appenders (LDEV-6792) has an AppenderList, all appenders are stopped even if one fails
+		RuntimeException failure = null;
+		for (Object a: AppenderList.unpack(appender)) {
+			if (!(a instanceof Handler)) continue;
+			try {
+				((Handler) a).close();
+			}
+			catch (RuntimeException e) {
+				if (failure == null) failure = e;
+				else failure.addSuppressed(e);
+			}
+		}
+		if (failure != null) throw failure;
 	}
 
 	@Override
