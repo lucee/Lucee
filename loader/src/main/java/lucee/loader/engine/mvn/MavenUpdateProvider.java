@@ -23,6 +23,7 @@ import java.util.zip.ZipInputStream;
 import lucee.runtime.config.maven.Version;
 import org.xml.sax.SAXException;
 
+import lucee.loader.util.DownloadVerifier;
 import lucee.loader.util.OpenPGPVerifier;
 import lucee.loader.util.Util;
 import lucee.runtime.exp.PageException;
@@ -176,7 +177,8 @@ public class MavenUpdateProvider {
 				HttpURLConnection conn = get(urlLco);
 				if (conn != null) {
 					int sc = conn.getResponseCode();
-					if (sc >= 200 && sc < 300) return verified(conn.getInputStream(), urlLco, version, isSnapshot);
+					// LDEV-5864: the hash is verified first, then the signature
+					if (sc >= 200 && sc < 300) return verified(DownloadVerifier.getVerifiedStream(conn), urlLco, version, isSnapshot);
 					conn.disconnect();
 				}
 			}
@@ -185,7 +187,7 @@ public class MavenUpdateProvider {
 				HttpURLConnection conn = get(urljar);
 				if (conn != null) {
 					int sc = conn.getResponseCode();
-					if (sc >= 200 && sc < 300) return getFileStreamFromZipStream(verified(conn.getInputStream(), urljar, version, isSnapshot));
+					if (sc >= 200 && sc < 300) return getFileStreamFromZipStream(verified(DownloadVerifier.getVerifiedStream(conn), urljar, version, isSnapshot));
 					conn.disconnect();
 				}
 			}

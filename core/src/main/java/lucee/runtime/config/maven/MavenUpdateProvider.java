@@ -352,7 +352,8 @@ public final class MavenUpdateProvider {
 		if (!StringUtil.isEmpty(strURL)) {
 			// Use HTTPDownloader with DEBUG logging for Maven operations
 			URL url = new URL(strURL);
-			return verified(HTTPEngine.get(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true), url, version);
+			// LDEV-5864: the hash is verified first, then the signature
+			return verified(HTTPEngine.getVerified(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true, null), url, version);
 		}
 		return getFileStreamFromZipStream(getLoader(version));
 	}
@@ -369,7 +370,7 @@ public final class MavenUpdateProvider {
 		// Use HTTPDownloader with DEBUG logging for Maven operations
 		URL url = new URL(strURL);
 		assertDownloadAllowed(strURL);
-		return verified(HTTPEngine.get(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true), url, version);
+		return verified(HTTPEngine.getVerified(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true, null), url, version);
 	}
 
 	// released org.lucee artifacts must be signed by the Lucee release key
