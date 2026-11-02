@@ -697,7 +697,9 @@ public final class MavenUtil {
 										}
 										finally {
 											IOUtil.closeEL(is);
-											HTTPUtil.validateDownload(url, response, tmp, pom.getChecksum(), true, ex);
+											// LDEV-5864: compare with the hash of the response headers or the checksum files next to the artifact
+											HTTPUtil.validateDownload(url, response, tmp, StringUtil.endsWithIgnoreCase(url.toExternalForm(), ".jar") ? pom.getChecksum() : null, true, true,
+													ex, log);
 											res.getParentResource().mkdirs();
 											tmp.moveTo(res);
 										}
