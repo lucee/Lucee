@@ -663,6 +663,13 @@ public final class JavaSettingsImpl implements JavaSettings {
 	}
 
 	public static JavaSettings readJavaSettings(PageContext pc, Struct meta) throws IOException {
+		return readJavaSettings(pc, meta, null);
+	}
+
+	/**
+	 * @param owner describes where the settings come from, for example "component [/path/Foo.cfc]", used in the error message (LDEV-5135), can be null
+	 */
+	public static JavaSettings readJavaSettings(PageContext pc, Struct meta, String owner) throws IOException {
 		// TODO cache
 		String json = meta == null ? null : Caster.toString(meta.get(KeyConstants._javasettings, null), null);
 		if (!StringUtil.isEmpty(json, true)) {
@@ -688,7 +695,11 @@ public final class JavaSettingsImpl implements JavaSettings {
 			}
 			catch (Exception e) {
 				// LogUtil.log("component", e);
-				throw ExceptionUtil.toIOException(e);
+				if (owner == null) throw ExceptionUtil.toIOException(e);
+				ExceptionUtil.rethrowIfNecessary(e);
+				IOException ioe = new IOException("invalid javasettings in " + owner + ": " + e.getMessage() + ". javasettings: " + StringUtil.max(json, 300));
+				ExceptionUtil.initCauseEL(ioe, e);
+				throw ioe;
 			}
 		}
 		return null;
