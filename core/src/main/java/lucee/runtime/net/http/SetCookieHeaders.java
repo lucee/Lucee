@@ -30,6 +30,14 @@ public final class SetCookieHeaders {
 	 * @param value value of the Set-Cookie header
 	 */
 	public static void add(HttpServletResponse rsp, String value) {
+		// the cookie scope can be used from several threads (for example a parallel each), reading the
+		// existing headers and replacing them must not be interleaved with another add
+		synchronized (rsp) {
+			_add(rsp, value);
+		}
+	}
+
+	private static void _add(HttpServletResponse rsp, String value) {
 		String id = identity(value);
 		Collection<String> existing = id == null ? null : rsp.getHeaders(SET_COOKIE);
 		if (existing != null && !existing.isEmpty()) {

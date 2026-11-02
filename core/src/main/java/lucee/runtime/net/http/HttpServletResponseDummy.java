@@ -41,8 +41,11 @@ import lucee.runtime.type.dt.DateTimeImpl;
 
 public final class HttpServletResponseDummy implements HttpServletResponse, Serializable {
 
-	private Cookie[] cookies = SerializableCookie.COOKIES0;
-	private Pair<String, Object>[] headers = new Pair[0];
+	// a response is used from several threads (for example a parallel each), so the cookies and
+	// headers are written in synchronized methods only and the readers work on a snapshot of the
+	// array
+	private volatile Cookie[] cookies = SerializableCookie.COOKIES0;
+	private volatile Pair<String, Object>[] headers = new Pair[0];
 	private int status = 200;
 	private String statusCode = "OK";
 	private String charset = "ISO-8859-1";
@@ -67,12 +70,13 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 	}
 
 	@Override
-	public void addCookie(Cookie cookie) {
-		Cookie[] tmp = new Cookie[cookies.length + 1];
-		for (int i = 0; i < cookies.length; i++) {
-			tmp[i] = cookies[i];
+	public synchronized void addCookie(Cookie cookie) {
+		Cookie[] current = cookies;
+		Cookie[] tmp = new Cookie[current.length + 1];
+		for (int i = 0; i < current.length; i++) {
+			tmp[i] = current[i];
 		}
-		tmp[cookies.length] = cookie;
+		tmp[current.length] = cookie;
 		cookies = tmp;
 	}
 
@@ -125,12 +129,12 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 	}
 
 	@Override
-	public void setHeader(String key, String value) {
+	public synchronized void setHeader(String key, String value) {
 		headers = ReqRspUtil.set(headers, key, value);
 	}
 
 	@Override
-	public void addHeader(String key, String value) {
+	public synchronized void addHeader(String key, String value) {
 		headers = ReqRspUtil.add(headers, key, value);
 	}
 
@@ -281,19 +285,21 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 
 	@Override
 	public Collection<String> getHeaderNames() {
+		Pair<String, Object>[] hs = headers;
 		Set<String> names = new LinkedHashSet<String>();
-		for (int i = 0; i < headers.length; i++) {
-			names.add(headers[i].getName());
+		for (int i = 0; i < hs.length; i++) {
+			names.add(hs[i].getName());
 		}
 		return names;
 	}
 
 	@Override
 	public Collection<String> getHeaders(String name) {
+		Pair<String, Object>[] hs = headers;
 		List<String> values = new ArrayList<String>();
-		for (int i = 0; i < headers.length; i++) {
-			if (headers[i].getName().equalsIgnoreCase(name)) {
-				values.add(Caster.toString(headers[i].getValue(), null));
+		for (int i = 0; i < hs.length; i++) {
+			if (hs[i].getName().equalsIgnoreCase(name)) {
+				values.add(Caster.toString(hs[i].getValue(), null));
 			}
 		}
 		return values.isEmpty() ? null : values;
@@ -301,9 +307,10 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 
 	@Override
 	public String getHeader(String name) {
-		for (int i = 0; i < headers.length; i++) {
-			if (headers[i].getName().equals(name)) {
-				return Caster.toString(headers[i].getValue(), null);
+		Pair<String, Object>[] hs = headers;
+		for (int i = 0; i < hs.length; i++) {
+			if (hs[i].getName().equals(name)) {
+				return Caster.toString(hs[i].getValue(), null);
 			}
 		}
 		return null;
