@@ -72,6 +72,12 @@ public interface BundleService {
 	public Map<String, Object> getBundleInfo(Class<?> clazz);
 
 	/**
+	 * @return the info of the bundle the class loader belongs to, null when the class loader is not a
+	 *         bundle class loader
+	 */
+	public Map<String, Object> getBundleInfo(ClassLoader classLoader);
+
+	/**
 	 * @return the state of the bundle the class was loaded from (for example "active" or
 	 *         "uninstalled"), null when the class is not loaded from a bundle
 	 */

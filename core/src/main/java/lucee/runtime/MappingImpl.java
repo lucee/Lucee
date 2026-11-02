@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 
 import jakarta.servlet.ServletContext;
 import lucee.commons.io.FileUtil;
@@ -53,7 +51,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -96,7 +94,7 @@ public final class MappingImpl implements Mapping {
 
 	private ApplicationListener appListener;
 
-	private Bundle archiveBundle;
+	private Map<String, Object> archiveBundle;
 
 	private long archMod;
 
@@ -201,10 +199,8 @@ public final class MappingImpl implements Mapping {
 					Resource tmp = ConfigUtil.getResource(cs, strArchive, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot, true);
 
 					if (tmp == null || archMod == tmp.lastModified()) return;
-					CFMLEngine engine = ConfigUtil.getEngine(config);
-					BundleContext bc = OSGiUtil.getBundleContext();
 					try {
-						archiveBundle = OSGiUtil.installBundle(bc, tmp, true);
+						archiveBundle = BundleServiceImpl.getInstance().install(ResourceUtil.toFile(tmp), true);
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
@@ -221,11 +217,20 @@ public final class MappingImpl implements Mapping {
 		}
 	}
 
+	private Class<?> loadArchiveClass(String className) throws IOException, ClassNotFoundException {
+		return BundleServiceImpl.getInstance().loadClass((String) archiveBundle.get("name"), (String) archiveBundle.get("version"), className);
+	}
+
 	@Override
 	public Class<?> getArchiveClass(String className) throws ClassNotFoundException {
 		getArchive();// this calls init the archive if necessary
 		if (archiveBundle != null) {
-			return archiveBundle.loadClass(className);
+			try {
+				return loadArchiveClass(className);
+			}
+			catch (IOException e) {
+				throw new ClassNotFoundException(e.getMessage());
+			}
 		}
 		// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);
 		throw new ClassNotFoundException("there is no archive context to load " + className + " from it");
@@ -235,10 +240,10 @@ public final class MappingImpl implements Mapping {
 	public Class<?> getArchiveClass(String className, Class<?> defaultValue) {
 		getArchive();// this calls init the archive if necessary
 		try {
-			if (archiveBundle != null) return archiveBundle.loadClass(className);
+			if (archiveBundle != null) return loadArchiveClass(className);
 			// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);
 		}
-		catch (ClassNotFoundException e) {}
+		catch (ClassNotFoundException | IOException e) {}
 
 		return defaultValue;
 	}

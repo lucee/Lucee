@@ -87,6 +87,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( isNull( service.getBundleState( createObject( "java", "java.lang.String" ).getClass() ) ) ).toBeTrue();
 			});
 
+			it( "has no bundle for a class loader that is not a bundle class loader", function() {
+				var cl = createObject( "java", "java.lang.ClassLoader" ).getSystemClassLoader();
+				expect( isNull( service.getBundleInfo( cl ) ) ).toBeTrue();
+			});
+
 			it( "throws an IOException for a class the bundle does not have", function() {
 				expect( function() {
 					service.loadClass( system.name, "", "does.not.Exist" );

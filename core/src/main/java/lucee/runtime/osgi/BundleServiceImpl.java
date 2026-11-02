@@ -11,6 +11,7 @@ import java.util.Map;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.BundleReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleWiring;
 
@@ -120,6 +121,12 @@ public final class BundleServiceImpl implements BundleService {
 	public Map<String, Object> getBundleInfo(Class<?> clazz) {
 		Bundle b = OSGiUtil.getBundleFromClass(clazz, null);
 		return b == null ? null : toInfo(b);
+	}
+
+	@Override
+	public Map<String, Object> getBundleInfo(ClassLoader classLoader) {
+		if (classLoader instanceof BundleReference) return toInfo(((BundleReference) classLoader).getBundle());
+		return null;
 	}
 
 	@Override
