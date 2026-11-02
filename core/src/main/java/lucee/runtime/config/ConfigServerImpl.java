@@ -121,6 +121,7 @@ import lucee.runtime.MappingImpl;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.PageSourceImpl;
 import lucee.runtime.ai.AIEngine;
 import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.ai.AIEnginePool;
@@ -3509,12 +3510,28 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 					}
 					else {
+						markImmutableWhenCore(base);
 						this.baseComponentPageSource = base;
 					}
 				}
 			}
 		}
 		return base;
+	}
+
+	/**
+	 * the base component shipped with Lucee (deployed to the components directory of the config) never
+	 * changes at runtime, so it must not be checked for changes (LDEV-5926). A base component provided
+	 * by the user in another location is not touched.
+	 */
+	private void markImmutableWhenCore(PageSource base) {
+		if (!(base instanceof PageSourceImpl)) return;
+		Resource core = getConfigDir().getRealResource("components").getRealResource(Constants.DEFAULT_PACKAGE.replace('.', '/')).getRealResource(getBaseComponentTemplate());
+		Resource res = base.getResource();
+		if (res == null) return;
+		if (ResourceUtil.getCanonicalPathEL(core).equals(ResourceUtil.getCanonicalPathEL(res))) {
+			((PageSourceImpl) base).setImmutable();
+		}
 	}
 
 	@Override

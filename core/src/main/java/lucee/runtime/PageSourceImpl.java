@@ -95,6 +95,9 @@ public final class PageSourceImpl implements PageSource {
 	// the same non-existent path skip the lastModified() syscall. Cleared by resetLoaded() and
 	// clear() so inspectTemplates() / PagePoolClear / classloader-clear all invalidate it.
 	private volatile boolean notFound;
+	// Immutable page sources (LDEV-5926, the core base component) are loaded once and never checked for
+	// changes again, whatever the inspect setting of the mapping is. A flush/clear still unloads them.
+	private volatile boolean immutable;
 
 	private static class PageAndClassName {
 		private Page _page;
@@ -291,6 +294,9 @@ public final class PageSourceImpl implements PageSource {
 		}
 
 		if (notFound && mapping.getInspectTemplate() == Config.INSPECT_NEVER) return null;
+
+		// immutable page source that is already loaded, no change detection at all
+		if (immutable && page != null && page.getLoadType() == LOAD_PHYSICAL) return page;
 
 		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO || (pci != null && pci.isTrusted(page)))
 				&& isLoad(LOAD_PHYSICAL))
@@ -1200,7 +1206,21 @@ public final class PageSourceImpl implements PageSource {
 		return ((getMapping().getInspectTemplate() == Config.INSPECT_NEVER || getMapping().getInspectTemplate() == ConfigPro.INSPECT_AUTO) && isLoad()) || exists();
 	}
 
+	/**
+	 * mark this page source as immutable, once loaded the page is never checked for changes again
+	 * (flush/clear still unload it)
+	 */
+	public void setImmutable() {
+		this.immutable = true;
+	}
+
+	public boolean isImmutable() {
+		return immutable;
+	}
+
 	public void resetLoaded() {
+		// resetting the loaded state forces a change detection on the next load, what an immutable page source does not want
+		if (immutable) return;
 		if (LogUtil.doesTrace(mapping.getLog())) mapping.getLog().trace("page-source", "reset loaded [" + getDisplayPath() + "]");
 		Page p = pcn.getPage();
 		if (p != null) p.setLoadType((byte) 0);
