@@ -19,6 +19,7 @@
 package lucee.commons.net.http;
 
 import java.io.File;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -27,11 +28,14 @@ import java.util.Map;
 
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.net.DownloadVerifier;
+import lucee.commons.net.header.HeadersHTTPResponse;
 import lucee.runtime.net.proxy.ProxyData;
 
 public final class HTTPEngine extends HTTPEngineBasic {
@@ -269,16 +273,10 @@ public final class HTTPEngine extends HTTPEngineBasic {
 	 * @throws GeneralSecurityException if SSL/TLS fails
 	 */
 	public static void downloadToFile(URL url, File target, long connectTimeout, long readTimeout, String userAgent) throws IOException, GeneralSecurityException {
-
-		InputStream is = null;
-		Resource temp = null;
-
+		Resource temp = SystemUtil.getTempFile("download", false);
 		try {
-			is = get(url, null, null, connectTimeout, readTimeout, userAgent, null, true);
-
-			// Download to temp file first (atomic write)
-			temp = SystemUtil.getTempFile("download", false);
-			IOUtil.copy(is, temp.getOutputStream(), true, true);
+			// Download to temp file first (atomic write), the content is verified before it is used (LDEV-5864)
+			downloadVerified(url, null, null, connectTimeout, readTimeout, userAgent, null, true, temp, null);
 
 			// Atomic move to target
 			File tempFile = ResourceUtil.toFile(temp);
@@ -288,13 +286,65 @@ public final class HTTPEngine extends HTTPEngineBasic {
 				IOUtil.copy(temp, targetResource.getOutputStream(), true);
 				tempFile.delete();
 			}
-
 		}
 		finally {
-			IOUtil.closeEL(is);
-			if (temp != null && temp.exists()) {
+			if (temp.exists()) {
 				temp.delete();
 			}
+		}
+	}
+
+	/**
+	 * Same as {@link #get(URL, String, String, long, long, String, ProxyData, boolean)}, but the
+	 * download is verified (LDEV-5864) before the stream is handed out. The download is done into a
+	 * temporary file that is deleted when the stream is closed.
+	 */
+	public static InputStream getVerified(URL url, String username, String password, long connectTimeout, long readTimeout, String userAgent, ProxyData proxy, boolean pooling,
+			Log log) throws IOException {
+		final Resource temp = SystemUtil.getTempFile("download", false);
+		try {
+			downloadVerified(url, username, password, connectTimeout, readTimeout, userAgent, proxy, pooling, temp, log);
+			return new FilterInputStream(temp.getInputStream()) {
+				@Override
+				public void close() throws IOException {
+					try {
+						super.close();
+					}
+					finally {
+						temp.delete();
+					}
+				}
+			};
+		}
+		catch (IOException | RuntimeException e) {
+			temp.delete();
+			throw e;
+		}
+	}
+
+	/**
+	 * download to the given file and verify it with the hash provided by the response headers or the
+	 * checksum files next to a Maven artifact. A mismatch is an exception (the file is deleted), no
+	 * hash to compare with is only a warning.
+	 */
+	private static void downloadVerified(URL url, String username, String password, long connectTimeout, long readTimeout, String userAgent, ProxyData proxy, boolean pooling,
+			Resource target, Log log) throws IOException {
+		if (proxy == null) proxy = getProxyData(url.getHost());
+		HTTPResponse response = get(url, username, password, DEFAULT_CONNECT_REQUEST_TIMEOUT, connectTimeout, readTimeout, true, null, userAgent, proxy, null, pooling);
+		try {
+			int sc = response.getStatusCode();
+			if (sc < 200 || sc >= 300) {
+				throw new IOException("unable to invoke [" + url + "], status code [" + sc + "]");
+			}
+			IOUtil.copy(response.getContentAsStream(), target.getOutputStream(), true, true);
+			DownloadVerifier.verify(DownloadVerifier.finalURL(response, url), new HeadersHTTPResponse(response), target, null, true, true, log);
+		}
+		catch (IOException | RuntimeException e) {
+			target.delete();
+			throw e;
+		}
+		finally {
+			releaseEL(response);
 		}
 	}
 }

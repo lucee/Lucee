@@ -1021,7 +1021,8 @@ public final class OSGiUtil {
 			Resource temp = SystemUtil.getTempFile("jar", false);
 			InputStream is = null;
 			try {
-				is = HTTPEngine.get(updateUrl, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT);
+				// LDEV-5864: the download is verified before it is used
+				is = HTTPEngine.getVerified(updateUrl, null, null, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, null, null, true, null);
 				IOUtil.copy(is, temp, true);
 
 				// extract version and create file with correct name

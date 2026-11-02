@@ -29,16 +29,14 @@ import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import lucee.commons.digest.Hash;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -47,7 +45,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.net.header.HeadersCollection;
-import lucee.commons.net.http.Header;
 import lucee.commons.net.header.HeadersHTTPResponse;
 import lucee.commons.net.header.HeadersHttpURLConnection;
 import lucee.commons.net.http.HTTPEngine;
@@ -89,16 +86,6 @@ public final class HTTPUtil {
 	// private static final String NO_MIMETYPE="Unable to determine MIME type of file.";
 
 	public static final int MAX_REDIRECT = 15;
-
-	private static String[] VALIDATION_HEADERS = new String[] { "Digest" };
-
-	private static Map<String, String[]> headerNames = new ConcurrentHashMap<>();
-	static {
-		headerNames.put("md5", new String[] { "X-Checksum-MD5", "Content-MD5" });
-		headerNames.put("sha1", new String[] { "X-Checksum-SHA1" });
-		headerNames.put("sha256", new String[] { "X-Checksum-SHA256", "X-Checksum-SHA-256" });
-		headerNames.put("sha512", new String[] { "X-Checksum-SHA512", "X-Checksum-SHA-512" });
-	}
 
 	/**
 	 * cast a string to a url
@@ -694,117 +681,30 @@ public final class HTTPUtil {
 	}
 
 	public static void validateDownload(URL url, HttpURLConnection conn, Resource res, String checksum, boolean deleteFileWhenInvalid, Exception cause) throws IOException {
-		_validateDownload(url, new HeadersHttpURLConnection(conn), res, checksum, deleteFileWhenInvalid, cause);
+		_validateDownload(url, new HeadersHttpURLConnection(conn), res, checksum, false, deleteFileWhenInvalid, cause, null);
 	}
 
 	public static void validateDownload(URL url, HTTPResponse rsp, Resource res, String checksum, boolean deleteFileWhenInvalid, Exception cause) throws IOException {
-		_validateDownload(url, new HeadersHTTPResponse(rsp), res, checksum, deleteFileWhenInvalid, cause);
+		_validateDownload(url, new HeadersHTTPResponse(rsp), res, checksum, false, deleteFileWhenInvalid, cause, null);
 	}
 
-	private static void _validateDownload(URL url, HeadersCollection headersCollection, Resource res, String checksum, boolean deleteFileWhenInvalid, Exception cause)
+	/**
+	 * validates the download with the hash provided in the response headers or, if there is none and
+	 * the URL is a Maven artifact URL, with the checksum files next to the artifact (LDEV-5864). Only a
+	 * mismatch is an error, when there is no hash to compare with, a warning is logged.
+	 */
+	public static void validateDownload(URL url, HTTPResponse rsp, Resource res, String checksum, boolean siblings, boolean deleteFileWhenInvalid, Exception cause, Log log)
 			throws IOException {
-		// in case of an exception, the file may was not created
-		if (cause != null && !res.exists()) return;
-		Header[] headers;
-		Header h;
-		String label, name;
-		// validate alogirtm specific headers
-		for (Entry<String, String[]> e: headerNames.entrySet()) {
-			name = e.getKey();
-			label = name.toUpperCase();
-			for (String hn: e.getValue()) {
-				headers = headersCollection.getHeaders(hn);
-				if (headers != null && headers.length > 0) {
-					h = headers[0];
-					if (!StringUtil.isEmpty(h.getValue(), true)) {
+		_validateDownload(DownloadVerifier.finalURL(rsp, url), new HeadersHTTPResponse(rsp), res, checksum, siblings, deleteFileWhenInvalid, cause, log);
+	}
 
-						String fileHash;
-						if ("md5".equalsIgnoreCase(name)) fileHash = Hash.md5(res);
-						else if ("sha1".equalsIgnoreCase(name)) fileHash = Hash.sha1(res);
-						else if ("sha256".equalsIgnoreCase(name)) fileHash = Hash.sha256(res);
-						else if ("sha512".equalsIgnoreCase(name)) fileHash = Hash.sha512(res);
-						else continue;
-
-						if (!fileHash.equalsIgnoreCase(h.getValue())) {
-							if (deleteFileWhenInvalid) {
-								res.remove(true);
-							}
-							IOException ioe = new IOException(String
-									.format(label + " validation failed: The " + label + " hash in the response header [" + hn + " = " + h.getValue() + "] from the download ["
-											+ url + "] does not match the computed " + label + " hash [" + fileHash + "] based on the downloaded file at [" + res
-											+ "]. File integrity compromised" + (deleteFileWhenInvalid ? " and file got deleted" : "") + "."));
-							if (cause != null) ExceptionUtil.initCauseEL(ioe, cause);
-							throw ioe;
-						}
-						if (!StringUtil.isEmpty(checksum, true) && StringUtil.startsWithIgnoreCase(checksum, name + ":")
-								&& StringUtil.endsWithIgnoreCase(url.toExternalForm(), ".jar") && !(name + "-" + fileHash).equalsIgnoreCase(checksum)) {
-
-							IOException ioe = new IOException(String.format(label + " validation failed: The checksum defined in the dependency [" + checksum
-									+ "] does not match the computed checksum [" + name + "-" + fileHash + "] based on the downloaded file [" + res
-									+ "]. File integrity could get compromised" + (deleteFileWhenInvalid ? " and file got deleted" : "") + "."));
-							if (cause != null) ExceptionUtil.initCauseEL(ioe, cause);
-							throw ioe;
-
-						}
-
-						if (cause != null) throw ExceptionUtil.toIOException(cause);
-						return;
-					}
-				}
-			}
-			if (cause != null) throw ExceptionUtil.toIOException(cause);
+	private static void _validateDownload(URL url, HeadersCollection headersCollection, Resource res, String checksum, boolean siblings, boolean deleteFileWhenInvalid,
+			Exception cause, Log log) throws IOException {
+		// the download failed, there is nothing to validate
+		if (cause != null) {
+			if (deleteFileWhenInvalid && res.exists()) res.remove(true);
+			throw ExceptionUtil.toIOException(cause);
 		}
-
-		// Digest validation
-		for (String hn: VALIDATION_HEADERS) {
-			headers = headersCollection.getHeaders(hn);
-			if (headers != null && headers.length > 0) {
-				h = headers[0];
-				String raw = h.getValue();
-				if (!StringUtil.isEmpty(raw, true)) {
-					// Split by commas for multiple algorithm/hash pairs
-					String[] digestEntries = ListUtil.listToStringArray(raw, ',');
-					for (String digestEntry: digestEntries) {
-						String[] pair = ListUtil.listToStringArray(digestEntry, '=');
-						if (pair.length == 2) {
-							name = pair[0].trim().toLowerCase();
-							label = name.toUpperCase();
-							String expectedHash = pair[1].trim();
-							String fileHash;
-
-							switch (name) {
-							case "md5":
-							case "md-5":
-								fileHash = Hash.md5(res);
-								break;
-							case "sha1":
-							case "sha-1":
-								fileHash = Hash.sha1(res);
-								break;
-							case "sha256":
-							case "sha-256":
-								fileHash = Hash.sha256(res);
-								break;
-							case "sha512":
-							case "sha-512":
-								fileHash = Hash.sha512(res);
-								break;
-							default:
-								continue; // Unknown algorithm, skip it
-							}
-
-							if (!fileHash.equalsIgnoreCase(expectedHash)) {
-								if (deleteFileWhenInvalid) {
-									res.remove(true);
-								}
-								throw new IOException(String.format(
-										"%s validation failed: The %s hash in the response header '%s' [%s] does not match the computed %s hash [%s] based on the downloaded file. File integrity might be compromised.",
-										label, label, hn, expectedHash, label, fileHash));
-							}
-						}
-					}
-				}
-			}
-		}
+		DownloadVerifier.verify(url, headersCollection, res, checksum, siblings, deleteFileWhenInvalid, log);
 	}
 }

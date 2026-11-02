@@ -3338,9 +3338,12 @@ public final class ConfigAdmin {
 				}
 			}
 			catch (GeneralSecurityException e) {
+				newLucee.delete();
 				throw new IOException("Lucee Core download failed from " + updateUrl + ", please download it manually and copy to [" + patchDir + "]", e);
 			}
 			catch (IOException e) {
+				// LDEV-5864: do not leave an empty or invalid file behind, it would be taken for the core
+				newLucee.delete();
 				throw e;
 			}
 		}

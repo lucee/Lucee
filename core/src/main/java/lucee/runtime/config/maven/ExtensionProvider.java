@@ -471,7 +471,7 @@ public class ExtensionProvider {
 			synchronized (SystemUtil.createToken("ExtensionProvider", "getPOM:" + group + ":" + artifact)) {
 				if (!local.isFile()) {
 					local.getParentResource().mkdirs();
-					InputStream is = get(artifact, ext, version);
+					InputStream is = get(artifact, ext, version, log);
 					try {
 						IOUtil.copy(is, local, true);
 					}
@@ -498,7 +498,7 @@ public class ExtensionProvider {
 		return defaultValue;
 	}
 
-	private InputStream get(String artifact, String ext, Version version) throws PageException, IOException, SAXException {
+	private InputStream get(String artifact, String ext, Version version, Log log) throws PageException, IOException, SAXException {
 		Map<String, Object> detail = detail(artifact, version);
 		if (detail != null) {
 			URL url = HTTPUtil.toURL(Caster.toString(detail.get(ext), null), Http.ENCODED_NO, null);
@@ -507,7 +507,8 @@ public class ExtensionProvider {
 				url = MavenUpdateProvider.toSiblingURL(Caster.toString(detail.get(EXTENSION_EXTENSION), null), ext);
 			}
 			if (url != null) {
-				InputStream is = HTTPEngine.get(url, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT);
+				// LDEV-5864: the hash of the download is verified first, then the signature
+				InputStream is = HTTPEngine.getVerified(url, null, null, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT, null, true, log);
 				// org.lucee artifacts must be signed by the Lucee release key
 				int requirement = ArtifactSignature.requirement(this.group, version.toString());
 				if (requirement != ArtifactSignature.NOT_SIGNED) {
