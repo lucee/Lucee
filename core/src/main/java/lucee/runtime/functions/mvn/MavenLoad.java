@@ -59,7 +59,7 @@ public final class MavenLoad implements Function {
 
 			MavenCoordinate coordinate = MavenUtil.toCoordinate(it.next());
 			try {
-				for (Resource r: POM.getInstance(dir, coordinate.groupId, coordinate.artifactId, coordinate.version, coordinate.classifier, coordinate.extension, MavenUtil.toScope(coordinate.scope, POM.SCOPES_FOR_RUNTIME), log).getJars(includeOptional)) {
+				for (Resource r: POM.getInstance(dir, coordinate.groupId, coordinate.artifactId, coordinate.version, coordinate.classifier, coordinate.extension, MavenUtil.toScope(coordinate.scope, POM.SCOPES_FOR_RUNTIME), coordinate.isTransitive(), coordinate.getExclusions(), log).getJars(includeOptional)) {
 					rtnData.set(r.getAbsolutePath(), "");
 				}
 			}

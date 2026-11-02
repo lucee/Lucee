@@ -567,41 +567,59 @@ public final class FileResource extends File implements Resource {
 	public void remove(boolean alsoRemoveChildren) throws IOException {
 		Path p = toPath();
 		provider.lock(this);
-		if (alsoRemoveChildren && isDirectory()) {
-			Files.walkFileTree(p, new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-					Files.delete(file);
-					return FileVisitResult.CONTINUE;
-				}
+		try {
+			if (alsoRemoveChildren && isDirectory()) {
+				// LDEV-4014 other threads may remove the same entries at the same time, an entry that is already gone is fine
+				Files.walkFileTree(p, new SimpleFileVisitor<Path>() {
+					@Override
+					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+						deleteIfExists(file);
+						return FileVisitResult.CONTINUE;
+					}
 
-				@Override
-				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-					if (exc != null) {
+					@Override
+					public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+						if (exc instanceof NoSuchFileException) return FileVisitResult.CONTINUE;
 						throw exc;
 					}
-					// Skip deleting the root directory itself, we'll do that outside the walkFileTree
-					if (!dir.equals(p)) {
-						Files.delete(dir);
+
+					@Override
+					public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+						if (exc != null && !(exc instanceof NoSuchFileException)) {
+							throw exc;
+						}
+						// Skip deleting the root directory itself, we'll do that outside the walkFileTree
+						if (!dir.equals(p)) {
+							deleteIfExists(dir);
+						}
+						return FileVisitResult.CONTINUE;
 					}
-					return FileVisitResult.CONTINUE;
-				}
-			});
-		}
-		try {
-			Files.delete(p);
-		}
-		catch (NoSuchFileException nfse) {
-			throw new IOException("Can't delete [" + this + "], as it doesn't exist", nfse);
-		}
-		catch (DirectoryNotEmptyException dne) {
-			throw new IOException("Can't delete directory as it's not empty [" + this + "]", dne);
-		}
-		catch (IOException e) {
-			throw new IOException("Can't delete [" + this + "], " + e.getMessage(), e);
+				});
+			}
+			try {
+				Files.delete(p);
+			}
+			catch (NoSuchFileException nfse) {
+				throw new IOException("Can't delete [" + this + "], as it doesn't exist", nfse);
+			}
+			catch (DirectoryNotEmptyException dne) {
+				throw new IOException("Can't delete directory as it's not empty [" + this + "]", dne);
+			}
+			catch (IOException e) {
+				throw new IOException("Can't delete [" + this + "], " + e.getMessage(), e);
+			}
 		}
 		finally {
 			provider.unlock(this);
+		}
+	}
+
+	private static void deleteIfExists(Path path) throws IOException {
+		try {
+			Files.delete(path);
+		}
+		catch (NoSuchFileException nsfe) {
+			// removed by somebody else in the meantime
 		}
 	}
 
