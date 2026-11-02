@@ -27,9 +27,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cfexecute" {
 				expect( getTickCount() - start ).toBeLT( 4000 );
 			});
 
+			it( title = "the PageContext is bound to the request thread right after a timeout", skip = isWindows(), body = function( currentSpec ) {
+				var pc = getPageContext();
+				var requestThread = createObject( "java", "java.lang.Thread" ).currentThread();
+				// the timed out worker is still unwinding right after the timeout, so repeat it to hit that window reliably
+				loop times = 5 {
+					var msg = "";
+					try {
+						cfexecute( name = "sleep", arguments = "5", timeout = 0.3, terminateOnTimeout = true );
+					}
+					catch ( any e ) {
+						msg = e.message;
+					}
+					expect( msg ).toInclude( "expired" );
+					// the worker must not keep the PageContext bound to itself
+					expect( pc.getThread().equals( requestThread ) ).toBeTrue( "PageContext is bound to [#pc.getThread()#] instead of the request thread [#requestThread#]" );
+				}
+			});
+
 			it( title = "cfexecute worker thread is a virtual thread where supported", skip = isWindows(), body = function( currentSpec ) {
 				var pc = getPageContext();
-				var parentThread = pc.getThread();
+				var parentThread = createObject( "java", "java.lang.Thread" ).currentThread();
 				var tname = "ldev5504_" & createUUID().replace( "-", "", "all" );
 				var raw = server.system.properties[ "lucee.allow.virtual.threads" ] ?: ( server.system.environment[ "LUCEE_ALLOW_VIRTUAL_THREADS" ] ?: "true" );
 				var virtualAllowed = listFirst( server.java.version, "." ) gte 21 && raw != "false";
