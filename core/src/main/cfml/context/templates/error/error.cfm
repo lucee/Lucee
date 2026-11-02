@@ -101,6 +101,8 @@ function luceeMdError( required struct err ) {
 
 if ( luceeAcceptsMarkdown() && !getPageContext().getResponse().isCommitted() ) {
 	content type="text/markdown; charset=utf-8" reset="true";
+	// the markdown depends on its line breaks, so no whitespace management here
+	setting whitespaceManagement="regular";
 	echo( luceeMdError( variables.catch ) );
 	return;
 }
