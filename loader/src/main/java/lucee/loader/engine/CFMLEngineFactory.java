@@ -80,6 +80,7 @@ import lucee.loader.osgi.BundleCollection;
 import lucee.loader.osgi.BundleLoader;
 import lucee.loader.osgi.BundleUtil;
 import lucee.loader.osgi.LoggerImpl;
+import lucee.loader.util.DownloadVerifier;
 import lucee.loader.util.ExtensionFilter;
 import lucee.loader.util.Util;
 import lucee.loader.util.ZipUtil;
@@ -1112,8 +1113,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 
 		// if(jar.createNewFile()) {
-		copy((InputStream) conn.getContent(), new FileOutputStream(jar));
-		conn.disconnect();
+		// LDEV-5864: the download is verified (hash from the headers or a checksum file next to the artifact) before the jar is used
+		DownloadVerifier.download(conn, jar);
 		return jar;
 		/*
 		 * } else { throw new IOException("File ["+jar.getName()+"] already exists, won't copy new one"); }
@@ -1302,8 +1303,14 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 		// copy it to local directory
 		if (newLucee.createNewFile()) {
-			copy((InputStream) conn.getContent(), new FileOutputStream(newLucee));
-			conn.disconnect();
+			// LDEV-5864: the download is verified (hash from the headers) before it is used, an invalid file is removed
+			try {
+				DownloadVerifier.download(conn, newLucee);
+			}
+			catch (IOException | RuntimeException e) {
+				newLucee.delete();
+				throw e;
+			}
 
 			// when it is a loader extract the core from it
 			File tmp = extractCoreIfLoader(newLucee);

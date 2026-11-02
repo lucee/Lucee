@@ -20,7 +20,7 @@ public final class HeadersHTTPResponse implements HeadersCollection {
 	public Header[] getHeaders(String name) {
 		List<Header> list = new ArrayList<>();
 		for (lucee.commons.net.http.Header header: response.getAllHeaders()) {
-			if (name.equals(header.getName())) {
+			if (name.equalsIgnoreCase(header.getName())) {
 				list.add(new BasicHeader(header.getName(), header.getValue()));
 			}
 		}

@@ -350,7 +350,7 @@ public final class MavenUpdateProvider {
 		assertDownloadAllowed(strURL);
 		if (!StringUtil.isEmpty(strURL)) {
 			// Use HTTPDownloader with DEBUG logging for Maven operations
-			return HTTPEngine.get(new URL(strURL), null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true);
+			return HTTPEngine.getVerified(new URL(strURL), null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true, null);
 		}
 		return getFileStreamFromZipStream(getLoader(version));
 	}
@@ -367,7 +367,7 @@ public final class MavenUpdateProvider {
 		// Use HTTPDownloader with DEBUG logging for Maven operations
 		URL url = new URL(strURL);
 		assertDownloadAllowed(strURL);
-		return HTTPEngine.get(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true);
+		return HTTPEngine.getVerified(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true, null);
 	}
 
 	/*

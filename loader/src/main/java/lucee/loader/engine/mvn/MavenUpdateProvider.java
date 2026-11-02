@@ -18,6 +18,7 @@ import java.util.zip.ZipInputStream;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
+import lucee.loader.util.DownloadVerifier;
 import lucee.loader.util.Util;
 import lucee.runtime.exp.PageException;
 
@@ -167,7 +168,8 @@ public class MavenUpdateProvider {
 				HttpURLConnection conn = get(urlLco);
 				if (conn != null) {
 					int sc = conn.getResponseCode();
-					if (sc >= 200 && sc < 300) return conn.getInputStream();
+					// LDEV-5864: verified before it is used, throws in case of a hash mismatch
+					if (sc >= 200 && sc < 300) return DownloadVerifier.getVerifiedStream(conn);
 					conn.disconnect();
 				}
 			}
@@ -176,7 +178,7 @@ public class MavenUpdateProvider {
 				HttpURLConnection conn = get(urljar);
 				if (conn != null) {
 					int sc = conn.getResponseCode();
-					if (sc >= 200 && sc < 300) return getFileStreamFromZipStream(conn.getInputStream());
+					if (sc >= 200 && sc < 300) return getFileStreamFromZipStream(DownloadVerifier.getVerifiedStream(conn));
 					conn.disconnect();
 				}
 			}
