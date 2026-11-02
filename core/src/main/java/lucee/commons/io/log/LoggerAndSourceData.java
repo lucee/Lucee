@@ -18,7 +18,9 @@
  */
 package lucee.commons.io.log;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -37,6 +39,8 @@ public final class LoggerAndSourceData {
 	private static final String DEFAULT_PATTERN = "%d{dd.MM.yyyy HH:mm:ss,SSS} %-5p [%c] %m%n";
 
 	private Log _log;
+	// all appenders of the logger, the first one is also available with the fields below
+	private final AppenderDefinition[] appenders;
 	private final ClassDefinition cdAppender;
 	private Object _appender;
 	public final Map<String, String> appenderArgs;
@@ -54,13 +58,24 @@ public final class LoggerAndSourceData {
 
 	public LoggerAndSourceData(Config config, String id, String name, ClassDefinition appender, Map<String, String> appenderArgs, ClassDefinition layout,
 			Map<String, String> layoutArgs, int level, boolean readOnly, boolean dyn) {
+		this(config, id, name, new AppenderDefinition[] { new AppenderDefinition(appender, appenderArgs, layout, layoutArgs) }, level, readOnly, dyn);
+	}
+
+	/**
+	 * a logger with one or more appenders (LDEV-6792), a single appender behaves exactly like with the
+	 * constructor above
+	 */
+	public LoggerAndSourceData(Config config, String id, String name, AppenderDefinition[] appenders, int level, boolean readOnly, boolean dyn) {
+		if (appenders == null || appenders.length == 0) throw new IllegalArgumentException("a logger needs at least one appender");
 		this.config = config;
 		this.id = id;
 		this.name = name;
-		this.cdAppender = appender;
-		this.appenderArgs = appenderArgs;
-		this.cdLayout = layout;
-		this.layoutArgs = layoutArgs;
+		this.appenders = appenders.clone();
+		// the first appender is the one the single appender methods return
+		this.cdAppender = appenders[0].appender;
+		this.appenderArgs = appenders[0].appenderArgs;
+		this.cdLayout = appenders[0].layout;
+		this.layoutArgs = appenders[0].layoutArgs;
 		this.level = level;
 		this.readOnly = readOnly;
 		this.dyn = dyn;
@@ -75,15 +90,60 @@ public final class LoggerAndSourceData {
 		if (_log == null) {
 			config = ThreadLocalPageContext.getConfigServer(config);
 			try {
-				layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
-				_appender = eng().getAppender(config, layout, name, cdAppender, appenderArgs);
-				_log = eng().getLogger(config, _appender, name, level);
+				create();
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
 			}
 		}
 		return this;
+	}
+
+	private void create() throws PageException {
+		if (appenders.length == 1) {
+			layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
+			_appender = eng().getAppender(config, layout, name, cdAppender, appenderArgs);
+			_log = eng().getLogger(config, _appender, name, level);
+			return;
+		}
+
+		// more than one appender, the engine gets them in an AppenderList
+		LogEngine eng = eng();
+		List<Object> created = new ArrayList<Object>();
+		try {
+			Object l;
+			for (AppenderDefinition ad: appenders) {
+				l = eng.getLayout(ad.layout, ad.layoutArgs, ad.appender, name);
+				created.add(eng.getAppender(config, l, name, ad.appender, ad.appenderArgs));
+			}
+			AppenderList list = new AppenderList(created);
+			Log log = eng.getLogger(config, list, name, level);
+			layout = null;
+			_appender = list;
+			_log = log;
+		}
+		catch (Throwable t) {
+			// do not leave the appenders created so far open (for example the file of the first one)
+			for (Object a: created) {
+				try {
+					eng.closeAppender(a);
+				}
+				catch (Throwable t2) {
+					ExceptionUtil.rethrowIfNecessary(t2);
+					t.addSuppressed(t2);
+				}
+			}
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw t instanceof PageException ? (PageException) t : Caster.toPageException(t);
+		}
+	}
+
+	/**
+	 * @return all appenders of the logger, the first one is the one the other methods of this class
+	 *         return
+	 */
+	public AppenderDefinition[] getAppenders() {
+		return appenders.clone();
 	}
 
 	public String getName() {
@@ -148,9 +208,7 @@ public final class LoggerAndSourceData {
 		if (_log == null) {
 			config = ThreadLocalPageContext.getConfigServer(config);
 			try {
-				layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
-				_appender = eng().getAppender(config, layout, name, cdAppender, appenderArgs);
-				_log = eng().getLogger(config, _appender, name, level);
+				create();
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -176,7 +234,24 @@ public final class LoggerAndSourceData {
 		return HashUtil.create64BitHashAsString(sb.toString(), Character.MAX_RADIX);
 	}
 
-	private static void toString(StringBuilder sb, Map<String, String> map) {
+	/**
+	 * the id of a logger with one or more appenders, with one appender the id is the same as with
+	 * {@link #id(String, ClassDefinition, Map, ClassDefinition, Map, int, boolean)}
+	 */
+	public static String id(String name, AppenderDefinition[] appenders, int level, boolean readOnly) {
+		if (appenders.length == 1) {
+			AppenderDefinition ad = appenders[0];
+			return id(name, ad.appender, ad.appenderArgs, ad.layout, ad.layoutArgs, level, readOnly);
+		}
+		StringBuilder sb = new StringBuilder(name).append(';');
+		for (AppenderDefinition ad: appenders) {
+			sb.append('[').append(ad).append("];");
+		}
+		sb.append(level).append(';').append(readOnly);
+		return HashUtil.create64BitHashAsString(sb.toString(), Character.MAX_RADIX);
+	}
+
+	static void toString(StringBuilder sb, Map<String, String> map) {
 		if (map == null) return;
 		Iterator<Entry<String, String>> it = map.entrySet().iterator();
 		Entry<String, String> e;
