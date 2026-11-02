@@ -15,12 +15,18 @@ import org.osgi.framework.wiring.BundleWiring;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.osgi.OSGiUtil.PackageQuery;
+import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
  * The BundleService based on the OSGi framework (Felix) that is part of the core.
@@ -112,6 +118,40 @@ public final class BundleServiceImpl implements BundleService {
 	public Map<String, Object> getBundleInfo(Class<?> clazz) {
 		Bundle b = OSGiUtil.getBundleFromClass(clazz, null);
 		return b == null ? null : toInfo(b);
+	}
+
+	@Override
+	public Map<String, Object> getRequirements(String bundleName, String bundleVersion) throws IOException {
+		Bundle b = get(bundleName, bundleVersion);
+		if (b == null) return null;
+		try {
+			Pair<List<BundleRange>, List<PackageQuery>> pair = OSGiUtil.getRequiredBundlesAndPackages(b);
+			Map<String, Object> result = new StructImpl(Struct.TYPE_LINKED);
+			result.put("requiredBundles", BundleRange.toArray(pair.getName()));
+			result.put("requiredPackages", toPackageArray(pair.getValue()));
+			return result;
+		}
+		catch (BundleException be) {
+			throw new IOException(be.getMessage(), be);
+		}
+	}
+
+	private static Array toPackageArray(List<PackageQuery> list) {
+		Array arr = new ArrayImpl();
+		for (PackageQuery pd: list) {
+			Struct sct = new StructImpl();
+			Array versions = new ArrayImpl();
+			sct.setEL(KeyConstants._package, pd.getName());
+			sct.setEL("versions", versions);
+			for (VersionDefinition vd: pd.getVersionDefinitons()) {
+				Struct v = new StructImpl();
+				v.setEL(KeyConstants._bundleVersion, vd.getVersion().toString());
+				v.setEL("operator", vd.getOpAsString());
+				versions.appendEL(v);
+			}
+			arr.appendEL(sct);
+		}
+		return arr;
 	}
 
 	@Override

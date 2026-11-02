@@ -24,9 +24,7 @@ import java.io.ObjectOutput;
 import java.util.List;
 import java.util.Map;
 
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.BundleReference;
 import org.osgi.framework.Version;
 
 import lucee.commons.digest.HashUtil;
@@ -48,6 +46,7 @@ import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.thread.ThreadUtil;
@@ -97,12 +96,10 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	public ClassDefinitionImpl(Class<T> clazz) {
 		this.className = clazz.getName();
 		this.clazz = clazz;
-		ClassLoader cl = clazz.getClassLoader();
-		if (cl instanceof BundleReference) {
-			BundleReference bcl = (BundleReference) cl;
-			Bundle b = bcl.getBundle();
-			this.name = b.getSymbolicName();
-			this.version = b.getVersion();
+		Map<String, Object> info = BundleServiceImpl.getInstance().getBundleInfo(clazz);
+		if (info != null) {
+			this.name = (String) info.get("name");
+			this.version = OSGiUtil.toVersion((String) info.get("version"), false, null);
 		}
 		else {
 			this.name = null;

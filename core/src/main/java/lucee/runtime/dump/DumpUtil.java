@@ -39,8 +39,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleReference;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -65,9 +63,8 @@ import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.osgi.BundleRange;
-import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
+import lucee.runtime.osgi.BundleService;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Array;
@@ -80,6 +77,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.scope.CookieImpl;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.UDFUtil;
 import lucee.transformer.dynamic.meta.Method;
 
@@ -668,23 +666,21 @@ public final class DumpUtil {
 			table.appendRow(0, inherited);
 
 			// Bundle Info
-			ClassLoader cl = clazz.getClassLoader();
-			if (cl instanceof BundleReference) {
+			BundleService bundleService = BundleServiceImpl.getInstance();
+			Map<String, Object> bundle = bundleService.getBundleInfo(clazz);
+			if (bundle != null) {
 				try {
-					BundleReference bcl = (BundleReference) cl;
-					Bundle b = bcl.getBundle();
-					if (b != null) {
-						DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
-						bd.setTitle("OSGi Bundle Info");
-						bd.appendRow(0, new SimpleDumpData("id: " + b.getBundleId()));
-						bd.appendRow(0, new SimpleDumpData("symbolic-name: " + b.getSymbolicName()));
-						bd.appendRow(0, new SimpleDumpData("version: " + b.getVersion().toString()));
-						bd.appendRow(0, new SimpleDumpData("location: " + b.getLocation()));
-						requiredBundles(bd, b);
-						table.appendRow(0, bd);
-					}
+					DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
+					bd.setTitle("OSGi Bundle Info");
+					bd.appendRow(0, new SimpleDumpData("id: " + bundle.get("id")));
+					bd.appendRow(0, new SimpleDumpData("symbolic-name: " + bundle.get("name")));
+					bd.appendRow(0, new SimpleDumpData("version: " + bundle.get("version")));
+					bd.appendRow(0, new SimpleDumpData("location: " + bundle.get("location")));
+					requiredBundles(bd, bundleService.getRequirements((String) bundle.get("name"), (String) bundle.get("version")));
+					table.appendRow(0, bd);
 				}
-				catch (NoSuchMethodError e) {}
+				catch (IOException e) {
+				}
 			}
 			else {
 
@@ -723,44 +719,23 @@ public final class DumpUtil {
 		}
 	}
 
-	private static void requiredBundles(DumpTable parent, Bundle b) {
+	private static void requiredBundles(DumpTable parent, Map<String, Object> requirements) {
 		try {
-			List<BundleRange> list = OSGiUtil.getRequiredBundles(b);
-			if (list.isEmpty()) return;
+			Object list = requirements == null ? null : requirements.get("requiredBundles");
+			if (!(list instanceof List) || ((List<?>) list).isEmpty()) return;
 			DumpTable dt = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
 			dt.setTitle("Required Bundles");
 
 			dt.appendRow(-1, new SimpleDumpData("name"), new SimpleDumpData("version from"), new SimpleDumpData("operator from"), new SimpleDumpData("version to"),
 					new SimpleDumpData("operator to"));
 
-			Iterator<BundleRange> it = list.iterator();
-			BundleRange br;
-			BundleRange.VersionRange vr;
-			VersionDefinition vd;
-			String fromV = "", fromOP = "", toV = "", toOP = "";
-			while (it.hasNext()) {
-				br = it.next();
-				vr = br.getVersionRange();
-				if (vr != null) {
-					// from
-					vd = vr.getFrom();
-					if (vd != null) {
-						fromV = vd.getVersionAsString();
-						fromOP = vd.getOpAsString();
-					}
-					// to
-					vd = vr.getTo();
-					if (vd != null) {
-						toV = vd.getVersionAsString();
-						toOP = vd.getOpAsString();
-					}
-				}
-
-				dt.appendRow(0, new SimpleDumpData(br.getName()), new SimpleDumpData(fromV), new SimpleDumpData(fromOP), new SimpleDumpData(toV), new SimpleDumpData(toOP));
-
+			for (Object o: (List<?>) list) {
+				Struct sct = (Struct) o;
+				dt.appendRow(0, new SimpleDumpData(Caster.toString(sct.get(KeyConstants._bundleName, ""), "")), new SimpleDumpData(Caster.toString(sct.get("bundleVersion", ""), "")),
+						new SimpleDumpData(Caster.toString(sct.get("operator", ""), "")), new SimpleDumpData(Caster.toString(sct.get("bundleVersionTo", ""), "")),
+						new SimpleDumpData(Caster.toString(sct.get("operatorTo", ""), "")));
 			}
 			parent.appendRow(0, dt);
-
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
