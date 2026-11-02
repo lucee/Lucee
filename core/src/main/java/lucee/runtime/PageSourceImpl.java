@@ -625,7 +625,8 @@ public final class PageSourceImpl implements PageSource {
 			synchronized (this) {
 				// synchronized (SystemUtil.createToken("PageSource", getRealpathWithVirtual())) {
 				if (physcalSource == null) {
-					Resource tmp = mapping.getPhysical().getRealResource(relPath);
+					// a windows path (D:/...) is already absolute and must not be appended to the physical path of the mapping
+					Resource tmp = ResourceUtil.isWindowsPath(relPath) ? mapping.getConfig().getResource(relPath) : mapping.getPhysical().getRealResource(relPath);
 					physcalSource = ResourceUtil.toExactResource(tmp);
 					// fix if the case not match
 					if (!tmp.getAbsolutePath().equals(physcalSource.getAbsolutePath())) {
