@@ -290,11 +290,6 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 			if (!dc.supportsGetGeneratedKeys()) createGeneratedKeys = false;
 		}
 
-		// check SQL Restrictions
-		if (dc.getDatasource().hasSQLRestriction()) {
-			QueryUtil.checkSQLRestriction(pc, dc, sql);
-		}
-
 		Statement stat = null;
 		// Stopwatch stopwatch=new Stopwatch();
 		long start = System.nanoTime();
@@ -394,11 +389,6 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 		boolean createGeneratedKeys = createUpdateData;
 		if (createUpdateData) {
 			if (!dc.supportsGetGeneratedKeys()) createGeneratedKeys = false;
-		}
-
-		// check SQL Restrictions
-		if (dc.getDatasource().hasSQLRestriction()) {
-			QueryUtil.checkSQLRestriction(pc, dc, sql);
 		}
 
 		Statement stat = null;
