@@ -67,6 +67,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				service.uninstall( "does.not.exist", "1.0.0" );
 			});
 
+			it( "returns the requirements of a bundle, null for an unknown one", function() {
+				var core = service.getBundleInfo( "lucee.core", "" );
+				if ( isNull( core ) ) core = service.getBundleInfo( system.name, "" );
+				var req = service.getRequirements( core.name, "" );
+				expect( isNull( req ) ).toBeFalse();
+				expect( req ).toHaveKey( "requiredBundles" );
+				expect( req ).toHaveKey( "requiredPackages" );
+				expect( isNull( service.getRequirements( "does.not.exist", "" ) ) ).toBeTrue();
+			});
+
+			it( "lists the core bundles, the core first", function() {
+				var core = service.listCoreBundles();
+				expect( core ).notToBeEmpty();
+				expect( isSimpleValue( core[ 1 ].name ) ).toBeTrue();
+			});
+
+			it( "has no bundle state for a class that is not from a bundle", function() {
+				expect( isNull( service.getBundleState( createObject( "java", "java.lang.String" ).getClass() ) ) ).toBeTrue();
+			});
+
 			it( "throws an IOException for a class the bundle does not have", function() {
 				expect( function() {
 					service.loadClass( system.name, "", "does.not.Exist" );

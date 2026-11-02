@@ -26,8 +26,6 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleReference;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -39,6 +37,7 @@ import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.converter.JavaConverter.ObjectInputStreamImpl;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.dynamic.meta.Clazz;
@@ -153,9 +152,9 @@ public final class ClazzDynamic extends Clazz {
 		String id = clids.get(System.identityHashCode(cl));
 		if (id != null) return id;
 
-		if (cl instanceof BundleReference) {
-			Bundle b = ((BundleReference) cl).getBundle();
-			id = "b" + HashUtil.create64BitHashAsString(b.getSymbolicName() + ":" + b.getVersion() + ":" + jv, Character.MAX_RADIX);
+		Map<String, Object> bundle = BundleServiceImpl.getInstance().getBundleInfo(clazz);
+		if (bundle != null) {
+			id = "b" + HashUtil.create64BitHashAsString(bundle.get("name") + ":" + bundle.get("version") + ":" + jv, Character.MAX_RADIX);
 			clids.put(System.identityHashCode(cl), id);
 			return id;
 		}

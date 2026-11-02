@@ -22,11 +22,10 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.TimeZone;
 
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.BundleReference;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
@@ -40,6 +39,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.transformer.library.ClassDefinitionImpl;
 
@@ -176,7 +176,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		Class<?> clazz = cd.getClazz();
 		if (isFromUninstalledBundle(clazz)) {
 			// the class definition still holds a class from an uninstalled bundle, force a fresh lookup
-			Bundle uninstalled = getBundle(clazz);
+			Map<String, Object> uninstalled = BundleServiceImpl.getInstance().getBundleInfo(clazz);
 			try {
 				clazz = (cd instanceof ClassDefinitionImpl) ? ((ClassDefinitionImpl) cd).getClazz(true) : cd.getClazz();
 			}
@@ -223,23 +223,16 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		}
 	}
 
-	private static ClassException driverNotAvailable(ClassDefinition cd, Bundle bundle) {
-		String bundleInfo = bundle != null ? bundle.getSymbolicName() + ":" + bundle.getVersion() : cd.getName() + ":" + cd.getVersionAsString();
+	private static ClassException driverNotAvailable(ClassDefinition cd, Map<String, Object> bundle) {
+		String bundleInfo = bundle != null ? bundle.get("name") + ":" + bundle.get("version") : cd.getName() + ":" + cd.getVersionAsString();
 		return new ClassException("The JDBC driver [" + cd.getClassName() + "] is no longer available, the OSGi bundle [" + bundleInfo
 				+ "] it was loaded from has been uninstalled (for example because the extension providing the driver was removed or updated). "
 				+ "Install the extension that provides this JDBC driver again.");
 	}
 
-	private static Bundle getBundle(Class<?> clazz) {
-		if (clazz == null) return null;
-		ClassLoader cl = clazz.getClassLoader();
-		if (cl instanceof BundleReference) return ((BundleReference) cl).getBundle();
-		return null;
-	}
-
 	private static boolean isFromUninstalledBundle(Class<?> clazz) {
-		Bundle b = getBundle(clazz);
-		return b != null && b.getState() == Bundle.UNINSTALLED;
+		if (clazz == null) return false;
+		return "uninstalled".equals(BundleServiceImpl.getInstance().getBundleState(clazz));
 	}
 
 	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws PageException {

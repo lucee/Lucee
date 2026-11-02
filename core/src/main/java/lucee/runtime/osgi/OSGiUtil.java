@@ -1787,7 +1787,9 @@ public final class OSGiUtil {
 	}
 
 	public static boolean isFragment(Bundle bundle) {
-		return (bundle.adapt(BundleRevision.class).getTypes() & BundleRevision.TYPE_FRAGMENT) != 0;
+		BundleRevision revision = bundle.adapt(BundleRevision.class);
+		// an uninstalled bundle has no revision
+		return revision != null && (revision.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0;
 	}
 
 	public static boolean isFragment(BundleFile bf) {

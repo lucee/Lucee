@@ -83,7 +83,6 @@ import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.surveillance.HeapDumper;
 import lucee.loader.engine.CFMLEngine;
-import lucee.loader.osgi.BundleCollection;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
@@ -3665,7 +3664,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		CFMLEngine engine = ConfigUtil.getEngine(config);
-		BundleCollection coreBundles = OSGiUtil.getBundleCollection();
+		List<Map<String, Object>> coreBundles = BundleServiceImpl.getInstance().listCoreBundles();
 		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
 
 		Struct sct = new StructImpl();
@@ -3741,7 +3740,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetBundles() throws PageException {
 		CFMLEngine engine = ConfigUtil.getEngine(config);
-		BundleCollection coreBundles = OSGiUtil.getBundleCollection();
+		List<Map<String, Object>> coreBundles = BundleServiceImpl.getInstance().listCoreBundles();
 		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
 
 		List<BundleDefinition> bds = OSGiUtil.getBundleDefinitions(OSGiUtil.getBundleContext());
@@ -3844,21 +3843,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
-	private String _usedBy(String name, Version version, BundleCollection coreBundles, java.util.Collection<BundleDefinition> extBundles) {
+	private String _usedBy(String name, Version version, List<Map<String, Object>> coreBundles, java.util.Collection<BundleDefinition> extBundles) {
 		Set<String> extensions = new HashSet<String>();
 
 		// core
-		if (_eq(name, version, coreBundles.core.getSymbolicName(), coreBundles.core.getVersion())) {
-			extensions.add("Lucee");
-			// return "Lucee";
-		}
-		Iterator<Bundle> it = coreBundles.getSlaves();
-		Bundle b;
-		while (it.hasNext()) {
-			b = it.next();
-			if (_eq(name, version, b.getSymbolicName(), b.getVersion())) {
+		for (Map<String, Object> info: coreBundles) {
+			if (_eq(name, version, (String) info.get("name"), OSGiUtil.toVersion((String) info.get("version"), false, null))) {
 				extensions.add("Lucee");
-				// return "Lucee";
 				break;
 			}
 		}

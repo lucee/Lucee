@@ -17,14 +17,9 @@
  */
 package lucee.runtime.functions.system;
 
-import java.util.Iterator;
-import java.util.List;
+import java.io.IOException;
+import java.util.Map;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.BundleReference;
-
-import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
@@ -32,12 +27,8 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.BundleRange;
-import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.PackageQuery;
-import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
-import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.osgi.BundleService;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -55,52 +46,27 @@ public final class BundleInfo implements Function {
 		else if (obj instanceof ObjectWrap) clazz = ((ObjectWrap) obj).getEmbededObject().getClass();
 		else clazz = obj.getClass();
 
-		ClassLoader cl = clazz.getClassLoader();
-		if (cl instanceof BundleReference) {
-			BundleReference bcl = (BundleReference) cl;
-			Bundle b = bcl.getBundle();
+		BundleService service = BundleServiceImpl.getInstance();
+		Map<String, Object> info = service.getBundleInfo(clazz);
+		if (info != null) {
+			String name = (String) info.get("name");
+			String version = (String) info.get("version");
 			Struct sct = new StructImpl();
-			sct.setEL(KeyConstants._id, b.getBundleId());
-			sct.setEL(KeyConstants._name, b.getSymbolicName());
-			sct.setEL(KeyConstants._location, b.getLocation());
-			sct.setEL(KeyConstants._version, b.getVersion().toString());
-			sct.setEL(KeyConstants._state, OSGiUtil.toState(b.getState(), null));
+			sct.setEL(KeyConstants._id, info.get("id"));
+			sct.setEL(KeyConstants._name, name);
+			sct.setEL(KeyConstants._location, info.get("location"));
+			sct.setEL(KeyConstants._version, info.get("version"));
+			sct.setEL(KeyConstants._state, info.get("state"));
 			try {
-				Pair<List<BundleRange>, List<PackageQuery>> pair = OSGiUtil.getRequiredBundlesAndPackages(b);
-				sct.setEL("requiredBundles", BundleRange.toArray(pair.getName()));
-				sct.setEL("requiredPackages", toArray2(pair.getValue()));
+				Map<String, Object> req = service.getRequirements(name, version);
+				sct.setEL("requiredBundles", req.get("requiredBundles"));
+				sct.setEL("requiredPackages", req.get("requiredPackages"));
 			}
-			catch (BundleException be) {
-				throw Caster.toPageException(be);
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
 			}
 			return sct;
 		}
 		throw new ApplicationException("object [" + clazz + "] is not from an OSGi bundle");
-	}
-
-	private static Array toArray2(List<PackageQuery> list) {
-		Struct sct, _sct;
-		Array arr = new ArrayImpl(), _arr;
-		Iterator<PackageQuery> it = list.iterator();
-		PackageQuery pd;
-		Iterator<VersionDefinition> _it;
-		VersionDefinition vd;
-		while (it.hasNext()) {
-			pd = it.next();
-			sct = new StructImpl();
-			sct.setEL(KeyConstants._package, pd.getName());
-			sct.setEL("versions", _arr = new ArrayImpl());
-
-			_it = pd.getVersionDefinitons().iterator();
-			while (_it.hasNext()) {
-				vd = _it.next();
-				_sct = new StructImpl();
-				_sct.setEL(KeyConstants._bundleVersion, vd.getVersion().toString());
-				_sct.setEL("operator", vd.getOpAsString());
-				_arr.appendEL(_sct);
-			}
-			arr.appendEL(sct);
-		}
-		return arr;
 	}
 }

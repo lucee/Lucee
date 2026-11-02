@@ -1565,6 +1565,10 @@ public final class SystemUtil {
 		}
 	}
 
+	public static InputStream getResourceAsStream(String path) {
+		return getResourceAsStream((Bundle) null, path);
+	}
+
 	public static InputStream getResourceAsStream(Bundle bundle, String path) {
 		// check the bundle for the resource
 		InputStream is;

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -15,12 +16,19 @@ import org.osgi.framework.wiring.BundleWiring;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
+import lucee.loader.osgi.BundleCollection;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.osgi.OSGiUtil.PackageQuery;
+import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
  * The BundleService based on the OSGi framework (Felix) that is part of the core.
@@ -115,6 +123,58 @@ public final class BundleServiceImpl implements BundleService {
 	}
 
 	@Override
+	public String getBundleState(Class<?> clazz) {
+		Bundle b = OSGiUtil.getBundleFromClass(clazz, null);
+		return b == null ? null : OSGiUtil.toState(b.getState(), "unknown");
+	}
+
+	@Override
+	public Map<String, Object> getRequirements(String bundleName, String bundleVersion) throws IOException {
+		Bundle b = get(bundleName, bundleVersion);
+		if (b == null) return null;
+		try {
+			Pair<List<BundleRange>, List<PackageQuery>> pair = OSGiUtil.getRequiredBundlesAndPackages(b);
+			Map<String, Object> result = new StructImpl(Struct.TYPE_LINKED);
+			result.put("requiredBundles", BundleRange.toArray(pair.getName()));
+			result.put("requiredPackages", toPackageArray(pair.getValue()));
+			return result;
+		}
+		catch (BundleException be) {
+			throw new IOException(be.getMessage(), be);
+		}
+	}
+
+	private static Array toPackageArray(List<PackageQuery> list) {
+		Array arr = new ArrayImpl();
+		for (PackageQuery pd: list) {
+			Struct sct = new StructImpl();
+			Array versions = new ArrayImpl();
+			sct.setEL(KeyConstants._package, pd.getName());
+			sct.setEL("versions", versions);
+			for (VersionDefinition vd: pd.getVersionDefinitons()) {
+				Struct v = new StructImpl();
+				v.setEL(KeyConstants._bundleVersion, vd.getVersion().toString());
+				v.setEL("operator", vd.getOpAsString());
+				versions.appendEL(v);
+			}
+			arr.appendEL(sct);
+		}
+		return arr;
+	}
+
+	@Override
+	public List<Map<String, Object>> listCoreBundles() {
+		List<Map<String, Object>> list = new ArrayList<>();
+		BundleCollection bc = OSGiUtil.getBundleCollection();
+		list.add(toInfo(bc.core));
+		Iterator<Bundle> it = bc.getSlaves();
+		while (it.hasNext()) {
+			list.add(toInfo(it.next()));
+		}
+		return list;
+	}
+
+	@Override
 	public List<Map<String, Object>> listBundles() {
 		List<Map<String, Object>> list = new ArrayList<>();
 		for (Bundle b: context().getBundles()) {
@@ -169,7 +229,12 @@ public final class BundleServiceImpl implements BundleService {
 		info.put("state", OSGiUtil.toState(b.getState(), "unknown"));
 		info.put("location", b.getLocation());
 		info.put("fragment", Boolean.valueOf(OSGiUtil.isFragment(b)));
-		info.put("headers", OSGiUtil.getHeaders(b));
+		try {
+			info.put("headers", OSGiUtil.getHeaders(b));
+		}
+		catch (IllegalStateException ise) {
+			info.put("headers", new StructImpl(Struct.TYPE_LINKED));
+		}
 		return info;
 	}
 
