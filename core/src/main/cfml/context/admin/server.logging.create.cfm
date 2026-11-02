@@ -434,6 +434,30 @@ function showLayout() {
 			</tfoot>
 		</table>
 	</cfformClassic>
+
+	<!--- the same logger defined in the Application.cfc --->
+	<cfif !isNew>
+		<cfset tipLog={
+			level:log.level
+			,appenderClass:log.appenderClass
+			,appenderBundleName:log.appenderBundleName?:""
+			,appenderBundleVersion:log.appenderBundleVersion?:""
+			,appenderMaven:log.appenderMaven?:""
+			,appenderArgs:log.appenderArgs?:{}
+			,layoutClass:log.layoutClass?:""
+			,layoutBundleName:log.layoutBundleName?:""
+			,layoutBundleVersion:log.layoutBundleVersion?:""
+			,layoutMaven:log.layoutMaven?:""
+			,layoutArgs:log.layoutArgs?:{}
+		}>
+		<cfset tipAppenderDefinesLayout=!isNull(appender) && !isNull(appender.getLayout)>
+<cfsavecontent variable="codeSample">
+this.logs = {
+	#logTipValue( log.name )#: #logTipDefinition( tipLog, tipAppenderDefinesLayout, "	" )#
+};
+</cfsavecontent>
+		<cfset renderCodingTip( codeSample, "", true )>
+	</cfif>
 </cfoutput>
 
 <!---
