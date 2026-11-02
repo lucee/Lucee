@@ -55,6 +55,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -1412,6 +1413,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private volatile boolean fldExtensionIdsPending;
 	private int extensionsLoadCount = 0;
 	private Map<String, RHExtension> extensionsLoading;
+	private final ReentrantLock extensionsLock = new ReentrantLock();
 
 	private static Prop<ResourceProviderDef> metaDefaultResourceProviderDef = Prop.custom(ResourceProviderDefFactory.getInstance(false)).keys("defaultResourceProvider")
 			.description("Defines the primary Resource Provider for the engine, responsible for handling standard file system operations. "
@@ -5193,7 +5195,10 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 		if (extensionsX == null) {
 			boolean loaded = false;
-			synchronized (SystemUtil.createToken("config", "extensions")) {
+			// a ReentrantLock instead of synchronized: on Java 21 a virtual thread blocked in a monitor is pinned to its carrier thread, so the
+			// startBundles tasks below could never get a carrier (LDEV-6812)
+			extensionsLock.lock();
+			try {
 				if (extensionsX == null) {
 					// re-entered by the loading thread, e.g. uninstalling an orphaned extension asks for the other installed extensions (LDEV-6462)
 					if (extensionsLoading != null) return extensionsLoading.values().toArray(new RHExtension[extensionsLoading.size()]);
@@ -5329,6 +5334,9 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					}
 				}
 			}
+			finally {
+				extensionsLock.unlock();
+			}
 			// outside the extensions lock, so we never wait for the tld/fld lock while holding it
 			if (loaded) resetPendingExtensionIds();
 		}
@@ -5381,10 +5389,12 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public ConfigServerImpl resetRHExtensions() {
 		if (extensionsX != null) {
-			synchronized (SystemUtil.createToken("config", "extensions")) {
-				if (extensionsX != null) {
-					extensionsX = null;
-				}
+			extensionsLock.lock();
+			try {
+				extensionsX = null;
+			}
+			finally {
+				extensionsLock.unlock();
 			}
 		}
 
