@@ -329,7 +329,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			ClassDefinition cdApp = null;
 			if (sctApp != null) {
 				cdApp = ClassDefinitionImpl.toClassDefinitionImpl(sctApp, null, false, config.getIdentification());
-				if (!cdApp.isBundle()) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdApp.getClassName());
+				if (!cdApp.isBundle() && !ClassDefinitionImpl.isMaven(cdApp)) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdApp.getClassName());
 			}
 			else {
 				String appender = Caster.toString(v.get("appender", null), null);
@@ -341,7 +341,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			ClassDefinition cdLay = null;
 			if (sctLay != null) {
 				cdLay = ClassDefinitionImpl.toClassDefinitionImpl(sctLay, null, false, config.getIdentification());
-				if (!cdLay.isBundle()) cdLay = ((ConfigPro) config).getLogEngine().layoutClassDefintion(cdLay.getClassName());
+				if (!cdLay.isBundle() && !ClassDefinitionImpl.isMaven(cdLay)) cdLay = ((ConfigPro) config).getLogEngine().layoutClassDefintion(cdLay.getClassName());
 			}
 			else {
 				String layout = Caster.toString(v.get("layout", null), null);
