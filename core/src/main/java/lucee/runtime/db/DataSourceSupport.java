@@ -232,8 +232,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 
 	private static boolean isFromUninstalledBundle(Class<?> clazz) {
 		if (clazz == null) return false;
-		Map<String, Object> b = BundleServiceImpl.getInstance().getBundleInfo(clazz);
-		return b != null && "uninstalled".equalsIgnoreCase(Caster.toString(b.get("state"), null));
+		return "uninstalled".equals(BundleServiceImpl.getInstance().getBundleState(clazz));
 	}
 
 	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws PageException {

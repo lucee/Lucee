@@ -47,6 +47,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpSession;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.i18n.FormatUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.ClassUtil;
@@ -680,6 +681,7 @@ public final class DumpUtil {
 					table.appendRow(0, bd);
 				}
 				catch (IOException e) {
+					LogUtil.warn("dump", e);
 				}
 			}
 			else {

@@ -72,6 +72,12 @@ public interface BundleService {
 	public Map<String, Object> getBundleInfo(Class<?> clazz);
 
 	/**
+	 * @return the state of the bundle the class was loaded from (for example "active" or
+	 *         "uninstalled"), null when the class is not loaded from a bundle
+	 */
+	public String getBundleState(Class<?> clazz);
+
+	/**
 	 * @return the bundles and packages the bundle requires, as a struct with the keys
 	 *         "requiredBundles" and "requiredPackages", each a list of maps; null when there is no such
 	 *         bundle

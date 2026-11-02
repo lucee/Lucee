@@ -121,6 +121,12 @@ public final class BundleServiceImpl implements BundleService {
 	}
 
 	@Override
+	public String getBundleState(Class<?> clazz) {
+		Bundle b = OSGiUtil.getBundleFromClass(clazz, null);
+		return b == null ? null : OSGiUtil.toState(b.getState(), "unknown");
+	}
+
+	@Override
 	public Map<String, Object> getRequirements(String bundleName, String bundleVersion) throws IOException {
 		Bundle b = get(bundleName, bundleVersion);
 		if (b == null) return null;

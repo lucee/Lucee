@@ -99,7 +99,9 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		Map<String, Object> info = BundleServiceImpl.getInstance().getBundleInfo(clazz);
 		if (info != null) {
 			this.name = (String) info.get("name");
-			this.version = OSGiUtil.toVersion((String) info.get("version"), false, null);
+			String v = (String) info.get("version");
+			this.version = OSGiUtil.toVersion(v, false, null);
+			if (this.version == null && !StringUtil.isEmpty(v)) LogUtil.warn("class-definition", new ApplicationException("unable to parse the version [" + v + "] of the bundle [" + name + "]"));
 		}
 		else {
 			this.name = null;
