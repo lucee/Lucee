@@ -421,6 +421,26 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 	}
 
 	public static Map<String, AIEngine> _loadAI(Config config, Struct ai) {
+		List<Exception> errors = new ArrayList<>();
+		Map<String, AIEngine> engines = _loadAI(config, ai, errors);
+		for (Exception e: errors) {
+			log(config, e);
+		}
+		return engines;
+	}
+
+	/**
+	 * same as _loadAI, but a connection that cannot be loaded throws an exception instead of being
+	 * logged and skipped
+	 */
+	public static Map<String, AIEngine> _loadAIStrict(Config config, Struct ai) throws PageException {
+		List<Exception> errors = new ArrayList<>();
+		Map<String, AIEngine> engines = _loadAI(config, ai, errors);
+		if (!errors.isEmpty()) throw Caster.toPageException(errors.get(0));
+		return engines;
+	}
+
+	private static Map<String, AIEngine> _loadAI(Config config, Struct ai, List<Exception> errors) {
 		String strId;
 		Iterator<Entry<Key, Object>> it = ai.entryIterator();
 		Entry<Key, Object> entry;
@@ -440,7 +460,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 				}
 			}
 			catch (Exception e) {
-				log(config, e);
+				errors.add(e);
 			}
 		}
 		return engines;

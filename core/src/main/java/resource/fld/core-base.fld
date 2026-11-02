@@ -11093,9 +11093,9 @@ mavenLoad([
 		<argument>
 			<name>name</name>
 			<alias>aiName,nameAI</alias>
-			<type>string</type>
+			<type>any</type>
 			<required>yes</required>
-			<description>Specifies which AI connection configuration to use. Can be provided in three formats:
+			<description>Specifies which AI connection configuration to use. Can be provided in four formats:
 
 1. Direct connection name:
    The name of a connection as defined in the Lucee Administrator (similar to how datasource names work)
@@ -11105,6 +11105,10 @@ mavenLoad([
 
 3. Engine ID reference:
    Using the format "id:uuid" to use an AI engine registered by its unique identifier.
+
+4. Connection struct:
+   A struct that defines the connection itself, instead of the name of a connection that is already configured. The struct takes the same keys as a connection defined in the Application.cfc (`this.ai`) or in the .CFConfig.json (`class`, or `component` for an engine written in CFML, with the engine properties in `custom`). The engine properties can also be set directly in the struct, for example `{ type: "openai", model: "gpt-4o", secretKey: "..." }`. When no `class` is defined, it is derived from the property `type` (openai, chatgpt, ollama, perplexity, deepseek, grok, claude or gemini).
+   An engine is created only once for a given struct. Passing the same definition again, in this or any other request, reuses the engine, so there is no need to store the struct or to configure the connection with a cfapplication tag first.
 
 Currently supported default categories:
 - exception: For exception analysis
@@ -11292,7 +11296,8 @@ Secrets like the `secretKey` and the custom settings of a connection are never r
 			<description>The name of the AI connection to get metadata for. Can be either:
 1. A direct connection name as configured in the Lucee Administrator
 2. A default reference (e.g., "default:exception") which will resolve to the configured default connection for that category
-3. A AI session object from which to retrieve and analyze AI connection metadata</description>
+3. A AI session object from which to retrieve and analyze AI connection metadata
+4. A connection struct (same keys as a connection defined in `this.ai`, see CreateAISession), the engine is created once and reused for the same struct</description>
 		</argument>
 		<argument>
 			<name>detailed</name>
@@ -11333,7 +11338,8 @@ This is useful to choose a value for the connection setting `model`, or patterns
 			<description>The AI connection to list the models for. Can be either:
 1. A direct connection name as configured in the Lucee Administrator
 2. A default reference (e.g., "default:exception") which will resolve to the configured default connection for that category
-3. A AI session object, the models of the connection of the session are returned</description>
+3. A AI session object, the models of the connection of the session are returned
+4. A connection struct (same keys as a connection defined in `this.ai`, see CreateAISession), the engine is created once and reused for the same struct</description>
 		</argument>
 		<argument>
 			<name>returntype</name>
@@ -11369,11 +11375,12 @@ This is useful to choose a value for the connection setting `model`, or patterns
 		<argument>
 			<name>name</name>
 			<alias>aiName,nameAI</alias>
-			<type>string</type>
+			<type>any</type>
 			<required>yes</required>
 			<description>The name of the AI connection to check. Can be either:
 	1. A direct connection name as configured in the Lucee Administrator
-	2. A default reference (e.g., "default:exception") which will check if a default connection is configured for that category</description>
+	2. A default reference (e.g., "default:exception") which will check if a default connection is configured for that category
+	3. A connection struct (same keys as a connection defined in `this.ai`, see CreateAISession), in this case the engine is created (or reused) and an exception is thrown when the definition is invalid</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -11421,9 +11428,9 @@ This function pairs with `SerializeAISession()` to provide persistence for AI co
 		<argument>
 			<name>name</name>
 			<alias>aiName,nameAI</alias>
-			<type>string</type>
+			<type>any</type>
 			<required>yes</required>
-			<description>Specifies which AI connection configuration to use. Can be provided in three formats:
+			<description>Specifies which AI connection configuration to use. Can be provided in four formats:
 
 1. Direct connection name:
    The name of a connection as defined in the Lucee Administrator (similar to how datasource names work)
@@ -11433,6 +11440,10 @@ This function pairs with `SerializeAISession()` to provide persistence for AI co
 
 3. Engine ID reference:
    Using the format "id:uuid" to use an AI engine registered by its unique identifier.
+
+4. Connection struct:
+   A struct that defines the connection itself, instead of the name of a connection that is already configured. The struct takes the same keys as a connection defined in the Application.cfc (`this.ai`) or in the .CFConfig.json (`class`, or `component` for an engine written in CFML, with the engine properties in `custom`). The engine properties can also be set directly in the struct, for example `{ type: "openai", model: "gpt-4o", secretKey: "..." }`. When no `class` is defined, it is derived from the property `type` (openai, chatgpt, ollama, perplexity, deepseek, grok, claude or gemini).
+   An engine is created only once for a given struct. Passing the same definition again, in this or any other request, reuses the engine, so there is no need to store the struct or to configure the connection with a cfapplication tag first.
 
 Currently supported default categories:
 - exception: For exception analysis

@@ -5016,7 +5016,7 @@ Params: [
 			<description></description>
 		</attribute>
 		<attribute>
-			<type>string</type>
+			<type>any</type>
 			<name>name</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -8334,6 +8334,14 @@ Valid only for cfinput type="text".</description>
 			- lifeTimespan (timespan): overall timeout for the connections established to the mail server.
 			- idleTimespan (timespan): idle timeout for the connections established to the mail server.
 			</description>
+		</attribute>
+		<attribute>
+			<type>struct</type>
+			<name>ai</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>A structure that contains AI connection definitions, the same as `this.ai` in the Application.cfc. Each key is the name of a connection, the value is a struct that defines the connection (class, custom, default), for example `{ myAI: { class: "lucee.runtime.ai.openai.OpenAIEngine", custom: { type: "openai", model: "gpt-4o", secretKey: "..." } } }`.
+			With action "update" the connections defined by the application are replaced by the given ones, connections of the server configuration are still available. An invalid connection throws an exception.</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>

@@ -36,6 +36,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigFactoryImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -154,6 +155,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Struct datasources;
 	private Struct logs;
 	private Array mails;
+	private Struct ai;
 	private Struct caches;
 	private UDF onmissingtemplate;
 	private short scopeCascading = -1;
@@ -220,6 +222,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		datasources = null;
 		logs = null;
 		mails = null;
+		ai = null;
 		caches = null;
 		this.name = "";
 		action = ACTION_CREATE;
@@ -379,6 +382,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 	public void setMails(Array mails) {
 		this.mails = mails;
+	}
+
+	public void setAi(Struct ai) {
+		this.ai = ai;
 	}
 
 	public void setCaches(Struct caches) {
@@ -911,6 +918,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			catch (Exception e) {
 				throw Caster.toPageException(e);
 			}
+		}
+		if (ai != null) {
+			ApplicationContextSupport acs = (ApplicationContextSupport) ac;
+			acs.setAIEngines(ConfigFactoryImpl._loadAIStrict(pageContext.getConfig(), ai));
 		}
 		if (caches != null) {
 			try {

@@ -3,7 +3,9 @@ package lucee.runtime.ai;
 import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.BundleException;
@@ -13,6 +15,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigFactoryImpl;
 import lucee.runtime.config.Prop;
@@ -30,6 +33,12 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public final class AIEngineFactory implements PropFactory<AIEngine> {
+
+	// keys that belong to the connection itself, every other key of a flat connection struct is an engine property
+	private static final Key[] CONNECTION_KEYS = new Key[] { KeyConstants._class, KeyConstants._classname, KeyImpl.init("class-name"), KeyConstants._bundleName,
+			KeyConstants._bundleVersion, KeyConstants._maven, KeyConstants._component, KeyConstants._default, KeyConstants._custom, KeyConstants._properties,
+			KeyConstants._arguments };
+	private static final Key[] CLASS_KEYS = new Key[] { KeyConstants._class, KeyConstants._classname, KeyImpl.init("class-name"), KeyConstants._maven, KeyConstants._component };
 
 	private static final Map<String, SoftReference<AIEngine>> instances = new ConcurrentHashMap<>();
 	private static AIEngineFactory instance;
@@ -82,6 +91,7 @@ public final class AIEngineFactory implements PropFactory<AIEngine> {
 
 	private static AIEngine getInstance(Config config, ClassDefinition<? extends AIEngine> cd, Struct properties, String name, String _default)
 			throws PageException, ClassException, BundleException {
+		if (properties == null) properties = new StructImpl();
 		String id = createId(cd, properties, name, _default);
 		AIEngine aie = getExistingInstance(id, null);
 		if (aie != null) return aie;
@@ -92,6 +102,75 @@ public final class AIEngineFactory implements PropFactory<AIEngine> {
 		aie.init(cd, properties, name, _default, id);
 		instances.put(id, new SoftReference<AIEngine>(aie));
 		return aie;
+	}
+
+	/**
+	 * converts a connection struct passed in place of an AI connection name to the structure of a
+	 * connection defined in the Application.cfc or in the configuration. A struct that is already in
+	 * that form (keys like class, custom, default) is taken as it is, otherwise all keys that do not
+	 * belong to the connection itself are handled as properties of the engine. When no class is
+	 * defined, it is derived from the property type (for example openai, claude or gemini).
+	 * 
+	 * @param data the connection struct as passed by the caller, is not modified
+	 * @return a new struct, that can be passed to getInstance
+	 */
+	public static Struct toConnection(Struct data) throws PageException {
+		boolean hasProps = false;
+		for (Key k: new Key[] { KeyConstants._custom, KeyConstants._properties, KeyConstants._arguments }) {
+			if (data.get(k, null) != null) {
+				hasProps = true;
+				break;
+			}
+		}
+
+		Struct connection = new StructImpl(Struct.TYPE_LINKED);
+		Struct flat = new StructImpl(Struct.TYPE_LINKED);
+		Iterator<Entry<Key, Object>> it = data.entryIterator();
+		Entry<Key, Object> e;
+		while (it.hasNext()) {
+			e = it.next();
+			if (isConnectionKey(e.getKey())) connection.setEL(e.getKey(), e.getValue());
+			else if (!hasProps) flat.setEL(e.getKey(), e.getValue());
+		}
+		if (!hasProps) connection.setEL(KeyConstants._custom, flat);
+
+		boolean hasClass = false;
+		for (Key k: CLASS_KEYS) {
+			if (!StringUtil.isEmpty(Caster.toString(connection.get(k, null), null), true)) {
+				hasClass = true;
+				break;
+			}
+		}
+		if (!hasClass && StringUtil.isEmpty(Caster.toString(connection.get(KeyConstants._bundleName, null), null), true)) {
+			Struct props = Caster.toStruct(connection.get(KeyConstants._custom, null), null);
+			if (props == null) props = Caster.toStruct(connection.get(KeyConstants._properties, null), null);
+			if (props == null) props = Caster.toStruct(connection.get(KeyConstants._arguments, null), null);
+			String cn = props == null ? null : classNameForType(Caster.toString(props.get(KeyConstants._type, null), null));
+			if (cn == null) {
+				throw new ApplicationException(
+						"the AI connection struct needs to define the engine, either with the key [class] (or [component]) or with the property [type] set to one of [openai, chatgpt, ollama, perplexity, deepseek, grok, claude, gemini]");
+			}
+			connection.setEL(KeyConstants._class, cn);
+		}
+		return connection;
+	}
+
+	private static boolean isConnectionKey(Key key) {
+		for (Key k: CONNECTION_KEYS) {
+			if (k.equals(key)) return true;
+		}
+		return false;
+	}
+
+	private static String classNameForType(String type) {
+		if (StringUtil.isEmpty(type, true)) return null;
+		type = type.trim().toLowerCase();
+		if ("openai".equals(type) || "chatgpt".equals(type) || "ollama".equals(type) || "perplexity".equals(type) || "deepseek".equals(type) || "grok".equals(type)) {
+			return "lucee.runtime.ai.openai.OpenAIEngine";
+		}
+		if ("claude".equals(type)) return "lucee.runtime.ai.anthropic.ClaudeEngine";
+		if ("gemini".equals(type)) return "lucee.runtime.ai.google.GeminiEngine";
+		return null;
 	}
 
 	public static AIEngine getExistingInstance(String id, AIEngine defaultValue) {
