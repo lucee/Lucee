@@ -1,4 +1,110 @@
 <cfsetting enablecfoutputonly="reset">
+<cfscript>
+// does the Accept header of the request prefer text/markdown over text/html (LDEV-6142)
+function luceeAcceptsMarkdown() {
+	var accept = getHTTPRequestData( false ).headers.accept ?: "";
+	if ( !len( trim( accept ) ) ) return false;
+
+	var ranges = [];
+	loop array=listToArray( accept, "," ) item="local.part" {
+		var segments = listToArray( part, ";" );
+		if ( !arrayLen( segments ) ) continue;
+		var type = lCase( trim( segments[ 1 ] ) );
+		if ( !find( "/", type ) ) continue;
+		var q = 1;
+		var valid = true;
+		loop from=2 to=arrayLen( segments ) index="local.i" {
+			var param = trim( segments[ i ] );
+			if ( lCase( left( param, 2 ) ) == "q=" ) {
+				var qValue = trim( mid( param, 3 ) );
+				if ( isNumeric( qValue ) ) q = min( 1, max( 0, qValue ) );
+				else valid = false;
+			}
+		}
+		if ( valid ) ranges.append( { "type": type, "q": q, "pos": arrayLen( ranges ) + 1 } );
+	}
+
+	// the most specific range matching the media type decides (RFC 9110), spec 3 = exact, 2 = type/*, 1 = */*
+	var match = function( required string target ) {
+		var found = { "spec": 0, "q": 0, "pos": 0 };
+		var targetMain = listFirst( arguments.target, "/" ) & "/*";
+		loop array=ranges item="local.range" {
+			var spec = 0;
+			if ( range.type == arguments.target ) spec = 3;
+			else if ( range.type == targetMain ) spec = 2;
+			else if ( range.type == "*/*" ) spec = 1;
+			if ( spec > found.spec ) found = { "spec": spec, "q": range.q, "pos": range.pos };
+		}
+		return found;
+	};
+
+	var markdown = match( "text/markdown" );
+	// markdown has to be asked for explicitly, a wildcard alone keeps the HTML output
+	if ( markdown.spec != 3 || markdown.q <= 0 ) return false;
+
+	var html = match( "text/html" );
+	if ( html.spec == 0 || html.q <= 0 ) return true;
+	if ( markdown.q != html.q ) return markdown.q > html.q;
+	// same weight: an explicitly listed text/html only wins when it is listed first
+	return html.spec < 3 || markdown.pos < html.pos;
+}
+
+function luceeMdFence( required string text ) {
+	var fence = "```";
+	while ( find( fence, arguments.text ) ) fence &= "`";
+	return fence & chr( 10 ) & arguments.text & chr( 10 ) & fence;
+}
+
+function luceeMdHeading( required numeric level, required string text ) {
+	return repeatString( chr( 35 ), arguments.level ) & " " & arguments.text;
+}
+
+function luceeMdError( required struct err ) {
+	var nl = chr( 10 );
+	var md = luceeMdHeading( 2, "Lucee #server.lucee.version# Error (#arguments.err.type ?: ""#)" ) & nl & nl;
+
+	md &= luceeMdHeading( 3, "Message" ) & nl & nl & ( arguments.err.message ?: "" ) & nl & nl;
+
+	if ( len( arguments.err.detail ?: "" ) ) {
+		md &= luceeMdHeading( 3, "Detail" ) & nl & nl & arguments.err.detail & nl & nl;
+	}
+
+	if ( structKeyExists( arguments.err, "errorcode" ) && len( arguments.err.errorcode ) && arguments.err.errorcode != 0 ) {
+		md &= luceeMdHeading( 3, "Error Code" ) & nl & nl & arguments.err.errorcode & nl & nl;
+	}
+
+	if ( structKeyExists( arguments.err, "extendedinfo" ) && len( arguments.err.extendedinfo ) ) {
+		md &= luceeMdHeading( 3, "Extended Info" ) & nl & nl & arguments.err.extendedinfo & nl & nl;
+	}
+
+	if ( structKeyExists( arguments.err, "additional" ) ) {
+		loop struct=arguments.err.additional index="local.key" item="local.val" {
+			md &= luceeMdHeading( 3, key ) & nl & nl & val & nl & nl;
+		}
+	}
+
+	if ( structKeyExists( arguments.err, "tagcontext" ) && arrayLen( arguments.err.tagcontext ) ) {
+		md &= luceeMdHeading( 3, "Stacktrace" ) & nl & nl & "The Error Occurred in" & nl & nl;
+		loop array=arguments.err.tagcontext index="local.idx" item="local.tc" {
+			md &= ( idx == 1 ? "**#tc.template#: line #tc.line#**" : "**called from** #tc.template#: line #tc.line#" ) & nl & nl;
+			var snippet = trim( tc.codeprintplain ?: "" );
+			if ( len( snippet ) ) md &= luceeMdFence( snippet ) & nl & nl;
+		}
+	}
+
+	md &= luceeMdHeading( 3, "Java Stacktrace" ) & nl & nl & luceeMdFence( trim( arguments.err.stacktrace ?: "" ) ) & nl & nl;
+
+	var timestamp = now();
+	md &= luceeMdHeading( 3, "Timestamp" ) & nl & nl & LsDateFormat( timestamp, "short" ) & " " & LsTimeFormat( timestamp, "long" ) & nl;
+	return md;
+}
+
+if ( luceeAcceptsMarkdown() && !getPageContext().getResponse().isCommitted() ) {
+	content type="text/markdown; charset=utf-8" reset="true";
+	echo( luceeMdError( variables.catch ) );
+	return;
+}
+</cfscript>
 <cfparam name="addClosingHTMLTags" default="#true#" type="boolean"><cfif addClosingHTMLTags></TD></TD></TD></TH></TH></TH></TR></TR></TR></TABLE></TABLE></TABLE></A></ABBREV></ACRONYM></ADDRESS></APPLET></AU></B></BANNER></BIG></BLINK></BLOCKQUOTE></BQ></CAPTION></CENTER></CITE></CODE></COMMENT></DEL></DFN></DIR></DIV></DL></EM></FIG></FN></FONT></FORM></FRAME></FRAMESET></H1></H2></H3></H4></H5></H6></HEAD></I></INS></KBD></LISTING></MAP></MARQUEE></MENU></MULTICOL></NOBR></NOFRAMES></NOSCRIPT></NOTE></OL></P></PARAM></PERSON></PLAINTEXT></PRE></Q></S></SAMP></SCRIPT></SELECT></SMALL></STRIKE></STRONG></SUB></SUP></TABLE></TD></TEXTAREA></TH></TITLE></TR></TT></U></UL></VAR></WBR></XMP>
 </cfif><style>
 	#-lucee-err			{ font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; font-size: 11px; background-color:#930; border-collapse: collapse; }
