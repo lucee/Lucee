@@ -289,26 +289,24 @@ public final class Log4j2Engine extends LogEngine {
 			}
 			// class definition
 			else {
-				// MUST that will no longer work that way
-				Object obj = ClassUtil.loadInstance(cd.getClazz(null), null, null);
-				if (obj instanceof Layout) {
-					Reflector.callSetter(obj, "name", name);
-					Reflector.callSetter(obj, "layout", toLayout(layout));
-					Iterator<Entry<String, String>> it = layoutArgs.entrySet().iterator();
-					Entry<String, String> entry;
-					while (it.hasNext()) {
-						entry = it.next();
-						MethodInstance mi = Reflector.getSetter(obj, entry.getKey(), entry.getValue(), null);
-						if (mi != null) {
-							try {
-								mi.invoke(obj);
-							}
-							catch (Exception e) {
-								throw Caster.toPageException(e);
-							}
+				Object obj = loadCustomInstance(cd, Layout.class);
+				// a layout has no layout, the name is optional
+				invokeSetter(obj, "name", name);
+				Iterator<Entry<String, String>> it = layoutArgs.entrySet().iterator();
+				Entry<String, String> entry;
+				while (it.hasNext()) {
+					entry = it.next();
+					MethodInstance mi = Reflector.getSetter(obj, entry.getKey(), entry.getValue(), null);
+					if (mi != null) {
+						try {
+							mi.invoke(obj);
+						}
+						catch (Exception e) {
+							throw Caster.toPageException(e);
 						}
 					}
 				}
+				layout = (Layout) obj;
 			}
 		}
 		if (layout != null) return layout;
@@ -438,24 +436,22 @@ public final class Log4j2Engine extends LogEngine {
 			// class definition
 			else {
 				try {
-					Object obj = ClassUtil.loadInstance(cd.getClazz(null), null, null);
-
-					if (obj instanceof Appender) {
-						appender = (Appender) obj;
-						Reflector.callSetter(obj, "name", name);
-						Reflector.callSetter(obj, "layout", toLayout(layout));
-						Iterator<Entry<String, String>> it = appenderArgs.entrySet().iterator();
-						Entry<String, String> entry;
-						while (it.hasNext()) {
-							entry = it.next();
-							MethodInstance mi = Reflector.getSetter(obj, entry.getKey(), entry.getValue(), null);
-							if (mi != null) {
-								try {
-									mi.invoke(obj);
-								}
-								catch (Exception e) {
-									throw Caster.toPageException(e);
-								}
+					Object obj = loadCustomInstance(cd, Appender.class);
+					appender = (Appender) obj;
+					// name and layout are optional, a log4j2 appender does not necessarily have setters for them
+					invokeSetter(obj, "name", name);
+					invokeSetter(obj, "layout", toLayout(layout));
+					Iterator<Entry<String, String>> it = appenderArgs.entrySet().iterator();
+					Entry<String, String> entry;
+					while (it.hasNext()) {
+						entry = it.next();
+						MethodInstance mi = Reflector.getSetter(obj, entry.getKey(), entry.getValue(), null);
+						if (mi != null) {
+							try {
+								mi.invoke(obj);
+							}
+							catch (Exception e) {
+								throw Caster.toPageException(e);
 							}
 						}
 					}
@@ -552,6 +548,41 @@ public final class Log4j2Engine extends LogEngine {
 	private Appender toAppender(Object l) throws ApplicationException {
 		if (l instanceof Appender) return (Appender) l;
 		throw new ApplicationException("cannot convert [" + l + "] to an Appender");
+	}
+
+	/**
+	 * load an instance of a custom (not built in) appender or layout, defined by class, bundle or maven
+	 * coordinates. The class must be an instance of the log4j2 type used by Lucee, if the class is
+	 * loaded together with its own copy of log4j-core (e.g. a maven artifact with a compile dependency
+	 * to log4j-core) the instanceof check fails, in that case we throw instead of silently using a
+	 * default.
+	 */
+	private static Object loadCustomInstance(ClassDefinition<?> cd, Class<?> type) throws PageException {
+		Class<?> clazz;
+		try {
+			clazz = cd.getClazz();
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+		Object obj = ClassUtil.loadInstance(clazz, null, null);
+		if (obj == null) throw new ApplicationException("cannot create an instance of the class [" + cd.getClassName() + "], it needs a public constructor without arguments");
+		if (!type.isInstance(obj)) {
+			throw new ApplicationException("the class [" + cd.getClassName() + "] is not an instance of [" + type.getName() + "] as used by Lucee, it extends [" + type.getName()
+					+ "] loaded by a different class loader. If the class comes from a maven artifact, make sure the artifact does not bring its own log4j-core (declare the dependency with the scope [provided]).");
+		}
+		return obj;
+	}
+
+	private static void invokeSetter(Object obj, String propertyName, Object value) throws PageException {
+		MethodInstance mi = Reflector.getSetter(obj, propertyName, value, null);
+		if (mi == null) return;
+		try {
+			mi.invoke(obj);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	private Layout toLayout(Object l) throws ApplicationException {

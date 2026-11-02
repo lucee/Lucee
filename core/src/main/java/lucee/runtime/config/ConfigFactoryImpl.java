@@ -1539,7 +1539,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 						tmp = StringUtil.trim(getAttr(config, child, "appender"), "");
 						cdAppender = config.getLogEngine().appenderClassDefintion(tmp);
 					}
-					else if (!cdAppender.isBundle()) {
+					else if (!cdAppender.isBundle() && !ClassDefinitionImpl.isMaven(cdAppender)) {
 						cdAppender = config.getLogEngine().appenderClassDefintion(cdAppender.getClassName());
 					}
 					appenderArgs = toArguments(child, "appenderArguments", true, false);
@@ -1550,7 +1550,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 						tmp = StringUtil.trim(getAttr(config, child, "layout"), "");
 						cdLayout = config.getLogEngine().layoutClassDefintion(tmp);
 					}
-					else if (!cdLayout.isBundle()) {
+					else if (!cdLayout.isBundle() && !ClassDefinitionImpl.isMaven(cdLayout)) {
 						cdLayout = config.getLogEngine().layoutClassDefintion(cdLayout.getClassName());
 					}
 					layoutArgs = toArguments(child, "layoutArguments", true, false);
