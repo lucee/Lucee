@@ -53,6 +53,8 @@
 		"label": aiGetMetaData( def ).label,
 		"flatLabel": aiGetMetaData( flat ).label,
 		"sessionEngineLabel": s1.getEngine().getLabel(),
+		// no class, derived from the type, nothing is sent to the endpoint when the engine is created
+		"typeModel": aiGetMetaData( { "type": "other", "url": "http://localhost:1/v1/", "secretKey": "not-a-secret", "model": "ldev6131-model" } ).model,
 		"has": aiHas( def ),
 		"hasFlat": aiHas( flat ),
 		"hasName": aiHas( "ldev6131-does-not-exist" ),

@@ -24,6 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ai" {
 				expect( r.label ).toInclude( "ldev6131-" );
 				expect( r.sessionEngineLabel ).toBe( r.label );
 				// the other functions
+				expect( r.typeModel ).toBe( "ldev6131-model" );
 				expect( r.has ).toBeTrue();
 				expect( r.hasFlat ).toBeTrue();
 				expect( r.hasName ).toBeFalse();

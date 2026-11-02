@@ -11107,7 +11107,7 @@ mavenLoad([
    Using the format "id:uuid" to use an AI engine registered by its unique identifier.
 
 4. Connection struct:
-   A struct that defines the connection itself, instead of the name of a connection that is already configured. The struct takes the same keys as a connection defined in the Application.cfc (`this.ai`) or in the .CFConfig.json (`class`, or `component` for an engine written in CFML, with the engine properties in `custom`). The engine properties can also be set directly in the struct, for example `{ type: "openai", model: "gpt-4o", secretKey: "..." }`. When no `class` is defined, it is derived from the property `type` (openai, chatgpt, ollama, perplexity, deepseek, grok, claude or gemini).
+   A struct that defines the connection itself, instead of the name of a connection that is already configured. The struct takes the same keys as a connection defined in the Application.cfc (`this.ai`) or in the .CFConfig.json (`class`, or `component` for an engine written in CFML, with the engine properties in `custom`). The engine properties can also be set directly in the struct, for example `{ type: "openai", model: "gpt-4o", secretKey: "..." }`. When no `class` is defined, it is derived from the property `type` (openai, chatgpt, ollama, perplexity, deepseek, grok, claude or gemini, or other for any OpenAI compatible endpoint defined with the property `url`).
    An engine is created only once for a given struct. Passing the same definition again, in this or any other request, reuses the engine, so there is no need to store the struct or to configure the connection with a cfapplication tag first.
 
 Currently supported default categories:
@@ -11442,7 +11442,7 @@ This function pairs with `SerializeAISession()` to provide persistence for AI co
    Using the format "id:uuid" to use an AI engine registered by its unique identifier.
 
 4. Connection struct:
-   A struct that defines the connection itself, instead of the name of a connection that is already configured. The struct takes the same keys as a connection defined in the Application.cfc (`this.ai`) or in the .CFConfig.json (`class`, or `component` for an engine written in CFML, with the engine properties in `custom`). The engine properties can also be set directly in the struct, for example `{ type: "openai", model: "gpt-4o", secretKey: "..." }`. When no `class` is defined, it is derived from the property `type` (openai, chatgpt, ollama, perplexity, deepseek, grok, claude or gemini).
+   A struct that defines the connection itself, instead of the name of a connection that is already configured. The struct takes the same keys as a connection defined in the Application.cfc (`this.ai`) or in the .CFConfig.json (`class`, or `component` for an engine written in CFML, with the engine properties in `custom`). The engine properties can also be set directly in the struct, for example `{ type: "openai", model: "gpt-4o", secretKey: "..." }`. When no `class` is defined, it is derived from the property `type` (openai, chatgpt, ollama, perplexity, deepseek, grok, claude or gemini, or other for any OpenAI compatible endpoint defined with the property `url`).
    An engine is created only once for a given struct. Passing the same definition again, in this or any other request, reuses the engine, so there is no need to store the struct or to configure the connection with a cfapplication tag first.
 
 Currently supported default categories:

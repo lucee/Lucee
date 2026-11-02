@@ -109,7 +109,7 @@ public final class AIEngineFactory implements PropFactory<AIEngine> {
 	 * connection defined in the Application.cfc or in the configuration. A struct that is already in
 	 * that form (keys like class, custom, default) is taken as it is, otherwise all keys that do not
 	 * belong to the connection itself are handled as properties of the engine. When no class is
-	 * defined, it is derived from the property type (for example openai, claude or gemini).
+	 * defined, it is derived from the property type (for example openai, other (an OpenAI compatible endpoint defined with `url`), claude or gemini).
 	 * 
 	 * @param data the connection struct as passed by the caller, is not modified
 	 * @return a new struct, that can be passed to getInstance
@@ -148,7 +148,7 @@ public final class AIEngineFactory implements PropFactory<AIEngine> {
 			String cn = props == null ? null : classNameForType(Caster.toString(props.get(KeyConstants._type, null), null));
 			if (cn == null) {
 				throw new ApplicationException(
-						"the AI connection struct needs to define the engine, either with the key [class] (or [component]) or with the property [type] set to one of [openai, chatgpt, ollama, perplexity, deepseek, grok, claude, gemini]");
+						"the AI connection struct needs to define the engine, either with the key [class] (or [component]) or with the property [type] set to one of [openai, chatgpt, ollama, perplexity, deepseek, grok, other, claude, gemini]");
 			}
 			connection.setEL(KeyConstants._class, cn);
 		}
@@ -165,7 +165,8 @@ public final class AIEngineFactory implements PropFactory<AIEngine> {
 	private static String classNameForType(String type) {
 		if (StringUtil.isEmpty(type, true)) return null;
 		type = type.trim().toLowerCase();
-		if ("openai".equals(type) || "chatgpt".equals(type) || "ollama".equals(type) || "perplexity".equals(type) || "deepseek".equals(type) || "grok".equals(type)) {
+		if ("openai".equals(type) || "chatgpt".equals(type) || "ollama".equals(type) || "perplexity".equals(type) || "deepseek".equals(type) || "grok".equals(type)
+				|| "other".equals(type)) {
 			return "lucee.runtime.ai.openai.OpenAIEngine";
 		}
 		if ("claude".equals(type)) return "lucee.runtime.ai.anthropic.ClaudeEngine";
