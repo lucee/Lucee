@@ -79,15 +79,6 @@
 			validate="#getForm('validate',false)#"
 			storage="#getForm('storage',false)#"
 			
-			allowed_select="#getForm('allowed_select',false)#"
-			allowed_insert="#getForm('allowed_insert',false)#"
-			allowed_update="#getForm('allowed_update',false)#"
-			allowed_delete="#getForm('allowed_delete',false)#"
-			allowed_alter="#getForm('allowed_alter',false)#"
-			allowed_drop="#getForm('allowed_drop',false)#"
-			allowed_revoke="#getForm('allowed_revoke',false)#"
-			allowed_create="#getForm('allowed_create',false)#"
-			allowed_grant="#getForm('allowed_grant',false)#"
 			verify="#verify#"
 			custom="#custom#"
 			dbdriver="#dbdriver#"
@@ -179,16 +170,6 @@
 		<cfset datasource.LiveTimeout = lt>
 		<cfset datasource.blob     = driver.getValue('blob')>
 		<cfset datasource.clob     = driver.getValue('clob')>
-		
-		<cfset datasource.select   = driver.getValue('allowed_select')>
-		<cfset datasource.insert   = driver.getValue('allowed_insert')>
-		<cfset datasource.update   = driver.getValue('allowed_update')>
-		<cfset datasource.delete   = driver.getValue('allowed_delete')>
-		<cfset datasource.create   = driver.getValue('allowed_create')>
-		<cfset datasource.drop     = driver.getValue('allowed_drop')>
-		<cfset datasource.revoke   = driver.getValue('allowed_revoke')>
-		<cfset datasource.alter    = driver.getValue('allowed_alter')>
-		<cfset datasource.grant    = driver.getValue('allowed_grant')>
 		<cfset datasource.metaCacheTimeout=60000>
 	</cfif>
 	
@@ -484,29 +465,6 @@
 					<td>
 						<cfinputClassic type="checkbox" class="checkbox" name="clob" value="yes" checked="#datasource.clob#">
 						<div class="comment">#stText.Settings.dbClobDesc#</div>
-					</td>
-				</tr>
-				<!--- Allow --->
-				<tr>
-					<th scope="row">#stText.Settings.dbAllowed#</th>
-					<td>
-
-						<div class="warningops">
-							This functionality is deprecated and will be removed in future versions, 
-							restrict operations by using roles and permissions in your DBMS!
-						</div>
-
-						<ul class="radiolist float">
-							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_select" value="yes" checked="#datasource.select#"> <b>Select</b></label></li>
-							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_insert" value="yes" checked="#datasource.insert#"> <b>Insert</b></label></li>
-							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_update" value="yes" checked="#datasource.update#"> <b>Update</b></label></li>
-							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_delete" value="yes" checked="#datasource.delete#"> <b>Delete</b></label></li>
-							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_create" value="yes" checked="#datasource.create#"> <b>Create</b></label></li>
-							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_drop" value="yes" checked="#datasource.drop#"> <b>Drop</b></label></li>
-							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_revoke" value="yes" checked="#datasource.revoke#"> <b>Revoke</b></label></li>
-							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_alter" value="yes" checked="#datasource.alter#"> <b>Alter</b></label></li>
-							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_grant" value="yes" checked="#datasource.grant#"> <b>Grant</b></label></li>
-						</ul>
 					</td>
 				</tr>
 				<!--- storage --->

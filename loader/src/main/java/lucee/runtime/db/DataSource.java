@@ -35,52 +35,82 @@ public interface DataSource extends Cloneable {
 
 	/**
 	 * Field <code>ALLOW_SELECT</code>
+	 * 
+	 * @deprecated per-datasource SQL restrictions were removed in Lucee 9, this value is ignored
 	 */
+	@Deprecated
 	public static final int ALLOW_SELECT = 1;
 
 	/**
 	 * Field <code>ALLOW_DELETE</code>
+	 * 
+	 * @deprecated per-datasource SQL restrictions were removed in Lucee 9, this value is ignored
 	 */
+	@Deprecated
 	public static final int ALLOW_DELETE = 2;
 
 	/**
 	 * Field <code>ALLOW_UPDATE</code>
+	 * 
+	 * @deprecated per-datasource SQL restrictions were removed in Lucee 9, this value is ignored
 	 */
+	@Deprecated
 	public static final int ALLOW_UPDATE = 4;
 
 	/**
 	 * Field <code>ALLOW_INSERT</code>
+	 * 
+	 * @deprecated per-datasource SQL restrictions were removed in Lucee 9, this value is ignored
 	 */
+	@Deprecated
 	public static final int ALLOW_INSERT = 8;
 
 	/**
 	 * Field <code>ALLOW_CREATE</code>
+	 * 
+	 * @deprecated per-datasource SQL restrictions were removed in Lucee 9, this value is ignored
 	 */
+	@Deprecated
 	public static final int ALLOW_CREATE = 16;
 
 	/**
 	 * Field <code>ALLOW_GRANT</code>
+	 * 
+	 * @deprecated per-datasource SQL restrictions were removed in Lucee 9, this value is ignored
 	 */
+	@Deprecated
 	public static final int ALLOW_GRANT = 32;
 
 	/**
 	 * Field <code>ALLOW_REVOKE</code>
+	 * 
+	 * @deprecated per-datasource SQL restrictions were removed in Lucee 9, this value is ignored
 	 */
+	@Deprecated
 	public static final int ALLOW_REVOKE = 64;
 
 	/**
 	 * Field <code>ALLOW_DROP</code>
+	 * 
+	 * @deprecated per-datasource SQL restrictions were removed in Lucee 9, this value is ignored
 	 */
+	@Deprecated
 	public static final int ALLOW_DROP = 128;
 
 	/**
 	 * Field <code>ALLOW_ALTER</code>
+	 * 
+	 * @deprecated per-datasource SQL restrictions were removed in Lucee 9, this value is ignored
 	 */
+	@Deprecated
 	public static final int ALLOW_ALTER = 256;
 
 	/**
 	 * Field <code>ALLOW_ALL</code>
+	 * 
+	 * @deprecated per-datasource SQL restrictions were removed in Lucee 9, this value is ignored
 	 */
+	@Deprecated
 	public static final int ALLOW_ALL = ALLOW_SELECT + ALLOW_DELETE + ALLOW_UPDATE + ALLOW_INSERT + ALLOW_CREATE + ALLOW_GRANT + ALLOW_REVOKE + ALLOW_DROP + ALLOW_ALTER;
 
 	/**
@@ -131,8 +161,10 @@ public interface DataSource extends Cloneable {
 
 	/**
 	 * @param allow allow
-	 * @return returns if given allow exists
+	 * @return always returns true, per-datasource SQL restrictions were removed in Lucee 9
+	 * @deprecated per-datasource SQL restrictions were removed in Lucee 9
 	 */
+	@Deprecated
 	public abstract boolean hasAllow(int allow);
 
 	/**
@@ -219,8 +251,10 @@ public interface DataSource extends Cloneable {
 	public abstract Struct getCustoms();
 
 	/**
-	 * @return returns if database has a SQL restriction
+	 * @return always returns false, per-datasource SQL restrictions were removed in Lucee 9
+	 * @deprecated per-datasource SQL restrictions were removed in Lucee 9
 	 */
+	@Deprecated
 	public abstract boolean hasSQLRestriction();
 
 	/**

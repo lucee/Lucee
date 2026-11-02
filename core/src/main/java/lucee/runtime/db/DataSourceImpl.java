@@ -70,7 +70,6 @@ public final class DataSourceImpl extends DataSourceSupport {
 	 * @param metaCacheTimeout
 	 * @param blob
 	 * @param clob
-	 * @param allow
 	 * @param custom
 	 * @param readOnly
 	 * @param validate
@@ -88,12 +87,12 @@ public final class DataSourceImpl extends DataSourceSupport {
 	 */
 	public DataSourceImpl(String name, ClassDefinition cd, String host, String connStr, String bundleName, String bundleVersion, String database, int port, String username,
 			String password, TagListener listener, int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout,
-			boolean blob, boolean clob, int allow, Struct custom, boolean readOnly, boolean validate, boolean storage, TimeZone timezone, String dbdriver, ParamSyntax paramSyntax,
+			boolean blob, boolean clob, Struct custom, boolean readOnly, boolean validate, boolean storage, TimeZone timezone, String dbdriver, ParamSyntax paramSyntax,
 			boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections, Log log)
 			throws ClassException, SQLException {
 
 		super(name, cd, username, ConfigUtil.decrypt(password), listener, blob, clob, connectionLimit, idleTimeout, liveTimeout, minIdle, maxIdle, maxTotal, metaCacheTimeout,
-				timezone, allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, requestExclusive, alwaysResetConnections, literalTimestampWithTSOffset, log);
+				timezone, storage, readOnly, validate, requestExclusive, alwaysResetConnections, literalTimestampWithTSOffset, log);
 
 		this.bundleName = bundleName;
 		this.bundleVersion = bundleVersion;
@@ -205,7 +204,7 @@ public final class DataSourceImpl extends DataSourceSupport {
 	public DataSource _clone(boolean readOnly) {
 		try {
 			return new DataSourceImpl(getName(), getClassDefinition(), host, connStr, bundleName, bundleVersion, database, port, getUsername(), getPassword(), getListener(),
-					getConnectionLimit(), getIdleTimeout(), getLiveTimeout(), getMinIdle(), getMaxIdle(), getMaxTotal(), getMetaCacheTimeout(), isBlob(), isClob(), allow, custom,
+					getConnectionLimit(), getIdleTimeout(), getLiveTimeout(), getMinIdle(), getMaxIdle(), getMaxTotal(), getMetaCacheTimeout(), isBlob(), isClob(), custom,
 					readOnly, validate(), isStorage(), getTimeZone(), dbdriver, getParamSyntax(), getLiteralTimestampWithTSOffset(), alwaysSetTimeout, isRequestExclusive(),
 					isAlwaysResetConnections(), getLog());
 		}
