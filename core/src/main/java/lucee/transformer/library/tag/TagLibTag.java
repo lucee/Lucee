@@ -42,7 +42,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.Factory;
@@ -620,7 +619,7 @@ public final class TagLibTag {
 
 	public void setBundleVersion(String bundleVersion) {
 		// TODO allow 1.0.0.0-2.0.0.0,3.0.0.0
-		this.bundleVersion = VersionImpl.parse(bundleVersion.trim(), true, null);
+		this.bundleVersion = VersionImpl.parseOSGi(bundleVersion.trim(), null);
 	}
 
 	/**
@@ -939,7 +938,7 @@ public final class TagLibTag {
 	}
 
 	public void setIntroduced(String introduced) {
-		this.introduced = VersionImpl.parse(introduced, true, null);
+		this.introduced = VersionImpl.parseOSGi(introduced, null);
 	}
 
 	public Version getIntroduced() {

@@ -26,7 +26,6 @@ import lucee.runtime.config.maven.Version;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.Md5;
 import lucee.runtime.type.util.ListUtil;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.transformer.library.tag.TagLib;
 
 /**
@@ -265,7 +264,7 @@ public final class FunctionLibFunctionArg {
 	}
 
 	public void setIntroduced(String introduced) {
-		this.introduced = VersionImpl.parse(introduced, true, null);
+		this.introduced = VersionImpl.parseOSGi(introduced, null);
 	}
 
 	public Version getIntroduced() {

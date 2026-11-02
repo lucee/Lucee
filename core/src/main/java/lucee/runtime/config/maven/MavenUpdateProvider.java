@@ -1,6 +1,5 @@
 package lucee.runtime.config.maven;
 
-import lucee.loader.util.VersionImpl;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +36,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPEngineBasic.HTTPDownloaderHeadResponse;
 import lucee.commons.net.http.Header;
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
@@ -384,7 +384,7 @@ public final class MavenUpdateProvider {
 	 * GeneralSecurityException, SAXException, BundleException {
 	 * 
 	 * MavenUpdateProvider mup = new MavenUpdateProvider(); Map<String, Object> map =
-	 * mup.detail(VersionImpl.parse("6.1.0.719-SNAPSHOT", true)); print.e(map); }
+	 * mup.detail(VersionImpl.parseOSGi("6.1.0.719-SNAPSHOT")); print.e(map); }
 	 */
 
 	public Map<String, Object> detail(Version version, String requiredArtifactExtension, boolean throwException) throws IOException, SAXException, PageException {

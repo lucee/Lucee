@@ -18,7 +18,6 @@
  */
 package lucee.runtime.config;
 
-import lucee.loader.util.VersionImpl;
 import lucee.runtime.osgi.BundleServiceImpl;
 import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
 

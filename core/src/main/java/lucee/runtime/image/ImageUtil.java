@@ -3,7 +3,6 @@ package lucee.runtime.image;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Method;
 
-import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 
 import lucee.commons.io.res.Resource;

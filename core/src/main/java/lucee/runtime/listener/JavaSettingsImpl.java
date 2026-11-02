@@ -34,9 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.BundleException;
 
-import lucee.loader.util.VersionImpl;
 import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -47,6 +45,7 @@ import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
@@ -61,7 +60,6 @@ import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
@@ -238,7 +236,7 @@ public final class JavaSettingsImpl implements JavaSettings {
 						existing = map.get(key);
 						if (existing != null) {
 							try {
-								if (VersionImpl.compare(VersionImpl.parse(existing.getVersion(), true), VersionImpl.parse(p.getVersion(), true)) < 0) {
+								if (VersionImpl.compare(VersionImpl.parseOSGi(existing.getVersion()), VersionImpl.parseOSGi(p.getVersion())) < 0) {
 									map.put(key, p);
 								}
 							}

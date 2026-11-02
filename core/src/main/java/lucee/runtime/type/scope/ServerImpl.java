@@ -20,7 +20,6 @@ package lucee.runtime.type.scope;
 
 import java.io.File;
 
-import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 
 import lucee.Info;

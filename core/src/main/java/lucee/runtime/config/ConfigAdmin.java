@@ -732,14 +732,14 @@ public final class ConfigAdmin {
 
 			// same GA, but different V
 			if (existingCoordinate.same(coordinate)) {
-				newVersion = VersionImpl.parse(coordinate.version, true, null);
+				newVersion = VersionImpl.parseOSGi(coordinate.version, null);
 				if (newVersion == null) {
 					LogUtil.logx(config, Log.LEVEL_WARN, "config", "Skipping update for [" + coordinate + "], invalid version format", "deploy", "application");
 					return;
 				}
 
 				try {
-					exVersion = VersionImpl.parse(existingCoordinate.version, true);
+					exVersion = VersionImpl.parseOSGi(existingCoordinate.version);
 				}
 				catch (IOException e) {
 					throw Caster.toPageException(e);
@@ -1350,7 +1350,7 @@ public final class ConfigAdmin {
 
 		// version
 		Version version = OSGiUtil.toLucee(bf.getVersion());
-		if (version == null) version = VersionImpl.parse(extVersion, true);
+		if (version == null) version = VersionImpl.parseOSGi(extVersion);
 
 		LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
 		BundleBuilderFactory bbf = new BundleBuilderFactory(resJar, name);

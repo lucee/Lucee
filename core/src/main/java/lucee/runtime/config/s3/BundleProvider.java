@@ -685,7 +685,7 @@ public final class BundleProvider extends DefaultHandler {
 			if (index == -1) return defaultValue;
 
 			String symbolicName = version.substring(0, index);
-			Version symbolicVersion = VersionImpl.parse(version.substring(index + 1), true, null);
+			Version symbolicVersion = VersionImpl.parseOSGi(version.substring(index + 1), null);
 			if (symbolicVersion == null) return defaultValue;
 			return new BundleDefinition(symbolicName, symbolicVersion);
 		}

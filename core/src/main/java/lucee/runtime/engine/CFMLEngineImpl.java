@@ -450,7 +450,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				Version edVersion, installedVersion;
 				while (it.hasNext()) {
 					ed = it.next();
-					edVersion = VersionImpl.parse(ed.getVersion(), true, null);
+					edVersion = VersionImpl.parseOSGi(ed.getVersion(), null);
 					if (ed.getVersion() == null) {
 						continue; // no version definition no update
 					}
@@ -463,7 +463,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 								installed = RHExtension.getInstalledDifferentVersion(cs, ed, null);
 								// we have another version installed
 								if (installed != null) {
-									installedVersion = VersionImpl.parse(installed.getVersion(), true, null);
+									installedVersion = VersionImpl.parseOSGi(installed.getVersion(), null);
 									if (installedVersion != null && (VersionImpl.compare(edVersion, installedVersion) > 0)) {
 										LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
 												"Lucee requires a never version [" + edVersion + "] than the insatlled version [" + installedVersion + "] for Extension [" + ed + "]");

@@ -24,7 +24,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.osgi.framework.BundleException;
-import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 
 import lucee.commons.lang.ClassException;
@@ -40,7 +39,6 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.functions.BIFProxy;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;

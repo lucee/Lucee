@@ -32,7 +32,6 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ListUtil;
@@ -418,7 +417,7 @@ public final class TagLibTagAttr {
 	}
 
 	public void setIntroduced(String introduced) {
-		this.introduced = VersionImpl.parse(introduced, true, null);
+		this.introduced = VersionImpl.parseOSGi(introduced, null);
 	}
 
 	public Version getIntroduced() {

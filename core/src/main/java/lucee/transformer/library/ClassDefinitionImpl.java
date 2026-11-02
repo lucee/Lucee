@@ -48,7 +48,6 @@ import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleServiceImpl;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.KeyImpl;
@@ -78,7 +77,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	public ClassDefinitionImpl(String className, String name, String version, Identification id) {
 		this.className = className == null ? null : className.trim();
 		this.name = StringUtil.isEmpty(name, true) ? null : name.trim();
-		this.version = VersionImpl.parse(version, true, null);
+		this.version = VersionImpl.parseOSGi(version, null);
 		this.id = id;
 	}
 
@@ -253,7 +252,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		className = (String) in.readObject();
 		name = (String) in.readObject();
 		String tmp = (String) in.readObject();
-		if (tmp != null) this.version = VersionImpl.parse(tmp, true, null);
+		if (tmp != null) this.version = VersionImpl.parseOSGi(tmp, null);
 		id = (Identification) in.readObject();
 		maven = (String) in.readObject();
 	}

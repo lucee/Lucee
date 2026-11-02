@@ -1019,7 +1019,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doChangeVersionTo() throws PageException {
 		try {
-			Version version = VersionImpl.parse(getString("admin", "changeVersionTo", "version"), true);
+			Version version = VersionImpl.parseOSGi(getString("admin", "changeVersionTo", "version"));
 			admin.changeVersionTo(version, password, pageContext.getConfig().getIdentification());
 		}
 		catch (IOException e) {
@@ -3667,7 +3667,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetBundle() throws PageException {
 		String symbolicName = getString("admin", "getBundle", "symbolicName", true);
-		Version version = VersionImpl.parse(getString("version", null), true, null);
+		Version version = VersionImpl.parseOSGi(getString("version", null), null);
 
 		BundleDefinition bd;
 		BundleFile bf = null;

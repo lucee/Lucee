@@ -151,7 +151,7 @@ public final class ClassUtil {
 		// version
 		Version version = null;
 		if (!StringUtil.isEmpty(strVersion, true)) {
-			version = VersionImpl.parse(strVersion.trim(), true, null);
+			version = VersionImpl.parseOSGi(strVersion.trim(), null);
 			if (version == null) throw new ClassException("Version definition [" + strVersion + "] is invalid.");
 		}
 		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional, versionOnlyMattersForDownload);
