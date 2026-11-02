@@ -59,7 +59,6 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final String name;
 	private final boolean storage;
 	private final boolean validate;
-	protected final int allow;
 	private final boolean readOnly;
 	private final String username;
 	private final String password;
@@ -78,7 +77,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private String id;
 
 	public DataSourceSupport(String name, ClassDefinition cd, String username, String password, TagListener listener, boolean blob, boolean clob, int connectionLimit,
-			int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly,
+			int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, TimeZone timezone, boolean storage, boolean readOnly,
 			boolean validate, boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
 		this.name = name;
 		this.cd = cd;// _initializeCD(null, cd, config);
@@ -89,7 +88,6 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		this.liveTimeout = liveTimeout;
 		this.metaCacheTimeout = metaCacheTimeout;
 		this.timezone = timezone;
-		this.allow = allow;
 		this.storage = storage;
 		this.readOnly = readOnly;
 		this.username = username;
@@ -328,13 +326,15 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	}
 
 	@Override
+	@Deprecated
 	public final boolean hasAllow(int allow) {
-		return (this.allow & allow) > 0;
+		return true;
 	}
 
 	@Override
+	@Deprecated
 	public final boolean hasSQLRestriction() {
-		return this.allow != DataSource.ALLOW_ALL;
+		return false;
 	}
 
 	@Override
