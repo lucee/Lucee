@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
+import lucee.loader.osgi.BundleCollection;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.osgi.OSGiUtil.PackageQuery;
@@ -158,6 +160,18 @@ public final class BundleServiceImpl implements BundleService {
 			arr.appendEL(sct);
 		}
 		return arr;
+	}
+
+	@Override
+	public List<Map<String, Object>> listCoreBundles() {
+		List<Map<String, Object>> list = new ArrayList<>();
+		BundleCollection bc = OSGiUtil.getBundleCollection();
+		list.add(toInfo(bc.core));
+		Iterator<Bundle> it = bc.getSlaves();
+		while (it.hasNext()) {
+			list.add(toInfo(it.next()));
+		}
+		return list;
 	}
 
 	@Override

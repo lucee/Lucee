@@ -34,7 +34,6 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -193,14 +192,7 @@ public final class BundleProvider extends DefaultHandler {
 	}
 
 	public static Map<String, List<Info>> getMappings() {
-		Bundle bundle = null;
-		try {
-			bundle = OSGiUtil.getBundleContext().getBundle();
-		}
-		catch (Exception e) {
-
-		}
-		return readIniFile(SystemUtil.getResourceAsStream(bundle, "META-INF/osgi-maven-mapping.ini"));
+		return readIniFile(SystemUtil.getResourceAsStream("META-INF/osgi-maven-mapping.ini"));
 	}
 
 	public static BundleProvider getInstance() throws MalformedURLException {

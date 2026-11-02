@@ -81,7 +81,6 @@ import lucee.commons.net.http.HTTPEngineBasic.HTTPDownloaderHeadResponse;
 import lucee.commons.security.Credentials;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
-import lucee.loader.osgi.BundleCollection;
 import lucee.loader.util.ExtensionFilter;
 import lucee.runtime.PageContext;
 import lucee.runtime.ai.AIEngine;
@@ -5899,17 +5898,9 @@ public final class ConfigAdmin {
 	public static void cleanBundles(RHExtension rhe, ConfigPro config, BundleDefinition[] candiatesToRemove) {
 		if (ArrayUtil.isEmpty(candiatesToRemove)) return;
 
-		BundleCollection coreBundles = OSGiUtil.getBundleCollection();
-
-		// core master
-		_cleanBundles(candiatesToRemove, coreBundles.core.getSymbolicName(), coreBundles.core.getVersion());
-
-		// core slaves
-		Iterator<Bundle> it = coreBundles.getSlaves();
-		Bundle b;
-		while (it.hasNext()) {
-			b = it.next();
-			_cleanBundles(candiatesToRemove, b.getSymbolicName(), b.getVersion());
+		// core master and slaves
+		for (Map<String, Object> info: BundleServiceImpl.getInstance().listCoreBundles()) {
+			_cleanBundles(candiatesToRemove, (String) info.get("name"), OSGiUtil.toVersion((String) info.get("version"), false, null));
 		}
 
 		// all extension
