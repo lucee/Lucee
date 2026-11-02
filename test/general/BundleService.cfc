@@ -119,11 +119,37 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( info.id ).toBe( 0 );
 			});
 
-			it( "uninstallOtherVersions leaves the given version alone and ignores unknown bundles", function() {
-				var core = service.listCoreBundles()[ 1 ];
-				expect( service.uninstallOtherVersions( core.name, core.version ) ).toBeEmpty();
-				expect( service.uninstallOtherVersions( "does.not.exist", "1.0.0" ) ).toBeEmpty();
-				expect( isNull( service.getBundleInfo( core.name, core.version ) ) ).toBeFalse();
+			it( "removes the other versions of a bundle (engine startup cleanup)", function() {
+				var dir = getTempDirectory() & "BundleServiceStale" & createUniqueId() & "/";
+				var osgiUtil = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
+				var name = "lucee.test.stale" & createUniqueId();
+				directoryCreate( dir );
+				try {
+					var jar1 = createBundleJar( dir, name, "1.0.0.1" );
+					var jar2 = createBundleJar( dir, name, "1.0.0.2" );
+					service.install( createObject( "java", "java.io.File" ).init( jar1 ), false );
+					service.install( createObject( "java", "java.io.File" ).init( jar2 ), false );
+					expect( isNull( service.getBundleInfo( name, "1.0.0.1" ) ) ).toBeFalse();
+					expect( isNull( service.getBundleInfo( name, "1.0.0.2" ) ) ).toBeFalse();
+
+					var context = osgiUtil.getBundleContext();
+					// without a version to keep nothing is removed
+					expect( osgiUtil.uninstallOtherVersions( context, name, "" ) ).toBeEmpty();
+					expect( isNull( service.getBundleInfo( name, "1.0.0.1" ) ) ).toBeFalse();
+
+					var removed = osgiUtil.uninstallOtherVersions( context, name, "1.0.0.2" );
+					expect( removed.size() ).toBe( 1 );
+					expect( isNull( service.getBundleInfo( name, "1.0.0.1" ) ) ).toBeTrue();
+					expect( isNull( service.getBundleInfo( name, "1.0.0.2" ) ) ).toBeFalse();
+
+					// the core bundle and unknown bundles are not touched
+					expect( osgiUtil.uninstallOtherVersions( context, "does.not.exist", "1.0.0" ) ).toBeEmpty();
+				}
+				finally {
+					try { service.uninstall( name, "1.0.0.1" ); } catch ( any e ) {}
+					try { service.uninstall( name, "1.0.0.2" ); } catch ( any e ) {}
+					if ( directoryExists( dir ) ) directoryDelete( dir, true );
+				}
 			});
 
 			it( "throws an IOException for a class the bundle does not have", function() {
@@ -133,4 +159,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 			});
 		});
 	}
+
+	private string function createBundleJar( required string dir, required string name, required string version ) {
+		var src = arguments.dir & arguments.name & "-" & arguments.version & "/";
+		directoryCreate( src & "META-INF", true );
+		fileWrite( src & "META-INF/MANIFEST.MF", "Manifest-Version: 1.0" & chr( 10 ) & "Bundle-ManifestVersion: 2" & chr( 10 ) & "Bundle-SymbolicName: " & arguments.name & chr( 10 ) & "Bundle-Version: " & arguments.version & chr( 10 ) );
+		var jar = arguments.dir & arguments.name & "-" & arguments.version & ".jar";
+		zip action="zip" file=jar source=src recurse=true;
+		return jar;
+	}
+
 }

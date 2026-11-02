@@ -18,7 +18,6 @@
 package lucee.runtime.engine;
 
 import java.io.InputStream;
-import java.net.URL;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -26,11 +25,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
-import java.util.jar.Manifest;
 
 import org.osgi.framework.Version;
 
@@ -280,63 +277,6 @@ public final class InfoImpl implements Info {
 			IOUtil.closeEL(is);
 		}
 
-	}
-
-	public static Manifest getManifest() {
-		InputStream is = null;
-		Manifest manifest;
-		try {
-			// try from core classloader without leading slash
-			Class clazz = PageSourceImpl.class;
-			ClassLoader cl = clazz.getClassLoader();
-			manifest = load(cl.getResourceAsStream("META-INF/MANIFEST.MF"));
-			if (manifest != null) return manifest;
-
-			// try from core classloader with leading slash
-			manifest = load(cl.getResourceAsStream("/META-INF/MANIFEST.MF"));
-			if (manifest != null) return manifest;
-
-			// try from core class with leading slash
-			manifest = load(clazz.getResourceAsStream("/META-INF/MANIFEST.MF"));
-			if (manifest != null) return manifest;
-
-			manifest = load(clazz.getResourceAsStream("../../META-INF/MANIFEST.MF"));
-			if (manifest != null) return manifest;
-
-			// check all resources
-			try {
-				Enumeration<URL> e = cl.getResources("META-INF/MANIFEST.MF");
-				while (e.hasMoreElements()) {
-					manifest = load(e.nextElement().openStream());
-					if (manifest != null) return manifest;
-				}
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-			}
-
-			return null;
-
-		}
-		finally {
-			IOUtil.closeEL(is);
-		}
-
-	}
-
-	private static Manifest load(InputStream is) {
-		try {
-			Manifest m = new Manifest(is);
-			String sn = m.getMainAttributes().getValue("Bundle-SymbolicName");
-			if ("lucee.core".equals(sn)) return m;
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-		}
-		finally {
-			IOUtil.closeEL(is);
-		}
-		return null;
 	}
 
 	public static int toIntVersion(String version, int defaultValue) {

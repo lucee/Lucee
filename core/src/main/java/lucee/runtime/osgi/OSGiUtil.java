@@ -2557,18 +2557,27 @@ public final class OSGiUtil {
 		return defaultValue;
 	}
 
+	/**
+	 * uninstalls all versions of the bundle except the given one and refreshes the framework
+	 *
+	 * @return the (Lucee style) versions that got uninstalled
+	 */
 	public static List<String> uninstallOtherVersions(BundleContext context, String bundleName, String keepVersion) {
-		List<Bundle> stale = new ArrayList<>();
 		List<String> versions = new ArrayList<>();
+		// without the version to keep, every version would get removed
+		if (StringUtil.isEmpty(keepVersion, true)) return versions;
+		List<Bundle> stale = new ArrayList<>();
 		for (Bundle b: context.getBundles()) {
+			if (!bundleName.equals(b.getSymbolicName())) continue;
 			String v = OSGiUtil.toLucee(b.getVersion()).toString();
-			if (bundleName.equals(b.getSymbolicName()) && !v.equals(keepVersion)) {
-				try {
-					b.uninstall();
-					stale.add(b);
-					versions.add(v);
-				}
-				catch (BundleException ignored) {}
+			if (v.equals(keepVersion)) continue;
+			try {
+				b.uninstall();
+				stale.add(b);
+				versions.add(v);
+			}
+			catch (BundleException be) {
+				LogUtil.log(Log.LEVEL_WARN, "OSGi", "failed to uninstall the bundle [" + bundleName + ":" + v + "]: " + be.getMessage());
 			}
 		}
 		if (!stale.isEmpty()) {

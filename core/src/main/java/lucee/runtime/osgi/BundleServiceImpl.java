@@ -259,11 +259,6 @@ public final class BundleServiceImpl implements BundleService {
 	}
 
 	@Override
-	public List<String> uninstallOtherVersions(String bundleName, String keepVersion) {
-		return OSGiUtil.uninstallOtherVersions(context(), bundleName, keepVersion);
-	}
-
-	@Override
 	public Map<String, Object> loadBundle(String bundleName, String bundleVersion) throws IOException {
 		return toInfo(load(bundleName, bundleVersion));
 	}
