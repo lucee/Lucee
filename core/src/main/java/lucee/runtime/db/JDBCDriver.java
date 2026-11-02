@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 
-
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
@@ -59,7 +58,7 @@ public final class JDBCDriver {
 	}
 
 	public static String extractClassName(String bundleName, String bundleVersion) throws IOException {
-		BundleServiceImpl.getInstance().loadFromLocal(bundleName, bundleVersion, true);
+		BundleServiceImpl.getInstance().loadBundle(bundleName, bundleVersion);
 		URL url = BundleServiceImpl.getInstance().getResource(bundleName, bundleVersion, "/META-INF/services/java.sql.Driver");
 		if (url == null) throw new IOException("there is no driver service file in the bundle [" + bundleName + ":" + bundleVersion + "]");
 

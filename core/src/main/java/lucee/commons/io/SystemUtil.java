@@ -124,6 +124,10 @@ import lucee.runtime.type.util.ListUtil;
 
 public final class SystemUtil {
 
+	// the framework (system) bundle
+	private static final long FRAMEWORK_BUNDLE_ID = 0;
+
+
 	public static final int MEMORY_TYPE_ALL = lucee.runtime.util.SystemUtil.MEMORY_TYPE_ALL;
 	public static final int MEMORY_TYPE_HEAP = lucee.runtime.util.SystemUtil.MEMORY_TYPE_HEAP;
 	public static final int MEMORY_TYPE_NON_HEAP = lucee.runtime.util.SystemUtil.MEMORY_TYPE_NON_HEAP;
@@ -1762,8 +1766,7 @@ public final class SystemUtil {
 	private static boolean isFromBundle(Class<?> clazz) {
 		if (clazz == null) return false;
 		Map<String, Object> bundle = BundleServiceImpl.getInstance().getBundleInfo(clazz);
-		// the framework (system) bundle has the id 0
-		return bundle != null && !Long.valueOf(0).equals(bundle.get("id"));
+		return bundle != null && !Long.valueOf(FRAMEWORK_BUNDLE_ID).equals(bundle.get("id"));
 	}
 
 	private static boolean _isSystem(Class<?> clazz) {

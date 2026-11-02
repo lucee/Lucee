@@ -73,7 +73,8 @@ public interface BundleService {
 
 	/**
 	 * @return the info of the bundle the class loader belongs to, null when the class loader is not a
-	 *         bundle class loader
+	 *         bundle class loader. This is meant for frequent calls, so it only contains the keys
+	 *         "name", "version", "id" and "state".
 	 */
 	public Map<String, Object> getBundleInfo(ClassLoader classLoader);
 
@@ -89,6 +90,14 @@ public interface BundleService {
 	 *         bundle
 	 */
 	public Map<String, Object> getRequirements(String bundleName, String bundleVersion) throws IOException;
+
+	/**
+	 * installs the bundle when it is not installed yet (from the local bundle directory or by
+	 * downloading it)
+	 *
+	 * @return the info of the bundle
+	 */
+	public Map<String, Object> loadBundle(String bundleName, String bundleVersion) throws IOException;
 
 	/**
 	 * @return the infos of the bundles that belong to the Lucee core itself, the core bundle first

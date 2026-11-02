@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 import jakarta.servlet.ServletContext;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
@@ -41,7 +40,6 @@ import lucee.commons.lang.MappingUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.PhysicalClassLoaderFactory;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
@@ -200,7 +198,7 @@ public final class MappingImpl implements Mapping {
 
 					if (tmp == null || archMod == tmp.lastModified()) return;
 					try {
-						archiveBundle = BundleServiceImpl.getInstance().install(ResourceUtil.toFile(tmp), true);
+						archiveBundle = BundleServiceImpl.getInstance().install(toLocalFile(tmp), false);
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
@@ -217,6 +215,14 @@ public final class MappingImpl implements Mapping {
 		}
 	}
 
+	private static java.io.File toLocalFile(Resource res) throws IOException {
+		if (res instanceof java.io.File) return (java.io.File) res;
+		// not a local resource (ram, S3, ...), the bundle needs a local file to be installed from
+		Resource tmp = SystemUtil.getTempFile("lar", false);
+		IOUtil.copy(res, tmp);
+		return ResourceUtil.toFile(tmp);
+	}
+
 	private Class<?> loadArchiveClass(String className) throws IOException, ClassNotFoundException {
 		return BundleServiceImpl.getInstance().loadClass((String) archiveBundle.get("name"), (String) archiveBundle.get("version"), className);
 	}
@@ -229,7 +235,9 @@ public final class MappingImpl implements Mapping {
 				return loadArchiveClass(className);
 			}
 			catch (IOException e) {
-				throw new ClassNotFoundException(e.getMessage());
+				ClassNotFoundException cnfe = new ClassNotFoundException(e.getMessage());
+				cnfe.initCause(e);
+				throw cnfe;
 			}
 		}
 		// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);

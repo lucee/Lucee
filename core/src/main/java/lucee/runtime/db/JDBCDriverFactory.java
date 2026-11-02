@@ -1,6 +1,5 @@
 package lucee.runtime.db;
 
-
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -11,7 +10,6 @@ import lucee.runtime.config.PropFactory;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.KeyImpl;
