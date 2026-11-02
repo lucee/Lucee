@@ -890,6 +890,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 		else if ((check("updateRHExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateRHExtension(true);
 		else if ((check("updateExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateExtension(true);
+		else if ((check("updateExtensions", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateExtensions();
 		else if ((check("removeRHExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doRemoveRHExtension();
 		else if (check("updateExtensionGroups", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateExtensionGroups();
 		else if (check("updateExtensionInfo", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateExtensionInfo();
@@ -4542,12 +4543,25 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String groupId = getString("groupId", null);
 		String artifactId = getString("artifactId", null);
 		String version = getString("admin", "updateExtension", "version");
-		ExtensionDefintion ed;
+		ExtensionDefintion ed = toExtensionDefinition(id, groupId, artifactId, version);
 
+		ResetFilter filter = new ResetFilter();
+		try {
+			DeployHandler.deployExtension(config, ed, filter, config == null ? null : ThreadLocalPageContext.getLog(pageContext, "application"), true, true, throwOnError,
+					new RefBooleanImpl());
+		}
+		finally {
+			filter.resetThrowPageException(config);
+		}
+
+	}
+
+	private static ExtensionDefintion toExtensionDefinition(String id, String groupId, String artifactId, String version) throws ApplicationException {
 		if (StringUtil.isEmpty(groupId, true) && StringUtil.isEmpty(artifactId, true) && StringUtil.isEmpty(id, true)) {
 			throw new ApplicationException("you need to define an id or groupId and artifactId");
 		}
 
+		ExtensionDefintion ed;
 		if (!StringUtil.isEmpty(id, true)) {
 			ed = new ExtensionDefintion(id, version);
 		}
@@ -4559,16 +4573,67 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (!StringUtil.isEmpty(groupId, true) && !StringUtil.isEmpty(artifactId, true)) {
 			ed.setCoordinate(new MavenCoordinate(groupId, artifactId, version));
 		}
+		return ed;
+	}
+
+	/**
+	 * Installs/updates a list of extensions in one go (LDEV-6148), every entry is handled the same way
+	 * as with the action "updateExtension". A failing extension does not stop the other ones, the
+	 * outcome of every single extension is returned as a query (id, groupId, artifactId, name, version,
+	 * success, message) so the caller can report it.
+	 */
+	private void doUpdateExtensions() throws PageException {
+		Array extensions = Caster.toArray(getObject("admin", "updateExtensions", "extensions"));
+		Log log = config == null ? null : ThreadLocalPageContext.getLog(pageContext, "application");
+
+		Query result = new QueryImpl(new Collection.Key[] { KeyConstants._id, KeyConstants._groupId, KeyConstants._artifactId, KeyConstants._name, KeyConstants._version,
+				KeyImpl.init("success"), KeyConstants._message }, 0, "ExtensionUpdates");
 
 		ResetFilter filter = new ResetFilter();
 		try {
-			DeployHandler.deployExtension(config, ed, filter, config == null ? null : ThreadLocalPageContext.getLog(pageContext, "application"), true, true, throwOnError,
-					new RefBooleanImpl());
+			Iterator<?> it = extensions.valueIterator();
+			while (it.hasNext()) {
+				Struct data = Caster.toStruct(it.next());
+				String id = Caster.toString(data.get(KeyConstants._id, null), null);
+				String groupId = Caster.toString(data.get(KeyConstants._groupId, null), null);
+				String artifactId = Caster.toString(data.get(KeyConstants._artifactId, null), null);
+				String version = Caster.toString(data.get(KeyConstants._version, null), null);
+				String name = null;
+				boolean success = false;
+				String message = "";
+				try {
+					if (StringUtil.isEmpty(version, true)) {
+						throw new ApplicationException("the version is required to update an extension");
+					}
+					ExtensionDefintion ed = toExtensionDefinition(id, groupId, artifactId, version.trim());
+					RHExtension rhe = DeployHandler.deployExtension(config, ed, filter, log, false, true, true, new RefBooleanImpl());
+					if (rhe != null) name = rhe.getMetadata().getName();
+					success = true;
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					PageException pe = Caster.toPageException(t);
+					message = pe.getMessage();
+					if (log != null) log.error("deploy-extension", pe);
+					else LogUtil.log("deploy-extension", pe);
+				}
+
+				result.addRow(1);
+				int row = result.getRecordcount();
+				result.setAt(KeyConstants._id, row, StringUtil.emptyIfNull(id));
+				result.setAt(KeyConstants._groupId, row, StringUtil.emptyIfNull(groupId));
+				result.setAt(KeyConstants._artifactId, row, StringUtil.emptyIfNull(artifactId));
+				result.setAt(KeyConstants._name, row, StringUtil.emptyIfNull(name));
+				result.setAt(KeyConstants._version, row, StringUtil.emptyIfNull(version));
+				result.setAt(KeyImpl.init("success"), row, Caster.toBoolean(success));
+				result.setAt(KeyConstants._message, row, message);
+			}
 		}
 		finally {
+			// one reset for all extensions
 			filter.resetThrowPageException(config);
 		}
-
+		pageContext.setVariable(getString("admin", action, "returnVariable"), result);
 	}
 
 	private void doRemoveExtension() throws PageException {

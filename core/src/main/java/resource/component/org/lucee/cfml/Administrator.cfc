@@ -833,6 +833,21 @@ component {
 	}
 
 	/**
+	* @hint updates(install/upgrade/downgrade) several extensions in one go. A failing extension does not stop the other ones,
+	* the result of every extension is returned as a query with the columns id, groupId, artifactId, name, version, success and message.
+	* @extensions array of structs, every struct needs the key version and the key id or the keys groupId and artifactId
+	*/
+	public query function updateExtensions( required array extensions ) {
+		admin
+			action="updateExtensions"
+			type=variables.type
+			password=variables.password
+			extensions=arguments.extensions
+			returnVariable="local.result";
+		return local.result;
+	}
+
+	/**
 	* @hint removes(uninstall) a specific extension.
 	* @id id of the extension to be removed
 	*/

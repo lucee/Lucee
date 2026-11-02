@@ -67,6 +67,30 @@
 				version="#form.version#">
 			<cfset application.reloadPlugins = true>
 		</cfcase>
+		<!--- LDEV-6148 update all extensions that have an update, every extension is handled on its own,
+			a failure does not stop the others and is reported to the user --->
+		<cfcase value="#stText.Buttons.updateAll#">
+			<cfscript>
+				updateAllList = [];
+				loop array=deserializeJSON( form.updateAllExtensions ?: "[]" ) item="local.u" {
+					arrayAppend( updateAllList, {
+						"id": u.id ?: "",
+						"groupId": u.groupId ?: "",
+						"artifactId": u.artifactId ?: "",
+						"version": u.version ?: ""
+					} );
+				}
+				if ( arrayIsEmpty( updateAllList ) ) throw "There are no extensions to update.";
+			</cfscript>
+			<cfadmin
+			    action="updateExtensions"
+			    type="#request.adminType#"
+			    password="#session["password"&request.adminType]#"
+				extensions="#updateAllList#"
+				returnVariable="updateAllResult">
+			<cfset session.extUpdateAll = updateAllResult>
+			<cfset application.reloadPlugins = true>
+		</cfcase>
         <cfcase value="#stText.Buttons.uninstall#">
         	<cfadmin
 			    action="removeExtension"
