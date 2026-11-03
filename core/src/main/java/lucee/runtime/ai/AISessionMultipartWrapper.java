@@ -62,6 +62,10 @@ public class AISessionMultipartWrapper implements AISessionMultipart {
 		return delegate.inquiry(message, listener);
 	}
 
+	public AISession getDelegate() {
+		return delegate;
+	}
+
 	@Override
 	public String getSystemMessage() {
 		return delegate.getSystemMessage();

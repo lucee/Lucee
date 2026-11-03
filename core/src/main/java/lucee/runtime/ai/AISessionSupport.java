@@ -10,6 +10,9 @@ import lucee.commons.net.http.Header;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.other.CreateUniqueId;
+import lucee.runtime.op.Caster;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 
 public abstract class AISessionSupport implements AISessionMultipart {
 
@@ -22,6 +25,17 @@ public abstract class AISessionSupport implements AISessionMultipart {
 
 	private int limit;
 	private Double temp;
+
+	// usage of the session, LDEV-6527
+	private long requests;
+	private long unreportedRequests;
+	private long failedRequests;
+	private long inputTokens;
+	private long outputTokens;
+	private long totalTokens;
+	private long cachedTokens;
+	private long reasoningTokens;
+	private AIUsageRecord lastUsage;
 
 	public AISessionSupport(AIEngine engine, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout) {
 		this.engine = engine;
@@ -86,6 +100,65 @@ public abstract class AISessionSupport implements AISessionMultipart {
 			id = CreateUniqueId.invoke();
 		}
 		return id;
+	}
+
+	/**
+	 * adds a finished call to the usage of this session (LDEV-6527)
+	 */
+	final synchronized void addUsage(AIUsageRecord record) {
+		requests++;
+		lastUsage = record;
+		AIUsage u = record.getUsage();
+		if (u == null) {
+			unreportedRequests++;
+			return;
+		}
+		// a provider that does not report a value is not counted as 0, the sum of the others is used instead
+		if (u.input >= 0L) inputTokens += u.input;
+		if (u.output >= 0L) outputTokens += u.output;
+		if (u.total >= 0L) totalTokens += u.total;
+		if (u.cached >= 0L) cachedTokens += u.cached;
+		if (u.reasoning >= 0L) reasoningTokens += u.reasoning;
+	}
+
+	final synchronized void addFailedRequest() {
+		failedRequests++;
+	}
+
+	/**
+	 * the token usage of all calls made with this session, see AIGetUsage
+	 */
+	public final synchronized Struct getUsage() {
+		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
+		sct.setEL("requests", requests);
+		sct.setEL("unreportedRequests", unreportedRequests);
+		sct.setEL("failedRequests", failedRequests);
+		sct.setEL("input", inputTokens);
+		sct.setEL("output", outputTokens);
+		sct.setEL("total", totalTokens);
+		sct.setEL("cached", cachedTokens);
+		sct.setEL("reasoning", reasoningTokens);
+		if (lastUsage != null) sct.setEL("last", lastUsage.toStruct());
+		return sct;
+	}
+
+	/**
+	 * restores the usage written by {@link #getUsage()}, used when a session gets loaded
+	 */
+	public final synchronized void restoreUsage(Struct usage) {
+		if (usage == null) return;
+		requests = toLong(usage, "requests");
+		unreportedRequests = toLong(usage, "unreportedRequests");
+		failedRequests = toLong(usage, "failedRequests");
+		inputTokens = toLong(usage, "input");
+		outputTokens = toLong(usage, "output");
+		totalTokens = toLong(usage, "total");
+		cachedTokens = toLong(usage, "cached");
+		reasoningTokens = toLong(usage, "reasoning");
+	}
+
+	private static long toLong(Struct sct, String key) {
+		return Math.max(0L, Caster.toLongValue(sct.get(key, null), 0L));
 	}
 
 	@Override
