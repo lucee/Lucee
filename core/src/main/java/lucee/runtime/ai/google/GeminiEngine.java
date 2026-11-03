@@ -140,6 +140,9 @@ public final class GeminiEngine extends AIEngineSupport {
 
 		props.remove(KeyConstants._timeout, null);
 
+		// token limits, LDEV-6528
+		readTokenLimits(props);
+
 		this.custom = props;
 		return this;
 

@@ -133,6 +133,16 @@ public final class AIEngineFactory implements PropFactory<AIEngine> {
 		custom.setEL(KeyConstants._description, "Engine-specific parameters (e.g. model, temperature, apiKey).");
 		custom.setEL(KeyImpl.init("additionalProperties"), true);
 
+		Struct customProps = new StructImpl(Struct.TYPE_LINKED);
+		customProps.setEL(AITokenLimits.MAX_TOKENS_PER_SESSION,
+				PropFactory.createSimple("integer", "Maximum number of tokens a session may use. Further requests are refused (or logged) once it is reached. 0 or empty means no limit."));
+		customProps.setEL(AITokenLimits.MAX_TOKENS_PER_REQUEST,
+				PropFactory.createSimple("integer", "Maximum number of tokens of a single request. Limits the output of the provider and refuses (or logs) requests that are already as big as the limit. 0 or empty means no limit."));
+		customProps.setEL(AITokenLimits.TOKEN_LIMIT_ACTION, PropFactory.createSimple("string", "What to do when a limit is reached: throw (default) or log."));
+		customProps.setEL(AITokenLimits.TOKEN_WARNING_THRESHOLD,
+				PropFactory.createSimple("number", "Fraction (0-1) of maxTokensPerSession at which a warning is written to the ai log, once per session."));
+		custom.setEL(KeyConstants._properties, customProps);
+
 		properties.setEL(KeyConstants._custom, custom);
 
 		// 3. default
