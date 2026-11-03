@@ -186,8 +186,10 @@ public final class CFMLTransformer {
 				else if (isCFMLCompExt) {
 					TagLib tl = CFMLTransformer.getTagLib(sc, config.getIdentification());
 					String text = sc.getText();
-					if (StringUtil.indexOfIgnoreCase(text, "<" + tl.getNameSpaceAndSeparator()) == -1
-							&& StringUtil.indexOfIgnoreCase(text, "</" + tl.getNameSpaceAndSeparator()) == -1) {
+					// no tags at all, or a script component that only contains "<cf" inside a string or comment
+					// (LDEV-3228)
+					if ((StringUtil.indexOfIgnoreCase(text, "<" + tl.getNameSpaceAndSeparator()) == -1
+							&& StringUtil.indexOfIgnoreCase(text, "</" + tl.getNameSpaceAndSeparator()) == -1) || startsWithScriptComponent(text)) {
 
 						TagLibTag scriptTag = CFMLTransformer.getTLT(sc, Constants.CFML_SCRIPT_TAG_NAME, config.getIdentification());
 						sc.setPos(0);
@@ -305,6 +307,53 @@ public final class CFMLTransformer {
 		}
 
 		return p;
+	}
+
+	/**
+	 * checks if the source code starts (after whitespace and comments) with a script component or
+	 * interface declaration, like "component {", "abstract component", "final component",
+	 * "interface" or "import ...;"
+	 */
+	static boolean startsWithScriptComponent(String text) {
+		if (text == null) return false;
+		int len = text.length();
+		int i = 0;
+		while (i < len) {
+			char c = text.charAt(i);
+			if (Character.isWhitespace(c) || c == '\uFEFF') {
+				i++;
+			}
+			else if (c == '/' && i + 1 < len && text.charAt(i + 1) == '*') {
+				int end = text.indexOf("*/", i + 2);
+				if (end == -1) return false;
+				i = end + 2;
+			}
+			else if (c == '/' && i + 1 < len && text.charAt(i + 1) == '/') {
+				int end = text.indexOf('\n', i + 2);
+				if (end == -1) return false;
+				i = end + 1;
+			}
+			else break;
+		}
+		if (i >= len) return false;
+		String rest = text.substring(i, Math.min(len, i + 40)).toLowerCase();
+		if (rest.startsWith("abstract") || rest.startsWith("final")) {
+			rest = rest.substring(rest.startsWith("abstract") ? 8 : 5);
+			if (rest.isEmpty() || !Character.isWhitespace(rest.charAt(0))) return false;
+			rest = rest.trim();
+			return isWord(rest, "component");
+		}
+		if (rest.startsWith("import")) {
+			return rest.length() > 6 && Character.isWhitespace(rest.charAt(6));
+		}
+		return isWord(rest, "component") || isWord(rest, "interface");
+	}
+
+	private static boolean isWord(String str, String word) {
+		if (!str.startsWith(word)) return false;
+		if (str.length() == word.length()) return true;
+		char c = str.charAt(word.length());
+		return Character.isWhitespace(c) || c == '{';
 	}
 
 	/**
