@@ -46,6 +46,10 @@ public final class TagParam extends TagBaseNoFinal {
 
 	private static final Method NULL = new Method("NULL", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT }//
 	);
+	private static final Method FULL = new Method("full", Types.BOOLEAN_VALUE, new Type[] { Types.PAGE_CONTEXT }//
+	);
+	private static final Method SET_VARIABLE = new Method("setVariable", Types.OBJECT, new Type[] { Types.STRING, Types.OBJECT }//
+	);
 	private static final Method GET_VARIABLE_EL = new Method("getVariableEL", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.STRING, Types.OBJECT }//
 	);
 	private static final Method APPEND_OBJECT = new Method("append", Types.STRING_BUILDER, new Type[] { Types.OBJECT });
@@ -114,6 +118,24 @@ public final class TagParam extends TagBaseNoFinal {
 		adapter.visitJumpInsn(Opcodes.IFNONNULL, l6);
 		Label l7 = new Label();
 		adapter.visitLabel(l7);
+
+		// a default attribute was defined but evaluates to null (LDEV-3246), with full null support we set
+		// the variable to null instead of throwing "The required parameter [...] was not provided."
+		Label end = null;
+		if (def != null) {
+			end = new Label();
+			Label lThrow = new Label();
+			adapter.loadArg(0);
+			adapter.invokeStatic(NULL_SUPPORT_HELPER, FULL);
+			adapter.visitJumpInsn(Opcodes.IFEQ, lThrow);
+			adapter.loadArg(0);
+			name.writeOut(bc, Expression.MODE_REF);
+			ASMConstants.NULL(adapter);
+			adapter.invokeVirtual(Types.PAGE_CONTEXT, SET_VARIABLE);
+			adapter.pop();
+			adapter.goTo(end);
+			adapter.visitLabel(lThrow);
+		}
 
 		adapter.newInstance(Types.EXPRESSION_EXCEPTION);
 		adapter.dup();
@@ -196,6 +218,7 @@ public final class TagParam extends TagBaseNoFinal {
 
 		// subparam
 		adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, SUB_PARAM);
+		if (end != null) adapter.visitLabel(end);
 		// param(type, name, defaultValue,Double.NaN,Double.NaN,regex,-1);
 		// subparam(type, name, value, min, max, strPattern, maxLength, isNew); // SSO
 
