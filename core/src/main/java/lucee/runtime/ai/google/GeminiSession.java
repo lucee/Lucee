@@ -18,6 +18,7 @@ import lucee.loader.util.Util;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPRequest;
 import lucee.commons.net.http.HTTPResponse;
+import lucee.runtime.ai.AIListenerCancelException;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
 import lucee.runtime.ai.AITokenLimits;
@@ -57,8 +58,11 @@ public final class GeminiSession extends AISessionSupport {
 		checkTokenLimits();
 		long start = System.nanoTime();
 		try {
-			Struct root = buildRequestRoot(message, null);
+			Struct root = beforePromptSent(PROVIDER, geminiEngine.getModel(), listener != null, buildRequestRoot(message, null));
 			return executeRequest(root, message, null, listener, start);
+		}
+		catch (AIListenerCancelException e) {
+			throw e.getPageException();
 		}
 		catch (Exception e) {
 			AIUtil.addFailedInquiry(this, PROVIDER, geminiEngine.getModel(), start, listener != null, e);
@@ -71,8 +75,11 @@ public final class GeminiSession extends AISessionSupport {
 		checkTokenLimits();
 		long start = System.nanoTime();
 		try {
-			Struct root = buildRequestRoot(null, parts);
+			Struct root = beforePromptSent(PROVIDER, geminiEngine.getModel(), listener != null, buildRequestRoot(null, parts));
 			return executeRequest(root, null, parts, listener, start);
+		}
+		catch (AIListenerCancelException e) {
+			throw e.getPageException();
 		}
 		catch (Exception e) {
 			AIUtil.addFailedInquiry(this, PROVIDER, geminiEngine.getModel(), start, listener != null, e);
@@ -181,6 +188,7 @@ public final class GeminiSession extends AISessionSupport {
 						cs == null ? new InputStreamReader(response.getContentAsStream()) : new InputStreamReader(response.getContentAsStream(), cs))) {
 					String line;
 					int index = 0;
+					int chunks = 0;
 					Struct prev = null;
 					while ((line = reader.readLine()) != null) {
 						if (prev != null) {
@@ -193,7 +201,7 @@ public final class GeminiSession extends AISessionSupport {
 						if (!line.startsWith("data: ")) continue;
 						line = line.substring(6);
 						LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "response chunk recieved send by [" + geminiEngine.getLabel() + "]: " + line, "ai", "application");
-						prev = Caster.toStruct(interpreter.interpret(null, line));
+						prev = chunkReceived(PROVIDER, geminiEngine.getModel(), ++chunks, Caster.toStruct(interpreter.interpret(null, line)));
 					}
 					if (prev != null && !r.isCancelled()) {
 						r.addPart(prev, index, true);
@@ -214,6 +222,8 @@ public final class GeminiSession extends AISessionSupport {
 					throw AIUtil.toException(this.getEngine(), Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._status, null), null),
 							Caster.toString(err.get(KeyConstants._code, null), null), AIUtil.getStatusCode(response));
 				}
+
+				raw = responseReceived(PROVIDER, geminiEngine.getModel(), raw);
 
 				GeminiResponse r = new GeminiResponse(raw, cs);
 				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(messageText, parts), r), PROVIDER, geminiEngine.getModel(), start, false);

@@ -38,6 +38,8 @@ public abstract class AISessionSupport implements AISessionMultipart {
 	private AIUsageRecord lastUsage;
 	private boolean warningLogged;
 
+	private volatile AISessionListener listener;
+
 	public AISessionSupport(AIEngine engine, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout) {
 		this.engine = engine;
 
@@ -121,6 +123,32 @@ public abstract class AISessionSupport implements AISessionMultipart {
 		if (u.cached >= 0L) cachedTokens += u.cached;
 		if (u.reasoning >= 0L) reasoningTokens += u.reasoning;
 		checkAfterCall(u);
+	}
+
+	/**
+	 * sets the listener of this session (LDEV-6540)
+	 */
+	public final void setListener(AISessionListener listener) {
+		this.listener = listener;
+	}
+
+	public final AISessionListener getListener() {
+		return listener;
+	}
+
+	protected final Struct beforePromptSent(String provider, String model, boolean stream, Struct request) {
+		AISessionListener l = listener;
+		return l == null ? request : l.beforePromptSent(this, provider, model, stream, request);
+	}
+
+	protected final Struct responseReceived(String provider, String model, Struct response) throws PageException {
+		AISessionListener l = listener;
+		return l == null ? response : l.response(this, provider, model, response);
+	}
+
+	protected final Struct chunkReceived(String provider, String model, int index, Struct chunk) throws PageException {
+		AISessionListener l = listener;
+		return l == null ? chunk : l.streamingResponse(this, provider, model, index, chunk);
 	}
 
 	/**
