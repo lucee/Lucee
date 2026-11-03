@@ -2641,6 +2641,14 @@ If not specified, falls back to the `timeout` attribute value.</description>
 			<description>Flag allowing to disable connection reuse on one off requests.</description>
 		</attribute>
 		<attribute>
+			<type>string</type>
+			<name>httpVersion</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>9.0</introduced>
+			<description>The HTTP protocol version of the request. "1.1" (default) uses HTTP/1.1. "2" uses HTTP/2 only, over TLS (https) it is negotiated with ALPN and over plain http it expects a server that speaks HTTP/2 without an upgrade ("prior knowledge"), the request fails when the server does not speak HTTP/2. "auto" uses HTTP/2 when the server offers it with ALPN and HTTP/1.1 otherwise. "2" and "auto" need an HTTP engine that supports HTTP/2, that is the HTTP extension. The protocol that was used is in the result key http_version.</description>
+		</attribute>
+		<attribute>
 			<type>any</type>
 			<name>listener</name>
 			<required>false</required>

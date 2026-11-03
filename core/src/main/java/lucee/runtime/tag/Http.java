@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
@@ -53,6 +54,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.URLEncoder;
+import lucee.commons.net.http.HTTPClientEngine;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPFeatureNotSupportedException;
 import lucee.commons.net.http.HTTPRequest;
@@ -302,6 +304,8 @@ public final class Http extends BodyTagImpl {
 
 	private boolean usePool = true;
 
+	private String httpVersion = HTTPRequest.HTTP_VERSION_1_1;
+
 	/** The full path to a PKCS12 format file that contains the client certificate for the request. */
 	private String clientCert;
 	/** Password used to decrypt the client certificate. */
@@ -365,6 +369,7 @@ public final class Http extends BodyTagImpl {
 		clientCertPassword = null;
 		cachedWithin = null;
 		usePool = true;
+		httpVersion = HTTPRequest.HTTP_VERSION_1_1;
 		autoCert = false;
 		trustStore = null;
 		trustStorePassword = null;
@@ -678,6 +683,20 @@ public final class Http extends BodyTagImpl {
 
 	public void setPooling(boolean usePool) {
 		this.usePool = usePool;
+	}
+
+	/**
+	 * @param httpVersion "1.1" (default), "2" or "auto", see the attribute description in the tld (LDEV-6470)
+	 */
+	public void setHttpversion(String httpVersion) throws ApplicationException {
+		if (httpVersion == null) return;
+		String v = httpVersion.trim().toLowerCase(Locale.ROOT);
+		if (v.isEmpty()) return;
+		if (v.startsWith("http/")) v = v.substring(5);
+		if (v.equals("1.1") || v.equals("1")) this.httpVersion = HTTPRequest.HTTP_VERSION_1_1;
+		else if (v.equals("2") || v.equals("2.0") || v.equals("h2")) this.httpVersion = HTTPRequest.HTTP_VERSION_2;
+		else if (v.equals("auto")) this.httpVersion = HTTPRequest.HTTP_VERSION_AUTO;
+		else throw new ApplicationException("invalid value for attribute httpVersion [" + httpVersion + "], valid values are: [1.1, 2, auto]");
 	}
 
 	@Override
@@ -1241,6 +1260,19 @@ public final class Http extends BodyTagImpl {
 
 			}
 			req.setProxy(proxy);
+
+			// "2" needs an engine that can do HTTP/2, "auto" falls back to HTTP/1.1 with an engine that can not (LDEV-6470)
+			String version = this.httpVersion;
+			if (!HTTPRequest.HTTP_VERSION_1_1.equals(version)) {
+				HTTPClientEngine engine = HTTPEngine.getEngine();
+				if (!engine.supports(HTTPClientEngine.FEATURE_HTTP2)) {
+					if (HTTPRequest.HTTP_VERSION_2.equals(version)) {
+						throw new ApplicationException("the HTTP engine [" + engine.getName() + "] does not support HTTP/2 (attribute httpVersion=\"2\"), install or update the HTTP extension to use it");
+					}
+					version = HTTPRequest.HTTP_VERSION_1_1;
+				}
+			}
+			req.setHttpVersion(version);
 
 			req.setRedirect(this.redirect).setPooling(this.usePool).setClientCert(this.clientCert, this.clientCertPassword).setTrustStore(this.trustStore, this.trustStorePassword)
 					.setSslVerify(this.sslVerify).setCharset(charset);
