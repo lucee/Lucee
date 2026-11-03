@@ -529,6 +529,7 @@ public final class KeyConstants {
 	public static final Key _name = init("name");
 	public static final Key _nameWithCase = init("nameWithCase");
 	public static final Key _subname = init("subname");
+	public static final Key _subComponents = init("subComponents");
 	public static final Key _needssetup = init("needssetup");
 	public static final Key _next = init("next");
 	public static final Key _nosetup = init("nosetup");
