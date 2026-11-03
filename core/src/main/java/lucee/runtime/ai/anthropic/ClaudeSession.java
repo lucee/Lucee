@@ -23,6 +23,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.util.Util;
 import lucee.runtime.ai.AIEngineSupport;
+import lucee.runtime.ai.AIListenerCancelException;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
 import lucee.runtime.ai.AITokenLimits;
@@ -61,8 +62,11 @@ public final class ClaudeSession extends AISessionSupport {
 		checkTokenLimits();
 		long start = System.nanoTime();
 		try {
-			Struct requestBody = buildRequest(message, null, listener != null);
+			Struct requestBody = beforePromptSent(PROVIDER, engine.getModel(), listener != null, buildRequest(message, null, listener != null));
 			return executeRequest(requestBody, message, null, listener, start);
+		}
+		catch (AIListenerCancelException e) {
+			throw e.getPageException();
 		}
 		catch (Exception e) {
 			AIUtil.addFailedInquiry(this, PROVIDER, engine.getModel(), start, listener != null, e);
@@ -75,8 +79,11 @@ public final class ClaudeSession extends AISessionSupport {
 		checkTokenLimits();
 		long start = System.nanoTime();
 		try {
-			Struct requestBody = buildRequest(null, parts, listener != null);
+			Struct requestBody = beforePromptSent(PROVIDER, engine.getModel(), listener != null, buildRequest(null, parts, listener != null));
 			return executeRequest(requestBody, null, parts, listener, start);
+		}
+		catch (AIListenerCancelException e) {
+			throw e.getPageException();
 		}
 		catch (Exception e) {
 			AIUtil.addFailedInquiry(this, PROVIDER, engine.getModel(), start, listener != null, e);
@@ -255,6 +262,8 @@ public final class ClaudeSession extends AISessionSupport {
 							Caster.toString(err.get(KeyConstants._code, null), null), AIUtil.getStatusCode(response));
 				}
 
+				raw = responseReceived(PROVIDER, engine.getModel(), raw);
+
 				// Create response object
 				ClaudeResponse r = new ClaudeResponse(raw, cs);
 				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(message, parts), r), PROVIDER, engine.getModel(), start, false);
@@ -270,6 +279,7 @@ public final class ClaudeSession extends AISessionSupport {
 						cs == null ? new InputStreamReader(responseEntity.getContent()) : new InputStreamReader(responseEntity.getContent(), cs))) {
 					String line;
 					int index = 0;
+					int chunks = 0;
 					Struct prev = null;
 					while ((line = reader.readLine()) != null) {
 						if (prev != null) {
@@ -280,7 +290,7 @@ public final class ClaudeSession extends AISessionSupport {
 						line = line.substring(6);
 						if ("[DONE]".equals(line)) break;
 						LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "response chunk recieved send by [" + engine.getLabel() + "]: " + line, "ai", "application");
-						prev = Caster.toStruct(interpreter.interpret(null, line));
+						prev = chunkReceived(PROVIDER, engine.getModel(), ++chunks, Caster.toStruct(interpreter.interpret(null, line)));
 					}
 					if (prev != null) {
 						r.addPart(prev, index, true);

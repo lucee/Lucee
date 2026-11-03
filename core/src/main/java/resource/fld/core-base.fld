@@ -10754,6 +10754,17 @@ Recommended settings:
 
 For exception analysis and debugging, lower temperatures (0.2-0.3) are recommended for more consistent and precise responses.</description>
 		</argument>
+		<argument>
+			<name>listener</name>
+			<alias>sessionListener</alias>
+			<type>any</type>
+			<required>no</required>
+			<description>A component, or a struct of functions, that listens to the requests of this session. All hooks are optional, but at least one is needed. Every hook gets one struct (event) with the keys `session`, `connection`, `provider` and `model` and can change the content of the event in place, return a struct that replaces it, return nothing or true to continue, or throw an exception that is passed on to the caller of the inquiry.
+
+- `onBeforePromptSent(event)`: called before the request is sent, `event.request` is the request body (`event.stream` tells if the response is streamed). Returning false cancels the request, an exception with the error code `ai.listener.cancelled` is thrown and nothing is sent.
+- `onResponse(event)`: called with the raw response (`event.response`) of a request that is not streamed, before the response is evaluated.
+- `onStreamingResponse(event)`: called for every chunk (`event.chunk`, `event.index` starting with 1) of a streamed response, before the chunk is passed to the response listener of the inquiry. Returning false aborts the stream, an exception with the error code `ai.listener.aborted` is thrown.</description>
+		</argument>
 		<return>
 			<type>object</type>
 			<description>Returns an AI session object that can be used for subsequent interactions. The object maintains conversation history and configured parameters throughout its lifecycle.</description>
@@ -11060,6 +11071,19 @@ Each history entry contains:
 
 Incomplete or improperly formatted data may cause initialization errors.
 			</description>
+		</argument>
+		<argument>
+			<name>listener</name>
+			<alias>sessionListener</alias>
+			<type>any</type>
+			<required>no</required>
+			<description>A component, or a struct of functions, that listens to the requests of this session. All hooks are optional, but at least one is needed. Every hook gets one struct (event) with the keys `session`, `connection`, `provider` and `model` and can change the content of the event in place, return a struct that replaces it, return nothing or true to continue, or throw an exception that is passed on to the caller of the inquiry.
+
+- `onBeforePromptSent(event)`: called before the request is sent, `event.request` is the request body (`event.stream` tells if the response is streamed). Returning false cancels the request, an exception with the error code `ai.listener.cancelled` is thrown and nothing is sent.
+- `onResponse(event)`: called with the raw response (`event.response`) of a request that is not streamed, before the response is evaluated.
+- `onStreamingResponse(event)`: called for every chunk (`event.chunk`, `event.index` starting with 1) of a streamed response, before the chunk is passed to the response listener of the inquiry. Returning false aborts the stream, an exception with the error code `ai.listener.aborted` is thrown.
+
+The listener is not part of the serialized data, so it has to be passed again here.</description>
 		</argument>
 		<return>
 			<type>object</type>
