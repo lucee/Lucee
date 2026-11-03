@@ -254,6 +254,12 @@ public final class VersionImpl implements Version, Serializable {
 	 */
 	public static Version parseOSGi(String version, Version defaultValue) {
 		if (version == null || !OSGI_VERSION.matcher(version.trim()).matches()) return defaultValue;
+		version = version.trim();
+		String[] arr = version.split("\\.", -1);
+		if (arr.length == 4 && !arr[3].matches("\\d{1,9}(-.*)?")) {
+			// 4th segment is an OSGi qualifier (jre8, Final, v20200101, a long number): major, minor and micro stay numeric
+			return new VersionImpl(toInteger(arr[0]), toInteger(arr[1]), toInteger(arr[2]), null, arr[3], version, true);
+		}
 		return parse(version, false, defaultValue);
 	}
 

@@ -452,8 +452,8 @@ public final class RHExtension implements Serializable {
 									}
 								}
 								catch (IOException ex) {
-								LogUtil.log(Log.LEVEL_DEBUG, "extension", "ignoring an extension with an invalid version: " + ex.getMessage());
-							}
+									LogUtil.log(Log.LEVEL_DEBUG, "extension", "ignoring an extension with an invalid version: " + ex.getMessage());
+								}
 							}
 						}
 						if (match != null) {

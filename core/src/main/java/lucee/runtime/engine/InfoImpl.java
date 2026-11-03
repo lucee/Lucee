@@ -71,7 +71,7 @@ public final class InfoImpl implements Info {
 	public InfoImpl(Version version, Dictionary<String, String> headers) {
 
 		// version
-		this.version = lucee.loader.util.VersionImpl.parseVersion(version.toString(), lucee.loader.util.VersionImpl.emptyVersion);
+		this.version = VersionImpl.parseVersion(version.toString(), VersionImpl.emptyVersion);
 		this.fullVersionInfo = KeyImpl.createHash64(this.version.toString());
 		this.versionName = headers.get("Minor-Name");
 		if (this.versionName == null) throw new RuntimeException("missing Minor-Name");

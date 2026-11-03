@@ -31,6 +31,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( impl.compare( b, a ) ).toBeGT( 0 );
 			});
 
+			it( "orders the numbers numerically, not as strings", function() {
+				var impl = createObject( "java", "lucee.loader.util.VersionImpl" );
+				var p = function( v ) { return impl.parseOSGi( v, javaCast( "null", "" ) ); };
+				expect( impl.compare( p( "12.9.0.jre8" ), p( "12.10.0.jre8" ) ) ).toBeLT( 0 );
+				expect( impl.compare( p( "12.2.0.jre8" ), p( "12.10.0" ) ) ).toBeLT( 0 );
+				expect( impl.compare( p( "12.10.0.jre8" ), p( "12.9.0.jre8" ) ) ).toBeGT( 0 );
+				expect( impl.compare( p( "5.2.0.RELEASE" ), p( "5.10.0.Final" ) ) ).toBeLT( 0 );
+				expect( impl.compare( p( "1.0.0.20240101123456" ), p( "1.1.0" ) ) ).toBeLT( 0 );
+			});
+
+			it( "treats the dot and the hyphen form of the qualifier as the same version", function() {
+				var impl = createObject( "java", "lucee.loader.util.VersionImpl" );
+				var p = function( v ) { return impl.parseOSGi( v, javaCast( "null", "" ) ); };
+				expect( impl.compare( p( "12.2.0.jre8" ), p( "12.2.0-jre8" ) ) ).toBe( 0 );
+			});
+
 		});
 	}
 
