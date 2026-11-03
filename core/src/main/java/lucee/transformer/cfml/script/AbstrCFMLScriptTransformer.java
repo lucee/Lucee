@@ -1505,7 +1505,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	}
 
 	private final Statement _multiAttrStatement(Body parent, Data data, TagLibTag tlt) throws TemplateException {
-		int pos = data.srcCode.getPos();
 		try {
 			return __multiAttrStatement(parent, data, tlt);
 		}
@@ -1513,14 +1512,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			throw e;
 		}
 		catch (TemplateException e) {
-			try {
-				data.srcCode.setPos(pos);
-				return expressionStatement(data, parent);
-			}
-			catch (TemplateException e1) {
-				if (tlt.getScript().getContext() == CTX_CFC) throw new ComponentTemplateException(e);
-				throw e;
-			}
+			if (tlt.getScript().getContext() == CTX_CFC) throw new ComponentTemplateException(e);
+			throw e;
 		}
 	}
 
