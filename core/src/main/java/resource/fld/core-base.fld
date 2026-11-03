@@ -12790,7 +12790,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>convertTypes</member-name>
 		<keywords>query</keywords>
 		<introduced>8.0.0.188</introduced>
-		<description>Converts every value of a query to the type declared by its column (e.g. date/time columns to date objects, numeric columns to numbers, bit/boolean columns to booleans). Columns with a type that has no matching CFML type (e.g. "object"/"other") and values that cannot be converted are left unchanged. By default a new query is returned and the original is left untouched.</description>
+		<description>Converts every value of a query to the java type that matches the type declared by its column: integer, smallint and tinyint columns to Integer, bigint to Long, double, float, real and numeric to Double, decimal to BigDecimal, date, time and timestamp to DateTime, char and varchar types to String and bit and boolean to Boolean. Columns without a type or of any other type (e.g. "object"/"other", binary), are left untouched, for a column without a declared type the type detected from its values is used. Null stays null, an empty string in a non string column becomes null when full null support is enabled. A value that can not be converted to the column type throws an exception naming the column and the row, an inline conversion then leaves the query unchanged. By default a new query is returned and the original is left untouched.</description>
 		<argument>
 			<name>query</name>
 			<type>query</type>
