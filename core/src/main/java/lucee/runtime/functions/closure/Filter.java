@@ -168,7 +168,7 @@ public final class Filter extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), e.getValue(), es, futures);
-			if (!async && Caster.toBooleanValue(res)) {
+			if (!async && ClosureFunc.toBooleanResult(res, "filter")) {
 				rtn.append(e.getValue());
 			}
 		}
@@ -191,7 +191,7 @@ public final class Filter extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), e.getValue(), es, futures);
-			if (!async && Caster.toBooleanValue(res)) {
+			if (!async && ClosureFunc.toBooleanResult(res, "filter")) {
 				rtn.append(e.getValue());
 			}
 		}
@@ -214,7 +214,7 @@ public final class Filter extends BIF implements ClosureFunc {
 				rowNbr = qry.getCurrentrow(pid);
 
 				res = _inv(pc, parentException, udf, new Object[] { row, Caster.toDoubleValue(rowNbr), qry }, rowNbr, qry, es, futures);
-				if (!async && Caster.toBooleanValue(res)) {
+				if (!async && ClosureFunc.toBooleanResult(res, "filter")) {
 					addRow(qry, rtn, rowNbr);
 				}
 			}
@@ -247,7 +247,7 @@ public final class Filter extends BIF implements ClosureFunc {
 			k = ArgumentIntKey.init(index);
 			v = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { v, Caster.toDoubleValue(k.getString()), list }, k, v, es, futures);
-			if (!async && Caster.toBooleanValue(res)) rtn.append(v);
+			if (!async && ClosureFunc.toBooleanResult(res, "filter")) rtn.append(v);
 		}
 		return rtn;
 	}
@@ -262,7 +262,7 @@ public final class Filter extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue(), sct }, e.getKey(), e.getValue(), es, futures);
-			if (!async && Caster.toBooleanValue(res)) rtn.set(e.getKey(), e.getValue());
+			if (!async && ClosureFunc.toBooleanResult(res, "filter")) rtn.set(e.getKey(), e.getValue());
 		}
 		return rtn;
 	}
@@ -277,7 +277,7 @@ public final class Filter extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey(), e.getValue(), map }, e.getKey(), e.getValue(), es, futures);
-			if (!async && Caster.toBooleanValue(res)) rtn.set(KeyImpl.toKey(e.getKey()), e.getValue());
+			if (!async && ClosureFunc.toBooleanResult(res, "filter")) rtn.set(KeyImpl.toKey(e.getKey()), e.getValue());
 		}
 		return rtn;
 	}
@@ -293,7 +293,7 @@ public final class Filter extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue() }, e.getKey(), e.getValue(), es, futures);
-			if (!async && Caster.toBooleanValue(res)) rtn.set(e.getKey(), e.getValue());
+			if (!async && ClosureFunc.toBooleanResult(res, "filter")) rtn.set(e.getKey(), e.getValue());
 		}
 		return rtn;
 	}
@@ -311,7 +311,7 @@ public final class Filter extends BIF implements ClosureFunc {
 			v = it.next();
 			k = ArgumentIntKey.init(++count);
 			res = _inv(pc, parentException, udf, new Object[] { v }, k, v, es, futures);
-			if (!async && Caster.toBooleanValue(res)) rtn.append(v);
+			if (!async && ClosureFunc.toBooleanResult(res, "filter")) rtn.append(v);
 		}
 		return rtn;
 	}
@@ -329,7 +329,7 @@ public final class Filter extends BIF implements ClosureFunc {
 			v = e.nextElement();
 			k = ArgumentIntKey.init(++count);
 			res = _inv(pc, parentException, udf, new Object[] { v }, k, v, es, futures);
-			if (!async && Caster.toBooleanValue(res)) rtn.append(v);
+			if (!async && ClosureFunc.toBooleanResult(res, "filter")) rtn.append(v);
 		}
 		return rtn;
 	}
@@ -355,7 +355,7 @@ public final class Filter extends BIF implements ClosureFunc {
 			while (it.hasNext()) {
 				d = it.next().get();
 
-				if (Caster.toBooleanValue(d.result)) {
+				if (ClosureFunc.toBooleanResult(d.result, "filter")) {
 					if (isArray) ((Array) coll).append(d.passed.getValue());
 					else if (isQuery) addRow((Query) d.passed.getValue(), (Query) coll, Caster.toIntValue(d.passed.getName()));
 					else coll.set(KeyImpl.toKey(d.passed.getName()), d.passed.getValue());
