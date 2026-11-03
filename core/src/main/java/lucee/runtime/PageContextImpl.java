@@ -4858,6 +4858,14 @@ public final class PageContextImpl extends PageContext {
 		return getApplicationContext().getAIEngine(nameAI);
 	}
 
+	/**
+	 * @param connection the definition of an AI connection (same keys as an entry of this.ai), used
+	 *            instead of the name of a connection
+	 */
+	public AIEngine getAIEngine(Struct connection) throws PageException {
+		return ((ConfigPro) config).getAIEnginePool().getEngine(config, connection);
+	}
+
 	public AIEngine getAIEngine(String nameAI, AIEngine defaultValue) {
 		try {
 			return getApplicationContext().getAIEngine(nameAI);
@@ -4874,6 +4882,11 @@ public final class PageContextImpl extends PageContext {
 	public AISession createAISession(String nameAI, String systemMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout)
 			throws PageException {
 		return getAIEngine(nameAI).createSession(systemMessage, history, limit, temp, connectTimeout, socketTimeout);
+	}
+
+	public AISession createAISession(Struct connection, String systemMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout)
+			throws PageException {
+		return getAIEngine(connection).createSession(systemMessage, history, limit, temp, connectTimeout, socketTimeout);
 	}
 
 	public AISession createAISessionById(String id, String systemMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout)

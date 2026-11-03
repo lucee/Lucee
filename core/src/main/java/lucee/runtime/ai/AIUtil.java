@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 
 import lucee.commons.digest.Base64Encoder;
@@ -14,6 +15,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.CoderException;
 import lucee.runtime.config.Config;
@@ -40,6 +42,18 @@ public final class AIUtil {
 	private static final Key CREATED_AT = KeyImpl.init("createdAt");
 	private static final Key STATUS_DETAILS = KeyImpl.init("statusDetails");
 	public static final AI INSTANCE = new AIImpl();
+
+	/**
+	 * @param obj value passed instead of the name of an AI connection
+	 * @return the connection definition when the value is a struct (or a map) and not a component,
+	 *         otherwise null
+	 */
+	public static Struct toConnection(Object obj) {
+		if (obj instanceof Component) return null;
+		if (obj instanceof Struct) return (Struct) obj;
+		if (obj instanceof Map) return Caster.toStruct(obj, null);
+		return null;
+	}
 
 	/**
 	 * @return true when the listener asked to cancel the inquiry, a null listener or one that can not

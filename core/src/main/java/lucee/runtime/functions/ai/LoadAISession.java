@@ -22,7 +22,8 @@ public final class LoadAISession extends BIF {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length != 2) throw new FunctionException(pc, "LoadAISession", 2, 2, args.length);
 
-		String nameAI = Caster.toString(args[0]);
+		Struct connection = AIUtil.toConnection(args[0]);
+		String nameAI = connection == null ? Caster.toString(args[0]) : null;
 		Object objData = args[1];
 		Struct data = (objData instanceof String) ? CFMLEngineFactory.getInstance().getCastUtil().fromJsonStringToStruct(Caster.toString(objData)) : Caster.toStruct(objData);
 
@@ -35,7 +36,8 @@ public final class LoadAISession extends BIF {
 		Conversation[] history = AIUtil.toConversations(Caster.toArray(data.get(KeyConstants._history)));
 
 		AISession session;
-		if (nameAI.startsWith("id:")) session = ((PageContextImpl) pc).createAISessionById(nameAI.substring(3), systemMessage, history, limit, temp, connTimeout, sockTimeout);
+		if (connection != null) session = ((PageContextImpl) pc).createAISession(connection, systemMessage, history, limit, temp, connTimeout, sockTimeout);
+		else if (nameAI.startsWith("id:")) session = ((PageContextImpl) pc).createAISessionById(nameAI.substring(3), systemMessage, history, limit, temp, connTimeout, sockTimeout);
 		else {
 			if (nameAI.startsWith("default:")) nameAI = ((PageContextImpl) pc).getNameFromDefault(nameAI.substring(8));
 			session = ((PageContextImpl) pc).createAISession(nameAI, systemMessage, history, limit, temp, connTimeout, sockTimeout);

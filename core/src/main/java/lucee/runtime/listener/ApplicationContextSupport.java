@@ -471,4 +471,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public Map<String, AIEngine> getAIEngines() {
 		return Collections.emptyMap();
 	}
+
+	/**
+	 * replaces the AI connections defined by the application itself (for example with the attribute
+	 * "ai" of the tag cfapplication)
+	 * 
+	 * @param engines the AI connections, the key is the name of the connection in lower case
+	 */
+	public void setAIEngines(Map<String, AIEngine> engines) {
+	}
 }
