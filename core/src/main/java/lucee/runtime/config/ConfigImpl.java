@@ -4873,7 +4873,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
 		if (applicationPathCache == null) return null;
-		String id = path + ":" + filename + ":" + mode;
+		String id = (path + ":" + filename + ":" + mode).toLowerCase();
 
 		SoftReference<CacheElement> tmp = getApplicationPathCacheTimeout() <= 0 ? null : applicationPathCache.get(id);
 		if (tmp != null) {
@@ -4892,7 +4892,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
 		if (getApplicationPathCacheTimeout() <= 0) return;
 		if (applicationPathCache == null) applicationPathCache = new ConcurrentHashMap<String, SoftReference<CacheElement>>();// MUSTMUST new
-		String id = path + ":" + filename + ":" + mode;
+		String id = (path + ":" + filename + ":" + mode).toLowerCase();
 		applicationPathCache.put(id, new SoftReference<CacheElement>(new CacheElement(ps, isCFC)));
 	}
 
