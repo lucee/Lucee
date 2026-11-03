@@ -107,6 +107,8 @@ jobs:
         if [ -z "$(ls -A release-assets)" ]; then
           echo "nothing to attach for $VERSION"; exit 0
         fi
+        # LDEV-6106: <file>.sha256 and <file>.sha512 for every file, verify with sha256sum -c <file>.sha256
+        .github/scripts/write-hashes.sh release-assets
         # LDEV-6701: the release tag is the numeric version without qualifier (7.1.2.184-RC -> 7.1.2.184),
         # the same tag main.yml creates and the one Lucee looks up for the GitHub release fallback
         TAG="${VERSION%%-*}"

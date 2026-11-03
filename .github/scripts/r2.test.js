@@ -46,16 +46,22 @@ function buildOutput(v) {
   return { d, pom };
 }
 
-test('core files are mapped to the Maven names, with sha1 and version metadata, and no legacy root names', () => {
+test('core files are mapped to the Maven names, with sha1, sha256, sha512 and version metadata, and no legacy root names', () => {
   const v = '7.1.0.10-SNAPSHOT';
   const { d, pom } = buildOutput(v);
   const puts = buildPuts(coreFiles(d, pom, v), v, '20261030120000');
   const base = `org/lucee/lucee/${v}/`;
   assert.deepEqual(puts.map(p => p.key).sort(), [
     'lucee-' + v + '.jar', 'lucee-' + v + '.lco', 'lucee-' + v + '-light.jar', 'lucee-' + v + '-zero.jar', 'lucee-' + v + '.pom'
-  ].flatMap(n => [base + n, base + n + '.sha1']).concat(base + 'maven-metadata.xml').sort());
+  ].flatMap(n => [base + n, base + n + '.sha1', base + n + '.sha256', base + n + '.sha512']).concat(base + 'maven-metadata.xml').sort());
   const jar = puts.find(p => p.key === `${base}lucee-${v}.jar`);
   assert.equal(puts.find(p => p.key === `${base}lucee-${v}.jar.sha1`).body, createHash('sha1').update(jar.body).digest('hex'));
+  // LDEV-6106: sha256sum / sha512sum format, "<hash>  <file name>", text/plain
+  for (const algo of ['sha256', 'sha512']) {
+    const h = puts.find(p => p.key === `${base}lucee-${v}.jar.${algo}`);
+    assert.equal(h.body, `${createHash(algo).update(jar.body).digest('hex')}  lucee-${v}.jar\n`);
+    assert.equal(h.type, 'text/plain');
+  }
   assert.equal(puts.find(p => p.key === `${base}lucee-${v}-light.jar`).body.toString(), `content of lucee-light-${v}.jar`);
   assert.ok(puts.every(p => p.key.startsWith(base)), 'nothing outside the version folder');
   assert.match(versionMetadataXml(v, '1'), /<extension>lco<\/extension>/);
@@ -86,7 +92,7 @@ test('uploads go to <bucket>/<prefix><snapshot prefix><maven key> on the configu
     const v = '7.1.0.10-SNAPSHOT';
     const { d, pom } = buildOutput(v);
     await uploadToR2(cfg, v, buildPuts(coreFiles(d, pom, v), v), () => {});
-    assert.equal(m.got.length, 11);
+    assert.equal(m.got.length, 21); // 5 files x (file, .sha1, .sha256, .sha512) + maven-metadata.xml
     assert.ok(m.got.every(g => g.method === 'PUT' && g.path.startsWith(`/b/pre/snapshots/org/lucee/lucee/${v}/`)), JSON.stringify(m.got.map(g => g.path)));
     assert.ok(m.got.some(g => g.path.endsWith(`/lucee-${v}-light.jar`) && g.body.includes('content of lucee-light')));
   } finally { await m.close(); }
