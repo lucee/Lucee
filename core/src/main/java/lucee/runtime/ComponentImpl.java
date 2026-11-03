@@ -1905,6 +1905,26 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 			}
 		}
 
+		// Sub components
+		if (!comp.properties.inline && StringUtil.isEmpty(comp.properties.subName) && comp.cp != null) {
+			CIPage[] subs = comp.cp.getSubPages();
+			if (subs != null && subs.length > 0) {
+				ArrayImpl subArr = new ArrayImpl();
+				for (CIPage sub: subs) {
+					if (!(sub instanceof SubPage)) continue;
+					String subname = ((SubPage) sub).getSubname();
+					if (StringUtil.isEmpty(subname)) continue;
+					Struct subSct = new StructImpl();
+					String subFullName = comp.properties.name + "$" + subname;
+					subSct.set(KeyConstants._name, subFullName);
+					subSct.set(KeyConstants._fullname, subFullName);
+					subSct.set(KeyConstants._subname, subname);
+					subArr.append(subSct);
+				}
+				if (subArr.size() > 0) sct.set(KeyConstants._subComponents, subArr);
+			}
+		}
+
 		// Properties
 		if (comp.properties.properties != null) {
 			ArrayImpl parr = new ArrayImpl();
