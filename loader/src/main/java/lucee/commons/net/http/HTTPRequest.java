@@ -136,6 +136,24 @@ public final class HTTPRequest {
 	private String redirect = "true";
 	private boolean pooling = true;
 
+	/**
+	 * the request uses HTTP/1.1 only (default)
+	 */
+	public static final String HTTP_VERSION_1_1 = "1.1";
+
+	/**
+	 * the request uses HTTP/2 only, it fails when the server does not speak HTTP/2
+	 */
+	public static final String HTTP_VERSION_2 = "2";
+
+	/**
+	 * the request uses HTTP/2 when the server offers it (TLS ALPN), otherwise HTTP/1.1
+	 */
+	public static final String HTTP_VERSION_AUTO = "auto";
+
+	// one of the HTTP_VERSION_ constants
+	private String httpVersion = HTTP_VERSION_1_1;
+
 	private String clientCert;
 	private String clientCertPassword;
 	private String trustStore;
@@ -318,6 +336,21 @@ public final class HTTPRequest {
 
 	public HTTPRequest setPooling(boolean pooling) {
 		this.pooling = pooling;
+		return this;
+	}
+
+	/**
+	 * @return one of the HTTP_VERSION_ constants, "1.1" by default
+	 */
+	public String getHttpVersion() {
+		return httpVersion;
+	}
+
+	/**
+	 * @param httpVersion one of the HTTP_VERSION_ constants
+	 */
+	public HTTPRequest setHttpVersion(String httpVersion) {
+		this.httpVersion = httpVersion;
 		return this;
 	}
 
