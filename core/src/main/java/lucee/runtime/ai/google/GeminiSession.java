@@ -25,6 +25,7 @@ import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.util.Util;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
+import lucee.runtime.ai.AITokenLimits;
 import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Conversation;
 import lucee.runtime.ai.ConversationImpl;
@@ -58,6 +59,7 @@ public final class GeminiSession extends AISessionSupport {
 
 	@Override
 	public Response inquiry(String message, AIResponseListener listener) throws PageException {
+		checkTokenLimits();
 		long start = System.nanoTime();
 		try {
 			Struct root = buildRequestRoot(message, null);
@@ -71,6 +73,7 @@ public final class GeminiSession extends AISessionSupport {
 
 	@Override
 	public Response inquiry(List<Part> parts, AIResponseListener listener) throws PageException {
+		checkTokenLimits();
 		long start = System.nanoTime();
 		try {
 			Struct root = buildRequestRoot(null, parts);
@@ -98,6 +101,13 @@ public final class GeminiSession extends AISessionSupport {
 		if (temperature != null) {
 			if (generationConfig == null) generationConfig = new StructImpl();
 			generationConfig.set(KeyConstants._temperature, temperature);
+		}
+
+		// maxTokensPerRequest also limits the answer, LDEV-6528
+		long maxPerRequest = AITokenLimits.get(geminiEngine).getMaxTokensPerRequest();
+		if (maxPerRequest > 0L && (generationConfig == null || !generationConfig.containsKey("maxOutputTokens"))) {
+			if (generationConfig == null) generationConfig = new StructImpl();
+			generationConfig.set("maxOutputTokens", maxPerRequest);
 		}
 
 		// generationConfig

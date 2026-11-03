@@ -247,9 +247,20 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		props.remove(KeyConstants._timeout, null);
 		props.remove(KeyConstants._apikey, null);
 
+		// token limits, LDEV-6528
+		readTokenLimits(props);
+
 		this.custom = props;
 
 		return this;
+	}
+
+	/**
+	 * true when this connection talks to OpenAI itself and not to a provider with an OpenAI compatible
+	 * API
+	 */
+	boolean isOpenAI() {
+		return baseURL != null && "api.openai.com".equalsIgnoreCase(baseURL.getHost());
 	}
 
 	@Override

@@ -32,6 +32,7 @@ import lucee.loader.util.Util;
 import lucee.runtime.ai.AIEngineSupport;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
+import lucee.runtime.ai.AITokenLimits;
 import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Conversation;
 import lucee.runtime.ai.ConversationImpl;
@@ -58,6 +59,8 @@ public final class OpenAISession extends AISessionSupport {
 
 	private static final String PROVIDER = "openai";
 	private static final Key STREAM_OPTIONS = KeyImpl.init("stream_options");
+	private static final Key MAX_TOKENS = KeyImpl.init("max_tokens");
+	private static final Key MAX_COMPLETION_TOKENS = KeyImpl.init("max_completion_tokens");
 
 	private OpenAIEngine openaiEngine;
 	private String systemMessage;
@@ -70,6 +73,7 @@ public final class OpenAISession extends AISessionSupport {
 
 	@Override
 	public Response inquiry(String message, AIResponseListener listener) throws PageException {
+		checkTokenLimits();
 		long start = System.nanoTime();
 		try {
 			Struct request = buildRequest(message, null, listener != null);
@@ -91,6 +95,7 @@ public final class OpenAISession extends AISessionSupport {
 
 	@Override
 	public Response inquiry(List<Part> parts, AIResponseListener listener) throws PageException {
+		checkTokenLimits();
 		long start = System.nanoTime();
 		try {
 			Struct request = buildRequest(null, parts, listener != null);
@@ -167,6 +172,13 @@ public final class OpenAISession extends AISessionSupport {
 		Double temperature = getTemperature();
 		if (temperature != null && openaiEngine.acceptsTemperature(Caster.toString(request.get(KeyConstants._model, null), null))) {
 			request.set(KeyConstants._temperature, temperature);
+		}
+
+		// maxTokensPerRequest also limits the answer, LDEV-6528
+		long maxPerRequest = AITokenLimits.get(openaiEngine).getMaxTokensPerRequest();
+		if (maxPerRequest > 0L && (openaiEngine.custom == null || (!openaiEngine.custom.containsKey(MAX_TOKENS) && !openaiEngine.custom.containsKey(MAX_COMPLETION_TOKENS)))) {
+			// OpenAI itself does not accept max_tokens for all models any more, other providers only know max_tokens
+			request.set(openaiEngine.isOpenAI() ? MAX_COMPLETION_TOKENS : MAX_TOKENS, maxPerRequest);
 		}
 
 		// custom

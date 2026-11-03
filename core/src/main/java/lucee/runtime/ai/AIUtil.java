@@ -137,6 +137,8 @@ public final class AIUtil {
 		meta.set("connectTimeout", aie.getConnectTimeout());
 		meta.set("conversationSizeLimit", aie.getConversationSizeLimit());
 		meta.set(KeyConstants._name, aie.getName());
+		AITokenLimits limits = AITokenLimits.get(aie);
+		if (!limits.isEmpty()) meta.set("tokenLimits", limits.toStruct());
 
 		// models
 		if (addModelsInfo) {
@@ -259,6 +261,24 @@ public final class AIUtil {
 		appendLogValue(sb, "duration_ms", (System.nanoTime() - startNanos) / 1000000L);
 		appendLogValue(sb, "ai.connection", session.getEngine().getName());
 		appendLogValue(sb, "status", "failed");
+		LogUtil.logx(null, Log.LEVEL_WARN, "ai", sb.toString(), "ai", "application");
+	}
+
+	/**
+	 * a token limit of the connection was reached or crossed (LDEV-6528), written as WARN to the ai log
+	 * 
+	 * @param limit the name of the setting
+	 * @param phase before or after the call
+	 */
+	public static void logTokenLimit(AISession session, String limit, long max, long used, String action, String phase) {
+		StringBuilder sb = new StringBuilder("limit");
+		appendLogValue(sb, "ai.limit", limit);
+		appendLogValue(sb, "ai.limit.max", max);
+		appendLogValue(sb, "ai.limit.used", used);
+		appendLogValue(sb, "ai.limit.action", action);
+		appendLogValue(sb, "ai.limit.phase", phase);
+		appendLogValue(sb, "gen_ai.conversation.id", session.getId());
+		appendLogValue(sb, "ai.connection", session.getEngine().getName());
 		LogUtil.logx(null, Log.LEVEL_WARN, "ai", sb.toString(), "ai", "application");
 	}
 

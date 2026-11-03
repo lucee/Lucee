@@ -25,6 +25,7 @@ import lucee.loader.util.Util;
 import lucee.runtime.ai.AIEngineSupport;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
+import lucee.runtime.ai.AITokenLimits;
 import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Conversation;
 import lucee.runtime.ai.ConversationImpl;
@@ -57,6 +58,7 @@ public final class ClaudeSession extends AISessionSupport {
 
 	@Override
 	public Response inquiry(String message, AIResponseListener listener) throws PageException {
+		checkTokenLimits();
 		long start = System.nanoTime();
 		try {
 			Struct requestBody = buildRequest(message, null, listener != null);
@@ -70,6 +72,7 @@ public final class ClaudeSession extends AISessionSupport {
 
 	@Override
 	public Response inquiry(List<Part> parts, AIResponseListener listener) throws PageException {
+		checkTokenLimits();
 		long start = System.nanoTime();
 		try {
 			Struct requestBody = buildRequest(null, parts, listener != null);
@@ -84,7 +87,9 @@ public final class ClaudeSession extends AISessionSupport {
 	private Struct buildRequest(String message, List<Part> parts, boolean stream) throws PageException {
 		Struct requestBody = new StructImpl();
 		requestBody.set(KeyConstants._model, engine.getModel());
-		requestBody.set("max_tokens", 4096);
+		// maxTokensPerRequest also limits the answer, LDEV-6528
+		long maxPerRequest = AITokenLimits.get(engine).getMaxTokensPerRequest();
+		requestBody.set("max_tokens", maxPerRequest > 0L && maxPerRequest < 4096L ? maxPerRequest : 4096L);
 		requestBody.set("stream", stream);
 
 		// Add temperature if set and the model accepts it
