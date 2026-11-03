@@ -145,6 +145,8 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 	private Boolean multiPartSupported;
 	URI chatCompletionsURI;
 	Struct custom;
+	/** the provider rejected stream_options, so no usage in a stream can be requested (LDEV-6527) */
+	volatile boolean streamUsageRejected;
 	Map<String, String> headers;
 
 	@Override

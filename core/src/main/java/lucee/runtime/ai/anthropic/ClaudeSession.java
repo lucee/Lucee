@@ -45,6 +45,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public final class ClaudeSession extends AISessionSupport {
+	private static final String PROVIDER = "anthropic";
 	private ClaudeEngine engine;
 	private String systemMessage;
 
@@ -56,22 +57,26 @@ public final class ClaudeSession extends AISessionSupport {
 
 	@Override
 	public Response inquiry(String message, AIResponseListener listener) throws PageException {
+		long start = System.nanoTime();
 		try {
 			Struct requestBody = buildRequest(message, null, listener != null);
-			return executeRequest(requestBody, message, null, listener);
+			return executeRequest(requestBody, message, null, listener, start);
 		}
 		catch (Exception e) {
+			AIUtil.addFailedInquiry(this, PROVIDER, engine.getModel(), start, listener != null, e);
 			throw Caster.toPageException(e);
 		}
 	}
 
 	@Override
 	public Response inquiry(List<Part> parts, AIResponseListener listener) throws PageException {
+		long start = System.nanoTime();
 		try {
 			Struct requestBody = buildRequest(null, parts, listener != null);
-			return executeRequest(requestBody, null, parts, listener);
+			return executeRequest(requestBody, null, parts, listener, start);
 		}
 		catch (Exception e) {
+			AIUtil.addFailedInquiry(this, PROVIDER, engine.getModel(), start, listener != null, e);
 			throw Caster.toPageException(e);
 		}
 	}
@@ -184,7 +189,7 @@ public final class ClaudeSession extends AISessionSupport {
 		return contentBlock;
 	}
 
-	private Response executeRequest(Struct requestBody, String message, List<Part> parts, AIResponseListener listener) throws Exception {
+	private Response executeRequest(Struct requestBody, String message, List<Part> parts, AIResponseListener listener, long start) throws Exception {
 		// Make API request
 		HttpPost post = new HttpPost(engine.getBaseURL().toExternalForm() + "messages");
 		post.setHeader("Content-Type", "application/json");
@@ -239,7 +244,7 @@ public final class ClaudeSession extends AISessionSupport {
 					if (requestBody.containsKey(KeyConstants._temperature) && AIEngineSupport.isTemperatureRejected(errMsg)) {
 						engine.rejectTemperature(Caster.toString(requestBody.get(KeyConstants._model, null), null));
 						requestBody.removeEL(KeyConstants._temperature);
-						return executeRequest(requestBody, message, parts, listener);
+						return executeRequest(requestBody, message, parts, listener, start);
 					}
 					throw AIUtil.toException(this.getEngine(), Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
 							Caster.toString(err.get(KeyConstants._code, null), null), AIUtil.getStatusCode(response));
@@ -247,7 +252,7 @@ public final class ClaudeSession extends AISessionSupport {
 
 				// Create response object
 				ClaudeResponse r = new ClaudeResponse(raw, cs);
-				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(message, parts), r));
+				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(message, parts), r), PROVIDER, engine.getModel(), start, false);
 				return r;
 			}
 			// Handle streaming response
@@ -277,7 +282,7 @@ public final class ClaudeSession extends AISessionSupport {
 					}
 				}
 
-				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(message, parts), r));
+				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(message, parts), r), PROVIDER, engine.getModel(), start, true);
 				return r;
 			}
 			else {

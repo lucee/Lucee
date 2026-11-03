@@ -48,8 +48,10 @@ public final class InquiryAISession extends BIF {
 		if (Decision.isString(oQuestion)) {
 			String question = Caster.toString(oQuestion);
 
-			LogUtil.logx(pc.getConfig(), Log.LEVEL_INFO, "ai", "Submitting question to AI endpoint [" + ais.getEngine().getName() + "] from type [" + ais.getEngine().getLabel()
-					+ "] with the following content: [" + question + "]", "ai", "application");
+			LogUtil.logx(pc.getConfig(), Log.LEVEL_INFO, "ai",
+					"Submitting question to AI endpoint [" + ais.getEngine().getName() + "] from type [" + ais.getEngine().getLabel() + "]", "ai", "application");
+			LogUtil.logx(pc.getConfig(), Log.LEVEL_DEBUG, "ai", "Submitting question to AI endpoint [" + ais.getEngine().getName() + "] from type ["
+					+ ais.getEngine().getLabel() + "] with the following content: [" + question + "]", "ai", "application");
 
 			if (listener != null) rsp = ais.inquiry(question, new UDFAIResponseListener(pc, listener));
 			else rsp = ais.inquiry(question);
@@ -58,8 +60,10 @@ public final class InquiryAISession extends BIF {
 		else if (Decision.isArray(oQuestion)) {
 			List<Part> parts = PartImpl.toParts(pc, Caster.toNativeArray(oQuestion));
 
-			LogUtil.logx(pc.getConfig(), Log.LEVEL_INFO, "ai", "Submitting question to AI endpoint [" + ais.getEngine().getName() + "] from type [" + ais.getEngine().getLabel()
-					+ "] with the following texts: [" + AIUtil.extractTextFromParts(parts) + "]", "ai", "application");
+			LogUtil.logx(pc.getConfig(), Log.LEVEL_INFO, "ai",
+					"Submitting question to AI endpoint [" + ais.getEngine().getName() + "] from type [" + ais.getEngine().getLabel() + "]", "ai", "application");
+			LogUtil.logx(pc.getConfig(), Log.LEVEL_DEBUG, "ai", "Submitting question to AI endpoint [" + ais.getEngine().getName() + "] from type ["
+					+ ais.getEngine().getLabel() + "] with the following texts: [" + AIUtil.extractTextFromParts(parts) + "]", "ai", "application");
 
 			if (listener != null) rsp = AISessionMultipart.toAISessionMultipart(ais).inquiry(parts, new UDFAIResponseListener(pc, listener));
 			else rsp = AISessionMultipart.toAISessionMultipart(ais).inquiry(parts);

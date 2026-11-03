@@ -7,6 +7,8 @@ import lucee.commons.digest.Base64Encoder;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.ai.AIResponseListener;
+import lucee.runtime.ai.AIUsage;
+import lucee.runtime.ai.AIUsageProvider;
 import lucee.runtime.ai.Part;
 import lucee.runtime.ai.PartImpl;
 import lucee.runtime.ai.Response;
@@ -23,7 +25,7 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
-public final class GeminiStreamResponse implements Response {
+public final class GeminiStreamResponse implements Response, AIUsageProvider {
 
 	private Array raw = new ArrayImpl();
 	private String charset;
@@ -169,6 +171,29 @@ public final class GeminiStreamResponse implements Response {
 			return tokens = Caster.toLongValue(sct.get("totalTokenCount", null), 0L);
 		}
 		return tokens;
+	}
+
+	// the usage is reported with the last chunk
+	@Override
+	public AIUsage getUsage() {
+		for (int i = raw.size(); i >= 1; i--) {
+			Struct chunk = Caster.toStruct(raw.get(i, null), null);
+			if (chunk == null) continue;
+			AIUsage u = AIUsage.fromGemini(Caster.toStruct(chunk.get("usageMetadata", null), null));
+			if (u != null) return u;
+		}
+		return null;
+	}
+
+	@Override
+	public String getResponseModel() {
+		for (int i = raw.size(); i >= 1; i--) {
+			Struct chunk = Caster.toStruct(raw.get(i, null), null);
+			if (chunk == null) continue;
+			String model = Caster.toString(chunk.get("modelVersion", null), null);
+			if (!StringUtil.isEmpty(model, true)) return model;
+		}
+		return null;
 	}
 
 	@Override

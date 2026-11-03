@@ -5,6 +5,7 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.ai.AISession;
+import lucee.runtime.ai.AISessionSupport;
 import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Conversation;
 import lucee.runtime.exp.FunctionException;
@@ -40,6 +41,9 @@ public final class LoadAISession extends BIF {
 			if (nameAI.startsWith("default:")) nameAI = ((PageContextImpl) pc).getNameFromDefault(nameAI.substring(8));
 			session = ((PageContextImpl) pc).createAISession(nameAI, systemMessage, history, limit, temp, connTimeout, sockTimeout);
 		}
+
+		AISessionSupport support = AIUtil.toSessionSupport(session);
+		if (support != null) support.restoreUsage(Caster.toStruct(data.get("usage", null), null));
 
 		return session;
 	}

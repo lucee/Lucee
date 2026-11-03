@@ -8,6 +8,8 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.ai.Part;
 import lucee.runtime.ai.PartImpl;
+import lucee.runtime.ai.AIUsage;
+import lucee.runtime.ai.AIUsageProvider;
 import lucee.runtime.ai.Response;
 import lucee.runtime.coder.CoderException;
 import lucee.runtime.converter.ConverterException;
@@ -20,7 +22,7 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
-public final class GeminiResponse implements Response {
+public final class GeminiResponse implements Response, AIUsageProvider {
 
 	private Struct raw;
 	private String charset;
@@ -70,6 +72,16 @@ public final class GeminiResponse implements Response {
 			return tokens = Caster.toLongValue(sct.get("totalTokenCount", null), 0L);
 		}
 		return tokens;
+	}
+
+	@Override
+	public AIUsage getUsage() {
+		return AIUsage.fromGemini(Caster.toStruct(raw.get("usageMetadata", null), null));
+	}
+
+	@Override
+	public String getResponseModel() {
+		return Caster.toString(raw.get("modelVersion", null), null);
 	}
 
 	@Override
