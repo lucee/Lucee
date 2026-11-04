@@ -2315,6 +2315,22 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			TagLibTagAttr tlta = tlt.getAttribute(attr.getName(), true);
 			tag.addAttribute(new Attribute(false, attrName, data.factory.toExpression(attrValue, tlta.getType()), tlta.getType()));
 		}
+		// LDEV-3069: named attributes following the single attribute on the same line,
+		// "include 'file.cfm' cachedwithin=createTimeSpan(0,0,1,0);"
+		if (attrValue != null && data.ep != null) {
+			int p = data.srcCode.getPos();
+			int ln = data.srcCode.getPosition().line;
+			data.srcCode.removeSpace();
+			if (data.srcCode.getPosition().line == ln && isOtherNamedAttribute(data, tlt)) {
+				Attribute[] attrs = attributes(tag, tlt, data, SEMI_BLOCK, data.factory.EMPTY(), tlt.getScript().getRtexpr() ? Boolean.TRUE : Boolean.FALSE, attrName, false,
+						',', false);
+				for (Attribute a: attrs) {
+					if (a.isDefaultAttribute() && tag.getAttribute(a.getName()) != null) continue;
+					tag.addAttribute(a);
+				}
+			}
+			else data.srcCode.setPos(p);
+		}
 		else if (ATTR_TYPE_REQUIRED == attrType && !handledAsNamedAttrs) {
 			data.srcCode.setPos(pos);
 			return null;
