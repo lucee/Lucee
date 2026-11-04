@@ -13,7 +13,7 @@
 
 	stText.Overview.mcp = "Lucee MCP Server"
 	stText.Overview.mcpDescShort = "Model Context Protocol (MCP) server for Lucee — connect AI assistants (Claude, Cursor, etc.) to Lucee documentation and tools."
-	stText.Overview.mcpUrl = "https://mcp.lucee.org"
+	stText.Overview.mcpUrl = "https://mcp.lucee-services.com/"
 
 	stText.Overview.skillDesc = "A machine-readable skill file for AI assistants (Claude, ChatGPT, etc.) that gives them 
             deep knowledge of Lucee. It includes a full recipe index covering configuration, caching, 
