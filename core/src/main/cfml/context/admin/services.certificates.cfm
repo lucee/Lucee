@@ -130,7 +130,7 @@ Error Output --->
 									<form action="#request.self#?action=#url.action#" method="post" style="display:inline">
 										<input type="hidden" name="alias" value="#installedCerts.alias#">
 										<input type="hidden" name="mainAction" value="Remove">
-										<input class="button small" type="submit" value="Remove" onclick="return confirm('Remove certificate #JSStringFormat(installedCerts.alias)#?')">
+										<input class="button" type="submit" value="Remove" onclick="return confirm('Remove certificate #JSStringFormat(installedCerts.alias)#?')">
 									</form>
 								</td>
 							</tr>
