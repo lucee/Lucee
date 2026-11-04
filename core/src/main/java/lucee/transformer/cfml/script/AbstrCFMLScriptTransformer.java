@@ -1505,19 +1505,35 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	}
 
 	private final Statement _multiAttrStatement(Body parent, Data data, TagLibTag tlt) throws TemplateException {
+		int pos = data.srcCode.getPos();
+		RefBoolean hasParsedAttr = new RefBooleanImpl(false);
 		try {
-			return __multiAttrStatement(parent, data, tlt);
+			return __multiAttrStatement(parent, data, tlt, hasParsedAttr);
 		}
 		catch (ProcessingDirectiveException e) {
 			throw e;
 		}
 		catch (TemplateException e) {
+			if (!hasParsedAttr.toBooleanValue()) {
+				try {
+					data.srcCode.setPos(pos);
+					return expressionStatement(data, parent);
+				}
+				catch (TemplateException e1) {
+					if (tlt.getScript().getContext() == CTX_CFC) throw new ComponentTemplateException(e);
+					throw e;
+				}
+			}
 			if (tlt.getScript().getContext() == CTX_CFC) throw new ComponentTemplateException(e);
 			throw e;
 		}
 	}
 
 	private final Tag __multiAttrStatement(Body parent, Data data, TagLibTag tlt) throws TemplateException {
+		return __multiAttrStatement(parent, data, tlt, null);
+	}
+
+	private final Tag __multiAttrStatement(Body parent, Data data, TagLibTag tlt, RefBoolean hasParsedAttr) throws TemplateException {
 		if (data.ep == null) return null;
 		int pos = data.srcCode.getPos();
 		String type = tlt.getName();
@@ -1574,7 +1590,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// attributes
 		// attributes(func,data);
-		Attribute[] attrs = attributes(tag, tlt, data, SEMI_BLOCK, data.factory.EMPTY(), script.getRtexpr() ? Boolean.TRUE : Boolean.FALSE, null, false, ',', false);
+		Attribute[] attrs = attributes(tag, tlt, data, SEMI_BLOCK, data.factory.EMPTY(), script.getRtexpr() ? Boolean.TRUE : Boolean.FALSE, null, false, ',', false,
+				hasParsedAttr);
 
 		for (int i = 0; i < attrs.length; i++) {
 			tag.addAttribute(attrs[i]);
@@ -2716,13 +2733,18 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final Attribute[] attributes(Tag tag, TagLibTag tlt, Data data, EndCondition endCond, Expression defaultValue, Object oAllowExpression, String ignoreAttrReqFor,
 			boolean allowTwiceAttr, char attributeSeparator, boolean allowColonAsNameValueSeparator) throws TemplateException {
+		return attributes(tag, tlt, data, endCond, defaultValue, oAllowExpression, ignoreAttrReqFor, allowTwiceAttr, attributeSeparator, allowColonAsNameValueSeparator, null);
+	}
+
+	private final Attribute[] attributes(Tag tag, TagLibTag tlt, Data data, EndCondition endCond, Expression defaultValue, Object oAllowExpression, String ignoreAttrReqFor,
+			boolean allowTwiceAttr, char attributeSeparator, boolean allowColonAsNameValueSeparator, RefBoolean hasParsedAttr) throws TemplateException {
 		Map<String, Attribute> attrs = new LinkedHashMap<String, Attribute>(); // need to be linked hashmap to keep the right order
 		ArrayList<String> ids = new ArrayList<String>();
 		while (data.srcCode.isValidIndex()) {
 			data.srcCode.removeSpace();
 			// if no more attributes break
 			if (endCond.isEnd(data)) break;
-			Attribute attr = attribute(tlt, data, ids, defaultValue, oAllowExpression, allowTwiceAttr, allowColonAsNameValueSeparator);
+			Attribute attr = attribute(tlt, data, ids, defaultValue, oAllowExpression, allowTwiceAttr, allowColonAsNameValueSeparator, hasParsedAttr);
 			attrs.put(attr.getName().toLowerCase(), attr);
 
 			// seperator
@@ -2803,13 +2825,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	}
 
 	private final Attribute attribute(TagLibTag tlt, Data data, ArrayList<String> args, Expression defaultValue, Object oAllowExpression, boolean allowTwiceAttr,
-			boolean allowColonSeparator) throws TemplateException {
+			boolean allowColonSeparator, RefBoolean hasParsedAttr) throws TemplateException {
 		StringBuilder sbType = new StringBuilder();
 		RefBoolean dynamic = new RefBooleanImpl(false);
 
 		comments(data);
 		// Name
-		String name = attributeName(data.srcCode, args, tlt, dynamic, sbType, allowTwiceAttr, !allowColonSeparator);
+		String name = attributeName(data.srcCode, args, tlt, dynamic, sbType, allowTwiceAttr, !allowColonSeparator, hasParsedAttr);
 		String nameLC = name == null ? null : name.toLowerCase();
 		boolean allowExpression = false;
 		if (oAllowExpression instanceof Boolean) allowExpression = ((Boolean) oAllowExpression).booleanValue();
@@ -2891,9 +2913,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		return attr;
 	}
 
-	private final String attributeName(SourceCode cfml, ArrayList<String> args, TagLibTag tag, RefBoolean dynamic, StringBuilder sbType, boolean allowTwiceAttr, boolean allowColon)
-			throws TemplateException {
+	private final String attributeName(SourceCode cfml, ArrayList<String> args, TagLibTag tag, RefBoolean dynamic, StringBuilder sbType, boolean allowTwiceAttr, boolean allowColon,
+			RefBoolean hasParsedAttr) throws TemplateException {
 		String id = CFMLTransformer.identifier(cfml, true, allowColon);
+		if (hasParsedAttr != null && !StringUtil.isEmpty(id)) hasParsedAttr.setValue(true);
 		return validateAttributeName(id, cfml, args, tag, dynamic, sbType, allowTwiceAttr);
 	}
 
