@@ -4,42 +4,68 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="array,cast" {
 		describe( "LDEV-6806 native Java arrays cast without copying", function() {
 
 			it( title="arrayLen/arrayIsEmpty/index/loop over Object[] and primitives", body=function() {
-				_assertReads( javaCast( "String[]", [ "a", "b", "c" ] ), "Object[]", "a", "a,b,c", '["a","b","c"]', false );
-				_assertReads( javaCast( "boolean[]", [ true, false, true ] ), "boolean[]", true, "true,false,true", "[true,false,true]", false );
-				_assertReads( javaCast( "byte[]", [ 1, 2, 3 ] ), "byte[]", 1, 6, "", true );
-				_assertReads( javaCast( "char[]", [ "x", "y", "z" ] ), "char[]", "x", "x,y,z", '["x","y","z"]', false );
-				_assertReads( javaCast( "short[]", [ 1, 2, 3 ] ), "short[]", 1, 6, "[1,2,3]", false );
-				_assertReads( javaCast( "int[]", [ 10, 20, 30 ] ), "int[]", 10, 60, "[10,20,30]", false );
-				_assertReads( javaCast( "long[]", [ 10, 20, 30 ] ), "long[]", 10, 60, "[10,20,30]", false );
-				_assertReads( javaCast( "float[]", [ 1.5, 2.5, 3.5 ] ), "float[]", 1.5, 7.5, "[1.5,2.5,3.5]", false );
-				_assertReads( javaCast( "double[]", [ 1.5, 2.5, 3.5 ] ), "double[]", 1.5, 7.5, "[1.5,2.5,3.5]", false );
+				_assertReads( "String[]", [ "a", "b", "c" ], "a", "a,b,c", '["a","b","c"]' );
+				_assertReads( "boolean[]", [ true, false, true ], true, "true,false,true", "[true,false,true]" );
+				_assertReads( "byte[]", [ 1, 2, 3 ], 1, 6, "[1,2,3]" );
+				_assertReads( "char[]", [ "x", "y", "z" ], "x", "x,y,z", '["x","y","z"]' );
+				_assertReads( "short[]", [ 1, 2, 3 ], 1, 6, "[1,2,3]" );
+				_assertReads( "int[]", [ 10, 20, 30 ], 10, 60, "[10,20,30]" );
+				_assertReads( "long[]", [ 10, 20, 30 ], 10, 60, "[10,20,30]" );
+				_assertReads( "float[]", [ 1.5, 2.5, 3.5 ], 1.5, 7.5, "[1.5,2.5,3.5]" );
+				_assertReads( "double[]", [ 1.5, 2.5, 3.5 ], 1.5, 7.5, "[1.5,2.5,3.5]" );
 			});
 
 			it( title="empty native arrays", body=function() {
-				_assertEmpty( javaCast( "String[]", [] ) );
-				_assertEmpty( javaCast( "int[]", [] ) );
+				var emptyObj = _wrap( javaCast( "String[]", [] ) );
+				expect( arrayLen( emptyObj ) ).toBe( 0 );
+				expect( arrayIsEmpty( emptyObj ) ).toBeTrue();
+				expect( serializeJSON( emptyObj ) ).toBe( "[]" );
+
+				var emptyInt = _wrap( javaCast( "int[]", [] ) );
+				expect( arrayLen( emptyInt ) ).toBe( 0 );
+				expect( arrayIsEmpty( emptyInt ) ).toBeTrue();
+				expect( serializeJSON( emptyInt ) ).toBe( "[]" );
 			});
 
 			it( title="mutating the CFML array does not change the original Java array", body=function() {
 				var ReflectArray = createObject( "java", "java.lang.reflect.Array" );
 
 				var obj = javaCast( "String[]", [ "a", "b", "c" ] );
-				_mutateObject( obj, "z" );
+				var wrappedObj = _wrap( obj );
+				wrappedObj[ 1 ] = "z";
+				arrayAppend( wrappedObj, "extra" );
+				expect( arrayLen( wrappedObj ) ).toBe( 4 );
+				expect( wrappedObj[ 1 ] ).toBe( "z" );
 				expect( ReflectArray.getLength( obj ) ).toBe( 3 );
 				expect( ReflectArray.get( obj, 0 ) ).toBe( "a" );
 
 				var ints = javaCast( "int[]", [ 1, 2, 3 ] );
-				_mutateNumeric( ints, 99 );
+				var wrappedInts = _wrap( ints );
+				wrappedInts[ 1 ] = 99;
+				arrayAppend( wrappedInts, 1000 );
+				expect( arrayLen( wrappedInts ) ).toBe( 4 );
+				expect( wrappedInts[ 1 ] ).toBe( 99 );
 				expect( ReflectArray.getLength( ints ) ).toBe( 3 );
 				expect( ReflectArray.getInt( ints, 0 ) ).toBe( 1 );
 			});
 
 			it( title="append grows the CFML array after copy-on-write", body=function() {
-				_assertAppendGrows( javaCast( "int[]", [ 1, 2 ] ) );
+				var arr = _wrap( javaCast( "int[]", [ 1, 2 ] ) );
+				arrayAppend( arr, 3 );
+				arrayAppend( arr, 4 );
+				expect( arrayLen( arr ) ).toBe( 4 );
+				expect( arrayToList( arr ) ).toBe( "1,2,3,4" );
 			});
 
 			it( title="duplicate returns an independent copy", body=function() {
-				_assertDuplicateIndependent( javaCast( "String[]", [ "a", "b" ] ) );
+				var src = _wrap( javaCast( "String[]", [ "a", "b" ] ) );
+				var dup = duplicate( src );
+				arrayAppend( dup, "c" );
+				dup[ 1 ] = "z";
+				expect( arrayLen( src ) ).toBe( 2 );
+				expect( src[ 1 ] ).toBe( "a" );
+				expect( arrayLen( dup ) ).toBe( 3 );
+				expect( dup[ 1 ] ).toBe( "z" );
 			});
 
 			it( title="arrayLen on a large Object[] remains correct across many calls", body=function() {
@@ -60,11 +86,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="array,cast" {
 	}
 
 	/**
-	 * All assertions that need the cast Array must run inside a function whose
-	 * argument is typed as array, so the view is the local variable. Returning
-	 * the view from a UDF can re-materialise a native Object[] via Array.toArray().
+	 * Keep an explicit Array view from Caster.toArray. Typed CFML `array` arguments
+	 * leave the native Java array in the local variable and only cast at BIF call
+	 * sites, so mutations need a held Array reference to exercise copy-on-write.
 	 */
-	private void function _assertReads( required array arr, required string label, required any first, required any loopExpect, required string expectJson, required boolean skipJson ) {
+	private any function _wrap( required any javaArr ) {
+		return createObject( "java", "lucee.runtime.op.Caster" ).toArray( javaArr );
+	}
+
+	private void function _assertReads( required string javaType, required array values, required any first, required any loopExpect, required string expectJson ) {
+		var arr = _wrap( javaCast( javaType, values ) );
+		var label = javaType;
+
 		expect( arrayLen( arr ) ).toBe( 3, label & " arrayLen" );
 		expect( arrayIsEmpty( arr ) ).toBeFalse( label & " arrayIsEmpty" );
 		expect( arr[ 1 ] ).toBe( first, label & " get[1]" );
@@ -83,47 +116,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="array,cast" {
 		var n = 0;
 		arrayEach( arr, function( v ) { n++; } );
 		expect( n ).toBe( 3, label & " each" );
-
-		if ( !skipJson ) {
-			expect( serializeJSON( arr ) ).toBe( expectJson, label & " serializeJSON" );
-		}
-	}
-
-	private void function _assertEmpty( required array arr ) {
-		expect( arrayLen( arr ) ).toBe( 0 );
-		expect( arrayIsEmpty( arr ) ).toBeTrue();
-		expect( serializeJSON( arr ) ).toBe( "[]" );
-	}
-
-	private void function _mutateObject( required array arr, required any newFirst ) {
-		arr[ 1 ] = newFirst;
-		arrayAppend( arr, "extra" );
-		expect( arrayLen( arr ) ).toBe( 4 );
-		expect( arr[ 1 ] ).toBe( newFirst );
-	}
-
-	private void function _mutateNumeric( required array arr, required numeric newFirst ) {
-		arr[ 1 ] = newFirst;
-		arrayAppend( arr, 1000 );
-		expect( arrayLen( arr ) ).toBe( 4 );
-		expect( arr[ 1 ] ).toBe( newFirst );
-	}
-
-	private void function _assertAppendGrows( required array arr ) {
-		arrayAppend( arr, 3 );
-		arrayAppend( arr, 4 );
-		expect( arrayLen( arr ) ).toBe( 4 );
-		expect( arrayToList( arr ) ).toBe( "1,2,3,4" );
-	}
-
-	private void function _assertDuplicateIndependent( required array arr ) {
-		var dup = duplicate( arr );
-		arrayAppend( dup, "c" );
-		dup[ 1 ] = "z";
-		expect( arrayLen( arr ) ).toBe( 2 );
-		expect( arr[ 1 ] ).toBe( "a" );
-		expect( arrayLen( dup ) ).toBe( 3 );
-		expect( dup[ 1 ] ).toBe( "z" );
+		expect( serializeJSON( arr ) ).toBe( expectJson, label & " serializeJSON" );
 	}
 
 }
