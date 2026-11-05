@@ -88,7 +88,6 @@ import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.include.IncludeCacheItem;
-import lucee.runtime.coder.Base64Util;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
@@ -318,8 +317,6 @@ public final class PageContextImpl extends PageContext {
 
 	private int id;
 	private int requestId;
-	// URL-safe Base64 UUID for getRequestId(); distinct from the internal counter above
-	private volatile String requestUuid;
 
 	private Boolean _psq;
 	private Locale locale;
@@ -490,8 +487,6 @@ public final class PageContextImpl extends PageContext {
 
 		boolean clone = tmplPC != null;
 		requestId = counter++;
-		// cloned contexts (cfthread, parallel iteration) share the caller's request
-		requestUuid = clone ? tmplPC.getRequestUUID() : Base64Util.createUuidAsBase64();
 
 		if (clone) {
 			appListenerType = tmplPC.appListenerType;
@@ -779,7 +774,6 @@ public final class PageContextImpl extends PageContext {
 		outputState = 0;
 		cfid = null;
 		cftoken = null;
-		requestUuid = null;
 		locale = null;
 		timeZone = null;
 		url = null;
@@ -4407,23 +4401,6 @@ public final class PageContextImpl extends PageContext {
 	 */
 	public int getRequestId() {
 		return requestId;
-	}
-
-	/**
-	 * URL-safe Base64 UUID stable for the life of this request. Cloned page contexts share it.
-	 * Not the internal counter returned by {@link #getRequestId()}.
-	 */
-	public String getRequestUUID() {
-		String id = requestUuid;
-		if (id != null) return id;
-		synchronized (this) {
-			id = requestUuid;
-			if (id == null) {
-				id = Base64Util.createUuidAsBase64();
-				requestUuid = id;
-			}
-			return id;
-		}
 	}
 
 	private Set<String> pagesUsed = new HashSet<String>();

@@ -29,8 +29,8 @@ public final class GetRequestId extends BIF {
 
 	private static final long serialVersionUID = -3797379410283743797L;
 
-	public static String call(PageContext pc) {
-		return ((PageContextImpl) pc).getRequestUUID();
+	public static double call(PageContext pc) {
+		return ((PageContextImpl) pc).getRequestId();
 	}
 
 	@Override

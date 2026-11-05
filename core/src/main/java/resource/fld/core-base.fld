@@ -7413,10 +7413,10 @@ if this attribute is not provided all types are returned.</description>
 		<class>lucee.runtime.functions.other.GetRequestId</class>
 		<introduced>9.0.0.0</introduced>
 		<keywords>request</keywords>
-		<description>Returns a UUID encoded as a 22 character URL-safe Base64 string. The value stays the same for the life of the current request and is different for each request.</description>
+		<description>Returns the integer id of the current request page context. The id is assigned when that page context is initialized and stays the same for that page context. Each initialized page context has its own id.</description>
 		<return>
-			<type>string</type>
-			<description>A 22 character URL-safe Base64 encoding of a UUID.</description>
+			<type>number</type>
+			<description>The integer id of the current request page context.</description>
 		</return>
 	</function>
 

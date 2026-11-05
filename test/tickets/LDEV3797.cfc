@@ -7,11 +7,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults, testBox ) {
 		describe( "LDEV-3797 getRequestId()", function() {
 
-			it( "returns a 22 character URL-safe Base64 UUID", function() {
-				assertRequestUuid( getRequestId() );
+			it( "returns the page context request id", function() {
+				var id = getRequestId();
+				expect( isNumeric( id ) ).toBeTrue();
+				expect( isValid( "integer", id ) ).toBeTrue();
+				expect( id ).toBe( getPageContext().getRequestId() );
 			});
 
-			it( "is stable for the life of the request", function() {
+			it( "is stable for the life of the page context", function() {
 				var first = getRequestId();
 				var second = getRequestId();
 				expect( second ).toBe( first );
@@ -26,42 +29,43 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					include template="LDEV3797/id.cfm";
 				}
 				var pair = parsePair( out );
-				expect( pair.first ).toBe( parentId );
-				expect( pair.second ).toBe( parentId );
+				expect( int( pair.first ) ).toBe( int( parentId ) );
+				expect( int( pair.second ) ).toBe( int( parentId ) );
 			});
 
-			it( "is shared by threads of the same request and stable under concurrent calls", function() {
+			it( "gives a cloned thread its own stable id and leaves the caller unchanged", function() {
 				var parentId = getRequestId();
 				var names = [];
-				loop from="1" to="8" index="local.i" {
+				loop from="1" to="4" index="local.i" {
 					var tn = "ldev3797_#createUUID()#";
 					arrayAppend( names, tn );
-					thread name=tn {
-						var seen = getRequestId();
-						loop from="1" to="20" index="local.n" {
-							if ( getRequestId() != seen ) seen = "";
-						}
-						thread.requestId = seen;
+					thread name=tn callerId=parentId {
+						var first = getRequestId();
+						var second = getRequestId();
+						thread.first = first;
+						thread.second = second;
+						thread.callerId = attributes.callerId;
 					}
 				}
 				thread action="join" name=arrayToList( names ) timeout=10000;
 				loop array=names item="local.tn" {
 					expect( cfthread[ tn ].status ).toBe( "COMPLETED", "thread #tn# did not complete: #serializeJSON( cfthread[ tn ] )#" );
-					expect( cfthread[ tn ].requestId ).toBe( parentId );
+					expect( int( cfthread[ tn ].first ) ).toBe( int( cfthread[ tn ].second ) );
+					expect( int( cfthread[ tn ].first ) ).notToBe( int( cfthread[ tn ].callerId ) );
 				}
 				expect( getRequestId() ).toBe( parentId );
 			});
 
 			it( "differs between requests, including a reused page context", function() {
 				var seen = {};
-				seen[ getRequestId() ] = true;
+				seen[ int( getRequestId() ) ] = true;
 				loop from="1" to="5" index="local.i" {
 					var result = _internalRequest( template: variables.uri );
 					var pair = parsePair( result.filecontent );
-					expect( pair.first ).toBe( pair.second, "id changed inside one internal request: [#result.filecontent#]" );
-					assertRequestUuid( pair.first );
-					expect( structKeyExists( seen, pair.first ) ).toBeFalse( "request id was reused: #pair.first#" );
-					seen[ pair.first ] = true;
+					expect( int( pair.first ) ).toBe( int( pair.second ), "id changed inside one internal request: [#result.filecontent#]" );
+					expect( isValid( "integer", pair.first ) ).toBeTrue( "not an integer id: [#pair.first#]" );
+					expect( structKeyExists( seen, int( pair.first ) ) ).toBeFalse( "request id was reused: #pair.first#" );
+					seen[ int( pair.first ) ] = true;
 				}
 			});
 
@@ -80,7 +84,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				var data = getFunctionData( "getRequestId" );
 				expect( data.name ).toBe( "getrequestid" );
 				expect( data.nameWithCase ).toBe( "getRequestId" );
-				expect( data.returnType ).toBe( "string" );
+				expect( data.returnType ).toBe( "number" );
 				expect( data.status ).toBe( "implemented" );
 				expect( data.type ).toBe( "java" );
 				expect( data.argMin ).toBe( 0 );
@@ -89,18 +93,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( arrayLen( data.arguments ) ).toBe( 0 );
 				expect( data.introduced ).toBe( "9.0.0.0" );
 				expect( arrayContains( data.keywords, "request" ) ).toBeTrue();
-				expect( data.description ).toInclude( "Base64" );
-				expect( data.description ).toInclude( "request" );
+				expect( data.description ).toInclude( "integer" );
+				expect( data.description ).toInclude( "page context" );
+				expect( data.description ).notToInclude( "Base64" );
+				expect( data.description ).notToInclude( "UUID" );
 			});
 
 		});
-	}
-
-	private void function assertRequestUuid( required string id ) {
-		expect( len( arguments.id ) ).toBe( 22 );
-		expect( reFind( "^[A-Za-z0-9_-]{22}$", arguments.id ) ).toBe( 1 );
-		var standard = replace( replace( arguments.id, "-", "+", "all" ), "_", "/", "all" ) & "==";
-		expect( len( binaryDecode( standard, "base64" ) ) ).toBe( 16 );
 	}
 
 	private struct function parsePair( required string content ) {
