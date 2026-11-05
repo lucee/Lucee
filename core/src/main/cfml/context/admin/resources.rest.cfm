@@ -14,9 +14,7 @@
                 action="updateRestSettings"
                 type="#request.adminType#"
                 password="#session["password"&request.adminType]#"
-				rest="#{
-					"list": form.rest_list?:false
-				}#"
+                list="#form.rest_list?:false#"
                 >
 		</cfcase>
         <!--- reset/settings --->
