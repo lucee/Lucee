@@ -22,7 +22,7 @@ Defaults --->
 <cfset _port=session.certPort>
 
 <cfscript>
-	customCaCertsEnabled = !(server.system.properties["lucee.ssl.customcacerts.enabled"]?: "true").equalsIgnoreCase("false");
+	customCaCertsEnabled = compareNoCase(server.system.properties["lucee.ssl.customcacerts.enabled"]?: "true", "false") != 0;
 </cfscript>
 
 <cfif !customCaCertsEnabled>

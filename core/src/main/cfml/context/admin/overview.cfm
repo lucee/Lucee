@@ -68,10 +68,16 @@ Redirect to entry --->
 </cfif>
 <cfscript>
 function checkServletEnv() {
-	var pc=getPageContext();
-	var factory=pc.getCFMLFactory();
-	var servlet=factory.getServlet();
-	var servletName=servlet.getClass().getName();
+	try {
+		var pc=getPageContext();
+		var factory=pc.getCFMLFactory();
+		var servlet=factory.getServlet();
+		var servletName=servlet.getClass().getName();
+	}
+	// in case direct java access is disabled
+	catch(e) {
+		return;
+	}
 	
 	if("lucee.loader.servlet.javax.HttpServletJakarta" == servletName) {
 		return "Lucee is running in Java EE/javax compatibility mode. For optimal performance, consider upgrading your server to a Jakarta EE environment (Tomcat 10, Jetty 11, Undertow 3.0, Payara 6, WildFly 30). While compatibility mode works, native Jakarta EE support offers better performance and future compatibility.";
