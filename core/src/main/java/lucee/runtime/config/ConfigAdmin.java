@@ -1414,6 +1414,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to change cfx settings");
 
 		if (name == null || name.length() == 0) throw new ExpressionException("class name can't be an empty value");
+		if (cd == null || StringUtil.isEmpty(cd.getClassName(), true)) throw new ExpressionException("class for CFX tag [" + name + "] can't be an empty value");
 
 		Struct cfxs = ConfigUtil.getAsStruct("cfx", root);
 		Key[] keys = cfxs.keys();
@@ -1433,9 +1434,9 @@ public final class ConfigAdmin {
 
 		// Insert
 		Struct el = new StructImpl(Struct.TYPE_LINKED);
-		cfxs.setEL(name, el);
 		setClass(el, CustomTag.class, "", cd);
 		el.setEL("type", "java");
+		cfxs.setEL(name, el);
 	}
 
 	public void verifyCFX(String name) throws PageException {
