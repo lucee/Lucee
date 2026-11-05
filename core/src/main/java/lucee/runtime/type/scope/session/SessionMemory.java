@@ -19,8 +19,8 @@
 package lucee.runtime.type.scope.session;
 
 import lucee.commons.io.log.Log;
-import lucee.runtime.Component;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageSource;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.scope.Session;
 import lucee.runtime.type.scope.storage.MemoryScope;
@@ -29,7 +29,8 @@ import lucee.runtime.type.scope.storage.StorageScopeMemory;
 public final class SessionMemory extends StorageScopeMemory implements Session, MemoryScope {
 
 	private static final long serialVersionUID = 7703261878730061485L;
-	private Component component;
+	private transient PageSource applicationPageSource;
+	private String applicationPath;
 
 	/**
 	 * Constructor of the class
@@ -68,11 +69,16 @@ public final class SessionMemory extends StorageScopeMemory implements Session, 
 		return new SessionMemory(this, deepCopy);
 	}
 
-	public void setComponent(Component component) {
-		this.component = component;
+	public void setApplicationPageSource(PageSource applicationPageSource) {
+		this.applicationPageSource = applicationPageSource;
+		this.applicationPath = applicationPageSource == null ? null : applicationPageSource.getRealpathWithVirtual();
 	}
 
-	public Component getComponent() {
-		return component;
+	public PageSource getApplicationPageSource() {
+		return applicationPageSource;
+	}
+
+	public String getApplicationPath() {
+		return applicationPath;
 	}
 }
