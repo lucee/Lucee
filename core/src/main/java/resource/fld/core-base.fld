@@ -7407,6 +7407,19 @@ if this attribute is not provided all types are returned.</description>
 	</function> -->
 	
 	
+	<!-- getRequestId -->
+	<function>
+		<name>getRequestId</name>
+		<class>lucee.runtime.functions.other.GetRequestId</class>
+		<introduced>9.0.0.0</introduced>
+		<keywords>request</keywords>
+		<description>Returns a UUID encoded as a 22 character URL-safe Base64 string. The value stays the same for the life of the current request and is different for each request.</description>
+		<return>
+			<type>string</type>
+			<description>A 22 character URL-safe Base64 encoding of a UUID.</description>
+		</return>
+	</function>
+
 	<!-- getPageContext -->
 	<function>
 		<name>getPageContext</name>
