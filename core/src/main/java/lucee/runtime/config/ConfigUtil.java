@@ -205,20 +205,29 @@ public final class ConfigUtil {
 	public static Resource getFile(Config config, Resource directory, String path, short type) {
 		path = replacePlaceholder(path, config);
 
-		Resource rel = directory.getRealResource(path);
-		Resource abs = config.getResource(path);
-		Resource absParent = abs.getParentResource();
-		boolean isChildOf = absParent != null && absParent.getParentResource() != null && ResourceUtil.isChildOf(abs, directory);
+		Resource abs = null;
+		boolean absolute = false;
+		if (!StringUtil.isEmpty(path, true)) {
+			abs = config.getResource(path);
+			absolute = isAbsoluteResource(abs);
+		}
+		// an absolute path (or a resource-provider path) is already complete; appending it to directory
+		// produces /base/var/www or C:\base\D:\foo
+		Resource rel = absolute ? null : directory.getRealResource(path);
+		Resource absParent = abs == null ? null : abs.getParentResource();
+		boolean isChildOf = !absolute && absParent != null && absParent.getParentResource() != null && ResourceUtil.isChildOf(abs, directory);
 
 		for (short level: new short[] { ResourceUtil.LEVEL_PARENT_FILE, ResourceUtil.LEVEL_GRAND_PARENT_FILE, ResourceUtil.LEVEL_ALL }) {
 			if (!StringUtil.isEmpty(path, true)) {
 
-				if (!isChildOf) {
+				if (!absolute && !isChildOf && rel != null) {
 					Resource file = ResourceUtil.createResource(rel, level, type);
 					if (file != null) return file;
 				}
-				Resource file = ResourceUtil.createResource(abs, level, type);
-				if (file != null) return file;
+				if (abs != null) {
+					Resource file = ResourceUtil.createResource(abs, level, type);
+					if (file != null) return file;
+				}
 			}
 		}
 		return null;
@@ -238,27 +247,32 @@ public final class ConfigUtil {
 	static Resource getFile(Resource rootDir, String strDir, String defaultDir, Resource configDir, short type, short level, ConfigPro config) {
 		strDir = replacePlaceholder(strDir, config);
 		if (!StringUtil.isEmpty(strDir, true)) {
-			Resource res, tmp;
+			Resource res, direct = null;
+			boolean schemeHandled = false;
 
 			// non default resource
 			if (startWithScheme(strDir)) {
 				String scheme = getScheme(strDir, null);
 				if (scheme != null && !scheme.equalsIgnoreCase(config.getDefaultResourceProvider().getScheme())) {
+					schemeHandled = true;
 					res = ResourceUtil.createResource(config.getResource(strDir), level, type);
 					if (res != null) return res;
 				}
 			}
 
-			// create resource relative to rootDir
-			else if (rootDir != null) {
+			direct = config.getResource(strDir);
+			// absolute filesystem and resource-provider paths are used as themselves
+			if (isAbsoluteResource(direct)) {
+				res = ResourceUtil.createResource(direct, level, type);
+				if (res != null) return res;
+			}
+			else if (!schemeHandled && rootDir != null) {
 				res = ResourceUtil.createResource(rootDir.getRealResource(strDir), level, type);
 				if (res != null) return res;
 			}
 
-			// create resource absolute
-			tmp = config.getResource(strDir);
-			if (ResourceUtil.getExistingAncestorFolder(tmp, configDir) != null) {
-				res = ResourceUtil.createResource(tmp, level, type);
+			if (direct != null && ResourceUtil.getExistingAncestorFolder(direct, configDir) != null) {
+				res = ResourceUtil.createResource(direct, level, type);
 				if (res != null) return res;
 			}
 		}
@@ -373,21 +387,29 @@ public final class ConfigUtil {
 		// checkFromWebroot &&
 		if (!StringUtil.isEmpty(strDir, true)) {
 			Resource res, rel = null, abs = null;
+			try {
+				abs = config.getResource(strDir);
+			}
+			catch (Exception e) {
+				// throws an exception if we have an invalid resource provider
+				return null;
+			}
+			// existing absolute target wins over a webroot shadow (/webroot/var/www).
+			// the physical sentinel "/" is the webroot itself, not the filesystem root.
+			boolean absolute = isAbsoluteResource(abs) && !isWebrootSentinel(strDir);
+			if (absolute) {
+				res = _getExistingFile(abs, type);
+				if (res != null) return res;
+			}
 			// looking for a match relative to the webroot, but only if there is no scheme
 			if (sc != null && !startWithScheme(strDir)) {
 				rel = config.getResource(ResourceUtil.merge(ReqRspUtil.getRootPath(sc), strDir));
 				res = _getExistingFile(rel, type);
 				if (res != null) return res;
 			}
-			// check for resource directly
-			try {
-				abs = config.getResource(strDir);
+			if (!absolute && abs != null) {
 				res = _getExistingFile(abs, type);
 				if (res != null) return res;
-			}
-			catch (Exception e) {
-				// throws an exception if we have an invalid resource provider
-				return null;
 			}
 
 			/// now we give no existing folder a chance
@@ -405,6 +427,17 @@ public final class ConfigUtil {
 		}
 		return null;
 
+	}
+
+	private static boolean isAbsoluteResource(Resource res) {
+		return res != null && res.isAbsolute();
+	}
+
+	// the root mapping's physical path is stored as "/" and means "the webroot"
+	private static boolean isWebrootSentinel(String path) {
+		if (path == null) return false;
+		String trimmed = path.trim();
+		return "/".equals(trimmed) || "\\".equals(trimmed);
 	}
 
 	private static boolean startWithScheme(String path) {
@@ -1277,6 +1310,9 @@ public final class ConfigUtil {
 	public static PageSource getPageSourceExisting(PageContext pc, ConfigPro config, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings,
 			boolean useDefaultMapping, boolean onlyPhysicalExisting) {
 		realPath = realPath.replace('\\', '/');
+		// ram://, zip://, http:// and other providers are not virtual mapping paths; appending them to a
+		// mapping root only builds a nonsense filesystem path
+		if (startWithScheme(realPath)) return null;
 		String lcRealPath = StringUtil.toLowerCase(realPath) + '/';
 		Mapping mapping;
 		PageSource ps;
