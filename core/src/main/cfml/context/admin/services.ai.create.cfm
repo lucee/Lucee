@@ -342,7 +342,7 @@ Redirtect to entry --->
 				<tr>
 					<td colspan="2">
 						<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.submit#">
-						<input type="submit" class="br button submit" name="mainAction" value="#stText.Buttons.Cancel#">
+						<input type="button" class="br button" name="cancel" value="#stText.Buttons.Cancel#"  onclick="window.location='#request.self#?action=#url.action#';">
 					</td>
 				</tr>
 			</tfoot>
