@@ -27,7 +27,7 @@ Defaults --->
 					password="#session["password"&request.adminType]#"
 					template500="#form["errorTemplate_"&form.errtype500&500]#"
 					template404="#form["errorTemplate_"&form.errtype404&404]#"
-					statuscode="#isDefined('form.errorStatusCode')#"
+					statuscode="#structKeyExists(form,'errorStatusCode') and form.errorStatusCode#"
 					
 					remoteClients="#request.getRemoteClients()#">
 				
@@ -167,7 +167,7 @@ Error Output --->
 						br=false
 						sp=false
 						descOnTop=false>
-						<input class="checkbox" type="checkbox" name="doStatusCode" value="yes" <cfif err.doStatusCode>checked</cfif>>
+						<input class="checkbox" type="checkbox" name="errorStatusCode" value="yes" <cfif err.doStatusCode>checked</cfif>>
 					</cfmodule>
 					</td>
 				</tr>
