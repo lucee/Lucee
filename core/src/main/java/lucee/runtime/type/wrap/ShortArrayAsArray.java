@@ -33,7 +33,7 @@ public final class ShortArrayAsArray extends NativeArrayAsArray {
 		this.array = array;
 	}
 
-	public static Array toArray(short[] array) {
+	public static Array wrap(short[] array) {
 		return new ShortArrayAsArray(array);
 	}
 

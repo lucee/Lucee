@@ -33,7 +33,7 @@ public final class BooleanArrayAsArray extends NativeArrayAsArray {
 		this.array = array;
 	}
 
-	public static Array toArray(boolean[] array) {
+	public static Array wrap(boolean[] array) {
 		return new BooleanArrayAsArray(array);
 	}
 

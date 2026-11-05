@@ -33,7 +33,7 @@ public final class CharArrayAsArray extends NativeArrayAsArray {
 		this.array = array;
 	}
 
-	public static Array toArray(char[] array) {
+	public static Array wrap(char[] array) {
 		return new CharArrayAsArray(array);
 	}
 

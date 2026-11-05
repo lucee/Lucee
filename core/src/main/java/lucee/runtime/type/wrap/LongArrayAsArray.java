@@ -33,7 +33,7 @@ public final class LongArrayAsArray extends NativeArrayAsArray {
 		this.array = array;
 	}
 
-	public static Array toArray(long[] array) {
+	public static Array wrap(long[] array) {
 		return new LongArrayAsArray(array);
 	}
 

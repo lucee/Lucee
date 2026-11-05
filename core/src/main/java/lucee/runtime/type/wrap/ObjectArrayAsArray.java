@@ -32,7 +32,7 @@ public final class ObjectArrayAsArray extends NativeArrayAsArray {
 		this.array = array;
 	}
 
-	public static Array toArray(Object[] array) {
+	public static Array wrap(Object[] array) {
 		return new ObjectArrayAsArray(array);
 	}
 

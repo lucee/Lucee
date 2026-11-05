@@ -2681,7 +2681,7 @@ public final class Caster {
 	public static Array toArray(Object o) throws PageException {
 		if (o instanceof Array) return (Array) o;
 		else if (o instanceof Object[]) {
-			return ObjectArrayAsArray.toArray((Object[]) o);
+			return ObjectArrayAsArray.wrap((Object[]) o);
 		}
 		else if (o instanceof List) {
 			return ListAsArray.toArray((List) o);// new ArrayImpl(((List) o).toArray());
@@ -2734,14 +2734,14 @@ public final class Caster {
 			 * +"] is not a number"); } return arr;
 			 */
 		}
-		else if (o instanceof boolean[]) return BooleanArrayAsArray.toArray((boolean[]) o);
-		else if (o instanceof byte[]) return ByteArrayAsArray.toArray((byte[]) o);
-		else if (o instanceof char[]) return CharArrayAsArray.toArray((char[]) o);
-		else if (o instanceof short[]) return ShortArrayAsArray.toArray((short[]) o);
-		else if (o instanceof int[]) return IntArrayAsArray.toArray((int[]) o);
-		else if (o instanceof long[]) return LongArrayAsArray.toArray((long[]) o);
-		else if (o instanceof float[]) return FloatArrayAsArray.toArray((float[]) o);
-		else if (o instanceof double[]) return DoubleArrayAsArray.toArray((double[]) o);
+		else if (o instanceof boolean[]) return BooleanArrayAsArray.wrap((boolean[]) o);
+		else if (o instanceof byte[]) return ByteArrayAsArray.wrap((byte[]) o);
+		else if (o instanceof char[]) return CharArrayAsArray.wrap((char[]) o);
+		else if (o instanceof short[]) return ShortArrayAsArray.wrap((short[]) o);
+		else if (o instanceof int[]) return IntArrayAsArray.wrap((int[]) o);
+		else if (o instanceof long[]) return LongArrayAsArray.wrap((long[]) o);
+		else if (o instanceof float[]) return FloatArrayAsArray.wrap((float[]) o);
+		else if (o instanceof double[]) return DoubleArrayAsArray.wrap((double[]) o);
 
 		throw new CasterException(o, "Array");
 	}
@@ -2884,7 +2884,7 @@ public final class Caster {
 	public static Array toArray(Object o, Array defaultValue) {
 		if (o instanceof Array) return (Array) o;
 		else if (o instanceof Object[]) {
-			return ObjectArrayAsArray.toArray((Object[]) o);
+			return ObjectArrayAsArray.wrap((Object[]) o);
 		}
 		else if (o instanceof List) {
 			return new ArrayImpl(((List) o).toArray());
@@ -2912,14 +2912,14 @@ public final class Caster {
 			 * } catch (ExpressionException ee) { return defaultValue; } return arr;
 			 */
 		}
-		else if (o instanceof boolean[]) return BooleanArrayAsArray.toArray((boolean[]) o);
-		else if (o instanceof byte[]) return ByteArrayAsArray.toArray((byte[]) o);
-		else if (o instanceof char[]) return CharArrayAsArray.toArray((char[]) o);
-		else if (o instanceof short[]) return ShortArrayAsArray.toArray((short[]) o);
-		else if (o instanceof int[]) return IntArrayAsArray.toArray((int[]) o);
-		else if (o instanceof long[]) return LongArrayAsArray.toArray((long[]) o);
-		else if (o instanceof float[]) return FloatArrayAsArray.toArray((float[]) o);
-		else if (o instanceof double[]) return DoubleArrayAsArray.toArray((double[]) o);
+		else if (o instanceof boolean[]) return BooleanArrayAsArray.wrap((boolean[]) o);
+		else if (o instanceof byte[]) return ByteArrayAsArray.wrap((byte[]) o);
+		else if (o instanceof char[]) return CharArrayAsArray.wrap((char[]) o);
+		else if (o instanceof short[]) return ShortArrayAsArray.wrap((short[]) o);
+		else if (o instanceof int[]) return IntArrayAsArray.wrap((int[]) o);
+		else if (o instanceof long[]) return LongArrayAsArray.wrap((long[]) o);
+		else if (o instanceof float[]) return FloatArrayAsArray.wrap((float[]) o);
+		else if (o instanceof double[]) return DoubleArrayAsArray.wrap((double[]) o);
 
 		return defaultValue;
 	}

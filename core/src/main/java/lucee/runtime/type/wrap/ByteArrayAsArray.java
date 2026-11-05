@@ -33,7 +33,7 @@ public final class ByteArrayAsArray extends NativeArrayAsArray {
 		this.array = array;
 	}
 
-	public static Array toArray(byte[] array) {
+	public static Array wrap(byte[] array) {
 		return new ByteArrayAsArray(array);
 	}
 

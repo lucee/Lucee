@@ -33,7 +33,7 @@ public final class DoubleArrayAsArray extends NativeArrayAsArray {
 		this.array = array;
 	}
 
-	public static Array toArray(double[] array) {
+	public static Array wrap(double[] array) {
 		return new DoubleArrayAsArray(array);
 	}
 

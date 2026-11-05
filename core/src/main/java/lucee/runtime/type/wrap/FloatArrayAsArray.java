@@ -33,7 +33,7 @@ public final class FloatArrayAsArray extends NativeArrayAsArray {
 		this.array = array;
 	}
 
-	public static Array toArray(float[] array) {
+	public static Array wrap(float[] array) {
 		return new FloatArrayAsArray(array);
 	}
 
