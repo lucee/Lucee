@@ -26,11 +26,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 			});
 
 			it( "test variable named like a tag (regression check)", function(){
-				var query = "marker=test";
+				query = "marker=test";
 				query &= "&extra=1";
 				expect( query ).toBe( "marker=test&extra=1" );
 
-				var http = "https://lucee.org";
+				http = "https://lucee.org";
 				http &= "/update";
 				expect( http ).toBe( "https://lucee.org/update" );
 			});
