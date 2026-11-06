@@ -557,13 +557,16 @@ public final class CFMLTransformer {
 			if (data.srcCode.isAfterLast()) return;
 			// data.cfml.getCurrent()
 			StringBuilder text = new StringBuilder();
+			int textStart = -1;
 			int count = 0;
 			while (data.srcCode.isValidIndex()) {
 				count++;
 				// #
 				if (data.srcCode.isCurrent('#')) {
+					int hashPos = data.srcCode.getPos();
 					data.srcCode.next();
 					if (data.srcCode.isCurrent('#')) {
+						if (textStart < 0) textStart = hashPos;
 						text.append('#');
 					}
 					else {
@@ -571,9 +574,9 @@ public final class CFMLTransformer {
 							Position end = data.srcCode.getPosition();
 							Position start = data.srcCode.getPosition(end.pos - text.length());
 
-							parent.addPrintOut(data.factory, text.toString(), start, end);
-							start = end;
+							printBareText(data, parent, text.toString(), textStart, hashPos, start, end);
 							text = new StringBuilder();
+							textStart = -1;
 						}
 						Position end = data.srcCode.getPosition();
 						Position start = data.srcCode.getPosition(end.pos - text.length());
@@ -590,6 +593,7 @@ public final class CFMLTransformer {
 				}
 				else if (codeIsland && data.srcCode.isCurrent(AbstrCFMLScriptTransformer.TAG_ISLAND_INDICATOR) && count > 1) {
 					// int start = data.srcCode.getPos();
+					if (textStart < 0) textStart = data.srcCode.getPos();
 					if (data.srcCode.forwardIfCurrent(AbstrCFMLScriptTransformer.TAG_ISLAND_INDICATOR + AbstrCFMLScriptTransformer.TAG_ISLAND_INDICATOR)) {
 						text.append(AbstrCFMLScriptTransformer.TAG_ISLAND_INDICATOR);
 						// parent.addPrintOut(data.factory,AbstrCFMLScriptTransformer.TAG_ISLAND_INDICATOR,
@@ -601,14 +605,17 @@ public final class CFMLTransformer {
 						break;
 					}
 				}
-				else text.append(data.srcCode.getCurrent());
+				else {
+					if (textStart < 0) textStart = data.srcCode.getPos();
+					text.append(data.srcCode.getCurrent());
+				}
 				data.srcCode.next();
 			}
 			if (text.length() > 0) {
 				Position end = data.srcCode.getPosition();
 				Position start = data.srcCode.getPosition(end.pos - text.length());
 
-				parent.addPrintOut(data.factory, text.toString(), start, end);
+				printBareText(data, parent, text.toString(), textStart, data.srcCode.getPos(), start, end);
 				if (_end) {
 					done = true;
 					return;
@@ -664,6 +671,16 @@ public final class CFMLTransformer {
 				// throw new CodeIslandEnd();
 			}
 		}
+	}
+
+	/**
+	 * Bare template text is not a quoted literal. {@code raw} is the source slice so doubled hashes stay doubled
+	 * and quote characters are not added or escaped.
+	 */
+	private void printBareText(Data data, Body parent, String value, int srcStart, int srcEnd, Position start, Position end) {
+		String raw = value;
+		if (srcStart >= 0 && srcEnd >= srcStart) raw = data.srcCode.substring(srcStart, srcEnd - srcStart);
+		parent.addPrintOut(data.factory, value, raw, start, end);
 	}
 
 	/**
