@@ -1,11 +1,15 @@
 package lucee.runtime.ai.anthropic;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.ai.AIResponseListener;
+import lucee.runtime.ai.AIUsage;
+import lucee.runtime.ai.AIUsageProvider;
 import lucee.runtime.ai.Response;
 import lucee.runtime.ai.Part;
 import lucee.runtime.ai.PartImpl;
@@ -15,16 +19,20 @@ import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
-public final class ClaudeStreamResponse implements Response {
+public final class ClaudeStreamResponse implements Response, AIUsageProvider {
 	private Struct raw = null;
 	private String charset;
 	private StringBuilder answer = new StringBuilder();
 	private AIResponseListener listener;
 	private final List<Part> binaryParts = new ArrayList<>();
 	private List<Part> cachedParts;
+	private final Struct usageData = new StructImpl();
+	private String responseModel;
 
 	public ClaudeStreamResponse(String charset, AIResponseListener listener) {
 		this.charset = charset;
@@ -53,6 +61,20 @@ public final class ClaudeStreamResponse implements Response {
 
 		String type = Caster.toString(part.get(KeyConstants._type, null), null);
 		if (StringUtil.isEmpty(type)) return;
+
+		if ("message_start".equals(type)) {
+			Struct msg = Caster.toStruct(part.get("message", null), null);
+			if (msg != null) {
+				collectUsage(Caster.toStruct(msg.get("usage", null), null));
+				String model = Caster.toString(msg.get(KeyConstants._model, null), null);
+				if (!StringUtil.isEmpty(model, true)) responseModel = model;
+			}
+			return;
+		}
+		if ("message_delta".equals(type)) {
+			collectUsage(Caster.toStruct(part.get("usage", null), null));
+			return;
+		}
 
 		if ("content_block_start".equals(type)) {
 			Struct block = Caster.toStruct(part.get("content_block", null), null);
@@ -84,9 +106,31 @@ public final class ClaudeStreamResponse implements Response {
 		if (listener != null) listener.listen(text, index, complete);
 	}
 
+	// message_start has the input tokens and message_delta the final (cumulative) output tokens, the values of a later event replace the earlier ones
+	private void collectUsage(Struct usage) {
+		if (usage == null) return;
+		Iterator<Entry<Key, Object>> it = usage.entryIterator();
+		Entry<Key, Object> e;
+		while (it.hasNext()) {
+			e = it.next();
+			if (e.getValue() instanceof Number) usageData.setEL(e.getKey(), e.getValue());
+		}
+	}
+
 	@Override
 	public long getTotalTokenUsed() {
-		return 0;
+		AIUsage u = getUsage();
+		return u == null || u.total < 0L ? 0L : u.total;
+	}
+
+	@Override
+	public AIUsage getUsage() {
+		return AIUsage.fromClaude(usageData);
+	}
+
+	@Override
+	public String getResponseModel() {
+		return responseModel;
 	}
 
 	@Override
