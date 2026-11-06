@@ -1071,8 +1071,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						defVal = _attr.getValue();
 					}
 					else if ("passbyreference".equalsIgnoreCase(attrName) || "passby".equalsIgnoreCase(attrName)) {
-						ExprBoolean eb = data.factory.toExprBoolean(_attr.getValue());
-						if (eb instanceof LitBoolean) passByRef = (LitBoolean) eb;
+						LitBoolean lb = toPassByReference(data, _attr.getValue());
+						if (lb != null) passByRef = lb;
 					}
 					else {
 						meta.put(attrName, _attr);
@@ -1270,6 +1270,25 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if (closure) comments(data);
 
 		return func;
+	}
+
+	/**
+	 * LDEV-3668: converts the value of the argument attribute passby/passbyreference to a literal
+	 * boolean, passby="value" means false, passby="ref"/"reference" means true, a boolean literal is
+	 * taken as is
+	 */
+	private LitBoolean toPassByReference(Data data, Expression value) {
+		if (value instanceof LitBoolean) return (LitBoolean) value;
+		if (value instanceof Literal) {
+			String str = ((Literal) value).getString();
+			if (str == null) return null;
+			str = str.trim();
+			if ("value".equalsIgnoreCase(str)) return data.factory.FALSE();
+			if ("ref".equalsIgnoreCase(str) || "reference".equalsIgnoreCase(str)) return data.factory.TRUE();
+			Boolean b = ((Literal) value).getBoolean(null);
+			if (b != null) return b.booleanValue() ? data.factory.TRUE() : data.factory.FALSE();
+		}
+		return null;
 	}
 
 	/**
