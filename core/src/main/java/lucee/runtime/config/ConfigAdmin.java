@@ -124,8 +124,8 @@ import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.BundleBuilderFactory;
 import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.BundleFile;
-import lucee.runtime.osgi.BundleService;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiService;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.runtime.reflection.Reflector;
@@ -1307,14 +1307,12 @@ public final class ConfigAdmin {
 	}
 
 	public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar) throws IOException {
-		BundleFile bf = BundleFile.getInstance(resJar);
+		updateJar(config, resJar, reloadWhenClassicJar, false);
+	}
 
-		// resJar is a bundle
-		if (bf.isBundle()) {
-			bf = installBundle(config, bf);
-			BundleServiceImpl.getInstance().install(bf.getFile(), false);
-			return;
-		}
+	public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar, boolean start) throws IOException {
+		// a bundle is handed over to OSGi
+		if (OSGiServiceImpl.getInstance().install(toLocalFile(resJar), start)) return;
 
 		Resource lib = ((ConfigPro) config).getLibraryDirectory();
 		if (!lib.exists()) lib.mkdir();
@@ -1328,91 +1326,22 @@ public final class ConfigAdmin {
 		}
 	}
 
-	/*
-	 * important! returns null when not a bundle!
-	 */
-	static BundleFile installBundle(Config config, Resource resJar, String extVersion, boolean convert2bundle) throws IOException {
-
-		BundleFile bf = BundleFile.getInstance(resJar);
-
-		// resJar is a bundle
-		if (bf.isBundle()) {
-			return installBundle(config, bf);
-		}
-
-		if (!convert2bundle) return null;
-
-		// name
-		String name = bf.getSymbolicName();
-		if (StringUtil.isEmpty(name)) name = BundleBuilderFactory.createSymbolicName(resJar);
-
-		// version
-		Version version = bf.getBundleVersion();
-		if (version == null) version = VersionImpl.parseOSGi(extVersion);
-
-		LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
-		BundleBuilderFactory bbf = new BundleBuilderFactory(resJar, name);
-		bbf.setVersion(version);
-		bbf.setIgnoreExistingManifest(false);
-		bbf.build();
-
-		bf = BundleFile.getInstance(resJar);
-		LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "converted  [" + resJar + "] to an OSGi Bundle");
-		return installBundle(config, bf);
+	private static File toLocalFile(Resource res) throws IOException {
+		if (res instanceof File) return (File) res;
+		Resource tmp = SystemUtil.getTempFile("jar", false);
+		IOUtil.copy(res, tmp);
+		return ResourceUtil.toFile(tmp);
 	}
 
-	private static BundleFile installBundle(Config config, BundleFile bf) throws IOException {
-
-		// does this bundle already exists
-		BundleFile _bf = BundleServiceImpl.getInstance().getBundleFile(bf.getSymbolicName(), bf.getBundleVersion());
-		if (_bf != null) return _bf;
-
-		CFMLEngine engine = CFMLEngineFactory.getInstance();
-		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
-
-		// copy to jar directory
-		File jar = new File(factory.getBundleDirectory(), bf.getSymbolicName() + "-" + bf.getBundleVersion().toString() + (".jar"));
-		InputStream is = bf.getInputStream();
-		OutputStream os = new FileOutputStream(jar);
-		try {
-			IOUtil.copy(is, os, false, false);
-		}
-		finally {
-			IOUtil.close(is, os);
-		}
-		return BundleFile.getInstance(jar);
+	public static void updateJar(Config config, InputStream is, String name, boolean closeStream) throws IOException {
+		updateJar(config, is, name, closeStream, false);
 	}
 
-		/**
-	 * @param config
-	 * @param is
-	 * @param name
-	 * @param extensionVersion
-	 * @param closeStream
-	 * @param convert2bundle
-	 * @return return the Bundle File or the file in case it is not a bundle.
-	 * @throws IOException
-	 * @throws IOException
-	 */
-	public static Object installBundle(Config config, InputStream is, String name, String extensionVersion, boolean closeStream, boolean convert2bundle)
-			throws IOException {
-		Resource tmp = SystemUtil.getTempDirectory().getRealResource(name);
-		OutputStream os = tmp.getOutputStream();
-		IOUtil.copy(is, os, closeStream, true);
-
-		BundleFile bf = installBundle(config, tmp, extensionVersion, convert2bundle);
-		if (bf != null) {
-			tmp.delete();
-			return bf;
-		}
-		return tmp;
-	}
-
-	static void updateJar(Config config, InputStream is, String name, boolean closeStream) throws IOException {
+	public static void updateJar(Config config, InputStream is, String name, boolean closeStream, boolean start) throws IOException {
 		Resource tmp = SystemUtil.getTempDirectory().getRealResource(name);
 		try {
 			IOUtil.copy(is, tmp, closeStream);
-			updateJar(config, tmp, true);
+			updateJar(config, tmp, true, start);
 		}
 		finally {
 			tmp.delete();
@@ -1717,18 +1646,8 @@ public final class ConfigAdmin {
 			}
 		}
 
-		// now unload (maybe not necessary)
-		if (cd.isBundle()) {
-			BundleService bundles = BundleServiceImpl.getInstance();
-			if (bundles.getBundleInfo(cd.getName(), cd.getVersion().toString()) != null) {
-				try {
-					bundles.uninstall(cd.getName(), cd.getVersion().toString());
-				}
-				catch (IOException e) {}
-				// datasources may still hold a driver instance from the uninstalled bundle
-				flushDatasourcesUsingDriver(cd.getClassName());
-			}
-		}
+		// datasources may still hold a driver instance of the removed driver
+		flushDatasourcesUsingDriver(cd.getClassName());
 	}
 
 	private void flushDatasourcesUsingDriver(String className) {
@@ -1783,15 +1702,6 @@ public final class ConfigAdmin {
 
 		// now unload (maybe not necessary)
 		unloadStartupIfNecessary(config, cd, true);
-		if (cd.isBundle()) {
-			BundleService bundles = BundleServiceImpl.getInstance();
-			if (bundles.getBundleInfo(cd.getName(), cd.getVersion().toString()) != null) {
-				try {
-					bundles.uninstall(cd.getName(), cd.getVersion().toString());
-				}
-				catch (IOException e) {}
-			}
-		}
 	}
 
 	private void _removeStartupHook(String component) {
@@ -1871,15 +1781,6 @@ public final class ConfigAdmin {
 		child.removeEL(KeyConstants._class);
 
 		// now unload again, JDBC driver can be loaded when necessary
-		if (cd.isBundle()) {
-			BundleService bundles = BundleServiceImpl.getInstance();
-			if (bundles.getBundleInfo(cd.getName(), cd.getVersion().toString()) != null) {
-				try {
-					bundles.uninstall(cd.getName(), cd.getVersion().toString());
-				}
-				catch (IOException e) {}
-			}
-		}
 	}
 
 	private void _updateStartupHook(ClassDefinitionImpl cd) throws PageException {
@@ -4159,10 +4060,8 @@ public final class ConfigAdmin {
 
 			// store to xml
 			RHExtension.removeDuplicates(ConfigUtil.getAsArray("extensions", root));
-			BundleDefinition[] existing = _updateExtension(ci, rhext);
+			_updateExtension(ci, rhext);
 
-			// this must happen after "store"
-			cleanBundles(rhext, ci, existing);// clean after populating the new ones
 			// ConfigWebAdmin.updateRHExtension(ci,rhext);
 
 			ZipInputStream zis = new ZipInputStream(IOUtil.toBufferedInputStream(rhext.getExtensionFile().getInputStream()));
@@ -4176,14 +4075,7 @@ public final class ConfigAdmin {
 				if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
 						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
-					Object obj = ConfigAdmin.installBundle(config, zis, fileName, rhext.getVersion(), false, false);
-					// jar is not a bundle, only a regular jar
-					if (!(obj instanceof BundleFile)) {
-						Resource tmp = (Resource) obj;
-						Resource tmpJar = tmp.getParentResource().getRealResource(ListUtil.last(path, "\\/"));
-						tmp.moveTo(tmpJar);
-						ConfigAdmin.updateJar(config, tmpJar, false);
-					}
+					ConfigAdmin.updateJar(config, zis, fileName, false);
 				}
 
 				// flds
@@ -4297,13 +4189,6 @@ public final class ConfigAdmin {
 			// load the bundles
 			if (rhext.getMetadata().isStartBundles()) {
 				rhext.deployBundles(ci, true);
-
-				BundleInfo[] bfs = rhext.getMetadata().getBundles();
-				if (bfs != null) {
-					for (BundleInfo bf: bfs) {
-						BundleServiceImpl.getInstance().loadFromLocal(bf.getSymbolicName(), bf.getVersionAsString(), false);
-					}
-				}
 			}
 
 			// update cache
@@ -4801,20 +4686,14 @@ public final class ConfigAdmin {
 		try {
 
 			// remove the bundles
-			BundleDefinition[] candidatesToRemove = BundleInfo.toBundleDefinitions(rhe.getMetadata().getBundles(EMPTY));
-			if (replacementRH != null) {
-				// spare bundles used in the new extension as well
-				Map<String, BundleDefinition> notRemove = toMap(BundleInfo.toBundleDefinitions(replacementRH.getMetadata().getBundles(EMPTY)));
-				List<BundleDefinition> tmp = new ArrayList<BundleDefinition>();
-				String key;
-				for (int i = 0; i < candidatesToRemove.length; i++) {
-					key = candidatesToRemove[i].getName() + "|" + candidatesToRemove[i].getVersionAsString();
-					if (notRemove.containsKey(key)) continue;
-					tmp.add(candidatesToRemove[i]);
-				}
-				candidatesToRemove = tmp.toArray(new BundleDefinition[tmp.size()]);
+			List<RHExtension> keep = new ArrayList<RHExtension>();
+			if (replacementRH != null) keep.add(replacementRH);
+			for (RHExtension other: ci.getAllRHExtensions()) {
+				// the extension that is removed (the installed version) does not protect its own jars
+				if (other.getId().equalsIgnoreCase(rhe.getId())) continue;
+				keep.add(other);
 			}
-			ConfigAdmin.cleanBundles(rhe, ci, candidatesToRemove);
+			rhe.undeployBundles(ci, keep);
 
 			// FLD
 			removeFLDs(logger, rhe.getMetadata().getFlds()); // MUST check if others use one of this fld
@@ -5965,62 +5844,6 @@ public final class ConfigAdmin {
 			}
 			catch (Exception e) {
 				log.log(Log.LEVEL_ERROR, ConfigAdmin.class.getName(), e);
-			}
-		}
-	}
-
-	public static void cleanBundles(RHExtension rhe, ConfigPro config, BundleDefinition[] candiatesToRemove) {
-		if (ArrayUtil.isEmpty(candiatesToRemove)) return;
-
-		// core master and slaves
-		for (Map<String, Object> info: BundleServiceImpl.getInstance().listCoreBundles()) {
-			_cleanBundles(candiatesToRemove, (String) info.get("name"), VersionImpl.parse((String) info.get("version"), false, null));
-		}
-
-		// all extension
-		RHExtension _rhe;
-		// because this method is called indirectly by getRHExtensions, we cannot use that method
-		for (ExtensionDefintion ed: ConfigUtil.getConfigServerImpl(config).getExtensionDefinitions()) {
-			try {
-				_rhe = ed.toRHExtension(config);
-			}
-			catch (PageException e) {
-				continue;
-			}
-			if (rhe != null && rhe.equals(_rhe)) continue;
-			BundleInfo[] bundles = _rhe.getMetadata().getBundles(null);
-			if (bundles != null) {
-				for (BundleInfo bi: bundles) {
-					_cleanBundles(candiatesToRemove, bi.getSymbolicName(), bi.getBundleVersion());
-				}
-			}
-		}
-
-		// now we only have BundlesDefs in the array no longer used
-		for (BundleDefinition ctr: candiatesToRemove) {
-			if (ctr != null) {
-				try {
-					BundleServiceImpl.getInstance().removeLocal(ctr.getName(), ctr.getVersionAsString(), true);
-				}
-				catch (IOException e) {
-					// silently
-				}
-			}
-		}
-	}
-
-	private static void _cleanBundles(BundleDefinition[] candiatesToRemove, String name, Version version) {
-		BundleDefinition bd;
-		for (int i = 0; i < candiatesToRemove.length; i++) {
-			bd = candiatesToRemove[i];
-
-			if (bd != null && name.equalsIgnoreCase(bd.getName())) {
-				if (version == null) {
-					if (bd.getVersion() == null) candiatesToRemove[i] = null; // remove that from array
-				}
-				else if (bd.getVersion() != null && version.equals(bd.getVersion())) {
-					candiatesToRemove[i] = null; // remove that from array
-				}
 			}
 		}
 	}

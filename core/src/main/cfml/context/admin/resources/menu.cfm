@@ -10,12 +10,6 @@
 				struct(action:"",label:arguments.stMenu.overview.overview)
 			)
 		),
-		{
-			action:"info",label:arguments.stMenu.info.label,
-			children:[
-				{action:"bundle",label:arguments.stMenu.info.bundle}
-			]
-		},
 		struct(
 			action:"server",label:arguments.stMenu.server.label,
 			children:array(

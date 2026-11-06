@@ -27,8 +27,8 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.BundleService;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiService;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -46,24 +46,11 @@ public final class BundleInfo implements Function {
 		else if (obj instanceof ObjectWrap) clazz = ((ObjectWrap) obj).getEmbededObject().getClass();
 		else clazz = obj.getClass();
 
-		BundleService service = BundleServiceImpl.getInstance();
-		Map<String, Object> info = service.getBundleInfo(clazz);
+		Map<String, Object> info = OSGiServiceImpl.getInstance().getInfo(clazz);
 		if (info != null) {
-			String name = (String) info.get("name");
-			String version = (String) info.get("version");
 			Struct sct = new StructImpl();
-			sct.setEL(KeyConstants._id, info.get("id"));
-			sct.setEL(KeyConstants._name, name);
-			sct.setEL(KeyConstants._location, info.get("location"));
-			sct.setEL(KeyConstants._version, info.get("version"));
-			sct.setEL(KeyConstants._state, info.get("state"));
-			try {
-				Map<String, Object> req = service.getRequirements(name, version);
-				sct.setEL("requiredBundles", req.get("requiredBundles"));
-				sct.setEL("requiredPackages", req.get("requiredPackages"));
-			}
-			catch (IOException ioe) {
-				throw Caster.toPageException(ioe);
+			for (Map.Entry<String, Object> entry: info.entrySet()) {
+				sct.setEL(entry.getKey(), entry.getValue());
 			}
 			return sct;
 		}

@@ -105,7 +105,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -246,21 +246,7 @@ public final class SystemUtil {
 	public static ClassLoader getLoaderClassLoader() {
 		if (loaderCL == null) {
 			synchronized (tokens) {
-				if (loaderCL == null) {
-					// loaderCL = new TP().getClass().getClassLoader();
-					try {
-						loaderCL = BundleServiceImpl.getInstance().getLoaderClassLoader();
-					}
-					catch (IOException e) {
-						throw new PageRuntimeException(e);
-					}
-					catch (RuntimeException re) {
-						if ((re.getMessage() + "").indexOf("Engine is not initialized") != -1) {
-							return CFMLEngineFactory.class.getClassLoader();
-						}
-						throw re;
-					}
-				}
+				if (loaderCL == null) loaderCL = CFMLEngineFactory.class.getClassLoader();
 			}
 		}
 		return loaderCL;
@@ -1689,9 +1675,9 @@ public final class SystemUtil {
 			if (!unique || !context.contains(cl)) {
 				context.add(cl);
 				if (id != null) {
-					Map<String, Object> bundle = BundleServiceImpl.getInstance().getBundleInfo(cl);
-					if (bundle != null) {
-						id.append(bundle.get("name")).append(':').append(bundle.get("version")).append(';');
+					String bundleId = OSGiServiceImpl.getInstance().getId(cl);
+					if (bundleId != null) {
+						id.append(bundleId).append(';');
 					}
 					else {
 						id.append(cl).append(';');
@@ -1764,8 +1750,7 @@ public final class SystemUtil {
 
 	private static boolean isFromBundle(Class<?> clazz) {
 		if (clazz == null) return false;
-		Map<String, Object> bundle = BundleServiceImpl.getInstance().getBundleInfo(clazz);
-		return bundle != null && !Long.valueOf(FRAMEWORK_BUNDLE_ID).equals(bundle.get("id"));
+		return OSGiServiceImpl.getInstance().getId(clazz) != null;
 	}
 
 	private static boolean _isSystem(Class<?> clazz) {

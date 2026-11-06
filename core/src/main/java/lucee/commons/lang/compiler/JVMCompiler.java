@@ -1,9 +1,12 @@
 package lucee.commons.lang.compiler;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
@@ -11,9 +14,12 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
+import jakarta.servlet.Servlet;
+import jakarta.servlet.jsp.JspException;
+import lucee.commons.lang.ClassUtil;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.osgi.BundleServiceImpl;
 
 public final class JVMCompiler implements Compiler {
 
@@ -36,7 +42,7 @@ public final class JVMCompiler implements Compiler {
 
 		// TODO MUST better way to do this!!!
 		options.add("-classpath");
-		options.add(BundleServiceImpl.getInstance().getClassPath());
+		options.add(getClassPath());
 
 		DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
 
@@ -66,6 +72,21 @@ public final class JVMCompiler implements Compiler {
 			}
 		}
 		return dcl.getCompiledCode(sc.getClassName()).getByteCode();
+	}
+
+	private static String getClassPath() {
+		Set<String> set = new LinkedHashSet<>();
+		set.add(ClassUtil.getSourcePathForClass(CFMLEngineFactory.class, null));
+		set.add(ClassUtil.getSourcePathForClass(JVMCompiler.class, null));
+		set.add(ClassUtil.getSourcePathForClass(JspException.class, null));
+		set.add(ClassUtil.getSourcePathForClass(Servlet.class, null));
+		StringBuilder sb = new StringBuilder();
+		for (String path: set) {
+			if (path == null || !new File(path).exists()) continue;
+			if (sb.length() > 0) sb.append(File.pathSeparator);
+			sb.append(new File(path).getAbsolutePath());
+		}
+		return sb.toString();
 	}
 
 	@Override

@@ -25,7 +25,7 @@ import java.net.URL;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import lucee.runtime.type.util.ListUtil;
 
 public final class JDBCDriver {
@@ -58,8 +58,8 @@ public final class JDBCDriver {
 	}
 
 	public static String extractClassName(String bundleName, String bundleVersion) throws IOException {
-		BundleServiceImpl.getInstance().loadBundle(bundleName, bundleVersion);
-		URL url = BundleServiceImpl.getInstance().getResource(bundleName, bundleVersion, "/META-INF/services/java.sql.Driver");
+		OSGiServiceImpl.getInstance().getClassLoader(bundleName, bundleVersion);
+		URL url = OSGiServiceImpl.getInstance().getResource(bundleName, bundleVersion, "/META-INF/services/java.sql.Driver");
 		if (url == null) throw new IOException("there is no driver service file in the bundle [" + bundleName + ":" + bundleVersion + "]");
 
 		BufferedReader br = null;

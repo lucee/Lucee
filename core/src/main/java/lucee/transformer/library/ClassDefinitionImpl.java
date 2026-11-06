@@ -46,7 +46,7 @@ import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.thread.ThreadUtil;
@@ -96,17 +96,8 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	public ClassDefinitionImpl(Class<T> clazz) {
 		this.className = clazz.getName();
 		this.clazz = clazz;
-		Map<String, Object> info = BundleServiceImpl.getInstance().getBundleInfo(clazz);
-		if (info != null) {
-			this.name = (String) info.get("name");
-			String v = (String) info.get("version");
-			this.version = VersionImpl.parse(v, false, null);
-			if (this.version == null && !StringUtil.isEmpty(v)) LogUtil.warn("class-definition", new ApplicationException("unable to parse the version [" + v + "] of the bundle [" + name + "]"));
-		}
-		else {
-			this.name = null;
-			this.version = null;
-		}
+		this.name = null;
+		this.version = null;
 
 		this.id = null;
 	}

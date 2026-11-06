@@ -21,8 +21,6 @@
 		switch (arguments.action) {
 			case "overview":
 				return adminAINavSanitizeText(t.Overview.introdesc[arguments.adminType] ?: "");
-			case "info.bundle":
-				return adminAINavSanitizeText(structKeyExists(t, "bundles") ? (t.bundles.introText ?: "") : "");
 			case "server.cache":
 				return adminAINavSanitizeText(t.setting.cachedesc ?: "");
 			case "server.compiler":

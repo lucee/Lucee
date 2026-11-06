@@ -20,8 +20,9 @@ package lucee.runtime.extension;
 
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.osgi.BundleDefinition;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -974,17 +975,7 @@ public final class RHExtension implements Serializable {
 				if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
 						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
-					Object obj = ConfigAdmin.installBundle(config, zis, fileName, getVersion(), false, false);
-					// jar is not a bundle, only a regular jar
-					if (!(obj instanceof BundleFile)) {
-						Resource tmp = (Resource) obj;
-						Resource tmpJar = tmp.getParentResource().getRealResource(ListUtil.last(path, "\\/"));
-						tmp.moveTo(tmpJar);
-						ConfigAdmin.updateJar(config, tmpJar, false);
-					}
-					else if (load) {
-						BundleServiceImpl.getInstance().install(((BundleFile) obj).getFile(), false);
-					}
+					ConfigAdmin.updateJar(config, zis, fileName, false, load);
 				}
 
 				zis.closeEntry();
@@ -992,6 +983,92 @@ public final class RHExtension implements Serializable {
 		}
 		finally {
 			IOUtil.close(zis);
+		}
+	}
+
+	private boolean isJarEntry(ZipEntry entry, String type) {
+		String path = entry.getName();
+		return !entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles") || startsWith(path, type, "bundle")
+				|| startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"));
+	}
+
+	/**
+	 * a jar is identified the way OSGi identifies it, so the same bundle with a different file name is
+	 * the same jar. A jar that is not a bundle is identified by name and checksum.
+	 */
+	private static String jarKey(File jar, ZipEntry entry) {
+		String id = OSGiServiceImpl.getInstance().getId(jar);
+		return id != null ? id : fileName(entry) + ":" + entry.getCrc();
+	}
+
+	private static String jarKey(ZipInputStream zis, ZipEntry entry) throws IOException {
+		Resource tmp = SystemUtil.getTempDirectory().getRealResource(fileName(entry));
+		try {
+			IOUtil.copy(zis, tmp, false);
+			// the crc is only known after the entry was read
+			return jarKey(ResourceUtil.toFile(tmp), entry);
+		}
+		finally {
+			tmp.delete();
+		}
+	}
+
+	private Set<String> getJarKeys() throws IOException {
+		Set<String> keys = new HashSet<String>();
+		ZipInputStream zis = new ZipInputStream(IOUtil.toBufferedInputStream(extensionFile.getInputStream()));
+		try {
+			ZipEntry entry;
+			String type = getMetadata().getType();
+			while ((entry = zis.getNextEntry()) != null) {
+				if (isJarEntry(entry, type)) {
+					keys.add(jarKey(zis, entry));
+				}
+				zis.closeEntry();
+			}
+		}
+		finally {
+			IOUtil.closeEL(zis);
+		}
+		return keys;
+	}
+
+	/**
+	 * hand the jars of this extension back to OSGi, so it can remove what it no longer needs
+	 *
+	 * @param keep extensions that stay installed, a jar they contain as well is not handed back
+	 */
+	public void undeployBundles(Config config, java.util.Collection<RHExtension> keep) {
+		ZipInputStream zis = null;
+		try {
+			Set<String> keepKeys = new HashSet<String>();
+			if (keep != null) {
+				for (RHExtension other: keep) {
+					if (other != null) keepKeys.addAll(other.getJarKeys());
+				}
+			}
+			zis = new ZipInputStream(IOUtil.toBufferedInputStream(extensionFile.getInputStream()));
+			ZipEntry entry;
+			String type = getMetadata().getType();
+			while ((entry = zis.getNextEntry()) != null) {
+				if (isJarEntry(entry, type)) {
+					Resource tmp = SystemUtil.getTempDirectory().getRealResource(fileName(entry));
+					try {
+						IOUtil.copy(zis, tmp, false);
+						File jar = ResourceUtil.toFile(tmp);
+						if (!keepKeys.contains(jarKey(jar, entry))) OSGiServiceImpl.getInstance().uninstall(jar);
+					}
+					finally {
+						tmp.delete();
+					}
+				}
+				zis.closeEntry();
+			}
+		}
+		catch (IOException e) {
+			LogUtil.log(config, "extension", e);
+		}
+		finally {
+			IOUtil.closeEL(zis);
 		}
 	}
 

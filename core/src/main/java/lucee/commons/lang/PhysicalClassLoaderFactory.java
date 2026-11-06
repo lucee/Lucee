@@ -31,7 +31,7 @@ import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -138,14 +138,14 @@ public class PhysicalClassLoaderFactory {
 			key += ":" + ((PhysicalClassLoader) parent).id;
 		}
 		else {
-			Map<String, Object> bundle = BundleServiceImpl.getInstance().getBundleInfo(parent);
-			if (bundle != null) key += ":" + bundle.get("name") + ":" + bundle.get("version");
+			String bundleId = OSGiServiceImpl.getInstance().getId(parent);
+			if (bundleId != null) key += ":" + bundleId;
 			else key += ":" + parent.getClass().getName() + parent.hashCode();
 		}
 
-		Map<String, Object> bcInfo = BundleServiceImpl.getInstance().getBundleInfo(bcl);
-		if (bcInfo != null) {
-			key += ":" + bcInfo.get("name") + ":" + bcInfo.get("version");
+		String bcId = OSGiServiceImpl.getInstance().getId(bcl);
+		if (bcId != null) {
+			key += ":" + bcId;
 		}
 
 		return HashUtil.create64BitHashAsString(key);
