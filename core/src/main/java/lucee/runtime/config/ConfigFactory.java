@@ -24,7 +24,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -46,7 +47,6 @@ import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -100,7 +100,7 @@ public abstract class ConfigFactory {
 			if (!readOnly) {
 				IOUtil.write(resOldVersion, strNewVersion, SystemUtil.getCharset(), false);
 			}
-			Version oldVersion = OSGiUtil.toVersion(strOldVersion);
+			Version oldVersion = VersionImpl.parseOSGi(strOldVersion);
 
 			return new UpdateInfo(oldVersion, oldVersion.getMajor() < 5 ? NEW_FROM4 : NEW_MINOR);
 		}

@@ -29,7 +29,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 
 import lucee.Info;
 import lucee.commons.io.IOUtil;
@@ -70,7 +71,7 @@ public final class InfoImpl implements Info {
 	public InfoImpl(Version version, Dictionary<String, String> headers) {
 
 		// version
-		this.version = lucee.loader.util.VersionImpl.parseVersion(version.toString(), lucee.loader.util.VersionImpl.emptyVersion);
+		this.version = VersionImpl.parseVersion(version.toString(), VersionImpl.emptyVersion);
 		this.fullVersionInfo = KeyImpl.createHash64(this.version.toString());
 		this.versionName = headers.get("Minor-Name");
 		if (this.versionName == null) throw new RuntimeException("missing Minor-Name");

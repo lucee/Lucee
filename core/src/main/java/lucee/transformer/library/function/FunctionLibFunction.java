@@ -23,7 +23,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ClassUtil;
@@ -37,7 +38,6 @@ import lucee.runtime.exp.TemplateException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.functions.BIFProxy;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
@@ -518,7 +518,7 @@ public final class FunctionLibFunction {
 	}
 
 	public void setIntroduced(String introduced) {
-		this.introduced = OSGiUtil.toVersion(introduced, null);
+		this.introduced = VersionImpl.parseOSGi(introduced, null);
 	}
 
 	public Version getIntroduced() {
