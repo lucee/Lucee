@@ -50,7 +50,9 @@ import lucee.runtime.JF;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.CatchBlock;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
@@ -385,6 +387,16 @@ public final class Reflector {
 		if (src instanceof ObjectWrap) {
 			src = ((ObjectWrap) src).getEmbededObject();
 			return _convert(src, trgClass, rating);
+		}
+
+		// LDEV-3458: cfcatch passed to an argument of type java.lang.Throwable (or a subclass)
+		if (src instanceof CatchBlock && Throwable.class.isAssignableFrom(trgClass)) {
+			PageException pe = ((CatchBlock) src).getPageException();
+			if (pe instanceof NativeException) {
+				Throwable t = ((NativeException) pe).getException();
+				if (trgClass.isInstance(t)) return t;
+			}
+			if (trgClass.isInstance(pe)) return pe;
 		}
 
 		// component as class
