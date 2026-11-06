@@ -235,7 +235,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ajax,form,url" {
 					template: "#uri#/test.cfm",
 					forms: "user[tags][]=foo&user[tags][]=bar"
 				);
-				expect( result.filecontent ).toInclude( "user.tags=foo,bar" );
+				// Array elements are printed as path[index]=value. A comma-joined string would be user.tags=foo,bar.
+				expect( result.filecontent ).toInclude( "user.tags[0]=foo" );
+				expect( result.filecontent ).toInclude( "user.tags[1]=bar" );
 			});
 
 			it( "should handle deeply nested array notation user[prefs][tags][]", function() {
@@ -243,7 +245,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ajax,form,url" {
 					template: "#uri#/test.cfm",
 					forms: "user[prefs][tags][]=foo&user[prefs][tags][]=bar"
 				);
-				expect( result.filecontent ).toInclude( "user.prefs.tags=foo,bar" );
+				expect( result.filecontent ).toInclude( "user.prefs.tags[0]=foo" );
+				expect( result.filecontent ).toInclude( "user.prefs.tags[1]=bar" );
 			});
 
 		});
