@@ -2465,6 +2465,16 @@ public final class OSGiUtil {
 		return _headers;
 	}
 
+	/** @deprecated use {@link BootDelegation#isClassInBootelegation(String)} */
+	public static boolean isClassInBootelegation(String className) {
+		return BootDelegation.isClassInBootelegation(className);
+	}
+
+	/** @deprecated use {@link BootDelegation#isPackageInBootelegation(String)} */
+	public static boolean isPackageInBootelegation(String packageName) {
+		return BootDelegation.isPackageInBootelegation(packageName);
+	}
+
 	public static BundleDefinition[] toBundleDefinitions(BundleInfo[] bundles) {
 		if (bundles == null) return new BundleDefinition[0];
 
@@ -2531,6 +2541,7 @@ public final class OSGiUtil {
 		List<File> list = getClassPathAsList();
 		StringBuilder sb = new StringBuilder();
 		for (File f: list) {
+			if (!f.exists()) continue;
 			if (sb.length() > 0) sb.append(File.pathSeparator);
 			sb.append(f.getAbsolutePath());
 		}
