@@ -233,7 +233,7 @@ public final class Log4j2Engine extends LogEngine {
 			}
 			// JSON Layout
 			else if (JsonLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
-				// enviroment variables
+				// environment variables
 				String[] envNames = null;
 				String tmp = layoutArgs.get("envnames");
 				if (!StringUtil.isEmpty(tmp, true)) {
