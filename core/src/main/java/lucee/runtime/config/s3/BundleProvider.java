@@ -61,8 +61,8 @@ import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
+import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -283,9 +283,10 @@ public final class BundleProvider extends DefaultHandler {
 					for (Element e: read(false)) {
 
 						if (bd.getName().equals(e.getBundleDefinition().getName())) {
-							if (latest == null || (VersionImpl.compare(OSGiUtil.toLucee(e.getBundleDefinition().getVersion()), OSGiUtil.toLucee(latest.getBundleDefinition().getVersion())) > 0)) {
+							if (latest == null || (VersionImpl.compare(e.getBundleDefinition().getVersion(), latest.getBundleDefinition().getVersion()) > 0)) {
 								latest = e;
-								if (!StringUtil.endsWithIgnoreCase(latest.getBundleDefinition().getVersionAsString(), "-SNAPSHOT")) {
+								lucee.runtime.config.maven.Version lv = latest.getBundleDefinition().getVersion();
+								if (lv == null || !lv.is(lucee.runtime.config.maven.Version.SNAPSHOT)) {
 									latestRelease = latest;
 								}
 							}
@@ -506,7 +507,7 @@ public final class BundleProvider extends DefaultHandler {
 						public int compare(Element l, Element r) {
 							int cmp = l.getBundleDefinition().getName().compareTo(r.getBundleDefinition().getName());
 							if (cmp != 0) return cmp;
-							return VersionImpl.compare(OSGiUtil.toLucee(l.getBundleDefinition().getVersion()), OSGiUtil.toLucee(r.getBundleDefinition().getVersion()));
+							return VersionImpl.compare(l.getBundleDefinition().getVersion(), r.getBundleDefinition().getVersion());
 						}
 					});
 					elementsSorted = list;

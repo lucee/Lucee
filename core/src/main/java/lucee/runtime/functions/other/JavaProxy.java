@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceNameFilter;
@@ -47,7 +46,7 @@ import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
@@ -120,7 +119,7 @@ public final class JavaProxy implements Function {
 					}
 				}
 			}
-			catch (BundleException be) {
+			catch (IOException be) {
 				throw Caster.toPageException(be);
 			}
 		}

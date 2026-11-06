@@ -124,13 +124,13 @@ import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.BundleBuilderFactory;
+import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.BundleService;
 import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.schedule.ScheduleTask;
 import lucee.runtime.schedule.ScheduleTaskImpl;
@@ -4808,7 +4808,7 @@ public final class ConfigAdmin {
 			if (replacementRH != null) {
 				// spare bundles used in the new extension as well
 				Map<String, BundleDefinition> notRemove = toMap(OSGiUtil.toBundleDefinitions(replacementRH.getMetadata().getBundles(EMPTY)));
-				List<BundleDefinition> tmp = new ArrayList<OSGiUtil.BundleDefinition>();
+				List<BundleDefinition> tmp = new ArrayList<BundleDefinition>();
 				String key;
 				for (int i = 0; i < candidatesToRemove.length; i++) {
 					key = candidatesToRemove[i].getName() + "|" + candidatesToRemove[i].getVersionAsString();
@@ -5168,7 +5168,7 @@ public final class ConfigAdmin {
 	}
 
 	private Map<String, BundleDefinition> toMap(BundleDefinition[] bundleDefinitions) {
-		Map<String, BundleDefinition> rtn = new HashMap<String, OSGiUtil.BundleDefinition>();
+		Map<String, BundleDefinition> rtn = new HashMap<String, BundleDefinition>();
 		for (int i = 0; i < bundleDefinitions.length; i++) {
 			rtn.put(bundleDefinitions[i].getName() + "|" + bundleDefinitions[i].getVersionAsString(), bundleDefinitions[i]);
 		}

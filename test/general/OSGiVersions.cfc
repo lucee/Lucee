@@ -41,10 +41,43 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( impl.compare( p( "1.0.0.20240101123456" ), p( "1.1.0" ) ) ).toBeLT( 0 );
 			});
 
+			it( "a BundleDefinition keeps name and version and maps the old extension bundle names", function() {
+				var bd = createObject( "java", "lucee.runtime.osgi.BundleDefinition" ).init( "org.lucee.mssql", "12.2.0.jre8" );
+				expect( bd.getName() ).toBe( "org.lucee.mssql" );
+				expect( bd.getVersionAsString() ).toBe( "12.2.0.jre8" );
+				var same = createObject( "java", "lucee.runtime.osgi.BundleDefinition" ).init( "org.lucee.mssql", "12.2.0.jre8" );
+				expect( bd.equals( same ) ).toBeTrue();
+				expect( bd.hashCode() ).toBe( same.hashCode() );
+				expect( createObject( "java", "lucee.runtime.osgi.BundleDefinition" ).init( "mongodb.extension" ).getName() ).toBe( "org.lucee.mongodb.extension" );
+				expect( createObject( "java", "lucee.runtime.osgi.BundleDefinition" ).init( "mongodb.extension", "3.12.13.8" ).getName() ).toBe( "mongodb.extension" );
+			});
+
 			it( "treats the dot and the hyphen form of the qualifier as the same version", function() {
 				var impl = createObject( "java", "lucee.loader.util.VersionImpl" );
 				var p = function( v ) { return impl.parseOSGi( v, javaCast( "null", "" ) ); };
 				expect( impl.compare( p( "12.2.0.jre8" ), p( "12.2.0-jre8" ) ) ).toBe( 0 );
+			});
+
+			it( "BundleDefinition equality ignores the dot or hyphen form of the qualifier", function() {
+				var cls = createObject( "java", "lucee.runtime.osgi.BundleDefinition" );
+				var a = cls.init( "org.lucee.hsqldb", "2.7.2-jdk8" );
+				var b = cls.init( "org.lucee.hsqldb", "2.7.2.jdk8" );
+				expect( a.equals( b ) ).toBeTrue();
+				expect( a.hashCode() ).toBe( b.hashCode() );
+				expect( a.equals( cls.init( "org.lucee.hsqldb", "2.7.3-jdk8" ) ) ).toBeFalse();
+			});
+
+			it( "toBundleVersion keeps the OSGi string that toLucee would hyphenate", function() {
+				var osgi = createObject( "java", "org.osgi.framework.Version" ).init( "2.7.2.jdk8" );
+				var util = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
+				expect( util.toLucee( osgi ).toString() ).toBe( "2.7.2-jdk8" );
+				expect( util.toBundleVersion( osgi ).toString() ).toBe( "2.7.2.jdk8" );
+				var bd = createObject( "java", "lucee.runtime.osgi.BundleDefinition" ).init( "org.lucee.hsqldb", util.toBundleVersion( osgi ) );
+				expect( bd.getVersionAsString() ).toBe( "2.7.2.jdk8" );
+				expect( bd.toString() ).toInclude( "2.7.2.jdk8" );
+
+				var snap = createObject( "java", "org.osgi.framework.Version" ).init( "1.0.0.SNAPSHOT" );
+				expect( util.toBundleVersion( snap ).toString() ).toBe( "1.0.0.SNAPSHOT" );
 			});
 
 		});

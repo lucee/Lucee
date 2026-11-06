@@ -8,7 +8,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -219,6 +218,6 @@ public final class BundleRange implements Serializable {
 
 	public BundleDefinition toBundleDefintion() {
 		if (getVersionRange() == null || getVersionRange().from == null) return new BundleDefinition(name);
-		return new BundleDefinition(name, getVersionRange().from);
+		return new BundleDefinition(name, OSGiUtil.toLucee(getVersionRange().from));
 	}
 }

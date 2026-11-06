@@ -18,6 +18,7 @@
  */
 package lucee.runtime.config;
 
+import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.BundleServiceImpl;
 import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
 
@@ -214,7 +215,6 @@ import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.EnvClassLoader;
 import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.regex.Regex;
 import lucee.runtime.regex.RegexFactory;

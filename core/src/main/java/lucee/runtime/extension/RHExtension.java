@@ -19,6 +19,7 @@
 package lucee.runtime.extension;
 
 import lucee.loader.util.VersionImpl;
+import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.BundleServiceImpl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -84,7 +85,6 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.osgi.VersionRange;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
@@ -1170,7 +1170,7 @@ public final class RHExtension implements Serializable {
 					try {
 						arrBDs[i] = new BundleDefinition(arrStrs[i].substring(0, index).trim(), arrStrs[i].substring(index + 1).trim());
 					}
-					catch (BundleException e) {
+					catch (IOException e) {
 						throw new PageRuntimeException(e);// should not happen
 					}
 				}

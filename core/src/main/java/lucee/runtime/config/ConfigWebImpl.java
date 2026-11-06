@@ -95,7 +95,7 @@ import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.regex.Regex;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.schedule.Scheduler;

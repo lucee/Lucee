@@ -59,9 +59,9 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
@@ -177,20 +177,20 @@ public final class ClassUtil {
 		try {
 			if (relatedBundles != null) {
 				for (BundleDefinition rb: relatedBundles) {
-					rb.getBundle(id, addional, true, false);
+					BundleServiceImpl.getInstance().loadBundle(rb, id, addional, false);
 				}
 			}
-			return bundle.getBundle(id, addional, true, versionOnlyMattersForDownload).loadClass(className);
+			return BundleServiceImpl.getInstance().loadClass(bundle, id, addional, versionOnlyMattersForDownload, className);
 		}
 		catch (ClassNotFoundException outer) {
 			try {
-				if (OSGiUtil.resolveBundleLoadingIssues(null, ThreadLocalPageContext.getConfigServer(), outer)) {
+				if (BundleServiceImpl.getInstance().resolveLoadingIssues(ThreadLocalPageContext.getConfigServer(), outer)) {
 					if (relatedBundles != null) {
 						for (BundleDefinition rb: relatedBundles) {
-							rb.getBundle(id, addional, true, false);
+							BundleServiceImpl.getInstance().loadBundle(rb, id, addional, false);
 						}
 					}
-					return bundle.getBundle(id, addional, true, versionOnlyMattersForDownload).loadClass(className);
+					return BundleServiceImpl.getInstance().loadClass(bundle, id, addional, versionOnlyMattersForDownload, className);
 				}
 				else throw outer;
 
