@@ -47,10 +47,8 @@ import java.util.TimeZone;
 
 import javax.script.ScriptEngineFactory;
 
-import org.osgi.framework.Constants;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
-import org.osgi.framework.launch.Framework;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;
@@ -146,8 +144,8 @@ import lucee.runtime.op.IOImpl;
 import lucee.runtime.op.JavaProxyUtilImpl;
 import lucee.runtime.op.OperationImpl;
 import lucee.runtime.op.StringsImpl;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.osgi.OSGiExtensionInstaller;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.spooler.SpoolerEngine;
 import lucee.runtime.spooler.SpoolerEngineImpl;
@@ -257,7 +255,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private long uptime;
 	private InfoImpl info;
 
-	private BundleCollection bundleCollection;
 
 	private ScriptEngineFactory scriptEngine;
 	private ScriptEngineFactory tagEngine;
@@ -322,7 +319,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		 */
 
 		FACTORY = this.factory = factory;
-		this.bundleCollection = bc;
 
 		this.allowRequestTimeout = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.requesttimeout", null), true);
 		// log the startup process
@@ -336,50 +332,17 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 		}
 
-		// happen when Lucee is loaded directly
-		if (bundleCollection == null) {
-			try {
-				Properties prop = InfoImpl.getDefaultProperties();
-
-				// read the config from default.properties
-				Map<String, Object> config = new HashMap<String, Object>();
-				Iterator<Entry<Object, Object>> it = prop.entrySet().iterator();
-				Entry<Object, Object> e;
-				String k, val, addional;
-				while (it.hasNext()) {
-					e = it.next();
-					k = (String) e.getKey();
-					if (!k.startsWith("org.") && !k.startsWith("felix.")) continue;
-
-					val = CFMLEngineFactorySupport.removeQuotes((String) e.getValue(), true);
-					addional = Caster.toString(SystemUtil.getSystemPropOrEnvVar(k, null), null);
-
-					if (!StringUtil.isEmpty(addional, true)) {
-						if ("org.osgi.framework.bootdelegation".equals(k) || "org.osgi.framework.system.packages".equals(k)) {
-							val = addional.trim() + "," + val;
-
-						}
-						else {
-							val = addional.trim();
-						}
-					}
-					config.put(k, val);
-				}
-
-				config.put(Constants.FRAMEWORK_BOOTDELEGATION, "lucee.*");
-				Framework felix = factory.getFelix(factory.getResourceRoot(), config);
-
-				bundleCollection = new BundleCollection(felix, felix, null);
-				// bundleContext=bundleCollection.getBundleContext();
-			}
-			catch (Exception e) {
-				throw Caster.toPageRuntimeException(e);
-			}
+		BundleServiceImpl bundles = BundleServiceImpl.getInstance();
+		try {
+			bundles.boot(factory, bc);
 		}
-		this.info = new InfoImpl(OSGiUtil.toLucee(bundleCollection.getCoreVersion()), bundleCollection.getCoreHeaders());
+		catch (Exception e) {
+			throw Caster.toPageRuntimeException(e);
+		}
+		this.info = new InfoImpl(bundles.getCoreVersion(), bundles.getCoreHeaders());
 
 		// remove older or newer lucee-core bundles to avoid conflicts
-		for (String stale: OSGiUtil.uninstallOtherVersions(bundleCollection.getBundleContext(), "lucee.core", info.getVersion().toString())) {
+		for (String stale: bundles.uninstallStaleCoreBundles(info.getVersion().toString())) {
 			LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
 					"Found stale core bundle [lucee.core:" + stale + "], uninstalled to avoid conflicts with current version [" + info.getVersion() + "]");
 		}
@@ -1498,7 +1461,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private void shutdownFelix() {
 		try {
-			getCFMLEngineFactory().shutdownFelix();
+			BundleServiceImpl.getInstance().shutdown();
 		}
 		catch (Exception e) {
 			LogUtil.log(configServer, LOG_TYPE_NAME, e);
@@ -1732,10 +1695,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	/*
 	 * public Bundle getCoreBundle() { return bundle; }
 	 */
-
-	public BundleCollection getBundleCollection() {
-		return bundleCollection;
-	}
 
 	@Override
 	public lucee.runtime.osgi.BundleService getBundleService() {

@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Properties;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -14,9 +17,12 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.BundleReference;
+import org.osgi.framework.Constants;
+import org.osgi.framework.launch.Framework;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleWiring;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -25,9 +31,12 @@ import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.engine.CFMLEngineFactorySupport;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Identification;
+import lucee.runtime.engine.InfoImpl;
+import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil.PackageQuery;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.type.Array;
@@ -45,6 +54,69 @@ public final class BundleServiceImpl implements BundleService {
 
 	public static BundleServiceImpl getInstance() {
 		return INSTANCE;
+	}
+
+	private volatile BundleCollection bundleCollection;
+	private volatile CFMLEngineFactory bootFactory;
+
+	/**
+	 * Starts the OSGi framework when Lucee is loaded directly (no bundle collection handed over by the
+	 * loader) and keeps the bundle collection.
+	 */
+	public synchronized void boot(CFMLEngineFactory factory, BundleCollection bc) throws Exception {
+		this.bootFactory = factory;
+		if (bc == null) {
+			Properties prop = InfoImpl.getDefaultProperties();
+
+			// read the config from default.properties
+			Map<String, Object> config = new HashMap<String, Object>();
+			for (Map.Entry<Object, Object> e: prop.entrySet()) {
+				String k = (String) e.getKey();
+				if (!k.startsWith("org.") && !k.startsWith("felix.")) continue;
+
+				String val = CFMLEngineFactorySupport.removeQuotes((String) e.getValue(), true);
+				String addional = Caster.toString(SystemUtil.getSystemPropOrEnvVar(k, null), null);
+
+				if (!StringUtil.isEmpty(addional, true)) {
+					if ("org.osgi.framework.bootdelegation".equals(k) || "org.osgi.framework.system.packages".equals(k)) {
+						val = addional.trim() + "," + val;
+					}
+					else {
+						val = addional.trim();
+					}
+				}
+				config.put(k, val);
+			}
+
+			config.put(Constants.FRAMEWORK_BOOTDELEGATION, "lucee.*");
+			Framework felix = factory.getFelix(factory.getResourceRoot(), config);
+			bc = new BundleCollection(felix, felix, null);
+		}
+		this.bundleCollection = bc;
+	}
+
+	public BundleCollection getBundleCollection() {
+		return bundleCollection;
+	}
+
+	public lucee.runtime.config.maven.Version getCoreVersion() {
+		return OSGiUtil.toLucee(bundleCollection.getCoreVersion());
+	}
+
+	public Dictionary<String, String> getCoreHeaders() {
+		return bundleCollection.getCoreHeaders();
+	}
+
+	/**
+	 * removes older or newer lucee-core bundles to avoid conflicts
+	 */
+	public List<String> uninstallStaleCoreBundles(String keepVersion) {
+		return OSGiUtil.uninstallOtherVersions(bundleCollection.getBundleContext(), "lucee.core", keepVersion);
+	}
+
+	public void shutdown() throws BundleException {
+		CFMLEngineFactory factory = bootFactory;
+		if (factory != null) factory.shutdownFelix();
 	}
 
 	private BundleServiceImpl() {
