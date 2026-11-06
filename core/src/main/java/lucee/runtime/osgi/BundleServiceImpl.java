@@ -371,6 +371,13 @@ public final class BundleServiceImpl implements BundleService {
 		return OSGiUtil.getClassPath();
 	}
 
+	/**
+	 * @return the jar of the bundle in the local bundle directory, or null when it is not there
+	 */
+	public BundleFile getBundleFile(String bundleName, lucee.runtime.config.maven.Version version) {
+		return OSGiUtil.getBundleFile(bundleName, OSGiUtil.toOSGi(version), null, null, false, null);
+	}
+
 	@Override
 	public Class<?> findClass(String className) {
 		return OSGiUtil.loadClass(className, null);

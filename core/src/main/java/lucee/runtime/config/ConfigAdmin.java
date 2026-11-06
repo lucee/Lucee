@@ -45,7 +45,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-import org.osgi.framework.Bundle;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 import org.w3c.dom.DOMException;
@@ -129,7 +128,6 @@ import lucee.runtime.osgi.BundleService;
 import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiExtensionInstaller;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.schedule.ScheduleTask;
 import lucee.runtime.schedule.ScheduleTaskImpl;
@@ -1349,7 +1347,7 @@ public final class ConfigAdmin {
 		if (StringUtil.isEmpty(name)) name = BundleBuilderFactory.createSymbolicName(resJar);
 
 		// version
-		Version version = OSGiUtil.toLucee(bf.getVersion());
+		Version version = bf.getBundleVersion();
 		if (version == null) version = VersionImpl.parseOSGi(extVersion);
 
 		LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
@@ -1366,14 +1364,14 @@ public final class ConfigAdmin {
 	private static BundleFile installBundle(Config config, BundleFile bf) throws IOException {
 
 		// does this bundle already exists
-		BundleFile _bf = OSGiUtil.getBundleFile(bf.getSymbolicName(), bf.getVersion(), null, null, false, null);
+		BundleFile _bf = BundleServiceImpl.getInstance().getBundleFile(bf.getSymbolicName(), bf.getBundleVersion());
 		if (_bf != null) return _bf;
 
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
 
 		// copy to jar directory
-		File jar = new File(factory.getBundleDirectory(), bf.getSymbolicName() + "-" + bf.getVersion().toString() + (".jar"));
+		File jar = new File(factory.getBundleDirectory(), bf.getSymbolicName() + "-" + bf.getBundleVersion().toString() + (".jar"));
 		InputStream is = bf.getInputStream();
 		OutputStream os = new FileOutputStream(jar);
 		try {
@@ -4803,10 +4801,10 @@ public final class ConfigAdmin {
 		try {
 
 			// remove the bundles
-			BundleDefinition[] candidatesToRemove = OSGiUtil.toBundleDefinitions(rhe.getMetadata().getBundles(EMPTY));
+			BundleDefinition[] candidatesToRemove = BundleInfo.toBundleDefinitions(rhe.getMetadata().getBundles(EMPTY));
 			if (replacementRH != null) {
 				// spare bundles used in the new extension as well
-				Map<String, BundleDefinition> notRemove = toMap(OSGiUtil.toBundleDefinitions(replacementRH.getMetadata().getBundles(EMPTY)));
+				Map<String, BundleDefinition> notRemove = toMap(BundleInfo.toBundleDefinitions(replacementRH.getMetadata().getBundles(EMPTY)));
 				List<BundleDefinition> tmp = new ArrayList<BundleDefinition>();
 				String key;
 				for (int i = 0; i < candidatesToRemove.length; i++) {
@@ -5993,7 +5991,7 @@ public final class ConfigAdmin {
 			BundleInfo[] bundles = _rhe.getMetadata().getBundles(null);
 			if (bundles != null) {
 				for (BundleInfo bi: bundles) {
-					_cleanBundles(candiatesToRemove, bi.getSymbolicName(), OSGiUtil.toLucee(bi.getVersion()));
+					_cleanBundles(candiatesToRemove, bi.getSymbolicName(), bi.getBundleVersion());
 				}
 			}
 		}
@@ -6107,7 +6105,7 @@ public final class ConfigAdmin {
 				if (ext.same(el)) {
 					old = RHExtension.toBundleDefinitions(ConfigUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 					ext.populate(el, false);
-					old = minus(old, OSGiUtil.toBundleDefinitions(ext.getMetadata().getBundles()));
+					old = minus(old, BundleInfo.toBundleDefinitions(ext.getMetadata().getBundles()));
 					return old;
 				}
 			}
@@ -6134,7 +6132,7 @@ public final class ConfigAdmin {
 							if (_ext != null && _ext.same(ext)) {
 								old = RHExtension.toBundleDefinitions(ConfigUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 								ext.populate(el, false);
-								old = minus(old, OSGiUtil.toBundleDefinitions(ext.getMetadata().getBundles()));
+								old = minus(old, BundleInfo.toBundleDefinitions(ext.getMetadata().getBundles()));
 								return old;
 							}
 						}

@@ -50,7 +50,6 @@ import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.osgi.framework.Bundle;
 import lucee.runtime.config.maven.Version;
 
 import jakarta.servlet.ServletConfig;
@@ -184,7 +183,6 @@ import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.JarUtil;
 import lucee.runtime.osgi.ManifestUtil;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.rest.RestUtil;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
@@ -3776,7 +3774,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				bundles = e.getMetadata().getBundles();
 				if (bundles != null) {
 					for (BundleInfo b: bundles) {
-						if (_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), OSGiUtil.toLucee(b.getVersion()))) {
+						if (_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), b.getBundleVersion())) {
 							set.add(e.getMetadata().getName());
 						}
 					}

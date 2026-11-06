@@ -252,6 +252,22 @@ public class BundleInfo implements Serializable {
 		return _version;
 	}
 
+	/**
+	 * @return the version of the bundle, free of any OSGi type
+	 */
+	public lucee.runtime.config.maven.Version getBundleVersion() {
+		return OSGiUtil.toBundleVersion(getVersion());
+	}
+
+	public static BundleDefinition[] toBundleDefinitions(BundleInfo[] bundles) {
+		if (bundles == null) return new BundleDefinition[0];
+		BundleDefinition[] rtn = new BundleDefinition[bundles.length];
+		for (int i = 0; i < bundles.length; i++) {
+			rtn[i] = bundles[i].toBundleDefinition();
+		}
+		return rtn;
+	}
+
 	public String getVersionAsString() {
 		return strVersion;
 	}
