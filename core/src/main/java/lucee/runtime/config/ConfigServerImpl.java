@@ -214,7 +214,7 @@ import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.EnvClassLoader;
 import lucee.runtime.osgi.OSGiExtensionInstaller;
-import lucee.runtime.osgi.OSGiUtil;
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.regex.Regex;
 import lucee.runtime.regex.RegexFactory;
@@ -7342,7 +7342,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	@Override
 	public JDBCDriver getJDBCDriverByBundle(String bundleName, Version version, JDBCDriver defaultValue) {
 		for (JDBCDriver d: getJDBCDrivers()) {
-			if (d.cd.getName().equals(bundleName) && (version == null || version.equals(OSGiUtil.toOSGi(d.cd.getVersion())))) return d;
+			if (d.cd.getName().equals(bundleName) && (version == null || VersionImpl.compare(version, d.cd.getVersion()) == 0)) return d;
 		}
 		return defaultValue;
 	}
