@@ -4,7 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 		describe( "test suite for LDEV-5116", function() {
 			it(title = "", body = function( currentSpec ) {
 				var BundleProvider=createObject("java","lucee.runtime.config.s3.BundleProvider");
-				var BundleDefinition=createObject("java","lucee.runtime.osgi.OSGiUtil$BundleDefinition");
+				var BundleDefinition=createObject("java","lucee.runtime.osgi.BundleDefinition");
 				var bd=BundleDefinition.init("com.mysql.cj",nullValue());
 				var uri=BundleProvider.getInstance().getBundleAsURL(bd, true);
 				expect( fileExists( uri.toString() ) ).tobeTrue();
