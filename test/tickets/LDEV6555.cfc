@@ -164,6 +164,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mvn" {
 				expect( lite.length() ).notToBe( full.length() );
 			});
 
+			<!---
+				A specific SNAPSHOT version cannot be hardcoded in a test because snapshots are temporary
+				and disappear (for example after a release, or after Sonatype's 90-day snapshot retention).
+				Left commented so this case can be restored if a stable snapshot fixture exists later.
+
 			it( title="snapshot: the metadata entry with the matching classifier is used", body=function() {
 				var lite = pomOf( "org.lucee", "image-extension", "3.1.0.11-SNAPSHOT", "lite" ).getArtifact( "lex" );
 				expect( lite.getName() ).toBe( "image-extension-3.1.0.11-SNAPSHOT-lite.lex" );
@@ -172,6 +177,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mvn" {
 				expect( full.getName() ).toBe( "image-extension-3.1.0.11-SNAPSHOT.lex" );
 				expect( lite.length() ).notToBe( full.length() );
 			});
+			--->
 
 			it( title="classified jar from Central", body=function() {
 				var jar = pomOf( "org.lwjgl", "lwjgl", "3.3.4", "natives-linux" ).getArtifact( "jar" );
