@@ -189,9 +189,9 @@ public final class OSGiUtil {
 	}
 
 	public static BundleCollection getBundleCollection() {
-		CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigUtil.getCFMLEngine(), null);
-		if (engine == null) throw new IllegalStateException("the engine of this Lucee is not available");
-		return engine.getBundleCollection();
+		BundleCollection bc = BundleServiceImpl.getInstance().getBundleCollection();
+		if (bc == null) throw new IllegalStateException("the OSGi framework of this Lucee is not available");
+		return bc;
 	}
 
 	public static BundleContext getBundleContext() {
