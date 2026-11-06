@@ -58,6 +58,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( impl.compare( p( "12.2.0.jre8" ), p( "12.2.0-jre8" ) ) ).toBe( 0 );
 			});
 
+			it( "BundleDefinition equality ignores the dot or hyphen form of the qualifier", function() {
+				var cls = createObject( "java", "lucee.runtime.osgi.BundleDefinition" );
+				var a = cls.init( "org.lucee.hsqldb", "2.7.2-jdk8" );
+				var b = cls.init( "org.lucee.hsqldb", "2.7.2.jdk8" );
+				expect( a.equals( b ) ).toBeTrue();
+				expect( a.hashCode() ).toBe( b.hashCode() );
+				expect( a.equals( cls.init( "org.lucee.hsqldb", "2.7.3-jdk8" ) ) ).toBeFalse();
+			});
+
 		});
 	}
 

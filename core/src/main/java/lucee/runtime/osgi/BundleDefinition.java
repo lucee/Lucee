@@ -83,11 +83,14 @@ public class BundleDefinition implements Serializable {
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
 		if (!(obj instanceof BundleDefinition)) return false;
-		return toString().equals(obj.toString());
+		BundleDefinition other = (BundleDefinition) obj;
+		if (!name.equals(other.name)) return false;
+		if (version == null || other.version == null) return version == other.version;
+		return VersionImpl.compare(version, other.version) == 0;
 	}
 
 	@Override
 	public int hashCode() {
-		return toString().hashCode();
+		return name.hashCode() * 31 + (version == null ? 0 : (version.getMajor() * 31 + version.getMinor()) * 31 + version.getMicro());
 	}
 }
