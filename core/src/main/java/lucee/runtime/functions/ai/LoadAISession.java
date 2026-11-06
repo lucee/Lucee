@@ -21,7 +21,7 @@ public final class LoadAISession extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length != 2) throw new FunctionException(pc, "LoadAISession", 2, 2, args.length);
+		if (args.length < 2 || args.length > 3) throw new FunctionException(pc, "LoadAISession", 2, 3, args.length);
 
 		Struct connection = AIUtil.toConnection(args[0]);
 		String nameAI = connection == null ? Caster.toString(args[0]) : null;
@@ -47,6 +47,7 @@ public final class LoadAISession extends BIF {
 		AISessionSupport support = AIUtil.toSessionSupport(session);
 		if (support != null) support.restoreUsage(Caster.toStruct(data.get("usage", null), null));
 
+		AIUtil.setListener(pc, session, args.length > 2 ? args[2] : null);
 		return session;
 	}
 }

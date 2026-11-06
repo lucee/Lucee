@@ -259,6 +259,16 @@ public final class AIUtil {
 	}
 
 	/**
+	 * attaches the listener (a component or struct with the hooks) to the session (LDEV-6540)
+	 */
+	public static void setListener(PageContext pc, AISession session, Object listener) throws PageException {
+		if (listener == null) return;
+		AISessionSupport support = toSessionSupport(session);
+		if (support == null) throw new ApplicationException("the AI session [" + session.getClass().getName() + "] does not support a listener");
+		support.setListener(AISessionListener.getInstance(pc, listener));
+	}
+
+	/**
 	 * a call that failed or was aborted, written as WARN to the ai log (LDEV-6527)
 	 */
 	public static void addFailedInquiry(AISession session, String provider, String requestModel, long startNanos, boolean streamed, Throwable t) {
