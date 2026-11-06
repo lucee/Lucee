@@ -226,6 +226,10 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 	 *   user[name] -> ["user", "name"]
 	 *   user[address][city] -> ["user", "address", "city"]
 	 *   user.address[city] -> ["user", "address", "city"]
+	 *   tags[] -> ["tags[]"]
+	 *   user[tags][] -> ["user", "tags[]"]
+	 *   user.tags[] -> ["user", "tags[]"]
+	 *   user[]name -> ["user", "name"]
 	 *
 	 * @param name The parameter name to parse
 	 * @return List of segments, or null if malformed brackets detected
@@ -252,7 +256,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 					// Closing bracket without opening - malformed
 					return null;
 				}
-				// Save segment inside brackets (skip empty segments like [])
+				// Save segment inside brackets (skip empty []; a trailing [] is restored below)
 				if (i > start) {
 					segments.add(name.substring(start, i));
 				}
@@ -276,6 +280,17 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 		// Add final segment if exists (skip empty trailing segments)
 		if (start < len) {
 			segments.add(name.substring(start, len));
+		}
+
+		// tags[], user[tags][] and user.tags[] end with an empty [] that the loop skips.
+		// Put that marker back on the previous segment so _fill() still creates an array.
+		// Empty brackets that are not trailing (user[]name) stay skipped.
+		if (!segments.isEmpty() && name.endsWith("[]")) {
+			int last = segments.size() - 1;
+			String segment = segments.get(last);
+			if (!segment.endsWith("[]")) {
+				segments.set(last, segment + "[]");
+			}
 		}
 
 		return segments;
