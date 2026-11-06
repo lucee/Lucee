@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="config,mappings" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mappings" {
 
 	function beforeAll() {
 		variables.originalMappings = getApplicationSettings().mappings;
@@ -10,7 +10,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="config,mappings" {
 		variables.absoluteDir = variables.base & "absolute-target" & server.separator.file;
 		directoryCreate( variables.absoluteDir );
 		variables.absoluteFile = variables.absoluteDir & "outside.cfm";
-		fileWrite( variables.absoluteFile, '<cfset request.ldev5938include = "from-absolute">' );
+		fileWrite( variables.absoluteFile, '<cfset request.ldev5938include = "from-absolute"><cfoutput>from-absolute</cfoutput>' );
 		variables.sourceDir = getDirectoryFromPath( getCurrentTemplatePath() );
 		variables.source = variables.config.getResource( getCurrentTemplatePath() ).getParentResource();
 	}
@@ -140,9 +140,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="config,mappings" {
 				expect( isNull( local.ps ) ).toBeTrue();
 			} );
 
-			it( "an absolute template outside the webroot is executed from that file", function() {
+			it( "cfinclude of an absolute file outside the webroot executes that file", function() {
 				include variables.absoluteFile;
 				expect( request.ldev5938include ).toBe( "from-absolute" );
+			} );
+
+			it( "a web request for that absolute path does not execute the file", function() {
+				var ps = variables.ConfigUtil.getPageSourceExisting( getPageContext(), variables.config, getPageContext().getApplicationContext().getMappings(), variables.absoluteFile, false, false, true, false );
+				expect( isNull( local.ps ) ).toBeTrue();
+
+				var missing = _InternalRequest(
+					template: "/ldev5938-no-such-page.cfm",
+					throwonerror: false
+				);
+				var req = _InternalRequest(
+					template: variables.absoluteFile,
+					throwonerror: false
+				);
+				expect( req.status_code ).toBe( missing.status_code );
+				expect( req.status_code ).notToBe( 200 );
+				expect( req.error.type ).toBe( "missinginclude" );
+				expect( req.error.detail ).notToInclude( variables.absoluteDir );
+				expect( req.filecontent ).notToBe( "from-absolute" );
 			} );
 
 		} );

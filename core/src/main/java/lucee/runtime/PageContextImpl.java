@@ -972,10 +972,35 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public PageSource[] getRelativePageSources(String realPath) {
-		if (StringUtil.startsWith(realPath, '/')) return getPageSources(realPath);
+		if (StringUtil.startsWith(realPath, '/')) {
+			PageSource[] sources = getPageSources(realPath);
+			// cfinclude of a real file that is not a virtual page. Web requests call getPageSources directly
+			// and must 404 instead of executing that file from outside the webroot.
+			if (!pageSourceExists(sources)) {
+				PageSource direct = absoluteFilePageSource(realPath);
+				if (direct != null) return new PageSource[] { direct };
+			}
+			return sources;
+		}
 		PageSource ps = pathList.peekLast();
 		if (ps == null) return null;
 		return new PageSource[] { ((PageSourceImpl) ps).getRealPageSource(this, realPath) };
+	}
+
+	private static boolean pageSourceExists(PageSource[] sources) {
+		PageSource best = PageSourceImpl.best(sources);
+		return best != null && PageSourceImpl.pageExist(best);
+	}
+
+	private PageSource absoluteFilePageSource(String realPath) {
+		try {
+			Resource res = config.getResource(realPath);
+			if (res != null && res.isAbsolute() && res.isFile()) return toPageSource(res, null);
+		}
+		catch (PageRuntimeException e) {
+			return null;
+		}
+		return null;
 	}
 
 	public PageSource getPageSource(String realPath) {

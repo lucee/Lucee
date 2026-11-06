@@ -631,14 +631,8 @@ public final class PageSourceImpl implements PageSource {
 			synchronized (this) {
 				// synchronized (SystemUtil.createToken("PageSource", getRealpathWithVirtual())) {
 				if (physcalSource == null) {
-					// a windows path (D:/...) is already absolute and must not be appended to the physical path of the mapping.
-					// the same applies to any other absolute file when the virtual path does not exist: /var/www/file.cfm
-					// must not become {mapping}/var/www/file.cfm. A virtual page that does exist still wins.
+					// a windows path (D:/...) is already absolute and must not be appended to the physical path of the mapping
 					Resource tmp = ResourceUtil.isWindowsPath(relPath) ? mapping.getConfig().getResource(relPath) : mapping.getPhysical().getRealResource(relPath);
-					if (tmp != null && !tmp.exists()) {
-						Resource direct = absoluteExistingFile(mapping.getConfig(), relPath);
-						if (direct != null && !direct.getAbsolutePath().equals(tmp.getAbsolutePath())) tmp = direct;
-					}
 					physcalSource = ResourceUtil.toExactResource(tmp);
 					// fix if the case not match
 					if (!tmp.getAbsolutePath().equals(physcalSource.getAbsolutePath())) {
@@ -653,18 +647,6 @@ public final class PageSourceImpl implements PageSource {
 			}
 		}
 		return physcalSource;
-	}
-
-	private static Resource absoluteExistingFile(Config config, String path) {
-		if (config == null || StringUtil.isEmpty(path, true)) return null;
-		try {
-			Resource res = config.getResource(path);
-			if (res != null && res.isAbsolute() && res.isFile()) return res;
-		}
-		catch (PageRuntimeException e) {
-			return null;
-		}
-		return null;
 	}
 
 	public Resource getArchiveFile() {
