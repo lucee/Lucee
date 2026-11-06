@@ -155,6 +155,41 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				}
 			});
 
+			it( "gives a class path of existing files", function() {
+				var cp = service.getClassPath();
+				expect( len( cp ) ).toBeGT( 0 );
+				loop list=cp delimiters=server.separator.path item="local.entry" {
+					expect( fileExists( entry ) || directoryExists( entry ) ).toBeTrue( "[#entry#] does not exist" );
+				}
+			});
+
+			it( "has a loader class loader, the same one every time", function() {
+				var cl = service.getLoaderClassLoader();
+				expect( isNull( cl ) ).toBeFalse();
+				expect( service.getLoaderClassLoader().hashCode() ).toBe( cl.hashCode() );
+			});
+
+			it( "finds a class of the core with findClass and returns null for an unknown class", function() {
+				expect( service.findClass( "lucee.runtime.type.StructImpl" ).getName() ).toBe( "lucee.runtime.type.StructImpl" );
+				expect( isNull( service.findClass( "does.not.Exist" ) ) ).toBeTrue();
+			});
+
+			it( "lists bundle files in the bundle directory that are not installed", function() {
+				var installed = {};
+				loop array=service.listBundles() item="local.b" {
+					installed[ b.name & ":" & b.version ] = true;
+				}
+				loop array=service.listLocalBundles() item="local.l" {
+					expect( l.state ).toBe( "notinstalled" );
+					expect( installed ).notToHaveKey( l.name & ":" & l.version );
+					expect( fileExists( l.location ) ).toBeTrue();
+				}
+			});
+
+			it( "gives no local info for a bundle file that does not exist", function() {
+				expect( isNull( service.getLocalBundleInfo( "does.not.exist", "" ) ) ).toBeTrue();
+			});
+
 			it( "throws an IOException for a class the bundle does not have", function() {
 				expect( function() {
 					service.loadClass( system.name, "", "does.not.Exist" );

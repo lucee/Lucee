@@ -19,6 +19,7 @@
 package lucee.runtime.tag;
 
 import lucee.loader.util.VersionImpl;
+import lucee.runtime.osgi.BundleService;
 import lucee.runtime.osgi.BundleServiceImpl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -31,7 +32,6 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,7 +50,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
 import lucee.runtime.config.maven.Version;
 
 import jakarta.servlet.ServletConfig;
@@ -3668,204 +3667,78 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetBundle() throws PageException {
 		String symbolicName = getString("admin", "getBundle", "symbolicName", true);
-		Version version = VersionImpl.parseOSGi(getString("version", null), null);
+		String version = getString("version", null);
 
-		BundleDefinition bd;
-		BundleFile bf = null;
-		Bundle b = OSGiUtil.getBundleLoaded(symbolicName, OSGiUtil.toOSGi(version), null);
-		if (b != null) {
-			bd = new BundleDefinition(b);
-		}
-		else {
-			try {
-				bf = OSGiUtil.getBundleFile(symbolicName, OSGiUtil.toOSGi(version), null, null, false);
-				bd = bf.toBundleDefinition();
-				b = bd.getLoadedBundle();
-
-			}
-			catch (BundleException e) {
-				throw Caster.toPageException(e);
-			}
-		}
-
-		CFMLEngine engine = ConfigUtil.getEngine(config);
-		List<Map<String, Object>> coreBundles = BundleServiceImpl.getInstance().listCoreBundles();
-		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
+		BundleService bs = BundleServiceImpl.getInstance();
+		Map<String, Object> info = bs.getBundleInfo(symbolicName, version);
+		if (info == null) info = bs.getLocalBundleInfo(symbolicName, version);
+		if (info == null) throw new ApplicationException("there is no bundle [" + symbolicName + (StringUtil.isEmpty(version, true) ? "" : ":" + version) + "]");
 
 		Struct sct = new StructImpl();
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-
-		sct.set(KeyConstants._symbolicName, bd.getName());
-		sct.set(KeyConstants._title, bd.getName());
-		sct.set(KeyConstants._version, bd.getVersionAsString());
-		sct.set(KeyConstants._usedBy, _usedBy(bd.getName(), OSGiUtil.toLucee(bd.getVersion()), coreBundles, extBundles));
-		try {
-			if (b != null) {
-				sct.set(KeyConstants._path, b.getLocation());
-			}
-			else {
-				if (bf == null) bf = bd.getBundleFile(false, JavaSettingsImpl.getBundleDirectories(pageContext));
-				sct.set(KeyConstants._path, bf.getFile());
-			}
-
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-		}
-
-		Map<String, Object> headers = null;
-		if (b != null) {
-			sct.set(KeyConstants._version, bd.getVersion().toString());
-			sct.set(KeyConstants._id, b.getBundleId());
-			sct.set(KeyConstants._state, OSGiUtil.toState(b.getState(), null));
-			sct.set(KeyConstants._fragment, OSGiUtil.isFragment(b));
-
-			headers = OSGiUtil.getHeaders(b);
-		}
-		else {
-			sct.set(KeyConstants._state, "notinstalled");
-			try {
-
-				if (bf == null) bf = bd.getBundleFile(false, null);
-				sct.set(KeyConstants._version, bf.getVersionAsString());
-				sct.set(KeyConstants._fragment, OSGiUtil.isFragment(bf));
-				headers = bf.getHeaders();
-
-			}
-			catch (BundleException e) {}
-
-		}
-
-		if (headers != null) {
-			Struct h = Caster.toStruct(headers, false);
-			sct.set(KeyConstants._headers, h);
-
-			// title
-			String str = Caster.toString(h.get("Bundle-Title", null), null);
-			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Title", null), null);
-			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Title", null), null);
-			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Bundle-Name", null), null);
-			if (!StringUtil.isEmpty(str)) sct.set(KeyConstants._title, str);
-
-			// description
-			str = Caster.toString(h.get("Bundle-Description", null), null);
-			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Description", null), null);
-			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Description", null), null);
-			sct.set(KeyConstants._description, str);
-
-			// Vendor
-			str = Caster.toString(h.get("Bundle-Vendor", null), null);
-			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Vendor", null), null);
-			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Vendor", null), null);
-			if (!StringUtil.isEmpty(str)) sct.set(KeyConstants._vendor, str);
-
-		}
-
+		setBundleInfo(sct, info, bs.listCoreBundles(), config.getAllExtensionBundleDefintions());
 	}
 
 	private void doGetBundles() throws PageException {
-		CFMLEngine engine = ConfigUtil.getEngine(config);
-		List<Map<String, Object>> coreBundles = BundleServiceImpl.getInstance().listCoreBundles();
+		BundleService bs = BundleServiceImpl.getInstance();
+		List<Map<String, Object>> coreBundles = bs.listCoreBundles();
 		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
 
-		List<BundleDefinition> bds = OSGiUtil.getBundleDefinitions(OSGiUtil.getBundleContext());
-		Iterator<BundleDefinition> it = bds.iterator();
-		BundleDefinition bd;
-		Bundle b;
-		String str;
+		List<Map<String, Object>> infos = new ArrayList<>(bs.listBundles());
+		infos.addAll(bs.listLocalBundles());
+
 		Query qry = new QueryImpl(new Key[] { KeyConstants._symbolicName, KeyConstants._title, KeyConstants._description, KeyConstants._version, KeyConstants._vendor,
-				KeyConstants._state, KeyConstants._path, KeyConstants._usedBy, KeyConstants._id, KeyConstants._fragment, KeyConstants._headers }, bds.size(), "bundles");
+				KeyConstants._state, KeyConstants._path, KeyConstants._usedBy, KeyConstants._id, KeyConstants._fragment, KeyConstants._headers }, infos.size(), "bundles");
 		int row = 0;
-		while (it.hasNext()) {
+		for (Map<String, Object> info: infos) {
 			row++;
-			bd = it.next();
-			b = bd.getLoadedBundle();
-			qry.setAt(KeyConstants._symbolicName, row, bd.getName());
-			qry.setAt(KeyConstants._title, row, bd.getName());
-			qry.setAt(KeyConstants._version, row, bd.getVersionAsString());
-			qry.setAt(KeyConstants._usedBy, row, _usedBy(bd.getName(), OSGiUtil.toLucee(bd.getVersion()), coreBundles, extBundles));
-			BundleFile bf = null;
-			try {
-				if (b != null) {
-					qry.setAt(KeyConstants._path, row, b.getLocation());
-				}
-				else {
-					bf = bd.getBundleFile(false, null);
-					qry.setAt(KeyConstants._path, row, bf.getFile());
-				}
+			Struct sct = new StructImpl();
+			setBundleInfo(sct, info, coreBundles, extBundles);
+			for (Key k: qry.getColumnNames()) {
+				Object v = sct.get(k, null);
+				if (v != null) qry.setAt(k, row, v);
 			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-			}
-
-			Map<String, Object> headers = null;
-			if (b != null) {
-				qry.setAt(KeyConstants._version, row, bd.getVersion().toString());
-				qry.setAt(KeyConstants._id, row, b.getBundleId());
-				qry.setAt(KeyConstants._state, row, OSGiUtil.toState(b.getState(), null));
-				qry.setAt(KeyConstants._fragment, row, OSGiUtil.isFragment(b));
-
-				headers = OSGiUtil.getHeaders(b);
-			}
-			else {
-				qry.setAt(KeyConstants._state, row, "notinstalled");
-
-				try {
-					if (b != null) {
-						qry.setAt(KeyConstants._version, row, b.getVersion().toString());
-						qry.setAt(KeyConstants._fragment, row, OSGiUtil.isFragment(b));
-						Dictionary<String, String> dic = b.getHeaders();
-						Enumeration<String> keys = dic.keys();
-						headers = new HashMap<String, Object>();
-						String key;
-						while (keys.hasMoreElements()) {
-							key = keys.nextElement();
-							headers.put(key, dic.get(key));
-						}
-					}
-					else {
-						if (bf == null) bf = bd.getBundleFile(false, null);
-						qry.setAt(KeyConstants._version, row, bf.getVersionAsString());
-						// qry.setAt(KeyConstants._id, row, bf.getBundleId());
-						qry.setAt(KeyConstants._fragment, row, OSGiUtil.isFragment(bf));
-						headers = bf.getHeaders();
-					}
-
-				}
-				catch (BundleException e) {}
-
-			}
-
-			if (headers != null) {
-				Struct h = Caster.toStruct(headers, false);
-				qry.setAt(KeyConstants._headers, row, h);
-
-				// title
-				str = Caster.toString(h.get("Bundle-Title", null), null);
-				if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Title", null), null);
-				if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Title", null), null);
-				if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Bundle-Name", null), null);
-				if (!StringUtil.isEmpty(str)) qry.setAt(KeyConstants._title, row, str);
-
-				// description
-				str = Caster.toString(h.get("Bundle-Description", null), null);
-				if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Description", null), null);
-				if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Description", null), null);
-				if (!StringUtil.isEmpty(str)) qry.setAt(KeyConstants._description, row, str);
-
-				// Vendor
-				str = Caster.toString(h.get("Bundle-Vendor", null), null);
-				if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Vendor", null), null);
-				if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Vendor", null), null);
-				if (!StringUtil.isEmpty(str)) qry.setAt(KeyConstants._vendor, row, str);
-
-				// Specification-Vendor,Bundle-Vendor
-			}
-
 		}
 
 		QuerySort.call(pageContext, qry, "title");
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
+	}
+
+	private void setBundleInfo(Struct sct, Map<String, Object> info, List<Map<String, Object>> coreBundles, java.util.Collection<BundleDefinition> extBundles) throws PageException {
+		String name = (String) info.get("name");
+		String strVersion = (String) info.get("version");
+		sct.set(KeyConstants._symbolicName, name);
+		sct.set(KeyConstants._title, name);
+		sct.set(KeyConstants._version, strVersion);
+		sct.set(KeyConstants._usedBy, _usedBy(name, VersionImpl.parseOSGi(strVersion, null), coreBundles, extBundles));
+		sct.set(KeyConstants._state, info.get("state"));
+		sct.set(KeyConstants._fragment, info.get("fragment"));
+		if (info.get("id") != null) sct.set(KeyConstants._id, info.get("id"));
+		if (info.get("location") != null) sct.set(KeyConstants._path, info.get("location"));
+
+		Object o = info.get("headers");
+		if (o == null) return;
+		Struct h = Caster.toStruct(o, false);
+		sct.set(KeyConstants._headers, h);
+
+		// title
+		String str = Caster.toString(h.get("Bundle-Title", null), null);
+		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Title", null), null);
+		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Title", null), null);
+		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Bundle-Name", null), null);
+		if (!StringUtil.isEmpty(str)) sct.set(KeyConstants._title, str);
+
+		// description
+		str = Caster.toString(h.get("Bundle-Description", null), null);
+		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Description", null), null);
+		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Description", null), null);
+		sct.set(KeyConstants._description, str);
+
+		// Vendor
+		str = Caster.toString(h.get("Bundle-Vendor", null), null);
+		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Vendor", null), null);
+		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Vendor", null), null);
+		if (!StringUtil.isEmpty(str)) sct.set(KeyConstants._vendor, str);
 	}
 
 	private String _usedBy(String name, Version version, List<Map<String, Object>> coreBundles, java.util.Collection<BundleDefinition> extBundles) {

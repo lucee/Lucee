@@ -58,7 +58,6 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-import org.osgi.framework.BundleException;
 
 import com.sun.management.OperatingSystemMXBean;
 
@@ -74,6 +73,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ArchiveClassLoader;
 import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.ClassLoaderHelper;
+import lucee.commons.lang.BootDelegation;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MemoryClassLoader;
@@ -106,7 +106,6 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.BundleServiceImpl;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -250,9 +249,9 @@ public final class SystemUtil {
 				if (loaderCL == null) {
 					// loaderCL = new TP().getClass().getClassLoader();
 					try {
-						loaderCL = OSGiUtil.getEmptyBundleClassLoader(null);
+						loaderCL = BundleServiceImpl.getInstance().getLoaderClassLoader();
 					}
-					catch (IOException | BundleException e) {
+					catch (IOException e) {
 						throw new PageRuntimeException(e);
 					}
 					catch (RuntimeException re) {
@@ -1619,7 +1618,7 @@ public final class SystemUtil {
 			rtn.fromBundle = clazz;
 			return rtn;
 		}
-		if (!OSGiUtil.isClassInBootelegation(clazz.getName())) {
+		if (!BootDelegation.isClassInBootelegation(clazz.getName())) {
 			rtn.fromSystem = clazz;
 		}
 		else {
@@ -1707,7 +1706,7 @@ public final class SystemUtil {
 
 	public static int getClassType(Class<?> clazz) {
 		if (isFromBundle(clazz)) return TYPE_BUNDLE;
-		if (OSGiUtil.isClassInBootelegation(clazz.getName())) return TYPE_BOOT_DELEGATION;
+		if (BootDelegation.isClassInBootelegation(clazz.getName())) return TYPE_BOOT_DELEGATION;
 		return TYPE_SYSTEM;
 	}
 
@@ -1730,7 +1729,7 @@ public final class SystemUtil {
 			if (callerCaller != null && !acceptSystem && !isFromBundle(callerCaller)) {
 				callerCaller = null;
 			}
-			else if (callerCaller != null && !acceptBootDelegation && OSGiUtil.isClassInBootelegation(callerCaller.getName())) {
+			else if (callerCaller != null && !acceptBootDelegation && BootDelegation.isClassInBootelegation(callerCaller.getName())) {
 				callerCaller = null;
 			}
 		}

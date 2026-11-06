@@ -59,6 +59,7 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
@@ -1123,7 +1124,8 @@ public final class ClassUtil {
 	private static class OSGiBasedClassLoading implements ClassLoading {
 		@Override
 		public Class<?> loadClass(String className, Class defaultValue) {
-			return OSGiUtil.loadClass(className, defaultValue);
+			Class<?> clazz = BundleServiceImpl.getInstance().findClass(className);
+			return clazz != null ? clazz : defaultValue;
 		}
 
 		@Override
