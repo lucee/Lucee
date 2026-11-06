@@ -8,18 +8,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import javax.servlet.Servlet;
-import javax.servlet.jsp.JspException;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
+import jakarta.servlet.Servlet;
+import jakarta.servlet.jsp.JspException;
 import lucee.commons.lang.ClassUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.osgi.OSGiServiceImpl;
 
 public final class JVMCompiler implements Compiler {
 
@@ -77,6 +78,9 @@ public final class JVMCompiler implements Compiler {
 	private static String getClassPath() {
 		Set<String> set = new LinkedHashSet<>();
 		set.add(ClassUtil.getSourcePathForClass(CFMLEngineFactory.class, null));
+		set.add(ClassUtil.getSourcePathForClass(JVMCompiler.class, null));
+		File core = OSGiServiceImpl.getInstance().getCoreFile();
+		if (core != null) set.add(core.getPath());
 		set.add(ClassUtil.getSourcePathForClass(JspException.class, null));
 		set.add(ClassUtil.getSourcePathForClass(Servlet.class, null));
 		StringBuilder sb = new StringBuilder();

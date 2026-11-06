@@ -116,6 +116,21 @@ public final class OSGiServiceImpl implements OSGiService {
 	}
 
 	/**
+	 * @return the file the running core was loaded from, or null when core is not loaded as a bundle
+	 */
+	public File getCoreFile() {
+		try {
+			for (Bundle b: context().getBundles()) {
+				if ("lucee.core".equals(b.getSymbolicName()) && b.getState() != Bundle.UNINSTALLED) return new File(b.getLocation());
+			}
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+		}
+		return null;
+	}
+
+	/**
 	 * removes older or newer lucee-core bundles to avoid conflicts
 	 */
 	public List<String> uninstallStaleCoreBundles(String keepVersion) {
@@ -303,8 +318,8 @@ public final class OSGiServiceImpl implements OSGiService {
 	}
 
 	private static String toId(Bundle b) {
-		// the system bundle is Lucee itself
-		if (b == null || b.getBundleId() == 0 || b.getState() == Bundle.UNINSTALLED) return null;
+		// the system bundle and the core bundle are Lucee itself
+		if (b == null || b.getBundleId() == 0 || b.getState() == Bundle.UNINSTALLED || "lucee.core".equals(b.getSymbolicName())) return null;
 		return b.getSymbolicName() + ":" + OSGiUtil.toLucee(b.getVersion());
 	}
 
