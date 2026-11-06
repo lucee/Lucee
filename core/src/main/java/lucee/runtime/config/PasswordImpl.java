@@ -20,7 +20,6 @@ package lucee.runtime.config;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.io.SystemUtil;
@@ -297,10 +296,10 @@ public final class PasswordImpl implements Password {
 	 * @param strPasswordNew the new password
 	 * @throws IOException
 	 * @throws PageException
-	 * @throws BundleException
+	 * @throws IOException
 	 * @throws ConverterException
 	 */
-	public static void updatePassword(ConfigPro config, String strPasswordOld, String strPasswordNew) throws IOException, PageException, BundleException, ConverterException {
+	public static void updatePassword(ConfigPro config, String strPasswordOld, String strPasswordNew) throws IOException, PageException, ConverterException {
 
 		// old salt
 		int pwType = config.getPasswordType(); // get type from password

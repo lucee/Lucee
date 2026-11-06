@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import org.osgi.framework.BundleException;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 import org.xml.sax.InputSource;
@@ -74,7 +73,7 @@ public abstract class ConfigFactory {
 		}
 	}
 
-	public static UpdateInfo getNew(CFMLEngine engine, Resource contextDir, final boolean readOnly) throws IOException, BundleException {
+	public static UpdateInfo getNew(CFMLEngine engine, Resource contextDir, final boolean readOnly) throws IOException {
 		lucee.Info info = engine.getInfo();
 
 		String strOldVersion;

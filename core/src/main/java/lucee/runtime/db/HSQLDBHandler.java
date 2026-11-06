@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.db;
 
+import java.io.IOException;
 import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
 
 import java.sql.Connection;
@@ -36,7 +37,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.SystemUtil;
@@ -602,7 +602,7 @@ public final class HSQLDBHandler {
 		return cd;
 	}
 
-	private static DataSource getHSQLDBDatasource(PageContext pc, SQL sql, int dbNum) throws ClassException, BundleException, SQLException, ApplicationException {
+	private static DataSource getHSQLDBDatasource(PageContext pc, SQL sql, int dbNum) throws ClassException, IOException, SQLException, ApplicationException {
 
 		// Check cached DataSource for this dbNum
 		DataSource ds = dsCache[dbNum];

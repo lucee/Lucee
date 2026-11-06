@@ -21,7 +21,6 @@ package lucee.runtime.cache;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
@@ -78,7 +77,7 @@ public final class CacheConnectionImpl implements CacheConnectionPlus {
 						tmp = (Cache) obj;
 
 					}
-					catch (BundleException be) {
+					catch (IOException be) {
 						throw ExceptionUtil.toIOException(be);
 					}
 					tmp.init(config, getName(), getCustom());

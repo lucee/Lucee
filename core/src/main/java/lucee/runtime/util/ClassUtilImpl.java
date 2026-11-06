@@ -23,7 +23,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.osgi.framework.BundleException;
 import lucee.runtime.config.maven.Version;
 
 import lucee.commons.lang.ClassException;
@@ -63,7 +62,7 @@ public final class ClassUtilImpl implements ClassUtil {
 		try {
 			return lucee.commons.lang.ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, config.getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
 		}
-		catch (BundleException be) {
+		catch (IOException be) {
 			throw new IOException(be.getMessage(), be);
 		}
 	}
@@ -91,15 +90,14 @@ public final class ClassUtilImpl implements ClassUtil {
 	}
 
 	@Override
-	public BIF loadBIF(PageContext pc, String name, String bundleName, lucee.runtime.config.maven.Version bundleVersion) throws InstantiationException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, PageException, IOException {
+	public BIF loadBIF(PageContext pc, String name, String bundleName, lucee.runtime.config.maven.Version bundleVersion) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, PageException, IOException {
 		// first of all we chek if itis a class
 		Class<?> res;
 		try {
 			res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, bundleVersion, pc.getConfig().getIdentification(),
 					JavaSettingsImpl.getBundleDirectories(pc));
 		}
-		catch (BundleException be) {
+		catch (IOException be) {
 			throw new IOException(be.getMessage(), be);
 		}
 		if (res != null) {
@@ -266,7 +264,7 @@ public final class ClassUtilImpl implements ClassUtil {
 		try {
 			return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, strVersion, id, JavaSettingsImpl.getBundleDirectories(null));
 		}
-		catch (BundleException be) {
+		catch (IOException be) {
 			throw new IOException(be.getMessage(), be);
 		}
 	}
@@ -276,7 +274,7 @@ public final class ClassUtilImpl implements ClassUtil {
 		try {
 			return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null));
 		}
-		catch (BundleException be) {
+		catch (IOException be) {
 			throw new IOException(be.getMessage(), be);
 		}
 	}

@@ -1,5 +1,6 @@
 package lucee.runtime.security;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -7,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -51,7 +51,7 @@ public class SecretProviderFactory implements PropFactory<SecretProvider> {
 		return instance;
 	}
 
-	public static SecretProvider getInstance(Config config, String name, Struct data) throws PageException, ClassException, BundleException {
+	public static SecretProvider getInstance(Config config, String name, Struct data) throws PageException, ClassException, IOException {
 		ClassDefinition<SecretProvider> cd;
 
 		cd = ConfigFactoryImpl.getClassDefinition(config, data, "", config.getIdentification());
@@ -67,7 +67,7 @@ public class SecretProviderFactory implements PropFactory<SecretProvider> {
 	}
 
 	public static SecretProvider getInstance(Config config, ClassDefinition<? extends SecretProvider> cd, Struct properties, String name, String _default)
-			throws PageException, ClassException, BundleException {
+			throws PageException, ClassException, IOException {
 		// String id = createId(cd, properties, name, _default);
 
 		SecretProvider sp = (SecretProvider) ClassUtil.loadInstance(cd.getClazz());

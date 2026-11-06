@@ -58,7 +58,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.osgi.framework.BundleException;
 import lucee.runtime.config.maven.Version;
 
 import lucee.commons.collection.LinkedHashMapMaxSize;
@@ -4117,7 +4116,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		return this;
 	}
 
-	private static void addCacheHandler(Map<String, Class<CacheHandler>> cacheHandlers, String id, ClassDefinition<CacheHandler> cd) throws ClassException, BundleException {
+	private static void addCacheHandler(Map<String, Class<CacheHandler>> cacheHandlers, String id, ClassDefinition<CacheHandler> cd) throws ClassException, IOException {
 		Class<CacheHandler> clazz = cd.getClazz();
 		Object o = ClassUtil.loadInstance(clazz); // just try to load and forget afterwards
 		if (o instanceof CacheHandler) {
@@ -5376,7 +5375,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		}
 	}
 
-	private static void startBundles(ConfigServerImpl config, RHExtension rhe, boolean firstLoad) throws IOException, BundleException {
+	private static void startBundles(ConfigServerImpl config, RHExtension rhe, boolean firstLoad) throws IOException {
 		Log log = config.getLog("deploy");
 		if (LogUtil.doesInfo(log)) log.info("extensions", "Starting bundles for extension: " + rhe.getId() + " v" + rhe.getVersion());
 		if (rhe.getMetadata().isStartBundles()) {
@@ -5384,7 +5383,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 				OSGiExtensionInstaller.ensureAvailableFor(config, rhe);
 			}
 			catch (ApplicationException ae) {
-				throw new BundleException(ae.getMessage(), ae);
+				throw new IOException(ae.getMessage(), ae);
 			}
 			if (!firstLoad) {
 				if (LogUtil.doesDebug(log)) log.debug("extensions", "Deploying bundles (not first load): " + rhe.getId());

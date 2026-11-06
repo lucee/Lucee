@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
@@ -74,10 +73,10 @@ public final class GatewayEntryImpl implements GatewayEntry {
 	/**
 	 * @throws ClassException
 	 * @throws PageException
-	 * @throws BundleException
+	 * @throws IOException
 	 */
 	@Override
-	public void createGateway(GatewayEngine engine, Config config) throws ClassException, PageException, BundleException {
+	public void createGateway(GatewayEngine engine, Config config) throws ClassException, PageException, IOException {
 		// TODO config is ignored here???
 		if (gateway == null) {
 			if (classDefintion != null && classDefintion.hasClass()) {

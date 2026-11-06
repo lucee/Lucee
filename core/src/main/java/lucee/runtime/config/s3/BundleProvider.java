@@ -62,7 +62,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.BundleDefinition;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;

@@ -1,11 +1,11 @@
 package lucee.runtime.db;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.log.Log;
@@ -172,7 +172,7 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 			String bundleName, String bundleVersion, String user, String pass, TagListener listener, int connectionLimit, int idleTimeout, int liveTimeout, int minIdle,
 			int maxIdle, int maxTotal, long metaCacheTimeout, boolean blob, boolean clob, boolean validate, boolean storage, String timezone, Struct custom,
 			String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections)
-			throws BundleException, ClassException, SQLException {
+			throws IOException, ClassException, SQLException {
 
 		return new DataSourceImpl(datasourceName, cd, server, dsn, bundleName, bundleVersion, databasename, port, user, pass, listener, connectionLimit, idleTimeout, liveTimeout,
 				minIdle, maxIdle, maxTotal, metaCacheTimeout, blob, clob, custom, false, validate, storage,

@@ -18,8 +18,8 @@
  **/
 package lucee.runtime.gateway;
 
-import org.osgi.framework.BundleException;
 
+import java.io.IOException;
 import lucee.commons.lang.ClassException;
 import lucee.runtime.config.Config;
 import lucee.runtime.db.ClassDefinition;
@@ -35,9 +35,9 @@ public interface GatewayEntry {
 	/**
 	 * @throws ClassException
 	 * @throws PageException
-	 * @throws BundleException
+	 * @throws IOException
 	 */
-	public void createGateway(GatewayEngine engine, Config config) throws ClassException, PageException, BundleException;
+	public void createGateway(GatewayEngine engine, Config config) throws ClassException, PageException, IOException;
 
 	public Gateway getGateway();
 

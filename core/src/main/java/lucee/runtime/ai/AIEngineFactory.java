@@ -1,5 +1,6 @@
 package lucee.runtime.ai;
 
+import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -8,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.log.Log;
@@ -73,7 +73,7 @@ public final class AIEngineFactory implements PropFactory<AIEngine> {
 		return instance;
 	}
 
-	public static AIEngine getInstance(Config config, String name, Struct data) throws PageException, ClassException, BundleException {
+	public static AIEngine getInstance(Config config, String name, Struct data) throws PageException, ClassException, IOException {
 
 		ClassDefinition<AIEngine> cd;
 
@@ -90,7 +90,7 @@ public final class AIEngineFactory implements PropFactory<AIEngine> {
 	}
 
 	private static AIEngine getInstance(Config config, ClassDefinition<? extends AIEngine> cd, Struct properties, String name, String _default)
-			throws PageException, ClassException, BundleException {
+			throws PageException, ClassException, IOException {
 		if (properties == null) properties = new StructImpl();
 		String id = createId(cd, properties, name, _default);
 		AIEngine aie = getExistingInstance(id, null);

@@ -41,7 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.osgi.framework.BundleException;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 
@@ -61,7 +60,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.BundleServiceImpl;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
@@ -143,12 +141,12 @@ public final class ClassUtil {
 		return defaultValue;
 	}
 
-	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addional) throws ClassException, BundleException {
+	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addional) throws ClassException, IOException {
 		return loadClassByBundle(className, name, strVersion, id, addional, false);
 	}
 
 	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload)
-			throws ClassException, BundleException {
+			throws ClassException, IOException {
 		// version
 		Version version = null;
 		if (!StringUtil.isEmpty(strVersion, true)) {
@@ -158,22 +156,22 @@ public final class ClassUtil {
 		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional, versionOnlyMattersForDownload);
 	}
 
-	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional) throws BundleException, ClassException {
+	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional) throws IOException, ClassException {
 		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional);
 	}
 
 	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload)
-			throws BundleException, ClassException {
+			throws IOException, ClassException {
 		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional, versionOnlyMattersForDownload);
 	}
 
 	public static Class<?> loadClassByBundle(String className, BundleDefinition bundle, BundleDefinition[] relatedBundles, Identification id, List<Resource> addional)
-			throws BundleException, ClassException {
+			throws IOException, ClassException {
 		return loadClassByBundle(className, bundle, relatedBundles, id, addional, false);
 	}
 
 	public static Class<?> loadClassByBundle(String className, BundleDefinition bundle, BundleDefinition[] relatedBundles, Identification id, List<Resource> addional,
-			boolean versionOnlyMattersForDownload) throws BundleException, ClassException {
+			boolean versionOnlyMattersForDownload) throws IOException, ClassException {
 		try {
 			if (relatedBundles != null) {
 				for (BundleDefinition rb: relatedBundles) {
@@ -1048,10 +1046,10 @@ public final class ClassUtil {
 	 * @param id
 	 * @return
 	 * @throws ClassException
-	 * @throws BundleException
+	 * @throws IOException
 	 */
 	public static Class loadClass(PageContext pc, String className, String bundleName, String bundleVersion, Identification id, List<Resource> addional)
-			throws ClassException, BundleException {
+			throws ClassException, IOException {
 		if (StringUtil.isEmpty(bundleName)) return loadClass(pc, className);
 		return loadClassByBundle(className, bundleName, bundleVersion, id, addional);
 	}

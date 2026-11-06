@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
@@ -38,7 +37,7 @@ public final class BundleFile extends BundleInfo {
 	private static Map<String, SoftReference<BundleFile>> files = new ConcurrentHashMap<String, SoftReference<BundleFile>>();
 	private Map<String, SoftReference<Boolean>> classes = new ConcurrentHashMap<String, SoftReference<Boolean>>();
 
-	public static BundleFile getInstance(Resource file, boolean onlyValidBundles) throws IOException, BundleException {
+	public static BundleFile getInstance(Resource file, boolean onlyValidBundles) throws IOException {
 		BundleFile bi = getInstance(toFileResource(file));
 		if (onlyValidBundles && !bi.isBundle()) return null;
 		return bi;
@@ -53,11 +52,11 @@ public final class BundleFile extends BundleInfo {
 		}
 	}
 
-	public static BundleFile getInstance(Resource file) throws IOException, BundleException {
+	public static BundleFile getInstance(Resource file) throws IOException {
 		return getInstance(toFileResource(file));
 	}
 
-	public static BundleFile getInstance(File file) throws IOException, BundleException {
+	public static BundleFile getInstance(File file) throws IOException {
 		SoftReference<BundleFile> tmp = files.get(file.getAbsolutePath());
 		BundleFile bi = tmp == null ? null : tmp.get();
 		if (bi == null) {
@@ -67,7 +66,7 @@ public final class BundleFile extends BundleInfo {
 		return bi;
 	}
 
-	private BundleFile(File file) throws IOException, BundleException {
+	private BundleFile(File file) throws IOException {
 		super(file);
 		this.file = file;
 	}

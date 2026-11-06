@@ -45,7 +45,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-import org.osgi.framework.BundleException;
 import lucee.runtime.config.maven.Version;
 
 import lucee.Info;
@@ -959,7 +958,7 @@ public final class RHExtension implements Serializable {
 		return true;
 	}
 
-	public void deployBundles(Config config, boolean load) throws IOException, BundleException {
+	public void deployBundles(Config config, boolean load) throws IOException {
 		// no we read the content of the zip
 		ZipInputStream zis = new ZipInputStream(IOUtil.toBufferedInputStream(extensionFile.getInputStream()));
 		ZipEntry entry;
@@ -1983,7 +1982,7 @@ public final class RHExtension implements Serializable {
 		return toExtensionDefinition().toString();
 	}
 
-	public static void removeDuplicates(Array arrExtensions) throws PageException, BundleException {
+	public static void removeDuplicates(Array arrExtensions) throws PageException, IOException {
 		Iterator<Entry<Key, Object>> it = arrExtensions.entryIterator();
 		Entry<Key, Object> e;
 		Struct child;

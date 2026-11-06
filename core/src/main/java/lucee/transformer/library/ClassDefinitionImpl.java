@@ -24,7 +24,6 @@ import java.io.ObjectOutput;
 import java.util.List;
 import java.util.Map;
 
-import org.osgi.framework.BundleException;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 
@@ -263,14 +262,14 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		try {
 			return getClazz(false);
 		}
-		catch (BundleException be) {
+		catch (IOException be) {
 			ClassException ce = new ClassException(be.getMessage());
 			ExceptionUtil.initCauseEL(ce, be);
 			throw ce;
 		}
 	}
 
-	public Class<T> getClazz(boolean forceLoadingClass) throws ClassException, BundleException {
+	public Class<T> getClazz(boolean forceLoadingClass) throws ClassException, IOException {
 		if (!forceLoadingClass && clazz != null) return clazz;
 
 		// OSGi

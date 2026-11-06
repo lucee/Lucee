@@ -371,6 +371,13 @@ public final class BundleServiceImpl implements BundleService {
 		return OSGiUtil.getClassPath();
 	}
 
+	/**
+	 * @return the jar of the bundle in the local bundle directory, or null when it is not there
+	 */
+	public BundleFile getBundleFile(String bundleName, lucee.runtime.config.maven.Version version) {
+		return OSGiUtil.getBundleFile(bundleName, OSGiUtil.toOSGi(version), null, null, false, null);
+	}
+
 	@Override
 	public Class<?> findClass(String className) {
 		return OSGiUtil.loadClass(className, null);
@@ -420,13 +427,23 @@ public final class BundleServiceImpl implements BundleService {
 	/**
 	 * load (download if necessary) and start the bundle
 	 */
-	public void loadBundle(BundleDefinition bd, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload) throws BundleException {
-		OSGiUtil.loadBundle(null, bd.getName(), OSGiUtil.toOSGi(bd.getVersion()), id, addional, true, versionOnlyMattersForDownload, true, null);
+	public void loadBundle(BundleDefinition bd, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload) throws IOException {
+		try {
+			OSGiUtil.loadBundle(null, bd.getName(), OSGiUtil.toOSGi(bd.getVersion()), id, addional, true, versionOnlyMattersForDownload, true, null);
+		}
+		catch (BundleException be) {
+			throw new IOException(be.getMessage(), be);
+		}
 	}
 
 	public Class<?> loadClass(BundleDefinition bd, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload, String className)
-			throws BundleException, ClassNotFoundException {
-		return OSGiUtil.loadBundle(null, bd.getName(), OSGiUtil.toOSGi(bd.getVersion()), id, addional, true, versionOnlyMattersForDownload, true, null).loadClass(className);
+			throws IOException, ClassNotFoundException {
+		try {
+			return OSGiUtil.loadBundle(null, bd.getName(), OSGiUtil.toOSGi(bd.getVersion()), id, addional, true, versionOnlyMattersForDownload, true, null).loadClass(className);
+		}
+		catch (BundleException be) {
+			throw new IOException(be.getMessage(), be);
+		}
 	}
 
 	/**
