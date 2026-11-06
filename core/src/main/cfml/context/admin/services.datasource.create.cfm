@@ -1,4 +1,8 @@
 <cfparam name="error" default="#struct(message:"",detail:"")#">
+<!--- without a datasource name (e.g. a page refresh after a failed create, which loses the post data) there is nothing to show --->
+<cfif !structKeyExists(form,"name") && !structKeyExists(url,"name")>
+	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
+</cfif>
 <cfset stText.Settings.requestExclusive="Exclusive connections for request">
 <cfset stText.Settings.requestExclusiveDesc="If set to true, the connections to this datasource are exclusive per web request, guaranteeing that you always have the same connection to the datasource for the whole web request. Keep in mind that this limits the maximum possible concurrent requests to the maximum possible datasource connections and can cause a lot more open connections. Only use the requestExclusive setting when it is absolutely necessary to always have the same connection within a request, for example when your connection has set a specific state.">
 
