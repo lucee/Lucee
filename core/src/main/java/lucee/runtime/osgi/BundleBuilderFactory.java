@@ -39,7 +39,6 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -47,6 +46,8 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.ApplicationException;
@@ -146,9 +147,9 @@ public final class BundleBuilderFactory {
 		return version;
 	}
 
-	public void setVersion(String version) throws BundleException {
+	public void setVersion(String version) throws IOException {
 		if (StringUtil.isEmpty(version, true)) return;
-		this.version = OSGiUtil.toVersion(version);
+		this.version = VersionImpl.parseOSGi(version.trim());
 	}
 
 	public void setVersion(Version version) {
@@ -270,7 +271,7 @@ public final class BundleBuilderFactory {
 		attrs.putValue("Bundle-SymbolicName", symbolicName);
 		if (!StringUtil.isEmpty(description)) attrs.putValue("Bundle-Description", description);
 		if (!StringUtil.isEmpty(bundleActivationPolicy)) attrs.putValue("Bundle-ActivationPolicy", bundleActivationPolicy);
-		if (version != null) attrs.putValue("Bundle-Version", version.toString());
+		if (version != null) attrs.putValue("Bundle-Version", OSGiUtil.toOSGi(version).toString());
 
 		if (!StringUtil.isEmpty(activator)) {
 			if (!activator.equalsIgnoreCase("none")) {

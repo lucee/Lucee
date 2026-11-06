@@ -1355,7 +1355,7 @@ public final class ConfigAdmin {
 
 		LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
 		BundleBuilderFactory bbf = new BundleBuilderFactory(resJar, name);
-		bbf.setVersion(OSGiUtil.toOSGi(version));
+		bbf.setVersion(version);
 		bbf.setIgnoreExistingManifest(false);
 		bbf.build();
 

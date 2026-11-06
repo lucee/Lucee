@@ -5175,7 +5175,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (!StringUtil.isEmpty(activator, true)) factory.setActivator(activator.trim());
 
 		String version = getString("version", null);
-		if (!StringUtil.isEmpty(version, true)) factory.setVersion(OSGiUtil.toVersion(version, null));
+		if (!StringUtil.isEmpty(version, true)) factory.setVersion(VersionImpl.parseOSGi(version, null));
 
 		String description = getString("description", null);
 		if (!StringUtil.isEmpty(description, true)) factory.setDescription(description.trim());
