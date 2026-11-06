@@ -626,6 +626,9 @@ public final class XMLCaster {
 	public static void writeTo(Node node, Result res, boolean omitXMLDecl, boolean indent, String publicId, String systemId, String encoding) throws PageException {
 		try {
 			Transformer t = XMLUtil.getTransformerFactory().newTransformer();
+			// LDEV-3913: always write xml. Without a method the serializer picks "html" when the root element is named html,
+			// and then adds a <META http-equiv="Content-Type"> tag to the head element (invalid xml, unclosed tag)
+			t.setOutputProperty(OutputKeys.METHOD, "xml");
 			t.setOutputProperty(OutputKeys.INDENT, indent ? "yes" : "no");
 			t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, omitXMLDecl ? "yes" : "no");
 
