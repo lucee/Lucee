@@ -36,12 +36,19 @@ public final class ObjectArrayAsArray extends NativeArrayAsArray {
 		return new ObjectArrayAsArray(array);
 	}
 
-	/**
-	 * @return the wrapped native array while still in read-through mode; null after a mutation
-	 *         has switched this instance to an ArrayImpl.
-	 */
+	@Override
 	public Object[] getNativeArray() {
 		return array;
+	}
+
+	/**
+	 * Returns the wrapped Object[] itself while still in read-through mode (no copy).
+	 */
+	@Override
+	public Object[] toNativeArray() {
+		Object[] arr = array;
+		if (arr != null) return arr;
+		return super.toNativeArray();
 	}
 
 	@Override

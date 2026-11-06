@@ -68,6 +68,40 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="array,cast" {
 				expect( dup[ 1 ] ).toBe( "z" );
 			});
 
+			it( title="Caster.toNativeArray returns the wrapped Object[] without copying until copy-on-write", body=function() {
+				var Caster = createObject( "java", "lucee.runtime.op.Caster" );
+				var obj = javaCast( "String[]", [ "a", "b", "c" ] );
+				var wrapped = _wrap( obj );
+				expect( obj.equals( Caster.toNativeArray( wrapped ) ) ).toBeTrue();
+
+				wrapped[ 1 ] = "z";
+				var after = Caster.toNativeArray( wrapped );
+				expect( obj.equals( after ) ).toBeFalse();
+				expect( arrayToList( after ) ).toBe( "z,b,c" );
+				expect( arrayToList( obj ) ).toBe( "a,b,c" );
+			});
+
+			it( title="Caster.toNativeArray boxes primitive views, also after copy-on-write", body=function() {
+				var Caster = createObject( "java", "lucee.runtime.op.Caster" );
+				var wrapped = _wrap( javaCast( "int[]", [ 1, 2, 3 ] ) );
+				expect( arrayToList( Caster.toNativeArray( wrapped ) ) ).toBe( "1,2,3" );
+				arrayAppend( wrapped, 4 );
+				expect( arrayToList( Caster.toNativeArray( wrapped ) ) ).toBe( "1,2,3,4" );
+			});
+
+			it( title="Caster.toNativeArray on list-backed arrays (ListAsArray / ArrayImpl)", body=function() {
+				var Caster = createObject( "java", "lucee.runtime.op.Caster" );
+				var list = createObject( "java", "java.util.ArrayList" ).init();
+				list.add( "x" );
+				list.add( "y" );
+				var fromList = Caster.toArray( list );
+				expect( fromList ).toBeInstanceOf( "lucee.runtime.type.wrap.ArrayWrap" );
+				expect( arrayToList( Caster.toNativeArray( fromList ) ) ).toBe( "x,y" );
+
+				var cfml = [ 1, 2, 3 ];
+				expect( arrayToList( Caster.toNativeArray( cfml ) ) ).toBe( "1,2,3" );
+			});
+
 			it( title="arrayLen on a large Object[] remains correct across many calls", body=function() {
 				// Sanity only: 50k elements, 100 arrayLen calls. No wall-clock assert.
 				var n = 50000;

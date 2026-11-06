@@ -46,7 +46,7 @@ import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.util.ArraySupport;
 import lucee.runtime.type.util.ListIteratorImpl;
 
-public class ListAsArray extends ArraySupport implements Array, List {
+public class ListAsArray extends ArraySupport implements ArrayWrap, List {
 
 	// LDEV-6475 pinned to the value the JVM computed on 6.2/7.0/7.1, keeps arrays serialized by other versions readable
 	private static final long serialVersionUID = -2946571425825745801L;
@@ -313,6 +313,16 @@ public class ListAsArray extends ArraySupport implements Array, List {
 	@Override
 	public Object[] toArray() {
 		return list.toArray();
+	}
+
+	@Override
+	public Object[] toNativeArray() {
+		return list.toArray();
+	}
+
+	@Override
+	public Object getNativeArray() {
+		return null;
 	}
 
 	public ArrayList toArrayList() {

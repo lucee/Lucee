@@ -38,6 +38,11 @@ public final class ShortArrayAsArray extends NativeArrayAsArray {
 	}
 
 	@Override
+	public Object getNativeArray() {
+		return array;
+	}
+
+	@Override
 	protected int nativeSize() {
 		return array.length;
 	}

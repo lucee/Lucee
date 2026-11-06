@@ -52,7 +52,7 @@ import lucee.runtime.type.util.ListIteratorImpl;
  * CFML still sees an independent array (same observable behaviour as the previous
  * {@code new ArrayImpl(...)} cast path).
  */
-public abstract class NativeArrayAsArray extends ArraySupport implements Array, List {
+public abstract class NativeArrayAsArray extends ArraySupport implements ArrayWrap, List {
 
 	private static final long serialVersionUID = 6806202511036806006L;
 
@@ -145,6 +145,13 @@ public abstract class NativeArrayAsArray extends ArraySupport implements Array, 
 	@Override
 	public final Object[] toArray() {
 		if (mutable != null) return mutable.toArray();
+		return nativeToArray();
+	}
+
+	@Override
+	public Object[] toNativeArray() {
+		ArrayImpl m = mutable;
+		if (m != null) return m.toNativeArray();
 		return nativeToArray();
 	}
 

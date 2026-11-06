@@ -147,6 +147,7 @@ import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.ComponentWrap;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.wrap.ArrayAsList;
+import lucee.runtime.type.wrap.ArrayWrap;
 import lucee.runtime.type.wrap.BooleanArrayAsArray;
 import lucee.runtime.type.wrap.ByteArrayAsArray;
 import lucee.runtime.type.wrap.CharArrayAsArray;
@@ -2750,15 +2751,8 @@ public final class Caster {
 		if (o instanceof Object[]) {
 			return (Object[]) o;
 		}
-		else if (o instanceof ObjectArrayAsArray) {
-			Object[] nativeArr = ((ObjectArrayAsArray) o).getNativeArray();
-			if (nativeArr != null) return nativeArr;
-			Array arr = (Array) o;
-			Object[] objs = new Object[arr.size()];
-			for (int i = 0; i < objs.length; i++) {
-				objs[i] = arr.get(i + 1, null);
-			}
-			return objs;
+		else if (o instanceof ArrayWrap) {
+			return ((ArrayWrap) o).toNativeArray();
 		}
 		else if (o instanceof Array) {
 			Array arr = (Array) o;
@@ -2814,15 +2808,8 @@ public final class Caster {
 		if (o instanceof Object[]) {
 			return (Object[]) o;
 		}
-		else if (o instanceof ObjectArrayAsArray) {
-			Object[] nativeArr = ((ObjectArrayAsArray) o).getNativeArray();
-			if (nativeArr != null) return nativeArr;
-			Array arr = (Array) o;
-			Object[] objs = new Object[arr.size()];
-			for (int i = 0; i < objs.length; i++) {
-				objs[i] = arr.get(i + 1, null);
-			}
-			return objs;
+		else if (o instanceof ArrayWrap) {
+			return ((ArrayWrap) o).toNativeArray();
 		}
 		else if (o instanceof Array) {
 			Array arr = (Array) o;
