@@ -19,9 +19,9 @@
 package lucee.runtime.db;
 
 import lucee.commons.lang.StringUtil;
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 
 public final class DBUtil {
@@ -109,7 +109,7 @@ public final class DBUtil {
 		jdbc = ci.getJDBCDriverByClassName(className, null);
 		if (jdbc != null) return improve(jdbc, connStr);
 
-		jdbc = ci.getJDBCDriverByBundle(bundleName, OSGiUtil.toVersion(bundleVersion, null), null);
+		jdbc = ci.getJDBCDriverByBundle(bundleName, VersionImpl.parseOSGi(bundleVersion, null), null);
 		if (jdbc != null) return improve(jdbc, connStr);
 
 		return new JDBCDriver(id, id, connStr, new ClassDefinitionImpl(className, bundleName, bundleVersion, config.getIdentification()));

@@ -24,8 +24,10 @@ import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPRequest;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.runtime.ai.AIEngineSupport;
+import lucee.runtime.ai.AIListenerCancelException;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
+import lucee.runtime.ai.AITokenLimits;
 import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Conversation;
 import lucee.runtime.ai.ConversationImpl;
@@ -43,11 +45,17 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public final class OpenAISession extends AISessionSupport {
+
+	private static final String PROVIDER = "openai";
+	private static final Key STREAM_OPTIONS = KeyImpl.init("stream_options");
+	private static final Key MAX_TOKENS = KeyImpl.init("max_tokens");
+	private static final Key MAX_COMPLETION_TOKENS = KeyImpl.init("max_completion_tokens");
 
 	private OpenAIEngine openaiEngine;
 	private String systemMessage;
@@ -60,35 +68,49 @@ public final class OpenAISession extends AISessionSupport {
 
 	@Override
 	public Response inquiry(String message, AIResponseListener listener) throws PageException {
+		checkTokenLimits();
+		long start = System.nanoTime();
 		try {
-			Struct request = buildRequest(message, null, listener != null);
+			Struct request = beforePromptSent(PROVIDER, openaiEngine.getModel(), listener != null, buildRequest(message, null, listener != null));
 			String messageText = message;
-			return executeRequest(request, messageText, null, listener);
+			return executeRequest(request, messageText, null, listener, start);
+		}
+		catch (AIListenerCancelException e) {
+			throw e.getPageException();
 		}
 		catch (SocketTimeoutException ste) {
 			ApplicationException ae = new ApplicationException(
 					"A socket timeout occurred while querying the AI Engine [" + openaiEngine.getLabel() + "]. The configured timeout was " + getSocketTimeout() + " ms.");
 			ExceptionUtil.initCauseEL(ae, ste);
+			AIUtil.addFailedInquiry(this, PROVIDER, openaiEngine.getModel(), start, listener != null, ae);
 			throw ae;
 		}
 		catch (Exception e) {
+			AIUtil.addFailedInquiry(this, PROVIDER, openaiEngine.getModel(), start, listener != null, e);
 			throw Caster.toPageException(e);
 		}
 	}
 
 	@Override
 	public Response inquiry(List<Part> parts, AIResponseListener listener) throws PageException {
+		checkTokenLimits();
+		long start = System.nanoTime();
 		try {
-			Struct request = buildRequest(null, parts, listener != null);
-			return executeRequest(request, null, parts, listener);
+			Struct request = beforePromptSent(PROVIDER, openaiEngine.getModel(), listener != null, buildRequest(null, parts, listener != null));
+			return executeRequest(request, null, parts, listener, start);
+		}
+		catch (AIListenerCancelException e) {
+			throw e.getPageException();
 		}
 		catch (SocketTimeoutException ste) {
 			ApplicationException ae = new ApplicationException(
 					"A socket timeout occurred while querying the AI Engine [" + openaiEngine.getLabel() + "]. The configured timeout was " + getSocketTimeout() + " ms.");
 			ExceptionUtil.initCauseEL(ae, ste);
+			AIUtil.addFailedInquiry(this, PROVIDER, openaiEngine.getModel(), start, listener != null, ae);
 			throw ae;
 		}
 		catch (Exception e) {
+			AIUtil.addFailedInquiry(this, PROVIDER, openaiEngine.getModel(), start, listener != null, e);
 			throw Caster.toPageException(e);
 		}
 	}
@@ -140,10 +162,24 @@ public final class OpenAISession extends AISessionSupport {
 		request.set(KeyConstants._messages, messages);
 		request.set(KeyConstants._stream, stream);
 
+		// without this option a stream has no usage (LDEV-6527)
+		if (stream && !openaiEngine.streamUsageRejected && (openaiEngine.custom == null || !openaiEngine.custom.containsKey(STREAM_OPTIONS))) {
+			Struct streamOptions = new StructImpl(StructImpl.TYPE_LINKED);
+			streamOptions.set("include_usage", Boolean.TRUE);
+			request.set(STREAM_OPTIONS, streamOptions);
+		}
+
 		// Add temperature if set
 		Double temperature = getTemperature();
 		if (temperature != null && openaiEngine.acceptsTemperature(Caster.toString(request.get(KeyConstants._model, null), null))) {
 			request.set(KeyConstants._temperature, temperature);
+		}
+
+		// maxTokensPerRequest also limits the answer, LDEV-6528
+		long maxPerRequest = AITokenLimits.get(openaiEngine).getMaxTokensPerRequest();
+		if (maxPerRequest > 0L && (openaiEngine.custom == null || (!openaiEngine.custom.containsKey(MAX_TOKENS) && !openaiEngine.custom.containsKey(MAX_COMPLETION_TOKENS)))) {
+			// OpenAI itself does not accept max_tokens for all models any more, other providers only know max_tokens
+			request.set(openaiEngine.isOpenAI() ? MAX_COMPLETION_TOKENS : MAX_TOKENS, maxPerRequest);
 		}
 
 		// custom
@@ -211,7 +247,7 @@ public final class OpenAISession extends AISessionSupport {
 		return contentArray;
 	}
 
-	private Response executeRequest(Struct request, String messageText, List<Part> parts, AIResponseListener listener) throws Exception {
+	private Response executeRequest(Struct request, String messageText, List<Part> parts, AIResponseListener listener, long start) throws Exception {
 		if (openaiEngine.chatCompletionsURI == null) {
 			openaiEngine.chatCompletionsURI = new URI(openaiEngine.getBaseURL() + "chat/completions");
 		}
@@ -245,14 +281,25 @@ public final class OpenAISession extends AISessionSupport {
 							request.removeEL(KeyConstants._temperature);
 							IOUtil.closeEL(response);
 							response = null;
-							return executeRequest(request, messageText, parts, listener);
+							return executeRequest(request, messageText, parts, listener, start);
+						}
+						// the provider does not accept stream_options, retry once without it and remember it (LDEV-6527)
+						if (request.containsKey(STREAM_OPTIONS) && errMsg != null && errMsg.toLowerCase().indexOf("stream_options") != -1) {
+							openaiEngine.streamUsageRejected = true;
+							request.removeEL(STREAM_OPTIONS);
+							IOUtil.closeEL(response);
+							response = null;
+							return executeRequest(request, messageText, parts, listener, start);
 						}
 						throw AIUtil.toException(this.getEngine(), Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
 								Caster.toString(err.get(KeyConstants._code, null), null), response.getStatusCode());
 					}
 
+					raw = responseReceived(PROVIDER, openaiEngine.getModel(), raw);
+
 					OpenAIResponse r = new OpenAIResponse(raw, cs);
-					AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(messageText, parts), r));
+					AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(messageText, parts), r), PROVIDER, openaiEngine.getModel(), start,
+							false);
 					return r;
 				}
 				// stream true
@@ -265,6 +312,7 @@ public final class OpenAISession extends AISessionSupport {
 							cs == null ? new InputStreamReader(response.getContentAsStream()) : new InputStreamReader(response.getContentAsStream(), cs))) {
 						String line;
 						int index = 0;
+						int chunks = 0;
 						Struct prev = null;
 						while ((line = reader.readLine()) != null) {
 							if (prev != null) {
@@ -277,14 +325,19 @@ public final class OpenAISession extends AISessionSupport {
 							line = line.substring(6);
 							if ("[DONE]".equals(line)) break;
 							LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "response chunk recieved send by [" + openaiEngine.getLabel() + "]: " + line, "ai", "application");
-							prev = Caster.toStruct(interpreter.interpret(null, line));
+							Struct chunk = chunkReceived(PROVIDER, openaiEngine.getModel(), ++chunks, Caster.toStruct(interpreter.interpret(null, line)));
+							r.setUsage(chunk);
+							// the last chunk only carries the usage and has no choices, it must not be the held chunk
+							if (chunk.get("usage", null) != null && isEmpty(Caster.toArray(chunk.get("choices", null), null))) continue;
+							prev = chunk;
 						}
 						if (prev != null && !r.isCancelled()) {
 							r.addPart(prev, index, true);
 						}
 					}
 
-					AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(messageText, parts), r));
+					AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(messageText, parts), r), PROVIDER, openaiEngine.getModel(), start,
+							true);
 					return r;
 				}
 				else {
@@ -295,6 +348,10 @@ public final class OpenAISession extends AISessionSupport {
 				IOUtil.closeEL(response);
 			}
 		}
+	}
+
+	private static boolean isEmpty(Array arr) {
+		return arr == null || arr.size() == 0;
 	}
 
 	private HTTPResponse execute(String str) throws IOException, URISyntaxException {

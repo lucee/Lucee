@@ -1,6 +1,5 @@
 package lucee.runtime.config.maven;
 
-import lucee.loader.util.VersionImpl;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +36,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPEngineBasic.HTTPDownloaderHeadResponse;
 import lucee.commons.net.http.Header;
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
@@ -352,7 +352,8 @@ public final class MavenUpdateProvider {
 		if (!StringUtil.isEmpty(strURL)) {
 			// Use HTTPDownloader with DEBUG logging for Maven operations
 			URL url = new URL(strURL);
-			return verified(HTTPEngine.get(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true), url, version);
+			// LDEV-5864: the hash is verified first, then the signature
+			return verified(HTTPEngine.getVerified(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true, null), url, version);
 		}
 		return getFileStreamFromZipStream(getLoader(version));
 	}
@@ -369,7 +370,7 @@ public final class MavenUpdateProvider {
 		// Use HTTPDownloader with DEBUG logging for Maven operations
 		URL url = new URL(strURL);
 		assertDownloadAllowed(strURL);
-		return verified(HTTPEngine.get(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true), url, version);
+		return verified(HTTPEngine.getVerified(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true, null), url, version);
 	}
 
 	// released org.lucee artifacts must be signed by the Lucee release key
@@ -384,7 +385,7 @@ public final class MavenUpdateProvider {
 	 * GeneralSecurityException, SAXException, BundleException {
 	 * 
 	 * MavenUpdateProvider mup = new MavenUpdateProvider(); Map<String, Object> map =
-	 * mup.detail(OSGiUtil.toVersion("6.1.0.719-SNAPSHOT")); print.e(map); }
+	 * mup.detail(VersionImpl.parseOSGi("6.1.0.719-SNAPSHOT")); print.e(map); }
 	 */
 
 	public Map<String, Object> detail(Version version, String requiredArtifactExtension, boolean throwException) throws IOException, SAXException, PageException {

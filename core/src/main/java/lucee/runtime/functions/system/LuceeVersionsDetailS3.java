@@ -3,7 +3,8 @@ package lucee.runtime.functions.system;
 
 import java.net.MalformedURLException;
 
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.config.s3.S3UpdateProvider;
@@ -13,7 +14,6 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -27,7 +27,7 @@ public final class LuceeVersionsDetailS3 extends BIF {
 	public static Struct call(PageContext pc, String version) throws PageException {
 
 		try {
-			Version v = OSGiUtil.toVersion(version);
+			Version v = VersionImpl.parseOSGi(version);
 			S3UpdateProvider sup = S3UpdateProvider.getInstance();
 			for (Element e: sup.read()) {
 				if (v.equals(e.getVersion())) {

@@ -24,7 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.runtime.config.maven.Version;
 
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.types.RefInteger;
@@ -39,7 +39,6 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.functions.BIFProxy;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -97,7 +96,7 @@ public final class ClassUtilImpl implements ClassUtil {
 		// first of all we chek if itis a class
 		Class<?> res;
 		try {
-			res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, OSGiUtil.toOSGi(bundleVersion), pc.getConfig().getIdentification(),
+			res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, bundleVersion, pc.getConfig().getIdentification(),
 					JavaSettingsImpl.getBundleDirectories(pc));
 		}
 		catch (BundleException be) {
@@ -275,7 +274,7 @@ public final class ClassUtilImpl implements ClassUtil {
 	@Override
 	public Class<?> loadClassByBundle(String className, String name, lucee.runtime.config.maven.Version version, Identification id) throws IOException {
 		try {
-			return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, OSGiUtil.toOSGi(version), id, JavaSettingsImpl.getBundleDirectories(null));
+			return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null));
 		}
 		catch (BundleException be) {
 			throw new IOException(be.getMessage(), be);

@@ -139,6 +139,8 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 	private Boolean multiPartSupported;
 	URI chatCompletionsURI;
 	Struct custom;
+	/** the provider rejected stream_options, so no usage in a stream can be requested (LDEV-6527) */
+	volatile boolean streamUsageRejected;
 	Map<String, String> headers;
 
 	@Override
@@ -239,9 +241,20 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		props.remove(KeyConstants._timeout, null);
 		props.remove(KeyConstants._apikey, null);
 
+		// token limits, LDEV-6528
+		readTokenLimits(props);
+
 		this.custom = props;
 
 		return this;
+	}
+
+	/**
+	 * true when this connection talks to OpenAI itself and not to a provider with an OpenAI compatible
+	 * API
+	 */
+	boolean isOpenAI() {
+		return baseURL != null && "api.openai.com".equalsIgnoreCase(baseURL.getHost());
 	}
 
 	@Override

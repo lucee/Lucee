@@ -58,7 +58,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.runtime.config.maven.Version;
 
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.collection.MapFactory;
@@ -121,6 +121,7 @@ import lucee.runtime.MappingImpl;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.PageSourceImpl;
 import lucee.runtime.ai.AIEngine;
 import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.ai.AIEnginePool;
@@ -3510,12 +3511,28 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 					}
 					else {
+						markImmutableWhenCore(base);
 						this.baseComponentPageSource = base;
 					}
 				}
 			}
 		}
 		return base;
+	}
+
+	/**
+	 * the base component shipped with Lucee (deployed to the components directory of the config) never
+	 * changes at runtime, so it must not be checked for changes (LDEV-5926). A base component provided
+	 * by the user in another location is not touched.
+	 */
+	private void markImmutableWhenCore(PageSource base) {
+		if (!(base instanceof PageSourceImpl)) return;
+		Resource core = getConfigDir().getRealResource("components").getRealResource(Constants.DEFAULT_PACKAGE.replace('.', '/')).getRealResource(getBaseComponentTemplate());
+		Resource res = base.getResource();
+		if (res == null) return;
+		if (ResourceUtil.getCanonicalPathEL(core).equals(ResourceUtil.getCanonicalPathEL(res))) {
+			((PageSourceImpl) base).setImmutable();
+		}
 	}
 
 	@Override
@@ -6184,7 +6201,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	@Override
 	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
 		if (applicationPathCache == null) return null;
-		String id = path + ":" + filename + ":" + mode;
+		String id = (path + ":" + filename + ":" + mode).toLowerCase();
 
 		SoftReference<CacheElement> tmp = getApplicationPathCacheTimeout() <= 0 ? null : applicationPathCache.get(id);
 		if (tmp != null) {
@@ -6204,7 +6221,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
 		if (getApplicationPathCacheTimeout() <= 0) return;
 		if (applicationPathCache == null) applicationPathCache = new ConcurrentHashMap<String, SoftReference<CacheElement>>();// MUSTMUST new
-		String id = path + ":" + filename + ":" + mode;
+		String id = (path + ":" + filename + ":" + mode).toLowerCase();
 		applicationPathCache.put(id, new SoftReference<CacheElement>(new CacheElement(ps, isCFC)));
 	}
 

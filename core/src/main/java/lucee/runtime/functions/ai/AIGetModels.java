@@ -10,6 +10,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Struct;
 
 /**
  * returns the models available for a configured AI endpoint (LDEV-6618)
@@ -28,6 +29,9 @@ public final class AIGetModels extends BIF {
 	private static AIEngine toEngine(PageContext pc, Object obj) throws PageException {
 		if (obj instanceof AIEngine) return (AIEngine) obj;
 		if (obj instanceof AISession) return ((AISession) obj).getEngine();
+
+		Struct connection = AIUtil.toConnection(obj);
+		if (connection != null) return ((PageContextImpl) pc).getAIEngine(connection);
 
 		String nameAI = Caster.toString(obj);
 		if (nameAI.startsWith("default:")) nameAI = ((PageContextImpl) pc).getNameFromDefault(nameAI.substring(8));

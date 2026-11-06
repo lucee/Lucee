@@ -7,6 +7,8 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AIUtil;
+import lucee.runtime.ai.AIUsage;
+import lucee.runtime.ai.AIUsageProvider;
 import lucee.runtime.ai.Response;
 import lucee.runtime.ai.Part;
 import lucee.runtime.ai.PartImpl;
@@ -20,7 +22,7 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
-public final class OpenAIStreamResponse implements Response {
+public final class OpenAIStreamResponse implements Response, AIUsageProvider {
 
 	private Struct raw = null;
 
@@ -29,6 +31,8 @@ public final class OpenAIStreamResponse implements Response {
 	private AIResponseListener listener;
 	private final List<Part> binaryParts = new ArrayList<>();
 	private List<Part> cachedParts;
+	private AIUsage usage;
+	private String responseModel;
 
 	public OpenAIStreamResponse(String charset, AIResponseListener listener) {
 		this.charset = charset;
@@ -53,6 +57,18 @@ public final class OpenAIStreamResponse implements Response {
 
 	public Struct getData() {
 		return raw;
+	}
+
+	/**
+	 * the usage and the model of a chunk, the last usage reported wins because some providers repeat
+	 * it with every chunk
+	 */
+	public void setUsage(Struct chunk) {
+		if (chunk == null) return;
+		AIUsage u = AIUsage.fromOpenAI(Caster.toStruct(chunk.get("usage", null), null));
+		if (u != null) usage = u;
+		String model = Caster.toString(chunk.get(KeyConstants._model, null), null);
+		if (!StringUtil.isEmpty(model, true)) responseModel = model;
 	}
 
 	public void addPart(Struct part, int index, boolean complete) throws PageException {
@@ -105,7 +121,17 @@ public final class OpenAIStreamResponse implements Response {
 
 	@Override
 	public long getTotalTokenUsed() {
-		return 0;
+		return usage == null || usage.total < 0L ? 0L : usage.total;
+	}
+
+	@Override
+	public AIUsage getUsage() {
+		return usage;
+	}
+
+	@Override
+	public String getResponseModel() {
+		return responseModel;
 	}
 
 	@Override

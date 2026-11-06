@@ -47,13 +47,10 @@ import java.util.TimeZone;
 
 import javax.script.ScriptEngineFactory;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 import org.osgi.framework.launch.Framework;
-import org.osgi.framework.wiring.FrameworkWiring;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;
@@ -342,7 +339,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		// happen when Lucee is loaded directly
 		if (bundleCollection == null) {
 			try {
-				Properties prop = InfoImpl.getDefaultProperties(null);
+				Properties prop = InfoImpl.getDefaultProperties();
 
 				// read the config from default.properties
 				Map<String, Object> config = new HashMap<String, Object>();
@@ -379,29 +376,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				throw Caster.toPageRuntimeException(e);
 			}
 		}
-		this.info = new InfoImpl(bundleCollection.getCoreVersion(), bundleCollection.getCoreHeaders());
+		this.info = new InfoImpl(OSGiUtil.toLucee(bundleCollection.getCoreVersion()), bundleCollection.getCoreHeaders());
 
 		// remove older or newer lucee-core bundles to avoid conflicts
-		{
-			BundleContext context = bundleCollection.getBundleContext();
-			List<Bundle> staleCoreBundles = null;
-			for (Bundle b: context.getBundles()) {
-				if ("lucee.core".equals(b.getSymbolicName()) && !OSGiUtil.toLucee(b.getVersion()).equals(info.getVersion())) {
-					LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Found stale core bundle [" + b.getSymbolicName() + ":" + b.getVersion()
-							+ "], uninstalling to avoid conflicts with current version [" + info.getVersion() + "]");
-					try {
-						b.uninstall();
-						if (staleCoreBundles == null) staleCoreBundles = new ArrayList<>();
-						staleCoreBundles.add(b);
-					}
-					catch (BundleException ignored) {}
-				}
-			}
-
-			if (staleCoreBundles != null && !staleCoreBundles.isEmpty()) {
-				FrameworkWiring fw = context.getBundle(0).adapt(FrameworkWiring.class);
-				fw.refreshBundles(staleCoreBundles);
-			}
+		for (String stale: OSGiUtil.uninstallOtherVersions(bundleCollection.getBundleContext(), "lucee.core", info.getVersion().toString())) {
+			LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
+					"Found stale core bundle [lucee.core:" + stale + "], uninstalled to avoid conflicts with current version [" + info.getVersion() + "]");
 		}
 
 		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader()); // MUST better location for this
@@ -471,7 +451,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				Version edVersion, installedVersion;
 				while (it.hasNext()) {
 					ed = it.next();
-					edVersion = OSGiUtil.toVersion(ed.getVersion(), null);
+					edVersion = VersionImpl.parseOSGi(ed.getVersion(), null);
 					if (ed.getVersion() == null) {
 						continue; // no version definition no update
 					}
@@ -484,8 +464,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 								installed = RHExtension.getInstalledDifferentVersion(cs, ed, null);
 								// we have another version installed
 								if (installed != null) {
-									installedVersion = OSGiUtil.toVersion(installed.getVersion(), null);
-									if (installedVersion != null && OSGiUtil.isNewerThan(edVersion, installedVersion)) {
+									installedVersion = VersionImpl.parseOSGi(installed.getVersion(), null);
+									if (installedVersion != null && (VersionImpl.compare(edVersion, installedVersion) > 0)) {
 										LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
 												"Lucee requires a never version [" + edVersion + "] than the insatlled version [" + installedVersion + "] for Extension [" + ed + "]");
 										extensions.add(ed);
@@ -501,7 +481,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 						if (add) {
 							Version since = ed.getSince();
-							if (since == null || updateInfo.oldVersion == null || !OSGiUtil.isNewerThan(since, updateInfo.oldVersion)) continue; // not installed we do not update
+							if (since == null || updateInfo.oldVersion == null || !(VersionImpl.compare(since, updateInfo.oldVersion) > 0)) continue; // not installed we do not update
 
 							LogUtil.log(cs, Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Detected newer [" + since + ":" + updateInfo.oldVersion + "] Extension version [" + ed + "]");
 							extensions.add(ed);
@@ -1755,10 +1735,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	public BundleCollection getBundleCollection() {
 		return bundleCollection;
-	}
-
-	public BundleContext getBundleContext() {
-		return bundleCollection.getBundleContext();
 	}
 
 	@Override

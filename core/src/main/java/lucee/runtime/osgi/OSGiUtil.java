@@ -53,6 +53,7 @@ import org.osgi.framework.BundleReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.framework.wiring.FrameworkWiring;
 import org.osgi.resource.Requirement;
 
 import jakarta.servlet.Servlet;
@@ -1020,7 +1021,8 @@ public final class OSGiUtil {
 			Resource temp = SystemUtil.getTempFile("jar", false);
 			InputStream is = null;
 			try {
-				is = HTTPEngine.get(updateUrl, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT);
+				// LDEV-5864: the download is verified before it is used
+				is = HTTPEngine.getVerified(updateUrl, null, null, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, null, null, true, null);
 				IOUtil.copy(is, temp, true);
 
 				// extract version and create file with correct name
@@ -2270,6 +2272,10 @@ public final class OSGiUtil {
 			this(name, !StringUtil.isEmpty(version, true) ? OSGiUtil.toVersion(version) : null);
 		}
 
+		public BundleDefinition(String name, lucee.runtime.config.maven.Version version) {
+			this(name, OSGiUtil.toOSGi(version));
+		}
+
 		public BundleDefinition(String name, Version version) {
 			if (name == null) throw new IllegalArgumentException("Bundle Symbolic Name should not be null");
 			// translate old mappings to new mappings FUTURE remove
@@ -2554,6 +2560,36 @@ public final class OSGiUtil {
 			if (b != null && isFrameworkBundle(b)) return b;
 		}
 		return defaultValue;
+	}
+
+	/**
+	 * uninstalls all versions of the bundle except the given one and refreshes the framework
+	 *
+	 * @return the (Lucee style) versions that got uninstalled
+	 */
+	public static List<String> uninstallOtherVersions(BundleContext context, String bundleName, String keepVersion) {
+		List<String> versions = new ArrayList<>();
+		// without the version to keep, every version would get removed
+		if (StringUtil.isEmpty(keepVersion, true)) return versions;
+		List<Bundle> stale = new ArrayList<>();
+		for (Bundle b: context.getBundles()) {
+			if (!bundleName.equals(b.getSymbolicName())) continue;
+			String v = OSGiUtil.toLucee(b.getVersion()).toString();
+			if (v.equals(keepVersion)) continue;
+			try {
+				b.uninstall();
+				stale.add(b);
+				versions.add(v);
+			}
+			catch (BundleException be) {
+				LogUtil.log(Log.LEVEL_WARN, "OSGi", "failed to uninstall the bundle [" + bundleName + ":" + v + "]: " + be.getMessage());
+			}
+		}
+		if (!stale.isEmpty()) {
+			FrameworkWiring fw = context.getBundle(0).adapt(FrameworkWiring.class);
+			fw.refreshBundles(stale);
+		}
+		return versions;
 	}
 
 	public static boolean isFrameworkBundle(Bundle b) {

@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 
 import lucee.commons.digest.Base64Encoder;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.lang.ClassException;
@@ -14,6 +16,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.CoderException;
 import lucee.runtime.config.Config;
@@ -40,6 +43,18 @@ public final class AIUtil {
 	private static final Key CREATED_AT = KeyImpl.init("createdAt");
 	private static final Key STATUS_DETAILS = KeyImpl.init("statusDetails");
 	public static final AI INSTANCE = new AIImpl();
+
+	/**
+	 * @param obj value passed instead of the name of an AI connection
+	 * @return the connection definition when the value is a struct (or a map) and not a component,
+	 *         otherwise null
+	 */
+	public static Struct toConnection(Object obj) {
+		if (obj instanceof Component) return null;
+		if (obj instanceof Struct) return (Struct) obj;
+		if (obj instanceof Map) return Caster.toStruct(obj, null);
+		return null;
+	}
 
 	/**
 	 * @return true when the listener asked to cancel the inquiry, a null listener or one that can not
@@ -135,6 +150,8 @@ public final class AIUtil {
 		meta.set("connectTimeout", aie.getConnectTimeout());
 		meta.set("conversationSizeLimit", aie.getConversationSizeLimit());
 		meta.set(KeyConstants._name, aie.getName());
+		AITokenLimits limits = AITokenLimits.get(aie);
+		if (!limits.isEmpty()) meta.set("tokenLimits", limits.toStruct());
 
 		// models
 		if (addModelsInfo) {
@@ -180,6 +197,140 @@ public final class AIUtil {
 		history.add(conversation);
 		while (history.size() > session.getConversationSizeLimit()) {
 			history.remove(0);
+		}
+	}
+
+	/**
+	 * same as {@link #addConversation(AISession, List, Conversation)}, but also adds the call to the
+	 * usage of the session and writes the usage line to the ai log (LDEV-6527)
+	 * 
+	 * @param provider the name of the provider, using the OpenTelemetry GenAI naming (openai, anthropic,
+	 *            gcp.gemini)
+	 * @param requestModel the model that was requested
+	 * @param startNanos System.nanoTime() when the call started
+	 * @param streamed was the answer streamed
+	 */
+	public static void addConversation(AISession session, List<Conversation> history, Conversation conversation, String provider, String requestModel, long startNanos,
+			boolean streamed) {
+		addConversation(session, history, conversation);
+		AISessionSupport sessionSupport = session instanceof AISessionSupport ? (AISessionSupport) session : null;
+		if (sessionSupport == null) return;
+
+		Response rsp = conversation.getResponse();
+		AIUsage usage;
+		String responseModel = null;
+		if (rsp instanceof AIUsageProvider) {
+			usage = ((AIUsageProvider) rsp).getUsage();
+			responseModel = ((AIUsageProvider) rsp).getResponseModel();
+		}
+		else usage = AIUsage.fromTotal(rsp.getTotalTokenUsed());
+		if (StringUtil.isEmpty(responseModel, true)) responseModel = null;
+
+		long durationMs = (System.nanoTime() - startNanos) / 1000000L;
+		AIUsageRecord record = new AIUsageRecord(usage, responseModel != null ? responseModel : requestModel, durationMs, streamed);
+		sessionSupport.addUsage(record);
+
+		StringBuilder sb = new StringBuilder("usage");
+		appendLogValue(sb, "gen_ai.operation.name", "chat");
+		appendLogValue(sb, "gen_ai.provider.name", provider);
+		appendLogValue(sb, "gen_ai.request.model", requestModel);
+		appendLogValue(sb, "gen_ai.response.model", responseModel);
+		if (usage != null) {
+			appendLogValue(sb, "gen_ai.usage.input_tokens", usage.input);
+			appendLogValue(sb, "gen_ai.usage.output_tokens", usage.output);
+			appendLogValue(sb, "gen_ai.usage.total_tokens", usage.total);
+			appendLogValue(sb, "gen_ai.usage.cache_read.input_tokens", usage.cached);
+			appendLogValue(sb, "gen_ai.usage.reasoning.output_tokens", usage.reasoning);
+		}
+		else appendLogValue(sb, "gen_ai.usage.reported", "false");
+		appendLogValue(sb, "gen_ai.conversation.id", session.getId());
+		appendLogValue(sb, "gen_ai.request.stream", String.valueOf(streamed));
+		appendLogValue(sb, "duration_ms", durationMs);
+		appendLogValue(sb, "ai.connection", session.getEngine().getName());
+		LogUtil.logx(null, Log.LEVEL_INFO, "ai", sb.toString(), "ai", "application");
+	}
+
+	/**
+	 * the session as AISessionSupport (the only type that tracks usage), null for third party sessions
+	 */
+	public static AISessionSupport toSessionSupport(AISession session) {
+		if (session instanceof AISessionMultipartWrapper) session = ((AISessionMultipartWrapper) session).getDelegate();
+		return session instanceof AISessionSupport ? (AISessionSupport) session : null;
+	}
+
+	/**
+	 * attaches the listener (a component or struct with the hooks) to the session (LDEV-6540)
+	 */
+	public static void setListener(PageContext pc, AISession session, Object listener) throws PageException {
+		if (listener == null) return;
+		AISessionSupport support = toSessionSupport(session);
+		if (support == null) throw new ApplicationException("the AI session [" + session.getClass().getName() + "] does not support a listener");
+		support.setListener(AISessionListener.getInstance(pc, listener));
+	}
+
+	/**
+	 * a call that failed or was aborted, written as WARN to the ai log (LDEV-6527)
+	 */
+	public static void addFailedInquiry(AISession session, String provider, String requestModel, long startNanos, boolean streamed, Throwable t) {
+		if (session instanceof AISessionSupport) ((AISessionSupport) session).addFailedRequest();
+
+		StringBuilder sb = new StringBuilder("usage");
+		appendLogValue(sb, "gen_ai.operation.name", "chat");
+		appendLogValue(sb, "gen_ai.provider.name", provider);
+		appendLogValue(sb, "gen_ai.request.model", requestModel);
+		appendLogValue(sb, "error.type", t.getClass().getName());
+		appendLogValue(sb, "gen_ai.conversation.id", session.getId());
+		appendLogValue(sb, "gen_ai.request.stream", String.valueOf(streamed));
+		appendLogValue(sb, "duration_ms", (System.nanoTime() - startNanos) / 1000000L);
+		appendLogValue(sb, "ai.connection", session.getEngine().getName());
+		appendLogValue(sb, "status", "failed");
+		LogUtil.logx(null, Log.LEVEL_WARN, "ai", sb.toString(), "ai", "application");
+	}
+
+	/**
+	 * a token limit of the connection was reached or crossed (LDEV-6528), written as WARN to the ai log
+	 * 
+	 * @param limit the name of the setting
+	 * @param phase before or after the call
+	 */
+	public static void logTokenLimit(AISession session, String limit, long max, long used, String action, String phase) {
+		StringBuilder sb = new StringBuilder("limit");
+		appendLogValue(sb, "ai.limit", limit);
+		appendLogValue(sb, "ai.limit.max", max);
+		appendLogValue(sb, "ai.limit.used", used);
+		appendLogValue(sb, "ai.limit.action", action);
+		appendLogValue(sb, "ai.limit.phase", phase);
+		appendLogValue(sb, "gen_ai.conversation.id", session.getId());
+		appendLogValue(sb, "ai.connection", session.getEngine().getName());
+		LogUtil.logx(null, Log.LEVEL_WARN, "ai", sb.toString(), "ai", "application");
+	}
+
+	private static void appendLogValue(StringBuilder sb, String key, long value) {
+		if (value < 0L) return;
+		sb.append(' ').append(key).append('=').append(value);
+	}
+
+	private static void appendLogValue(StringBuilder sb, String key, String value) {
+		if (StringUtil.isEmpty(value, true)) return;
+		sb.append(' ').append(key).append('=');
+		boolean quote = false;
+		for (int i = 0; i < value.length(); i++) {
+			char c = value.charAt(i);
+			if (c <= ' ' || c == '"' || c == '=') {
+				quote = true;
+				break;
+			}
+		}
+		if (!quote) sb.append(value);
+		else {
+			sb.append('"');
+			for (int i = 0; i < value.length(); i++) {
+				char c = value.charAt(i);
+				if (c == '"' || c == '\\') sb.append('\\').append(c);
+				else if (c < ' ') sb.append(' ');
+				else sb.append(c);
+			}
+			sb.append('"');
 		}
 	}
 
@@ -296,6 +447,9 @@ public final class AIUtil {
 			}
 		}
 		data.setEL(KeyConstants._history, arr);
+
+		AISessionSupport support = toSessionSupport(ais);
+		if (support != null) data.setEL("usage", support.getUsage());
 
 		if (condense) {
 

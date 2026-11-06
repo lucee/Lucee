@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.osgi.framework.Version;
+import lucee.runtime.config.maven.Version;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;

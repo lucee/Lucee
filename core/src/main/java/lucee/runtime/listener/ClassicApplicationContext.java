@@ -20,6 +20,7 @@ package lucee.runtime.listener;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -119,6 +120,7 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	private Map<Integer, String> defaultCaches = new ConcurrentHashMap<Integer, String>();
 	private Map<Collection.Key, CacheConnection> cacheConnections = new ConcurrentHashMap<Collection.Key, CacheConnection>();
 	private Server[] mailServers;
+	private Map<String, AIEngine> aiEngines;
 	private Map<Integer, Boolean> sameFieldAsArrays = new ConcurrentHashMap<Integer, Boolean>();
 	private RestSettings restSettings;
 	private Resource[] restCFCLocations;
@@ -259,6 +261,7 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.defaultCaches = Duplicator.duplicateMap(defaultCaches, new ConcurrentHashMap<Integer, String>(), false);
 		dbl.cacheConnections = Duplicator.duplicateMap(cacheConnections, new ConcurrentHashMap<Integer, String>(), false);
 		dbl.mailServers = mailServers;
+		dbl.aiEngines = aiEngines;
 		dbl.cachedWithinFile = Duplicator.duplicate(cachedWithinFile, false);
 		dbl.cachedWithinFunction = Duplicator.duplicate(cachedWithinFunction, false);
 		dbl.cachedWithinHTTP = Duplicator.duplicate(cachedWithinHTTP, false);
@@ -1329,11 +1332,33 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public AIEngine getAIEngine(String name) throws PageException {
+		if (aiEngines != null) {
+			AIEngine aie = aiEngines.get(name.toLowerCase().trim());
+			if (aie != null) return aie;
+		}
 		return ((ConfigPro) config).getAIEnginePool().getEngine(config, name);
 	}
 
 	@Override
+	public Map<String, AIEngine> getAIEngines() {
+		if (aiEngines == null) return Collections.emptyMap();
+		return Collections.unmodifiableMap(aiEngines);
+	}
+
+	@Override
+	public void setAIEngines(Map<String, AIEngine> engines) {
+		this.aiEngines = engines;
+	}
+
+	@Override
 	public String getAIEngineNameForDefault(String defaultName) {
+		if (aiEngines != null) {
+			for (AIEngine aie: aiEngines.values()) {
+				if (aie.getDefault() != null && defaultName.equalsIgnoreCase(aie.getDefault())) {
+					return aie.getName();
+				}
+			}
+		}
 		return null;
 	}
 }

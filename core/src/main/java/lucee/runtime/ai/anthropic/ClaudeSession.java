@@ -18,8 +18,10 @@ import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPRequest;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.runtime.ai.AIEngineSupport;
+import lucee.runtime.ai.AIListenerCancelException;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
+import lucee.runtime.ai.AITokenLimits;
 import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Conversation;
 import lucee.runtime.ai.ConversationImpl;
@@ -40,6 +42,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public final class ClaudeSession extends AISessionSupport {
+	private static final String PROVIDER = "anthropic";
 	private ClaudeEngine engine;
 	private String systemMessage;
 
@@ -51,22 +54,34 @@ public final class ClaudeSession extends AISessionSupport {
 
 	@Override
 	public Response inquiry(String message, AIResponseListener listener) throws PageException {
+		checkTokenLimits();
+		long start = System.nanoTime();
 		try {
-			Struct requestBody = buildRequest(message, null, listener != null);
-			return executeRequest(requestBody, message, null, listener);
+			Struct requestBody = beforePromptSent(PROVIDER, engine.getModel(), listener != null, buildRequest(message, null, listener != null));
+			return executeRequest(requestBody, message, null, listener, start);
+		}
+		catch (AIListenerCancelException e) {
+			throw e.getPageException();
 		}
 		catch (Exception e) {
+			AIUtil.addFailedInquiry(this, PROVIDER, engine.getModel(), start, listener != null, e);
 			throw Caster.toPageException(e);
 		}
 	}
 
 	@Override
 	public Response inquiry(List<Part> parts, AIResponseListener listener) throws PageException {
+		checkTokenLimits();
+		long start = System.nanoTime();
 		try {
-			Struct requestBody = buildRequest(null, parts, listener != null);
-			return executeRequest(requestBody, null, parts, listener);
+			Struct requestBody = beforePromptSent(PROVIDER, engine.getModel(), listener != null, buildRequest(null, parts, listener != null));
+			return executeRequest(requestBody, null, parts, listener, start);
+		}
+		catch (AIListenerCancelException e) {
+			throw e.getPageException();
 		}
 		catch (Exception e) {
+			AIUtil.addFailedInquiry(this, PROVIDER, engine.getModel(), start, listener != null, e);
 			throw Caster.toPageException(e);
 		}
 	}
@@ -74,7 +89,9 @@ public final class ClaudeSession extends AISessionSupport {
 	private Struct buildRequest(String message, List<Part> parts, boolean stream) throws PageException {
 		Struct requestBody = new StructImpl();
 		requestBody.set(KeyConstants._model, engine.getModel());
-		requestBody.set("max_tokens", 4096);
+		// maxTokensPerRequest also limits the answer, LDEV-6528
+		long maxPerRequest = AITokenLimits.get(engine).getMaxTokensPerRequest();
+		requestBody.set("max_tokens", maxPerRequest > 0L && maxPerRequest < 4096L ? maxPerRequest : 4096L);
 		requestBody.set("stream", stream);
 
 		// Add temperature if set and the model accepts it
@@ -179,7 +196,7 @@ public final class ClaudeSession extends AISessionSupport {
 		return contentBlock;
 	}
 
-	private Response executeRequest(Struct requestBody, String message, List<Part> parts, AIResponseListener listener) throws Exception {
+	private Response executeRequest(Struct requestBody, String message, List<Part> parts, AIResponseListener listener, long start) throws Exception {
 		// Make API request
 		HTTPRequest post = AISessionSupport.newRequest(HTTPRequest.POST, engine.getBaseURL().toExternalForm() + "messages");
 		post.setHeader("Content-Type", "application/json");
@@ -229,15 +246,17 @@ public final class ClaudeSession extends AISessionSupport {
 					if (requestBody.containsKey(KeyConstants._temperature) && AIEngineSupport.isTemperatureRejected(errMsg)) {
 						engine.rejectTemperature(Caster.toString(requestBody.get(KeyConstants._model, null), null));
 						requestBody.removeEL(KeyConstants._temperature);
-						return executeRequest(requestBody, message, parts, listener);
+						return executeRequest(requestBody, message, parts, listener, start);
 					}
 					throw AIUtil.toException(this.getEngine(), Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
 							Caster.toString(err.get(KeyConstants._code, null), null), AIUtil.getStatusCode(response));
 				}
 
+				raw = responseReceived(PROVIDER, engine.getModel(), raw);
+
 				// Create response object
 				ClaudeResponse r = new ClaudeResponse(raw, cs);
-				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(message, parts), r));
+				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(message, parts), r), PROVIDER, engine.getModel(), start, false);
 				return r;
 			}
 			// Handle streaming response
@@ -250,6 +269,7 @@ public final class ClaudeSession extends AISessionSupport {
 						cs == null ? new InputStreamReader(response.getContentAsStream()) : new InputStreamReader(response.getContentAsStream(), cs))) {
 					String line;
 					int index = 0;
+					int chunks = 0;
 					Struct prev = null;
 					while ((line = reader.readLine()) != null) {
 						if (prev != null) {
@@ -262,14 +282,14 @@ public final class ClaudeSession extends AISessionSupport {
 						line = line.substring(6);
 						if ("[DONE]".equals(line)) break;
 						LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "response chunk recieved send by [" + engine.getLabel() + "]: " + line, "ai", "application");
-						prev = Caster.toStruct(interpreter.interpret(null, line));
+						prev = chunkReceived(PROVIDER, engine.getModel(), ++chunks, Caster.toStruct(interpreter.interpret(null, line)));
 					}
 					if (prev != null && !r.isCancelled()) {
 						r.addPart(prev, index, true);
 					}
 				}
 
-				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(message, parts), r));
+				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(message, parts), r), PROVIDER, engine.getModel(), start, true);
 				return r;
 			}
 			else {

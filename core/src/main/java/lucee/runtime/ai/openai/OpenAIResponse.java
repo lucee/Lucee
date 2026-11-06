@@ -3,6 +3,8 @@ package lucee.runtime.ai.openai;
 import java.util.List;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.runtime.ai.AIUsage;
+import lucee.runtime.ai.AIUsageProvider;
 import lucee.runtime.ai.Response;
 import lucee.runtime.ai.Part;
 import lucee.runtime.converter.ConverterException;
@@ -11,13 +13,16 @@ import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 
-public final class OpenAIResponse implements Response {
+public final class OpenAIResponse implements Response, AIUsageProvider {
 
 	private Struct raw;
 	private String charset;
 	private long tokens = -1L;
 	private List<Part> cachedParts;
+	private AIUsage usage;
+	private boolean usageParsed;
 
 	public OpenAIResponse(Struct raw, String charset) {
 		this.raw = raw;
@@ -62,6 +67,20 @@ public final class OpenAIResponse implements Response {
 			return tokens = Caster.toLongValue(sct.get("total_tokens", null), 0L);
 		}
 		return tokens;
+	}
+
+	@Override
+	public AIUsage getUsage() {
+		if (!usageParsed) {
+			usage = AIUsage.fromOpenAI(Caster.toStruct(raw.get("usage", null), null));
+			usageParsed = true;
+		}
+		return usage;
+	}
+
+	@Override
+	public String getResponseModel() {
+		return Caster.toString(raw.get(KeyConstants._model, null), null);
 	}
 
 	@Override

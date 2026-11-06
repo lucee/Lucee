@@ -12,6 +12,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 
@@ -19,7 +20,7 @@ public final class LuceeAI extends BodyTagTryCatchFinallyImpl {
 
 	private String _default;
 	private String message;
-	private String name;
+	private Object name;
 	private AISession session;
 	private boolean throwonerror = true;
 	private int timeout = -1;
@@ -45,7 +46,7 @@ public final class LuceeAI extends BodyTagTryCatchFinallyImpl {
 		this.message = message;
 	}
 
-	public void setName(String name) {
+	public void setName(Object name) {
 		this.name = name;
 	}
 
@@ -71,8 +72,13 @@ public final class LuceeAI extends BodyTagTryCatchFinallyImpl {
 	@Override
 	public int doStartTag() throws PageException {
 		try {
-			if (!StringUtil.isEmpty(name, true)) {
-				session = ((PageContextImpl) pageContext).createAISession(name.trim(), message);
+			Struct connection = AIUtil.toConnection(name);
+			if (connection != null) {
+				session = ((PageContextImpl) pageContext).createAISession(connection, message, null, -1, -1D, -1, -1);
+				setMeta(session);
+			}
+			else if (name != null && !StringUtil.isEmpty(Caster.toString(name), true)) {
+				session = ((PageContextImpl) pageContext).createAISession(Caster.toString(name).trim(), message);
 				setMeta(session);
 			}
 			else if (!StringUtil.isEmpty(_default, true)) {

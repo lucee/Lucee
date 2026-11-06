@@ -18,6 +18,7 @@
  */
 package lucee.runtime.tag;
 
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.osgi.BundleServiceImpl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -50,7 +51,7 @@ import java.util.regex.Pattern;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.runtime.config.maven.Version;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.jsp.tagext.Tag;
@@ -66,6 +67,7 @@ import lucee.commons.io.compress.CompressUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.log.AppenderDefinition;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
@@ -889,6 +891,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 		else if ((check("updateRHExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateRHExtension(true);
 		else if ((check("updateExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateExtension(true);
+		else if ((check("updateExtensions", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateExtensions();
 		else if ((check("removeRHExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doRemoveRHExtension();
 		else if (check("updateExtensionGroups", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateExtensionGroups();
 		else if (check("updateExtensionInfo", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateExtensionInfo();
@@ -1017,10 +1020,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doChangeVersionTo() throws PageException {
 		try {
-			Version version = OSGiUtil.toVersion(getString("admin", "changeVersionTo", "version"));
+			Version version = VersionImpl.parseOSGi(getString("admin", "changeVersionTo", "version"));
 			admin.changeVersionTo(version, password, pageContext.getConfig().getIdentification());
 		}
-		catch (BundleException e) {
+		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
 	}
@@ -3493,7 +3496,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// TODO no longer go via getLoggers
 		Map<String, LoggerAndSourceData> loggers = ConfigUtil.getConfigServerImpl(config).getLoggers();
 		Query qry = new QueryImpl(new String[] { "name", "level", "appenderClass", "appenderBundleName", "appenderBundleVersion", "appenderMaven", "appenderArgs", "layoutClass",
-				"layoutBundleName", "layoutBundleVersion", "layoutMaven", "layoutArgs", "readonly", "source" }, 0, lucee.runtime.type.util.ListUtil.last("logs", '.'));
+				"layoutBundleName", "layoutBundleVersion", "layoutMaven", "layoutArgs", "readonly", "source", "appenders" }, 0, lucee.runtime.type.util.ListUtil.last("logs", '.'));
 		int row = 0;
 		Iterator<Entry<String, LoggerAndSourceData>> it = loggers.entrySet().iterator();
 		Entry<String, LoggerAndSourceData> e;
@@ -3506,20 +3509,42 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			// row++;
 			qry.setAtEL("name", row, e.getKey());
 			qry.setAtEL("level", row, LogUtil.levelToString(logger.getLevel(), ""));
-			qry.setAtEL("appenderClass", row, logger.getAppenderClassDefinition().getClassName());
-			qry.setAtEL("appenderBundleName", row, logger.getAppenderClassDefinition().getName());
-			qry.setAtEL("appenderBundleVersion", row, logger.getAppenderClassDefinition().getVersionAsString());
-			qry.setAtEL("appenderMaven", row, toMavenString(logger.getAppenderClassDefinition()));
+			// the first appender is also returned with the single appender columns, "appenders" has all of them (LDEV-6792)
+			ClassDefinition acd = logger.getAppenderClassDefinition();
+			ClassDefinition lcd = logger.getLayoutClassDefinition();
+			if (lcd == null) lcd = new ClassDefinitionImpl();
+			qry.setAtEL("appenderClass", row, acd.getClassName());
+			qry.setAtEL("appenderBundleName", row, acd.getName());
+			qry.setAtEL("appenderBundleVersion", row, acd.getVersionAsString());
+			qry.setAtEL("appenderMaven", row, toMavenString(acd));
 
 			qry.setAtEL("appenderArgs", row, toStruct(logger.getAppenderArgs(true)));
-			qry.setAtEL("layoutClass", row, logger.getLayoutClassDefinition().getClassName());
-			qry.setAtEL("layoutBundleName", row, logger.getLayoutClassDefinition().getName());
-			qry.setAtEL("layoutBundleVersion", row, logger.getLayoutClassDefinition().getVersionAsString());
-			qry.setAtEL("layoutMaven", row, toMavenString(logger.getLayoutClassDefinition()));
+			qry.setAtEL("layoutClass", row, lcd.getClassName());
+			qry.setAtEL("layoutBundleName", row, lcd.getName());
+			qry.setAtEL("layoutBundleVersion", row, lcd.getVersionAsString());
+			qry.setAtEL("layoutMaven", row, toMavenString(lcd));
 
 			qry.setAtEL("layoutArgs", row, toStruct(logger.getLayoutArgs(true)));
 			qry.setAtEL("readonly", row, logger.getReadOnly());
 			qry.setAtEL("source", row, Prop.toSource(logger.getSource(), ""));
+
+			Array appenders = new ArrayImpl();
+			for (AppenderDefinition ad: logger.getAppenders()) {
+				ClassDefinition layout = ad.layout != null ? ad.layout : new ClassDefinitionImpl();
+				Struct entry = new StructImpl(Struct.TYPE_LINKED);
+				entry.setEL("appenderClass", ad.appender.getClassName());
+				entry.setEL("appenderBundleName", ad.appender.getName());
+				entry.setEL("appenderBundleVersion", ad.appender.getVersionAsString());
+				entry.setEL("appenderMaven", toMavenString(ad.appender));
+				entry.setEL("appenderArgs", toStruct(ad.appenderArgs));
+				entry.setEL("layoutClass", layout.getClassName());
+				entry.setEL("layoutBundleName", layout.getName());
+				entry.setEL("layoutBundleVersion", layout.getVersionAsString());
+				entry.setEL("layoutMaven", toMavenString(layout));
+				entry.setEL("layoutArgs", toStruct(ad.layoutArgs));
+				appenders.appendEL(entry);
+			}
+			qry.setAtEL("appenders", row, appenders);
 		}
 		return qry;
 	}
@@ -3643,17 +3668,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetBundle() throws PageException {
 		String symbolicName = getString("admin", "getBundle", "symbolicName", true);
-		Version version = OSGiUtil.toVersion(getString("version", null), null);
+		Version version = VersionImpl.parseOSGi(getString("version", null), null);
 
 		BundleDefinition bd;
 		BundleFile bf = null;
-		Bundle b = OSGiUtil.getBundleLoaded(symbolicName, version, null);
+		Bundle b = OSGiUtil.getBundleLoaded(symbolicName, OSGiUtil.toOSGi(version), null);
 		if (b != null) {
 			bd = new BundleDefinition(b);
 		}
 		else {
 			try {
-				bf = OSGiUtil.getBundleFile(symbolicName, version, null, null, false);
+				bf = OSGiUtil.getBundleFile(symbolicName, OSGiUtil.toOSGi(version), null, null, false);
 				bd = bf.toBundleDefinition();
 				b = bd.getLoadedBundle();
 
@@ -3673,7 +3698,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set(KeyConstants._symbolicName, bd.getName());
 		sct.set(KeyConstants._title, bd.getName());
 		sct.set(KeyConstants._version, bd.getVersionAsString());
-		sct.set(KeyConstants._usedBy, _usedBy(bd.getName(), bd.getVersion(), coreBundles, extBundles));
+		sct.set(KeyConstants._usedBy, _usedBy(bd.getName(), OSGiUtil.toLucee(bd.getVersion()), coreBundles, extBundles));
 		try {
 			if (b != null) {
 				sct.set(KeyConstants._path, b.getLocation());
@@ -3758,7 +3783,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt(KeyConstants._symbolicName, row, bd.getName());
 			qry.setAt(KeyConstants._title, row, bd.getName());
 			qry.setAt(KeyConstants._version, row, bd.getVersionAsString());
-			qry.setAt(KeyConstants._usedBy, row, _usedBy(bd.getName(), bd.getVersion(), coreBundles, extBundles));
+			qry.setAt(KeyConstants._usedBy, row, _usedBy(bd.getName(), OSGiUtil.toLucee(bd.getVersion()), coreBundles, extBundles));
 			BundleFile bf = null;
 			try {
 				if (b != null) {
@@ -3848,7 +3873,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		// core
 		for (Map<String, Object> info: coreBundles) {
-			if (_eq(name, version, (String) info.get("name"), OSGiUtil.toVersion((String) info.get("version"), false, null))) {
+			if (_eq(name, version, (String) info.get("name"), VersionImpl.parse((String) info.get("version"), false, null))) {
 				extensions.add("Lucee");
 				break;
 			}
@@ -3860,7 +3885,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		RHExtension[] rhextensions = ci.getRHExtensions();
 		while (itt.hasNext()) {
 			bd = itt.next();
-			if (_eq(name, version, bd.getName(), bd.getVersion())) {
+			if (_eq(name, version, bd.getName(), OSGiUtil.toLucee(bd.getVersion()))) {
 				_findExtension(rhextensions, bd, extensions);
 			}
 		}
@@ -3878,7 +3903,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				bundles = e.getMetadata().getBundles();
 				if (bundles != null) {
 					for (BundleInfo b: bundles) {
-						if (_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), b.getVersion())) {
+						if (_eq(bd.getName(), OSGiUtil.toLucee(bd.getVersion()), b.getSymbolicName(), OSGiUtil.toLucee(b.getVersion()))) {
 							set.add(e.getMetadata().getName());
 						}
 					}
@@ -4519,12 +4544,25 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String groupId = getString("groupId", null);
 		String artifactId = getString("artifactId", null);
 		String version = getString("admin", "updateExtension", "version");
-		ExtensionDefintion ed;
+		ExtensionDefintion ed = toExtensionDefinition(id, groupId, artifactId, version);
 
+		ResetFilter filter = new ResetFilter();
+		try {
+			DeployHandler.deployExtension(config, ed, filter, config == null ? null : ThreadLocalPageContext.getLog(pageContext, "application"), true, true, throwOnError,
+					new RefBooleanImpl());
+		}
+		finally {
+			filter.resetThrowPageException(config);
+		}
+
+	}
+
+	private static ExtensionDefintion toExtensionDefinition(String id, String groupId, String artifactId, String version) throws ApplicationException {
 		if (StringUtil.isEmpty(groupId, true) && StringUtil.isEmpty(artifactId, true) && StringUtil.isEmpty(id, true)) {
 			throw new ApplicationException("you need to define an id or groupId and artifactId");
 		}
 
+		ExtensionDefintion ed;
 		if (!StringUtil.isEmpty(id, true)) {
 			ed = new ExtensionDefintion(id, version);
 		}
@@ -4536,16 +4574,67 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (!StringUtil.isEmpty(groupId, true) && !StringUtil.isEmpty(artifactId, true)) {
 			ed.setCoordinate(new MavenCoordinate(groupId, artifactId, version));
 		}
+		return ed;
+	}
+
+	/**
+	 * Installs/updates a list of extensions in one go (LDEV-6148), every entry is handled the same way
+	 * as with the action "updateExtension". A failing extension does not stop the other ones, the
+	 * outcome of every single extension is returned as a query (id, groupId, artifactId, name, version,
+	 * success, message) so the caller can report it.
+	 */
+	private void doUpdateExtensions() throws PageException {
+		Array extensions = Caster.toArray(getObject("admin", "updateExtensions", "extensions"));
+		Log log = config == null ? null : ThreadLocalPageContext.getLog(pageContext, "application");
+
+		Query result = new QueryImpl(new Collection.Key[] { KeyConstants._id, KeyConstants._groupId, KeyConstants._artifactId, KeyConstants._name, KeyConstants._version,
+				KeyImpl.init("success"), KeyConstants._message }, 0, "ExtensionUpdates");
 
 		ResetFilter filter = new ResetFilter();
 		try {
-			DeployHandler.deployExtension(config, ed, filter, config == null ? null : ThreadLocalPageContext.getLog(pageContext, "application"), true, true, throwOnError,
-					new RefBooleanImpl());
+			Iterator<?> it = extensions.valueIterator();
+			while (it.hasNext()) {
+				Struct data = Caster.toStruct(it.next());
+				String id = Caster.toString(data.get(KeyConstants._id, null), null);
+				String groupId = Caster.toString(data.get(KeyConstants._groupId, null), null);
+				String artifactId = Caster.toString(data.get(KeyConstants._artifactId, null), null);
+				String version = Caster.toString(data.get(KeyConstants._version, null), null);
+				String name = null;
+				boolean success = false;
+				String message = "";
+				try {
+					if (StringUtil.isEmpty(version, true)) {
+						throw new ApplicationException("the version is required to update an extension");
+					}
+					ExtensionDefintion ed = toExtensionDefinition(id, groupId, artifactId, version.trim());
+					RHExtension rhe = DeployHandler.deployExtension(config, ed, filter, log, false, true, true, new RefBooleanImpl());
+					if (rhe != null) name = rhe.getMetadata().getName();
+					success = true;
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					PageException pe = Caster.toPageException(t);
+					message = pe.getMessage();
+					if (log != null) log.error("deploy-extension", pe);
+					else LogUtil.log("deploy-extension", pe);
+				}
+
+				result.addRow(1);
+				int row = result.getRecordcount();
+				result.setAt(KeyConstants._id, row, StringUtil.emptyIfNull(id));
+				result.setAt(KeyConstants._groupId, row, StringUtil.emptyIfNull(groupId));
+				result.setAt(KeyConstants._artifactId, row, StringUtil.emptyIfNull(artifactId));
+				result.setAt(KeyConstants._name, row, StringUtil.emptyIfNull(name));
+				result.setAt(KeyConstants._version, row, StringUtil.emptyIfNull(version));
+				result.setAt(KeyImpl.init("success"), row, Caster.toBoolean(success));
+				result.setAt(KeyConstants._message, row, message);
+			}
 		}
 		finally {
+			// one reset for all extensions
 			filter.resetThrowPageException(config);
 		}
-
+		pageContext.setVariable(getString("admin", action, "returnVariable"), result);
 	}
 
 	private void doRemoveExtension() throws PageException {
@@ -4965,18 +5054,58 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (l == -1) throw new ApplicationException("Invalid log level name [" + str + "], valid log level names are [INFO,DEBUG,WARN,ERROR,FATAL,TRACE]");
 
 		LogEngine eng = config.getLogEngine();
-		// appender
-		ClassDefinition acd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "appender", true, config.getIdentification());
-		if (!acd.isBundle() && !ClassDefinitionImpl.isMaven(acd)) acd = eng.appenderClassDefintion(acd.getClassName());
 
-		// layout
-		ClassDefinition lcd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "layout", true, config.getIdentification());
-		if (!lcd.isBundle() && !ClassDefinitionImpl.isMaven(lcd)) lcd = eng.layoutClassDefintion(lcd.getClassName());
+		// more than one appender (LDEV-6792), then the appender and layout attributes are only the layout for the appenders without layout
+		Object oAppenders = attributes.get("appenders", null);
+		Array arr = oAppenders == null ? null : Caster.toArray(oAppenders);
+		if (arr != null && arr.size() > 0) {
+			ClassDefinition defaultLayout = null;
+			if (attributes.get("layoutClass", null) != null || attributes.get("layoutMaven", null) != null) defaultLayout = toLayoutClassDefinition(eng, attributes);
+			Map<String, String> defaultLayoutArgs = defaultLayout == null ? null : ConfigFactoryImpl.toArguments(attributes, "layoutArgs", true, false);
 
-		admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, acd, Caster.toStruct(getObject("admin", "UpdateLogSettings", "appenderArgs")), lcd,
-				Caster.toStruct(getObject("admin", "UpdateLogSettings", "layoutArgs")));
+			List<AppenderDefinition> appenders = new ArrayList<AppenderDefinition>();
+			Iterator<Object> it = arr.valueIterator();
+			while (it.hasNext()) {
+				Struct entry = Caster.toStruct(it.next());
+				ClassDefinition acd = toAppenderClassDefinition(eng, entry);
+				ClassDefinition lcd;
+				Map<String, String> layoutArgs;
+				if (entry.get("layoutClass", null) != null || entry.get("layoutMaven", null) != null) {
+					lcd = toLayoutClassDefinition(eng, entry);
+					layoutArgs = ConfigFactoryImpl.toArguments(entry, "layoutArgs", true, false);
+				}
+				else {
+					lcd = defaultLayout;
+					layoutArgs = defaultLayoutArgs;
+				}
+				appenders.add(new AppenderDefinition(acd, ConfigFactoryImpl.toArguments(entry, "appenderArgs", true, false), lcd, layoutArgs));
+			}
+			admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, appenders);
+		}
+		else {
+			// appender
+			ClassDefinition acd = toAppenderClassDefinition(eng, attributes);
+
+			// layout
+			ClassDefinition lcd = toLayoutClassDefinition(eng, attributes);
+
+			admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, acd, Caster.toStruct(getObject("admin", "UpdateLogSettings", "appenderArgs")), lcd,
+					Caster.toStruct(getObject("admin", "UpdateLogSettings", "layoutArgs")));
+		}
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetLoggers();
+	}
+
+	private ClassDefinition toAppenderClassDefinition(LogEngine eng, Struct data) throws PageException {
+		ClassDefinition acd = ClassDefinitionImpl.toClassDefinitionImpl(data, "appender", true, config.getIdentification());
+		if (!acd.isBundle() && !ClassDefinitionImpl.isMaven(acd)) acd = eng.appenderClassDefintion(acd.getClassName());
+		return acd;
+	}
+
+	private ClassDefinition toLayoutClassDefinition(LogEngine eng, Struct data) throws PageException {
+		ClassDefinition lcd = ClassDefinitionImpl.toClassDefinitionImpl(data, "layout", true, config.getIdentification());
+		if (!lcd.isBundle() && !ClassDefinitionImpl.isMaven(lcd)) lcd = eng.layoutClassDefintion(lcd.getClassName());
+		return lcd;
 	}
 
 	private void doUpdateSSLCertificate() throws PageException {

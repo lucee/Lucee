@@ -20,7 +20,7 @@ package lucee.runtime.type.scope;
 
 import java.io.File;
 
-import org.osgi.framework.Version;
+import lucee.runtime.config.maven.Version;
 
 import lucee.Info;
 import lucee.commons.io.SystemUtil;

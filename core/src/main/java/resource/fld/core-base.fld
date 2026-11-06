@@ -7407,6 +7407,19 @@ if this attribute is not provided all types are returned.</description>
 	</function> -->
 	
 	
+	<!-- getRequestId -->
+	<function>
+		<name>getRequestId</name>
+		<class>lucee.runtime.functions.other.GetRequestId</class>
+		<introduced>9.0.0.0</introduced>
+		<keywords>request</keywords>
+		<description>Returns the integer id of the current request page context. The id is assigned when that page context is initialized and stays the same for that page context. Each initialized page context has its own id.</description>
+		<return>
+			<type>number</type>
+			<description>The integer id of the current request page context.</description>
+		</return>
+	</function>
+
 	<!-- getPageContext -->
 	<function>
 		<name>getPageContext</name>
@@ -11093,9 +11106,9 @@ mavenLoad([
 		<argument>
 			<name>name</name>
 			<alias>aiName,nameAI</alias>
-			<type>string</type>
+			<type>any</type>
 			<required>yes</required>
-			<description>Specifies which AI connection configuration to use. Can be provided in three formats:
+			<description>Specifies which AI connection configuration to use. Can be provided in four formats:
 
 1. Direct connection name:
    The name of a connection as defined in the Lucee Administrator (similar to how datasource names work)
@@ -11105,6 +11118,10 @@ mavenLoad([
 
 3. Engine ID reference:
    Using the format "id:uuid" to use an AI engine registered by its unique identifier.
+
+4. Connection struct:
+   A struct that defines the connection itself, instead of the name of a connection that is already configured. The struct takes the same keys as a connection defined in the Application.cfc (`this.ai`) or in the .CFConfig.json (`class`, or `component` for an engine written in CFML, with the engine properties in `custom`). The engine properties can also be set directly in the struct, for example `{ type: "openai", model: "gpt-4o", secretKey: "..." }`. When no `class` is defined, it is derived from the property `type` (openai, chatgpt, ollama, perplexity, deepseek, grok, claude or gemini, or other for any OpenAI compatible endpoint defined with the property `url`).
+   An engine is created only once for a given struct. Passing the same definition again, in this or any other request, reuses the engine, so there is no need to store the struct or to configure the connection with a cfapplication tag first.
 
 Currently supported default categories:
 - exception: For exception analysis
@@ -11158,6 +11175,17 @@ Recommended settings:
 - 0.7-1.0: Creative content generation
 
 For exception analysis and debugging, lower temperatures (0.2-0.3) are recommended for more consistent and precise responses.</description>
+		</argument>
+		<argument>
+			<name>listener</name>
+			<alias>sessionListener</alias>
+			<type>any</type>
+			<required>no</required>
+			<description>A component, or a struct of functions, that listens to the requests of this session. All hooks are optional, but at least one is needed. Every hook gets one struct (event) with the keys `session`, `connection`, `provider` and `model` and can change the content of the event in place, return a struct that replaces it, return nothing or true to continue, or throw an exception that is passed on to the caller of the inquiry.
+
+- `onBeforePromptSent(event)`: called before the request is sent, `event.request` is the request body (`event.stream` tells if the response is streamed). Returning false cancels the request, an exception with the error code `ai.listener.cancelled` is thrown and nothing is sent.
+- `onResponse(event)`: called with the raw response (`event.response`) of a request that is not streamed, before the response is evaluated.
+- `onStreamingResponse(event)`: called for every chunk (`event.chunk`, `event.index` starting with 1) of a streamed response, before the chunk is passed to the response listener of the inquiry. Returning false aborts the stream, an exception with the error code `ai.listener.aborted` is thrown.</description>
 		</argument>
 		<return>
 			<type>object</type>
@@ -11276,6 +11304,36 @@ Secrets like the `secretKey` and the custom settings of a connection are never r
 		</return>
 	</function>
 	
+	<!-- AIGetUsage -->
+	<function>
+		<name>AIGetUsage</name>
+		<alias>LuceeAIGetUsage,aiSessionUsage</alias>
+		<class>lucee.runtime.functions.ai.AIGetUsage</class>
+		<description>Returns the token usage of all inquiries made with the given AI session (LDEV-6527). The usage is counted per session object and is also part of `SerializeAISession` / `LoadAISession`.
+		The numbers are what the provider reports, a provider that does not report usage is not counted as 0, see `unreportedRequests`.
+		A session of a third party engine that does not track usage returns 0 for all values.</description>
+		<argument>
+			<name>session</name>
+			<alias>aiSession</alias>
+			<type>any</type>
+			<required>yes</required>
+			<description>The AI session, as returned by `CreateAISession` or `LoadAISession`.</description>
+		</argument>
+		<return>
+			<type>struct</type>
+			<description>A struct with the keys
+	- input: tokens sent to the model, including the cached ones
+	- output: tokens generated by the model, including the reasoning tokens when the provider counts them as output
+	- total: input plus output as reported by the provider
+	- cached: the part of input read from a provider cache (when reported)
+	- reasoning: the part of output used for reasoning (when reported)
+	- requests: number of successful inquiries
+	- unreportedRequests: inquiries where the provider did not report any usage
+	- failedRequests: inquiries that failed or were aborted
+	- last: the last inquiry with the keys input, output, total, cached, reasoning (the ones the provider reported), model, durationMs, streamed and estimated (always false), only present after the first inquiry</description>
+		</return>
+	</function>
+
 	<!-- AIGetMetaData -->
 	<function>
 		<name>AIGetMetaData</name>
@@ -11292,7 +11350,8 @@ Secrets like the `secretKey` and the custom settings of a connection are never r
 			<description>The name of the AI connection to get metadata for. Can be either:
 1. A direct connection name as configured in the Lucee Administrator
 2. A default reference (e.g., "default:exception") which will resolve to the configured default connection for that category
-3. A AI session object from which to retrieve and analyze AI connection metadata</description>
+3. A AI session object from which to retrieve and analyze AI connection metadata
+4. A connection struct (same keys as a connection defined in `this.ai`, see CreateAISession), the engine is created once and reused for the same struct</description>
 		</argument>
 		<argument>
 			<name>detailed</name>
@@ -11333,7 +11392,8 @@ This is useful to choose a value for the connection setting `model`, or patterns
 			<description>The AI connection to list the models for. Can be either:
 1. A direct connection name as configured in the Lucee Administrator
 2. A default reference (e.g., "default:exception") which will resolve to the configured default connection for that category
-3. A AI session object, the models of the connection of the session are returned</description>
+3. A AI session object, the models of the connection of the session are returned
+4. A connection struct (same keys as a connection defined in `this.ai`, see CreateAISession), the engine is created once and reused for the same struct</description>
 		</argument>
 		<argument>
 			<name>returntype</name>
@@ -11369,11 +11429,12 @@ This is useful to choose a value for the connection setting `model`, or patterns
 		<argument>
 			<name>name</name>
 			<alias>aiName,nameAI</alias>
-			<type>string</type>
+			<type>any</type>
 			<required>yes</required>
 			<description>The name of the AI connection to check. Can be either:
 	1. A direct connection name as configured in the Lucee Administrator
-	2. A default reference (e.g., "default:exception") which will check if a default connection is configured for that category</description>
+	2. A default reference (e.g., "default:exception") which will check if a default connection is configured for that category
+	3. A connection struct (same keys as a connection defined in `this.ai`, see CreateAISession), in this case the engine is created (or reused) and an exception is thrown when the definition is invalid</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -11421,9 +11482,9 @@ This function pairs with `SerializeAISession()` to provide persistence for AI co
 		<argument>
 			<name>name</name>
 			<alias>aiName,nameAI</alias>
-			<type>string</type>
+			<type>any</type>
 			<required>yes</required>
-			<description>Specifies which AI connection configuration to use. Can be provided in three formats:
+			<description>Specifies which AI connection configuration to use. Can be provided in four formats:
 
 1. Direct connection name:
    The name of a connection as defined in the Lucee Administrator (similar to how datasource names work)
@@ -11433,6 +11494,10 @@ This function pairs with `SerializeAISession()` to provide persistence for AI co
 
 3. Engine ID reference:
    Using the format "id:uuid" to use an AI engine registered by its unique identifier.
+
+4. Connection struct:
+   A struct that defines the connection itself, instead of the name of a connection that is already configured. The struct takes the same keys as a connection defined in the Application.cfc (`this.ai`) or in the .CFConfig.json (`class`, or `component` for an engine written in CFML, with the engine properties in `custom`). The engine properties can also be set directly in the struct, for example `{ type: "openai", model: "gpt-4o", secretKey: "..." }`. When no `class` is defined, it is derived from the property `type` (openai, chatgpt, ollama, perplexity, deepseek, grok, claude or gemini, or other for any OpenAI compatible endpoint defined with the property `url`).
+   An engine is created only once for a given struct. Passing the same definition again, in this or any other request, reuses the engine, so there is no need to store the struct or to configure the connection with a cfapplication tag first.
 
 Currently supported default categories:
 - exception: For exception analysis
@@ -11465,6 +11530,19 @@ Each history entry contains:
 
 Incomplete or improperly formatted data may cause initialization errors.
 			</description>
+		</argument>
+		<argument>
+			<name>listener</name>
+			<alias>sessionListener</alias>
+			<type>any</type>
+			<required>no</required>
+			<description>A component, or a struct of functions, that listens to the requests of this session. All hooks are optional, but at least one is needed. Every hook gets one struct (event) with the keys `session`, `connection`, `provider` and `model` and can change the content of the event in place, return a struct that replaces it, return nothing or true to continue, or throw an exception that is passed on to the caller of the inquiry.
+
+- `onBeforePromptSent(event)`: called before the request is sent, `event.request` is the request body (`event.stream` tells if the response is streamed). Returning false cancels the request, an exception with the error code `ai.listener.cancelled` is thrown and nothing is sent.
+- `onResponse(event)`: called with the raw response (`event.response`) of a request that is not streamed, before the response is evaluated.
+- `onStreamingResponse(event)`: called for every chunk (`event.chunk`, `event.index` starting with 1) of a streamed response, before the chunk is passed to the response listener of the inquiry. Returning false aborts the stream, an exception with the error code `ai.listener.aborted` is thrown.
+
+The listener is not part of the serialized data, so it has to be passed again here.</description>
 		</argument>
 		<return>
 			<type>object</type>
@@ -12790,7 +12868,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>convertTypes</member-name>
 		<keywords>query</keywords>
 		<introduced>8.0.0.188</introduced>
-		<description>Converts every value of a query to the type declared by its column (e.g. date/time columns to date objects, numeric columns to numbers, bit/boolean columns to booleans). Columns with a type that has no matching CFML type (e.g. "object"/"other") and values that cannot be converted are left unchanged. By default a new query is returned and the original is left untouched.</description>
+		<description>Converts every value of a query to the java type that matches the type declared by its column: integer, smallint and tinyint columns to Integer, bigint to Long, double, float, real and numeric to Double, decimal to BigDecimal, date, time and timestamp to DateTime, char and varchar types to String and bit and boolean to Boolean. Columns without a type or of any other type (e.g. "object"/"other", binary), are left untouched, for a column without a declared type the type detected from its values is used. Null stays null, an empty string in a non string column becomes null when full null support is enabled. A value that can not be converted to the column type throws an exception naming the column and the row, an inline conversion then leaves the query unchanged. By default a new query is returned and the original is left untouched.</description>
 		<argument>
 			<name>query</name>
 			<type>query</type>

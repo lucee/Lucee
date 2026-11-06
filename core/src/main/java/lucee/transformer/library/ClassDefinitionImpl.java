@@ -25,7 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.DevNullOutputStream;
@@ -48,7 +49,6 @@ import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.osgi.OSGiExtensionInstaller;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.KeyImpl;
@@ -78,7 +78,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	public ClassDefinitionImpl(String className, String name, String version, Identification id) {
 		this.className = className == null ? null : className.trim();
 		this.name = StringUtil.isEmpty(name, true) ? null : name.trim();
-		this.version = OSGiUtil.toVersion(version, null);
+		this.version = VersionImpl.parseOSGi(version, null);
 		this.id = id;
 	}
 
@@ -101,7 +101,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		if (info != null) {
 			this.name = (String) info.get("name");
 			String v = (String) info.get("version");
-			this.version = OSGiUtil.toVersion(v, false, null);
+			this.version = VersionImpl.parse(v, false, null);
 			if (this.version == null && !StringUtil.isEmpty(v)) LogUtil.warn("class-definition", new ApplicationException("unable to parse the version [" + v + "] of the bundle [" + name + "]"));
 		}
 		else {
@@ -253,7 +253,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		className = (String) in.readObject();
 		name = (String) in.readObject();
 		String tmp = (String) in.readObject();
-		if (tmp != null) this.version = OSGiUtil.toVersion(tmp, null);
+		if (tmp != null) this.version = VersionImpl.parseOSGi(tmp, null);
 		id = (Identification) in.readObject();
 		maven = (String) in.readObject();
 	}
@@ -460,7 +460,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 
 	@Override
 	public lucee.runtime.config.maven.Version getVersion() {
-		return OSGiUtil.toLucee(version);
+		return version;
 	}
 
 	@Override

@@ -42,6 +42,11 @@ public interface HTTPClientEngine {
 	 */
 	public static final String FEATURE_POOL = "pool";
 
+	/**
+	 * feature: HTTP/2, the request attribute httpVersion with the value "2" or "auto" (LDEV-6470)
+	 */
+	public static final String FEATURE_HTTP2 = "http2";
+
 	public void init(Config config) throws PageException;
 
 	/**

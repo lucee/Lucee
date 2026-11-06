@@ -60,6 +60,61 @@
 	</cfoutput>
 	<cfset structDelete(session, "extremoved", false) />
 </cfif>
+<!--- LDEV-6148 result of the last "update all" (stored in the session because the POST ends with a redirect) --->
+<cfif structKeyExists(session, "extUpdateAll")>
+	<cfscript>
+		updateAllResult = session.extUpdateAll;
+		structDelete(session, "extUpdateAll", false);
+		updateAllFailed = 0;
+		loop query=updateAllResult {
+			if (!updateAllResult.success) updateAllFailed++;
+		}
+	</cfscript>
+	<cfoutput>
+		<div class="#updateAllFailed ? 'error' : 'okay'#">
+			<b>#stText.ext.updateAllTitle#</b><br>
+			#replace(stText.ext.updateAllSummary, {
+				'{ok}': updateAllResult.recordcount - updateAllFailed,
+				'{total}': updateAllResult.recordcount,
+				'{failed}': updateAllFailed
+			})#
+			<ul>
+				<cfloop query=updateAllResult>
+					<cfset resultName = len( updateAllResult.name ) ? updateAllResult.name : ( len( updateAllResult.artifactId ) ? updateAllResult.artifactId : updateAllResult.id )>
+					<li>#encodeForHTML( replace( updateAllResult.success ? stText.ext.updateAllOk : stText.ext.updateAllFailed, {
+						'{name}': resultName,
+						'{version}': updateAllResult.version,
+						'{message}': updateAllResult.message
+					} ) )#</li>
+				</cfloop>
+			</ul>
+		</div>
+	</cfoutput>
+</cfif>
+<!--- LDEV-6148 installed extensions that have an update available (same check as the update notification) --->
+<cfscript>
+	updatable = [];
+	loop query=extensions {
+		sct = {};
+		loop list="#extensions.columnlist()#" item="key" {
+			sct[ key ] = extensions[ key ];
+		}
+		updateVersion = updateAvailable( sct, external );
+		if ( updateVersion eq "false" ) continue;
+		arrayAppend( updatable, {
+			"id": extensions.id,
+			"groupId": extensions.groupId,
+			"artifactId": extensions.artifactId,
+			"version": updateVersion,
+			"name": extensions.name,
+			"current": extensions.version
+		} );
+	}
+	updateAllConfirm = replace( stText.ext.updateAllConfirm, { '{count}': arrayLen( updatable ) } );
+	loop array=updatable item="local.u" {
+		updateAllConfirm &= chr( 10 ) & "- " & u.name & ": " & u.current & " > " & u.version;
+	}
+</cfscript>
 <cfset spev=[]>
 <cfparam name="listinstalled" default="0">
 <cfparam name="listnotinstalled" default="0">
@@ -69,6 +124,17 @@
 		<!--- Installed Applications --->
 		<h2>#stText.ext.installed#</h2>
 		<div class="itemintro">#stText.ext.installeddesc#</div>
+
+		<!--- Update all --->
+		<cfif arrayLen( updatable )>
+			<form method="post" action="#request.self#?action=#url.action#" class="updateall" onsubmit="return confirm(#encodeForHTMLAttribute( serializeJSON( updateAllConfirm ) )#);">
+				<input type="hidden" name="mainAction" value="#stText.Buttons.updateAll#">
+				<input type="hidden" name="updateAllExtensions" value="#encodeForHTMLAttribute( serializeJSON( updatable ) )#">
+				<div class="warning">#replace( stText.ext.updateAllDesc, { '{count}': arrayLen( updatable ) } )#
+					<input type="submit" class="button submit" id="updateAllExtensions" value="#stText.Buttons.updateAll# (#arrayLen( updatable )#)">
+				</div>
+			</form>
+		</cfif>
 
 		<!--- Filter --->
 		<cfif extCount GT 30 or len(session.extFilter.installed)>
