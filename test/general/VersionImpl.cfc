@@ -104,6 +104,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				}
 			});
 
+			it( "VersionRange checks a version against single versions and ranges", function() {
+				var cls = createObject( "java", "lucee.runtime.osgi.VersionRange" );
+				var v = function( x ) { return impl.parseOSGi( x, javaCast( "null", "" ) ); };
+				var single = cls.init( "6.2.0.5" );
+				expect( single.isWithin( v( "6.2.0.5" ) ) ).toBeTrue();
+				expect( single.isWithin( v( "7.0.0.0" ) ) ).toBeTrue();
+				expect( single.isWithin( v( "6.2.0.4" ) ) ).toBeFalse();
+				expect( single.isWithin( v( "6.10.0.0" ) ) ).toBeTrue();
+				var range = cls.init( "6.0.0.0-7.0.0.0" );
+				expect( range.isWithin( v( "6.5.0.1" ) ) ).toBeTrue();
+				expect( range.isWithin( v( "5.9.0.9" ) ) ).toBeFalse();
+				expect( range.isWithin( v( "7.0.0.1" ) ) ).toBeFalse();
+				var list = cls.init( "5.0.0.0-5.9.0.0,7.0.0.0" );
+				expect( list.isWithin( v( "5.4.0.0" ) ) ).toBeTrue();
+				expect( list.isWithin( v( "7.1.0.0" ) ) ).toBeTrue();
+				expect( list.isWithin( v( "6.0.0.0" ) ) ).toBeFalse();
+			});
+
 			it( "BundleDefinition equality uses the version value", function() {
 				var cls = createObject( "java", "lucee.runtime.osgi.BundleDefinition" );
 				expect( cls.init( "a.b", "2.7.2-jdk8" ).equals( cls.init( "a.b", "2.7.2.jdk8" ) ) ).toBeTrue();

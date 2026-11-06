@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.osgi.framework.Version;
-
 import lucee.commons.lang.StringUtil;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 import lucee.runtime.type.util.ListUtil;
 
 public final class VersionRange implements Serializable {
@@ -29,7 +29,7 @@ public final class VersionRange implements Serializable {
 			if (StringUtil.isEmpty(str, true) || str.equals("-")) continue;
 
 			// Try parsing as a single version first (e.g., "7.0.1.7-SNAPSHOT")
-			Version singleVersion = OSGiUtil.toVersion(str, null);
+			Version singleVersion = VersionImpl.parseOSGi(str, null);
 			if (singleVersion != null) {
 				f = singleVersion;
 				t = null;
@@ -44,9 +44,9 @@ public final class VersionRange implements Serializable {
 				else {
 					l = str.substring(0, index).trim();
 					r = str.substring(index + 1).trim();
-					if (!StringUtil.isEmpty(l, true)) f = OSGiUtil.toVersion(l, null);
+					if (!StringUtil.isEmpty(l, true)) f = VersionImpl.parseOSGi(l, null);
 					else f = null;
-					if (!StringUtil.isEmpty(r, true)) t = OSGiUtil.toVersion(r, null);
+					if (!StringUtil.isEmpty(r, true)) t = VersionImpl.parseOSGi(r, null);
 					else t = null;
 				}
 			}
@@ -96,8 +96,8 @@ public final class VersionRange implements Serializable {
 		}
 
 		public boolean isWithin(Version version) {
-			if (from != null && OSGiUtil.isNewerThan(from, version)) return false;
-			if (to != null && OSGiUtil.isNewerThan(version, to)) return false;
+			if (from != null && VersionImpl.compare(from, version) > 0) return false;
+			if (to != null && VersionImpl.compare(version, to) > 0) return false;
 			return true;
 		}
 
@@ -146,7 +146,7 @@ public final class VersionRange implements Serializable {
 			if (hasFrom) {
 				// Read from version from its string representation
 				String fromStr = in.readUTF();
-				this.from = Version.parseVersion(fromStr);
+				this.from = VersionImpl.parseOSGi(fromStr, null);
 			}
 			else {
 				this.from = null;
@@ -157,7 +157,7 @@ public final class VersionRange implements Serializable {
 			if (hasTo) {
 				// Read to version from its string representation
 				String toStr = in.readUTF();
-				this.to = Version.parseVersion(toStr);
+				this.to = VersionImpl.parseOSGi(toStr, null);
 			}
 			else {
 				this.to = null;
