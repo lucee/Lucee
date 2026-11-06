@@ -13,11 +13,13 @@
 	// values for example renderings
 	settingsVal=attributes.value;
 	codeTip=attributes.value;
-	meta=getMetaData(attributes.value);
-	isTimeSpan=FindNoCase("TimeSpan", meta.name);
+	isTimeSpan=isInstanceOf(attributes.value, "lucee.runtime.type.dt.TimeSpan");
 	if(isTimeSpan) {
-		settingsVal="#attributes.value.day#,#attributes.value.hour#,#attributes.value.minute#,#attributes.value.second#";
-		codeTip="createTimeSpan(#attributes.value.day#,#attributes.value.hour#,#attributes.value.minute#,#attributes.value.second#)";
+		// reading the properties of a timespan requires direct java access, serialize returns them as they are stored (not normalized, e.g. 0,0,90,0)
+		timeSpanParts=reMatch("-?[0-9]+",serialize(attributes.value));
+		timeSpan={day:timeSpanParts[1],hour:timeSpanParts[2],minute:timeSpanParts[3],second:timeSpanParts[4]};
+		settingsVal="#timeSpan.day#,#timeSpan.hour#,#timeSpan.minute#,#timeSpan.second#";
+		codeTip="createTimeSpan(#timeSpan.day#,#timeSpan.hour#,#timeSpan.minute#,#timeSpan.second#)";
 	}
 	else {
 		res=formatForConsole(codeTip);
@@ -100,18 +102,18 @@
 						</thead>
 						<tbody>
 							<tr>
-								<td align="center"><b>#attributes.value.day#</b></td>
-								<td align="center"><b>#attributes.value.hour#</b></td>
-								<td align="center"><b>#attributes.value.minute#</b></td>
-								<td align="center"><b>#attributes.value.second#</b></td>
+								<td align="center"><b>#timeSpan.day#</b></td>
+								<td align="center"><b>#timeSpan.hour#</b></td>
+								<td align="center"><b>#timeSpan.minute#</b></td>
+								<td align="center"><b>#timeSpan.second#</b></td>
 							</tr>
 						</tbody>
 						</table>
 
-				<input type="hidden" name="#attributes.name#_days" value="#attributes.value.day#">
-				<input type="hidden" name="#attributes.name#_hours" value="#attributes.value.hour#">
-				<input type="hidden" name="#attributes.name#_minutes" value="#attributes.value.minute#">
-				<input type="hidden" name="#attributes.name#_seconds" value="#attributes.value.second#">
+				<input type="hidden" name="#attributes.name#_days" value="#timeSpan.day#">
+				<input type="hidden" name="#attributes.name#_hours" value="#timeSpan.hour#">
+				<input type="hidden" name="#attributes.name#_minutes" value="#timeSpan.minute#">
+				<input type="hidden" name="#attributes.name#_seconds" value="#timeSpan.second#">
 			<cfelseif isNumeric(attributes.value)>
 				<table  class="maintbl">
 				<tbody>
