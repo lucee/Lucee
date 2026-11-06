@@ -622,7 +622,7 @@ function renderSysPropEnvVar(name, value, text="",defaultValue=true,boolean isEx
 	}
 
 	function lockedReadOnly () {
-		var info="this record cannot be modified here, because because it is set as readonly.
+		var info="this record cannot be modified here, because it is set as readonly.
 				To modify the record, you will need to change the readonly flag inside the configuration file and then restart the server.";
 
 		return '<span class="locked-indicator" data-tooltip="#info#">&##128274;</span>';

@@ -2134,6 +2134,10 @@ tbody#extproviderlist td {
   transform: scale(1.1);
 }
 
+.maintbl:has(.locked-indicator) {
+    overflow: visible;
+}
+
 .locked-indicator {
     display: inline-block;
     cursor: help;
@@ -2147,8 +2151,7 @@ tbody#extproviderlist td {
     display: none;
     position: absolute;
     bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
     background: #333;
     color: #fff;
     padding: 6px 10px;
@@ -2160,6 +2163,11 @@ tbody#extproviderlist td {
     width: max-content;
     z-index: 100;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+td:last-child > .locked-indicator::after {
+    left: auto;
+    right: 0;
 }
 
 .locked-indicator::before {
