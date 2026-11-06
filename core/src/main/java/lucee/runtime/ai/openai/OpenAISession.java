@@ -30,6 +30,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.util.Util;
 import lucee.runtime.ai.AIEngineSupport;
+import lucee.runtime.ai.AIListenerCancelException;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
 import lucee.runtime.ai.AITokenLimits;
@@ -76,9 +77,12 @@ public final class OpenAISession extends AISessionSupport {
 		checkTokenLimits();
 		long start = System.nanoTime();
 		try {
-			Struct request = buildRequest(message, null, listener != null);
+			Struct request = beforePromptSent(PROVIDER, openaiEngine.getModel(), listener != null, buildRequest(message, null, listener != null));
 			String messageText = message;
 			return executeRequest(request, messageText, null, listener, start);
+		}
+		catch (AIListenerCancelException e) {
+			throw e.getPageException();
 		}
 		catch (SocketTimeoutException ste) {
 			ApplicationException ae = new ApplicationException(
@@ -98,8 +102,11 @@ public final class OpenAISession extends AISessionSupport {
 		checkTokenLimits();
 		long start = System.nanoTime();
 		try {
-			Struct request = buildRequest(null, parts, listener != null);
+			Struct request = beforePromptSent(PROVIDER, openaiEngine.getModel(), listener != null, buildRequest(null, parts, listener != null));
 			return executeRequest(request, null, parts, listener, start);
+		}
+		catch (AIListenerCancelException e) {
+			throw e.getPageException();
 		}
 		catch (SocketTimeoutException ste) {
 			ApplicationException ae = new ApplicationException(
@@ -296,6 +303,8 @@ public final class OpenAISession extends AISessionSupport {
 								Caster.toString(err.get(KeyConstants._code, null), null), response.getStatusLine().getStatusCode());
 					}
 
+					raw = responseReceived(PROVIDER, openaiEngine.getModel(), raw);
+
 					OpenAIResponse r = new OpenAIResponse(raw, cs);
 					AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(messageText, parts), r), PROVIDER, openaiEngine.getModel(), start,
 							false);
@@ -311,6 +320,7 @@ public final class OpenAISession extends AISessionSupport {
 							cs == null ? new InputStreamReader(responseEntity.getContent()) : new InputStreamReader(responseEntity.getContent(), cs))) {
 						String line;
 						int index = 0;
+						int chunks = 0;
 						Struct prev = null;
 						while ((line = reader.readLine()) != null) {
 							if (prev != null) {
@@ -321,7 +331,7 @@ public final class OpenAISession extends AISessionSupport {
 							line = line.substring(6);
 							if ("[DONE]".equals(line)) break;
 							LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "response chunk recieved send by [" + openaiEngine.getLabel() + "]: " + line, "ai", "application");
-							Struct chunk = Caster.toStruct(interpreter.interpret(null, line));
+							Struct chunk = chunkReceived(PROVIDER, openaiEngine.getModel(), ++chunks, Caster.toStruct(interpreter.interpret(null, line)));
 							r.setUsage(chunk);
 							// the last chunk only carries the usage and has no choices, it must not be the held chunk
 							if (chunk.get("usage", null) != null && isEmpty(Caster.toArray(chunk.get("choices", null), null))) continue;
