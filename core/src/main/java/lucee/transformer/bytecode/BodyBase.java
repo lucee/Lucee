@@ -36,6 +36,7 @@ import lucee.transformer.Body;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
+import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.bytecode.statement.PrintOut;
 import lucee.transformer.bytecode.statement.StatementBaseNoFinal;
 import lucee.transformer.bytecode.util.ASMUtil;
@@ -73,7 +74,7 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 			Expression expr = ((PrintOut) statement).getExpr();
 			// LDEV-5983: Only concatenate if the statement doesn't already belong to another body.
 			// Otherwise concatenating modifies the original PrintOut which may still be used elsewhere.
-			if (expr instanceof LitString && statement.getParent() == null && concatPrintouts(((LitString) expr).getString())) return;
+			if (expr instanceof LitString && statement.getParent() == null && concatPrintouts(((LitString) expr).getString(), bareRaw((LitString) expr))) return;
 		}
 		statement.setParent(this);
 		this.statements.add(statement);
@@ -123,26 +124,53 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 
 	@Override
 	public void addPrintOut(Factory f, String str, Position start, Position end) {
-		if (concatPrintouts(str)) return;
+		addPrintOut(f, str, str, start, end);
+	}
 
-		last = new PrintOut(f.createLitString(str, start, end), start, end);
+	@Override
+	public void addPrintOut(Factory f, String str, String raw, Position start, Position end) {
+		if (raw == null) raw = str;
+		if (concatPrintouts(str, raw)) return;
+
+		LitString lit = f.createLitString(str, start, end);
+		applyBareRaw(lit, raw);
+		last = new PrintOut(lit, start, end);
 		last.setParent(this);
 		this.statements.add(last);
 	}
 
-	private boolean concatPrintouts(String str) {
+	private boolean concatPrintouts(String str, String raw) {
+		if (raw == null) raw = str;
 		if (last instanceof PrintOut) {
 			PrintOut po = (PrintOut) last;
 			Expression expr = po.getExpr();
 			if (expr instanceof LitString) {
 				LitString lit = (LitString) expr;
 				if (lit.getString().length() < 1024) {
-					po.setExpr(lit.getFactory().createLitString(lit.getString().concat(str), lit.getStart(), lit.getEnd()));
+					LitString combined = lit.getFactory().createLitString(lit.getString().concat(str), lit.getStart(), lit.getEnd());
+					applyBareRaw(combined, bareRaw(lit).concat(raw));
+					po.setExpr(combined);
 					return true;
 				}
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Bare template text has no quote character. Keep a previously stored source form.
+	 * Quoted literals keep their value here so a later merge does not copy their surrounding quotes into bare text.
+	 */
+	private static String bareRaw(LitString lit) {
+		if (lit instanceof LitStringImpl) {
+			LitStringImpl impl = (LitStringImpl) lit;
+			if (impl.getQuoteChar() == 0 && impl.getRawSource() != null) return impl.getRawSource();
+		}
+		return lit.getString();
+	}
+
+	private static void applyBareRaw(LitString lit, String raw) {
+		if (lit instanceof LitStringImpl) ((LitStringImpl) lit).setRawSource(raw);
 	}
 
 	@Override

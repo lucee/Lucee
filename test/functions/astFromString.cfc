@@ -21,7 +21,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			it( title = 'echo literal string', body = function( currentSpec ) {
 				var result = astFromString("Susi");
 				assertEquals(
-					'{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":4,"offset":4},"type":"Program","body":[{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":4,"offset":4},"type":"ExpressionStatement","expression":{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":4,"offset":4},"type":"StringLiteral","value":"Susi","raw":"\"Susi\""}}],"sourceType":"tag","dotNotationUpperCase":true,"handleUnquotedAttrValueAsString":true}',
+					'{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":4,"offset":4},"type":"Program","body":[{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":4,"offset":4},"type":"ExpressionStatement","expression":{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":4,"offset":4},"type":"StringLiteral","value":"Susi","raw":"Susi"}}],"sourceType":"tag","dotNotationUpperCase":true,"handleUnquotedAttrValueAsString":true}',
 					serializeJSON(var:result,compact:true)
 					);
 			});
