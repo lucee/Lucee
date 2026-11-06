@@ -95,7 +95,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="array,cast" {
 				list.add( "x" );
 				list.add( "y" );
 				var fromList = Caster.toArray( list );
-				expect( fromList ).toBeInstanceOf( "lucee.runtime.type.wrap.ArrayWrap" );
+				expect( fromList ).toBeInstanceOf( "lucee.runtime.type.wrap.ListAsArray" );
 				expect( arrayToList( Caster.toNativeArray( fromList ) ) ).toBe( "x,y" );
 
 				var cfml = [ 1, 2, 3 ];

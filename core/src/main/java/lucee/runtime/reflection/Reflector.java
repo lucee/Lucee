@@ -70,13 +70,13 @@ import lucee.runtime.type.Pojo;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.util.ArraySupport;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.Type;
-import lucee.runtime.type.wrap.ArrayWrap;
 import lucee.runtime.util.ObjectIdentityHashSet;
 import lucee.transformer.bytecode.util.JavaProxyFactory;
 import lucee.transformer.dynamic.DynamicInvoker;
@@ -1303,8 +1303,8 @@ public final class Reflector {
 	private static Object toNativeArray(Class clazz, Object obj) throws PageException {
 		// if(obj.getClass()==clazz) return obj;
 		// LDEV-6806 a view that still reads through a native array of the requested type hands that array back as is
-		if (obj instanceof ArrayWrap) {
-			Object nativeArr = ((ArrayWrap) obj).getNativeArray();
+		if (obj instanceof ArraySupport) {
+			Object nativeArr = ((ArraySupport) obj).getNativeArray();
 			if (nativeArr != null && nativeArr.getClass() == clazz) return nativeArr;
 		}
 		Object[] objs = null;
