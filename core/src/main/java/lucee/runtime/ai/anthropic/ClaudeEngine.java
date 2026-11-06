@@ -118,6 +118,9 @@ public final class ClaudeEngine extends AIEngineSupport {
 		props.remove(KeyConstants._timeout, null);
 		props.remove(KeyConstants._apikey, null);
 
+		// token limits, LDEV-6528
+		readTokenLimits(props);
+
 		this.custom = props;
 
 		return this;

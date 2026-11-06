@@ -36,6 +36,7 @@ public abstract class AISessionSupport implements AISessionMultipart {
 	private long cachedTokens;
 	private long reasoningTokens;
 	private AIUsageRecord lastUsage;
+	private boolean warningLogged;
 
 	public AISessionSupport(AIEngine engine, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout) {
 		this.engine = engine;
@@ -119,6 +120,79 @@ public abstract class AISessionSupport implements AISessionMultipart {
 		if (u.total >= 0L) totalTokens += u.total;
 		if (u.cached >= 0L) cachedTokens += u.cached;
 		if (u.reasoning >= 0L) reasoningTokens += u.reasoning;
+		checkAfterCall(u);
+	}
+
+	/**
+	 * the tokens used by this session so far
+	 */
+	private long getTokensUsed() {
+		return Math.max(totalTokens, inputTokens + outputTokens);
+	}
+
+	/**
+	 * checks the token limits of the connection (LDEV-6528) before a call is made, the check is soft:
+	 * calls that overlap are not counted until they are finished.
+	 * 
+	 * @throws PageException when a limit is reached and the connection has tokenLimitAction=throw
+	 */
+	public final void checkTokenLimits() throws PageException {
+		AITokenLimits limits = AITokenLimits.get(getEngine());
+		if (limits.isEmpty()) return;
+
+		String limit = null;
+		long max = 0L;
+		long used = 0L;
+		String detail = null;
+		synchronized (this) {
+			long total = getTokensUsed();
+			if (limits.hasSessionLimit() && total >= limits.getMaxTokensPerSession()) {
+				limit = AITokenLimits.MAX_TOKENS_PER_SESSION.getString();
+				max = limits.getMaxTokensPerSession();
+				used = total;
+				detail = "the session used " + total + " tokens (input " + inputTokens + ", output " + outputTokens + ") in " + requests + " requests";
+			}
+			// the whole history is sent with every call, so when the last request was already as big as the limit, the next one will be too
+			else if (limits.hasRequestLimit() && lastUsage != null && lastUsage.getUsage() != null && lastUsage.getUsage().input >= limits.getMaxTokensPerRequest()) {
+				limit = AITokenLimits.MAX_TOKENS_PER_REQUEST.getString();
+				max = limits.getMaxTokensPerRequest();
+				used = lastUsage.getUsage().input;
+				detail = "the last request of this session already sent " + used + " input tokens and the whole conversation is sent with every request";
+			}
+		}
+		if (limit == null) return;
+
+		AIUtil.logTokenLimit(this, limit, max, used, limits.getAction(), "before");
+		if (limits.isThrow()) {
+			ApplicationException ae = new ApplicationException("The token limit [" + limit + "=" + max + "] of the AI connection [" + getEngine().getName() + "] is reached, "
+					+ detail + ". The request was not sent.");
+			ae.setErrorCode(AITokenLimits.ERROR_CODE);
+			throw ae;
+		}
+	}
+
+	/**
+	 * checks the limits that can only be checked after a call, called with the lock held
+	 */
+	private void checkAfterCall(AIUsage u) {
+		AITokenLimits limits = AITokenLimits.get(getEngine());
+		if (limits.isEmpty()) return;
+
+		if (limits.hasRequestLimit()) {
+			long tokens = u.total >= 0L ? u.total : (u.input >= 0L ? u.input : 0L) + (u.output >= 0L ? u.output : 0L);
+			if (tokens > limits.getMaxTokensPerRequest()) {
+				AIUtil.logTokenLimit(this, AITokenLimits.MAX_TOKENS_PER_REQUEST.getString(), limits.getMaxTokensPerRequest(), tokens, "log", "after");
+			}
+		}
+
+		long warn = limits.getWarningTokens();
+		if (warn > 0L && !warningLogged) {
+			long used = getTokensUsed();
+			if (used >= warn) {
+				warningLogged = true;
+				AIUtil.logTokenLimit(this, AITokenLimits.TOKEN_WARNING_THRESHOLD.getString(), limits.getMaxTokensPerSession(), used, "log", "after");
+			}
+		}
 	}
 
 	final synchronized void addFailedRequest() {
@@ -155,6 +229,8 @@ public abstract class AISessionSupport implements AISessionMultipart {
 		totalTokens = toLong(usage, "total");
 		cachedTokens = toLong(usage, "cached");
 		reasoningTokens = toLong(usage, "reasoning");
+		long warn = AITokenLimits.get(getEngine()).getWarningTokens();
+		warningLogged = warn > 0L && getTokensUsed() >= warn;
 	}
 
 	private static long toLong(Struct sct, String key) {

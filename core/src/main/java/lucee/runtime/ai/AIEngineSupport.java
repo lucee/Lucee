@@ -33,6 +33,7 @@ public abstract class AIEngineSupport implements AIEngine {
 	private List<String> modelPreference;
 	private boolean resolvesModel;
 	private Config config;
+	private AITokenLimits tokenLimits = AITokenLimits.NONE;
 	/** models that rejected the setting temperature, see {@link #isTemperatureRejected(String)} */
 	private final Set<String> noTemperature = ConcurrentHashMap.newKeySet();
 
@@ -122,6 +123,21 @@ public abstract class AIEngineSupport implements AIEngine {
 		}
 		resolvesModel = false;
 		return model.trim();
+	}
+
+	/**
+	 * reads the token limits (LDEV-6528) from the given properties and removes them from it, so they are
+	 * not sent to the provider
+	 */
+	protected final void readTokenLimits(Struct props) throws PageException {
+		tokenLimits = AITokenLimits.read(props);
+	}
+
+	/**
+	 * the token limits of this AI connection, see {@link AITokenLimits}
+	 */
+	public final AITokenLimits getTokenLimits() {
+		return tokenLimits;
 	}
 
 	/**
