@@ -50,6 +50,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -198,6 +199,7 @@ public final class MappingImpl implements Mapping {
 
 					if (tmp == null || archMod == tmp.lastModified()) return;
 					try {
+						OSGiExtensionInstaller.ensureAvailable(config, "the archive [" + tmp + "]");
 						archiveBundle = BundleServiceImpl.getInstance().install(toLocalFile(tmp), false);
 					}
 					catch (Throwable t) {

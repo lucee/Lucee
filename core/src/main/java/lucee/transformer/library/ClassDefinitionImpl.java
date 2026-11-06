@@ -48,6 +48,7 @@ import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.KeyImpl;
@@ -283,6 +284,14 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 				catch (ClassNotFoundException cnfe) {
 					// fall back to the regular bundle lookup
 				}
+			}
+			try {
+				OSGiExtensionInstaller.ensureAvailable(ThreadLocalPageContext.getConfigServer(), "the class [" + className + "] of the bundle [" + name + "]");
+			}
+			catch (ApplicationException ae) {
+				ClassException ce = new ClassException(ae.getMessage());
+				ExceptionUtil.initCauseEL(ce, ae);
+				throw ce;
 			}
 			return clazz = ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null), versionOnlyMattersWhenDownloading);
 		}
