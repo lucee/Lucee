@@ -1,5 +1,7 @@
 package lucee.runtime.type.wrap;
 
+import java.io.ObjectStreamException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,6 +19,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.util.ListIteratorImpl;
 
@@ -25,8 +28,23 @@ import lucee.runtime.type.util.ListIteratorImpl;
  */
 public final class ListBackedArray extends ListAsArray {
 
+	// pinned so a 9.0 ListBackedArray stream stays readable across 9.0 builds
+	private static final long serialVersionUID = 1L;
+
 	public ListBackedArray(List list) {
 		super(list);
+	}
+
+	/**
+	 * Write as ArrayImpl so 6.2/7.x can load a Java-list wrapper serialized on 9.0 (ListBackedArray does not
+	 * exist there). Serialization already copies the list contents, so the live-wrapper identity is not preserved.
+	 */
+	private Object writeReplace() throws ObjectStreamException {
+		ArrayImpl copy = new ArrayImpl(Math.max(list.size(), ArrayImpl.DEFAULT_CAP), false);
+		for (Object o: list) {
+			copy.add(o);
+		}
+		return copy;
 	}
 
 	@Override

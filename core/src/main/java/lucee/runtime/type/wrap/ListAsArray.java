@@ -19,7 +19,9 @@
 package lucee.runtime.type.wrap;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -42,10 +44,11 @@ import lucee.runtime.type.util.ArraySupport;
 
 /**
  * The class name stays in the serialization hierarchy of ArrayImpl: streams carry the elements in this class's
- * {@code list} slot. Every method that touches {@code list} is abstract, so a subclass that doesn't use it can't
- * inherit a body that does.
+ * {@code list} slot. Runtime wrappers use {@link ListBackedArray}; ArrayImpl overrides every list-touching method.
+ * This class is concrete only so legacy streams that named {@code ListAsArray} as the leaf type can still be
+ * instantiated and remapped via {@link #readResolve()}.
  */
-public abstract class ListAsArray extends ArraySupport implements Array, List {
+public class ListAsArray extends ArraySupport implements Array, List {
 
 	// LDEV-6475 pinned to the value the JVM computed on 6.2/7.0/7.1, keeps arrays serialized by other versions readable
 	private static final long serialVersionUID = -2946571425825745801L;
@@ -73,11 +76,35 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 		out.writeFields();
 	}
 
-	@Override
-	public abstract Object append(Object o) throws PageException;
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		ObjectInputStream.GetField fields = in.readFields();
+		list = (List) fields.get("list", null);
+	}
+
+	/**
+	 * Legacy 6.2/7.x streams named this concrete class as the leaf type for a Java-list wrapper. Remap those
+	 * payloads to {@link ListBackedArray}. Subclasses (ArrayImpl, ListBackedArray) keep their own identity.
+	 */
+	protected Object readResolve() throws ObjectStreamException {
+		if (getClass() == ListAsArray.class) {
+			return new ListBackedArray(list != null ? list : new ArrayList());
+		}
+		return this;
+	}
+
+	private static UnsupportedOperationException unsupported(String method) {
+		return new UnsupportedOperationException("ListAsArray." + method + " is only for legacy deserialization; use ListBackedArray or ArrayImpl");
+	}
 
 	@Override
-	public abstract Object appendEL(Object o);
+	public Object append(Object o) throws PageException {
+		throw unsupported("append");
+	}
+
+	@Override
+	public Object appendEL(Object o) {
+		throw unsupported("appendEL");
+	}
 
 	/*---@Override
 	public boolean containsKey(int index) {
@@ -91,7 +118,9 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public abstract Object get(PageContext pc, int key, Object defaultValue);
+	public Object get(PageContext pc, int key, Object defaultValue) {
+		throw unsupported("get");
+	}
 
 	@Override
 	public final Object getE(int key) throws PageException {
@@ -99,7 +128,9 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public abstract Object getE(PageContext pc, int key) throws PageException;
+	public Object getE(PageContext pc, int key) throws PageException {
+		throw unsupported("getE");
+	}
 
 	@Override
 	public int getDimension() {
@@ -107,16 +138,24 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public abstract boolean insert(int key, Object value) throws PageException;
+	public boolean insert(int key, Object value) throws PageException {
+		throw unsupported("insert");
+	}
 
 	@Override
-	public abstract int[] intKeys();
+	public int[] intKeys() {
+		throw unsupported("intKeys");
+	}
 
 	@Override
-	public abstract Object prepend(Object o) throws PageException;
+	public Object prepend(Object o) throws PageException {
+		throw unsupported("prepend");
+	}
 
 	@Override
-	public abstract Object removeE(int key) throws PageException;
+	public Object removeE(int key) throws PageException {
+		throw unsupported("removeE");
+	}
 
 	@Override
 	public Object removeEL(int key) {
@@ -138,19 +177,29 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public abstract Object pop() throws PageException;
+	public Object pop() throws PageException {
+		throw unsupported("pop");
+	}
 
 	@Override
-	public abstract Object pop(Object defaultValue);
+	public Object pop(Object defaultValue) {
+		throw unsupported("pop");
+	}
 
 	@Override
-	public abstract Object shift() throws PageException;
+	public Object shift() throws PageException {
+		throw unsupported("shift");
+	}
 
 	@Override
-	public abstract Object shift(Object defaultValue);
+	public Object shift(Object defaultValue) {
+		throw unsupported("shift");
+	}
 
 	@Override
-	public abstract void resize(int to) throws PageException;
+	public void resize(int to) throws PageException {
+		throw unsupported("resize");
+	}
 
 	@Override
 	public Object setE(int key, Object value) throws PageException {
@@ -158,10 +207,14 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public abstract Object setE(PageContext pc, int key, Object value) throws PageException;
+	public Object setE(PageContext pc, int key, Object value) throws PageException {
+		throw unsupported("setE");
+	}
 
 	@Override
-	public abstract Object setEL(int key, Object value);
+	public Object setEL(int key, Object value) {
+		throw unsupported("setEL");
+	}
 
 	/*---@Override
 	public void sort(String sortType, String sortOrder) throws PageException {
@@ -169,15 +222,23 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	}*/
 
 	@Override
-	public abstract void sortIt(Comparator comp);
+	public void sortIt(Comparator comp) {
+		throw unsupported("sortIt");
+	}
 
 	@Override
-	public abstract Object[] toArray();
+	public Object[] toArray() {
+		throw unsupported("toArray");
+	}
 
-	public abstract ArrayList toArrayList();
+	public ArrayList toArrayList() {
+		throw unsupported("toArrayList");
+	}
 
 	@Override
-	public abstract void clear();
+	public void clear() {
+		throw unsupported("clear");
+	}
 
 	/*---@Override
 	public boolean containsKey(String key) {
@@ -191,7 +252,9 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	}*/
 
 	@Override
-	public abstract Collection duplicate(boolean deepCopy);
+	public Collection duplicate(boolean deepCopy) {
+		throw unsupported("duplicate");
+	}
 
 	@Override
 	public final Object get(String key) throws PageException {
@@ -285,13 +348,19 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public abstract int size();
+	public int size() {
+		throw unsupported("size");
+	}
 
 	@Override
-	public abstract DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp);
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
+		throw unsupported("toDumpData");
+	}
 
 	@Override
-	public abstract Iterator iterator();
+	public Iterator iterator() {
+		throw unsupported("iterator");
+	}
 
 	@Override
 	public Iterator<Collection.Key> keyIterator() {
@@ -384,7 +453,9 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	}*/
 
 	@Override
-	public abstract boolean add(Object o);
+	public boolean add(Object o) {
+		throw unsupported("add");
+	}
 
 	/*---@Override
 	public void add(int index, Object element) {
@@ -397,13 +468,19 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	}*/
 
 	@Override
-	public abstract boolean addAll(int index, java.util.Collection c);
+	public boolean addAll(int index, java.util.Collection c) {
+		throw unsupported("addAll");
+	}
 
 	@Override
-	public abstract boolean contains(Object o);
+	public boolean contains(Object o) {
+		throw unsupported("contains");
+	}
 
 	@Override
-	public abstract boolean containsAll(java.util.Collection c);
+	public boolean containsAll(java.util.Collection c) {
+		throw unsupported("containsAll");
+	}
 
 	/*---@Override
 	public Object get(int index) {
@@ -411,19 +488,29 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	}*/
 
 	@Override
-	public abstract int indexOf(Object o);
+	public int indexOf(Object o) {
+		throw unsupported("indexOf");
+	}
 
 	@Override
-	public abstract boolean isEmpty();
+	public boolean isEmpty() {
+		throw unsupported("isEmpty");
+	}
 
 	@Override
-	public abstract int lastIndexOf(Object o);
+	public int lastIndexOf(Object o) {
+		throw unsupported("lastIndexOf");
+	}
 
 	@Override
-	public abstract ListIterator listIterator();
+	public ListIterator listIterator() {
+		throw unsupported("listIterator");
+	}
 
 	@Override
-	public abstract ListIterator listIterator(int index);
+	public ListIterator listIterator(int index) {
+		throw unsupported("listIterator");
+	}
 
 	/*
 	 * @Override public boolean remove(Object o) { return list.remove(o); }
@@ -438,7 +525,9 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	 */
 
 	@Override
-	public abstract List subList(int fromIndex, int toIndex);
+	public List subList(int fromIndex, int toIndex) {
+		throw unsupported("subList");
+	}
 
 	/*---@Override not sure to remove it
 	public Object[] toArray(Object[] a) {
@@ -452,10 +541,14 @@ public abstract class ListAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public abstract Iterator<Object> valueIterator();
+	public Iterator<Object> valueIterator() {
+		throw unsupported("valueIterator");
+	}
 
 	@Override
-	public abstract Iterator<Object> getIterator();
+	public Iterator<Object> getIterator() {
+		throw unsupported("getIterator");
+	}
 
 	/*---@Override
 	public Object get(PageContext pc, Key key, Object defaultValue) {

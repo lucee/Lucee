@@ -394,14 +394,45 @@ public class ArrayImpl extends ListAsArray {
 	@Override
 	public boolean addAll(int index, java.util.Collection c) {
 		Object[] a = c.toArray();
-		for (int i = 0; i < a.length; i++) {
-			if (!doInsert(index + i + 1, a[i])) throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
+		if (a.length == 0) return false;
+		lock();
+		try {
+			Holder x = h;
+			long b = x.bounds;
+			int head = head(b), end = end(b), n = end - head;
+			// List.addAll(index, c) index is 0-based; reject outside 0..size
+			if (index < 0 || index > n) throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + n);
+			int add = a.length, front = index, back = n - index, need = n + add;
+			Object[] d = x.data;
+			// whole block under one lock: one tail shift (or grow) then copy the new values
+			if (end + add <= d.length) {
+				int e = x.epoch;
+				EPOCH.setOpaque(x, e + 1);
+				VarHandle.storeStoreFence();
+				if (back > 0) System.arraycopy(d, head + front, d, head + front + add, back);
+				System.arraycopy(a, 0, d, head + front, add);
+				BOUNDS.setRelease(x, pack(head, end + add));
+				EPOCH.setRelease(x, e + 2);
+			}
+			else {
+				int cap = Math.max(growth(x, n), need);
+				Object[] nd = new Object[cap];
+				System.arraycopy(d, head, nd, 0, front);
+				System.arraycopy(a, 0, nd, front, add);
+				System.arraycopy(d, head + front, nd, front + add, back);
+				h = new Holder(nd, 0, need);
+			}
+			return true;
 		}
-		return a.length != 0;
+		finally {
+			unlock();
+		}
 	}
 
 	@Override
 	public Object removeE(int key) throws PageException {
+		// -1 is a private sentinel for pop() via doRemove; public removeE / arrayDeleteAt must throw on key < 1
+		if (key < 1) throw new ExpressionException("can not remove Element at position [" + key + "]", "Index " + (key - 1) + " out of bounds for length " + size());
 		Object v = doRemove(key);
 		if (v == END) throw new ExpressionException("can not remove Element at position [" + key + "]", "Index " + (key - 1) + " out of bounds for length " + size());
 		return v;
@@ -881,7 +912,9 @@ public class ArrayImpl extends ListAsArray {
 		if (fromIndex < 0) throw new IndexOutOfBoundsException("fromIndex = " + fromIndex);
 		if (toIndex > n) throw new IndexOutOfBoundsException("toIndex = " + toIndex);
 		if (fromIndex > toIndex) throw new IllegalArgumentException("fromIndex(" + fromIndex + ") > toIndex(" + toIndex + ")");
-		return new Slice(fromIndex, toIndex - fromIndex);
+		// public List.subList contract: return an independent copy (previous synchronizedList.subList view
+		// semantics are not preserved as a live fail-fast view). Slice stays available for internal use.
+		return new ArrayList(Arrays.asList(range(fromIndex, toIndex)));
 	}
 
 	@Override

@@ -12,6 +12,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="serialize" {
 	// serialVersionUID Java computes for lucee.runtime.type.wrap.ListAsArray on 6.2/7.0/7.1 (no explicit field)
 	variables.LIST_AS_ARRAY_SUID = "-2946571425825745801"; // string, a long this size does not survive as a CFML number
 
+	// objectSave of a concrete ListAsArray wrapping a Java list (Lucee 6.2/7.x leaf type), values 1, "two", [3]
+	variables.LUCEE7_LIST_AS_ARRAY = "rO0ABXNyACNsdWNlZS5ydW50aW1lLnR5cGUud3JhcC5MaXN0QXNBcnJhedcbrOZaVxR3AgABTAAEbGlzdHQAEExqYXZhL3V0aWwvTGlzdDt4cgAkbHVjZWUucnVudGltZS50eXBlLnV0aWwuQXJyYXlTdXBwb3J0v/wKocB8hHkCAAB4cHNyABNqYXZhLnV0aWwuQXJyYXlMaXN0eIHSHZnHYZ0DAAFJAARzaXpleHAAAAADdwQAAAADc3IADmphdmEubGFuZy5Mb25nO4vkkMyPI98CAAFKAAV2YWx1ZXhyABBqYXZhLmxhbmcuTnVtYmVyhqyVHQuU4IsCAAB4cAAAAAAAAAABdAADdHdvc3IAI2phdmEudXRpbC5Db2xsZWN0aW9ucyRTaW5nbGV0b25MaXN0Ku8pEDynm5cCAAFMAAdlbGVtZW50dAASTGphdmEvbGFuZy9PYmplY3Q7eHBzcQB+AAYAAAAAAAAAA3g=";
+
 	function run( testResults, testBox ) {
 		describe( "LDEV-6475 Java serialisation of arrays across Lucee versions", function() {
 
@@ -49,6 +52,38 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="serialize" {
 			it( title="array round-trips objectSave()/objectLoad()", body=function( currentSpec ) {
 				var arr = [ 1, "two", [ 3 ], { a: 1 } ];
 				expect( objectLoad( objectSave( arr ) ) ).toBe( arr );
+			});
+
+			it( title="a concrete ListAsArray stream from Lucee 7 loads as a ListBackedArray with the same values", body=function( currentSpec ) {
+				var arr = objectLoad( toBinary( variables.LUCEE7_LIST_AS_ARRAY ) );
+				expect( isArray( arr ) ).toBeTrue();
+				expect( arr.getClass().getName() ).toBe( "lucee.runtime.type.wrap.ListBackedArray" );
+				expect( arr[ 1 ] ).toBe( 1 );
+				expect( arr[ 2 ] ).toBe( "two" );
+				expect( arr[ 3 ] ).toBe( [ 3 ] );
+			});
+
+			it( title="ListAsArray.toArray(javaList) round-trips through objectSave()/objectLoad()", body=function( currentSpec ) {
+				var javaList = createObject( "java", "java.util.ArrayList" ).init();
+				javaList.add( javacast( "long", 1 ) );
+				javaList.add( "two" );
+				var wrapped = createObject( "java", "lucee.runtime.type.wrap.ListAsArray" ).toArray( javaList );
+				expect( wrapped.getClass().getName() ).toBe( "lucee.runtime.type.wrap.ListBackedArray" );
+				var loaded = objectLoad( objectSave( wrapped ) );
+				expect( isArray( loaded ) ).toBeTrue();
+				expect( loaded[ 1 ] ).toBe( 1 );
+				expect( loaded[ 2 ] ).toBe( "two" );
+				// writeReplace streams as ArrayImpl for 7.x compatibility
+				expect( loaded.getClass().getName() ).toBe( "lucee.runtime.type.ArrayImpl" );
+			});
+
+			it( title="ListBackedArray pins a serialVersionUID", body=function( currentSpec ) {
+				var javaList = createObject( "java", "java.util.ArrayList" ).init();
+				javaList.add( 1 );
+				var wrapped = createObject( "java", "lucee.runtime.type.wrap.ListAsArray" ).toArray( javaList );
+				var osc = createObject( "java", "java.io.ObjectStreamClass" ).lookup( wrapped.getClass() );
+				expect( osc.getName() ).toBe( "lucee.runtime.type.wrap.ListBackedArray" );
+				expect( toString( osc.getSerialVersionUID() ) ).toBe( "1" );
 			});
 
 		});
