@@ -57,13 +57,20 @@ public final class ListToArray extends BIF {
 		return ListUtil.listToArray(list, delimiter, includeEmptyFields, multiCharacterDelimiter);
 	}
 
+	public static Array call(PageContext pc, String list, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, Number limit) {
+		if (list.length() == 0) return call(pc, list, delimiter, includeEmptyFields, multiCharacterDelimiter);
+		return ListUtil.listToArray(list, delimiter, includeEmptyFields, multiCharacterDelimiter, Caster.toIntValue(limit));
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 1) return call(pc, Caster.toString(args[0]));
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
 		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]), Caster.toBooleanValue(args[3]));
+		if (args.length == 5) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]), Caster.toBooleanValue(args[3]),
+				Caster.toDoubleValue(args[4]));
 
-		throw new FunctionException(pc, "ListToArray", 1, 4, args.length);
+		throw new FunctionException(pc, "ListToArray", 1, 5, args.length);
 	}
 }

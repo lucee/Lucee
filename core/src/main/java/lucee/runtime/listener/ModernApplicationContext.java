@@ -257,6 +257,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initQoQCaseSensitive;
 	private Boolean qoqCaseSensitive;
 	private boolean initQoQEngine;
+	private boolean initQueryIncludeSQL;
+	private Boolean queryIncludeSQL;
 	private String qoqEngine;
 	private boolean initProxyData;
 	private boolean initBlockedExtForFileUpload;
@@ -278,6 +280,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean aiFactoriesInit;
 
 	private boolean initLog;
+	private final ThreadLocal<Boolean> initLogRunning = new ThreadLocal<>();
 
 	private Map<Collection.Key, Pair<Log, Struct>> logs;
 
@@ -840,6 +843,12 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 		initAIEngineFactories();
 		if (aiFactories == null) return Collections.emptyMap();
 		return Collections.unmodifiableMap(aiFactories);
+	}
+
+	@Override
+	public void setAIEngines(Map<String, AIEngine> engines) {
+		this.aiFactories = engines;
+		this.aiFactoriesInit = true;
 	}
 
 	@Override
@@ -2120,7 +2129,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public Log getLog(String name) {
-		if (!initLog) initLog();
+		if (!initLogs()) return null;
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
 		if (pair == null) return null;
 		return pair.getName();
@@ -2128,7 +2137,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public Struct getLogMetaData(String name) {
-		if (!initLog) initLog();
+		if (!initLogs()) return null;
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
 		if (pair == null) return null;
 		return (Struct) pair.getValue().duplicate(false);
@@ -2136,8 +2145,30 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public java.util.Collection<Collection.Key> getLogNames() {
-		if (!initLog) initLog();
+		if (!initLogs()) return java.util.Collections.emptyList();
 		return logs.keySet();
+	}
+
+	/**
+	 * make sure the loggers defined in this.logs are initialized.
+	 * 
+	 * @return false if the loggers of this thread are currently being initialized. Creating a logger
+	 *         can require a log itself, for example when the appender is loaded from a maven artifact
+	 *         and the maven code logs to the "mvn" log, in that case we must not start the
+	 *         initialization again (endless recursion), the caller has to fall back to the log of the
+	 *         configuration.
+	 */
+	private boolean initLogs() {
+		if (initLog) return true;
+		if (Boolean.TRUE.equals(initLogRunning.get())) return false;
+		initLogRunning.set(Boolean.TRUE);
+		try {
+			initLog();
+		}
+		finally {
+			initLogRunning.remove();
+		}
+		return true;
 	}
 
 	private void initLog() {
@@ -2294,6 +2325,16 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public void setQueryVarUsage(int varUsage) {
 		this.queryVarUsage = varUsage;
 		this.initQueryVarUsage = true;
+	}
+
+	@Override
+	public Boolean getQueryIncludeSQL() {
+		if (!initQueryIncludeSQL) {
+			Struct qry = Caster.toStruct(get(component, KeyConstants._query, null), null);
+			if (qry != null) queryIncludeSQL = Caster.toBoolean(qry.get("includeSQL", null), null);
+			initQueryIncludeSQL = true;
+		}
+		return queryIncludeSQL;
 	}
 
 	private Struct getQoQStruct() {

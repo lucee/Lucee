@@ -22,21 +22,24 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.TimeZone;
 
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.BundleReference;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.transformer.library.ClassDefinitionImpl;
 
@@ -56,7 +59,6 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final String name;
 	private final boolean storage;
 	private final boolean validate;
-	protected final int allow;
 	private final boolean readOnly;
 	private final String username;
 	private final String password;
@@ -75,7 +77,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private String id;
 
 	public DataSourceSupport(String name, ClassDefinition cd, String username, String password, TagListener listener, boolean blob, boolean clob, int connectionLimit,
-			int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly,
+			int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, TimeZone timezone, boolean storage, boolean readOnly,
 			boolean validate, boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
 		this.name = name;
 		this.cd = cd;// _initializeCD(null, cd, config);
@@ -86,7 +88,6 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		this.liveTimeout = liveTimeout;
 		this.metaCacheTimeout = metaCacheTimeout;
 		this.timezone = timezone;
-		this.allow = allow;
 		this.storage = storage;
 		this.readOnly = readOnly;
 		this.username = username;
@@ -154,7 +155,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 			if (d != null && !isFromUninstalledBundle(d.getClass())) return d;
 			// the cached driver (if any) comes from a bundle that was uninstalled, drop it and resolve again
 			driver = null;
-			return driver = _initializeDriver(cd, config);
+			return driver = _initializeDriver(name, cd, config);
 		}
 	}
 
@@ -167,12 +168,15 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		}
 	}
 
-	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws Exception {
+	private static Driver _initializeDriver(String dsName, ClassDefinition cd, Config config) throws Exception {
+		// LDEV-5801 without a class name there is nothing to load, tell what is missing instead of failing with [null]
+		if (cd == null || !cd.hasClass()) throw noDriverClass(dsName, config);
+
 		// load the class
 		Class<?> clazz = cd.getClazz();
 		if (isFromUninstalledBundle(clazz)) {
 			// the class definition still holds a class from an uninstalled bundle, force a fresh lookup
-			Bundle uninstalled = getBundle(clazz);
+			Map<String, Object> uninstalled = BundleServiceImpl.getInstance().getBundleInfo(clazz);
 			try {
 				clazz = (cd instanceof ClassDefinitionImpl) ? ((ClassDefinitionImpl) cd).getClazz(true) : cd.getClazz();
 			}
@@ -186,29 +190,55 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		return (Driver) ClassUtil.newInstance(clazz);
 	}
 
-	private static ClassException driverNotAvailable(ClassDefinition cd, Bundle bundle) {
-		String bundleInfo = bundle != null ? bundle.getSymbolicName() + ":" + bundle.getVersion() : cd.getName() + ":" + cd.getVersionAsString();
+	/**
+	 * LDEV-5801 the datasource has no JDBC driver class, because none of the settings that define the driver
+	 * ([class], [id], [type], [dbdriver]) did result in a driver.
+	 */
+	private static ApplicationException noDriverClass(String dsName, Config config) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("No JDBC driver defined for the datasource").append(StringUtil.isEmpty(dsName, true) ? "" : " [" + dsName + "]").append(". ");
+		sb.append("The driver is defined by [class] (the JDBC driver class, together with [bundleName] and [bundleVersion] or [maven]), ");
+		sb.append("or by [type] / [dbdriver] / [id] matching the id of an installed JDBC driver extension");
+		String ids = getInstalledDriverIds(config);
+		if (ids.length() > 0) sb.append(" (installed: ").append(ids).append(")");
+		sb.append(".");
+		return new ApplicationException(sb.toString());
+	}
+
+	private static String getInstalledDriverIds(Config config) {
+		try {
+			if (!(config instanceof ConfigPro)) return "";
+			JDBCDriver[] drivers = ((ConfigPro) config).getJDBCDrivers();
+			if (drivers == null) return "";
+			StringBuilder sb = new StringBuilder();
+			for (JDBCDriver d: drivers) {
+				if (d == null || StringUtil.isEmpty(d.id, true)) continue;
+				if (sb.length() > 0) sb.append(", ");
+				sb.append(d.id);
+			}
+			return sb.toString();
+		}
+		catch (Exception e) {
+			return "";
+		}
+	}
+
+	private static ClassException driverNotAvailable(ClassDefinition cd, Map<String, Object> bundle) {
+		String bundleInfo = bundle != null ? bundle.get("name") + ":" + bundle.get("version") : cd.getName() + ":" + cd.getVersionAsString();
 		return new ClassException("The JDBC driver [" + cd.getClassName() + "] is no longer available, the OSGi bundle [" + bundleInfo
 				+ "] it was loaded from has been uninstalled (for example because the extension providing the driver was removed or updated). "
 				+ "Install the extension that provides this JDBC driver again.");
 	}
 
-	private static Bundle getBundle(Class<?> clazz) {
-		if (clazz == null) return null;
-		ClassLoader cl = clazz.getClassLoader();
-		if (cl instanceof BundleReference) return ((BundleReference) cl).getBundle();
-		return null;
-	}
-
 	private static boolean isFromUninstalledBundle(Class<?> clazz) {
-		Bundle b = getBundle(clazz);
-		return b != null && b.getState() == Bundle.UNINSTALLED;
+		if (clazz == null) return false;
+		return "uninstalled".equals(BundleServiceImpl.getInstance().getBundleState(clazz));
 	}
 
 	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws PageException {
 		try {
 			// Driver driver = _initializeDriver(_initializeCD(jdbc, cd, config),config);
-			Driver driver = _initializeDriver(cd, config);
+			Driver driver = _initializeDriver(null, cd, config);
 			_getConnection(config, driver, connStrTranslated, user, pass);
 		}
 		catch (Exception e) {
@@ -289,13 +319,15 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	}
 
 	@Override
+	@Deprecated
 	public final boolean hasAllow(int allow) {
-		return (this.allow & allow) > 0;
+		return true;
 	}
 
 	@Override
+	@Deprecated
 	public final boolean hasSQLRestriction() {
-		return this.allow != DataSource.ALLOW_ALL;
+		return false;
 	}
 
 	@Override

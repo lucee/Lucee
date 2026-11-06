@@ -11,8 +11,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,14 +51,18 @@ import lucee.runtime.config.maven.RepoReader;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.util.ListUtil;
 
 public final class MavenUtil {
@@ -192,6 +199,10 @@ public final class MavenUtil {
 		boolean loadedPDM = false;
 		String g = resolvePlaceholders(current, rd.groupId, properties);
 		String a = resolvePlaceholders(current, rd.artifactId, properties);
+
+		// excluded by the root dependency (LDEV-5641)
+		if (!management && isExcluded(current.getExclusions(), g, a)) return null;
+
 		// scope
 		String s = rd.scope;
 		if (s != null) {
@@ -259,7 +270,99 @@ public final class MavenUtil {
 		}
 
 		return POM.getInstance(localDirectory, current.getRepositories(), g, a, v, classifier, extension, s, o, null, current.getDependencyScope(),
-				current.getDependencyScopeManagement(), false, log);
+				current.getDependencyScopeManagement(), true, management ? null : current.getExclusions(), false, log);
+	}
+
+	private static final Key KEY_TRANSITIVE = KeyImpl.init("transitive");
+	private static final Key KEY_EXCLUSIONS = KeyImpl.init("exclusions");
+
+	/**
+	 * normalizes groupId:artifactId exclusion patterns: trimmed, without duplicates, order kept. A
+	 * pattern may contain * as wildcard in both parts.
+	 * 
+	 * @throws IllegalArgumentException for a pattern that is not in the format groupId:artifactId
+	 */
+	static List<String> toExclusions(Collection<String> exclusions) {
+		if (exclusions == null || exclusions.isEmpty()) return Collections.emptyList();
+		LinkedHashSet<String> set = new LinkedHashSet<>();
+		for (String exclusion: exclusions) {
+			String[] parts = exclusion == null ? new String[0] : exclusion.trim().split(":", -1);
+			if (parts.length != 2 || StringUtil.isEmpty(parts[0], true) || StringUtil.isEmpty(parts[1], true)) {
+				throw new IllegalArgumentException("Invalid Maven exclusion [" + exclusion + "]. Expected format: '<groupId>:<artifactId>', * can be used as wildcard.");
+			}
+			set.add(parts[0].trim() + ":" + parts[1].trim());
+		}
+		return Collections.unmodifiableList(new ArrayList<>(set));
+	}
+
+	/**
+	 * @return true if groupId:artifactId matches one of the exclusion patterns
+	 */
+	static boolean isExcluded(List<String> exclusions, String groupId, String artifactId) {
+		if (exclusions == null || exclusions.isEmpty()) return false;
+		for (String exclusion: exclusions) {
+			int index = exclusion.indexOf(':');
+			if (wildcardMatch(exclusion.substring(0, index), groupId == null ? "" : groupId.trim())
+					&& wildcardMatch(exclusion.substring(index + 1), artifactId == null ? "" : artifactId.trim())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean wildcardMatch(String pattern, String value) {
+		int p = 0, v = 0, star = -1, mark = 0;
+		while (v < value.length()) {
+			if (p < pattern.length() && pattern.charAt(p) == '*') {
+				star = p++;
+				mark = v;
+			}
+			else if (p < pattern.length() && pattern.charAt(p) == value.charAt(v)) {
+				p++;
+				v++;
+			}
+			else if (star != -1) {
+				p = star + 1;
+				v = ++mark;
+			}
+			else return false;
+		}
+		while (p < pattern.length() && pattern.charAt(p) == '*') {
+			p++;
+		}
+		return p == pattern.length();
+	}
+
+	private static List<String> parseExclusions(Object obj) throws ApplicationException {
+		if (obj == null) return Collections.emptyList();
+		List<String> list = new ArrayList<>();
+		if (Decision.isArray(obj)) {
+			Array arr = Caster.toArray(obj, null);
+			Iterator<Object> it = arr.valueIterator();
+			while (it.hasNext()) {
+				list.add(Caster.toString(it.next(), null));
+			}
+		}
+		else {
+			String str = Caster.toString(obj, null);
+			if (str == null) throw new ApplicationException("Invalid value of type [" + Caster.toTypeName(obj) + "] for Maven [exclusions], expected an array of '<groupId>:<artifactId>'.");
+			for (String entry: ListUtil.listToStringArray(str, ',')) {
+				list.add(entry);
+			}
+		}
+		try {
+			return toExclusions(list);
+		}
+		catch (IllegalArgumentException iae) {
+			throw new ApplicationException(iae.getMessage());
+		}
+	}
+
+	private static boolean parseTransitive(Object obj) throws ApplicationException {
+		if (obj == null) return true;
+		Boolean b = Caster.toBoolean(obj, null);
+		if (b == null) throw new ApplicationException("Invalid value [" + Caster.toString(obj, "") + "] for Maven [transitive], expected a boolean.");
+		return b.booleanValue();
 	}
 
 	public static class MavenCoordinate implements Serializable {
@@ -275,6 +378,8 @@ public final class MavenUtil {
 		public final String optional;// optional
 		public final String checksum;
 		private int d;// dependency
+		private boolean transitive = true;
+		private List<String> exclusions = Collections.emptyList();
 
 		public MavenCoordinate(String groupId, String artifactId, String version) {
 			this(groupId, artifactId, version, null, null, null, null, null);
@@ -297,6 +402,9 @@ public final class MavenUtil {
 			this.scope = scope;
 			this.optional = optional;
 			this.checksum = checksum;
+			validateCoordinates(groupId, artifactId, version);
+			validateCoordinate("classifier", this.classifier, false);
+			validateCoordinate("extension", this.extension, false);
 		}
 
 		public MavenCoordinate setDependency(int d) {
@@ -306,6 +414,24 @@ public final class MavenUtil {
 
 		public int getDependency() {
 			return d;
+		}
+
+		/**
+		 * @param transitive false to only use this artifact itself and not the artifacts it depends on
+		 * @param exclusions groupId:artifactId patterns of artifacts that are not resolved as dependencies
+		 */
+		public MavenCoordinate setDependencyOptions(boolean transitive, List<String> exclusions) {
+			this.transitive = transitive;
+			this.exclusions = toExclusions(exclusions);
+			return this;
+		}
+
+		public boolean isTransitive() {
+			return transitive;
+		}
+
+		public List<String> getExclusions() {
+			return exclusions;
 		}
 
 		/**
@@ -387,6 +513,14 @@ public final class MavenUtil {
 			if (!StringUtil.isEmpty(scope, true)) sct.setEL(KeyConstants._scope, scope);
 			if (!StringUtil.isEmpty(optional, true)) sct.setEL(KeyConstants._optional, optional);
 			if (!StringUtil.isEmpty(checksum, true)) sct.setEL(KeyConstants._checksum, checksum);
+			if (!transitive) sct.setEL(KEY_TRANSITIVE, Boolean.FALSE);
+			if (!exclusions.isEmpty()) {
+				Array arr = new ArrayImpl();
+				for (String exclusion: exclusions) {
+					arr.appendEL(exclusion);
+				}
+				sct.setEL(KEY_EXCLUSIONS, arr);
+			}
 			return sct;
 		}
 
@@ -699,7 +833,9 @@ public final class MavenUtil {
 											}
 											finally {
 												IOUtil.closeEL(is);
-												HTTPUtil.validateDownload(url, response, tmp, pom.getChecksum(), true, ex);
+												// LDEV-5864: compare with the hash of the response headers or the checksum files next to the artifact
+												HTTPUtil.validateDownload(url, response, tmp, StringUtil.endsWithIgnoreCase(url.toExternalForm(), ".jar") ? pom.getChecksum() : null, true, true,
+														ex, log);
 												verifySignature(tmp, url, pom, type);
 												res.getParentResource().mkdirs();
 												tmp.moveTo(res);
@@ -846,7 +982,7 @@ public final class MavenUtil {
 	}
 
 	public static POM toPOM(Resource localDirectory, Collection<Repository> repositories, POMReader.Dependency dependency, Map<String, String> properties, int dependencyScope,
-			int dependencyScopeManagement, Log log) throws IOException {
+			int dependencyScopeManagement, List<String> exclusions, Log log) throws IOException {
 
 		return POM.getInstance(localDirectory, repositories,
 
@@ -856,9 +992,11 @@ public final class MavenUtil {
 
 				resolvePlaceholders(null, dependency.version, properties),
 
-				null, null, null,
+				null, null, null, null, null,
 
 				dependencyScope, dependencyScopeManagement,
+
+				true, exclusions, true,
 
 				log
 
@@ -1023,9 +1161,10 @@ public final class MavenUtil {
 				if (StringUtil.isEmpty(v, true)) v = Caster.toString(el.get(KeyConstants._v, null), null);
 				if (StringUtil.isEmpty(v, true)) v = null;
 
-				return new MavenCoordinate(g, a, v, Caster.toString(el.get(KeyConstants._classifier, null), null), Caster.toString(el.get(KeyConstants._extension, null), null),
-						Caster.toString(el.get(KeyConstants._scope, null), null), Caster.toString(el.get(KeyConstants._optional, null), null),
-						Caster.toString(el.get(KeyConstants._checksum, null), null));
+				MavenCoordinate coordinate = new MavenCoordinate(g, a, v, Caster.toString(el.get(KeyConstants._classifier, null), null),
+						Caster.toString(el.get(KeyConstants._extension, null), null), Caster.toString(el.get(KeyConstants._scope, null), null),
+						Caster.toString(el.get(KeyConstants._optional, null), null), Caster.toString(el.get(KeyConstants._checksum, null), null));
+				return coordinate.setDependencyOptions(parseTransitive(el.get(KEY_TRANSITIVE, null)), parseExclusions(el.get(KEY_EXCLUSIONS, null)));
 			}
 
 			// single entry with gradle style?
@@ -1079,8 +1218,57 @@ public final class MavenUtil {
 		}
 		if (!strict) return null;
 		throw new ApplicationException("Unable to parse Maven data from the provided input of type [" + Caster.toTypeName(obj) + "]. Supported formats are: "
-				+ "1) A Struct with keys 'groupId', 'artifactId', and 'version' (optionally 'classifier', 'extension', 'scope', 'optional' and 'checksum'), or "
+				+ "1) A Struct with keys 'groupId', 'artifactId', and 'version' (optionally 'classifier', 'extension', 'scope', 'optional', 'checksum', 'transitive' and 'exclusions'), or "
 				+ "2) A String in the format 'group:artifact:version[:classifier][@extension]'. Ensure the input conforms to one of these formats.");
+	}
+
+	private static final String UNSAFE_COORDINATE_CHARS = "/\\:*?\"<>|%#";
+
+	/**
+	 * validate the parts of a maven coordinate that end up in a local path or a repository URL. Empty
+	 * values are accepted here, whether a part is required is checked by the caller.
+	 * 
+	 * @throws PageRuntimeException wrapping an ApplicationException if a part is not safe
+	 */
+	public static void validateCoordinates(String groupId, String artifactId, String version) {
+		validateCoordinate("groupId", groupId, true);
+		validateCoordinate("artifactId", artifactId, false);
+		validateCoordinate("version", version, false);
+	}
+
+	public static void validateCoordinate(String name, String value, boolean dotSeparated) {
+		String msg = checkCoordinate(name, value, dotSeparated);
+		if (msg != null) throw new PageRuntimeException(new ApplicationException(msg));
+	}
+
+	private static String checkCoordinate(String name, String value, boolean dotSeparated) {
+		if (value == null) return null;
+		String str = value.trim();
+		if (str.isEmpty()) return null;
+
+		char c;
+		for (int i = 0; i < str.length(); i++) {
+			c = str.charAt(i);
+			if (Character.isISOControl(c) || Character.isWhitespace(c) || Character.isSpaceChar(c) || UNSAFE_COORDINATE_CHARS.indexOf(c) != -1) {
+				return "Invalid Maven " + name + " [" + printable(str) + "], the character at position " + (i + 1)
+						+ " is not allowed. A coordinate part must not contain whitespace, control characters or any of the characters [/ \\ : * ? \" < > | % #].";
+			}
+		}
+		if (".".equals(str) || str.indexOf("..") != -1 || (dotSeparated && (str.charAt(0) == '.' || str.charAt(str.length() - 1) == '.'))) {
+			return "Invalid Maven " + name + " [" + printable(str) + "], a coordinate part must not contain empty or relative path segments like [..].";
+		}
+		return null;
+	}
+
+	private static String printable(String str) {
+		StringBuilder sb = new StringBuilder();
+		char c;
+		for (int i = 0; i < str.length() && i < 128; i++) {
+			c = str.charAt(i);
+			sb.append(Character.isISOControl(c) ? '?' : c);
+		}
+		if (str.length() > 128) sb.append("...");
+		return sb.toString();
 	}
 
 	// LDEV-6250: not called — Maven does not restrict version format (see

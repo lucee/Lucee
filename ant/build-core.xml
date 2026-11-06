@@ -11,9 +11,13 @@
   <property name="bundleName" value="Lucee Core"/>
   <property name="bundleSymbolicName" value="lucee.core"/>
   
-  <property name="testboxVersion" value="3.2.0"/>
+  <property name="testboxVersion" value="7.2.2"/>
   <property name="testboxURL" 
     value="https://downloads.ortussolutions.com/ortussolutions/testbox/${testboxVersion}/testbox-${testboxVersion}.zip"/>
+  <!-- TestBox needs the globber module (system/modules/globber), it is normally installed with CommandBox, so we download it separately -->
+  <property name="globberVersion" value="3.2.0"/>
+  <property name="globberURL" 
+    value="https://github.com/Ortus-Solutions/globber/archive/refs/tags/v${globberVersion}.zip"/>
   <property name="extURL" value="https://extension.lucee.org/rest/extension/provider/full/"/>
   <property name="extURLMaven" value="https://repo1.maven.org/maven2/"/>
   <property name="extURLCDN" value="https://maven.lucee-services.com/"/>
@@ -386,7 +390,7 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-s3,check-pdf,check-admin,check-doc,check-image,check-esapi,check-scheduler,check-compress,check-mail,check-ftp,check-markdown,check-smb,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-s3,check-pdf,check-admin,check-doc,check-image,check-esapi,check-scheduler,check-compress,check-mail,check-ftp,check-markdown,check-smb,check-testbox,check-testbox-globber,check-lucee-loader-jar,download-lucee-loader-jar">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 
@@ -680,7 +684,7 @@
 
       <jvmarg value="-Dsrc=${tmpContext}"/>
       <jvmarg value="-Dtemp=${temp}/archive"/>
-      <jvmarg value="-Dtestbox=${temp}/testbox/testbox"/>
+      <jvmarg value="-Dtestbox=${temp}/testbox"/>
       <jvmarg value="-DcompileTestBox=${compileTestBox}"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
@@ -716,7 +720,17 @@
 			todir="${temp}"/>
     <!-- testbox -->		
     <unzip src="${temp}/testbox-${testboxVersion}.zip" dest="${temp}/testbox"/>
-    <delete dir="${temp}/testbox-${testboxVersion}.zip"/>
+    <delete file="${temp}/testbox-${testboxVersion}.zip"/>
+
+    <!-- TestBox requires the globber module, normally installed with CommandBox, only the models are needed -->
+    <unzip src="${cache}/globber-${globberVersion}.zip" dest="${temp}/testbox/system/modules/globber">
+      <patternset>
+        <include name="globber-${globberVersion}/models/**"/>
+        <include name="globber-${globberVersion}/ModuleConfig.cfc"/>
+        <include name="globber-${globberVersion}/box.json"/>
+      </patternset>
+      <cutdirsmapper dirs="1"/>
+    </unzip>
 </target>
 <!--
   MARK: Run Tests

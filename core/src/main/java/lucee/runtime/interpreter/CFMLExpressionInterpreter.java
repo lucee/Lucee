@@ -18,6 +18,7 @@
  */
 package lucee.runtime.interpreter;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -1279,6 +1280,32 @@ public class CFMLExpressionInterpreter {
 
 	}
 
+	/**
+	 * LDEV-6801: reads the parts of the slice syntax <code>[from:to:step]</code> after the "from" part
+	 * and returns a call of the internal function _arraySlice, the current position is at the first ":"
+	 */
+	private Ref arraySlice(Ref array, Ref from) throws PageException {
+		Ref to = null, step = null;
+		cfml.forwardIfCurrent(':');
+		comments();
+		if (!cfml.isCurrent(':') && !cfml.isCurrent(']')) {
+			to = assignOp();
+			comments();
+		}
+		if (cfml.forwardIfCurrent(':')) {
+			comments();
+			if (!cfml.isCurrent(']')) {
+				step = assignOp();
+				comments();
+			}
+		}
+		FunctionLibFunction flf = cs.getFLDs().getFunction("_arraySlice");
+		if (flf == null) throw createSyntaxException("the slice syntax [from:to:step] is not available, function [_arraySlice] is missing", cfml);
+		int omitted = (from == null ? 1 : 0) + (to == null ? 2 : 0) + (step == null ? 4 : 0);
+		return new BIFCall(flf, new Ref[] { array, from == null ? LNumber.ZERO : from, to == null ? LNumber.ZERO : to, step == null ? LNumber.ONE : step,
+				new LNumber(BigDecimal.valueOf(omitted)) });
+	}
+
 	private Ref subDynamic(Ref ref) throws PageException {
 		String name = null;
 
@@ -1296,7 +1323,16 @@ public class CFMLExpressionInterpreter {
 			// []
 			else if (cfml.forwardIfCurrent('[')) {
 				comments();
-				ref = new Variable(ref, assignOp(), limited);
+				// LDEV-6801 slice syntax [from:to:step], same as the compiler (LDEV-1813)
+				if (!limited && cfml.isCurrent(':')) {
+					ref = arraySlice(ref, null);
+				}
+				else {
+					Ref key = assignOp();
+					comments();
+					if (!limited && cfml.isCurrent(':')) ref = arraySlice(ref, key);
+					else ref = new Variable(ref, key, limited);
+				}
 				comments();
 				if (!cfml.forwardIfCurrent(']')) throw createSyntaxException("Invalid Syntax Closing []] not found ", cfml);
 			}

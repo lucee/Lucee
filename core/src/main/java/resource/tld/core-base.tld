@@ -1929,6 +1929,25 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>Name of the result value (default:cffile)</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>continueOnError</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>9.0.0.0</introduced>
+			<description>for action "upload" and "uploadAll":
+false (default): the first file that is rejected throws an exception.
+true: a rejected file (file type not allowed, file already exists, form field not found) does not throw an exception and for "uploadAll" the remaining files are still uploaded. The result of a rejected file has fileWasSaved=false and the keys reason, message, detail, clientFile, clientFileExt and clientFileName.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>errors</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>9.0.0.0</introduced>
+			<description>for action "upload" and "uploadAll", only used when continueOnError is true:
+name of the variable that receives an array with one struct (reason, message, detail, clientFile, clientFileExt, clientFileName) for every rejected file, default is "cffile.uploadAllErrors" (when the attribute result is not used). reason is one of INVALID_FILE_TYPE, FILE_EXISTS or FORM_FILE_NOT_FOUND.</description>
+		</attribute>
+		<attribute>
 			<type>any</type>
 			<name>allowedExtensions</name>
 			<alias>allowExtension,allowedExtension</alias>
@@ -2620,6 +2639,14 @@ If not specified, falls back to the `timeout` attribute value.</description>
 			<rtexprvalue>true</rtexprvalue>
 			<introduced>6.0.0.96</introduced>
 			<description>Flag allowing to disable connection reuse on one off requests.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>httpVersion</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>9.0</introduced>
+			<description>The HTTP protocol version of the request. "1.1" (default) uses HTTP/1.1. "2" uses HTTP/2 only, over TLS (https) it is negotiated with ALPN and over plain http it expects a server that speaks HTTP/2 without an upgrade ("prior knowledge"), the request fails when the server does not speak HTTP/2. "auto" uses HTTP/2 when the server offers it with ALPN and HTTP/1.1 otherwise. "2" and "auto" need an HTTP engine that supports HTTP/2, that is the HTTP extension. The protocol that was used is in the result key http_version.</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
@@ -4700,6 +4727,19 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>boolean</type>
+			<name>includeSQL</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+			Only used together with the attribute "result". Defines if the result struct contains the keys "sql" and "sqlparameters".
+			Set to false to leave them out, for example to save memory when running queries with a lot of parameters.
+			If not set, the setting "this.query.includeSQL" in the Application.cfc is used, then the environment variable
+			"LUCEE_QUERY_RESULT_INCLUDESQL" (system property "lucee.query.result.includesql"), the default is true.
+			Note that "sql" contains the SQL string with "?" placeholders, the parameter values are in "sqlparameters".
+			</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
 			<name>lazy</name>
 			<status>deprecated</status>
 			<required>false</required>
@@ -4984,7 +5024,7 @@ Params: [
 			<description></description>
 		</attribute>
 		<attribute>
-			<type>string</type>
+			<type>any</type>
 			<name>name</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -8302,6 +8342,14 @@ Valid only for cfinput type="text".</description>
 			- lifeTimespan (timespan): overall timeout for the connections established to the mail server.
 			- idleTimespan (timespan): idle timeout for the connections established to the mail server.
 			</description>
+		</attribute>
+		<attribute>
+			<type>struct</type>
+			<name>ai</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>A structure that contains AI connection definitions, the same as `this.ai` in the Application.cfc. Each key is the name of a connection, the value is a struct that defines the connection (class, custom, default), for example `{ myAI: { class: "lucee.runtime.ai.openai.OpenAIEngine", custom: { type: "openai", model: "gpt-4o", secretKey: "..." } } }`.
+			With action "update" the connections defined by the application are replaced by the given ones, connections of the server configuration are still available. An invalid connection throws an exception.</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>

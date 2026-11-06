@@ -19,9 +19,9 @@
 package lucee.transformer.cfml.evaluator.impl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -42,7 +42,8 @@ import lucee.transformer.util.SourceCode;
 public final class Sprite extends EvaluatorSupport {
 
 	// private static final Expression DELIMITER = LitString.toExprString(",");
-	private static Map<String, Previous> sprites = new HashMap<String, Previous>();
+	// templates can be compiled in parallel
+	private static Map<String, Previous> sprites = new ConcurrentHashMap<String, Previous>();
 
 	@Override
 	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib flibs) throws EvaluatorException {

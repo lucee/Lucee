@@ -120,11 +120,6 @@ public final class QueryLazy extends BIF {
 		DatasourceManagerImpl manager = (DatasourceManagerImpl) pc.getDataSourceManager();
 		DatasourceConnection dc = manager.getConnection(pc, ds, user, pass); // TODO username and password
 		boolean isMySQL = DataSourceUtil.isMySQL(dc);
-		// check SQL Restrictions
-		if (dc.getDatasource().hasSQLRestriction()) { // deprecated
-			QueryUtil.checkSQLRestriction(pc, dc, sql);
-		}
-
 		// execute
 		Statement stat = null;
 		ResultSet res = null;

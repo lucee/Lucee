@@ -50,14 +50,22 @@ public final class ListLast extends BIF {
 		return ListUtil.last(list, delimiter, !includeEmptyFields, cnt);
 	}
 
+	public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields, Number count, boolean multiCharacterDelimiter) throws PageException {
+		if (!ListUtil.isMultiCharDelimiter(delimiter, multiCharacterDelimiter)) return call(pc, list, delimiter, includeEmptyFields, count);
+		char c = ListUtil.freeChar(list);
+		return ListUtil.unmask(call(pc, ListUtil.mask(list, delimiter, c), String.valueOf(c), includeEmptyFields, count), delimiter, c);
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 1) return ListUtil.last(Caster.toString(args[0]), ",", true, 1);
 		if (args.length == 2) return ListUtil.last(Caster.toString(args[0]), Caster.toString(args[1]), true, 1);
 		if (args.length == 3) return ListUtil.last(Caster.toString(args[0]), Caster.toString(args[1]), !Caster.toBooleanValue(args[2]), 1);
 		if (args.length == 4) return ListUtil.last(Caster.toString(args[0]), Caster.toString(args[1]), !Caster.toBooleanValue(args[2]), Caster.toIntValue(args[3]));
+		if (args.length == 5)
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]), Caster.toIntValue(args[3]), Caster.toBooleanValue(args[4]));
 
-		throw new FunctionException(pc, "ListLast", 1, 4, args.length);
+		throw new FunctionException(pc, "ListLast", 1, 5, args.length);
 	}
 
 }

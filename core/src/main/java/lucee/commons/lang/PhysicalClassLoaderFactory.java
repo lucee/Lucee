@@ -1,6 +1,5 @@
 package lucee.commons.lang;
 
-import org.osgi.framework.BundleReference;
 import java.nio.charset.StandardCharsets;
 
 import java.io.IOException;
@@ -32,7 +31,7 @@ import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -138,15 +137,15 @@ public class PhysicalClassLoaderFactory {
 		if (parent instanceof PhysicalClassLoader) {
 			key += ":" + ((PhysicalClassLoader) parent).id;
 		}
-		else if (parent instanceof BundleReference) {
-			key += ":" + OSGiUtil.createId((BundleReference) parent);
-		}
 		else {
-			key += ":" + parent.getClass().getName() + parent.hashCode();
+			Map<String, Object> bundle = BundleServiceImpl.getInstance().getBundleInfo(parent);
+			if (bundle != null) key += ":" + bundle.get("name") + ":" + bundle.get("version");
+			else key += ":" + parent.getClass().getName() + parent.hashCode();
 		}
 
-		if (bcl instanceof BundleReference) {
-			key += ":" + OSGiUtil.createId((BundleReference) bcl);
+		Map<String, Object> bcInfo = BundleServiceImpl.getInstance().getBundleInfo(bcl);
+		if (bcInfo != null) {
+			key += ":" + bcInfo.get("name") + ":" + bcInfo.get("version");
 		}
 
 		return HashUtil.create64BitHashAsString(key);

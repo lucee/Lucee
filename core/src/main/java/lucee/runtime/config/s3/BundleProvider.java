@@ -34,8 +34,8 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -193,14 +193,7 @@ public final class BundleProvider extends DefaultHandler {
 	}
 
 	public static Map<String, List<Info>> getMappings() {
-		Bundle bundle = null;
-		try {
-			bundle = OSGiUtil.getBundleContext().getBundle();
-		}
-		catch (Exception e) {
-
-		}
-		return readIniFile(SystemUtil.getResourceAsStream(bundle, "META-INF/osgi-maven-mapping.ini"));
+		return readIniFile(SystemUtil.getResourceAsStream("META-INF/osgi-maven-mapping.ini"));
 	}
 
 	public static BundleProvider getInstance() throws MalformedURLException {
@@ -290,7 +283,7 @@ public final class BundleProvider extends DefaultHandler {
 					for (Element e: read(false)) {
 
 						if (bd.getName().equals(e.getBundleDefinition().getName())) {
-							if (latest == null || OSGiUtil.isNewerThan(e.getBundleDefinition().getVersion(), latest.getBundleDefinition().getVersion())) {
+							if (latest == null || (VersionImpl.compare(OSGiUtil.toLucee(e.getBundleDefinition().getVersion()), OSGiUtil.toLucee(latest.getBundleDefinition().getVersion())) > 0)) {
 								latest = e;
 								if (!StringUtil.endsWithIgnoreCase(latest.getBundleDefinition().getVersionAsString(), "-SNAPSHOT")) {
 									latestRelease = latest;
@@ -513,7 +506,7 @@ public final class BundleProvider extends DefaultHandler {
 						public int compare(Element l, Element r) {
 							int cmp = l.getBundleDefinition().getName().compareTo(r.getBundleDefinition().getName());
 							if (cmp != 0) return cmp;
-							return OSGiUtil.compare(l.getBundleDefinition().getVersion(), r.getBundleDefinition().getVersion());
+							return VersionImpl.compare(OSGiUtil.toLucee(l.getBundleDefinition().getVersion()), OSGiUtil.toLucee(r.getBundleDefinition().getVersion()));
 						}
 					});
 					elementsSorted = list;
@@ -692,7 +685,7 @@ public final class BundleProvider extends DefaultHandler {
 			if (index == -1) return defaultValue;
 
 			String symbolicName = version.substring(0, index);
-			Version symbolicVersion = OSGiUtil.toVersion(version.substring(index + 1), null);
+			Version symbolicVersion = VersionImpl.parseOSGi(version.substring(index + 1), null);
 			if (symbolicVersion == null) return defaultValue;
 			return new BundleDefinition(symbolicName, symbolicVersion);
 		}

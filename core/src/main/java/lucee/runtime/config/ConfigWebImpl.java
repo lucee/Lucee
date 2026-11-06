@@ -17,7 +17,7 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.Version;
+import lucee.runtime.config.maven.Version;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;

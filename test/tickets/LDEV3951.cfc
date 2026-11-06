@@ -47,7 +47,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 		describe("Testcase for LDEV-5310, no space after silent before bracket causes exception", function() {
 
-			xit( title="Inline comment in tag-in-script syntax dump", body=function( currentSpec ){
+			it( title="Inline comment in tag-in-script syntax dump", body=function( currentSpec ){
 				try {
 					var result = "success";
 					local.result = _InternalRequest(

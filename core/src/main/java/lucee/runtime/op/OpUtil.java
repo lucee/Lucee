@@ -392,6 +392,47 @@ public final class OpUtil {
 	}
 
 	/**
+	 * checks if the value of a for loop counter can be handled as a plain double by the compiled loop
+	 * (see lucee.transformer.bytecode.statement.For), this is the case when it is a "normal" number and
+	 * precise math is not enabled, in all other cases the generic loop code is used.
+	 * 
+	 * @param pc
+	 * @param value current value of the loop counter
+	 * @return true if the value can be handled as a double
+	 */
+	public static boolean isLoopCounter(PageContext pc, Object value) {
+		return (value instanceof Double || value instanceof Integer || value instanceof Long) && !ThreadLocalPageContext.preciseMath(pc);
+	}
+
+	/**
+	 * compares a loop counter (double) with a value, with the same result as compare(Object, Object)
+	 * would have for a number on the left side
+	 * 
+	 * @param pc
+	 * @param left
+	 * @param right
+	 * @return difference as int
+	 * @throws PageException
+	 */
+	public static int compareLoop(PageContext pc, double left, Object right) throws PageException {
+		if (right instanceof Number) return compareLoop(left, ((Number) right).doubleValue());
+		return compare(pc, (Object) Double.valueOf(left), right);
+	}
+
+	/**
+	 * compares two doubles
+	 * 
+	 * @param left
+	 * @param right
+	 * @return difference as int
+	 */
+	public static int compareLoop(double left, double right) {
+		if (left < right) return -1;
+		else if (left > right) return 1;
+		else return 0;
+	}
+
+	/**
 	 * compares a double with a double
 	 * 
 	 * @param left

@@ -52,7 +52,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 			});
 
 			it(title = "Join QoQ containing a serialized CFC Object",  body = function( currentSpec ) {
-				local.obj = new org.lucee.cfml.test.LuceeTestCase();
+				local.obj = new LDEV3514.Obj();
 				querySetCell(q, "CompObj", serialize(obj));
 
 				try {
@@ -72,7 +72,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 			});
 
 			it(title = "Native QoQ containing a serialized CFC Object",  body = function( currentSpec ) {
-				local.obj = new org.lucee.cfml.test.LuceeTestCase();
+				local.obj = new LDEV3514.Obj();
 				querySetCell(q, "CompObj", serialize(obj));
 				try {
 					local.myQuery = queryExecute(

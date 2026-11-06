@@ -136,6 +136,110 @@ public final class ListUtil {
 
 	}
 
+	/**
+	 * casts a list to Array object, stops scanning once limit elements are found
+	 *
+	 * @param limit 0 no limit, positive the rest of the list is the last element, negative only the
+	 *            first n elements
+	 */
+	public static Array listToArray(String list, String delimiter, boolean includeEmptyFields, boolean multiCharDelim, int limit) {
+		if (limit == 0) return listToArray(list, delimiter, includeEmptyFields, multiCharDelim);
+
+		boolean multi = multiCharDelim && delimiter.length() > 1;
+		char[] del = delimiter.toCharArray();
+		int dl = multi ? delimiter.length() : (del.length == 0 ? 0 : 1);
+		boolean remainder = limit > 0;
+		int max = Math.abs(limit);
+		int len = list.length();
+
+		Array array = new ArrayImpl();
+		int from = 0;
+		int index;
+		while (array.size() < (remainder ? max - 1 : max) && (index = indexOfDelim(list, from, delimiter, del, multi)) != -1) {
+			if (includeEmptyFields || from < index) array.appendEL(list.substring(from, index));
+			from = index + dl;
+		}
+		if (array.size() < max) {
+			if (remainder && !includeEmptyFields && dl > 0) {
+				while (from < len && (multi ? list.startsWith(delimiter, from) : contains(del, list.charAt(from)))) {
+					from += dl;
+				}
+			}
+			if (includeEmptyFields || from < len) array.appendEL(list.substring(from));
+		}
+		return array;
+	}
+
+	private static int indexOfDelim(String list, int from, String delimiter, char[] del, boolean multi) {
+		if (multi) return list.indexOf(delimiter, from);
+		int len = list.length();
+		// empty delimiter, every char is an element
+		if (del.length == 0) return from + 1 < len ? from + 1 : -1;
+		for (int i = from; i < len; i++) {
+			if (contains(del, list.charAt(i))) return i;
+		}
+		return -1;
+	}
+
+	/**
+	 * Support for the argument multiCharacterDelimiter of the list functions. The list functions work
+	 * with single character delimiters. To handle a delimiter that consists of more than one character
+	 * as one whole delimiter, every occurrence of the delimiter in the list is replaced with a single
+	 * character that does not occur in any of the strings involved (see {@link #freeChar(String...)}),
+	 * the function is executed with that character as delimiter and in the result that character is
+	 * replaced with the original delimiter again (see {@link #unmask(String, String, char)}). This way
+	 * the result for a multi character delimiter is identical to the one for a single character delimiter.
+	 * 
+	 * @param delimiter delimiter
+	 * @param multiCharacterDelimiter value of the argument multiCharacterDelimiter
+	 * @return true, if the delimiter has to be handled as one multi character delimiter
+	 */
+	public static boolean isMultiCharDelimiter(String delimiter, boolean multiCharacterDelimiter) {
+		return multiCharacterDelimiter && delimiter != null && delimiter.length() > 1;
+	}
+
+	/**
+	 * finds a character (from the Unicode private use area) that does not occur in any of the given
+	 * strings, to be used as replacement for a multi character delimiter
+	 * 
+	 * @param strings all strings that are part of the call
+	 * @return a character that does not occur in any of the strings
+	 * @throws ExpressionException if no free character could be found
+	 */
+	public static char freeChar(String... strings) throws ExpressionException {
+		outer: for (char c = '\uE000'; c <= '\uF8FF'; c++) {
+			for (String str: strings) {
+				if (str != null && str.indexOf(c) != -1) continue outer;
+			}
+			return c;
+		}
+		throw new ExpressionException("cannot use a multi character delimiter, the input contains all characters of the Unicode private use area that are needed to process it");
+	}
+
+	/**
+	 * replaces every occurrence of the multi character delimiter with the given character
+	 * 
+	 * @param list list
+	 * @param delimiter multi character delimiter
+	 * @param c replacement, see {@link #freeChar(String...)}
+	 * @return list with a single character delimiter
+	 */
+	public static String mask(String list, String delimiter, char c) {
+		return list.replace(delimiter, String.valueOf(c));
+	}
+
+	/**
+	 * replaces the character used as replacement for a multi character delimiter with the delimiter
+	 * 
+	 * @param list result of a list function that was called with a masked list
+	 * @param delimiter multi character delimiter
+	 * @param c replacement used, see {@link #freeChar(String...)}
+	 * @return result with the original delimiter
+	 */
+	public static String unmask(String list, String delimiter, char c) {
+		return list.replace(String.valueOf(c), delimiter);
+	}
+
 	private static Array listToArray(String list, String delimiter, boolean multiCharDelim) {
 		if (!multiCharDelim || delimiter.length() == 0) return listToArray(list, delimiter);
 		if (delimiter.length() == 1) return listToArray(list, delimiter.charAt(0));

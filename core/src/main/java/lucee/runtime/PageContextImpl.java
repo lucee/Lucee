@@ -395,7 +395,8 @@ public final class PageContextImpl extends PageContext {
 		{
 			Boolean tmp = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", null), null);
 			if (tmp == null) tmp = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.cfid.url.allow", null), null);
-			READ_CFID_FROM_URL = tmp == null ? true : tmp.booleanValue();
+			// LDEV-5664: CFID and CFTOKEN from the URL are not accepted unless explicitly enabled
+			READ_CFID_FROM_URL = tmp == null ? false : tmp.booleanValue();
 		}
 
 		{
@@ -4857,6 +4858,14 @@ public final class PageContextImpl extends PageContext {
 		return getApplicationContext().getAIEngine(nameAI);
 	}
 
+	/**
+	 * @param connection the definition of an AI connection (same keys as an entry of this.ai), used
+	 *            instead of the name of a connection
+	 */
+	public AIEngine getAIEngine(Struct connection) throws PageException {
+		return ((ConfigPro) config).getAIEnginePool().getEngine(config, connection);
+	}
+
 	public AIEngine getAIEngine(String nameAI, AIEngine defaultValue) {
 		try {
 			return getApplicationContext().getAIEngine(nameAI);
@@ -4873,6 +4882,11 @@ public final class PageContextImpl extends PageContext {
 	public AISession createAISession(String nameAI, String systemMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout)
 			throws PageException {
 		return getAIEngine(nameAI).createSession(systemMessage, history, limit, temp, connectTimeout, socketTimeout);
+	}
+
+	public AISession createAISession(Struct connection, String systemMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout)
+			throws PageException {
+		return getAIEngine(connection).createSession(systemMessage, history, limit, temp, connectTimeout, socketTimeout);
 	}
 
 	public AISession createAISessionById(String id, String systemMessage, Conversation[] history, int limit, double temp, int connectTimeout, int socketTimeout)

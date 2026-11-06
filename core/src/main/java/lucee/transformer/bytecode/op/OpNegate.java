@@ -40,6 +40,10 @@ public final class OpNegate extends ExpressionBase implements ExprBoolean {
 
 	private ExprBoolean expr;
 
+	public ExprBoolean getExpr() {
+		return expr;
+	}
+
 	private OpNegate(Expression expr, Position start, Position end) {
 		super(expr.getFactory(), start, end);
 		this.expr = expr.getFactory().toExprBoolean(expr);

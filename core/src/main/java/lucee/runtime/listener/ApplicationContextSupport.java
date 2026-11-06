@@ -365,7 +365,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			ClassDefinition cdApp = null;
 			if (sctApp != null) {
 				cdApp = ClassDefinitionImpl.toClassDefinitionImpl(sctApp, null, false, config.getIdentification());
-				if (!cdApp.isBundle()) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdApp.getClassName());
+				if (!cdApp.isBundle() && !ClassDefinitionImpl.isMaven(cdApp)) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdApp.getClassName());
 			}
 			else {
 				String appender = Caster.toString(v.get("appender", null), null);
@@ -377,7 +377,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			ClassDefinition cdLay = null;
 			if (sctLay != null) {
 				cdLay = ClassDefinitionImpl.toClassDefinitionImpl(sctLay, null, false, config.getIdentification());
-				if (!cdLay.isBundle()) cdLay = ((ConfigPro) config).getLogEngine().layoutClassDefintion(cdLay.getClassName());
+				if (!cdLay.isBundle() && !ClassDefinitionImpl.isMaven(cdLay)) cdLay = ((ConfigPro) config).getLogEngine().layoutClassDefintion(cdLay.getClassName());
 			}
 			else {
 				String layout = Caster.toString(v.get("layout", null), null);
@@ -454,6 +454,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		return null;
 	}
 
+	/**
+	 * default for the attribute "includeSQL" of cfquery (this.query.includeSQL), null if not defined
+	 */
+	public Boolean getQueryIncludeSQL() {
+		return null;
+	}
+
 
 	/**
 	 * returns the AI connections defined by the application itself (for example "this.ai" in the Application.cfc), the key is
@@ -463,5 +470,14 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	 */
 	public Map<String, AIEngine> getAIEngines() {
 		return Collections.emptyMap();
+	}
+
+	/**
+	 * replaces the AI connections defined by the application itself (for example with the attribute
+	 * "ai" of the tag cfapplication)
+	 * 
+	 * @param engines the AI connections, the key is the name of the connection in lower case
+	 */
+	public void setAIEngines(Map<String, AIEngine> engines) {
 	}
 }

@@ -16,8 +16,8 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.TimeZone;
 
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -33,7 +33,6 @@ import lucee.commons.net.http.HTTPEngine;
 import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.dt.DateTime;
 import lucee.transformer.library.function.FunctionLibEntityResolver;
@@ -182,7 +181,7 @@ public final class S3UpdateProvider extends DefaultHandler {
 		Collections.sort(list, new Comparator<Element>() {
 			@Override
 			public int compare(Element l, Element r) {
-				return OSGiUtil.compare(l.getVersion(), r.getVersion());
+				return VersionImpl.compare(l.getVersion(), r.getVersion());
 			}
 		});
 
@@ -368,9 +367,9 @@ public final class S3UpdateProvider extends DefaultHandler {
 				int index = raw.indexOf('/', 17);
 				if (index == -1) return null;
 				try {
-					this.version = OSGiUtil.toVersion(raw.substring(16, index));
+					this.version = VersionImpl.parseOSGi(raw.substring(16, index));
 				}
-				catch (BundleException e) {
+				catch (IOException e) {
 					LogUtil.log("s3-update-provider", e);
 				}
 				this.name = raw.substring(index + 1);

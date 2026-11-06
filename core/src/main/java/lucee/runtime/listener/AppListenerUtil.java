@@ -96,7 +96,6 @@ public final class AppListenerUtil {
 	public static final Collection.Key IDLE_TIMEOUT = KeyConstants._idleTimeout;
 	public static final Collection.Key LIVE_TIMEOUT = KeyConstants._liveTimeout;
 	public static final Collection.Key META_CACHE_TIMEOUT = KeyConstants._metaCacheTimeout;
-	public static final Collection.Key ALLOW = KeyConstants._allow;
 	public static final Collection.Key DISABLE_UPDATE = KeyConstants._disableUpdate;
 
 	private static final TimeSpan FIVE_MINUTES = new TimeSpanImpl(0, 0, 5, 0);
@@ -224,7 +223,7 @@ public final class AppListenerUtil {
 		Object oConnStr = data.get(CONNECTION_STRING, null);
 		if (oConnStr != null) {
 			// FUTURE remove this
-			String className = Caster.toString(data.get(KeyConstants._class));
+			String className = Caster.toString(data.get(KeyConstants._class, null), null);
 			if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(className)) {
 				data.set(KeyConstants._class, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
 			}
@@ -237,7 +236,7 @@ public final class AppListenerUtil {
 						Caster.toBooleanValue(data.get(KeyConstants._blob, null), false), Caster.toBooleanValue(data.get(KeyConstants._clob, null), false),
 						Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), -1),
 						Caster.toIntValue(data.get("minIdle", null), 0), Caster.toIntValue(data.get("maxIdle", null), 0), Caster.toIntValue(data.get("maxTotal", null), 0),
-						Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone, Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
+						Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone,
 						Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
 						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
 						Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), readliteralTimestampWithTSOffset(data), log);
@@ -247,9 +246,17 @@ public final class AppListenerUtil {
 			}
 		}
 		// then for {type:... , host:... , ...}
-		String type = Caster.toString(data.get(KeyConstants._type));
+		// LDEV-5801 tell which datasource is incomplete and what is supported, instead of "key [type] doesn't exist"
+		String type = Caster.toString(data.get(KeyConstants._type, null), null);
+		if (StringUtil.isEmpty(type, true)) {
+			throw new ApplicationException("Datasource [" + name + "] does not define how to find the JDBC driver. Either define [type] (supported types: "
+					+ DBUtil.SUPPORTED_TYPES + "), or [connectionString] together with [class] (the JDBC driver class, plus [bundleName] and [bundleVersion] or [maven]).");
+		}
 		DataSourceDefintion dbt = DBUtil.getDataSourceDefintionForType(config, type, null);
-		if (dbt == null) throw new ApplicationException("no datasource type [" + type + "] found");
+		if (dbt == null) {
+			throw new ApplicationException("Datasource [" + name + "] has no datasource type [" + type + "], supported types: " + DBUtil.SUPPORTED_TYPES
+					+ ". For any other database define [connectionString] together with [class] (the JDBC driver class, plus [bundleName] and [bundleVersion] or [maven]).");
+		}
 		try {
 
 			int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
@@ -261,7 +268,7 @@ public final class AppListenerUtil {
 					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), -1),
 					Caster.toIntValue(data.get("minIdle", null), 0), Caster.toIntValue(data.get("maxIdle", null), 0), Caster.toIntValue(data.get("maxTotal", null), 0),
 					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(KeyConstants._blob, null), false),
-					Caster.toBooleanValue(data.get(KeyConstants._clob, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
+					Caster.toBooleanValue(data.get(KeyConstants._clob, null), false), Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
 					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), timezone, "",
 					ParamSyntaxImpl.toParamSyntax(data, ParamSyntaxImpl.DEFAULT), readliteralTimestampWithTSOffset(data),
 					Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),

@@ -101,6 +101,8 @@ public final class Query extends EvaluatorSupport {
 								else arr.add(new ArgumentImpl(expr.getFactory().createLitString("all"), "string"));
 								if (args.length >= 5) arr.add(args[4]);
 								else arr.add(new ArgumentImpl(expr.getFactory().createLitBoolean(false), "boolean"));
+								if (args.length >= 6) arr.add(args[5]);
+								else arr.add(new ArgumentImpl(expr.getFactory().createLitBoolean(false), "boolean"));
 
 								// PSQ-BIF DO NOT REMOVE THIS COMMENT
 								arr.add(new ArgumentImpl(expr.getFactory().createLitBoolean(true), "boolean"));

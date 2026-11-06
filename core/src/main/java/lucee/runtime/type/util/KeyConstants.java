@@ -529,6 +529,7 @@ public final class KeyConstants {
 	public static final Key _name = init("name");
 	public static final Key _nameWithCase = init("nameWithCase");
 	public static final Key _subname = init("subname");
+	public static final Key _subComponents = init("subComponents");
 	public static final Key _needssetup = init("needssetup");
 	public static final Key _next = init("next");
 	public static final Key _nosetup = init("nosetup");
@@ -1988,14 +1989,12 @@ public final class KeyConstants {
 	public static final Key _FULLSCREENCONTROL = init("FULLSCREENCONTROL");
 	public static final Key _SETSTATE = init("SETSTATE");
 	public static final Key _PHYSICALHEAD = init("PHYSICALHEAD");
-	public static final Key _allowed_delete = init("allowed_delete");
 	public static final Key _CLIENTTIMEOUT_SECOND = init("CLIENTTIMEOUT_SECOND");
 	public static final Key _toList = init("toList");
 	public static final Key _RESET = init("RESET");
 	public static final Key _TIMESTAMP = init("TIMESTAMP");
 	public static final Key _SCOPECASCADINGTYPE = init("SCOPECASCADINGTYPE");
 	public static final Key _parseLogs = init("parseLogs");
-	public static final Key _allowed_revoke = init("allowed_revoke");
 	public static final Key _LOCALMODEMODERN = init("LOCALMODEMODERN");
 	public static final Key _SCRIPTSRC = init("SCRIPTSRC");
 	public static final Key _BUNDLE = init("BUNDLE");
@@ -2015,7 +2014,6 @@ public final class KeyConstants {
 	public static final Key _getConfig = init("getConfig");
 	public static final Key _LINES = init("LINES");
 	public static final Key _Q_LOG = init("Q_LOG");
-	public static final Key _allowed_alter = init("allowed_alter");
 	public static final Key _CUSTOMTAGDEEPSEARCHDESC = init("CUSTOMTAGDEEPSEARCHDESC");
 	public static final Key _HTMLHEAD = init("HTMLHEAD");
 	public static final Key _NULLSUPPORTPARTIAL = init("NULLSUPPORTPARTIAL");
@@ -2027,7 +2025,6 @@ public final class KeyConstants {
 	public static final Key _MERGEURLANDPORT = init("MERGEURLANDPORT");
 	public static final Key _REQUESTTIMEOUT_SECOND = init("REQUESTTIMEOUT_SECOND");
 	public static final Key _LOGIN = init("LOGIN");
-	public static final Key _allowed_drop = init("allowed_drop");
 	public static final Key _ARCHIVEMISSING = init("ARCHIVEMISSING");
 	public static final Key _PROXYHELPER = init("PROXYHELPER");
 	public static final Key _INSPECTTEMPLATEONCE = init("INSPECTTEMPLATEONCE");
@@ -2043,7 +2040,6 @@ public final class KeyConstants {
 	public static final Key _SERIALIZATION = init("SERIALIZATION");
 	public static final Key _EXETIME = init("EXETIME");
 	public static final Key _GETDEFAULTVALUEINDEX = init("GETDEFAULTVALUEINDEX");
-	public static final Key _allowed_grant = init("allowed_grant");
 	public static final Key _CFFLUSH = init("CFFLUSH");
 	public static final Key _clob = init("clob");
 	public static final Key _LAYOUTCLASS = init("LAYOUTCLASS");
@@ -2082,7 +2078,6 @@ public final class KeyConstants {
 	public static final Key _markerIcon = init("markerIcon");
 	public static final Key _EXISTING = init("EXISTING");
 	public static final Key _DESCEXISTING = init("DESCEXISTING");
-	public static final Key _allowed_update = init("allowed_update");
 	public static final Key _logStorage = init("logStorage");
 	public static final Key _REFRESH = init("REFRESH");
 	public static final Key _HEAP = init("HEAP");
@@ -2183,7 +2178,6 @@ public final class KeyConstants {
 	public static final Key _UPDATELOGCONFIG = init("UPDATELOGCONFIG");
 	public static final Key __TOTAL_EXECUTIONS = init("_TOTAL_EXECUTIONS");
 	public static final Key _VAL = init("VAL");
-	public static final Key _allowed_create = init("allowed_create");
 	public static final Key _QRYWEB = init("QRYWEB");
 	public static final Key _CONFIG_FILE = init("CONFIG_FILE");
 	public static final Key _XDAYSAGO = init("XDAYSAGO");
@@ -2217,7 +2211,6 @@ public final class KeyConstants {
 	public static final Key _CACHECONNECTIONS = init("CACHECONNECTIONS");
 	public static final Key _logId = init("logId");
 	public static final Key __APP = init("_APP");
-	public static final Key _allowed_select = init("allowed_select");
 	public static final Key _EXTENSION = init("EXTENSION");
 	public static final Key _LOGFILE = init("LOGFILE");
 	public static final Key _ASSETHREFPATH = init("ASSETHREFPATH");
@@ -2248,7 +2241,6 @@ public final class KeyConstants {
 	public static final Key _STARTROW = init("STARTROW");
 	public static final Key _GETWEBROOTPATHBYWEBID = init("GETWEBROOTPATHBYWEBID");
 	public static final Key _GETUPDATEFORMAJORVERSION = init("GETUPDATEFORMAJORVERSION");
-	public static final Key _allowed_insert = init("allowed_insert");
 	public static final Key _TOTALCOUNT = init("TOTALCOUNT");
 	public static final Key _REQUESTURL = init("REQUESTURL");
 	public static final Key _blob = init("blob");
@@ -3064,6 +3056,9 @@ public final class KeyConstants {
 	public static final Key _clientfileext = init("clientfileext");
 	public static final Key _clientfilename = init("clientfilename");
 	public static final Key _attemptedserverfile = init("attemptedserverfile");
+	public static final Key _reason = init("reason");
+	public static final Key _uploadallerrors = init("uploadallerrors");
+	public static final Key _dest = init("dest");
 	public static final Key _serverdirectory = init("serverdirectory");
 	public static final Key _serverfilename = init("serverfilename");
 	public static final Key _serverfile = init("serverfile");

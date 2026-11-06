@@ -22,11 +22,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 
-import org.osgi.framework.Bundle;
-
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.type.util.ListUtil;
 
 public final class JDBCDriver {
@@ -58,8 +57,10 @@ public final class JDBCDriver {
 		return null;
 	}
 
-	public static String extractClassName(Bundle bundle) throws IOException {
-		URL url = bundle.getResource("/META-INF/services/java.sql.Driver");
+	public static String extractClassName(String bundleName, String bundleVersion) throws IOException {
+		BundleServiceImpl.getInstance().loadBundle(bundleName, bundleVersion);
+		URL url = BundleServiceImpl.getInstance().getResource(bundleName, bundleVersion, "/META-INF/services/java.sql.Driver");
+		if (url == null) throw new IOException("there is no driver service file in the bundle [" + bundleName + ":" + bundleVersion + "]");
 
 		BufferedReader br = null;
 		try {
@@ -72,9 +73,9 @@ public final class JDBCDriver {
 		}
 	}
 
-	public static String extractClassName(Bundle bundle, String defaultValue) {
+	public static String extractClassName(String bundleName, String bundleVersion, String defaultValue) {
 		try {
-			return extractClassName(bundle);
+			return extractClassName(bundleName, bundleVersion);
 		}
 		catch (Exception e) {
 			return defaultValue;

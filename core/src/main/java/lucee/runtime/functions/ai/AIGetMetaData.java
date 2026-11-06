@@ -9,6 +9,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Struct;
 
 public final class AIGetMetaData extends BIF {
 
@@ -28,6 +29,10 @@ public final class AIGetMetaData extends BIF {
 		if (args[0] instanceof AISession) {
 			return AIUtil.getMetaData(((AISession) args[0]).getEngine(), detailed, detailed);
 		}
+
+		// connection definition as input
+		Struct connection = AIUtil.toConnection(args[0]);
+		if (connection != null) return AIUtil.getMetaData(((PageContextImpl) pc).getAIEngine(connection), detailed, detailed);
 
 		// string as input
 		String nameAI = Caster.toString(args[0]);

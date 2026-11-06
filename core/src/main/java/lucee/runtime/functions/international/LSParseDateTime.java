@@ -83,17 +83,18 @@ public final class LSParseDateTime implements Function {
 		// regular parse date time
 		if (StringUtil.isEmpty(format, true)) return DateCaster.toDateTime(locale, strDate, tz, isUSLike(locale));
 
-		// with java based format
+		// with java based format, "nn" is the CFML mask for the minutes
+		String javaFormat = FormatUtil.convertMinutesNN(format);
 		if (tz == null) tz = ThreadLocalPageContext.getTimeZone(pc);
 		if (locale == null) locale = pc.getLocale();
 		try {
-			return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format), strDate, tz.toZoneId()));
+			return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, javaFormat), strDate, tz.toZoneId()));
 		}
 		catch (Exception ex) {
 			LogUtil.log(pc, Log.LEVEL_DEBUG, "dateformat", ExceptionUtil.getStacktrace(ex, true));
 			try {
 
-				FormatterWrapper formatter = FormatUtil.getDateTimeFormatter(locale, format, tz);
+				FormatterWrapper formatter = FormatUtil.getDateTimeFormatter(locale, javaFormat, tz);
 				DateTimeImpl res = new DateTimeImpl(FormatUtil.parse(formatter, strDate, tz.toZoneId()));
 
 				LogUtil.log(FormatUtil.debug ? Log.LEVEL_FATAL : Log.LEVEL_DEBUG, "dateformat",
@@ -101,7 +102,7 @@ public final class LSParseDateTime implements Function {
 								+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone!");
 				return res;
 				// old.rocks
-				// return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format),
+				// return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, javaFormat),
 				// strDate, tz));
 			}
 			catch (Exception e) {

@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
@@ -46,11 +45,14 @@ import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
@@ -58,7 +60,6 @@ import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
@@ -124,12 +125,12 @@ public final class JavaSettingsImpl implements JavaSettings {
 		Map<String, POM> mapPOMs = new HashMap<>();
 		if (ri.getPoms() != null) {
 			for (POM pom: ri.getPoms()) {
-				mapPOMs.put(pom.id(), pom);
+				mapPOMs.put(pom.idWithOptions(), pom);
 			}
 		}
 		if (li.getPoms() != null) {
 			for (POM pom: li.getPoms()) {
-				mapPOMs.put(pom.id(), pom);
+				mapPOMs.put(pom.idWithOptions(), pom);
 			}
 		}
 
@@ -235,11 +236,11 @@ public final class JavaSettingsImpl implements JavaSettings {
 						existing = map.get(key);
 						if (existing != null) {
 							try {
-								if (OSGiUtil.compare(OSGiUtil.toVersion(existing.getVersion()), OSGiUtil.toVersion(p.getVersion())) < 0) {
+								if (VersionImpl.compare(VersionImpl.parseOSGi(existing.getVersion()), VersionImpl.parseOSGi(p.getVersion())) < 0) {
 									map.put(key, p);
 								}
 							}
-							catch (BundleException e) {
+							catch (IOException e) {
 								map.put(key, p);
 							}
 
@@ -414,13 +415,25 @@ public final class JavaSettingsImpl implements JavaSettings {
 					Log log = LogUtil.getLog(config, "mvn", "application");
 					while (it.hasNext()) {
 						Object entry = it.next();
-						MavenUtil.MavenCoordinate coordinate = MavenUtil.toCoordinate(entry, null);
+						MavenUtil.MavenCoordinate coordinate = null;
+						try {
+							coordinate = MavenUtil.toCoordinate(entry);
+						}
+						catch (ApplicationException ae) {
+							// a complete coordinate with invalid transitive/exclusions must not silently load without them
+							Struct sct = Caster.toStruct(entry, null, false);
+							if (sct != null && !StringUtil.isEmpty(Caster.toString(sct.get(KeyConstants._groupId, null), null))
+									&& !StringUtil.isEmpty(Caster.toString(sct.get(KeyConstants._artifactId, null), null))) {
+								throw new PageRuntimeException(ae);
+							}
+						}
 						if (coordinate == null) {
 							if (log != null) log.warn("javasettings", "ignored the maven entry [" + Caster.toString(entry, "") + "], expected format: group:artifact:version[:classifier][@extension] or a struct");
 						}
 						else {
-							POM tmp = POM.getInstance(dir, coordinate.groupId, coordinate.artifactId, coordinate.version, coordinate.classifier, coordinate.extension, MavenUtil.toScopes(coordinate.scope, POM.SCOPES_FOR_RUNTIME), log);
-							mapPoms.put("maven:" + tmp.id(), tmp);
+							POM tmp = POM.getInstance(dir, coordinate.groupId, coordinate.artifactId, coordinate.version, coordinate.classifier, coordinate.extension, MavenUtil.toScopes(coordinate.scope, POM.SCOPES_FOR_RUNTIME),
+									coordinate.isTransitive(), coordinate.getExclusions(), log);
+							mapPoms.put("maven:" + tmp.idWithOptions(), tmp);
 						}
 
 					}

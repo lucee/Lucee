@@ -43,6 +43,10 @@ public final class OpNegateNumber extends ExpressionBase implements ExprNumber {
 	private ExprNumber expr;
 	private int operation;
 
+	public ExprNumber getExpr() {
+		return expr;
+	}
+
 	private OpNegateNumber(Expression expr, int operation, Position start, Position end) {
 		super(expr.getFactory(), start, end);
 		this.expr = expr.getFactory().toExprNumber(expr);

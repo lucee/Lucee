@@ -39,6 +39,7 @@ import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.CookieData;
 import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.http.SetCookieHeaders;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.date.DateCaster;
@@ -316,7 +317,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 
 		String tmpSameSite = SessionCookieDataImpl.toSamesite(samesite);
 		/* Samesite */if (!StringUtil.isEmpty(tmpSameSite, true)) sb.append(";SameSite").append('=').append(tmpSameSite);
-		rsp.addHeader("Set-Cookie", sb.toString());
+		SetCookieHeaders.add(rsp, sb.toString());
 
 	}
 

@@ -273,7 +273,7 @@ try {
 		var tbArchiveProp = server._getSystemPropOrEnvVars( "testboxArchive", "", false );
 		if ( structCount( tbArchiveProp ) ) testboxArchive = tbArchiveProp.testboxArchive;
 	}
-	testboxPhysical = replace( testboxArchive, "/archive/testbox.lar", "/testbox/testbox" );
+	testboxPhysical = replace( testboxArchive, "/archive/testbox.lar", "/testbox" );
 	if ( directoryExists( testboxPhysical ) ) {
 		admin
 			action="updateMapping"

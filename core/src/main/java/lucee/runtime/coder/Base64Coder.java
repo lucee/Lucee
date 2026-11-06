@@ -76,4 +76,26 @@ public final class Base64Coder {
 	public static byte[] decode(String encoded, boolean precise) throws CoderException {
 		return Base64Encoder.decode(encoded, precise);
 	}
+
+	/**
+	 * encodes a byte array to a Base64URL String (RFC 4648 section 5, no padding)
+	 * 
+	 * @param barr byte array to encode
+	 * @return encoded String
+	 */
+	public static String encodeUrl(byte[] barr) {
+		return Base64Encoder.encodeUrl(barr);
+	}
+
+	/**
+	 * decodes a Base64URL String (RFC 4648 section 5, padding is optional)
+	 * 
+	 * @param encoded
+	 * @param precise
+	 * @return decoded binary data
+	 * @throws CoderException
+	 */
+	public static byte[] decodeUrl(String encoded, boolean precise) throws CoderException {
+		return Base64Encoder.decodeUrl(encoded, precise);
+	}
 }

@@ -52,12 +52,20 @@ public final class ListValueCount extends BIF {
 		return Caster.toNumber(pc, count);
 	}
 
+	public static Number call(PageContext pc, String list, String value, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
+		if (!ListUtil.isMultiCharDelimiter(delimiter, multiCharacterDelimiter)) return call(pc, list, value, delimiter, includeEmptyFields);
+		char c = ListUtil.freeChar(list, value);
+		return call(pc, ListUtil.mask(list, delimiter, c), value, String.valueOf(c), includeEmptyFields);
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
 		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]));
+		if (args.length == 5)
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), Caster.toBooleanValue(args[4]));
 
-		throw new FunctionException(pc, "ListValueCount", 2, 4, args.length);
+		throw new FunctionException(pc, "ListValueCount", 2, 5, args.length);
 	}
 }

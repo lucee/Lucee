@@ -24,10 +24,9 @@ import java.io.ObjectOutput;
 import java.util.List;
 import java.util.Map;
 
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.BundleReference;
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.DevNullOutputStream;
@@ -48,7 +47,7 @@ import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.osgi.BundleServiceImpl;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.KeyImpl;
@@ -78,7 +77,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	public ClassDefinitionImpl(String className, String name, String version, Identification id) {
 		this.className = className == null ? null : className.trim();
 		this.name = StringUtil.isEmpty(name, true) ? null : name.trim();
-		this.version = OSGiUtil.toVersion(version, null);
+		this.version = VersionImpl.parseOSGi(version, null);
 		this.id = id;
 	}
 
@@ -97,12 +96,12 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 	public ClassDefinitionImpl(Class<T> clazz) {
 		this.className = clazz.getName();
 		this.clazz = clazz;
-		ClassLoader cl = clazz.getClassLoader();
-		if (cl instanceof BundleReference) {
-			BundleReference bcl = (BundleReference) cl;
-			Bundle b = bcl.getBundle();
-			this.name = b.getSymbolicName();
-			this.version = b.getVersion();
+		Map<String, Object> info = BundleServiceImpl.getInstance().getBundleInfo(clazz);
+		if (info != null) {
+			this.name = (String) info.get("name");
+			String v = (String) info.get("version");
+			this.version = VersionImpl.parse(v, false, null);
+			if (this.version == null && !StringUtil.isEmpty(v)) LogUtil.warn("class-definition", new ApplicationException("unable to parse the version [" + v + "] of the bundle [" + name + "]"));
 		}
 		else {
 			this.name = null;
@@ -253,7 +252,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		className = (String) in.readObject();
 		name = (String) in.readObject();
 		String tmp = (String) in.readObject();
-		if (tmp != null) this.version = OSGiUtil.toVersion(tmp, null);
+		if (tmp != null) this.version = VersionImpl.parseOSGi(tmp, null);
 		id = (Identification) in.readObject();
 		maven = (String) in.readObject();
 	}
@@ -336,6 +335,13 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 
 	public boolean isMaven() {
 		return maven != null;
+	}
+
+	/**
+	 * @return true if the given class definition is defined by Maven coordinates
+	 */
+	public static boolean isMaven(ClassDefinition<?> cd) {
+		return cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl<?>) cd).isMaven();
 	}
 
 	public MavenCoordinate[] getMaven() throws ApplicationException {
@@ -445,7 +451,7 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 
 	@Override
 	public lucee.runtime.config.maven.Version getVersion() {
-		return OSGiUtil.toLucee(version);
+		return version;
 	}
 
 	@Override

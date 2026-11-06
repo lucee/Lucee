@@ -125,7 +125,7 @@ public final class BundledTrustStore {
 
 	private static InputStream getResourceAsStream(String path) {
 		InputStream is = InfoImpl.class.getResourceAsStream(path);
-		if (is == null) is = SystemUtil.getResourceAsStream(null, path);
+		if (is == null) is = SystemUtil.getResourceAsStream(path);
 		return is;
 	}
 }

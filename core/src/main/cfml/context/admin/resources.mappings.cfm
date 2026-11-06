@@ -123,7 +123,7 @@ Defaults --->
 				<cfset data.inspects=toArrayFromForm("inspect")>
 				<cfset data.inspectTemplateIntervalSlow=toArrayFromForm("inspectTemplateIntervalSlow")>
 				<cfset data.inspectTemplateIntervalFast=toArrayFromForm("inspectTemplateIntervalFast")>
-				<cfset data.toplevels=toArrayFromForm("toplevel")>
+				<cfset data.webAccessibles=toArrayFromForm("webAccessible")>
 				<cfset data.listenerMode=toArrayFromForm("listenerMode")>
 				<cfset data.listenerType=toArrayFromForm("listenerType")>
 				<cfset data.rows=toArrayFromForm("row")>
@@ -131,7 +131,7 @@ Defaults --->
 				<cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
 					<cfif arrayIndexExists(data.rows, idx) and data.virtuals[idx] NEQ "">
 						<cfset data.inspects[idx]=data.inspects[idx]?:"">
-						<cfset data.toplevels[idx]=data.toplevels[idx]?:false>
+						<cfset data.webAccessibles[idx]=data.webAccessibles[idx]?:false>
 						<cfadmin 
 							action="updateMapping"
 							type="#request.adminType#"
@@ -143,7 +143,7 @@ Defaults --->
 							inspect="#data.inspects[idx]#"
 							inspectTemplateIntervalSlow="#data.inspectTemplateIntervalSlow[idx]#"
 							inspectTemplateIntervalFast="#data.inspectTemplateIntervalFast[idx]#"
-							toplevel="#data.toplevels[idx]#"
+							webAccessible="#data.webAccessibles[idx]#"
 							listenerMode="#data.listenerMode[idx]#"
 							listenerType="#data.listenerType[idx]#"
 							remoteClients="#request.getRemoteClients()#">

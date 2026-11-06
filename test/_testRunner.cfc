@@ -4,6 +4,9 @@ component {
 	structEach(request, function(key, value) {
 		requestKeys[key] = true;
 	});
+	// TestBox 7 sets these request variables itself, they are not leftovers from a test
+	variables.requestKeys["$testId"] = "";
+	variables.requestKeys["testbox"] = "";
 
 	public function init (){
 		return this;

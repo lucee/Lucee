@@ -20,7 +20,7 @@ public final class HeadersHTTPResponse implements HeadersCollection {
 	public Header[] getHeaders(String name) {
 		List<Header> list = new ArrayList<>();
 		for (Header header: response.getAllHeaders()) {
-			if (name.equals(header.getName())) {
+			if (name.equalsIgnoreCase(header.getName())) {
 				list.add(new HeaderImpl(header.getName(), header.getValue()));
 			}
 		}

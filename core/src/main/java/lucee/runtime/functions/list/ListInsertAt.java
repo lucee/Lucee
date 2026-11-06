@@ -47,13 +47,23 @@ public final class ListInsertAt extends BIF {
 		return ListUtil.listInsertAt(list, Caster.toIntValue(posNumber), value, strDelimiter, !includeEmptyFields);
 	}
 
+	public static String call(PageContext pc, String list, Number posNumber, String value, String strDelimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter)
+			throws PageException {
+		if (!ListUtil.isMultiCharDelimiter(strDelimiter, multiCharacterDelimiter)) return call(pc, list, posNumber, value, strDelimiter, includeEmptyFields);
+		// the value is inserted as it is, the whole delimiter is added behind it
+		char c = ListUtil.freeChar(list, value);
+		return ListUtil.unmask(call(pc, ListUtil.mask(list, strDelimiter, c), posNumber, value, String.valueOf(c), includeEmptyFields), strDelimiter, c);
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]));
 		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), Caster.toString(args[3]));
 		if (args.length == 5)
 			return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), Caster.toString(args[3]), Caster.toBooleanValue(args[4]));
+		if (args.length == 6) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), Caster.toString(args[3]),
+				Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]));
 
-		throw new FunctionException(pc, "ListInsertAt", 3, 5, args.length);
+		throw new FunctionException(pc, "ListInsertAt", 3, 6, args.length);
 	}
 }

@@ -43,6 +43,10 @@ public final class Return extends StatementBaseNoFinal {
 
 	Expression expr;
 
+	public Expression getExpr() {
+		return expr;
+	}
+
 	/**
 	 * Constructor of the class
 	 * 

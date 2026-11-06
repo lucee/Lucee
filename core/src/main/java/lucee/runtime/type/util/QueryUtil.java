@@ -40,7 +40,6 @@ import lucee.commons.sql.SQLUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.db.CFTypes;
-import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.driver.PreparedStatementPro;
@@ -54,7 +53,6 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.functions.arrays.ArrayFind;
 import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.op.Caster;
 import lucee.runtime.query.caster.Cast;
@@ -193,36 +191,6 @@ public final class QueryUtil {
 			strKeys[i] = keys[i].getString();
 		}
 		return strKeys;
-	}
-
-	/**
-	 * check if there is a sql restriction
-	 * 
-	 * @param dc
-	 * @param sql
-	 * @throws PageException
-	 */
-	public static void checkSQLRestriction(PageContext pc, DatasourceConnection dc, SQL sql) throws PageException {
-		Array sqlparts = ListUtil.listToArrayRemoveEmpty(SQLUtil.removeLiterals(sql.getSQLString()), " \t" + System.getProperty("line.separator"));
-
-		// print.ln(List.toStringArray(sqlparts));
-		DataSource ds = dc.getDatasource();
-		if (!ds.hasAllow(DataSource.ALLOW_ALTER)) checkSQLRestriction(pc, dc, "alter", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_CREATE)) checkSQLRestriction(pc, dc, "create", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_DELETE)) checkSQLRestriction(pc, dc, "delete", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_DROP)) checkSQLRestriction(pc, dc, "drop", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_GRANT)) checkSQLRestriction(pc, dc, "grant", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_INSERT)) checkSQLRestriction(pc, dc, "insert", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_REVOKE)) checkSQLRestriction(pc, dc, "revoke", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_SELECT)) checkSQLRestriction(pc, dc, "select", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_UPDATE)) checkSQLRestriction(pc, dc, "update", sqlparts, sql);
-	}
-
-	private static void checkSQLRestriction(PageContext pc, DatasourceConnection dc, String keyword, Array sqlparts, SQL sql) throws PageException {
-		if (ArrayFind.find(pc, sqlparts, keyword, false) > 0) {
-			throw new DatabaseException("access denied to execute \"" + StringUtil.ucFirst(keyword) + "\" SQL statement for datasource " + dc.getDatasource().getName(), null, sql,
-					dc);
-		}
 	}
 
 	public static DumpData toDumpData(Query query, PageContext pageContext, int maxlevel, DumpProperties dp) {

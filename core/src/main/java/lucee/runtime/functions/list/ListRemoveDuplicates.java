@@ -75,12 +75,21 @@ public final class ListRemoveDuplicates extends BIF {
 		return sb.toString();
 	}
 
+	public static String call(PageContext pc, String list, String delimiter, boolean ignoreCase, boolean multiCharacterDelimiter) throws PageException {
+		if (list == null) return "";
+		if (delimiter == null) delimiter = ",";
+		if (!ListUtil.isMultiCharDelimiter(delimiter, multiCharacterDelimiter)) return call(pc, list, delimiter, ignoreCase);
+		char c = ListUtil.freeChar(list);
+		return ListUtil.unmask(call(pc, ListUtil.mask(list, delimiter, c), String.valueOf(c), ignoreCase), delimiter, c);
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 1) return call(pc, Caster.toString(args[0]));
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]), Caster.toBooleanValue(args[3]));
 
-		throw new FunctionException(pc, "ListRemoveDuplicates", 1, 3, args.length);
+		throw new FunctionException(pc, "ListRemoveDuplicates", 1, 4, args.length);
 	}
 }

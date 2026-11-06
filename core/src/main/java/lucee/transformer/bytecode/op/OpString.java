@@ -42,6 +42,14 @@ public final class OpString extends ExpressionBase implements ExprString {
 	private boolean fromInterpolation = false;
 	private char quoteChar; // Original quote character (' or ") for TemplateLiteral AST dump
 
+	public ExprString getLeft() {
+		return left;
+	}
+
+	public ExprString getRight() {
+		return right;
+	}
+
 	// String concat (String)
 	private final static Method METHOD_CONCAT = new Method("concat", Types.STRING, new Type[] { Types.STRING });
 	private static final int MAX_SIZE = 65535;

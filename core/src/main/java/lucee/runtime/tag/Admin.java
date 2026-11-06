@@ -18,6 +18,7 @@
  */
 package lucee.runtime.tag;
 
+import lucee.loader.util.VersionImpl;
 import lucee.runtime.osgi.BundleServiceImpl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -41,6 +42,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
@@ -48,13 +51,14 @@ import java.util.regex.Pattern;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.runtime.config.maven.Version;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.jsp.tagext.Tag;
 import lucee.VersionInfo;
 import lucee.commons.digest.Base64Encoder;
 import lucee.commons.digest.HashUtil;
+import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
@@ -63,6 +67,7 @@ import lucee.commons.io.compress.CompressUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.log.AppenderDefinition;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
@@ -80,7 +85,6 @@ import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.surveillance.HeapDumper;
 import lucee.loader.engine.CFMLEngine;
-import lucee.loader.osgi.BundleCollection;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
@@ -188,6 +192,7 @@ import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.spooler.SpoolerEngine;
 import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.spooler.remote.RemoteClientTask;
+import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -886,6 +891,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 		else if ((check("updateRHExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateRHExtension(true);
 		else if ((check("updateExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateExtension(true);
+		else if ((check("updateExtensions", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateExtensions();
 		else if ((check("removeRHExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doRemoveRHExtension();
 		else if (check("updateExtensionGroups", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateExtensionGroups();
 		else if (check("updateExtensionInfo", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateExtensionInfo();
@@ -1014,10 +1020,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doChangeVersionTo() throws PageException {
 		try {
-			Version version = OSGiUtil.toVersion(getString("admin", "changeVersionTo", "version"));
+			Version version = VersionImpl.parseOSGi(getString("admin", "changeVersionTo", "version"));
 			admin.changeVersionTo(version, password, pageContext.getConfig().getIdentification());
 		}
-		catch (BundleException e) {
+		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
 	}
@@ -1155,7 +1161,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			attrs.putValue("mapping-hidden", Caster.toString(mapping.isHidden()));
 			attrs.putValue("mapping-physical-first", Caster.toString(mapping.isPhysicalFirst()));
 			attrs.putValue("mapping-readonly", Caster.toString(mapping.isReadonly()));
-			attrs.putValue("mapping-top-level", Caster.toString(mapping.isTopLevel()));
+			attrs.putValue("mapping-web-accessible", Caster.toString(mapping.isTopLevel()));
 			attrs.putValue("mapping-inspect", ConfigUtil.inspectTemplate(mapping.getInspectTemplateRaw(), ""));
 			attrs.putValue("mapping-listener-type", ConfigUtil.toListenerType(mapping.getListenerType(), ""));
 			attrs.putValue("mapping-listener-mode", ConfigUtil.toListenerMode(mapping.getListenerMode(), ""));
@@ -1207,7 +1213,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Struct errors = null;
 		if (!stopOnError) errors = new StructImpl(StructImpl.TYPE_LINKED);
 
-		doCompileMapping(MAPPING_REGULAR, getString("admin", action, "virtual").toLowerCase(), stopOnError, getBool("ignoreScopes", null), errors);
+		doCompileMapping(MAPPING_REGULAR, getString("admin", action, "virtual").toLowerCase(), stopOnError, getBool("ignoreScopes", null), errors, getCompileThreads());
 
 		// Set errorVariable or throw if errors occurred
 		if (errors != null && errors.size() > 0) {
@@ -1242,6 +1248,22 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private Mapping doCompileMapping(short mappingType, String virtual, boolean stoponerror, Boolean ignoreScopes, Struct errors) throws PageException {
+		return doCompileMapping(mappingType, virtual, stoponerror, ignoreScopes, errors, 1);
+	}
+
+	/**
+	 * reads the optional attribute "threads" (default 1) and limits it to the number of available
+	 * processors
+	 */
+	private int getCompileThreads() throws PageException {
+		Object value = attributes.get("threads", null);
+		if (value == null) return 1;
+		int threads = Caster.toIntValue(value, -1);
+		if (threads < 1) throw new ApplicationException("Attribute [threads] for tag [admin] must be a number greater than or equal to 1, got [" + Caster.toString(value, "") + "]");
+		return Math.min(threads, Math.max(1, Runtime.getRuntime().availableProcessors()));
+	}
+
+	private Mapping doCompileMapping(short mappingType, String virtual, boolean stoponerror, Boolean ignoreScopes, Struct errors, int threads) throws PageException {
 
 		if (StringUtil.isEmpty(virtual)) return null;
 
@@ -1258,7 +1280,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			if (mapping.getVirtualLowerCaseWithSlash().equals(virtual)) {
 				boolean errorsPassedIn = errors != null;
 				if (errors == null) errors = stoponerror ? null : new StructImpl(StructImpl.TYPE_LINKED);
-				doCompileFile(mapping, mapping.getPhysical(), "", errors, ignoreScopes);
+				if (threads > 1) doCompileFilesParallel(mapping, mapping.getPhysical(), errors, ignoreScopes, threads);
+				else doCompileFile(mapping, mapping.getPhysical(), "", errors, ignoreScopes);
 				if (errors != null && errors.size() > 0 && !errorsPassedIn) {
 					StringBuilder sb = new StringBuilder();
 					Iterator<String> it = errors.keySet().iterator();
@@ -1289,69 +1312,229 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			}
 			else if (file.isFile()) {
 				PageSource ps = mapping.getPageSource(path);
-
-				PageContextImpl pci = (PageContextImpl) pageContext;
-				boolean envIgnoreScopes = pci.ignoreScopes();
 				try {
-					if (explicitIgnoreScope != null) pci.setIgnoreScopes(explicitIgnoreScope);
-					((PageSourceImpl) ps).clear();
-					((PageSourceImpl) ps).loadPage(pageContext, explicitIgnoreScope != null);
-					// pageContext.compile(ps);
+					compilePage(pageContext, ps, explicitIgnoreScope);
 				}
 				catch (PageException pe) {
-					String template = ps.getDisplayPath();
-
-					if (errors != null) {
-						// Store structured error information
-						Struct errorInfo = new StructImpl();
-						errorInfo.set("message", pe.getMessage());
-						errorInfo.set("detail", pe.getDetail());
-
-						if (pe instanceof PageExceptionImpl) {
-							try {
-								PageExceptionImpl pei = (PageExceptionImpl) pe;
-								Array context = pei.getTagContext(configWeb);
-								if (context.size() > 0) {
-									Struct firstContext = (Struct) context.getE(1);
-									errorInfo.set("line", firstContext.get("line", null));
-									errorInfo.set("column", firstContext.get("column", null));
-								}
-							}
-							catch (Throwable t) {
-								ExceptionUtil.rethrowIfNecessary(t);
-							}
-						}
-
-						errors.put(template, errorInfo);
-					}
-					else {
-						// Original behavior for throwing
-						StringBuilder msg = new StringBuilder(pe.getMessage());
-						msg.append(", Error Occurred in File [");
-						msg.append(template);
-						if (pe instanceof PageExceptionImpl) {
-							try {
-								PageExceptionImpl pei = (PageExceptionImpl) pe;
-								Array context = pei.getTagContext(configWeb);
-								if (context.size() > 0) {
-									msg.append(":");
-									msg.append(Caster.toString(((Struct) context.getE(1)).get("line")));
-								}
-							}
-							catch (Throwable t) {
-								ExceptionUtil.rethrowIfNecessary(t);
-							}
-						}
-						msg.append("]");
-						throw new ApplicationException(msg.toString());
-					}
-
-				}
-				finally {
-					pci.setIgnoreScopes(envIgnoreScopes);
+					handleCompileError(ps, pe, errors);
 				}
 			}
 		}
+	}
+
+	/**
+	 * (re)compiles a single page using the given PageContext. The ignoreScopes setting of that
+	 * PageContext is only changed for the duration of the compilation, so every thread must use its own
+	 * PageContext.
+	 */
+	private static void compilePage(PageContext pc, PageSource ps, Boolean explicitIgnoreScope) throws PageException {
+		PageContextImpl pci = (PageContextImpl) pc;
+		boolean envIgnoreScopes = pci.ignoreScopes();
+		try {
+			if (explicitIgnoreScope != null) pci.setIgnoreScopes(explicitIgnoreScope);
+			((PageSourceImpl) ps).clear();
+			((PageSourceImpl) ps).loadPage(pc, explicitIgnoreScope != null);
+			// pageContext.compile(ps);
+		}
+		finally {
+			pci.setIgnoreScopes(envIgnoreScopes);
+		}
+	}
+
+	/**
+	 * handles a compile error: when errors is not null the error is stored in it, otherwise an
+	 * exception is thrown. Must be called from the request thread only, the errors struct is not
+	 * thread safe.
+	 */
+	private void handleCompileError(PageSource ps, PageException pe, Struct errors) throws PageException {
+		String template = ps.getDisplayPath();
+
+		if (errors != null) {
+			// Store structured error information
+			Struct errorInfo = new StructImpl();
+			errorInfo.set("message", pe.getMessage());
+			errorInfo.set("detail", pe.getDetail());
+
+			if (pe instanceof PageExceptionImpl) {
+				try {
+					PageExceptionImpl pei = (PageExceptionImpl) pe;
+					Array context = pei.getTagContext(configWeb);
+					if (context.size() > 0) {
+						Struct firstContext = (Struct) context.getE(1);
+						errorInfo.set("line", firstContext.get("line", null));
+						errorInfo.set("column", firstContext.get("column", null));
+					}
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+			}
+
+			errors.put(template, errorInfo);
+		}
+		else {
+			// Original behavior for throwing
+			StringBuilder msg = new StringBuilder(pe.getMessage());
+			msg.append(", Error Occurred in File [");
+			msg.append(template);
+			if (pe instanceof PageExceptionImpl) {
+				try {
+					PageExceptionImpl pei = (PageExceptionImpl) pe;
+					Array context = pei.getTagContext(configWeb);
+					if (context.size() > 0) {
+						msg.append(":");
+						msg.append(Caster.toString(((Struct) context.getE(1)).get("line")));
+					}
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+			}
+			msg.append("]");
+			throw new ApplicationException(msg.toString());
+		}
+	}
+
+	private void collectCompileSources(Mapping mapping, Resource file, String path, List<PageSource> sources) {
+		if (ResourceUtil.exists(file)) {
+			if (file.isDirectory()) {
+				Resource[] files = file.listResources(FILTER_CFML_TEMPLATES);
+				if (files != null) for (int i = 0; i < files.length; i++) {
+					collectCompileSources(mapping, files[i], path + '/' + files[i].getName(), sources);
+				}
+			}
+			else if (file.isFile()) {
+				sources.add(mapping.getPageSource(path));
+			}
+		}
+	}
+
+	/**
+	 * Same as doCompileFile, but the templates are compiled by up to "threads" worker threads. Every
+	 * worker has its own (stateless) clone of the PageContext, so neither the PageContext nor the
+	 * ignoreScopes setting is shared between threads. The errors struct is only touched by the calling
+	 * thread, after all workers are done, in the same order a single threaded compilation would have
+	 * used. Because the templates are handed out in that order and a failure only prevents templates
+	 * from being picked up that come later, the first error (in template order) is the same as for a
+	 * single threaded compilation.
+	 */
+	private void doCompileFilesParallel(Mapping mapping, Resource root, Struct errors, Boolean explicitIgnoreScope, int threads) throws PageException {
+		final List<PageSource> sources = new ArrayList<PageSource>();
+		collectCompileSources(mapping, root, "", sources);
+		final int size = sources.size();
+		final int count = Math.min(threads, size);
+
+		// nothing to parallelize
+		if (count < 2) {
+			for (PageSource ps: sources) {
+				try {
+					compilePage(pageContext, ps, explicitIgnoreScope);
+				}
+				catch (PageException pe) {
+					handleCompileError(ps, pe, errors);
+				}
+			}
+			return;
+		}
+
+		// without a place to collect the errors, we stop at the first error
+		final boolean stopOnAnyError = errors == null;
+		final boolean parentIgnoreScopes = ((PageContextImpl) pageContext).ignoreScopes();
+		final Throwable[] failures = new Throwable[size]; // every slot is written by one thread only, the join makes it visible to the caller
+		final AtomicInteger next = new AtomicInteger();
+		final AtomicBoolean stop = new AtomicBoolean();
+		final PageContextImpl[] pcs = new PageContextImpl[count];
+		final Thread[] workers = new Thread[count];
+		final CFMLFactory factory = pageContext.getConfig().getFactory();
+		boolean interrupted = false;
+		try {
+			// the clones are created by the request thread, as they are derived from the request
+			for (int i = 0; i < count; i++) {
+				pcs[i] = ThreadUtil.clonePageContext(pageContext, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, true, false, false);
+				pcs[i].setIgnoreScopes(parentIgnoreScopes);
+			}
+
+			for (int i = 0; i < count; i++) {
+				final PageContextImpl pc = pcs[i];
+				workers[i] = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						ThreadLocalPageContext.registerChild(pc);
+						try {
+							while (!stop.get()) {
+								int index = next.getAndIncrement();
+								if (index >= size) break;
+								try {
+									compilePage(pc, sources.get(index), explicitIgnoreScope);
+								}
+								catch (Throwable t) {
+									failures[index] = t;
+									// a PageException is a regular compile error, everything else is fatal
+									if (stopOnAnyError || !(t instanceof PageException)) stop.set(true);
+								}
+							}
+						}
+						finally {
+							// the clone belongs to this thread, so it is released by this thread
+							try {
+								factory.releasePageContext(pc);
+							}
+							finally {
+								ThreadLocalPageContext.release();
+							}
+						}
+					}
+				}, "compile-mapping-" + i);
+				workers[i].setDaemon(true);
+				workers[i].start();
+			}
+
+			// wait for all workers, if we get interrupted we stop handing out templates but still wait for the
+			// templates in process, so nothing is running anymore when we return
+			for (int i = 0; i < count; i++) {
+				while (true) {
+					try {
+						if (workers[i] != null) workers[i].join();
+						break;
+					}
+					catch (InterruptedException ie) {
+						interrupted = true;
+						stop.set(true);
+					}
+				}
+			}
+		}
+		finally {
+			stop.set(true);
+			for (int i = 0; i < count; i++) {
+				if (workers[i] != null) {
+					// only reached with a running worker when starting a worker failed
+					while (workers[i].isAlive()) {
+						try {
+							workers[i].join();
+						}
+						catch (InterruptedException ie) {
+							interrupted = true;
+						}
+					}
+				}
+				// a clone without a worker was never handed over, so we release it here
+				if (pcs[i] != null && workers[i] == null) factory.releasePageContext(pcs[i]);
+			}
+			if (interrupted) Thread.currentThread().interrupt();
+		}
+
+		// report in template order
+		for (int i = 0; i < size; i++) {
+			Throwable t = failures[i];
+			if (t == null) continue;
+			if (t instanceof PageException) handleCompileError(sources.get(i), (PageException) t, errors);
+			else if (t instanceof RuntimeException) throw (RuntimeException) t;
+			else if (t instanceof java.lang.Error) throw (java.lang.Error) t;
+			else throw Caster.toPageException(t);
+		}
+
+		if (interrupted) throw new ApplicationException("Compilation of mapping [" + mapping.getVirtual() + "] was interrupted");
 	}
 
 	/**
@@ -2248,7 +2431,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateMapping(getString("admin", action, "virtual"), getString("admin", action, "physical"), getString("admin", action, "archive"),
 				getString("admin", action, "primary"), ConfigUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED),
 				getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED), getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED),
-				Caster.toBooleanValue(getString("toplevel", "true")), ConfigUtil.toListenerMode(getString("listenerMode", ""), -1),
+				Caster.toBooleanValue(getString("webAccessible", getString("toplevel", "true"))), ConfigUtil.toListenerMode(getString("listenerMode", ""), -1),
 				ConfigUtil.toListenerType(getString("listenerType", ""), -1), getBool("listenerSingleton", null), Caster.toBooleanValue(getString("readonly", "false"))
 
 		);
@@ -2282,7 +2465,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sct.set("inspect", ConfigUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
 			sct.set("inspectTemplateIntervalSlow", m.getInspectTemplateAutoInterval(true));
 			sct.set("inspectTemplateIntervalFast", m.getInspectTemplateAutoInterval(false));
-			sct.set("toplevel", Caster.toBoolean(m.isTopLevel()));
+			sct.set("webAccessible", Caster.toBoolean(m.isTopLevel()));
+			sct.set("toplevel", Caster.toBoolean(m.isTopLevel())); // legacy name, kept so existing scripts keep working
 			sct.set("source", Prop.toSource(m.getSource(), ""));
 
 			pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
@@ -2303,7 +2487,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		Mapping[] mappings = config.getMappings();
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect",
-				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast", "toplevel", "listenerType", "listenerMode", "source" }, mappings.length, "query");
+				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast", "webAccessible", "toplevel", "listenerType", "listenerMode", "source" }, mappings.length, "query");
 
 		for (int i = 0; i < mappings.length; i++) {
 			MappingImpl m = (MappingImpl) mappings[i];
@@ -2319,7 +2503,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("inspect", row, ConfigUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
 			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
 			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
-			qry.setAt("toplevel", row, Caster.toBoolean(m.isTopLevel()));
+			qry.setAt("webAccessible", row, Caster.toBoolean(m.isTopLevel()));
+			qry.setAt("toplevel", row, Caster.toBoolean(m.isTopLevel())); // legacy name, kept so existing scripts keep working
 			qry.setAt("listenerType", row, ConfigUtil.toListenerType(m.getListenerType(), "inherit"));
 			qry.setAt("listenerMode", row, ConfigUtil.toListenerMode(m.getListenerMode(), "inherit"));
 			qry.setAt("source", row, Prop.toSource(m.getSource(), ""));
@@ -2767,13 +2952,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doUpdateDatasource() throws PageException {
-		int allow = (getBoolV("allowed_select", false) ? DataSource.ALLOW_SELECT : 0) + (getBoolV("allowed_insert", false) ? DataSource.ALLOW_INSERT : 0)
-				+ (getBoolV("allowed_update", false) ? DataSource.ALLOW_UPDATE : 0) + (getBoolV("allowed_delete", false) ? DataSource.ALLOW_DELETE : 0)
-				+ (getBoolV("allowed_alter", false) ? DataSource.ALLOW_ALTER : 0) + (getBoolV("allowed_drop", false) ? DataSource.ALLOW_DROP : 0)
-				+ (getBoolV("allowed_revoke", false) ? DataSource.ALLOW_REVOKE : 0) + (getBoolV("allowed_grant", false) ? DataSource.ALLOW_GRANT : 0)
-				+ (getBoolV("allowed_create", false) ? DataSource.ALLOW_CREATE : 0);
-		if (allow == 0) allow = DataSource.ALLOW_ALL;
-
 		String cn = getString("admin", action, "classname");
 		if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cn)) {
 			attributes.set(KeyConstants._classname, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
@@ -2835,7 +3013,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		DataSourcePro ds = null;
 		try {
 			ds = new DataSourceImpl(name, cd, host, dsn, bundleName, bundleVersion, database, port, username, password, null, connLimit, idleTimeout, liveTimeout, minIdle, maxIdle,
-					maxTotal, metaCacheTimeout, blob, clob, allow, custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout,
+					maxTotal, metaCacheTimeout, blob, clob, custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout,
 					requestExclusive, alwaysResetConnections, ThreadLocalPageContext.getLog(pageContext, "application"));
 		}
 		catch (Exception e) {
@@ -2845,7 +3023,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (verify) _doVerifyDatasource(ds, username, password);
 		// print.out("limit:"+connLimit);
 		admin.updateDataSource(id, bundleName, bundleVersion, name, newName, cd, dsn, username, password, host, database, port, connLimit, idleTimeout, liveTimeout, minIdle,
-				maxIdle, metaCacheTimeout, blob, clob, allow, validate, storage, timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive,
+				maxIdle, metaCacheTimeout, blob, clob, validate, storage, timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive,
 				alwaysResetConnections);
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetDataSources();
@@ -3317,8 +3495,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private Query _doGetLogSettings() throws PageException {
 		// TODO no longer go via getLoggers
 		Map<String, LoggerAndSourceData> loggers = ConfigUtil.getConfigServerImpl(config).getLoggers();
-		Query qry = new QueryImpl(new String[] { "name", "level", "appenderClass", "appenderBundleName", "appenderBundleVersion", "appenderArgs", "layoutClass", "layoutBundleName",
-				"layoutBundleVersion", "layoutArgs", "readonly", "source" }, 0, lucee.runtime.type.util.ListUtil.last("logs", '.'));
+		Query qry = new QueryImpl(new String[] { "name", "level", "appenderClass", "appenderBundleName", "appenderBundleVersion", "appenderMaven", "appenderArgs", "layoutClass",
+				"layoutBundleName", "layoutBundleVersion", "layoutMaven", "layoutArgs", "readonly", "source", "appenders" }, 0, lucee.runtime.type.util.ListUtil.last("logs", '.'));
 		int row = 0;
 		Iterator<Entry<String, LoggerAndSourceData>> it = loggers.entrySet().iterator();
 		Entry<String, LoggerAndSourceData> e;
@@ -3331,20 +3509,52 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			// row++;
 			qry.setAtEL("name", row, e.getKey());
 			qry.setAtEL("level", row, LogUtil.levelToString(logger.getLevel(), ""));
-			qry.setAtEL("appenderClass", row, logger.getAppenderClassDefinition().getClassName());
-			qry.setAtEL("appenderBundleName", row, logger.getAppenderClassDefinition().getName());
-			qry.setAtEL("appenderBundleVersion", row, logger.getAppenderClassDefinition().getVersionAsString());
+			// the first appender is also returned with the single appender columns, "appenders" has all of them (LDEV-6792)
+			ClassDefinition acd = logger.getAppenderClassDefinition();
+			ClassDefinition lcd = logger.getLayoutClassDefinition();
+			if (lcd == null) lcd = new ClassDefinitionImpl();
+			qry.setAtEL("appenderClass", row, acd.getClassName());
+			qry.setAtEL("appenderBundleName", row, acd.getName());
+			qry.setAtEL("appenderBundleVersion", row, acd.getVersionAsString());
+			qry.setAtEL("appenderMaven", row, toMavenString(acd));
 
 			qry.setAtEL("appenderArgs", row, toStruct(logger.getAppenderArgs(true)));
-			qry.setAtEL("layoutClass", row, logger.getLayoutClassDefinition().getClassName());
-			qry.setAtEL("layoutBundleName", row, logger.getLayoutClassDefinition().getName());
-			qry.setAtEL("layoutBundleVersion", row, logger.getLayoutClassDefinition().getVersionAsString());
+			qry.setAtEL("layoutClass", row, lcd.getClassName());
+			qry.setAtEL("layoutBundleName", row, lcd.getName());
+			qry.setAtEL("layoutBundleVersion", row, lcd.getVersionAsString());
+			qry.setAtEL("layoutMaven", row, toMavenString(lcd));
 
 			qry.setAtEL("layoutArgs", row, toStruct(logger.getLayoutArgs(true)));
 			qry.setAtEL("readonly", row, logger.getReadOnly());
 			qry.setAtEL("source", row, Prop.toSource(logger.getSource(), ""));
+
+			Array appenders = new ArrayImpl();
+			for (AppenderDefinition ad: logger.getAppenders()) {
+				ClassDefinition layout = ad.layout != null ? ad.layout : new ClassDefinitionImpl();
+				Struct entry = new StructImpl(Struct.TYPE_LINKED);
+				entry.setEL("appenderClass", ad.appender.getClassName());
+				entry.setEL("appenderBundleName", ad.appender.getName());
+				entry.setEL("appenderBundleVersion", ad.appender.getVersionAsString());
+				entry.setEL("appenderMaven", toMavenString(ad.appender));
+				entry.setEL("appenderArgs", toStruct(ad.appenderArgs));
+				entry.setEL("layoutClass", layout.getClassName());
+				entry.setEL("layoutBundleName", layout.getName());
+				entry.setEL("layoutBundleVersion", layout.getVersionAsString());
+				entry.setEL("layoutMaven", toMavenString(layout));
+				entry.setEL("layoutArgs", toStruct(ad.layoutArgs));
+				appenders.appendEL(entry);
+			}
+			qry.setAtEL("appenders", row, appenders);
 		}
 		return qry;
+	}
+
+	/**
+	 * @return the Maven coordinates of the class definition as string, null if it is not defined by Maven
+	 */
+	private static String toMavenString(ClassDefinition cd) throws PageException {
+		if (!ClassDefinitionImpl.isMaven(cd)) return null;
+		return MavenUtil.toString(((ClassDefinitionImpl<?>) cd).getMaven());
 	}
 
 	private Object toStruct(Map<String, String> map) {
@@ -3458,17 +3668,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetBundle() throws PageException {
 		String symbolicName = getString("admin", "getBundle", "symbolicName", true);
-		Version version = OSGiUtil.toVersion(getString("version", null), null);
+		Version version = VersionImpl.parseOSGi(getString("version", null), null);
 
 		BundleDefinition bd;
 		BundleFile bf = null;
-		Bundle b = OSGiUtil.getBundleLoaded(symbolicName, version, null);
+		Bundle b = OSGiUtil.getBundleLoaded(symbolicName, OSGiUtil.toOSGi(version), null);
 		if (b != null) {
 			bd = new BundleDefinition(b);
 		}
 		else {
 			try {
-				bf = OSGiUtil.getBundleFile(symbolicName, version, null, null, false);
+				bf = OSGiUtil.getBundleFile(symbolicName, OSGiUtil.toOSGi(version), null, null, false);
 				bd = bf.toBundleDefinition();
 				b = bd.getLoadedBundle();
 
@@ -3479,7 +3689,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		CFMLEngine engine = ConfigUtil.getEngine(config);
-		BundleCollection coreBundles = OSGiUtil.getBundleCollection();
+		List<Map<String, Object>> coreBundles = BundleServiceImpl.getInstance().listCoreBundles();
 		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
 
 		Struct sct = new StructImpl();
@@ -3488,7 +3698,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set(KeyConstants._symbolicName, bd.getName());
 		sct.set(KeyConstants._title, bd.getName());
 		sct.set(KeyConstants._version, bd.getVersionAsString());
-		sct.set(KeyConstants._usedBy, _usedBy(bd.getName(), bd.getVersion(), coreBundles, extBundles));
+		sct.set(KeyConstants._usedBy, _usedBy(bd.getName(), OSGiUtil.toLucee(bd.getVersion()), coreBundles, extBundles));
 		try {
 			if (b != null) {
 				sct.set(KeyConstants._path, b.getLocation());
@@ -3555,7 +3765,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetBundles() throws PageException {
 		CFMLEngine engine = ConfigUtil.getEngine(config);
-		BundleCollection coreBundles = OSGiUtil.getBundleCollection();
+		List<Map<String, Object>> coreBundles = BundleServiceImpl.getInstance().listCoreBundles();
 		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
 
 		List<BundleDefinition> bds = OSGiUtil.getBundleDefinitions(OSGiUtil.getBundleContext());
@@ -3573,7 +3783,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt(KeyConstants._symbolicName, row, bd.getName());
 			qry.setAt(KeyConstants._title, row, bd.getName());
 			qry.setAt(KeyConstants._version, row, bd.getVersionAsString());
-			qry.setAt(KeyConstants._usedBy, row, _usedBy(bd.getName(), bd.getVersion(), coreBundles, extBundles));
+			qry.setAt(KeyConstants._usedBy, row, _usedBy(bd.getName(), OSGiUtil.toLucee(bd.getVersion()), coreBundles, extBundles));
 			BundleFile bf = null;
 			try {
 				if (b != null) {
@@ -3658,21 +3868,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
-	private String _usedBy(String name, Version version, BundleCollection coreBundles, java.util.Collection<BundleDefinition> extBundles) {
+	private String _usedBy(String name, Version version, List<Map<String, Object>> coreBundles, java.util.Collection<BundleDefinition> extBundles) {
 		Set<String> extensions = new HashSet<String>();
 
 		// core
-		if (_eq(name, version, coreBundles.core.getSymbolicName(), coreBundles.core.getVersion())) {
-			extensions.add("Lucee");
-			// return "Lucee";
-		}
-		Iterator<Bundle> it = coreBundles.getSlaves();
-		Bundle b;
-		while (it.hasNext()) {
-			b = it.next();
-			if (_eq(name, version, b.getSymbolicName(), b.getVersion())) {
+		for (Map<String, Object> info: coreBundles) {
+			if (_eq(name, version, (String) info.get("name"), VersionImpl.parse((String) info.get("version"), false, null))) {
 				extensions.add("Lucee");
-				// return "Lucee";
 				break;
 			}
 		}
@@ -3683,7 +3885,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		RHExtension[] rhextensions = ci.getRHExtensions();
 		while (itt.hasNext()) {
 			bd = itt.next();
-			if (_eq(name, version, bd.getName(), bd.getVersion())) {
+			if (_eq(name, version, bd.getName(), OSGiUtil.toLucee(bd.getVersion()))) {
 				_findExtension(rhextensions, bd, extensions);
 			}
 		}
@@ -3701,7 +3903,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				bundles = e.getMetadata().getBundles();
 				if (bundles != null) {
 					for (BundleInfo b: bundles) {
-						if (_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), b.getVersion())) {
+						if (_eq(bd.getName(), OSGiUtil.toLucee(bd.getVersion()), b.getSymbolicName(), OSGiUtil.toLucee(b.getVersion()))) {
 							set.add(e.getMetadata().getName());
 						}
 					}
@@ -4109,16 +4311,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.setEL(KeyConstants._passwordEncrypted, ConfigUtil.encrypt(d.getPassword()));
 		sct.setEL(KeyConstants._username, d.getUsername());
 		sct.setEL(KeyConstants._readonly, Caster.toBoolean(d.isReadOnly()));
-		sct.setEL(KeyConstants._select, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_SELECT)));
-		sct.setEL(KeyConstants._delete, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DELETE)));
-		sct.setEL(KeyConstants._update, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_UPDATE)));
-		sct.setEL(KeyConstants._insert, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
-		sct.setEL(KeyConstants._create, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_CREATE)));
-		sct.setEL(KeyConstants._insert, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
-		sct.setEL(KeyConstants._drop, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DROP)));
-		sct.setEL(KeyConstants._grant, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_GRANT)));
-		sct.setEL(KeyConstants._revoke, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_REVOKE)));
-		sct.setEL(KeyConstants._alter, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_ALTER)));
 
 		//////////////////////
 		// open connections
@@ -4352,12 +4544,25 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String groupId = getString("groupId", null);
 		String artifactId = getString("artifactId", null);
 		String version = getString("admin", "updateExtension", "version");
-		ExtensionDefintion ed;
+		ExtensionDefintion ed = toExtensionDefinition(id, groupId, artifactId, version);
 
+		ResetFilter filter = new ResetFilter();
+		try {
+			DeployHandler.deployExtension(config, ed, filter, config == null ? null : ThreadLocalPageContext.getLog(pageContext, "application"), true, true, throwOnError,
+					new RefBooleanImpl());
+		}
+		finally {
+			filter.resetThrowPageException(config);
+		}
+
+	}
+
+	private static ExtensionDefintion toExtensionDefinition(String id, String groupId, String artifactId, String version) throws ApplicationException {
 		if (StringUtil.isEmpty(groupId, true) && StringUtil.isEmpty(artifactId, true) && StringUtil.isEmpty(id, true)) {
 			throw new ApplicationException("you need to define an id or groupId and artifactId");
 		}
 
+		ExtensionDefintion ed;
 		if (!StringUtil.isEmpty(id, true)) {
 			ed = new ExtensionDefintion(id, version);
 		}
@@ -4369,16 +4574,67 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (!StringUtil.isEmpty(groupId, true) && !StringUtil.isEmpty(artifactId, true)) {
 			ed.setCoordinate(new MavenCoordinate(groupId, artifactId, version));
 		}
+		return ed;
+	}
+
+	/**
+	 * Installs/updates a list of extensions in one go (LDEV-6148), every entry is handled the same way
+	 * as with the action "updateExtension". A failing extension does not stop the other ones, the
+	 * outcome of every single extension is returned as a query (id, groupId, artifactId, name, version,
+	 * success, message) so the caller can report it.
+	 */
+	private void doUpdateExtensions() throws PageException {
+		Array extensions = Caster.toArray(getObject("admin", "updateExtensions", "extensions"));
+		Log log = config == null ? null : ThreadLocalPageContext.getLog(pageContext, "application");
+
+		Query result = new QueryImpl(new Collection.Key[] { KeyConstants._id, KeyConstants._groupId, KeyConstants._artifactId, KeyConstants._name, KeyConstants._version,
+				KeyImpl.init("success"), KeyConstants._message }, 0, "ExtensionUpdates");
 
 		ResetFilter filter = new ResetFilter();
 		try {
-			DeployHandler.deployExtension(config, ed, filter, config == null ? null : ThreadLocalPageContext.getLog(pageContext, "application"), true, true, throwOnError,
-					new RefBooleanImpl());
+			Iterator<?> it = extensions.valueIterator();
+			while (it.hasNext()) {
+				Struct data = Caster.toStruct(it.next());
+				String id = Caster.toString(data.get(KeyConstants._id, null), null);
+				String groupId = Caster.toString(data.get(KeyConstants._groupId, null), null);
+				String artifactId = Caster.toString(data.get(KeyConstants._artifactId, null), null);
+				String version = Caster.toString(data.get(KeyConstants._version, null), null);
+				String name = null;
+				boolean success = false;
+				String message = "";
+				try {
+					if (StringUtil.isEmpty(version, true)) {
+						throw new ApplicationException("the version is required to update an extension");
+					}
+					ExtensionDefintion ed = toExtensionDefinition(id, groupId, artifactId, version.trim());
+					RHExtension rhe = DeployHandler.deployExtension(config, ed, filter, log, false, true, true, new RefBooleanImpl());
+					if (rhe != null) name = rhe.getMetadata().getName();
+					success = true;
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					PageException pe = Caster.toPageException(t);
+					message = pe.getMessage();
+					if (log != null) log.error("deploy-extension", pe);
+					else LogUtil.log("deploy-extension", pe);
+				}
+
+				result.addRow(1);
+				int row = result.getRecordcount();
+				result.setAt(KeyConstants._id, row, StringUtil.emptyIfNull(id));
+				result.setAt(KeyConstants._groupId, row, StringUtil.emptyIfNull(groupId));
+				result.setAt(KeyConstants._artifactId, row, StringUtil.emptyIfNull(artifactId));
+				result.setAt(KeyConstants._name, row, StringUtil.emptyIfNull(name));
+				result.setAt(KeyConstants._version, row, StringUtil.emptyIfNull(version));
+				result.setAt(KeyImpl.init("success"), row, Caster.toBoolean(success));
+				result.setAt(KeyConstants._message, row, message);
+			}
 		}
 		finally {
+			// one reset for all extensions
 			filter.resetThrowPageException(config);
 		}
-
+		pageContext.setVariable(getString("admin", action, "returnVariable"), result);
 	}
 
 	private void doRemoveExtension() throws PageException {
@@ -4798,18 +5054,58 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (l == -1) throw new ApplicationException("Invalid log level name [" + str + "], valid log level names are [INFO,DEBUG,WARN,ERROR,FATAL,TRACE]");
 
 		LogEngine eng = config.getLogEngine();
-		// appender
-		ClassDefinition acd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "appender", true, config.getIdentification());
-		if (!acd.isBundle()) acd = eng.appenderClassDefintion(acd.getClassName());
 
-		// layout
-		ClassDefinition lcd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "layout", true, config.getIdentification());
-		if (!lcd.isBundle()) lcd = eng.layoutClassDefintion(lcd.getClassName());
+		// more than one appender (LDEV-6792), then the appender and layout attributes are only the layout for the appenders without layout
+		Object oAppenders = attributes.get("appenders", null);
+		Array arr = oAppenders == null ? null : Caster.toArray(oAppenders);
+		if (arr != null && arr.size() > 0) {
+			ClassDefinition defaultLayout = null;
+			if (attributes.get("layoutClass", null) != null || attributes.get("layoutMaven", null) != null) defaultLayout = toLayoutClassDefinition(eng, attributes);
+			Map<String, String> defaultLayoutArgs = defaultLayout == null ? null : ConfigFactoryImpl.toArguments(attributes, "layoutArgs", true, false);
 
-		admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, acd, Caster.toStruct(getObject("admin", "UpdateLogSettings", "appenderArgs")), lcd,
-				Caster.toStruct(getObject("admin", "UpdateLogSettings", "layoutArgs")));
+			List<AppenderDefinition> appenders = new ArrayList<AppenderDefinition>();
+			Iterator<Object> it = arr.valueIterator();
+			while (it.hasNext()) {
+				Struct entry = Caster.toStruct(it.next());
+				ClassDefinition acd = toAppenderClassDefinition(eng, entry);
+				ClassDefinition lcd;
+				Map<String, String> layoutArgs;
+				if (entry.get("layoutClass", null) != null || entry.get("layoutMaven", null) != null) {
+					lcd = toLayoutClassDefinition(eng, entry);
+					layoutArgs = ConfigFactoryImpl.toArguments(entry, "layoutArgs", true, false);
+				}
+				else {
+					lcd = defaultLayout;
+					layoutArgs = defaultLayoutArgs;
+				}
+				appenders.add(new AppenderDefinition(acd, ConfigFactoryImpl.toArguments(entry, "appenderArgs", true, false), lcd, layoutArgs));
+			}
+			admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, appenders);
+		}
+		else {
+			// appender
+			ClassDefinition acd = toAppenderClassDefinition(eng, attributes);
+
+			// layout
+			ClassDefinition lcd = toLayoutClassDefinition(eng, attributes);
+
+			admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, acd, Caster.toStruct(getObject("admin", "UpdateLogSettings", "appenderArgs")), lcd,
+					Caster.toStruct(getObject("admin", "UpdateLogSettings", "layoutArgs")));
+		}
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetLoggers();
+	}
+
+	private ClassDefinition toAppenderClassDefinition(LogEngine eng, Struct data) throws PageException {
+		ClassDefinition acd = ClassDefinitionImpl.toClassDefinitionImpl(data, "appender", true, config.getIdentification());
+		if (!acd.isBundle() && !ClassDefinitionImpl.isMaven(acd)) acd = eng.appenderClassDefintion(acd.getClassName());
+		return acd;
+	}
+
+	private ClassDefinition toLayoutClassDefinition(LogEngine eng, Struct data) throws PageException {
+		ClassDefinition lcd = ClassDefinitionImpl.toClassDefinitionImpl(data, "layout", true, config.getIdentification());
+		if (!lcd.isBundle() && !ClassDefinitionImpl.isMaven(lcd)) lcd = eng.layoutClassDefintion(lcd.getClassName());
+		return lcd;
 	}
 
 	private void doUpdateSSLCertificate() throws PageException {

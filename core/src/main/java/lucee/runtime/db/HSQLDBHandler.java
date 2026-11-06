@@ -632,7 +632,7 @@ public final class HSQLDBHandler {
 		// immediately.
 		// Concurrency is controlled by the BlockingQueue (dbQueue), not by connection pool limits.
 		ds = new DataSourceImpl(QOQ_DATASOURCE_NAME, cd, "hypersonic-hsqldb", connStr, null, null, "", -1, "sa", "", null, -1, -1, -1, 0, 0, 0, -1, true, true,
-				DataSource.ALLOW_ALL, new StructImpl(), false, false, false, null, "", ParamSyntaxImpl.DEFAULT, false, false, false, false, log);
+				new StructImpl(), false, false, false, null, "", ParamSyntaxImpl.DEFAULT, false, false, false, false, log);
 
 		dsCache[dbNum] = ds;
 		return ds;
