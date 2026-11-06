@@ -846,6 +846,12 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public void setAIEngines(Map<String, AIEngine> engines) {
+		this.aiFactories = engines;
+		this.aiFactoriesInit = true;
+	}
+
+	@Override
 	public String getAIEngineNameForDefault(String defaultName) {
 		initAIEngineFactories();
 		if (aiFactories != null) {

@@ -8,6 +8,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Struct;
 
 /**
  * implementation of the Function arrayAppend
@@ -20,7 +21,8 @@ public final class CreateAISession extends BIF {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length < 1 || args.length > 5) throw new FunctionException(pc, "CreateAISession", 1, 5, args.length);
 
-		String nameAI = Caster.toString(args[0]);
+		Struct connection = AIUtil.toConnection(args[0]);
+		String nameAI = connection == null ? Caster.toString(args[0]) : null;
 		String systemMessage = args.length > 1 ? Caster.toString(args[1]) : null;
 		int limit = args.length > 2 ? Caster.toIntValue(args[2]) : -1;
 		double temp = args.length > 3 ? Caster.toDoubleValue(args[3]) : -1D;
@@ -30,7 +32,8 @@ public final class CreateAISession extends BIF {
 		Object listener = args.length > 4 ? args[4] : null;
 
 		AISession session;
-		if (nameAI.startsWith("id:")) session = ((PageContextImpl) pc).createAISessionById(nameAI.substring(3), systemMessage, null, limit, temp, -1, -1);
+		if (connection != null) session = ((PageContextImpl) pc).createAISession(connection, systemMessage, null, limit, temp, -1, -1);
+		else if (nameAI.startsWith("id:")) session = ((PageContextImpl) pc).createAISessionById(nameAI.substring(3), systemMessage, null, limit, temp, -1, -1);
 		else {
 			if (nameAI.startsWith("default:")) nameAI = ((PageContextImpl) pc).getNameFromDefault(nameAI.substring(8));
 			session = ((PageContextImpl) pc).createAISession(nameAI, systemMessage, null, limit, temp, -1, -1);

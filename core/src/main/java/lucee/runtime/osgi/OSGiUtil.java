@@ -2272,6 +2272,10 @@ public final class OSGiUtil {
 			this(name, !StringUtil.isEmpty(version, true) ? OSGiUtil.toVersion(version) : null);
 		}
 
+		public BundleDefinition(String name, lucee.runtime.config.maven.Version version) {
+			this(name, OSGiUtil.toOSGi(version));
+		}
+
 		public BundleDefinition(String name, Version version) {
 			if (name == null) throw new IllegalArgumentException("Bundle Symbolic Name should not be null");
 			// translate old mappings to new mappings FUTURE remove

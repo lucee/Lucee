@@ -244,6 +244,34 @@ public final class VersionImpl implements Version, Serializable {
 		return new VersionImpl(major, minor, micro, build, appendix, version, numeric);
 	}
 
+	private static final java.util.regex.Pattern OSGI_VERSION = java.util.regex.Pattern.compile("\\d+(\\.\\d+){0,2}(\\.[A-Za-z0-9_-]+)?");
+
+	/**
+	 * Parse a version the way OSGi does: up to three numbers, followed by an optional qualifier of any
+	 * letters, digits, "_" and "-" (12.2.0.jre8, 5.2.0.RELEASE, 9.0.0.5-ALPHA).
+	 *
+	 * @param defaultValue returned when the string cannot be parsed
+	 */
+	public static Version parseOSGi(String version, Version defaultValue) {
+		if (version == null || !OSGI_VERSION.matcher(version.trim()).matches()) return defaultValue;
+		version = version.trim();
+		String[] arr = version.split("\\.", -1);
+		if (arr.length == 4 && !arr[3].matches("\\d{1,9}(-.*)?")) {
+			// 4th segment is an OSGi qualifier (jre8, Final, v20200101, a long number): major, minor and micro stay numeric
+			return new VersionImpl(toInteger(arr[0]), toInteger(arr[1]), toInteger(arr[2]), null, arr[3], version, true);
+		}
+		return parse(version, false, defaultValue);
+	}
+
+	/**
+	 * Parse a version the way OSGi does, throws an {@code IOException} on failure.
+	 */
+	public static Version parseOSGi(String version) throws IOException {
+		Version v = parseOSGi(version, null);
+		if (v != null) return v;
+		throw new IOException("Given version [" + version + "] is invalid, a valid version is following this pattern <major-number>.<minor-number>.<micro-number>[.<qualifier>]");
+	}
+
 	/**
 	 * Parse a version, throws an {@code IOException} on failure.
 	 */

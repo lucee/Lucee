@@ -47,7 +47,8 @@ import java.util.zip.ZipInputStream;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
+import lucee.loader.util.VersionImpl;
+import lucee.runtime.config.maven.Version;
 import org.w3c.dom.DOMException;
 import org.xml.sax.SAXException;
 
@@ -731,21 +732,21 @@ public final class ConfigAdmin {
 
 			// same GA, but different V
 			if (existingCoordinate.same(coordinate)) {
-				newVersion = OSGiUtil.toVersion(coordinate.version, null);
+				newVersion = VersionImpl.parseOSGi(coordinate.version, null);
 				if (newVersion == null) {
 					LogUtil.logx(config, Log.LEVEL_WARN, "config", "Skipping update for [" + coordinate + "], invalid version format", "deploy", "application");
 					return;
 				}
 
 				try {
-					exVersion = OSGiUtil.toVersion(existingCoordinate.version);
+					exVersion = VersionImpl.parseOSGi(existingCoordinate.version);
 				}
-				catch (BundleException e) {
+				catch (IOException e) {
 					throw Caster.toPageException(e);
 				}
 
 				// new version is bigger
-				int com = OSGiUtil.compare(newVersion, exVersion);
+				int com = VersionImpl.compare(newVersion, exVersion);
 				if (com > 0) {
 					LogUtil.logx(config, Log.LEVEL_INFO, "config", "Upgrading Maven endpoint from [" + existingCoordinate + "] to [" + coordinate + "]", "deploy", "application");
 					sct.set(KeyConstants._version, coordinate.version);
@@ -1348,12 +1349,12 @@ public final class ConfigAdmin {
 		if (StringUtil.isEmpty(name)) name = BundleBuilderFactory.createSymbolicName(resJar);
 
 		// version
-		Version version = bf.getVersion();
-		if (version == null) version = OSGiUtil.toVersion(extVersion);
+		Version version = OSGiUtil.toLucee(bf.getVersion());
+		if (version == null) version = VersionImpl.parseOSGi(extVersion);
 
 		LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
 		BundleBuilderFactory bbf = new BundleBuilderFactory(resJar, name);
-		bbf.setVersion(version);
+		bbf.setVersion(OSGiUtil.toOSGi(version));
 		bbf.setIgnoreExistingManifest(false);
 		bbf.build();
 
@@ -3211,7 +3212,7 @@ public final class ConfigAdmin {
 			if (!localPath.isFile()) {
 				localPath = null;
 				lucee.runtime.config.maven.Version v;
-				final lucee.runtime.config.maven.Version lv = OSGiUtil.toLucee(version);
+				final lucee.runtime.config.maven.Version lv = version;
 				final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
 				for (final File patch: patches) {
 					v = CFMLEngineFactory.toVersion(patch.getName(), null);
@@ -5973,7 +5974,7 @@ public final class ConfigAdmin {
 
 		// core master and slaves
 		for (Map<String, Object> info: BundleServiceImpl.getInstance().listCoreBundles()) {
-			_cleanBundles(candiatesToRemove, (String) info.get("name"), OSGiUtil.toVersion((String) info.get("version"), false, null));
+			_cleanBundles(candiatesToRemove, (String) info.get("name"), VersionImpl.parse((String) info.get("version"), false, null));
 		}
 
 		// all extension
@@ -5990,7 +5991,7 @@ public final class ConfigAdmin {
 			BundleInfo[] bundles = _rhe.getMetadata().getBundles(null);
 			if (bundles != null) {
 				for (BundleInfo bi: bundles) {
-					_cleanBundles(candiatesToRemove, bi.getSymbolicName(), bi.getVersion());
+					_cleanBundles(candiatesToRemove, bi.getSymbolicName(), OSGiUtil.toLucee(bi.getVersion()));
 				}
 			}
 		}
