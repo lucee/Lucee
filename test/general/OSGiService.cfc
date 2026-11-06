@@ -18,8 +18,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				var bundle = createJar( variables.dir, name, "1.0.0.1", true );
 				var plain = createJar( variables.dir, "plain" & createUniqueId(), "1.0.0.1", false );
 				try {
-					expect( service.install( createObject( "java", "java.io.File" ).init( bundle ) ) ).toBeTrue();
-					expect( service.install( createObject( "java", "java.io.File" ).init( plain ) ) ).toBeFalse();
+					expect( service.install( createObject( "java", "java.io.File" ).init( bundle ), false ) ).toBeTrue();
+					expect( service.install( createObject( "java", "java.io.File" ).init( plain ), false ) ).toBeFalse();
 				}
 				finally {
 					service.uninstall( createObject( "java", "java.io.File" ).init( bundle ) );
@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				var jar = createJar( variables.dir, name, "1.0.0.1", true, "hello from the bundle" );
 				var file = createObject( "java", "java.io.File" ).init( jar );
 				try {
-					service.install( file );
+					service.install( file, false );
 					expect( isNull( service.getClassLoader( name, "1.0.0.1" ) ) ).toBeFalse();
 					var url = service.getResource( name, "1.0.0.1", "/data.txt" );
 					expect( isNull( url ) ).toBeFalse();
@@ -49,7 +49,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				var name = "lucee.test.uninstall" & createUniqueId();
 				var jar = createJar( variables.dir, name, "1.0.0.1", true );
 				var file = createObject( "java", "java.io.File" ).init( jar );
-				service.install( file );
+				service.install( file, false );
 				service.uninstall( file );
 				expect( isNull( service.getResource( name, "1.0.0.1", "/META-INF/MANIFEST.MF" ) ) ).toBeTrue();
 				// nothing to remove
@@ -62,6 +62,46 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( isNull( service.getId( clazz ) ) ).toBeTrue();
 				expect( isNull( service.getInfo( clazz ) ) ).toBeTrue();
 				expect( isNull( service.getId( clazz.getClassLoader() ) ) ).toBeTrue();
+			});
+
+			it( "identifies a jar by its bundle, not by its file name", function() {
+				var name = "lucee.test.jarid" & createUniqueId();
+				var File = createObject( "java", "java.io.File" );
+				var first = createJar( variables.dir, name, "1.0.0.1", true );
+				var copy = variables.dir & "renamed-" & createUniqueId() & ".jar";
+				fileCopy( first, copy );
+				var plain = createJar( variables.dir, "plain" & createUniqueId(), "1.0.0.1", false );
+				expect( isNull( service.getId( File.init( first ) ) ) ).toBeFalse();
+				expect( service.getId( File.init( copy ) ) ).toBe( service.getId( File.init( first ) ) );
+				expect( isNull( service.getId( File.init( plain ) ) ) ).toBeTrue();
+			});
+
+			it( "the id of a jar is the id of the class loaded from it", function() {
+				var name = "lucee.test.classid" & createUniqueId();
+				var file = createObject( "java", "java.io.File" ).init( createJar( variables.dir, name, "1.0.0.1", true, "x" ) );
+				service.install( file, true );
+				try {
+					var cl = service.getClassLoader( name, "1.0.0.1" );
+					expect( service.getId( cl ) ).toBe( service.getId( file ) );
+				}
+				finally {
+					service.uninstall( file );
+				}
+			});
+
+			it( "a bundle is found in an additional directory", function() {
+				var name = "lucee.test.extradir" & createUniqueId();
+				var extra = variables.dir & "extra" & createUniqueId() & "/";
+				directoryCreate( extra );
+				var jar = createJar( extra, name, "1.0.0.1", true, "x" );
+				var File = createObject( "java", "java.io.File" );
+				var cl = service.getClassLoader( name, "1.0.0.1", [ File.init( extra ) ] );
+				try {
+					expect( isNull( cl ) ).toBeFalse();
+				}
+				finally {
+					service.uninstall( File.init( jar ) );
+				}
 			});
 
 			it( "has no id for the classes of Lucee itself", function() {

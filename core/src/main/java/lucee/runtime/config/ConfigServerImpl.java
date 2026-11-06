@@ -5385,10 +5385,9 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			catch (ApplicationException ae) {
 				throw new IOException(ae.getMessage(), ae);
 			}
-			if (!firstLoad) {
-				if (LogUtil.doesDebug(log)) log.debug("extensions", "Deploying bundles (not first load): " + rhe.getId());
-				rhe.deployBundles(config, true);
-			}
+			// install and start the bundles, so their activators run
+			if (LogUtil.doesDebug(log)) log.debug("extensions", "Deploying and starting bundles: " + rhe.getId());
+			rhe.deployBundles(config, true);
 		}
 		if (LogUtil.doesInfo(log)) log.info("extensions", "Finished bundles for extension: " + rhe.getId());
 

@@ -203,7 +203,7 @@ public final class MappingImpl implements Mapping {
 						OSGiExtensionInstaller.ensureAvailable(config, "the archive [" + tmp + "]");
 						java.io.File jar = toLocalFile(tmp);
 						BundleFile bf = BundleFile.getInstance(jar);
-						archiveBundle = bf.isBundle() && OSGiServiceImpl.getInstance().install(jar) ? bf : null;
+						archiveBundle = bf.isBundle() && OSGiServiceImpl.getInstance().install(jar, false) ? bf : null;
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);

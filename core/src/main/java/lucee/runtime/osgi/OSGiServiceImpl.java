@@ -116,21 +116,6 @@ public final class OSGiServiceImpl implements OSGiService {
 	}
 
 	/**
-	 * @return the file the running core was loaded from, or null when core is not loaded as a bundle
-	 */
-	public File getCoreFile() {
-		try {
-			for (Bundle b: context().getBundles()) {
-				if ("lucee.core".equals(b.getSymbolicName()) && b.getState() != Bundle.UNINSTALLED) return new File(b.getLocation());
-			}
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-		}
-		return null;
-	}
-
-	/**
 	 * removes older or newer lucee-core bundles to avoid conflicts
 	 */
 	public List<String> uninstallStaleCoreBundles(String keepVersion) {
@@ -269,7 +254,7 @@ public final class OSGiServiceImpl implements OSGiService {
 	}
 
 	@Override
-	public boolean install(File jar) throws IOException {
+	public boolean install(File jar, boolean start) throws IOException {
 		BundleFile bf = BundleFile.getInstance(jar);
 		if (!bf.isBundle()) return false;
 
@@ -290,7 +275,8 @@ public final class OSGiServiceImpl implements OSGiService {
 			}
 		}
 		try {
-			OSGiUtil.installBundle(context(), ResourceUtil.toResource(target), true);
+			Bundle b = OSGiUtil.installBundle(context(), ResourceUtil.toResource(target), true);
+			if (start) OSGiUtil.startIfNecessary(b);
 		}
 		catch (BundleException be) {
 			throw new IOException(be.getMessage(), be);
@@ -310,6 +296,18 @@ public final class OSGiServiceImpl implements OSGiService {
 	public String getId(Class<?> clazz) {
 		if (clazz == null) return null;
 		return toId(OSGiUtil.getBundleFromClass(clazz, null));
+	}
+
+	@Override
+	public String getId(File jar) {
+		try {
+			BundleFile bf = BundleFile.getInstance(jar);
+			if (!bf.isBundle()) return null;
+			return bf.getSymbolicName() + ":" + OSGiUtil.toLucee(bf.getVersion());
+		}
+		catch (IOException e) {
+			return null;
+		}
 	}
 
 	@Override
@@ -392,7 +390,12 @@ public final class OSGiServiceImpl implements OSGiService {
 
 	@Override
 	public ClassLoader getClassLoader(String bundleName, String bundleVersion) throws IOException {
-		Bundle b = load(bundleName, bundleVersion);
+		return getClassLoader(bundleName, bundleVersion, null);
+	}
+
+	@Override
+	public ClassLoader getClassLoader(String bundleName, String bundleVersion, File[] additionalBundleDirectories) throws IOException {
+		Bundle b = load(bundleName, bundleVersion, toResources(additionalBundleDirectories));
 		BundleWiring wiring = b.adapt(BundleWiring.class);
 		if (wiring == null) throw new IOException("the bundle [" + bundleName + ":" + bundleVersion + "] is not resolved");
 		return wiring.getClassLoader();
@@ -406,10 +409,23 @@ public final class OSGiServiceImpl implements OSGiService {
 		return OSGiUtil.getBundleLoaded(context(), name, toVersion(version), null);
 	}
 
+	private static List<Resource> toResources(File[] files) {
+		if (files == null || files.length == 0) return null;
+		List<Resource> list = new ArrayList<Resource>();
+		for (File f: files) {
+			list.add(ResourceUtil.toResource(f));
+		}
+		return list;
+	}
+
 	private static Bundle load(String name, String version) throws IOException {
+		return load(name, version, null);
+	}
+
+	private static Bundle load(String name, String version, List<Resource> addional) throws IOException {
 		try {
 			CFMLEngine engine = ConfigUtil.getCFMLEngine();
-			return OSGiUtil.loadBundle(name, toVersion(version), engine.getIdentification(), null, true);
+			return OSGiUtil.loadBundle(name, toVersion(version), engine.getIdentification(), addional, true);
 		}
 		catch (BundleException be) {
 			throw new IOException(be.getMessage(), be);
@@ -528,13 +544,7 @@ public final class OSGiServiceImpl implements OSGiService {
 	@Override
 	public Class<?> loadClass(String bundleName, String bundleVersion, String className, File[] additionalBundleDirectories, boolean versionOnlyMattersForDownload)
 			throws IOException, ClassNotFoundException {
-		List<Resource> addional = null;
-		if (additionalBundleDirectories != null && additionalBundleDirectories.length > 0) {
-			addional = new ArrayList<Resource>();
-			for (File f: additionalBundleDirectories) {
-				addional.add(ResourceUtil.toResource(f));
-			}
-		}
+		List<Resource> addional = toResources(additionalBundleDirectories);
 		Identification id = null;
 		ConfigServer cs = ThreadLocalPageContext.getConfigServer();
 		if (cs != null) id = cs.getIdentification();

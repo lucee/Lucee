@@ -178,7 +178,7 @@ public final class ClassUtil {
 			OSGiService osgi = OSGiServiceImpl.getInstance();
 			if (relatedBundles != null) {
 				for (BundleDefinition rb: relatedBundles) {
-					osgi.getClassLoader(rb.getName(), rb.getVersionAsString());
+					osgi.getClassLoader(rb.getName(), rb.getVersionAsString(), toFiles(addional));
 				}
 			}
 			return osgi.loadClass(bundle.getName(), bundle.getVersionAsString(), className, toFiles(addional), versionOnlyMattersForDownload);

@@ -1307,8 +1307,12 @@ public final class ConfigAdmin {
 	}
 
 	public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar) throws IOException {
+		updateJar(config, resJar, reloadWhenClassicJar, false);
+	}
+
+	public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar, boolean start) throws IOException {
 		// a bundle is handed over to OSGi
-		if (OSGiServiceImpl.getInstance().install(toLocalFile(resJar))) return;
+		if (OSGiServiceImpl.getInstance().install(toLocalFile(resJar), start)) return;
 
 		Resource lib = ((ConfigPro) config).getLibraryDirectory();
 		if (!lib.exists()) lib.mkdir();
@@ -1330,10 +1334,14 @@ public final class ConfigAdmin {
 	}
 
 	public static void updateJar(Config config, InputStream is, String name, boolean closeStream) throws IOException {
+		updateJar(config, is, name, closeStream, false);
+	}
+
+	public static void updateJar(Config config, InputStream is, String name, boolean closeStream, boolean start) throws IOException {
 		Resource tmp = SystemUtil.getTempDirectory().getRealResource(name);
 		try {
 			IOUtil.copy(is, tmp, closeStream);
-			updateJar(config, tmp, true);
+			updateJar(config, tmp, true, start);
 		}
 		finally {
 			tmp.delete();
@@ -4681,6 +4689,8 @@ public final class ConfigAdmin {
 			List<RHExtension> keep = new ArrayList<RHExtension>();
 			if (replacementRH != null) keep.add(replacementRH);
 			for (RHExtension other: ci.getAllRHExtensions()) {
+				// the extension that is removed (the installed version) does not protect its own jars
+				if (other.getId().equalsIgnoreCase(rhe.getId())) continue;
 				keep.add(other);
 			}
 			rhe.undeployBundles(ci, keep);

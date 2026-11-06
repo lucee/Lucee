@@ -20,7 +20,6 @@ import lucee.commons.lang.ClassUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.osgi.OSGiServiceImpl;
 
 public final class JVMCompiler implements Compiler {
 
@@ -79,8 +78,6 @@ public final class JVMCompiler implements Compiler {
 		Set<String> set = new LinkedHashSet<>();
 		set.add(ClassUtil.getSourcePathForClass(CFMLEngineFactory.class, null));
 		set.add(ClassUtil.getSourcePathForClass(JVMCompiler.class, null));
-		File core = OSGiServiceImpl.getInstance().getCoreFile();
-		if (core != null) set.add(core.getPath());
 		set.add(ClassUtil.getSourcePathForClass(JspException.class, null));
 		set.add(ClassUtil.getSourcePathForClass(Servlet.class, null));
 		StringBuilder sb = new StringBuilder();

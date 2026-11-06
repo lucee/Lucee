@@ -73,16 +73,26 @@ public interface OSGiService {
 	public ClassLoader getClassLoader(String bundleName, String bundleVersion) throws IOException;
 
 	/**
+	 * Same as {@link #getClassLoader(String, String)}, the given directories are searched for the
+	 * bundle as well.
+	 *
+	 * @param additionalBundleDirectories can be null
+	 */
+	public ClassLoader getClassLoader(String bundleName, String bundleVersion, File[] additionalBundleDirectories) throws IOException;
+
+	/**
 	 * Hand over a jar that comes with an extension or an archive. When the jar is a bundle it is made
 	 * available, otherwise nothing happens.
 	 *
+	 * @param start start the bundle right away (it's activator runs), otherwise it is started when it
+	 *            is used for the first time
 	 * @return true when the jar is a bundle and is now available
 	 * @throws IOException when the jar is a bundle but cannot be installed
 	 */
-	public boolean install(File jar) throws IOException;
+	public boolean install(File jar, boolean start) throws IOException;
 
 	/**
-	 * Remove what {@link #install(File)} has made available for this jar, does nothing when there is
+	 * Remove what {@link #install(File, boolean)} has made available for this jar, does nothing when there is
 	 * nothing to remove.
 	 */
 	public void uninstall(File jar) throws IOException;
@@ -100,6 +110,13 @@ public interface OSGiService {
 	 *         a bundle
 	 */
 	public String getId(ClassLoader classLoader);
+
+	/**
+	 * @return the same identifier for a jar that is (or can be) installed with
+	 *         {@link #install(File, boolean)}, null when the jar is not a bundle. Two jars with the same
+	 *         id are the same bundle, whatever the file name is.
+	 */
+	public String getId(File jar);
 
 	/**
 	 * General information about the bundle the class was loaded from, meant to be displayed (dump,
