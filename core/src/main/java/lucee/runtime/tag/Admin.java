@@ -1979,10 +1979,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		admin.checkWriteAccess();
 
-		ConfigServerImpl.metaShowDebug.write(configServer, attributes);
-		ConfigServerImpl.metaShowMetric.write(configServer, attributes);
-		ConfigServerImpl.metaShowDoc.write(configServer, attributes);
-		ConfigServerImpl.metaShowTest.write(configServer, attributes);
+		Struct input = Caster.toStruct(attributes.get("monitoring", null), null);
+		if (input == null) input = attributes;
+
+		ConfigServerImpl.metaShowDebug.write(configServer, input);
+		ConfigServerImpl.metaShowMetric.write(configServer, input);
+		ConfigServerImpl.metaShowDoc.write(configServer, input);
+		ConfigServerImpl.metaShowTest.write(configServer, input);
 
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetShowDebug().resetShowTest().resetShowMetric().resetShowDoc();
