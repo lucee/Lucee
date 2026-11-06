@@ -301,6 +301,16 @@ public final class OSGiUtil {
 		return lucee.loader.util.VersionImpl.parseVersion(base + (c >= '0' && c <= '9' ? "." : "-") + q, null);
 	}
 
+	/**
+	 * OSGi bundle version as a Lucee Version that keeps the OSGi string (2.7.2.jdk8, 1.0.0.SNAPSHOT).
+	 * {@link #toLucee} rewrites a letter qualifier to the hyphen form (2.7.2-jdk8), which breaks
+	 * update-provider download URLs that still expect the OSGi form.
+	 */
+	public static lucee.runtime.config.maven.Version toBundleVersion(Version version) {
+		if (version == null) return null;
+		return lucee.loader.util.VersionImpl.parseOSGi(version.toString(), null);
+	}
+
 	public static Version toVersion(String version, Version defaultValue) {
 		return toVersion(version, true, defaultValue);
 	}
@@ -896,7 +906,7 @@ public final class OSGiUtil {
 				if (bundleRange.getVersionRange() != null && !bundleRange.getVersionRange().isEmpty()) {
 					// TODO not only check for from version, request a range, but that needs an adjustment with the
 					// provider
-					File f = BundleProvider.getInstance().downloadBundle(new BundleDefinition(bundleRange.getName(), toLucee(bundleRange.getVersionRange().getFrom().getVersion())));
+					File f = BundleProvider.getInstance().downloadBundle(new BundleDefinition(bundleRange.getName(), toBundleVersion(bundleRange.getVersionRange().getFrom().getVersion())));
 					BundleFile _bf = improveFileName(factory.getBundleDirectory(), BundleFile.getInstance(f));
 					resetJarsFromBundleDirectory(factory);
 					b = _loadBundle(bc, _bf);
@@ -1078,7 +1088,7 @@ public final class OSGiUtil {
 		if (downloadIfNecessary && version != null) {
 			try {
 				resetJarsFromBundleDirectory(factory);
-				bf = BundleFile.getInstance(BundleProvider.getInstance().downloadBundle(new BundleDefinition(name, toLucee(version))));
+				bf = BundleFile.getInstance(BundleProvider.getInstance().downloadBundle(new BundleDefinition(name, toBundleVersion(version))));
 				if (bf.isBundle()) return bf;
 			}
 			catch (Throwable t) {
@@ -1187,7 +1197,7 @@ public final class OSGiUtil {
 		if (downloadIfNecessary && version != null) {
 			try {
 				resetJarsFromBundleDirectory(factory);
-				bf = BundleFile.getInstance(BundleProvider.getInstance().downloadBundle(new BundleDefinition(name, toLucee(version))));
+				bf = BundleFile.getInstance(BundleProvider.getInstance().downloadBundle(new BundleDefinition(name, toBundleVersion(version))));
 				if (bf.isBundle()) return bf;
 			}
 			catch (Throwable t) {
@@ -1495,7 +1505,7 @@ public final class OSGiUtil {
 			for (int i = 0; i < children.length; i++) {
 				try {
 					bf = BundleFile.getInstance(children[i]);
-					if (bf.isBundle() && !set.contains(bf.getSymbolicName() + ":" + bf.getVersion())) list.add(new BundleDefinition(bf.getSymbolicName(), toLucee(bf.getVersion())));
+					if (bf.isBundle() && !set.contains(bf.getSymbolicName() + ":" + bf.getVersion())) list.add(new BundleDefinition(bf.getSymbolicName(), toBundleVersion(bf.getVersion())));
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
@@ -2320,7 +2330,7 @@ public final class OSGiUtil {
 
 	public static BundleDefinition toBundleDefinition(Bundle bundle) {
 		if (bundle.getSymbolicName() == null) throw new IllegalArgumentException("Bundle Symbolic Name should not be null [" + bundle.getLocation() + "]");
-		return new BundleDefinition(bundle.getSymbolicName(), toLucee(bundle.getVersion()));
+		return new BundleDefinition(bundle.getSymbolicName(), toBundleVersion(bundle.getVersion()));
 	}
 
 	public static BundleDefinition[] toBundleDefinitions(BundleInfo[] bundles) {

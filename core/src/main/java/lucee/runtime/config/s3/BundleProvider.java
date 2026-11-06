@@ -285,7 +285,8 @@ public final class BundleProvider extends DefaultHandler {
 						if (bd.getName().equals(e.getBundleDefinition().getName())) {
 							if (latest == null || (VersionImpl.compare(e.getBundleDefinition().getVersion(), latest.getBundleDefinition().getVersion()) > 0)) {
 								latest = e;
-								if (!StringUtil.endsWithIgnoreCase(latest.getBundleDefinition().getVersionAsString(), "-SNAPSHOT")) {
+								lucee.runtime.config.maven.Version lv = latest.getBundleDefinition().getVersion();
+								if (lv == null || !lv.is(lucee.runtime.config.maven.Version.SNAPSHOT)) {
 									latestRelease = latest;
 								}
 							}

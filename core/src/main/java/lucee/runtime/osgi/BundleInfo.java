@@ -407,7 +407,7 @@ public class BundleInfo implements Serializable {
 	}
 
 	public BundleDefinition toBundleDefinition() {
-		return new BundleDefinition(getSymbolicName(), OSGiUtil.toLucee(getVersion()));
+		return new BundleDefinition(getSymbolicName(), OSGiUtil.toBundleVersion(getVersion()));
 	}
 
 	protected static File toFileResource(Resource file) throws IOException {
