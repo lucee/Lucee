@@ -302,6 +302,8 @@ public final class StringUtil {
 	 */
 	public static String repeatString(String str, int count) {
 		if (count <= 0) return "";
+		if ((long) str.length() * count > Integer.MAX_VALUE - 8) throw new IllegalArgumentException("the result of repeating a string of [" + str.length() + "] characters [" + count
+				+ "] times is too large for a string");
 
 		char[] chars = str.toCharArray();
 		StringBuilder cb = new StringBuilder(chars.length * count);
