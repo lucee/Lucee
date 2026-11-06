@@ -3,6 +3,8 @@ package lucee.runtime.ai.anthropic;
 import java.util.List;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.runtime.ai.AIUsage;
+import lucee.runtime.ai.AIUsageProvider;
 import lucee.runtime.ai.Response;
 import lucee.runtime.ai.Part;
 import lucee.runtime.converter.ConverterException;
@@ -11,8 +13,9 @@ import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 
-public final class ClaudeResponse implements Response {
+public final class ClaudeResponse implements Response, AIUsageProvider {
 	private Struct raw;
 	private String charset;
 	private long tokens = -1L;
@@ -65,6 +68,16 @@ public final class ClaudeResponse implements Response {
 			return tokens = inputTokens + outputTokens;
 		}
 		return tokens;
+	}
+
+	@Override
+	public AIUsage getUsage() {
+		return AIUsage.fromClaude(Caster.toStruct(raw.get("usage", null), null));
+	}
+
+	@Override
+	public String getResponseModel() {
+		return Caster.toString(raw.get(KeyConstants._model, null), null);
 	}
 
 	@Override

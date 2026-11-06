@@ -41,6 +41,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public final class GeminiSession extends AISessionSupport {
+	private static final String PROVIDER = "gcp.gemini";
 	private GeminiEngine geminiEngine;
 	private String systemMessage;
 
@@ -52,22 +53,26 @@ public final class GeminiSession extends AISessionSupport {
 
 	@Override
 	public Response inquiry(String message, AIResponseListener listener) throws PageException {
+		long start = System.nanoTime();
 		try {
 			Struct root = buildRequestRoot(message, null);
-			return executeRequest(root, message, null, listener);
+			return executeRequest(root, message, null, listener, start);
 		}
 		catch (Exception e) {
+			AIUtil.addFailedInquiry(this, PROVIDER, geminiEngine.getModel(), start, listener != null, e);
 			throw Caster.toPageException(e);
 		}
 	}
 
 	@Override
 	public Response inquiry(List<Part> parts, AIResponseListener listener) throws PageException {
+		long start = System.nanoTime();
 		try {
 			Struct root = buildRequestRoot(null, parts);
-			return executeRequest(root, null, parts, listener);
+			return executeRequest(root, null, parts, listener, start);
 		}
 		catch (Exception e) {
+			AIUtil.addFailedInquiry(this, PROVIDER, geminiEngine.getModel(), start, listener != null, e);
 			throw Caster.toPageException(e);
 		}
 	}
@@ -130,7 +135,7 @@ public final class GeminiSession extends AISessionSupport {
 		return root;
 	}
 
-	private Response executeRequest(Struct root, String messageText, List<Part> parts, AIResponseListener listener) throws Exception {
+	private Response executeRequest(Struct root, String messageText, List<Part> parts, AIResponseListener listener, long start) throws Exception {
 		URL url = geminiEngine.toURL(geminiEngine.baseURL, GeminiEngine.CHAT, listener != null ? GeminiEngine.TYPE_STREAM : GeminiEngine.TYPE_REG);
 		HTTPRequest post = AISessionSupport.newRequest(HTTPRequest.POST, url);
 		post.setHeader("Content-Type", AIUtil.createJsonContentType(geminiEngine.charset));
@@ -185,7 +190,7 @@ public final class GeminiSession extends AISessionSupport {
 					}
 				}
 
-				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(messageText, parts), r));
+				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(messageText, parts), r), PROVIDER, geminiEngine.getModel(), start, true);
 				return r;
 			}
 			else if ("application/json".equals(t)) {
@@ -201,7 +206,7 @@ public final class GeminiSession extends AISessionSupport {
 				}
 
 				GeminiResponse r = new GeminiResponse(raw, cs);
-				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(messageText, parts), r));
+				AIUtil.addConversation(this, getHistoryAsList(), new ConversationImpl(RequestSupport.getInstance(messageText, parts), r), PROVIDER, geminiEngine.getModel(), start, false);
 				return r;
 			}
 			else {
