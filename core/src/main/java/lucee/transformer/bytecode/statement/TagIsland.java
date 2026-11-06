@@ -91,6 +91,11 @@ public final class TagIsland extends StatementBaseNoFinal implements Body {
 	}
 
 	@Override
+	public void addPrintOut(Factory factory, String str, String raw, Position start, Position end) {
+		body.addPrintOut(factory, str, raw, start, end);
+	}
+
+	@Override
 	public void moveStatmentsTo(Body trg) {
 		body.moveStatmentsTo(trg);
 	}
