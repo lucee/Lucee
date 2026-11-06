@@ -7407,6 +7407,19 @@ if this attribute is not provided all types are returned.</description>
 	</function> -->
 	
 	
+	<!-- getRequestId -->
+	<function>
+		<name>getRequestId</name>
+		<class>lucee.runtime.functions.other.GetRequestId</class>
+		<introduced>9.0.0.0</introduced>
+		<keywords>request</keywords>
+		<description>Returns the integer id of the current request page context. The id is assigned when that page context is initialized and stays the same for that page context. Each initialized page context has its own id.</description>
+		<return>
+			<type>number</type>
+			<description>The integer id of the current request page context.</description>
+		</return>
+	</function>
+
 	<!-- getPageContext -->
 	<function>
 		<name>getPageContext</name>
