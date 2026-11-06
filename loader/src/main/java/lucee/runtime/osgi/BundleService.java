@@ -134,4 +134,37 @@ public interface BundleService {
 	 * Stop and uninstall a bundle and optionally delete its file from the local bundle directory.
 	 */
 	public void removeLocal(String bundleName, String bundleVersion, boolean removeFile) throws IOException;
+
+	/**
+	 * @return the class loader of an empty bundle, a class loader that does not see the classes of Lucee
+	 *         but is able to load what is boot delegated
+	 * @throws IOException when the class loader cannot be created
+	 */
+	public ClassLoader getLoaderClassLoader() throws IOException;
+
+	/**
+	 * @return the class path (path separated) needed to compile against Lucee, the servlet API and all
+	 *         active bundles
+	 */
+	public String getClassPath();
+
+	/**
+	 * Search a class in the core and in all active bundles.
+	 *
+	 * @return the class or null when no bundle has it
+	 */
+	public Class<?> findClass(String className);
+
+	/**
+	 * Info of a bundle file in the bundle directory, the bundle does not have to be installed.
+	 *
+	 * @return the info (state is {@code notinstalled}, there is no id) or null when there is no such
+	 *         file
+	 */
+	public Map<String, Object> getLocalBundleInfo(String bundleName, String bundleVersion);
+
+	/**
+	 * @return the info of all bundle files in the bundle directory that are not installed
+	 */
+	public List<Map<String, Object>> listLocalBundles();
 }

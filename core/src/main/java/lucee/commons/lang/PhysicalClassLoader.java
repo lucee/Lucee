@@ -43,7 +43,6 @@ import lucee.runtime.PageSourcePool;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.ClassRenamer;
 import lucee.transformer.dynamic.DynamicInvoker;
@@ -292,7 +291,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 				}
 			}
 
-			boolean isBootDelegated = OSGiUtil.isClassInBootelegation(name);
+			boolean isBootDelegated = BootDelegation.isClassInBootelegation(name);
 
 			// For classes in boot delegation list, always delegate to parent first
 			if (isBootDelegated) {

@@ -13,7 +13,7 @@ import javax.tools.ToolProvider;
 
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.osgi.BundleServiceImpl;
 
 public final class JVMCompiler implements Compiler {
 
@@ -36,7 +36,7 @@ public final class JVMCompiler implements Compiler {
 
 		// TODO MUST better way to do this!!!
 		options.add("-classpath");
-		options.add(OSGiUtil.getClassPath());
+		options.add(BundleServiceImpl.getInstance().getClassPath());
 
 		DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
 

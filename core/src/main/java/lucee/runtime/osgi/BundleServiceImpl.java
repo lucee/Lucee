@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -17,6 +19,7 @@ import org.osgi.framework.wiring.BundleWiring;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -277,5 +280,66 @@ public final class BundleServiceImpl implements BundleService {
 		catch (BundleException be) {
 			throw new IOException(be.getMessage(), be);
 		}
+	}
+
+	@Override
+	public ClassLoader getLoaderClassLoader() throws IOException {
+		try {
+			return OSGiUtil.getEmptyBundleClassLoader(null);
+		}
+		catch (BundleException be) {
+			throw new IOException(be);
+		}
+	}
+
+	@Override
+	public String getClassPath() {
+		return OSGiUtil.getClassPath();
+	}
+
+	@Override
+	public Class<?> findClass(String className) {
+		return OSGiUtil.loadClass(className, null);
+	}
+
+	@Override
+	public Map<String, Object> getLocalBundleInfo(String bundleName, String bundleVersion) {
+		BundleFile bf = OSGiUtil.getBundleFile(bundleName, toVersion(bundleVersion), null, null, false, null);
+		return bf == null ? null : toInfo(bf);
+	}
+
+	@Override
+	public List<Map<String, Object>> listLocalBundles() {
+		List<Map<String, Object>> list = new ArrayList<>();
+		Set<String> installed = new HashSet<>();
+		for (Bundle b: context().getBundles()) {
+			installed.add(b.getSymbolicName() + ":" + b.getVersion());
+		}
+		try {
+			File[] children = ConfigUtil.getCFMLEngineFactory().getBundleDirectory().listFiles((dir, name) -> name.endsWith(".jar"));
+			if (children == null) return list;
+			for (File child: children) {
+				try {
+					BundleFile bf = BundleFile.getInstance(child);
+					if (bf.isBundle() && !installed.contains(bf.getSymbolicName() + ":" + bf.getVersion())) list.add(toInfo(bf));
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+			}
+		}
+		catch (IOException ioe) {}
+		return list;
+	}
+
+	private static Map<String, Object> toInfo(BundleFile bf) {
+		Map<String, Object> info = new StructImpl(Struct.TYPE_LINKED);
+		info.put("name", bf.getSymbolicName());
+		info.put("version", OSGiUtil.toLucee(bf.getVersion()).toString());
+		info.put("state", "notinstalled");
+		info.put("location", bf.getFile().getAbsolutePath());
+		info.put("fragment", Boolean.valueOf(OSGiUtil.isFragment(bf)));
+		info.put("headers", bf.getHeaders());
+		return info;
 	}
 }
