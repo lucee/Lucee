@@ -652,10 +652,10 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 	public void removeAll() {
 		ResourceUtil.removeChildrenEL(getOpenDirectory(), false);
-		ResourceUtil.removeChildrenEL(getOpenDirectory(), false);
+		ResourceUtil.removeChildrenEL(getClosedDirectory(), false);
 		SystemUtil.wait(this, 100);
 		ResourceUtil.removeChildrenEL(getOpenDirectory(), false);
-		ResourceUtil.removeChildrenEL(getOpenDirectory(), false);
+		ResourceUtil.removeChildrenEL(getClosedDirectory(), false);
 	}
 
 	public int adds() {
@@ -666,7 +666,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 	@Override
 	public void remove(String id) {
 		SpoolerTask task = getTaskById(getOpenDirectory(), id);
-		if (task == null) task = getTaskById(getOpenDirectory(), id);
+		if (task == null) task = getTaskById(getClosedDirectory(), id);
 		if (task != null) remove(task);
 	}
 
@@ -683,7 +683,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 	@Override
 	public PageException execute(String id) {
 		SpoolerTask task = getTaskById(getOpenDirectory(), id);
-		if (task == null) task = getTaskById(getOpenDirectory(), id);
+		if (task == null) task = getTaskById(getClosedDirectory(), id);
 		if (task != null) {
 			return execute(task);
 		}
