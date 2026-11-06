@@ -44,5 +44,11 @@ public interface Body extends Statement {
 
 	public void addPrintOut(Factory f, String str, Position start, Position end);
 
+	/**
+	 * Adds bare template text. {@code raw} is the original source of that text, with no surrounding quotes.
+	 * A null {@code raw} uses {@code str}.
+	 */
+	public void addPrintOut(Factory f, String str, String raw, Position start, Position end);
+
 	public void remove(Statement stat);
 }
