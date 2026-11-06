@@ -49,7 +49,8 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiServiceImpl;
+import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ArrayUtil;
@@ -93,7 +94,7 @@ public final class MappingImpl implements Mapping {
 
 	private ApplicationListener appListener;
 
-	private Map<String, Object> archiveBundle;
+	private BundleFile archiveBundle;
 
 	private long archMod;
 
@@ -200,7 +201,9 @@ public final class MappingImpl implements Mapping {
 					if (tmp == null || archMod == tmp.lastModified()) return;
 					try {
 						OSGiExtensionInstaller.ensureAvailable(config, "the archive [" + tmp + "]");
-						archiveBundle = BundleServiceImpl.getInstance().install(toLocalFile(tmp), false);
+						java.io.File jar = toLocalFile(tmp);
+						BundleFile bf = BundleFile.getInstance(jar);
+						archiveBundle = bf.isBundle() && OSGiServiceImpl.getInstance().install(jar) ? bf : null;
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
@@ -226,7 +229,7 @@ public final class MappingImpl implements Mapping {
 	}
 
 	private Class<?> loadArchiveClass(String className) throws IOException, ClassNotFoundException {
-		return BundleServiceImpl.getInstance().loadClass((String) archiveBundle.get("name"), (String) archiveBundle.get("version"), className);
+		return OSGiServiceImpl.getInstance().loadClass(archiveBundle.getSymbolicName(), archiveBundle.getVersionAsString(), className);
 	}
 
 	@Override

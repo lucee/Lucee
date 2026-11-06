@@ -1408,32 +1408,6 @@ component {
 	}
 
 	/**
-	* @hint returns the list of bundles
-	*/
-	public query function getBundles(){
-		admin
-			action="getBundles"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint returns the details of bundle
-	* @name specifies the name of the bundle
-	*/
-	public struct function getBundle( required string name ){
-		admin
-			action="getBundle"
-			type="#variables.type#"
-			password="#variables.password#"
-			symbolicName = "#arguments.name#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
 	* @hint returns the logged debug data
 	*/
 	public array function getLoggedDebugData(){

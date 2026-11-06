@@ -923,12 +923,18 @@ component {
 	}
 
 	function getBundleVersions() cachedWithin="#createTimeSpan( 1, 0, 0, 0 )#"{
-		admin 
-			type="server"
-			password="#server.SERVERADMINPASSWORD#" 
-			action="getBundles" 
-			returnvariable="local.q_bundles"
 		var bundles = {};
+		// Lucee 9 no longer lists the bundles
+		try {
+			admin 
+				type="server"
+				password="#server.SERVERADMINPASSWORD#" 
+				action="getBundles" 
+				returnvariable="local.q_bundles";
+		}
+		catch ( any e ) {
+			return bundles;
+		}
 		loop query=q_bundles {
 			var _bundle = {};
 			_bundle.append( q_bundles.headers );

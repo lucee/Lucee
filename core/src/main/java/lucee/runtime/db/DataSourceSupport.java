@@ -38,7 +38,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.transformer.library.ClassDefinitionImpl;
 
@@ -64,6 +64,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final ClassDefinition cd;
 
 	private transient volatile Driver driver;
+	private transient volatile String driverBundle;
 	private transient Log log;
 	private final TagListener listener;
 	private final boolean requestExclusive;
@@ -148,14 +149,20 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 
 	private Driver initialize(Config config) throws Exception {
 		Driver d = driver;
-		if (d != null && !isFromUninstalledBundle(d.getClass())) return d;
+		if (d != null && !isStale(d)) return d;
 		synchronized (this) {
 			d = driver;
-			if (d != null && !isFromUninstalledBundle(d.getClass())) return d;
+			if (d != null && !isStale(d)) return d;
 			// the cached driver (if any) comes from a bundle that was uninstalled, drop it and resolve again
 			driver = null;
-			return driver = _initializeDriver(name, cd, config);
+			d = _initializeDriver(name, cd, config);
+			driverBundle = OSGiServiceImpl.getInstance().getId(d.getClass());
+			return driver = d;
 		}
+	}
+
+	private boolean isStale(Driver d) {
+		return driverBundle != null && OSGiServiceImpl.getInstance().getId(d.getClass()) == null;
 	}
 
 	/**
@@ -171,21 +178,8 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		// LDEV-5801 without a class name there is nothing to load, tell what is missing instead of failing with [null]
 		if (cd == null || !cd.hasClass()) throw noDriverClass(dsName, config);
 
-		// load the class
-		Class<?> clazz = cd.getClazz();
-		if (isFromUninstalledBundle(clazz)) {
-			// the class definition still holds a class from an uninstalled bundle, force a fresh lookup
-			Map<String, Object> uninstalled = BundleServiceImpl.getInstance().getBundleInfo(clazz);
-			try {
-				clazz = (cd instanceof ClassDefinitionImpl) ? ((ClassDefinitionImpl) cd).getClazz(true) : cd.getClazz();
-			}
-			catch (Exception e) {
-				ClassException ce = driverNotAvailable(cd, uninstalled);
-				ExceptionUtil.initCauseEL(ce, e);
-				throw ce;
-			}
-			if (isFromUninstalledBundle(clazz)) throw driverNotAvailable(cd, uninstalled);
-		}
+		// load the class, the definition may still hold the class of a driver that was replaced or removed
+		Class<?> clazz = (cd instanceof ClassDefinitionImpl) ? ((ClassDefinitionImpl) cd).getClazz(true) : cd.getClazz();
 		return (Driver) ClassUtil.newInstance(clazz);
 	}
 
@@ -220,18 +214,6 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		catch (Exception e) {
 			return "";
 		}
-	}
-
-	private static ClassException driverNotAvailable(ClassDefinition cd, Map<String, Object> bundle) {
-		String bundleInfo = bundle != null ? bundle.get("name") + ":" + bundle.get("version") : cd.getName() + ":" + cd.getVersionAsString();
-		return new ClassException("The JDBC driver [" + cd.getClassName() + "] is no longer available, the OSGi bundle [" + bundleInfo
-				+ "] it was loaded from has been uninstalled (for example because the extension providing the driver was removed or updated). "
-				+ "Install the extension that provides this JDBC driver again.");
-	}
-
-	private static boolean isFromUninstalledBundle(Class<?> clazz) {
-		if (clazz == null) return false;
-		return "uninstalled".equals(BundleServiceImpl.getInstance().getBundleState(clazz));
 	}
 
 	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws PageException {

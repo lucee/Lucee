@@ -874,29 +874,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});*/
 			});
 
-			// Bundles
-			describe( title="test bundles functions", body=function() {
-				it(title="checking getBundles()", body=function( currentSpec ) {
-					var bundles = adminWeb.getBundles();
-					assertEquals(isquery(bundles) ,true);
-				});
-
-				it(title="checking getBundle()", body=function( currentSpec ) {
-					var bundles = adminWeb.getBundles();
-					var bundle = adminWeb.getBundle( bundles.symbolicName );
-					assertEquals(isStruct(bundle) ,true);
-					// TODO description missing
-					var props = "description,fragment,headers,id,path,state,symbolicName,title,usedBy,version";
-					loop list=props item="local.prop"{
-						expect( bundle ).toHaveKey( prop );
-					}
-					// vendor only exists when the manifest of the bundle has a Bundle-Vendor, which one is listed first depends on the installed bundles
-					loop collection=bundle item="local.key"{
-						expect( listFindNoCase( props & ",vendor", key ) ).toBeGT( 0, "unexpected key [#key#], " & bundle.keyList() );
-					}
-				});
-			});
-
 			// Debug
 			describe( title="test debugging functions", body=function() {
 				beforeEach(function( currentSpec ){

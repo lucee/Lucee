@@ -64,8 +64,8 @@ import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.osgi.BundleService;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiService;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Array;
@@ -667,22 +667,15 @@ public final class DumpUtil {
 			table.appendRow(0, inherited);
 
 			// Bundle Info
-			BundleService bundleService = BundleServiceImpl.getInstance();
-			Map<String, Object> bundle = bundleService.getBundleInfo(clazz);
+			Map<String, Object> bundle = OSGiServiceImpl.getInstance().getInfo(clazz);
 			if (bundle != null) {
-				try {
-					DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
-					bd.setTitle("OSGi Bundle Info");
-					bd.appendRow(0, new SimpleDumpData("id: " + bundle.get("id")));
-					bd.appendRow(0, new SimpleDumpData("symbolic-name: " + bundle.get("name")));
-					bd.appendRow(0, new SimpleDumpData("version: " + bundle.get("version")));
-					bd.appendRow(0, new SimpleDumpData("location: " + bundle.get("location")));
-					requiredBundles(bd, bundleService.getRequirements((String) bundle.get("name"), (String) bundle.get("version")));
-					table.appendRow(0, bd);
+				DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
+				bd.setTitle("OSGi Bundle Info");
+				for (Map.Entry<String, Object> entry: bundle.entrySet()) {
+					if (entry.getValue() instanceof Map || entry.getValue() instanceof List) continue;
+					bd.appendRow(0, new SimpleDumpData(entry.getKey() + ": " + entry.getValue()));
 				}
-				catch (IOException e) {
-					LogUtil.warn("dump", e);
-				}
+				table.appendRow(0, bd);
 			}
 			else {
 
@@ -718,29 +711,6 @@ public final class DumpUtil {
 		}
 		finally {
 			ThreadLocalDump.remove(o);
-		}
-	}
-
-	private static void requiredBundles(DumpTable parent, Map<String, Object> requirements) {
-		try {
-			Object list = requirements == null ? null : requirements.get("requiredBundles");
-			if (!(list instanceof List) || ((List<?>) list).isEmpty()) return;
-			DumpTable dt = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
-			dt.setTitle("Required Bundles");
-
-			dt.appendRow(-1, new SimpleDumpData("name"), new SimpleDumpData("version from"), new SimpleDumpData("operator from"), new SimpleDumpData("version to"),
-					new SimpleDumpData("operator to"));
-
-			for (Object o: (List<?>) list) {
-				Struct sct = (Struct) o;
-				dt.appendRow(0, new SimpleDumpData(Caster.toString(sct.get(KeyConstants._bundleName, ""), "")), new SimpleDumpData(Caster.toString(sct.get("bundleVersion", ""), "")),
-						new SimpleDumpData(Caster.toString(sct.get("operator", ""), "")), new SimpleDumpData(Caster.toString(sct.get("bundleVersionTo", ""), "")),
-						new SimpleDumpData(Caster.toString(sct.get("operatorTo", ""), "")));
-			}
-			parent.appendRow(0, dt);
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
 		}
 	}
 

@@ -144,7 +144,7 @@ import lucee.runtime.op.IOImpl;
 import lucee.runtime.op.JavaProxyUtilImpl;
 import lucee.runtime.op.OperationImpl;
 import lucee.runtime.op.StringsImpl;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.spooler.SpoolerEngine;
@@ -332,7 +332,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 		}
 
-		BundleServiceImpl bundles = BundleServiceImpl.getInstance();
+		OSGiServiceImpl bundles = OSGiServiceImpl.getInstance();
 		try {
 			bundles.boot(factory, bc);
 		}
@@ -1461,7 +1461,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private void shutdownFelix() {
 		try {
-			BundleServiceImpl.getInstance().shutdown();
+			OSGiServiceImpl.getInstance().shutdown();
 		}
 		catch (Exception e) {
 			LogUtil.log(configServer, LOG_TYPE_NAME, e);
@@ -1697,15 +1697,15 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	 */
 
 	@Override
-	public lucee.runtime.osgi.BundleService getBundleService() {
+	public lucee.runtime.osgi.OSGiService getOSGiService() {
 		try {
 			// install the OSGi extension if OSGi is needed and not available (LDEV-6829)
-			OSGiExtensionInstaller.ensureAvailable(ThreadLocalPageContext.getConfigServer(), "the BundleService");
+			OSGiExtensionInstaller.ensureAvailable(ThreadLocalPageContext.getConfigServer(), "the OSGiService");
 		}
 		catch (ApplicationException ae) {
 			throw new PageRuntimeException(ae);
 		}
-		return lucee.runtime.osgi.BundleServiceImpl.getInstance();
+		return lucee.runtime.osgi.OSGiServiceImpl.getInstance();
 	}
 
 	@Override

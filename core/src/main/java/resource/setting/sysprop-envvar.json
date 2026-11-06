@@ -443,7 +443,7 @@
 	{
 		"sysprop": "lucee.osgi.autoinstall",
 		"envvar": "LUCEE_OSGI_AUTOINSTALL",
-		"desc": "A boolean value that controls whether Lucee installs the OSGi extension (org.lucee:osgi-extension) automatically when something needs OSGi (an extension with bundles, a class definition with a bundle name, a mapping archive or a call to the BundleService) and no OSGi implementation is available. The extension is resolved offline first (installed, bundled .lex or the extension folder), then from Maven, and is installed in server scope. When false, nothing is installed and an error telling you to install the OSGi extension is thrown instead. Default true",
+		"desc": "A boolean value that controls whether Lucee installs the OSGi extension (org.lucee:osgi-extension) automatically when something needs OSGi (an extension with bundles, a class definition with a bundle name, a mapping archive or a call to the OSGiService) and no OSGi implementation is available. The extension is resolved offline first (installed, bundled .lex or the extension folder), then from Maven, and is installed in server scope. When false, nothing is installed and an error telling you to install the OSGi extension is thrown instead. Default true",
 		"category": "extensions",
 		"type": "boolean",
 		"default": true

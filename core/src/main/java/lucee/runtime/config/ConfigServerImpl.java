@@ -19,7 +19,7 @@
 package lucee.runtime.config;
 
 import lucee.runtime.osgi.BundleDefinition;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
 
 import java.io.File;
@@ -5388,22 +5388,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			if (!firstLoad) {
 				if (LogUtil.doesDebug(log)) log.debug("extensions", "Deploying bundles (not first load): " + rhe.getId());
 				rhe.deployBundles(config, true);
-			}
-			else {
-				try {
-					BundleInfo[] bundles = rhe.getMetadata().getBundles();
-					if (bundles != null) {
-						if (LogUtil.doesInfo(log)) log.info("extensions", "Loading " + bundles.length + " bundles for: " + rhe.getId());
-						for (BundleInfo bi: bundles) {
-							if (LogUtil.doesDebug(log)) log.debug("extensions", "  Loading bundle: " + bi.getSymbolicName() + " v" + bi.getVersion());
-							BundleServiceImpl.getInstance().loadFromLocal(bi.getSymbolicName(), bi.getVersionAsString(), false);
-						}
-					}
-				}
-				catch (Exception ex) {
-					if (LogUtil.doesWarn(log)) log.error("extensions", "Exception loading bundles for " + rhe.getId() + ", deploying instead", ex);
-					rhe.deployBundles(config, true);
-				}
 			}
 		}
 		if (LogUtil.doesInfo(log)) log.info("extensions", "Finished bundles for extension: " + rhe.getId());

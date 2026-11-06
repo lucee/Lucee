@@ -1,7 +1,10 @@
 package lucee.runtime.osgi;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -22,7 +25,10 @@ import org.osgi.framework.launch.Framework;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleWiring;
 
+import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -33,7 +39,9 @@ import lucee.loader.osgi.BundleCollection;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.engine.CFMLEngineFactorySupport;
 import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.op.Caster;
@@ -46,13 +54,13 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
- * The BundleService based on the OSGi framework (Felix) that is part of the core.
+ * The OSGiService based on the OSGi framework (Felix) that is part of the core.
  */
-public final class BundleServiceImpl implements BundleService {
+public final class OSGiServiceImpl implements OSGiService {
 
-	private static final BundleServiceImpl INSTANCE = new BundleServiceImpl();
+	private static final OSGiServiceImpl INSTANCE = new OSGiServiceImpl();
 
-	public static BundleServiceImpl getInstance() {
+	public static OSGiServiceImpl getInstance() {
 		return INSTANCE;
 	}
 
@@ -114,15 +122,21 @@ public final class BundleServiceImpl implements BundleService {
 		return OSGiUtil.uninstallOtherVersions(bundleCollection.getBundleContext(), "lucee.core", keepVersion);
 	}
 
-	public void shutdown() throws BundleException {
-		CFMLEngineFactory factory = bootFactory;
-		if (factory != null) factory.shutdownFelix();
-	}
-
-	private BundleServiceImpl() {
-	}
-
 	@Override
+	public void shutdown() {
+		CFMLEngineFactory factory = bootFactory;
+		if (factory == null) return;
+		try {
+			factory.shutdownFelix();
+		}
+		catch (BundleException be) {
+			LogUtil.log(Log.LEVEL_ERROR, "osgi", be);
+		}
+	}
+
+	private OSGiServiceImpl() {
+	}
+
 	public boolean isAvailable() {
 		try {
 			return OSGiUtil.getBundleContext() != null;
@@ -138,21 +152,8 @@ public final class BundleServiceImpl implements BundleService {
 		return bundle.loadClass(className);
 	}
 
-	@Override
-	public Map<String, Object> install(File bundle, boolean start) throws IOException {
-		try {
-			Resource res = ResourceUtil.toResource(bundle);
-			Bundle b = OSGiUtil.installBundle(context(), res, true);
-			if (start) b = OSGiUtil.startIfNecessary(b);
-			return toInfo(b);
-		}
-		catch (BundleException be) {
-			throw new IOException(be.getMessage(), be);
-		}
-	}
 
-	@Override
-	public void start(String bundleName, String bundleVersion) throws IOException {
+	private void start(String bundleName, String bundleVersion) throws IOException {
 		Bundle b = get(bundleName, bundleVersion);
 		if (b == null) throw new IOException("there is no bundle [" + bundleName + ":" + bundleVersion + "]");
 		try {
@@ -163,8 +164,7 @@ public final class BundleServiceImpl implements BundleService {
 		}
 	}
 
-	@Override
-	public void stop(String bundleName, String bundleVersion) throws IOException {
+	private void stop(String bundleName, String bundleVersion) throws IOException {
 		Bundle b = get(bundleName, bundleVersion);
 		if (b == null) return;
 		try {
@@ -175,8 +175,7 @@ public final class BundleServiceImpl implements BundleService {
 		}
 	}
 
-	@Override
-	public void uninstall(String bundleName, String bundleVersion) throws IOException {
+	private void uninstall(String bundleName, String bundleVersion) throws IOException {
 		Bundle b = get(bundleName, bundleVersion);
 		if (b == null) return;
 		try {
@@ -188,20 +187,17 @@ public final class BundleServiceImpl implements BundleService {
 		}
 	}
 
-	@Override
-	public Map<String, Object> getBundleInfo(String bundleName, String bundleVersion) {
+	private Map<String, Object> getBundleInfo(String bundleName, String bundleVersion) {
 		Bundle b = get(bundleName, bundleVersion);
 		return b == null ? null : toInfo(b);
 	}
 
-	@Override
-	public Map<String, Object> getBundleInfo(Class<?> clazz) {
+	private Map<String, Object> getBundleInfo(Class<?> clazz) {
 		Bundle b = OSGiUtil.getBundleFromClass(clazz, null);
 		return b == null ? null : toInfo(b);
 	}
 
-	@Override
-	public Map<String, Object> getBundleInfo(ClassLoader classLoader) {
+	private Map<String, Object> getBundleInfo(ClassLoader classLoader) {
 		if (classLoader instanceof BundleReference) {
 			Bundle b = ((BundleReference) classLoader).getBundle();
 			Map<String, Object> info = new StructImpl(Struct.TYPE_LINKED);
@@ -214,14 +210,12 @@ public final class BundleServiceImpl implements BundleService {
 		return null;
 	}
 
-	@Override
-	public String getBundleState(Class<?> clazz) {
+	private String getBundleState(Class<?> clazz) {
 		Bundle b = OSGiUtil.getBundleFromClass(clazz, null);
 		return b == null ? null : OSGiUtil.toState(b.getState(), "unknown");
 	}
 
-	@Override
-	public Map<String, Object> getRequirements(String bundleName, String bundleVersion) throws IOException {
+	private Map<String, Object> getRequirements(String bundleName, String bundleVersion) throws IOException {
 		Bundle b = get(bundleName, bundleVersion);
 		if (b == null) return null;
 		try {
@@ -234,6 +228,100 @@ public final class BundleServiceImpl implements BundleService {
 		catch (BundleException be) {
 			throw new IOException(be.getMessage(), be);
 		}
+	}
+
+
+	@Override
+	public Class<?> findClass(String className, String... bundleNames) {
+		if (bundleNames == null || bundleNames.length == 0) return findClass(className);
+		for (Bundle b: context().getBundles()) {
+			for (String name: bundleNames) {
+				if (name == null || !name.trim().equals(b.getSymbolicName())) continue;
+				try {
+					return b.loadClass(className);
+				}
+				catch (ClassNotFoundException e) {
+				}
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public InputStream getResourceAsStream(String bundleName, String bundleVersion, String path) throws IOException {
+		URL url = getResource(bundleName, bundleVersion, path);
+		return url == null ? null : url.openStream();
+	}
+
+	@Override
+	public boolean install(File jar) throws IOException {
+		BundleFile bf = BundleFile.getInstance(jar);
+		if (!bf.isBundle()) return false;
+
+		// copy to the bundle directory, when not already there
+		BundleFile existing = getBundleFile(bf.getSymbolicName(), bf.getBundleVersion());
+		File target;
+		if (existing != null) target = existing.getFile();
+		else {
+			CFMLEngineFactory factory = CFMLEngineFactory.getInstance().getCFMLEngineFactory();
+			target = new File(factory.getBundleDirectory(), bf.getSymbolicName() + "-" + bf.getBundleVersion().toString() + ".jar");
+			InputStream is = bf.getInputStream();
+			OutputStream os = new FileOutputStream(target);
+			try {
+				IOUtil.copy(is, os, false, false);
+			}
+			finally {
+				IOUtil.close(is, os);
+			}
+		}
+		try {
+			OSGiUtil.installBundle(context(), ResourceUtil.toResource(target), true);
+		}
+		catch (BundleException be) {
+			throw new IOException(be.getMessage(), be);
+		}
+		return true;
+	}
+
+	@Override
+	public void uninstall(File jar) throws IOException {
+		BundleFile bf = BundleFile.getInstance(jar);
+		if (!bf.isBundle()) return;
+		uninstall(bf.getSymbolicName(), bf.getVersionAsString());
+		removeLocal(bf.getSymbolicName(), bf.getVersionAsString(), true);
+	}
+
+	@Override
+	public String getId(Class<?> clazz) {
+		if (clazz == null) return null;
+		return toId(OSGiUtil.getBundleFromClass(clazz, null));
+	}
+
+	@Override
+	public String getId(ClassLoader classLoader) {
+		return classLoader instanceof BundleReference ? toId(((BundleReference) classLoader).getBundle()) : null;
+	}
+
+	private static String toId(Bundle b) {
+		// the system bundle is Lucee itself
+		if (b == null || b.getBundleId() == 0 || b.getState() == Bundle.UNINSTALLED) return null;
+		return b.getSymbolicName() + ":" + OSGiUtil.toLucee(b.getVersion());
+	}
+
+	@Override
+	public Map<String, Object> getInfo(Class<?> clazz) {
+		if (clazz == null) return null;
+		Bundle b = OSGiUtil.getBundleFromClass(clazz, null);
+		if (b == null) return null;
+		Map<String, Object> info = toInfo(b);
+		try {
+			Map<String, Object> req = getRequirements(b.getSymbolicName(), OSGiUtil.toLucee(b.getVersion()).toString());
+			if (req != null) info.putAll(req);
+		}
+		catch (IOException e) {
+			LogUtil.warn("osgi", e);
+		}
+		return info;
 	}
 
 	private static Array toPackageArray(List<PackageQuery> list) {
@@ -254,8 +342,7 @@ public final class BundleServiceImpl implements BundleService {
 		return arr;
 	}
 
-	@Override
-	public List<Map<String, Object>> listCoreBundles() {
+	private List<Map<String, Object>> listCoreBundles() {
 		List<Map<String, Object>> list = new ArrayList<>();
 		BundleCollection bc = OSGiUtil.getBundleCollection();
 		list.add(toInfo(bc.core));
@@ -266,8 +353,7 @@ public final class BundleServiceImpl implements BundleService {
 		return list;
 	}
 
-	@Override
-	public List<Map<String, Object>> listBundles() {
+	private List<Map<String, Object>> listBundles() {
 		List<Map<String, Object>> list = new ArrayList<>();
 		for (Bundle b: context().getBundles()) {
 			list.add(toInfo(b));
@@ -278,13 +364,20 @@ public final class BundleServiceImpl implements BundleService {
 	@Override
 	public URL getResource(String bundleName, String bundleVersion, String path) {
 		Bundle b = get(bundleName, bundleVersion);
-		return b == null ? null : b.getResource(path);
+		if (b == null) {
+			try {
+				b = load(bundleName, bundleVersion);
+			}
+			catch (IOException e) {
+				return null;
+			}
+		}
+		return b.getResource(path);
 	}
 
 	@Override
 	public ClassLoader getClassLoader(String bundleName, String bundleVersion) throws IOException {
-		Bundle b = get(bundleName, bundleVersion);
-		if (b == null) throw new IOException("there is no bundle [" + bundleName + ":" + bundleVersion + "]");
+		Bundle b = load(bundleName, bundleVersion);
 		BundleWiring wiring = b.adapt(BundleWiring.class);
 		if (wiring == null) throw new IOException("the bundle [" + bundleName + ":" + bundleVersion + "] is not resolved");
 		return wiring.getClassLoader();
@@ -335,19 +428,16 @@ public final class BundleServiceImpl implements BundleService {
 		return info;
 	}
 
-	@Override
-	public Map<String, Object> loadBundle(String bundleName, String bundleVersion) throws IOException {
+	private Map<String, Object> loadBundle(String bundleName, String bundleVersion) throws IOException {
 		return toInfo(load(bundleName, bundleVersion));
 	}
 
-	@Override
-	public Map<String, Object> loadFromLocal(String bundleName, String bundleVersion, boolean loadIfNecessary) {
+	private Map<String, Object> loadFromLocal(String bundleName, String bundleVersion, boolean loadIfNecessary) {
 		Bundle b = OSGiUtil.loadBundleFromLocal(context(), bundleName, toVersion(bundleVersion), null, loadIfNecessary, null);
 		return b == null ? null : toInfo(b);
 	}
 
-	@Override
-	public void removeLocal(String bundleName, String bundleVersion, boolean removeFile) throws IOException {
+	private void removeLocal(String bundleName, String bundleVersion, boolean removeFile) throws IOException {
 		try {
 			OSGiUtil.removeLocalBundle(bundleName, toVersion(bundleVersion), null, removeFile, false);
 		}
@@ -356,8 +446,7 @@ public final class BundleServiceImpl implements BundleService {
 		}
 	}
 
-	@Override
-	public ClassLoader getLoaderClassLoader() throws IOException {
+	private ClassLoader getLoaderClassLoader() throws IOException {
 		try {
 			return OSGiUtil.getEmptyBundleClassLoader(null);
 		}
@@ -366,8 +455,7 @@ public final class BundleServiceImpl implements BundleService {
 		}
 	}
 
-	@Override
-	public String getClassPath() {
+	private String getClassPath() {
 		return OSGiUtil.getClassPath();
 	}
 
@@ -383,14 +471,12 @@ public final class BundleServiceImpl implements BundleService {
 		return OSGiUtil.loadClass(className, null);
 	}
 
-	@Override
-	public Map<String, Object> getLocalBundleInfo(String bundleName, String bundleVersion) {
+	private Map<String, Object> getLocalBundleInfo(String bundleName, String bundleVersion) {
 		BundleFile bf = OSGiUtil.getBundleFile(bundleName, toVersion(bundleVersion), null, null, false, null);
 		return bf == null ? null : toInfo(bf);
 	}
 
-	@Override
-	public List<Map<String, Object>> listLocalBundles() {
+	private List<Map<String, Object>> listLocalBundles() {
 		List<Map<String, Object>> list = new ArrayList<>();
 		Set<String> installed = new HashSet<>();
 		for (Bundle b: context().getBundles()) {
@@ -424,34 +510,36 @@ public final class BundleServiceImpl implements BundleService {
 		return info;
 	}
 
-	/**
-	 * load (download if necessary) and start the bundle
-	 */
-	public void loadBundle(BundleDefinition bd, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload) throws IOException {
-		try {
-			OSGiUtil.loadBundle(null, bd.getName(), OSGiUtil.toOSGi(bd.getVersion()), id, addional, true, versionOnlyMattersForDownload, true, null);
+	@Override
+	public Class<?> loadClass(String bundleName, String bundleVersion, String className, File[] additionalBundleDirectories, boolean versionOnlyMattersForDownload)
+			throws IOException, ClassNotFoundException {
+		List<Resource> addional = null;
+		if (additionalBundleDirectories != null && additionalBundleDirectories.length > 0) {
+			addional = new ArrayList<Resource>();
+			for (File f: additionalBundleDirectories) {
+				addional.add(ResourceUtil.toResource(f));
+			}
 		}
-		catch (BundleException be) {
-			throw new IOException(be.getMessage(), be);
+		Identification id = null;
+		ConfigServer cs = ThreadLocalPageContext.getConfigServer();
+		if (cs != null) id = cs.getIdentification();
+		try {
+			return _loadClass(bundleName, bundleVersion, className, id, addional, versionOnlyMattersForDownload);
+		}
+		catch (ClassNotFoundException outer) {
+			// a bundle may be missing, try to fix it and load again
+			if (OSGiUtil.resolveBundleLoadingIssues(null, cs, outer)) return _loadClass(bundleName, bundleVersion, className, id, addional, versionOnlyMattersForDownload);
+			throw outer;
 		}
 	}
 
-	public Class<?> loadClass(BundleDefinition bd, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload, String className)
+	private Class<?> _loadClass(String bundleName, String bundleVersion, String className, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload)
 			throws IOException, ClassNotFoundException {
 		try {
-			return OSGiUtil.loadBundle(null, bd.getName(), OSGiUtil.toOSGi(bd.getVersion()), id, addional, true, versionOnlyMattersForDownload, true, null).loadClass(className);
+			return OSGiUtil.loadBundle(null, bundleName, toVersion(bundleVersion), id, addional, true, versionOnlyMattersForDownload, true, null).loadClass(className);
 		}
 		catch (BundleException be) {
 			throw new IOException(be.getMessage(), be);
 		}
-	}
-
-	/**
-	 * try to fix a class that could not be loaded because a bundle is missing
-	 *
-	 * @return true when something was fixed and it makes sense to try again
-	 */
-	public boolean resolveLoadingIssues(Config config, ClassNotFoundException cnfe) {
-		return OSGiUtil.resolveBundleLoadingIssues(null, config, cnfe);
 	}
 }

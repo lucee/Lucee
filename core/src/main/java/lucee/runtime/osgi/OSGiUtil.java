@@ -189,7 +189,7 @@ public final class OSGiUtil {
 	}
 
 	public static BundleCollection getBundleCollection() {
-		BundleCollection bc = BundleServiceImpl.getInstance().getBundleCollection();
+		BundleCollection bc = OSGiServiceImpl.getInstance().getBundleCollection();
 		if (bc == null) throw new IllegalStateException("the OSGi framework of this Lucee is not available");
 		return bc;
 	}

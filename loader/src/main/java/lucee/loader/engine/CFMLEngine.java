@@ -312,7 +312,7 @@ public interface CFMLEngine {
 	/**
 	 * @return the service to work with OSGi bundles, without any OSGi type
 	 */
-	public lucee.runtime.osgi.BundleService getBundleService();
+	public lucee.runtime.osgi.OSGiService getOSGiService();
 
 	public ScriptEngineFactory getScriptEngineFactory();
 

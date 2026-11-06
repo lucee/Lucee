@@ -62,7 +62,7 @@ public final class OSGiExtensionInstaller {
 	public static boolean isOSGiAvailable() {
 		Boolean override = availabilityOverride.get();
 		if (override != null) return override.booleanValue();
-		return BundleServiceImpl.getInstance().isAvailable();
+		return OSGiServiceImpl.getInstance().isAvailable();
 	}
 
 	/**

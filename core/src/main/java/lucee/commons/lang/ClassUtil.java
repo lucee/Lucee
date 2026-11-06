@@ -30,6 +30,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -59,7 +60,8 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleDefinition;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiService;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
@@ -173,41 +175,37 @@ public final class ClassUtil {
 	public static Class<?> loadClassByBundle(String className, BundleDefinition bundle, BundleDefinition[] relatedBundles, Identification id, List<Resource> addional,
 			boolean versionOnlyMattersForDownload) throws IOException, ClassException {
 		try {
+			OSGiService osgi = OSGiServiceImpl.getInstance();
 			if (relatedBundles != null) {
 				for (BundleDefinition rb: relatedBundles) {
-					BundleServiceImpl.getInstance().loadBundle(rb, id, addional, false);
+					osgi.getClassLoader(rb.getName(), rb.getVersionAsString());
 				}
 			}
-			return BundleServiceImpl.getInstance().loadClass(bundle, id, addional, versionOnlyMattersForDownload, className);
+			return osgi.loadClass(bundle.getName(), bundle.getVersionAsString(), className, toFiles(addional), versionOnlyMattersForDownload);
 		}
-		catch (ClassNotFoundException outer) {
-			try {
-				if (BundleServiceImpl.getInstance().resolveLoadingIssues(ThreadLocalPageContext.getConfigServer(), outer)) {
-					if (relatedBundles != null) {
-						for (BundleDefinition rb: relatedBundles) {
-							BundleServiceImpl.getInstance().loadBundle(rb, id, addional, false);
-						}
-					}
-					return BundleServiceImpl.getInstance().loadClass(bundle, id, addional, versionOnlyMattersForDownload, className);
-				}
-				else throw outer;
+		catch (ClassNotFoundException e) {
+			String appendix = "";
+			if (!StringUtil.isEmpty(e.getMessage(), true)) appendix = " " + e.getMessage();
+			ClassException ce;
+			if (bundle.getVersion() == null) {
+				ce = new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] was no class with name [" + className + "] found." + appendix);
+			}
+			else {
+				ce = new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] and the version [" + bundle.getVersion() + "] was no class with name ["
+						+ className + "] found." + appendix);
+			}
+			ExceptionUtil.initCauseEL(ce, e);
+			throw ce;
+		}
+	}
 
-			}
-			catch (ClassNotFoundException e) {
-				String appendix = "";
-				if (!StringUtil.isEmpty(e.getMessage(), true)) appendix = " " + e.getMessage();
-				ClassException ce;
-				if (bundle.getVersion() == null) {
-					ce = new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] was no class with name [" + className + "] found." + appendix);
-				}
-				else {
-					ce = new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] and the version [" + bundle.getVersion() + "] was no class with name ["
-							+ className + "] found." + appendix);
-				}
-				ExceptionUtil.initCauseEL(ce, e);
-				throw ce;
-			}
+	private static java.io.File[] toFiles(List<Resource> resources) {
+		if (resources == null || resources.isEmpty()) return null;
+		List<java.io.File> files = new ArrayList<java.io.File>();
+		for (Resource r: resources) {
+			if (r instanceof java.io.File) files.add((java.io.File) r);
 		}
+		return files.toArray(new java.io.File[files.size()]);
 	}
 
 	/**
@@ -1122,7 +1120,7 @@ public final class ClassUtil {
 	private static class OSGiBasedClassLoading implements ClassLoading {
 		@Override
 		public Class<?> loadClass(String className, Class defaultValue) {
-			Class<?> clazz = BundleServiceImpl.getInstance().findClass(className);
+			Class<?> clazz = OSGiServiceImpl.getInstance().findClass(className);
 			return clazz != null ? clazz : defaultValue;
 		}
 

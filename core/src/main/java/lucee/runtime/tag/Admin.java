@@ -20,8 +20,8 @@ package lucee.runtime.tag;
 
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.osgi.BundleDefinition;
-import lucee.runtime.osgi.BundleService;
-import lucee.runtime.osgi.BundleServiceImpl;
+import lucee.runtime.osgi.OSGiService;
+import lucee.runtime.osgi.OSGiServiceImpl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -617,8 +617,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getRunningThreads", ACCESS_FREE) && check2(ACCESS_READ)) doGetRunningThreads();
 		else if (check("getMonitors", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetMonitors();
 		else if (check("getMonitor", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetMonitor();
-		else if (check("getBundles", ACCESS_FREE) && check2(ACCESS_READ)) doGetBundles();
-		else if (check("getBundle", ACCESS_FREE) && check2(ACCESS_READ)) doGetBundle();
 		else if (check("getExecutionLog", ACCESS_FREE) && check2(ACCESS_READ)) doGetExecutionLog();
 		else if (check("gateway", ACCESS_NOT_WHEN_SERVER) && check2(ACCESS_READ)) doGateway();
 
@@ -900,7 +898,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("removeMonitor", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveMonitor();
 		else if (check("removeCacheHandler", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveCacheHandler();
 		else if (check("removeORMEngine", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveORMEngine();
-		else if (check("removebundle", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveBundle();
 		else if (check("removeTLD", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveTLD();
 		else if (check("removeFLD", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveFLD();
 		else if (check("removeJDBCDriver", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveJDBCDriver();
@@ -3663,133 +3660,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
-	private void doGetBundle() throws PageException {
-		String symbolicName = getString("admin", "getBundle", "symbolicName", true);
-		String version = getString("version", null);
-
-		BundleService bs = BundleServiceImpl.getInstance();
-		Map<String, Object> info = bs.getBundleInfo(symbolicName, version);
-		if (info == null) info = bs.getLocalBundleInfo(symbolicName, version);
-		if (info == null) throw new ApplicationException("there is no bundle [" + symbolicName + (StringUtil.isEmpty(version, true) ? "" : ":" + version) + "]");
-
-		Struct sct = new StructImpl();
-		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-		setBundleInfo(sct, info, bs.listCoreBundles(), config.getAllExtensionBundleDefintions());
-	}
-
-	private void doGetBundles() throws PageException {
-		BundleService bs = BundleServiceImpl.getInstance();
-		List<Map<String, Object>> coreBundles = bs.listCoreBundles();
-		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
-
-		List<Map<String, Object>> infos = new ArrayList<>(bs.listBundles());
-		infos.addAll(bs.listLocalBundles());
-
-		Query qry = new QueryImpl(new Key[] { KeyConstants._symbolicName, KeyConstants._title, KeyConstants._description, KeyConstants._version, KeyConstants._vendor,
-				KeyConstants._state, KeyConstants._path, KeyConstants._usedBy, KeyConstants._id, KeyConstants._fragment, KeyConstants._headers }, infos.size(), "bundles");
-		int row = 0;
-		for (Map<String, Object> info: infos) {
-			row++;
-			Struct sct = new StructImpl();
-			setBundleInfo(sct, info, coreBundles, extBundles);
-			for (Key k: qry.getColumnNames()) {
-				Object v = sct.get(k, null);
-				if (v != null) qry.setAt(k, row, v);
-			}
-		}
-
-		QuerySort.call(pageContext, qry, "title");
-		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
-	}
-
-	private void setBundleInfo(Struct sct, Map<String, Object> info, List<Map<String, Object>> coreBundles, java.util.Collection<BundleDefinition> extBundles) throws PageException {
-		String name = (String) info.get("name");
-		String strVersion = (String) info.get("version");
-		sct.set(KeyConstants._symbolicName, name);
-		sct.set(KeyConstants._title, name);
-		sct.set(KeyConstants._version, strVersion);
-		sct.set(KeyConstants._usedBy, _usedBy(name, VersionImpl.parseOSGi(strVersion, null), coreBundles, extBundles));
-		sct.set(KeyConstants._state, info.get("state"));
-		sct.set(KeyConstants._fragment, info.get("fragment"));
-		if (info.get("id") != null) sct.set(KeyConstants._id, info.get("id"));
-		if (info.get("location") != null) sct.set(KeyConstants._path, info.get("location"));
-
-		Object o = info.get("headers");
-		if (o == null) return;
-		Struct h = Caster.toStruct(o, false);
-		sct.set(KeyConstants._headers, h);
-
-		// title
-		String str = Caster.toString(h.get("Bundle-Title", null), null);
-		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Title", null), null);
-		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Title", null), null);
-		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Bundle-Name", null), null);
-		if (!StringUtil.isEmpty(str)) sct.set(KeyConstants._title, str);
-
-		// description
-		str = Caster.toString(h.get("Bundle-Description", null), null);
-		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Description", null), null);
-		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Description", null), null);
-		sct.set(KeyConstants._description, str);
-
-		// Vendor
-		str = Caster.toString(h.get("Bundle-Vendor", null), null);
-		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Vendor", null), null);
-		if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Vendor", null), null);
-		if (!StringUtil.isEmpty(str)) sct.set(KeyConstants._vendor, str);
-	}
-
-	private String _usedBy(String name, Version version, List<Map<String, Object>> coreBundles, java.util.Collection<BundleDefinition> extBundles) {
-		Set<String> extensions = new HashSet<String>();
-
-		// core
-		for (Map<String, Object> info: coreBundles) {
-			if (_eq(name, version, (String) info.get("name"), VersionImpl.parse((String) info.get("version"), false, null))) {
-				extensions.add("Lucee");
-				break;
-			}
-		}
-
-		Iterator<BundleDefinition> itt = extBundles.iterator();
-		BundleDefinition bd;
-		ConfigPro ci = config;
-		RHExtension[] rhextensions = ci.getRHExtensions();
-		while (itt.hasNext()) {
-			bd = itt.next();
-			if (_eq(name, version, bd.getName(), bd.getVersion())) {
-				_findExtension(rhextensions, bd, extensions);
-			}
-		}
-
-		if (extensions.size() == 0) return "";
-		if (extensions.size() == 1) return extensions.iterator().next();
-
-		return ListUtil.arrayToList(extensions.toArray(new String[extensions.size()]), ", ");
-	}
-
-	private void _findExtension(RHExtension[] extensions, BundleDefinition bd, Set set) {
-		BundleInfo[] bundles;
-		for (RHExtension e: extensions) {
-			try {
-				bundles = e.getMetadata().getBundles();
-				if (bundles != null) {
-					for (BundleInfo b: bundles) {
-						if (_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), b.getBundleVersion())) {
-							set.add(e.getMetadata().getName());
-						}
-					}
-				}
-			}
-			catch (Exception ex) {}
-		}
-	}
-
-	private boolean _eq(String lName, Version lVersion, String rName, Version rVersion) {
-		if (!lName.equals(rName)) return false;
-		if (lVersion == null) return rVersion == null;
-		return lVersion.equals(rVersion);
-	}
-
 	private void doGetMonitors() throws PageException {
 		if (!(config instanceof ConfigServerImpl)) throw new ApplicationException("invalid context for this action");
 
@@ -5066,20 +4936,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-	}
-
-	private void doRemoveBundle() throws PageException {
-		try {
-			String name = getString("admin", action, "name");
-			String version = getString("admin", action, "version");
-			boolean removePhysical = getBoolV("removePhysical", true);
-
-			BundleServiceImpl.getInstance().removeLocal(name.trim(), version.trim(), removePhysical);
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
-		store();
 	}
 
 	private void doRemoveTLD() throws PageException {

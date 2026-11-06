@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 
 	function beforeAll() {
-		variables.service = getPageContext().getConfig().getFactory().getEngine().getBundleService();
+		variables.service = getPageContext().getConfig().getFactory().getEngine().getOSGiService();
 		variables.extensions = getOSGiExtensions();
 	}
 
@@ -17,24 +17,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				var failed = [];
 				for ( var ext in extensions ) {
 					for ( var b in ext.bundles ) {
-						var info = service.loadFromLocal( b.name, b.version, true );
-						if ( isNull( info ) ) arrayAppend( failed, ext.name & ": " & b.name & ":" & b.version );
+						try {
+							service.getClassLoader( b.name, b.version );
+						}
+						catch ( any e ) {
+							arrayAppend( failed, ext.name & ": " & b.name & ":" & b.version & " " & e.message );
+						}
 					}
 				}
 				expect( failed ).toBeEmpty( "bundles that cannot be loaded: " & serializeJSON( failed ) );
-			});
-
-			it( "the bundles of extensions that start their bundles are active", function() {
-				var notActive = [];
-				for ( var ext in extensions ) {
-					if ( !ext.startBundles ) continue;
-					for ( var b in ext.bundles ) {
-						var info = service.getBundleInfo( b.name, b.version );
-						if ( isNull( info ) ) continue; // a fragment or an optional bundle that was not loaded
-						if ( !info.fragment && info.state != "active" ) arrayAppend( notActive, ext.name & ": " & b.name & ":" & b.version & " is " & info.state );
-					}
-				}
-				expect( notActive ).toBeEmpty( "bundles that are not active: " & serializeJSON( notActive ) );
 			});
 
 			it( title="a datasource works with the JDBC driver from an extension bundle", skip=notHasH2(), body=function() {
