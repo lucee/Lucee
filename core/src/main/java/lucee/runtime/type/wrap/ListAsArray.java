@@ -18,25 +18,22 @@
  */
 package lucee.runtime.type.wrap;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map.Entry;
 
-import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
-import lucee.runtime.dump.DumpUtil;
-import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -44,8 +41,13 @@ import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.util.ArraySupport;
-import lucee.runtime.type.util.ListIteratorImpl;
 
+/**
+ * The class name stays in the serialization hierarchy of ArrayImpl: streams carry the elements in this class's
+ * {@code list} slot. Runtime wrappers use {@link ListBackedArray}; ArrayImpl overrides every list-touching method.
+ * This class is concrete only so legacy streams that named {@code ListAsArray} as the leaf type can still be
+ * instantiated and remapped via {@link #readResolve()}.
+ */
 public class ListAsArray extends ArraySupport implements Array, List {
 
 	// LDEV-6475 pinned to the value the JVM computed on 6.2/7.0/7.1, keeps arrays serialized by other versions readable
@@ -60,19 +62,48 @@ public class ListAsArray extends ArraySupport implements Array, List {
 	public static Array toArray(List list) {
 		if (list instanceof ArrayAsList) return ((ArrayAsList) list).array;
 		if (list instanceof Array) return (Array) list;
-		return new ListAsArray(list);
+		return new ListBackedArray(list);
+	}
+
+	// the list written to the stream in the list slot, same layout as defaultWriteObject
+	protected List streamList() {
+		return list;
+	}
+
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		ObjectOutputStream.PutField fields = out.putFields();
+		fields.put("list", streamList());
+		out.writeFields();
+	}
+
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		ObjectInputStream.GetField fields = in.readFields();
+		list = (List) fields.get("list", null);
+	}
+
+	/**
+	 * Legacy 6.2/7.x streams named this concrete class as the leaf type for a Java-list wrapper. Remap those
+	 * payloads to {@link ListBackedArray}. Subclasses (ArrayImpl, ListBackedArray) keep their own identity.
+	 */
+	protected Object readResolve() throws ObjectStreamException {
+		if (getClass() == ListAsArray.class) {
+			return new ListBackedArray(list != null ? list : new ArrayList());
+		}
+		return this;
+	}
+
+	private static UnsupportedOperationException unsupported(String method) {
+		return new UnsupportedOperationException("ListAsArray." + method + " is only for legacy deserialization; use ListBackedArray or ArrayImpl");
 	}
 
 	@Override
 	public Object append(Object o) throws PageException {
-		list.add(o);
-		return o;
+		throw unsupported("append");
 	}
 
 	@Override
 	public Object appendEL(Object o) {
-		list.add(o);
-		return o;
+		throw unsupported("appendEL");
 	}
 
 	/*---@Override
@@ -87,23 +118,8 @@ public class ListAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public final Object get(PageContext pc, int key, Object defaultValue) {
-		if (key <= 0) return defaultValue;
-		if (key > list.size()) return defaultValue;
-
-		try {
-			Object rtn = list.get(key - 1);
-			if (rtn == null) {
-				if (NullSupportHelper.full(pc)) {
-					return null;
-				}
-				return defaultValue;
-			}
-			return rtn;
-		}
-		catch (Exception e) {
-			return defaultValue;
-		}
+	public Object get(PageContext pc, int key, Object defaultValue) {
+		throw unsupported("get");
 	}
 
 	@Override
@@ -112,24 +128,8 @@ public class ListAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public final Object getE(PageContext pc, int key) throws PageException {
-		if (key <= 0) {
-			Integer idx = list.size() + key < 0 ? -1 : list.size() + key;
-			if (idx < 0 || key == 0) {
-				throw new ExpressionException("Array index [" + key + "] out of range, array size is [" + list.size() + "]");
-			}
-			Object rtn = list.get(idx);
-			return rtn;
-		}
-		if (key > list.size()) throw new ExpressionException("Array index [" + key + "] out of range, array size is [" + list.size() + "]");
-		Object rtn = list.get(key - 1);
-		if (rtn == null) {
-			if (NullSupportHelper.full(pc)) {
-				return null;
-			}
-			throw new ExpressionException("Element at position [" + key + "] does not exist in list");
-		}
-		return rtn;
+	public Object getE(PageContext pc, int key) throws PageException {
+		throw unsupported("getE");
 	}
 
 	@Override
@@ -139,53 +139,22 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public boolean insert(int key, Object value) throws PageException {
-		try {
-			list.add(key - 1, value);
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			throw new ExpressionException("can't insert value to array at position " + key + ", array goes from 1 to " + size());
-		}
-		return true;
+		throw unsupported("insert");
 	}
 
 	@Override
 	public int[] intKeys() {
-		ListIterator lit = list.listIterator();
-		ArrayList keys = new ArrayList();
-		int index = 0;
-		Object v;
-		while (lit.hasNext()) {
-			index = lit.nextIndex() + 1;
-			v = lit.next();
-			if (v != null) keys.add(Integer.valueOf(index));
-		}
-		int[] intKeys = new int[keys.size()];
-		Iterator it = keys.iterator();
-		index = 0;
-		while (it.hasNext()) {
-			intKeys[index++] = ((Integer) it.next()).intValue();
-		}
-
-		return intKeys;
+		throw unsupported("intKeys");
 	}
 
 	@Override
 	public Object prepend(Object o) throws PageException {
-		list.add(0, o);
-		return o;
+		throw unsupported("prepend");
 	}
 
 	@Override
 	public Object removeE(int key) throws PageException {
-		try {
-			return list.remove(key - 1);
-		}
-		catch (Exception e) {
-			ExpressionException ee = new ExpressionException("can not remove Element at position [" + key + "]", e.getMessage());
-			ee.setStackTrace(e.getStackTrace());
-			throw ee;
-		}
+		throw unsupported("removeE");
 	}
 
 	@Override
@@ -209,56 +178,27 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public Object pop() throws PageException {
-		if (size() == 0) throw new ExpressionException("can not pop Element from array, array is empty");
-		try {
-			return list.remove(size() - 1);
-		}
-		catch (Exception e) {
-			ExpressionException ee = new ExpressionException("can not pop Element from array", e.getMessage());
-			ee.setStackTrace(e.getStackTrace());
-			throw ee;
-		}
+		throw unsupported("pop");
 	}
 
 	@Override
 	public Object pop(Object defaultValue) {
-		if (size() == 0) return defaultValue;
-		try {
-			return list.remove(size() - 1);
-		}
-		catch (Exception e) {
-			return defaultValue;
-		}
+		throw unsupported("pop");
 	}
 
 	@Override
 	public Object shift() throws PageException {
-		if (size() == 0) throw new ExpressionException("can not pop Element from array, array is empty");
-		try {
-			return list.remove(0);
-		}
-		catch (Exception e) {
-			ExpressionException ee = new ExpressionException("can not pop Element from array", e.getMessage());
-			ee.setStackTrace(e.getStackTrace());
-			throw ee;
-		}
+		throw unsupported("shift");
 	}
 
 	@Override
 	public Object shift(Object defaultValue) {
-		if (size() == 0) return defaultValue;
-		try {
-			return list.remove(0);
-		}
-		catch (Exception e) {
-			return defaultValue;
-		}
+		throw unsupported("shift");
 	}
 
 	@Override
 	public void resize(int to) throws PageException {
-		while (size() < to)
-			list.add(null);
+		throw unsupported("resize");
 	}
 
 	@Override
@@ -268,41 +208,12 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public Object setE(PageContext pc, int key, Object value) throws PageException {
-		if (key <= size()) {
-			try {
-				list.set(key - 1, value);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				throw new ExpressionException("can not set Element at position [" + key + "]", t.getMessage());
-			}
-		}
-		else {
-			while (size() < key - 1)
-				list.add(null);
-			list.add(value);
-		}
-		return value;
+		throw unsupported("setE");
 	}
 
 	@Override
 	public Object setEL(int key, Object value) {
-		if (key <= size()) {
-			try {
-				list.set(key - 1, value);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				return value;
-			}
-
-		}
-		else {
-			while (size() < key - 1)
-				list.add(null);
-			list.add(value);
-		}
-		return value;
+		throw unsupported("setEL");
 	}
 
 	/*---@Override
@@ -312,22 +223,21 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public void sortIt(Comparator comp) {
-		if (getDimension() > 1) throw new PageRuntimeException("only 1 dimensional arrays can be sorted");
-		Collections.sort(list, comp);
+		throw unsupported("sortIt");
 	}
 
 	@Override
 	public Object[] toArray() {
-		return list.toArray();
+		throw unsupported("toArray");
 	}
 
 	public ArrayList toArrayList() {
-		return new ArrayList(list);
+		throw unsupported("toArrayList");
 	}
 
 	@Override
 	public void clear() {
-		list.clear();
+		throw unsupported("clear");
 	}
 
 	/*---@Override
@@ -343,7 +253,7 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
-		return new ListAsArray((List) Duplicator.duplicate(list, deepCopy));
+		throw unsupported("duplicate");
 	}
 
 	@Override
@@ -439,17 +349,17 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public int size() {
-		return list.size();
+		throw unsupported("size");
 	}
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-		return DumpUtil.toDumpData(list, pageContext, maxlevel, dp);
+		throw unsupported("toDumpData");
 	}
 
 	@Override
 	public Iterator iterator() {
-		return list.iterator();
+		throw unsupported("iterator");
 	}
 
 	@Override
@@ -544,7 +454,7 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public boolean add(Object o) {
-		return list.add(o);
+		throw unsupported("add");
 	}
 
 	/*---@Override
@@ -559,17 +469,17 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public boolean addAll(int index, java.util.Collection c) {
-		return list.addAll(index, c);
+		throw unsupported("addAll");
 	}
 
 	@Override
 	public boolean contains(Object o) {
-		return list.contains(o);
+		throw unsupported("contains");
 	}
 
 	@Override
 	public boolean containsAll(java.util.Collection c) {
-		return list.containsAll(c);
+		throw unsupported("containsAll");
 	}
 
 	/*---@Override
@@ -579,27 +489,27 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public int indexOf(Object o) {
-		return list.indexOf(o);
+		throw unsupported("indexOf");
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return list.isEmpty();
+		throw unsupported("isEmpty");
 	}
 
 	@Override
 	public int lastIndexOf(Object o) {
-		return list.lastIndexOf(o);
+		throw unsupported("lastIndexOf");
 	}
 
 	@Override
 	public ListIterator listIterator() {
-		return list.listIterator();
+		throw unsupported("listIterator");
 	}
 
 	@Override
 	public ListIterator listIterator(int index) {
-		return list.listIterator(index);
+		throw unsupported("listIterator");
 	}
 
 	/*
@@ -616,7 +526,7 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public List subList(int fromIndex, int toIndex) {
-		return list.subList(fromIndex, toIndex);
+		throw unsupported("subList");
 	}
 
 	/*---@Override not sure to remove it
@@ -632,14 +542,12 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public Iterator<Object> valueIterator() {
-		return new ListIteratorImpl(list, 0);
-		// return list.iterator();
+		throw unsupported("valueIterator");
 	}
 
 	@Override
 	public Iterator<Object> getIterator() {
-		return new ListIteratorImpl(list, 0);
-		// return list.iterator();
+		throw unsupported("getIterator");
 	}
 
 	/*---@Override
