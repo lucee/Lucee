@@ -14,7 +14,7 @@
                 action="updateCacheDefaultConnection"
                 type="#request.adminType#"
                 password="#session["password"&request.adminType]#"
-                defaultOobject="#StructKeyExists(form,'default_object')?form.default_object:''#"
+                defaultObject="#StructKeyExists(form,'default_object')?form.default_object:''#"
                 defaultTemplate="#StructKeyExists(form,'default_template')?form.default_template:''#"
                 defaultQuery="#StructKeyExists(form,'default_query')?form.default_query:''#"
                 defaultResource="#StructKeyExists(form,'default_resource')?form.default_resource:''#"
