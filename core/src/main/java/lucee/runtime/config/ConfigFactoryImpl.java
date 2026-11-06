@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
 
 import jakarta.servlet.ServletConfig;
@@ -176,12 +175,12 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 	 * @throws IOException
 	 * @throws TagLibException
 	 * @throws FunctionLibException
-	 * @throws BundleException
+	 * @throws IOException
 	 * @throws ConverterException
 	 */
 	public static ConfigServerImpl newInstanceServer(CFMLEngineImpl engine, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir,
 			ConfigServerImpl existing, boolean essentialOnly)
-			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
+			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, ConverterException {
 		if (ThreadLocalPageContext.insideServerNewInstance()) throw new ApplicationException("already inside server.newInstance");
 		try {
 			double start = SystemUtil.millis();
@@ -266,10 +265,10 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 	 * @throws IOException
 	 * @throws TagLibException
 	 * @throws FunctionLibException
-	 * @throws BundleException
+	 * @throws IOException
 	 */
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl configServer)
-			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
+			throws ClassException, PageException, IOException, TagLibException, FunctionLibException {
 		boolean quick = CFMLEngineImpl.quick(engine);
 		Resource configFile = configServer.getConfigFile();
 		if (configFile == null) return;
@@ -313,7 +312,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 	 * @throws FunctionLibException
 	 * @throws TagLibException
 	 * @throws PageException
-	 * @throws BundleException
+	 * @throws IOException
 	 */
 	synchronized static void load(ConfigServerImpl config, boolean essentialOnly) throws IOException {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "start reading config");
@@ -363,11 +362,11 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 	 * @throws IOException
 	 * @throws TagLibException
 	 * @throws FunctionLibException
-	 * @throws BundleException
+	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 */ // MUST
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl cs, ConfigWebImpl cwi, boolean force)
-			throws PageException, IOException, TagLibException, FunctionLibException, BundleException {
+			throws PageException, IOException, TagLibException, FunctionLibException {
 
 		cwi.reload();
 		return;
@@ -981,7 +980,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			int port, String dsn, String bundleName, String bundleVersion, String user, String pass, TagListener listener, int connectionLimit, int idleTimeout, int liveTimeout,
 			int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, boolean blob, boolean clob, boolean validate, boolean storage, String timezone, Struct custom,
 			String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections)
-			throws BundleException, ClassException, SQLException {
+			throws IOException, ClassException, SQLException {
 
 		datasources.put(datasourceName.toLowerCase(),
 				new DataSourceImpl(datasourceName, cd, server, dsn, bundleName, bundleVersion, databasename, port, user, pass, listener, connectionLimit, idleTimeout, liveTimeout,

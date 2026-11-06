@@ -33,7 +33,6 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 import lucee.commons.io.IOUtil;
@@ -76,7 +75,7 @@ public class BundleInfo implements Serializable {
 	private Map<String, PackageDefinition> exportPackageAsMap;
 	private static Map<String, BundleInfo> bundles = new HashMap<String, BundleInfo>();
 
-	public static BundleInfo getInstance(Config config, String id, InputStream is, boolean closeStream) throws IOException, BundleException {
+	public static BundleInfo getInstance(Config config, String id, InputStream is, boolean closeStream) throws IOException {
 		long start = System.currentTimeMillis();
 		System.out.println("[BundleInfo] Reading extension: " + id);
 
@@ -117,11 +116,11 @@ public class BundleInfo implements Serializable {
 		}
 	}
 
-	public BundleInfo(Resource file) throws IOException, BundleException {
+	public BundleInfo(Resource file) throws IOException {
 		this(toFileResource(file));
 	}
 
-	public BundleInfo(File file) throws IOException, BundleException {
+	public BundleInfo(File file) throws IOException {
 		JarFile jar = new JarFile(file);
 		try {
 			Manifest manifest = jar.getManifest();
@@ -136,7 +135,12 @@ public class BundleInfo implements Serializable {
 			String tmp = attrs.getValue("Bundle-Version");
 			if (!StringUtil.isEmpty(tmp, true)) {
 				strVersion = tmp.trim();
-				_version = OSGiUtil.toVersion(strVersion);
+				try {
+					_version = OSGiUtil.toVersion(strVersion);
+				}
+				catch (org.osgi.framework.BundleException be) {
+					throw new IOException(be.getMessage(), be);
+				}
 			}
 			exportPackage = attrs.getValue("Export-Package");
 			importPackage = attrs.getValue("Import-Package");

@@ -20,7 +20,6 @@ package lucee.runtime.functions.other;
 
 import java.io.IOException;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ClassException;
@@ -64,7 +63,7 @@ public final class CreateDynamicProxy implements Function {
 		}
 	}
 
-	public static Object _call(PageContext pc, Object oCFC, Object oInterfaces) throws PageException, IOException, BundleException {
+	public static Object _call(PageContext pc, Object oCFC, Object oInterfaces) throws PageException, IOException {
 
 		if (SystemUtil.getLoaderVersion() < 5.9D) throw new ApplicationException(
 				"You need to update your lucee.jar to execute the function [createDynamicProxy], you can download the latest jar from https://download.lucee.org.");
@@ -118,7 +117,7 @@ public final class CreateDynamicProxy implements Function {
 		return Reflector.componentToClass(pc, cfc, null, interfaces);
 	}
 
-	private static Class toClass(PageContext pc, ClassLoader cl, Struct sct) throws FunctionException, ClassException, BundleException {
+	private static Class toClass(PageContext pc, ClassLoader cl, Struct sct) throws FunctionException, ClassException, IOException {
 		String className = Caster.toString(sct.get(KeyConstants._class, null), null);
 		if (StringUtil.isEmpty(className)) className = Caster.toString(sct.get(KeyConstants._interface, null), null);
 		if (StringUtil.isEmpty(className)) throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "struct passed has no class defined");

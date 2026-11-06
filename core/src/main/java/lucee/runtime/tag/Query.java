@@ -18,13 +18,13 @@
  */
 package lucee.runtime.tag;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
@@ -229,10 +229,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * 
 	 * @param datasource value to set
 	 * @throws ClassException
-	 * @throws BundleException
+	 * @throws IOException
 	 **/
 
-	public void setDatasource(Object datasource) throws PageException, ClassException, BundleException {
+	public void setDatasource(Object datasource) throws PageException, ClassException, IOException {
 		if (datasource == null) return;
 		data.rawDatasource = datasource;
 		data.datasource = toDatasource(pageContext, datasource);

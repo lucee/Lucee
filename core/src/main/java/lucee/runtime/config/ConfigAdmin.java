@@ -46,7 +46,6 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 import org.w3c.dom.DOMException;
@@ -265,9 +264,9 @@ public final class ConfigAdmin {
 	 * @throws IOException
 	 * @throws SAXException
 	 * @throws PageException
-	 * @throws BundleException
+	 * @throws IOException
 	 */
-	public void removePassword(String contextPath) throws PageException, IOException, TagLibException, FunctionLibException, BundleException, SAXException {
+	public void removePassword(String contextPath) throws PageException, IOException, TagLibException, FunctionLibException, SAXException {
 		checkWriteAccess();
 		if (contextPath == null || contextPath.length() == 0) {
 			// config.setPassword(password); do nothing!
@@ -361,7 +360,7 @@ public final class ConfigAdmin {
 		admin.store(false);
 	}
 
-	private void _reloadOLd(boolean refreshScheduler) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
+	private void _reloadOLd(boolean refreshScheduler) throws PageException, ClassException, IOException, TagLibException, FunctionLibException {
 
 		// if(storeInMemoryData)XMLCaster.writeTo(doc,config.getConfigFile());
 		CFMLEngine engine = ConfigUtil.getCFMLEngine(config);
@@ -1305,11 +1304,11 @@ public final class ConfigAdmin {
 		return "/" + MD5.getDigestAsString(physical + ":" + archive, "");
 	}
 
-	public void updateJar(Resource resJar) throws IOException, BundleException {
+	public void updateJar(Resource resJar) throws IOException {
 		updateJar(config, resJar, true);
 	}
 
-	public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar) throws IOException, BundleException {
+	public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar) throws IOException {
 		BundleFile bf = BundleFile.getInstance(resJar);
 
 		// resJar is a bundle
@@ -1334,7 +1333,7 @@ public final class ConfigAdmin {
 	/*
 	 * important! returns null when not a bundle!
 	 */
-	static BundleFile installBundle(Config config, Resource resJar, String extVersion, boolean convert2bundle) throws IOException, BundleException {
+	static BundleFile installBundle(Config config, Resource resJar, String extVersion, boolean convert2bundle) throws IOException {
 
 		BundleFile bf = BundleFile.getInstance(resJar);
 
@@ -1364,7 +1363,7 @@ public final class ConfigAdmin {
 		return installBundle(config, bf);
 	}
 
-	private static BundleFile installBundle(Config config, BundleFile bf) throws IOException, BundleException {
+	private static BundleFile installBundle(Config config, BundleFile bf) throws IOException {
 
 		// does this bundle already exists
 		BundleFile _bf = OSGiUtil.getBundleFile(bf.getSymbolicName(), bf.getVersion(), null, null, false, null);
@@ -1395,10 +1394,10 @@ public final class ConfigAdmin {
 	 * @param convert2bundle
 	 * @return return the Bundle File or the file in case it is not a bundle.
 	 * @throws IOException
-	 * @throws BundleException
+	 * @throws IOException
 	 */
 	public static Object installBundle(Config config, InputStream is, String name, String extensionVersion, boolean closeStream, boolean convert2bundle)
-			throws IOException, BundleException {
+			throws IOException {
 		Resource tmp = SystemUtil.getTempDirectory().getRealResource(name);
 		OutputStream os = tmp.getOutputStream();
 		IOUtil.copy(is, os, closeStream, true);
@@ -1411,7 +1410,7 @@ public final class ConfigAdmin {
 		return tmp;
 	}
 
-	static void updateJar(Config config, InputStream is, String name, boolean closeStream) throws IOException, BundleException {
+	static void updateJar(Config config, InputStream is, String name, boolean closeStream) throws IOException {
 		Resource tmp = SystemUtil.getTempDirectory().getRealResource(name);
 		try {
 			IOUtil.copy(is, tmp, closeStream);
@@ -6083,10 +6082,10 @@ public final class ConfigAdmin {
 	 * @return the bundles used before when this was a update, if it is a new extension then null is
 	 *         returned
 	 * @throws IOException
-	 * @throws BundleException
+	 * @throws IOException
 	 * @throws PageException
 	 */
-	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, BundleException, PageException {
+	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, PageException {
 		Array children = ConfigUtil.getAsArray("extensions", root);
 		int[] keys = children.intKeys();
 		int key;

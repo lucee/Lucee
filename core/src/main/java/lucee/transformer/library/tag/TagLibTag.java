@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.osgi.framework.BundleException;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 
@@ -331,7 +330,7 @@ public final class TagLibTag {
 	}
 
 	/*
-	 * public Type getTagTypeX() throws ClassException, BundleException { if(tagType==null) {
+	 * public Type getTagTypeX() throws ClassException, IOException { if(tagType==null) {
 	 * tagType=Type.getType(getTagClassDefinition().getClazz()); } return tagType; }
 	 */
 
@@ -792,8 +791,7 @@ public final class TagLibTag {
 		}
 	}
 
-	private Tag _getTag(Factory f, Position start, Position end) throws ClassException, SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException,
-			IllegalAccessException, InvocationTargetException, BundleException {
+	private Tag _getTag(Factory f, Position start, Position end) throws ClassException, SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, IOException {
 		if (tttConstructor == null) {
 			Class clazz = tttCD.getClazz();
 			tttConstructor = clazz.getConstructor(CONSTRUCTOR_PARAMS3);

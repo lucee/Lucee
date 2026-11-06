@@ -2,7 +2,6 @@ package lucee.runtime.config;
 
 import java.io.IOException;
 
-import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
 
 import jakarta.servlet.ServletConfig;
@@ -74,7 +73,7 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 
 	public String getHash();
 
-	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException, IOException, SAXException, BundleException;
+	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException, IOException, SAXException;
 
 	public Password updatePasswordIfNecessary(boolean server, String passwordRaw);
 

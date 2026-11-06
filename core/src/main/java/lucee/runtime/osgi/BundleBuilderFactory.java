@@ -38,7 +38,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import org.osgi.framework.BundleException;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -104,16 +103,16 @@ public final class BundleBuilderFactory {
 	 * @param symbolicName this entry specifies a unique identifier for a bundle, based on the reverse
 	 *            domain name convention (used also by the java packages).
 	 * @throws IOException
-	 * @throws BundleException
+	 * @throws IOException
 	 */
-	public BundleBuilderFactory(Resource jar, String symbolicName) throws IOException, BundleException {
+	public BundleBuilderFactory(Resource jar, String symbolicName) throws IOException {
 		if (!jar.isFile()) throw new IOException("[" + jar + "] is not a file");
 		this.jar = jar;
 		// bf = new BundleFile(jar);
 
 		if (StringUtil.isEmpty(symbolicName)) {
 			// if(StringUtil.isEmpty(name))
-			throw new BundleException("symbolic name is reqired");
+			throw new IOException("symbolic name is reqired");
 
 		}
 		this.symbolicName = toSymbolicName(symbolicName);

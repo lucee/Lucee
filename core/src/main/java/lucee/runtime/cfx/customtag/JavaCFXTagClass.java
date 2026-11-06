@@ -18,8 +18,8 @@
  */
 package lucee.runtime.cfx.customtag;
 
-import org.osgi.framework.BundleException;
 
+import java.io.IOException;
 import com.allaire.cfx.CustomTag;
 
 import lucee.commons.lang.ClassException;
@@ -59,7 +59,7 @@ public final class JavaCFXTagClass implements CFXTagClass {
 		}
 	}
 
-	public CustomTag _newInstance() throws InstantiationException, IllegalAccessException, ClassException, BundleException {
+	public CustomTag _newInstance() throws InstantiationException, IllegalAccessException, ClassException, IOException {
 
 		Object o = getClazz().newInstance();
 		return (CustomTag) o;
@@ -67,10 +67,10 @@ public final class JavaCFXTagClass implements CFXTagClass {
 
 	/**
 	 * @return Returns the clazz.
-	 * @throws BundleException
+	 * @throws IOException
 	 * @throws ClassException
 	 */
-	public Class<CustomTag> getClazz() throws ClassException, BundleException {
+	public Class<CustomTag> getClazz() throws ClassException, IOException {
 		return cd.getClazz();
 	}
 

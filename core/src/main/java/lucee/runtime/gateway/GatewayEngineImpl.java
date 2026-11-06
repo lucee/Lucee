@@ -27,7 +27,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.BundleException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lucee.commons.io.DevNullOutputStream;
@@ -79,7 +78,7 @@ public final class GatewayEngineImpl implements GatewayEngine {
 
 	}
 
-	public synchronized void addEntries(Config config, GatewayMap entries) throws ClassException, PageException, IOException, BundleException {
+	public synchronized void addEntries(Config config, GatewayMap entries) throws ClassException, PageException, IOException {
 		Set<String> toRemove = new HashSet<>(this.entries.keySet());
 
 		Iterator<Entry<String, GatewayEntry>> it = entries.entrySet().iterator();
@@ -95,7 +94,7 @@ public final class GatewayEngineImpl implements GatewayEngine {
 		this.id = entries.getId();
 	}
 
-	private void addEntry(Config config, GatewayEntry ge, Set<String> toRemove) throws ClassException, PageException, IOException, BundleException {
+	private void addEntry(Config config, GatewayEntry ge, Set<String> toRemove) throws ClassException, PageException, IOException {
 		String id = ge.getId().toLowerCase().trim();
 		GatewayEntry existing = entries.get(id);
 		Gateway g = null;
@@ -130,7 +129,7 @@ public final class GatewayEngineImpl implements GatewayEngine {
 		}
 	}
 
-	private GatewayEntry load(Config config, GatewayEntry ge) throws ClassException, PageException, BundleException {
+	private GatewayEntry load(Config config, GatewayEntry ge) throws ClassException, PageException, IOException {
 		ge.createGateway(this, config);
 		return ge;
 	}
