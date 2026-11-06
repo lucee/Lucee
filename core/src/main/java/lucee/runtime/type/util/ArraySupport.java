@@ -303,6 +303,32 @@ public abstract class ArraySupport extends AbstractList implements ArrayPro, Lis
 		return this;
 	}
 
+	/**
+	 * Returns the content of this array as Object[], with the same nullable elements a
+	 * {@code get(index, null)} loop produces. Unlike {@link #toArray()} this is not guaranteed to be a
+	 * copy: a view that still reads through a native Object[] returns that array as is.
+	 *
+	 * @return the elements as Object[]
+	 */
+	public Object[] toNativeArray() {
+		Object[] objs = new Object[size()];
+		for (int i = 0; i < objs.length; i++) {
+			objs[i] = get(i + 1, null);
+		}
+		return objs;
+	}
+
+	/**
+	 * Returns the native Java array (Object[], int[], ...) this array still reads through, so it can be
+	 * handed back to Java without converting it element by element.
+	 *
+	 * @return the wrapped native array, or null when there is none or a mutation has already switched
+	 *         the view to its own copy (copy-on-write)
+	 */
+	public Object getNativeArray() {
+		return null;
+	}
+
 	@Override
 	public Iterator<Object> valueIterator() {
 		return iterator();

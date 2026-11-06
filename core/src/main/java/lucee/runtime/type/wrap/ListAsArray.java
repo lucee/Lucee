@@ -315,6 +315,11 @@ public class ListAsArray extends ArraySupport implements Array, List {
 		return list.toArray();
 	}
 
+	@Override
+	public Object[] toNativeArray() {
+		return list.toArray();
+	}
+
 	public ArrayList toArrayList() {
 		return new ArrayList(list);
 	}
