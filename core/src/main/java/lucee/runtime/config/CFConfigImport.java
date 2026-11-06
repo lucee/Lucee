@@ -80,7 +80,7 @@ public final class CFConfigImport {
 				String envVarName = sysprop.replace('.', '_').toUpperCase();
 				password = SystemUtil.getSystemPropOrEnvVar(sysprop, null);
 				if (password == null) throw engine.getExceptionUtil()
-						.createApplicationException("missing password to access the Lucee configutation. This can be set in two ways, as environment variable [" + envVarName
+						.createApplicationException("missing password to access the Lucee configuration. This can be set in two ways, as environment variable [" + envVarName
 								+ "] or as system property [" + sysprop + "].");
 			}
 
