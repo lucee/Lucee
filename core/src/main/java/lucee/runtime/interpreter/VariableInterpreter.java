@@ -482,7 +482,7 @@ public final class VariableInterpreter {
 
 		while (true) {
 			if (ps.forwardIfCurrent('.')) {
-				id = readIdentifier(ps, doLowerCase);
+				id = readIdentifier(ps, doLowerCase, false);
 				if (id == null) return null;
 				list.add(id);
 			}
@@ -515,7 +515,7 @@ public final class VariableInterpreter {
 
 		while (true) {
 			if (ps.forwardIfCurrent('.')) {
-				id = readIdentifier(ps, doLowerCase);
+				id = readIdentifier(ps, doLowerCase, false);
 				if (id == null) return null;
 				list.add(id);
 			}
@@ -625,11 +625,19 @@ public final class VariableInterpreter {
 	}
 
 	private static String readIdentifier(ParserString ps, boolean doLowerCase) {
+		return readIdentifier(ps, doLowerCase, true);
+	}
+
+	/**
+	 * @param first is this the first part of the variable name (the scope or variable), otherwise it is a
+	 *            key behind a dot, which can also start with a digit like in "struct.1" (LDEV-4118)
+	 */
+	private static String readIdentifier(ParserString ps, boolean doLowerCase, boolean first) {
 
 		ps.removeSpace();
 		if (ps.isAfterLast()) return null;
 		int start = ps.getPos();
-		if (!isFirstVarLetter(ps.getCurrentLower())) return null;
+		if (!(first ? isFirstVarLetter(ps.getCurrentLower()) : isVarLetter(ps.getCurrentLower()))) return null;
 		ps.next();
 
 		while (ps.isValidIndex()) {
