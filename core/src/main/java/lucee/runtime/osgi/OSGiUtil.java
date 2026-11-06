@@ -896,7 +896,7 @@ public final class OSGiUtil {
 				if (bundleRange.getVersionRange() != null && !bundleRange.getVersionRange().isEmpty()) {
 					// TODO not only check for from version, request a range, but that needs an adjustment with the
 					// provider
-					File f = BundleProvider.getInstance().downloadBundle(new BundleDefinition(bundleRange.getName(), bundleRange.getVersionRange().getFrom().getVersion()));
+					File f = BundleProvider.getInstance().downloadBundle(new BundleDefinition(bundleRange.getName(), toLucee(bundleRange.getVersionRange().getFrom().getVersion())));
 					BundleFile _bf = improveFileName(factory.getBundleDirectory(), BundleFile.getInstance(f));
 					resetJarsFromBundleDirectory(factory);
 					b = _loadBundle(bc, _bf);
@@ -1078,7 +1078,7 @@ public final class OSGiUtil {
 		if (downloadIfNecessary && version != null) {
 			try {
 				resetJarsFromBundleDirectory(factory);
-				bf = BundleFile.getInstance(BundleProvider.getInstance().downloadBundle(new BundleDefinition(name, version)));
+				bf = BundleFile.getInstance(BundleProvider.getInstance().downloadBundle(new BundleDefinition(name, toLucee(version))));
 				if (bf.isBundle()) return bf;
 			}
 			catch (Throwable t) {
@@ -1187,7 +1187,7 @@ public final class OSGiUtil {
 		if (downloadIfNecessary && version != null) {
 			try {
 				resetJarsFromBundleDirectory(factory);
-				bf = BundleFile.getInstance(BundleProvider.getInstance().downloadBundle(new BundleDefinition(name, version)));
+				bf = BundleFile.getInstance(BundleProvider.getInstance().downloadBundle(new BundleDefinition(name, toLucee(version))));
 				if (bf.isBundle()) return bf;
 			}
 			catch (Throwable t) {
@@ -1478,7 +1478,7 @@ public final class OSGiUtil {
 		Bundle[] bundles = bc.getBundles();
 		for (Bundle b: bundles) {
 			try {
-				list.add(new BundleDefinition(b));
+				list.add(toBundleDefinition(b));
 				set.add(b.getSymbolicName() + ":" + b.getVersion());
 			}
 			catch (IllegalArgumentException iea) {
@@ -1495,7 +1495,7 @@ public final class OSGiUtil {
 			for (int i = 0; i < children.length; i++) {
 				try {
 					bf = BundleFile.getInstance(children[i]);
-					if (bf.isBundle() && !set.contains(bf.getSymbolicName() + ":" + bf.getVersion())) list.add(new BundleDefinition(bf.getSymbolicName(), bf.getVersion()));
+					if (bf.isBundle() && !set.contains(bf.getSymbolicName() + ":" + bf.getVersion())) list.add(new BundleDefinition(bf.getSymbolicName(), toLucee(bf.getVersion())));
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
@@ -1645,7 +1645,7 @@ public final class OSGiUtil {
 		log(Log.LEVEL_DEBUG, "Start bundle: [" + bundle.getSymbolicName() + ":" + bundle.getVersion().toString() + "]");
 
 		// check if required related bundles are missing and load them if necessary
-		final List<BundleDefinition> failedBD = new ArrayList<OSGiUtil.BundleDefinition>();
+		final List<BundleDefinition> failedBD = new ArrayList<BundleDefinition>();
 		if (parents == null) parents = new HashSet<String>();
 		// Add current bundle to parents to track circular dependencies
 		parents.add(bundle.getSymbolicName());
@@ -1683,7 +1683,7 @@ public final class OSGiUtil {
 						StringBuilder sb = new StringBuilder("Lucee was not able to download/load the following bundles [");
 						while (itt.hasNext()) {
 							_bd = itt.next();
-							sb.append(_bd.name + ":" + _bd.getVersionAsString()).append(';');
+							sb.append(_bd.getName() + ":" + _bd.getVersionAsString()).append(';');
 						}
 						sb.append("]");
 						throw new BundleException(be2.getMessage() + sb, be2.getCause());
@@ -2234,163 +2234,6 @@ public final class OSGiUtil {
 		}
 	}
 
-	public static class BundleDefinition implements Serializable {
-
-		private static final long serialVersionUID = -144133130941294618L;
-		private final String name;
-		private Bundle bundle;
-		private VersionDefinition versionDef;
-
-		private static Map<String, Data> mappings = new HashMap<>();
-		static {
-			mappings.put("mongodb.extension", new Data("org.lucee.mongodb.extension", "3.12.13.9-SNAPSHOT"));
-			mappings.put("chart.extension", new Data("org.lucee.chart.extension", "2.0.0.1-SNAPSHOT"));
-			mappings.put("compress.extension", new Data("org.lucee.compress.extension", "2.0.0.1-SNAPSHOT"));
-			mappings.put("lucee.image.extension", new Data("org.lucee.image.extension", "2.0.0.29-SNAPSHOT"));
-			mappings.put("pdf.extension", new Data("org.lucee.pdf.extension", "1.2.0.11-SNAPSHOT"));
-			mappings.put("s3.extension", new Data("org.lucee.s3.extension", "2.0.2.19-SNAPSHOT"));
-
-		}
-
-		private static class Data {
-
-			private String newBundleName;
-			private Version minVersion;
-
-			public Data(String newBundleName, String minVersion) {
-				this.newBundleName = newBundleName;
-				this.minVersion = OSGiUtil.toVersion(minVersion, null);
-			}
-
-		}
-
-		public BundleDefinition(String name) {
-			this(name, (Version) null);
-		}
-
-		public BundleDefinition(String name, String version) throws BundleException {
-			this(name, !StringUtil.isEmpty(version, true) ? OSGiUtil.toVersion(version) : null);
-		}
-
-		public BundleDefinition(String name, lucee.runtime.config.maven.Version version) {
-			this(name, OSGiUtil.toOSGi(version));
-		}
-
-		public BundleDefinition(String name, Version version) {
-			if (name == null) throw new IllegalArgumentException("Bundle Symbolic Name should not be null");
-			// translate old mappings to new mappings FUTURE remove
-			Data data = mappings.get(name);
-			if (data != null && (version == null || OSGiUtil.compare(data.minVersion, version) <= 0)) {
-				name = data.newBundleName;
-			}
-			if (version != null) {
-				setVersion(VersionDefinition.EQ, version);
-			}
-			this.name = name;
-		}
-
-		public BundleDefinition(Bundle bundle) {
-			this.name = bundle.getSymbolicName();
-			if (name == null) throw new IllegalArgumentException("Bundle Symbolic Name should not be null [" + bundle.getLocation() + "]");
-
-			if (bundle.getVersion() != null) setVersion(VersionDefinition.EQ, bundle.getVersion());
-			this.bundle = bundle;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		/**
-		 * only return a bundle if already loaded, does not load the bundle
-		 *
-		 * @return
-		 */
-		public Bundle getLoadedBundle() {
-			return bundle;
-		}
-
-		public Bundle getBundle(Identification id, List<Resource> addional, boolean startIfNecessary, boolean versionOnlyMattersForDownload) throws BundleException {
-			if (bundle == null) {
-				bundle = OSGiUtil.loadBundle(null, name, getVersion(), id, addional, startIfNecessary, versionOnlyMattersForDownload, true, null);
-			}
-			return bundle;
-		}
-
-		/**
-		 * get Bundle, also load if necessary from local or remote
-		 *
-		 * @param config
-		 * @param addional
-		 * @return
-		 * @throws BundleException
-		 */
-		public Bundle getBundle(Config config, List<Resource> addional) throws BundleException {
-			return getBundle(config, addional, false);
-		}
-
-		public Bundle getBundle(Config config, List<Resource> addional, boolean versionOnlyMattersForDownload) throws BundleException {
-			if (bundle == null) {
-				ConfigServerPro cs = ThreadLocalPageContext.getConfigServer(config);
-				bundle = OSGiUtil.loadBundle(OSGiUtil.getBundleContext(), name, getVersion(), cs == null ? null : cs.getIdentification(), addional, false,
-						versionOnlyMattersForDownload, true, null);
-			}
-			return bundle;
-		}
-
-		public Bundle getLocalBundle(List<Resource> addional) {
-			if (bundle == null) {
-				bundle = OSGiUtil.loadBundleFromLocal(name, getVersion(), addional, true, null);
-			}
-			return bundle;
-		}
-
-		public BundleFile getBundleFile(boolean downloadIfNecessary, List<Resource> addional) throws BundleException {
-			ConfigServerPro config = ThreadLocalPageContext.getConfigServer();
-			return OSGiUtil.getBundleFile(name, getVersion(), config == null ? null : config.getIdentification(), addional, downloadIfNecessary);
-
-		}
-
-		public int getOp() {
-			return versionDef == null ? VersionDefinition.EQ : versionDef.getOp();
-		}
-
-		public Version getVersion() {
-			return versionDef == null ? null : versionDef.getVersion();
-		}
-
-		public VersionDefinition getVersionDefiniton() {
-			return versionDef;
-		}
-
-		public String getVersionAsString() {
-			return versionDef == null ? null : versionDef.getVersionAsString();
-		}
-
-		public void setVersion(int op, String version) throws BundleException {
-			setVersion(op, OSGiUtil.toVersion(version));
-		}
-
-		public void setVersion(int op, Version version) {
-			this.versionDef = new VersionDefinition(version, op, false);
-		}
-
-		@Override
-		public String toString() {
-			return "name:" + name + ";version:" + versionDef + ";";
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) return true;
-			if (!(obj instanceof BundleDefinition)) return false;
-
-			return toString().equals(obj.toString());
-
-		}
-
-	}
-
 	private static void log(int level, String msg) {
 		try {
 			Log log = ThreadLocalPageContext.getLog((Config) null, "application");
@@ -2473,6 +2316,11 @@ public final class OSGiUtil {
 	/** @deprecated use {@link BootDelegation#isPackageInBootelegation(String)} */
 	public static boolean isPackageInBootelegation(String packageName) {
 		return BootDelegation.isPackageInBootelegation(packageName);
+	}
+
+	public static BundleDefinition toBundleDefinition(Bundle bundle) {
+		if (bundle.getSymbolicName() == null) throw new IllegalArgumentException("Bundle Symbolic Name should not be null [" + bundle.getLocation() + "]");
+		return new BundleDefinition(bundle.getSymbolicName(), toLucee(bundle.getVersion()));
 	}
 
 	public static BundleDefinition[] toBundleDefinitions(BundleInfo[] bundles) {

@@ -46,7 +46,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.osgi.OSGiUtil.PackageDefinition;
 import lucee.runtime.osgi.OSGiUtil.PackageQuery;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
@@ -408,7 +407,7 @@ public class BundleInfo implements Serializable {
 	}
 
 	public BundleDefinition toBundleDefinition() {
-		return new BundleDefinition(getSymbolicName(), getVersion());
+		return new BundleDefinition(getSymbolicName(), OSGiUtil.toLucee(getVersion()));
 	}
 
 	protected static File toFileResource(Resource file) throws IOException {

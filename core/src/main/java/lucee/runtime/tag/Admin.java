@@ -19,6 +19,7 @@
 package lucee.runtime.tag;
 
 import lucee.loader.util.VersionImpl;
+import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.BundleService;
 import lucee.runtime.osgi.BundleServiceImpl;
 import java.io.ByteArrayInputStream;
@@ -184,7 +185,6 @@ import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.JarUtil;
 import lucee.runtime.osgi.ManifestUtil;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.rest.RestUtil;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
@@ -3758,7 +3758,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		RHExtension[] rhextensions = ci.getRHExtensions();
 		while (itt.hasNext()) {
 			bd = itt.next();
-			if (_eq(name, version, bd.getName(), OSGiUtil.toLucee(bd.getVersion()))) {
+			if (_eq(name, version, bd.getName(), bd.getVersion())) {
 				_findExtension(rhextensions, bd, extensions);
 			}
 		}
@@ -3776,7 +3776,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				bundles = e.getMetadata().getBundles();
 				if (bundles != null) {
 					for (BundleInfo b: bundles) {
-						if (_eq(bd.getName(), OSGiUtil.toLucee(bd.getVersion()), b.getSymbolicName(), OSGiUtil.toLucee(b.getVersion()))) {
+						if (_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), OSGiUtil.toLucee(b.getVersion()))) {
 							set.add(e.getMetadata().getName());
 						}
 					}

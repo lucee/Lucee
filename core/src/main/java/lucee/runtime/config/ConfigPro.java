@@ -37,7 +37,7 @@ import lucee.runtime.extension.RHExtension;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.regex.Regex;
 import lucee.runtime.security.SecretProvider;
 import lucee.runtime.type.Collection.Key;

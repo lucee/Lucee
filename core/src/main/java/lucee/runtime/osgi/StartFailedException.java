@@ -3,7 +3,6 @@ package lucee.runtime.osgi;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 
 public final class StartFailedException extends Exception {
 

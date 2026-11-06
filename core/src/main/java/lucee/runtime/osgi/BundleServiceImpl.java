@@ -25,7 +25,9 @@ import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.config.Identification;
 import lucee.runtime.osgi.OSGiUtil.PackageQuery;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.type.Array;
@@ -341,5 +343,26 @@ public final class BundleServiceImpl implements BundleService {
 		info.put("fragment", Boolean.valueOf(OSGiUtil.isFragment(bf)));
 		info.put("headers", bf.getHeaders());
 		return info;
+	}
+
+	/**
+	 * load (download if necessary) and start the bundle
+	 */
+	public void loadBundle(BundleDefinition bd, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload) throws BundleException {
+		OSGiUtil.loadBundle(null, bd.getName(), OSGiUtil.toOSGi(bd.getVersion()), id, addional, true, versionOnlyMattersForDownload, true, null);
+	}
+
+	public Class<?> loadClass(BundleDefinition bd, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload, String className)
+			throws BundleException, ClassNotFoundException {
+		return OSGiUtil.loadBundle(null, bd.getName(), OSGiUtil.toOSGi(bd.getVersion()), id, addional, true, versionOnlyMattersForDownload, true, null).loadClass(className);
+	}
+
+	/**
+	 * try to fix a class that could not be loaded because a bundle is missing
+	 *
+	 * @return true when something was fixed and it makes sense to try again
+	 */
+	public boolean resolveLoadingIssues(Config config, ClassNotFoundException cnfe) {
+		return OSGiUtil.resolveBundleLoadingIssues(null, config, cnfe);
 	}
 }

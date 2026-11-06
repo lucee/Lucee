@@ -41,6 +41,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( impl.compare( p( "1.0.0.20240101123456" ), p( "1.1.0" ) ) ).toBeLT( 0 );
 			});
 
+			it( "a BundleDefinition keeps name and version and maps the old extension bundle names", function() {
+				var bd = createObject( "java", "lucee.runtime.osgi.BundleDefinition" ).init( "org.lucee.mssql", "12.2.0.jre8" );
+				expect( bd.getName() ).toBe( "org.lucee.mssql" );
+				expect( bd.getVersionAsString() ).toBe( "12.2.0.jre8" );
+				var same = createObject( "java", "lucee.runtime.osgi.BundleDefinition" ).init( "org.lucee.mssql", "12.2.0.jre8" );
+				expect( bd.equals( same ) ).toBeTrue();
+				expect( bd.hashCode() ).toBe( same.hashCode() );
+				expect( createObject( "java", "lucee.runtime.osgi.BundleDefinition" ).init( "mongodb.extension" ).getName() ).toBe( "org.lucee.mongodb.extension" );
+				expect( createObject( "java", "lucee.runtime.osgi.BundleDefinition" ).init( "mongodb.extension", "3.12.13.8" ).getName() ).toBe( "mongodb.extension" );
+			});
+
 			it( "treats the dot and the hyphen form of the qualifier as the same version", function() {
 				var impl = createObject( "java", "lucee.loader.util.VersionImpl" );
 				var p = function( v ) { return impl.parseOSGi( v, javaCast( "null", "" ) ); };
