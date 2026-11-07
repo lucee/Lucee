@@ -582,9 +582,9 @@ public final class HSQLDBHandler {
 					cd = hsqldbClassDefinition;
 					if (cd == null) {
 						if (LogUtil.doesDebug(log)) {
-							log.debug("query-of-query", "HSQLDB extension not installed. Attempting to download and use embedded HSQLDB driver (org.hsqldb:hsqldb:2.7.2).");
+							log.debug("query-of-query", "HSQLDB extension not installed. Attempting to download and use embedded HSQLDB driver (org.lucee:hsqldb-jdbc-extension:2.7.4.1-SNAPSHOT).");
 						}
-						cd = new ClassDefinitionImpl<>("org.hsqldb.jdbcDriver", "org.hsqldb:hsqldb:2.7.2");
+						cd = new ClassDefinitionImpl<>("org.hsqldb.jdbcDriver", "org.lucee:hsqldb-jdbc-extension:2.7.4.1-SNAPSHOT");
 						try {
 							cd.getClazz();
 						}
