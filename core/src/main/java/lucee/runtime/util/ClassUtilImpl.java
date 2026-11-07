@@ -28,7 +28,6 @@ import lucee.runtime.config.maven.Version;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.types.RefInteger;
 import lucee.runtime.PageContext;
-import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Identification;
@@ -42,6 +41,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
 
@@ -128,9 +128,8 @@ public final class ClassUtilImpl implements ClassUtil {
 			res = new ClassDefinitionImpl<Object>(name, maven).getClazz();
 		}
 		catch (ClassException ce) {
-			throw new IOException(ce.getMessage(), ce);
+			throw new IOException("failed to load the class [" + name + "] from the Maven artifact [" + maven + "]: " + ce.getMessage(), ce);
 		}
-		if (res == null) return null;
 		if (Reflector.isInstaneOf(res, BIF.class, false)) {
 			try {
 				return (BIF) lucee.commons.lang.ClassUtil.newInstance(res);
