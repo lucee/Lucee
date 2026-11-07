@@ -11,8 +11,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 		describe( 'LDEV-561' , function() {
 
+			// TODO LDEV-6627: skipped until the OSGi extension exists, the specs load org.apache.oro by bundle name which needs the OSGi service. Enable them (remove skip=true) as soon as the OSGi extension is available.
 			describe( 'CreateObject loads java classes by bundle name and value' , function() {
-				it( 'for createObject("java",<class-name>)' , function() {
+				it( title='for createObject("java",<class-name>)', skip=true, body=function() {
 					 
 					expect(
 						createObject("java","org.apache.oro.text.regex.Pattern")
@@ -22,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					);
 				}); 
 
-				it( 'for createObject("java",<class-name>,<bundle-name>)' , function() {
+				it( title='for createObject("java",<class-name>,<bundle-name>)', skip=true, body=function() {
 					 
 					expect(
 						createObject("java","org.apache.oro.text.regex.Pattern","org.apache.oro")
@@ -32,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					);
 				}); 
 
-				it( 'for createObject(type:"java",clas:<class-name>,name:<bundle-name>)' , function() {
+				it( title='for createObject(type:"java",clas:<class-name>,name:<bundle-name>)', skip=true, body=function() {
 					 
 					expect(
 						createObject(type:"java",class:"org.apache.oro.text.regex.Pattern",name:"org.apache.oro")
@@ -43,7 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}); 
 
 
-				it( 'for createObject("java",<class-name>,<bundle-name>,<bundle-version>)' , function() {
+				it( title='for createObject("java",<class-name>,<bundle-name>,<bundle-version>)', skip=true, body=function() {
 					 
 					expect(
 						createObject("java","org.apache.oro.text.regex.Pattern","org.apache.oro","2.0.8")
@@ -53,7 +54,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					);
 				}); 
 
-				it( 'for createObject(type:"java",clas:<class-name>,name:<bundle-name>,version:<bundle-version>)' , function() {
+				it( title='for createObject(type:"java",clas:<class-name>,name:<bundle-name>,version:<bundle-version>)', skip=true, body=function() {
 					 
 					expect(
 						createObject(type:"java",class:"org.apache.oro.text.regex.Pattern",name:"org.apache.oro",version:"2.0.8")
