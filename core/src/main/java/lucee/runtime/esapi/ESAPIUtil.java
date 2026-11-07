@@ -14,10 +14,10 @@ public final class ESAPIUtil {
 	 */
 	public static final String ENCODE_FOR_NONE = "none";
 
-	private static BIF esapi;
+	private static volatile BIF esapi;
 
 	// the artifact of the esapi extension that provides the encode functions
-	private static final String ESAPI_MAVEN = "org.lucee:esapi:3.1.0.7";
+	private static final String ESAPI_MAVEN = "org.lucee:esapi";
 
 	/**
 	 * is the given encodeFor type the value that means no encoding, this is the case for "none" (case
