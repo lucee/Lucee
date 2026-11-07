@@ -98,8 +98,7 @@ public final class HSQLDBHandler {
 	private static DataSource[] dsCache;
 	private static ClassDefinition<?> hsqldbClassDefinition = null;
 	private static final Object CLASS_DEF_LOCK = new Object();
-	// TODO LDEV-6627 switch to the release (RC) of the extension when it is published
-	private static final String HSQLDB_MAVEN = "org.lucee:hsqldb-jdbc-extension:2.7.4.1-SNAPSHOT";
+	private static final String HSQLDB_MAVEN = "org.lucee:hsqldb-jdbc-extension:2.7.4.3-RC";
 	private static volatile boolean hsqldbFallbackWarningLogged = false;
 
 	static {
