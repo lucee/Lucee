@@ -41,6 +41,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
 
@@ -112,6 +113,32 @@ public final class ClassUtilImpl implements ClassUtil {
 			return new BIFProxy(res);
 		}
 		return null;
+	}
+
+	/**
+	 * load a BIF from a Maven artifact, like {@link #loadBIF(PageContext, String, String, lucee.runtime.config.maven.Version)}
+	 * does it for an OSGi bundle
+	 * 
+	 * @param name class name of the BIF
+	 * @param maven the artifact in the form groupId:artifactId:version
+	 */
+	public BIF loadBIF(PageContext pc, String name, String maven) throws PageException, IOException {
+		Class<?> res;
+		try {
+			res = new ClassDefinitionImpl<Object>(name, maven).getClazz();
+		}
+		catch (ClassException ce) {
+			throw new IOException("failed to load the class [" + name + "] from the Maven artifact [" + maven + "]: " + ce.getMessage(), ce);
+		}
+		if (Reflector.isInstaneOf(res, BIF.class, false)) {
+			try {
+				return (BIF) lucee.commons.lang.ClassUtil.newInstance(res);
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		return new BIFProxy(res);
 	}
 
 	@Override
