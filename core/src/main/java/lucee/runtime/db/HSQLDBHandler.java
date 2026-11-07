@@ -98,6 +98,8 @@ public final class HSQLDBHandler {
 	private static DataSource[] dsCache;
 	private static ClassDefinition<?> hsqldbClassDefinition = null;
 	private static final Object CLASS_DEF_LOCK = new Object();
+	// TODO LDEV-6627 switch to the release (RC) of the extension when it is published
+	private static final String HSQLDB_MAVEN = "org.lucee:hsqldb-jdbc-extension:2.7.4.1-SNAPSHOT";
 	private static volatile boolean hsqldbFallbackWarningLogged = false;
 
 	static {
@@ -582,14 +584,14 @@ public final class HSQLDBHandler {
 					cd = hsqldbClassDefinition;
 					if (cd == null) {
 						if (LogUtil.doesDebug(log)) {
-							log.debug("query-of-query", "HSQLDB extension not installed. Attempting to download and use embedded HSQLDB driver (org.lucee:hsqldb-jdbc-extension:2.7.4.1-SNAPSHOT).");
+							log.debug("query-of-query", "HSQLDB extension not installed. Attempting to download and use embedded HSQLDB driver (" + HSQLDB_MAVEN + ").");
 						}
-						cd = new ClassDefinitionImpl<>("org.hsqldb.jdbcDriver", "org.lucee:hsqldb-jdbc-extension:2.7.4.1-SNAPSHOT");
+						cd = new ClassDefinitionImpl<>("org.hsqldb.jdbcDriver", HSQLDB_MAVEN);
 						try {
 							cd.getClazz();
 						}
 						catch (Exception e) {
-							ApplicationException ae = new ApplicationException("Failed to load HSQLDB driver for query-of-query fallback. " + "Please install the HSQLDB extension "
+							ApplicationException ae = new ApplicationException("Failed to load HSQLDB driver [" + HSQLDB_MAVEN + "] for query-of-query fallback. " + "Please install the HSQLDB extension "
 									+ "or define a custom 'qoq' datasource to resolve this issue.");
 							ExceptionUtil.initCauseEL(ae, e);
 							throw ae;
