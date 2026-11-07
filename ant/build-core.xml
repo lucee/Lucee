@@ -825,7 +825,8 @@
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
       <jvmarg value="-Dlucee.cli.contextRoot=${test}"/>
       <!-- TODO remove axis, lucene -->
-      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis},${extHibernate},${extEHCache},${extJtds},${extMD},${extSMB},${extFtp},${extImage}"/>
+      <!-- TODO LDEV-6627 mongodb (${extMongo}) is not installed until its FLD is Maven based, it needs the OSGi extension -->
+      <jvmarg value="-Dlucee-extensions=${extH2},${extOracle},${extLucene},${extAxis},${extChart},${extRedis},${extHibernate},${extEHCache},${extJtds},${extMD},${extSMB},${extFtp},${extImage}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>

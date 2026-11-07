@@ -791,6 +791,8 @@ public final class RHExtension implements Serializable {
 							&& (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
 								jarsSync.add(fileName);
+								BundleDefinition bd = toBundleDefinition(zip.getInputStream(entry));
+								if (bd != null) bundlesSync.add(bd);
 							}
 
 					// flds
@@ -987,6 +989,28 @@ public final class RHExtension implements Serializable {
 		String path = entry.getName();
 		return !entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles") || startsWith(path, type, "bundle")
 				|| startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"));
+	}
+
+	/**
+	 * reads name and version of a bundle from the manifest of a jar, this needs no OSGi provider
+	 * 
+	 * @return the definition or null if the jar is not a bundle
+	 */
+	private static BundleDefinition toBundleDefinition(InputStream is) {
+		try (java.util.jar.JarInputStream jis = new java.util.jar.JarInputStream(is)) {
+			Manifest mf = jis.getManifest();
+			if (mf == null) return null;
+			String name = mf.getMainAttributes().getValue("Bundle-SymbolicName");
+			if (StringUtil.isEmpty(name, true)) return null;
+			// remove directives like ;singleton:=true
+			int index = name.indexOf(';');
+			if (index != -1) name = name.substring(0, index);
+			String version = mf.getMainAttributes().getValue("Bundle-Version");
+			return StringUtil.isEmpty(version, true) ? new BundleDefinition(name.trim()) : new BundleDefinition(name.trim(), version.trim());
+		}
+		catch (Exception e) {
+			return null;
+		}
 	}
 
 	/**

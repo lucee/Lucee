@@ -1,11 +1,9 @@
-// TODO LDEV-6627: skipped until the OSGi extension exists, this tests code that moved out of core into the OSGi extension (OSGi service, OSGiUtil, Felix). Move to the extension or enable again (remove skip="true") as soon as that is done.
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 
 	function run( testResults, testBox ) {
 		describe( "VersionImpl parsing, conversion and comparison", function() {
 
 			var impl = createObject( "java", "lucee.loader.util.VersionImpl" );
-			var osgi = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
 			var po = function( v ) { return impl.parseOSGi( v, javaCast( "null", "" ) ); };
 			var pl = function( v ) { return impl.parse( v, false, javaCast( "null", "" ) ); };
 
@@ -89,7 +87,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" skip="true" 
 				expect( impl.compare( po( "1.2" ), po( "1.2.0" ) ) ).toBe( 0 );
 			});
 
-			it( "toOSGi and toLucee round trip", function() {
+			// TODO LDEV-6627: skipped until the OSGi extension exists, OSGiUtil moved to the extension.
+			it( title="toOSGi and toLucee round trip", skip=true, body=function() {
+				var osgi = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
 				for ( var v in [ "1.2.3", "3.12.13.10", "12.2.0.jre8", "5.2.0.RELEASE", "1.0.0.SNAPSHOT", "1.0.0.20240101123456" ] ) {
 					var l = po( v );
 					var back = osgi.toLucee( osgi.toOSGi( l ) );
@@ -98,7 +98,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" skip="true" 
 				}
 			});
 
-			it( "toOSGi gives the OSGi version with the same ordering", function() {
+			// TODO LDEV-6627: skipped until the OSGi extension exists, OSGiUtil moved to the extension.
+			it( title="toOSGi gives the OSGi version with the same ordering", skip=true, body=function() {
+				var osgi = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
 				var names = [ "12.2.0.jre8", "12.9.0.jre8", "12.10.0.jre8", "13.0.0.jre8" ];
 				for ( var i = 1; i < arrayLen( names ); i++ ) {
 					expect( osgi.toOSGi( po( names[ i ] ) ).compareTo( osgi.toOSGi( po( names[ i + 1 ] ) ) ) ).toBeLT( 0 );

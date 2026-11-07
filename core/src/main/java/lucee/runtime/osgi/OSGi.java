@@ -8,6 +8,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
 /**
@@ -19,6 +20,7 @@ public final class OSGi {
 	private static volatile OSGiService service;
 	private static volatile File libDir;
 	private static long checkedStamp = -1;
+	private static Throwable failure;
 
 	/**
 	 * Sets the lib directory of the config, an extension providing the OSGiService is installed there.
@@ -47,9 +49,10 @@ public final class OSGi {
 		if (s != null && !(s instanceof NoOSGiService && libChanged())) return s;
 		synchronized (OSGi.class) {
 			if (service == null || (service instanceof NoOSGiService && libChanged())) {
+				failure = null;
 				OSGiService found = discover();
 				checkedStamp = stamp();
-				service = found != null ? found : new NoOSGiService();
+				service = found != null ? found : new NoOSGiService(failure);
 			}
 			return service;
 		}
@@ -83,15 +86,23 @@ public final class OSGi {
 				return os;
 			}
 		}
-		catch (Throwable t) {
-			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+		catch (ServiceConfigurationError | LinkageError | IOException e) {
+			// a provider exists but is broken, this is not the same as no provider
+			failure = e;
 		}
 		return null;
 	}
 
 	private static final class NoOSGiService implements OSGiService {
 
-		private static IOException missing(String name, String version) {
+		private final Throwable cause;
+
+		private NoOSGiService(Throwable cause) {
+			this.cause = cause;
+		}
+
+		private IOException missing(String name, String version) {
+			if (cause != null) return new IOException("the OSGi extension is installed but failed to load, cannot load the bundle [" + name + ":" + version + "]: " + cause, cause);
 			return new IOException("the OSGi extension is not installed, cannot load the bundle [" + name + ":" + version + "]");
 		}
 

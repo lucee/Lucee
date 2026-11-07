@@ -1127,6 +1127,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 			// Write OSGi specific stuff
 			Attributes attrs = mf.getMainAttributes();
+			// without this header Manifest.write() writes nothing
+			attrs.put(Attributes.Name.MANIFEST_VERSION, "1.0");
 			String bundleName = ListUtil.trim(mapping.getVirtual().replace('/', '.'), ".");
 			attrs.putValue("Bundle-ManifestVersion", "2");
 			attrs.putValue("Bundle-SymbolicName", "luceebundle." + bundleName);

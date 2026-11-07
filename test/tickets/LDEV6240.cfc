@@ -1,5 +1,4 @@
-// TODO LDEV-6627: skipped until the OSGi extension exists, this tests code that moved out of core into the OSGi extension (OSGi service, OSGiUtil, Felix). Move to the extension or enable again (remove skip="true") as soon as that is done.
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="java,classloader" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="java,classloader" {
 
 	function beforeAll() {
 		variables.tempDir = getTempDirectory() & "LDEV6240/";
@@ -157,7 +156,8 @@ public class GreeterConsumer {
 				}
 			});
 
-			it( "EnvClassLoader callerCache is populated and queryable", function() {
+			// TODO LDEV-6627: skipped until the OSGi extension exists, EnvClassLoader moved to the extension.
+			it( title="EnvClassLoader callerCache is populated and queryable", skip=true, body=function() {
 				// Verify callerCache exists and is used. This cache is the secondary
 				// staleness vector (after findLoadedClass). Unlike findLoadedClass,
 				// callerCache CAN be cleared - that's the fix for LDEV-6240.
@@ -173,7 +173,8 @@ public class GreeterConsumer {
 				);
 			});
 
-			it( "EnvClassLoader has no cache invalidation API", function() {
+			// TODO LDEV-6627: skipped until the OSGi extension exists, EnvClassLoader moved to the extension.
+			it( title="EnvClassLoader has no cache invalidation API", skip=true, body=function() {
 				// Documents the gap: there is no way to clear EnvClassLoader's caches.
 				// After LDEV-6240 fix, update this test to verify clearCallerCache() works.
 				var envCL = getEnvClassLoader();
