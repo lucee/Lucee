@@ -16,6 +16,9 @@ public final class ESAPIUtil {
 
 	private static BIF esapi;
 
+	// the artifact of the esapi extension that provides the encode functions
+	private static final String ESAPI_MAVEN = "org.lucee:esapi:3.1.0.7";
+
 	/**
 	 * is the given encodeFor type the value that means no encoding, this is the case for "none" (case
 	 * insensitive, trimmed) and for an empty value. This is handled by Lucee itself, the esapi extension
@@ -28,7 +31,7 @@ public final class ESAPIUtil {
 	public static String esapiEncode(PageContext pc, String encodeFor, String string) throws PageException {
 		// we need to get the BIF ESAPIEncode
 		try {
-			if (esapi == null) esapi = new ClassUtilImpl().loadBIF(pc, "org.lucee.extension.esapi.functions.ESAPIEncode", "esapi.extension", null);
+			if (esapi == null) esapi = new ClassUtilImpl().loadBIF(pc, "org.lucee.extension.esapi.functions.ESAPIEncode", ESAPI_MAVEN);
 			return (String) esapi.invoke(pc, new Object[] { encodeFor, string });
 		}
 		catch (Exception e) {

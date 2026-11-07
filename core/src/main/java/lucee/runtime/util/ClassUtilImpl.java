@@ -28,6 +28,7 @@ import lucee.runtime.config.maven.Version;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.types.RefInteger;
 import lucee.runtime.PageContext;
+import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Identification;
@@ -112,6 +113,33 @@ public final class ClassUtilImpl implements ClassUtil {
 			return new BIFProxy(res);
 		}
 		return null;
+	}
+
+	/**
+	 * load a BIF from a Maven artifact, like {@link #loadBIF(PageContext, String, String, lucee.runtime.config.maven.Version)}
+	 * does it for an OSGi bundle
+	 * 
+	 * @param name class name of the BIF
+	 * @param maven the artifact in the form groupId:artifactId:version
+	 */
+	public BIF loadBIF(PageContext pc, String name, String maven) throws PageException, IOException {
+		Class<?> res;
+		try {
+			res = new ClassDefinitionImpl<Object>(name, maven).getClazz();
+		}
+		catch (ClassException ce) {
+			throw new IOException(ce.getMessage(), ce);
+		}
+		if (res == null) return null;
+		if (Reflector.isInstaneOf(res, BIF.class, false)) {
+			try {
+				return (BIF) lucee.commons.lang.ClassUtil.newInstance(res);
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		return new BIFProxy(res);
 	}
 
 	@Override
