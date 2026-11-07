@@ -19,12 +19,13 @@
 package lucee.runtime;
 
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.ref.SoftReference;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.jar.JarFile;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -93,7 +94,7 @@ public final class MappingImpl implements Mapping {
 
 	private ApplicationListener appListener;
 
-	private ClassLoader archiveClassLoader;
+	private URLClassLoader archiveClassLoader;
 
 	private long archMod;
 
@@ -200,8 +201,11 @@ public final class MappingImpl implements Mapping {
 					if (tmp == null || archMod == tmp.lastModified()) return;
 					try {
 						java.io.File jar = toLocalFile(tmp);
+						// the class loader opens the file lazy, so check that the archive is readable now
+						try (JarFile jf = new JarFile(jar)) {
+						}
 						// the compiled pages of the archive only need Lucee, so the loader of Lucee is the parent
-						archiveClassLoader = new URLClassLoader(new URL[] { jar.toURI().toURL() }, MappingImpl.class.getClassLoader());
+						archiveClassLoader = new URLClassLoader(new URL[] { jar.toURI().toURL() }, SystemUtil.getCoreClassLoader());
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
@@ -246,8 +250,7 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public InputStream getArchiveResourceAsStream(String name) {
-		// MUST implement
-		return null;
+		return archiveClassLoader == null ? null : archiveClassLoader.getResourceAsStream(name);
 	}
 
 	public Class<?> loadClass(String className) {
@@ -696,6 +699,11 @@ public final class MappingImpl implements Mapping {
 
 	public void close() {
 		pageSourcePool.clearPages(null);
+		URLClassLoader cl = archiveClassLoader;
+		if (cl != null) {
+			archiveClassLoader = null;
+			IOUtil.closeEL(cl);
+		}
 	}
 
 	public SerMapping toSerMapping() {
