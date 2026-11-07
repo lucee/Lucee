@@ -23,6 +23,9 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.ref.SoftReference;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.jar.JarFile;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,9 +52,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiServiceImpl;
-import lucee.runtime.osgi.BundleFile;
-import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -94,7 +94,7 @@ public final class MappingImpl implements Mapping {
 
 	private ApplicationListener appListener;
 
-	private BundleFile archiveBundle;
+	private URLClassLoader archiveClassLoader;
 
 	private long archMod;
 
@@ -200,15 +200,17 @@ public final class MappingImpl implements Mapping {
 
 					if (tmp == null || archMod == tmp.lastModified()) return;
 					try {
-						OSGiExtensionInstaller.ensureAvailable(config, "the archive [" + tmp + "]");
 						java.io.File jar = toLocalFile(tmp);
-						BundleFile bf = BundleFile.getInstance(jar);
-						archiveBundle = bf.isBundle() && OSGiServiceImpl.getInstance().install(jar, false) ? bf : null;
+						// the class loader opens the file lazy, so check that the archive is readable now
+						try (JarFile jf = new JarFile(jar)) {
+						}
+						// the compiled pages of the archive only need Lucee, so the loader of Lucee is the parent
+						archiveClassLoader = new URLClassLoader(new URL[] { jar.toURI().toURL() }, SystemUtil.getCoreClassLoader());
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
 						archMod = tmp.lastModified();
-						config.getLog("application").error("OSGi", "failed to load archive [" + tmp + "], archive is ignored", t);
+						config.getLog("application").error("archive", "failed to load archive [" + tmp + "], archive is ignored", t);
 						tmp = null;
 					}
 
@@ -222,30 +224,16 @@ public final class MappingImpl implements Mapping {
 
 	private static java.io.File toLocalFile(Resource res) throws IOException {
 		if (res instanceof java.io.File) return (java.io.File) res;
-		// not a local resource (ram, S3, ...), the bundle needs a local file to be installed from
+		// not a local resource (ram, S3, ...), the class loader needs a local file
 		Resource tmp = SystemUtil.getTempFile("lar", false);
 		IOUtil.copy(res, tmp);
 		return ResourceUtil.toFile(tmp);
 	}
 
-	private Class<?> loadArchiveClass(String className) throws IOException, ClassNotFoundException {
-		return OSGiServiceImpl.getInstance().loadClass(archiveBundle.getSymbolicName(), archiveBundle.getVersionAsString(), className);
-	}
-
 	@Override
 	public Class<?> getArchiveClass(String className) throws ClassNotFoundException {
 		getArchive();// this calls init the archive if necessary
-		if (archiveBundle != null) {
-			try {
-				return loadArchiveClass(className);
-			}
-			catch (IOException e) {
-				ClassNotFoundException cnfe = new ClassNotFoundException(e.getMessage());
-				cnfe.initCause(e);
-				throw cnfe;
-			}
-		}
-		// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);
+		if (archiveClassLoader != null) return archiveClassLoader.loadClass(className);
 		throw new ClassNotFoundException("there is no archive context to load " + className + " from it");
 	}
 
@@ -253,18 +241,16 @@ public final class MappingImpl implements Mapping {
 	public Class<?> getArchiveClass(String className, Class<?> defaultValue) {
 		getArchive();// this calls init the archive if necessary
 		try {
-			if (archiveBundle != null) return loadArchiveClass(className);
-			// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);
+			if (archiveClassLoader != null) return archiveClassLoader.loadClass(className);
 		}
-		catch (ClassNotFoundException | IOException e) {}
+		catch (ClassNotFoundException e) {}
 
 		return defaultValue;
 	}
 
 	@Override
 	public InputStream getArchiveResourceAsStream(String name) {
-		// MUST implement
-		return null;
+		return archiveClassLoader == null ? null : archiveClassLoader.getResourceAsStream(name);
 	}
 
 	public Class<?> loadClass(String className) {
@@ -713,6 +699,11 @@ public final class MappingImpl implements Mapping {
 
 	public void close() {
 		pageSourcePool.clearPages(null);
+		URLClassLoader cl = archiveClassLoader;
+		if (cl != null) {
+			archiveClassLoader = null;
+			IOUtil.closeEL(cl);
+		}
 	}
 
 	public SerMapping toSerMapping() {
