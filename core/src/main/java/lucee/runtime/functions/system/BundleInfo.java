@@ -28,7 +28,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiService;
-import lucee.runtime.osgi.OSGiServiceImpl;
+import lucee.runtime.osgi.OSGi;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -46,7 +46,7 @@ public final class BundleInfo implements Function {
 		else if (obj instanceof ObjectWrap) clazz = ((ObjectWrap) obj).getEmbededObject().getClass();
 		else clazz = obj.getClass();
 
-		Map<String, Object> info = OSGiServiceImpl.getInstance().getInfo(clazz);
+		Map<String, Object> info = OSGi.get().getInfo(clazz);
 		if (info != null) {
 			Struct sct = new StructImpl();
 			for (Map.Entry<String, Object> entry: info.entrySet()) {

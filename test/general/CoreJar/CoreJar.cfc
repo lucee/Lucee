@@ -2,7 +2,8 @@
  * Lucee is one jar, the core is not an OSGi bundle anymore. This gives the tests access to the Lucee jar
  * with the same methods the OSGi Bundle had (loadClass, getHeaders, findEntries, getEntry).
  */
-component {
+// TODO LDEV-6627: skipped until the OSGi extension exists, this tests code that moved out of core into the OSGi extension (OSGi service, OSGiUtil, Felix). Move to the extension or enable again (remove skip="true") as soon as that is done.
+component skip="true" {
 
 	function init() {
 		variables.cl = createObject( "java", "lucee.runtime.osgi.OSGiUtil" ).getClass().getClassLoader();

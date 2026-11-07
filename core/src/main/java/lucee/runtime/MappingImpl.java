@@ -49,9 +49,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiServiceImpl;
-import lucee.runtime.osgi.BundleFile;
-import lucee.runtime.osgi.OSGiExtensionInstaller;
+import lucee.runtime.osgi.OSGi;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -94,7 +92,7 @@ public final class MappingImpl implements Mapping {
 
 	private ApplicationListener appListener;
 
-	private BundleFile archiveBundle;
+	private String archiveBundleId;
 
 	private long archMod;
 
@@ -200,10 +198,8 @@ public final class MappingImpl implements Mapping {
 
 					if (tmp == null || archMod == tmp.lastModified()) return;
 					try {
-						OSGiExtensionInstaller.ensureAvailable(config, "the archive [" + tmp + "]");
 						java.io.File jar = toLocalFile(tmp);
-						BundleFile bf = BundleFile.getInstance(jar);
-						archiveBundle = bf.isBundle() && OSGiServiceImpl.getInstance().install(jar, false) ? bf : null;
+						archiveBundleId = OSGi.get().install(jar, false) ? OSGi.get().getId(jar) : null;
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
@@ -229,13 +225,13 @@ public final class MappingImpl implements Mapping {
 	}
 
 	private Class<?> loadArchiveClass(String className) throws IOException, ClassNotFoundException {
-		return OSGiServiceImpl.getInstance().loadClass(archiveBundle.getSymbolicName(), archiveBundle.getVersionAsString(), className);
+		throw new ClassNotFoundException(className);
 	}
 
 	@Override
 	public Class<?> getArchiveClass(String className) throws ClassNotFoundException {
 		getArchive();// this calls init the archive if necessary
-		if (archiveBundle != null) {
+		if (archiveBundleId != null) {
 			try {
 				return loadArchiveClass(className);
 			}
@@ -253,7 +249,7 @@ public final class MappingImpl implements Mapping {
 	public Class<?> getArchiveClass(String className, Class<?> defaultValue) {
 		getArchive();// this calls init the archive if necessary
 		try {
-			if (archiveBundle != null) return loadArchiveClass(className);
+			if (archiveBundleId != null) return loadArchiveClass(className);
 			// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);
 		}
 		catch (ClassNotFoundException | IOException e) {}

@@ -1,4 +1,5 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+// TODO LDEV-6627: skipped until the OSGi extension exists, this tests code that moved out of core into the OSGi extension (OSGi service, OSGiUtil, Felix). Move to the extension or enable again (remove skip="true") as soon as that is done.
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 	public function run( testResults, testBox ) {
 		describe( title="LDEV-6354 OSGiUtil.toVersion tolerates a malformed qualifier instead of throwing", body=function() {
 

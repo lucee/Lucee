@@ -37,7 +37,7 @@ import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.converter.JavaConverter.ObjectInputStreamImpl;
-import lucee.runtime.osgi.OSGiServiceImpl;
+import lucee.runtime.osgi.OSGi;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.dynamic.meta.Clazz;
@@ -152,7 +152,7 @@ public final class ClazzDynamic extends Clazz {
 		String id = clids.get(System.identityHashCode(cl));
 		if (id != null) return id;
 
-		String bundleId = OSGiServiceImpl.getInstance().getId(clazz);
+		String bundleId = OSGi.get().getId(clazz);
 		if (bundleId != null) {
 			id = "b" + HashUtil.create64BitHashAsString(bundleId + ":" + jv, Character.MAX_RADIX);
 			clids.put(System.identityHashCode(cl), id);

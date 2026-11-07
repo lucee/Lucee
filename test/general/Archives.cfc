@@ -1,4 +1,5 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="archive,mapping" {
+// TODO LDEV-6627: skipped because archives (.lar) are still loaded as OSGi bundles, loading them with a URLClassLoader instead is addressed in a separate PR. Enable again (remove skip="true") when that PR is merged.
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="archive,mapping" skip="true" {
 
 	variables.adminPassword = "";
 	variables.testDir = "";

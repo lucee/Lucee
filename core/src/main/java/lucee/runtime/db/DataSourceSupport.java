@@ -38,7 +38,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiServiceImpl;
+import lucee.runtime.osgi.OSGi;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.transformer.library.ClassDefinitionImpl;
 
@@ -156,13 +156,13 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 			// the cached driver (if any) comes from a bundle that was uninstalled, drop it and resolve again
 			driver = null;
 			d = _initializeDriver(name, cd, config);
-			driverBundle = OSGiServiceImpl.getInstance().getId(d.getClass());
+			driverBundle = OSGi.get().getId(d.getClass());
 			return driver = d;
 		}
 	}
 
 	private boolean isStale(Driver d) {
-		return driverBundle != null && OSGiServiceImpl.getInstance().getId(d.getClass()) == null;
+		return driverBundle != null && OSGi.get().getId(d.getClass()) == null;
 	}
 
 	/**

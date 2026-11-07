@@ -20,7 +20,7 @@ package lucee.runtime.extension;
 
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.osgi.BundleDefinition;
-import lucee.runtime.osgi.OSGiServiceImpl;
+import lucee.runtime.osgi.OSGi;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -82,8 +82,7 @@ import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.osgi.BundleFile;
-import lucee.runtime.osgi.BundleInfo;
+import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.VersionRange;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
@@ -729,8 +728,8 @@ public final class RHExtension implements Serializable {
 		metadata.setType(config instanceof ConfigWeb ? "web" : "server");
 
 		final Data data = new Data();
-		final List<BundleInfo> bundles = new ArrayList<BundleInfo>();
-		final List<BundleInfo> bundlesSync = Collections.synchronizedList(bundles);
+		final List<BundleDefinition> bundles = new ArrayList<BundleDefinition>();
+		final List<BundleDefinition> bundlesSync = Collections.synchronizedList(bundles);
 
 		final List<String> jars = new ArrayList<String>();
 		final List<String> jarsSync = Collections.synchronizedList(jars);
@@ -792,8 +791,6 @@ public final class RHExtension implements Serializable {
 							&& (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
 								jarsSync.add(fileName);
-								BundleInfo bi = BundleInfo.getInstance(config, fileName, zip.getInputStream(entry), true);
-								if (bi.isBundle()) bundlesSync.add(bi);
 							}
 
 					// flds
@@ -875,7 +872,7 @@ public final class RHExtension implements Serializable {
 		metadata.setApplications(applications.toArray(new String[applications.size()]));
 		metadata.setComponents(components.toArray(new String[components.size()]));
 		metadata.setPlugins(plugins.toArray(new String[plugins.size()]));
-		metadata.setBundles(bundles.toArray(new BundleInfo[bundles.size()]));
+		metadata.setBundles(bundles.toArray(new BundleDefinition[bundles.size()]));
 
 	}
 
@@ -997,7 +994,7 @@ public final class RHExtension implements Serializable {
 	 * the same jar. A jar that is not a bundle is identified by name and checksum.
 	 */
 	private static String jarKey(File jar, ZipEntry entry) {
-		String id = OSGiServiceImpl.getInstance().getId(jar);
+		String id = OSGi.get().getId(jar);
 		return id != null ? id : fileName(entry) + ":" + entry.getCrc();
 	}
 
@@ -1055,7 +1052,7 @@ public final class RHExtension implements Serializable {
 					try {
 						IOUtil.copy(zis, tmp, false);
 						File jar = ResourceUtil.toFile(tmp);
-						if (!keepKeys.contains(jarKey(jar, entry))) OSGiServiceImpl.getInstance().uninstall(jar);
+						if (!keepKeys.contains(jarKey(jar, entry))) OSGi.get().uninstall(jar);
 					}
 					finally {
 						tmp.delete();
@@ -1403,7 +1400,7 @@ public final class RHExtension implements Serializable {
 		coll.setEL(KeyConstants._maven, MavenUtil.MavenCoordinate.toArray(md.getMaven()));
 		coll.setEL(KeyImpl.init("eventGatewayInstances"), toArray(md.getEventGatewayInstances()));
 
-		BundleInfo[] bfs = md.getBundles();
+		BundleDefinition[] bfs = md.getBundles();
 
 		if (bfs != null) {
 			Query qryBundles = null;
@@ -1413,7 +1410,7 @@ public final class RHExtension implements Serializable {
 			catch (DatabaseException e) {}
 			if (qryBundles != null) {
 				for (int i = 0; i < bfs.length; i++) {
-					qryBundles.setAtEL(KeyConstants._name, i + 1, bfs[i].getSymbolicName());
+					qryBundles.setAtEL(KeyConstants._name, i + 1, bfs[i].getName());
 					if (bfs[i].getVersion() != null) qryBundles.setAtEL(KeyConstants._version, i + 1, bfs[i].getVersionAsString());
 				}
 			}

@@ -13,7 +13,7 @@ import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.osgi.BundleInfo;
+import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.VersionRange;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.ArrayUtil;
@@ -38,7 +38,7 @@ public final class ExtensionMetadata implements Serializable {
 	private boolean trial;
 	private String image;
 	private boolean startBundles;
-	private BundleInfo[] bundles;
+	private BundleDefinition[] bundles;
 	private VersionRange minCoreVersion;
 	private double minLoaderVersion;
 
@@ -522,15 +522,15 @@ public final class ExtensionMetadata implements Serializable {
 		this.startBundles = startBundles;
 	}
 
-	public BundleInfo[] getBundles() {
+	public BundleDefinition[] getBundles() {
 		return bundles;
 	}
 
-	public BundleInfo[] getBundles(BundleInfo[] defaultValue) {
+	public BundleDefinition[] getBundles(BundleDefinition[] defaultValue) {
 		return bundles;
 	}
 
-	public void setBundles(BundleInfo[] bundles) {
+	public void setBundles(BundleDefinition[] bundles) {
 		this.bundles = bundles;
 	}
 
