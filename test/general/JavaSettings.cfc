@@ -11,7 +11,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "test suite for this.javaSettings", function() {
 
-			it(title="checking OSGi Bundle", body=function(){
+			// TODO LDEV-6627: the OSGi bundle specs are skipped until the OSGi extension exists, they need the OSGi service to install and load the mockup bundles. Enable them (remove skip=true) as soon as the OSGi extension is available.
+			it(title="checking OSGi Bundle", skip=true, body=function(){
 				var uri=createURI("javaSettings/osgi/index.cfm");
 				var res=_InternalRequest(addToken:true,template:uri);
 				var data=deserializeJson(res.fileContent);
@@ -32,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 
-			it(title="checking OSGi Update Bundle", body=function(){
+			it(title="checking OSGi Update Bundle", skip=true, body=function(){
 				var uri=createURI("javaSettings/osgiupdate/index.cfm");
 				var res=_InternalRequest(addToken:true,template:uri);
 				var data=deserializeJson(res.fileContent);
@@ -45,7 +46,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 
-			it(title="checking OSGi 2 Bundle", body=function(){
+			it(title="checking OSGi 2 Bundle", skip=true, body=function(){
 				var uri=createURI("javaSettings/osgi2/index.cfm");
 				var res=_InternalRequest(addToken:true,template:uri);
 				var data=deserializeJson(res.fileContent);
