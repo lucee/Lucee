@@ -12,7 +12,7 @@ import lucee.runtime.extension.RHExtension;
 import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.BundleInfo;
+import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
@@ -66,11 +66,11 @@ public final class ExtensionInfo extends BIF implements Function {
 					sct.set(KeyConstants._plugins, Caster.toArray(md.getPlugins()));
 					sct.set(KeyConstants._startBundles, Caster.toBoolean(md.isStartBundles()));
 
-					BundleInfo[] bfs = md.getBundles();
+					BundleDefinition[] bfs = md.getBundles();
 					Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs == null ? 0 : bfs.length, "bundles");
 					if (bfs != null) {
 						for (int i = 0; i < bfs.length; i++) {
-							qryBundles.setAt(KeyConstants._name, i + 1, bfs[i].getSymbolicName());
+							qryBundles.setAt(KeyConstants._name, i + 1, bfs[i].getName());
 							if (bfs[i].getVersion() != null) qryBundles.setAt(KeyConstants._version, i + 1, bfs[i].getVersionAsString());
 						}
 					}

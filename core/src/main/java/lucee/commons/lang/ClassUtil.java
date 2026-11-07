@@ -61,7 +61,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.OSGiService;
-import lucee.runtime.osgi.OSGiServiceImpl;
+import lucee.runtime.osgi.OSGi;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
@@ -175,7 +175,7 @@ public final class ClassUtil {
 	public static Class<?> loadClassByBundle(String className, BundleDefinition bundle, BundleDefinition[] relatedBundles, Identification id, List<Resource> addional,
 			boolean versionOnlyMattersForDownload) throws IOException, ClassException {
 		try {
-			OSGiService osgi = OSGiServiceImpl.getInstance();
+			OSGiService osgi = OSGi.get();
 			if (relatedBundles != null) {
 				for (BundleDefinition rb: relatedBundles) {
 					osgi.getClassLoader(rb.getName(), rb.getVersionAsString(), toFiles(addional));
@@ -1120,7 +1120,7 @@ public final class ClassUtil {
 	private static class OSGiBasedClassLoading implements ClassLoading {
 		@Override
 		public Class<?> loadClass(String className, Class defaultValue) {
-			Class<?> clazz = OSGiServiceImpl.getInstance().findClass(className);
+			Class<?> clazz = OSGi.get().findClass(className);
 			return clazz != null ? clazz : defaultValue;
 		}
 

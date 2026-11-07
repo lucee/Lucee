@@ -105,7 +105,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
-import lucee.runtime.osgi.OSGiServiceImpl;
+import lucee.runtime.osgi.OSGi;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -1675,7 +1675,7 @@ public final class SystemUtil {
 			if (!unique || !context.contains(cl)) {
 				context.add(cl);
 				if (id != null) {
-					String bundleId = OSGiServiceImpl.getInstance().getId(cl);
+					String bundleId = OSGi.get().getId(cl);
 					if (bundleId != null) {
 						id.append(bundleId).append(';');
 					}
@@ -1750,7 +1750,7 @@ public final class SystemUtil {
 
 	private static boolean isFromBundle(Class<?> clazz) {
 		if (clazz == null) return false;
-		return OSGiServiceImpl.getInstance().getId(clazz) != null;
+		return OSGi.get().getId(clazz) != null;
 	}
 
 	private static boolean _isSystem(Class<?> clazz) {

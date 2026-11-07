@@ -65,7 +65,7 @@ import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiService;
-import lucee.runtime.osgi.OSGiServiceImpl;
+import lucee.runtime.osgi.OSGi;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Array;
@@ -667,7 +667,7 @@ public final class DumpUtil {
 			table.appendRow(0, inherited);
 
 			// Bundle Info
-			Map<String, Object> bundle = OSGiServiceImpl.getInstance().getInfo(clazz);
+			Map<String, Object> bundle = OSGi.get().getInfo(clazz);
 			if (bundle != null) {
 				DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
 				bd.setTitle("OSGi Bundle Info");

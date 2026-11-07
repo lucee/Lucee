@@ -1,4 +1,5 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="lar,archive,jakarta" {
+// TODO LDEV-6627: skipped until the OSGi extension exists, this tests code that moved out of core into the OSGi extension (OSGi service, OSGiUtil, Felix). Move to the extension or enable again (remove skip="true") as soon as that is done.
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="lar,archive,jakarta" skip="true" {
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-6171: LAR archives must not contain javax.servlet references", function() {

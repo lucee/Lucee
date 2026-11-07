@@ -60,7 +60,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.java.JavaProxy;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.JavaProxyUtilImpl;
-import lucee.runtime.osgi.OSGiServiceImpl;
+import lucee.runtime.osgi.OSGi;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.UDF;
 import lucee.runtime.util.JavaProxyUtil;
@@ -495,7 +495,7 @@ public final class JavaProxyFactory {
 			if (cl instanceof PhysicalClassLoader) {
 				return cl;
 			}
-			else if (OSGiServiceImpl.getInstance().getId(cl) != null) {
+			else if (OSGi.get().getId(cl) != null) {
 				return PhysicalClassLoaderFactory.getRPCClassLoader(pc.getConfig(), cl, false);
 			}
 		}

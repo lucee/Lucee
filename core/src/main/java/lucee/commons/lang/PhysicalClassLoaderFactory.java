@@ -31,7 +31,7 @@ import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiServiceImpl;
+import lucee.runtime.osgi.OSGi;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -138,12 +138,12 @@ public class PhysicalClassLoaderFactory {
 			key += ":" + ((PhysicalClassLoader) parent).id;
 		}
 		else {
-			String bundleId = OSGiServiceImpl.getInstance().getId(parent);
+			String bundleId = OSGi.get().getId(parent);
 			if (bundleId != null) key += ":" + bundleId;
 			else key += ":" + parent.getClass().getName() + parent.hashCode();
 		}
 
-		String bcId = OSGiServiceImpl.getInstance().getId(bcl);
+		String bcId = OSGi.get().getId(bcl);
 		if (bcId != null) {
 			key += ":" + bcId;
 		}

@@ -121,13 +121,9 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.orm.ORMEngine;
-import lucee.runtime.osgi.BundleBuilderFactory;
 import lucee.runtime.osgi.BundleDefinition;
-import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.OSGiService;
-import lucee.runtime.osgi.OSGiServiceImpl;
-import lucee.runtime.osgi.BundleInfo;
-import lucee.runtime.osgi.OSGiExtensionInstaller;
+import lucee.runtime.osgi.OSGi;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.schedule.ScheduleTask;
 import lucee.runtime.schedule.ScheduleTaskImpl;
@@ -161,7 +157,7 @@ import lucee.transformer.library.tag.TagLibException;
 
 public final class ConfigAdmin {
 
-	private static final BundleInfo[] EMPTY = new BundleInfo[0];
+	private static final BundleDefinition[] EMPTY = new BundleDefinition[0];
 	private static final Set<Key> EXCLUDE_LIST;
 	private static final Map<Key, Key> ARRAY_INDEX;
 	private ConfigServerImpl config;
@@ -1312,7 +1308,7 @@ public final class ConfigAdmin {
 
 	public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar, boolean start) throws IOException {
 		// a bundle is handed over to OSGi
-		if (OSGiServiceImpl.getInstance().install(toLocalFile(resJar), start)) return;
+		if (OSGi.get().install(toLocalFile(resJar), start)) return;
 
 		Resource lib = ((ConfigPro) config).getLibraryDirectory();
 		if (!lib.exists()) lib.mkdir();
@@ -3983,8 +3979,6 @@ public final class ConfigAdmin {
 	public static RHExtension _updateRHExtension(ConfigPro config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force, short action, Log log)
 			throws PageException {
 		try {
-			// an extension that needs OSGi can only be installed when OSGi is there (LDEV-6829)
-			OSGiExtensionInstaller.ensureAvailableFor(config, rhext);
 			ConfigAdmin admin = new ConfigAdmin(config, null, true);
 			return admin.updateExtension(config, rhext, filter, reload, force, action, log);
 		}
@@ -5928,7 +5922,7 @@ public final class ConfigAdmin {
 				if (ext.same(el)) {
 					old = RHExtension.toBundleDefinitions(ConfigUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 					ext.populate(el, false);
-					old = minus(old, BundleInfo.toBundleDefinitions(ext.getMetadata().getBundles()));
+					old = minus(old, ext.getMetadata().getBundles());
 					return old;
 				}
 			}
@@ -5955,7 +5949,7 @@ public final class ConfigAdmin {
 							if (_ext != null && _ext.same(ext)) {
 								old = RHExtension.toBundleDefinitions(ConfigUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 								ext.populate(el, false);
-								old = minus(old, BundleInfo.toBundleDefinitions(ext.getMetadata().getBundles()));
+								old = minus(old, ext.getMetadata().getBundles());
 								return old;
 							}
 						}

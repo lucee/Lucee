@@ -144,8 +144,7 @@ import lucee.runtime.op.IOImpl;
 import lucee.runtime.op.JavaProxyUtilImpl;
 import lucee.runtime.op.OperationImpl;
 import lucee.runtime.op.StringsImpl;
-import lucee.runtime.osgi.OSGiServiceImpl;
-import lucee.runtime.osgi.OSGiExtensionInstaller;
+import lucee.runtime.osgi.OSGi;
 import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.spooler.SpoolerEngine;
 import lucee.runtime.spooler.SpoolerEngineImpl;
@@ -332,19 +331,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 		}
 
-		OSGiServiceImpl bundles = OSGiServiceImpl.getInstance();
 		try {
-			bundles.boot(factory, bc);
+			this.info = new InfoImpl(lucee.loader.util.VersionImpl.parseOSGi(bc.getCoreVersion().toString()), bc.getCoreHeaders());
 		}
-		catch (Exception e) {
+		catch (java.io.IOException e) {
 			throw Caster.toPageRuntimeException(e);
-		}
-		this.info = new InfoImpl(bundles.getCoreVersion(), bundles.getCoreHeaders());
-
-		// remove older or newer lucee-core bundles to avoid conflicts
-		for (String stale: bundles.uninstallStaleCoreBundles(info.getVersion().toString())) {
-			LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
-					"Found stale core bundle [lucee.core:" + stale + "], uninstalled to avoid conflicts with current version [" + info.getVersion() + "]");
 		}
 
 		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader()); // MUST better location for this
@@ -1461,7 +1452,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private void shutdownFelix() {
 		try {
-			OSGiServiceImpl.getInstance().shutdown();
+			OSGi.get().shutdown();
 		}
 		catch (Exception e) {
 			LogUtil.log(configServer, LOG_TYPE_NAME, e);
@@ -1698,14 +1689,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public lucee.runtime.osgi.OSGiService getOSGiService() {
-		try {
-			// install the OSGi extension if OSGi is needed and not available (LDEV-6829)
-			OSGiExtensionInstaller.ensureAvailable(ThreadLocalPageContext.getConfigServer(), "the OSGiService");
-		}
-		catch (ApplicationException ae) {
-			throw new PageRuntimeException(ae);
-		}
-		return lucee.runtime.osgi.OSGiServiceImpl.getInstance();
+		return OSGi.get();
 	}
 
 	@Override
