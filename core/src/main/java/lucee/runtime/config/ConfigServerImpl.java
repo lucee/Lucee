@@ -3790,6 +3790,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	public Resource getLibraryDirectory() {
 		Resource dir = getConfigDir().getRealResource("lib");
 		if (!dir.exists()) dir.mkdir();
+		if (dir instanceof java.io.File) lucee.runtime.osgi.OSGi.setLibraryDirectory((java.io.File) dir);
 		return dir;
 	}
 
