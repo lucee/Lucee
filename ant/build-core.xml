@@ -23,7 +23,7 @@
   <property name="extURLCDN" value="https://maven.lucee-services.com/"/>
   <property name="extURLSnapshot" value="https://central.sonatype.com/repository/maven-snapshots/"/>
   
-  <property name="extMongo"     value="org.lucee:mongodb-extension:3.12.13.10"/>
+  <property name="extMongo"     value="org.lucee:mongodb-extension:5.14.0.1-SNAPSHOT"/>
   <property name="extH2"        value="465E1E35-2425-4F4E-8B3FAB638BD7280A;version=2.1.214.0001L"/>
   <property name="extOracle"    value="org.lucee:oracle-jdbc-extension:23.8.0.25.04-ojdbc11"/>
   <property name="extLucene"    value="org.lucee:lucene-search-extension:3.0.0.163"/>
