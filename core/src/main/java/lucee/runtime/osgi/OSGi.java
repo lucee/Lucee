@@ -50,6 +50,26 @@ public final class OSGi {
 		}
 	}
 
+	/**
+	 * @return true when an OSGiService is provided (the OSGi extension is installed and loaded)
+	 */
+	public static boolean isAvailable() {
+		return !(get() instanceof NoOSGiService);
+	}
+
+	/**
+	 * @return a description of a bundle (and the class) for error messages
+	 */
+	public static String what(String className, String bundleName, String bundleVersion) {
+		String bundle = "the OSGi bundle [" + bundleName + (bundleVersion == null || bundleVersion.trim().isEmpty() ? "" : ":" + bundleVersion.trim()) + "]";
+		return className == null || className.trim().isEmpty() ? bundle : "the class [" + className.trim() + "] from " + bundle;
+	}
+
+	public static String notInstalledMessage(String what) {
+		return "Cannot load " + what + ": OSGi is required for this, but OSGi is not installed. Install the OSGi extension (org.lucee:osgi-extension), "
+				+ "or use a Maven based definition (class and maven coordinates) instead of an OSGi bundle.";
+	}
+
 	public static OSGiService get() {
 		OSGiService s = service;
 		if (s != null && !(s instanceof NoOSGiService && libChanged())) return s;
@@ -127,18 +147,26 @@ public final class OSGi {
 		}
 
 		private IOException missing(String name, String version) {
-			if (cause != null) return new IOException("the OSGi extension is installed but failed to load, cannot load the bundle [" + name + ":" + version + "]: " + cause, cause);
-			return new IOException("the OSGi extension is not installed, cannot load the bundle [" + name + ":" + version + "]");
+			return missing(what(null, name, version));
+		}
+
+		private IOException missing(String name, String version, String className) {
+			return missing(what(className, name, version));
+		}
+
+		private IOException missing(String what) {
+			if (cause != null) return new IOException("Cannot load " + what + ": the OSGi extension is installed but failed to load: " + cause, cause);
+			return new OSGiNotAvailableException(notInstalledMessage(what));
 		}
 
 		@Override
 		public Class<?> loadClass(String name, String version, String className) throws IOException {
-			throw missing(name, version);
+			throw missing(name, version, className);
 		}
 
 		@Override
 		public Class<?> loadClass(String name, String version, String className, File[] dirs, boolean versionOnlyMattersForDownload) throws IOException {
-			throw missing(name, version);
+			throw missing(name, version, className);
 		}
 
 		@Override
