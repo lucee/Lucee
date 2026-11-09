@@ -1992,7 +1992,13 @@ public abstract class AbstrCFMLExprTransformer {
 				}
 			}
 			else {
-				fm = new UDF(name);
+				// LDEV-3596: the name a UDF is called with keeps its original case (getFunctionCalledName()),
+				// independent of the "dot notation upper case" setting; the lookup itself is case insensitive
+				ExprString udfName = name;
+				if (name instanceof Identifier && ((Identifier) name).getCase() == Identifier.CASE_UPPER) {
+					udfName = Identifier.toIdentifier(data.factory, ((Identifier) name).getRaw(), Identifier.CASE_ORIGNAL, name.getStart(), name.getEnd());
+				}
+				fm = new UDF(udfName);
 			}
 
 			int count = getFunctionMemberAttrs(data, name, checkLibrary, fm, flf);
