@@ -1,4 +1,5 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
+// TODO LDEV-6897: skipped until the ORM tests work with the Hibernate 7 extension and are moved to the extension.
+component skip="true" extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 	public function run( testResults , testBox ) {
 		describe( title="Testing date functions & its equivalent member functions for ORM entity's date", body=function() {
 			it( title="Testing dateDiff function", skip=noOrm(), body=function( currentSpec ) {

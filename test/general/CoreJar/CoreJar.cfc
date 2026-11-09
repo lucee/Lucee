@@ -5,7 +5,7 @@
 component {
 
 	function init() {
-		variables.cl = createObject( "java", "lucee.runtime.osgi.OSGiUtil" ).getClass().getClassLoader();
+		variables.cl = createObject( "java", "lucee.runtime.engine.CFMLEngineImpl" ).getClass().getClassLoader();
 		// the build with a separate core (core.lco loaded as a bundle) is still around, then the bundle is the core
 		variables.bundle = "";
 		try {
@@ -14,7 +14,7 @@ component {
 		catch ( any e ) {
 			variables.bundle = "";
 		}
-		var location = createObject( "java", "lucee.runtime.osgi.OSGiUtil" ).getClass().getProtectionDomain().getCodeSource().getLocation().toString();
+		var location = createObject( "java", "lucee.runtime.engine.CFMLEngineImpl" ).getClass().getProtectionDomain().getCodeSource().getLocation().toString();
 		variables.jar = location.endsWith( ".jar" ) ? createObject( "java", "java.net.URI" ).init( location ).getPath() : "";
 		return this;
 	}

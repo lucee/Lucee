@@ -17,7 +17,8 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 	
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
+// TODO LDEV-6897: skipped until the ORM tests work with the Hibernate 7 extension and are moved to the extension.
+component skip="true" extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	//public function setUp(){}
 

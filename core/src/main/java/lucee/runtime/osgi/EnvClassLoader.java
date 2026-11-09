@@ -16,8 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleReference;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -32,12 +30,7 @@ import lucee.transformer.library.ClassDefinitionImpl;
 
 public final class EnvClassLoader extends URLClassLoader {
 
-	private static float FROM_SYSTEM = 1;
-	private static float FROM_BOOTDELEGATION = 2;
-	private static float FROM_CALLER = 3;
 
-	private static SoftReference<String> EMPTY = new SoftReference<String>(null);
-	private static Map<SoftReference<String>, SoftReference<String>> notFound = new java.util.concurrent.ConcurrentHashMap<>();
 
 	private ConfigPro config;
 	private Map<String, SoftReference<Object[]>> callerCache = new ConcurrentHashMap<String, SoftReference<Object[]>>();
@@ -179,24 +172,12 @@ public final class EnvClassLoader extends URLClassLoader {
 			for (ClassLoader cl: listContext) {
 				obj = _load(cl, name, type);
 				if (obj != null) {
-					if (cl instanceof BundleReference) {
-						if (trace != null) trace.trace("EnvClassLoader", "found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":"
-								+ (((BundleReference) cl).getBundle().getVersion()) + "]");
-					}
-					else {
 						if (trace != null) trace.trace("EnvClassLoader", "found [" + name + "] in System ClassLoader " + cl);
-					}
 					if (useCache) callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { obj }));
 					return obj;
 				}
 				else {
-					if (cl instanceof BundleReference) {
-						if (trace != null) trace.trace("EnvClassLoader", "not found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":"
-								+ (((BundleReference) cl).getBundle().getVersion()) + "]");
-					}
-					else {
 						if (trace != null) trace.trace("EnvClassLoader", "not found [" + name + "] in System ClassLoader " + cl);
-					}
 
 				}
 			}
@@ -235,28 +216,13 @@ public final class EnvClassLoader extends URLClassLoader {
 
 	private Object _load(ClassLoader cl, String name, short type) {
 		Object obj = null;
-		Bundle b = null;
 		if (cl != null) {
 			try {
-				if (type == CLASS) {
-					if (cl instanceof BundleReference) {
-						b = ((BundleReference) cl).getBundle();
-						if (notFound.containsKey(
-								new SoftReference<String>(new StringBuilder(b.getSymbolicName()).append(':').append(b.getVersion()).append(':').append(name).toString())))
-							return null;
-						else obj = cl.loadClass(name);
-					}
-					else obj = cl.loadClass(name);
-				}
+				if (type == CLASS) obj = cl.loadClass(name);
 				else if (type == URL) obj = cl.getResource(name);
 				else obj = cl.getResourceAsStream(name);
 			}
-			catch (ClassNotFoundException cnfe) {
-				if (b != null)
-					notFound.put(new SoftReference<String>(new StringBuilder(b.getSymbolicName()).append(':').append(b.getVersion()).append(':').append(name).toString()), EMPTY);
-			}
 			catch (Exception e) {}
-
 		}
 		return obj;
 	}
@@ -271,7 +237,7 @@ public final class EnvClassLoader extends URLClassLoader {
 			}
 		}
 
-		throw new ClassNotFoundException("class " + name + " not found in the core, the loader and all the extension bundles");
+		throw new ClassNotFoundException("class " + name + " not found in the core, the loader and the callers class loaders");
 	}
 
 	private static class E<T> implements Enumeration<T> {

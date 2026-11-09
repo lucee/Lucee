@@ -100,7 +100,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="version" {
 				expect( support.toVersion( "7.1.2.200-SNAPSHOT.lco", zero ).toString() ).toBe( "7.1.2.200-SNAPSHOT" );
 			});
 
-			it( "a version with a qualifier survives the round trip through OSGi", function() {
+			// TODO LDEV-6627: skipped until the OSGi extension exists, OSGiUtil moved to the extension.
+			it( title="a version with a qualifier survives the round trip through OSGi", skip=true, body=function() {
 				var osgiUtil = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
 				loop list="1.0.0-SNAPSHOT,9.0.0.12-ALPHA,7.1.2.200-SNAPSHOT,7.1.2.200,1.2.3" item="local.str" {
 					var back = osgiUtil.toLucee( osgiUtil.toOSGi( v( str ) ) );

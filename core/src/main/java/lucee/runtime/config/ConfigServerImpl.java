@@ -19,7 +19,6 @@
 package lucee.runtime.config;
 
 import lucee.runtime.osgi.BundleDefinition;
-import lucee.runtime.osgi.OSGiServiceImpl;
 import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
 
 import java.io.File;
@@ -210,9 +209,7 @@ import lucee.runtime.orm.DummyORMEngine;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.orm.ORMEngine;
-import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.EnvClassLoader;
-import lucee.runtime.osgi.OSGiExtensionInstaller;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.regex.Regex;
@@ -1508,6 +1505,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 		this.engine = engine;
 		if (!essentialOnly) engine.setConfigServerImpl(this);
+		// an extension that provides the OSGiService is installed in the lib directory
+		if (!essentialOnly) {
+			Resource lib = configDir.getRealResource("lib");
+			if (lib instanceof java.io.File) lucee.runtime.osgi.OSGi.setLibraryDirectory((java.io.File) lib);
+		}
 		this.initContextes = initContextes;
 		// this.contextes=contextes;
 		this.rootDir = configDir;
@@ -5379,12 +5381,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		Log log = config.getLog("deploy");
 		if (LogUtil.doesInfo(log)) log.info("extensions", "Starting bundles for extension: " + rhe.getId() + " v" + rhe.getVersion());
 		if (rhe.getMetadata().isStartBundles()) {
-			try {
-				OSGiExtensionInstaller.ensureAvailableFor(config, rhe);
-			}
-			catch (ApplicationException ae) {
-				throw new IOException(ae.getMessage(), ae);
-			}
 			// install and start the bundles, so their activators run
 			if (LogUtil.doesDebug(log)) log.debug("extensions", "Deploying and starting bundles: " + rhe.getId());
 			rhe.deployBundles(config, true);
@@ -7261,7 +7257,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			Map<String, BundleDefinition> extensionBundles = new HashMap<String, BundleDefinition>();
 
 			for (RHExtension rhe: rhes) {
-				BundleInfo[] bis;
+				BundleDefinition[] bis;
 				try {
 					bis = rhe.getMetadata().getBundles();
 				}
@@ -7269,8 +7265,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					continue;
 				}
 				if (bis != null) {
-					for (BundleInfo bi: bis) {
-						extensionBundles.put(bi.getSymbolicName() + "|" + bi.getVersionAsString(), bi.toBundleDefinition());
+					for (BundleDefinition bi: bis) {
+						extensionBundles.put(bi.getName() + "|" + bi.getVersionAsString(), bi);
 					}
 				}
 			}

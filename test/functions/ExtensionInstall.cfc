@@ -20,7 +20,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="extension" {
 	function run( testResults, testBox ) {
 		describe( "LDEV-1585 extensionInstall()", function() {
 
-			it( title="installs an extension by maven coordinate and it is usable immediately", body=function( currentSpec ) {
+			// TODO LDEV-6627: the argon2 extension is an OSGi bundle, skipped as long as OSGi is not installed.
+			it( title="installs an extension by maven coordinate and it is usable immediately", skip=!server._hasOSGi(), body=function( currentSpec ) {
 				expect( isInstalled() ).toBeFalse();
 				expect( structKeyExists( getFunctionList(), "generateargon2hash" ) ).toBeFalse();
 

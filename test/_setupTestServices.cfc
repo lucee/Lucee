@@ -605,6 +605,16 @@ component {
 	}
 
 	public function addSupportFunctions() {
+		// true when an OSGi provider (the OSGi extension) is installed, older engines always have OSGi
+		server._hasOSGi = function () localmode=true{
+			try {
+				return getPageContext().getConfig().getFactory().getEngine().getOSGiService().getClass().getName() != "lucee.runtime.osgi.OSGi$NoOSGiService";
+			}
+			catch ( any e ) {
+				return true;
+			}
+		}
+
 		server._getTempDir = function ( string prefix="" ) localmode=true{
 			if ( len( arguments.prefix ) eq 0 ) {
 				local.dir = getTempDirectory() & "lucee-tests\" & createGUID();
@@ -733,8 +743,7 @@ component {
 						return pgsql;
 					return {
 						class: 'org.postgresql.Driver'
-						, bundleName: 'org.postgresql.jdbc'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc', '42.7.9' )
+						, maven: 'org.postgresql:postgresql:42.7.9'
 						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#' & arguments.connectionString
 						, username: pgsql.username
 						, password: pgsql.password
@@ -774,7 +783,8 @@ component {
 			case "mongoDB":
 				mongoDB = server._getSystemPropOrEnvVars( "SERVER, PORT, DB", "MONGODB_" );
 				mongoDBcreds = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MONGODB_" );
-				if ( structCount( mongoDb ) eq 3 ){
+				// TODO LDEV-6627: the MongoDB extension is not installed in the build until it is Maven based (needs the OSGi extension), so there is no MongoDBConnect() to test with
+				if ( structCount( mongoDb ) eq 3 && structKeyExists( getFunctionList(), "MongoDBConnect" ) ){
 					if (structCount( mongoDBcreds ) eq 2 ){
 						StructAppend(mongoDB, mongoDBcreds)
 					} else {
@@ -832,7 +842,8 @@ component {
 				return s3;
 			case "memcached":
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
-				if ( memcached.count() eq 2 ){
+				// TODO LDEV-6627: the Memcached extension loads as an OSGi bundle, test it again when the OSGi extension is installed
+				if ( memcached.count() eq 2 && server._hasOSGi() ){
 					return memcached;
 				}
 				break;

@@ -23,7 +23,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi,extension" {
 	function run( testResults, testBox ) {
 		describe( "LDEV-6627: removing an extension only removes the bundles nobody else needs", function() {
 
-			it( title="an upgrade keeps the bundles the new version contains as well", body=function() {
+			// TODO LDEV-6627: needs the OSGi extension, skipped as long as OSGi is not installed.
+			it( title="an upgrade keeps the bundles the new version contains as well", skip=!server._hasOSGi(), body=function() {
 				var bundle = "ldev6627.upgrade" & createUniqueId();
 				var other = "ldev6627.upgradeold" & createUniqueId();
 				var id = createUUID();
@@ -40,7 +41,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi,extension" {
 				expect( isLoadable( other, "1.0.0" ) ).toBeFalse( "the bundle only the old version had is still there" );
 			});
 
-			it( title="a bundle two extensions ship under different file names stays until both are removed", body=function() {
+			it( title="a bundle two extensions ship under different file names stays until both are removed", skip=!server._hasOSGi(), body=function() {
 				var bundle = "ldev6627.shared" & createUniqueId();
 				var id1 = createUUID();
 				var id2 = createUUID();

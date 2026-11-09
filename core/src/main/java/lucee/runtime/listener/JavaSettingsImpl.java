@@ -59,7 +59,7 @@ import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.osgi.BundleFile;
+import lucee.runtime.osgi.OSGi;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
@@ -343,8 +343,7 @@ public final class JavaSettingsImpl implements JavaSettings {
 				if (deep) _getBundlesTranslated(list, resource.listResources(), false, false);
 			}
 			else if (checkFiles && resource.isFile()) {
-				BundleFile bf = BundleFile.getInstance(resource, null);
-				if (bf != null && bf.isBundle()) list.add(resource);
+				if (resource instanceof java.io.File && OSGi.get().getId((java.io.File) resource) != null) list.add(resource);
 			}
 		}
 	}

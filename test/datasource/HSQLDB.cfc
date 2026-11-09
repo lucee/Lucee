@@ -25,23 +25,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq,hsqldb" {
 		
 	}
 
-	public void function testConnection180(){
+	// TODO LDEV-6627: skipped until the OSGi extension exists, these load the driver as a bundle by name.
+	public void function testConnection180() skip=true{
 		defineDatasource('hypersonic.hsqldb','1.8.0');
 		testConnection();
 	}
-	public void function testConnection232(){
+	// TODO LDEV-6627: skipped until the OSGi extension exists, these load the driver as a bundle by name.
+	public void function testConnection232() skip=true{
 		defineDatasource('org.hsqldb.hsqldb','2.3.2');
 		testConnection();
 	}
-	public void function testConnection235(){
+	// TODO LDEV-6627: skipped until the OSGi extension exists, these load the driver as a bundle by name.
+	public void function testConnection235() skip=true{
 		defineDatasource('org.hsqldb.hsqldb','2.3.5');
 		testConnection();
 	}
-	public void function testConnection240(){
+	// TODO LDEV-6627: skipped until the OSGi extension exists, these load the driver as a bundle by name.
+	public void function testConnection240() skip=true{
 		defineDatasource('org.hsqldb.hsqldb','2.4.0');
 		testConnection();
 	}
-	public void function testConnection271(){
+	// TODO LDEV-6627: skipped until the OSGi extension exists, these load the driver as a bundle by name.
+	public void function testConnection271() skip=true{
 		defineDatasource('org.lucee.hsqldb','2.7.2.jdk8'); // last version for java 8
 		testConnection();
 	}

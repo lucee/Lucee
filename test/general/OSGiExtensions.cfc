@@ -13,7 +13,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( arrayLen( extensions ) ).toBeGT( 0, "no installed extension ships OSGi bundles" );
 			});
 
-			it( "all their bundles can be loaded", function() {
+			// TODO LDEV-6627: loading the bundles needs the OSGi extension, skipped as long as OSGi is not installed.
+			it( title="all their bundles can be loaded", skip=!server._hasOSGi(), body=function() {
 				var failed = [];
 				for ( var ext in extensions ) {
 					for ( var b in ext.bundles ) {
