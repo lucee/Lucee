@@ -751,8 +751,7 @@ component {
 				if ( len( arguments.dbFile ) ){
 					return {
 						class: 'org.h2.Driver'
-						, bundleName: 'org.lucee.h2'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.h2', '2.1.214.0001L' )
+						, maven: 'org.lucee:h2-jdbc-extension:2.1.214.1-RC'
 						, connectionString: 'jdbc:h2:#arguments.dbFile#/db;MODE=MySQL' & arguments.connectionString
 					}.append( arguments.options );
 				}

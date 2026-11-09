@@ -180,7 +180,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="datasource,pool" {
 			name="#arguments.name#"
 			newName="#arguments.name#"
 			classname="org.h2.Driver"
-			bundlename="org.lucee.h2"
+			maven="org.lucee:h2-jdbc-extension:2.1.214.1-RC"
 			dsn="#arguments.connectionString#"
 			dbusername="sa"
 			dbpassword=""
