@@ -12,7 +12,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 			it( title="maxIdle should default to connectionLimit when not set", skip=isMySqlNotSupported(), body=function( currentSpec ) {
 				var dsConfig = {
 					class: "com.mysql.cj.jdbc.Driver",
-					bundleName: "com.mysql.cj",
+					maven: "org.lucee:mysql-jdbc-extension:26.7.0",
 					connectionString: "jdbc:mysql://#creds.server#:#creds.port#/#creds.database#?useSSL=false&allowPublicKeyRetrieval=true",
 					username: creds.username,
 					password: creds.password,
@@ -38,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 			it( title="explicit maxIdle should be respected", skip=isMySqlNotSupported(), body=function( currentSpec ) {
 				var dsConfig = {
 					class: "com.mysql.cj.jdbc.Driver",
-					bundleName: "com.mysql.cj",
+					maven: "org.lucee:mysql-jdbc-extension:26.7.0",
 					connectionString: "jdbc:mysql://#creds.server#:#creds.port#/#creds.database#?useSSL=false&allowPublicKeyRetrieval=true",
 					username: creds.username,
 					password: creds.password,
@@ -61,7 +61,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 			it( title="minIdle should be configurable", skip=isMySqlNotSupported(), body=function( currentSpec ) {
 				var dsConfig = {
 					class: "com.mysql.cj.jdbc.Driver",
-					bundleName: "com.mysql.cj",
+					maven: "org.lucee:mysql-jdbc-extension:26.7.0",
 					connectionString: "jdbc:mysql://#creds.server#:#creds.port#/#creds.database#?useSSL=false&allowPublicKeyRetrieval=true",
 					username: creds.username,
 					password: creds.password,

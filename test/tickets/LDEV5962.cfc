@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 					// which defaults maxTotal to 0 (allowing connectionLimit to work).
 					var dsConfig = {
 						class: "com.mysql.cj.jdbc.Driver",
-						bundleName: "com.mysql.cj",
+						maven: "org.lucee:mysql-jdbc-extension:26.7.0",
 						connectionString: "jdbc:mysql://#creds.server#:#creds.port#/#creds.database#?useSSL=false&allowPublicKeyRetrieval=true",
 						username: creds.username,
 						password: creds.password,
@@ -138,7 +138,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 				it( title="explicit maxTotal should override connectionLimit", skip=isMySqlNotSupported(), body=function( currentSpec ) {
 					var dsConfig = {
 						class: "com.mysql.cj.jdbc.Driver",
-						bundleName: "com.mysql.cj",
+						maven: "org.lucee:mysql-jdbc-extension:26.7.0",
 						connectionString: "jdbc:mysql://#creds.server#:#creds.port#/#creds.database#?useSSL=false&allowPublicKeyRetrieval=true",
 						username: creds.username,
 						password: creds.password,
@@ -190,7 +190,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 					// (idleTimeout=0 triggers default, which was infinite before fix)
 					var dsConfig = {
 						class: "com.mysql.cj.jdbc.Driver",
-						bundleName: "com.mysql.cj",
+						maven: "org.lucee:mysql-jdbc-extension:26.7.0",
 						connectionString: "jdbc:mysql://#creds.server#:#creds.port#/#creds.database#?useSSL=false&allowPublicKeyRetrieval=true",
 						username: creds.username,
 						password: creds.password,
