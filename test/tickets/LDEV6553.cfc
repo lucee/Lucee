@@ -51,7 +51,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="admin" {
 			name="#arguments.name#"
 			newName="#arguments.name#"
 			classname="org.hsqldb.jdbcDriver"
-			bundlename="org.lucee.hsqldb"
+			maven="org.lucee:hsqldb-jdbc-extension:2.7.4.3-RC"
 			dsn="#arguments.connectionString#"
 			dbusername="sa"
 			dbpassword=""

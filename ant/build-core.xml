@@ -24,7 +24,7 @@
   <property name="extURLSnapshot" value="https://central.sonatype.com/repository/maven-snapshots/"/>
   
   <property name="extMongo"     value="org.lucee:mongodb-extension:3.12.13.10"/>
-  <property name="extH2"        value="465E1E35-2425-4F4E-8B3FAB638BD7280A;version=2.1.214.0001L"/>
+  <property name="extH2"        value="org.lucee:h2-jdbc-extension:2.1.214.1-RC"/>
   <property name="extOracle"    value="org.lucee:oracle-jdbc-extension:23.8.0.25.04-ojdbc11"/>
   <property name="extLucene"    value="org.lucee:lucene-search-extension:3.0.0.163"/>
   <property name="extAxis"      value="org.lucee:axis-extension:1.5.0.6"/>

@@ -38,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 				var dsName = "LDEV5966_timeout";
 				var dsConfig = {
 					class: "com.mysql.cj.jdbc.Driver",
-					bundleName: "com.mysql.cj",
+					maven: "org.lucee:mysql-jdbc-extension:26.7.0",
 					connectionString: "jdbc:mysql://#creds.server#:#creds.port#/#creds.database#?useSSL=false&allowPublicKeyRetrieval=true",
 					username: creds.username,
 					password: creds.password,
@@ -151,7 +151,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 				var dsName = "LDEV5966_burst";
 				var dsConfig = {
 					class: "com.mysql.cj.jdbc.Driver",
-					bundleName: "com.mysql.cj",
+					maven: "org.lucee:mysql-jdbc-extension:26.7.0",
 					connectionString: "jdbc:mysql://#creds.server#:#creds.port#/#creds.database#?useSSL=false&allowPublicKeyRetrieval=true",
 					username: creds.username,
 					password: creds.password,

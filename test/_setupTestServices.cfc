@@ -719,7 +719,7 @@ component {
 						return mySql;
 					return {
 						class: 'com.mysql.cj.jdbc.Driver'
-						, maven: 'com.mysql:mysql-connector-j:9.6.0'
+						, maven: 'org.lucee:mysql-jdbc-extension:26.7.0'
 						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false&allowPublicKeyRetrieval=true' & arguments.connectionString
 						, username: mySQL.username
 						, password: mySQL.password
@@ -750,7 +750,7 @@ component {
 				if ( len( arguments.dbFile ) ){
 					return {
 						class: 'org.h2.Driver'
-						, maven: 'com.h2database:h2:2.1.214'
+						, maven: 'org.lucee:h2-jdbc-extension:2.1.214.1-RC'
 						, connectionString: 'jdbc:h2:#arguments.dbFile#/db;MODE=MySQL' & arguments.connectionString
 					}.append( arguments.options );
 				}

@@ -2,8 +2,8 @@ component {
 	variables.redis = server.getTestService( "redis" );
 
 	this.cache.connections["RedisSession"] = {
-		class: 'lucee.extension.io.cache.redis.RedisCache'
-		, bundleName: 'redis.extension'
+		class: 'lucee.extension.io.cache.redis.simple.RedisCache'
+		, maven: 'org.lucee:redis:' & server.getExtensionVersion( 'Redis' )
 		, storage: true
 		, custom: {
 			"host": redis.server,

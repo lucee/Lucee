@@ -16,7 +16,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="admin" {
 		application action="update" datasources={
 			"#variables.appDsName#" : {
 				  class            : "org.hsqldb.jdbcDriver"
-				, bundleName       : "org.lucee.hsqldb"
+				, maven       : "org.lucee:hsqldb-jdbc-extension:2.7.4.3-RC"
 				, connectionString : "jdbc:hsqldb:mem:LDEV6296_main;shutdown=true"
 				, username         : "sa"
 				, password         : ""
@@ -114,7 +114,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="admin" {
 			name="#arguments.name#"
 			newName="#arguments.name#"
 			classname="org.hsqldb.jdbcDriver"
-			bundlename="org.lucee.hsqldb"
+			maven="org.lucee:hsqldb-jdbc-extension:2.7.4.3-RC"
 			dsn="#arguments.connectionString#"
 			dbusername="sa"
 			dbpassword=""

@@ -18,8 +18,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" {
 					action="updateCacheConnection"
 					type="server"
 					password=server.SERVERADMINPASSWORD
-					class="lucee.extension.io.cache.redis.RedisCache"
-					bundleName="redis.extension"
+					class="lucee.extension.io.cache.redis.simple.RedisCache"
+					maven="org.lucee:redis:#server.getExtensionVersion( 'Redis' )#"
 					name="#cacheName#"
 					custom={
 						"minIdle":8,

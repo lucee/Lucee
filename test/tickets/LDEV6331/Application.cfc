@@ -20,9 +20,8 @@ component {
 		// Redis honours per-put TTL (sessionTimeoutMs) as EXPIRE on the key.
 		variables.redis = server.getTestService( "redis" );
 		this.cache.connections[ "ldev6331cache" ] = {
-			class: "lucee.extension.io.cache.redis.RedisCache",
-			bundleName: "redis.extension",
-			bundleVersion: server.getDefaultBundleVersion( "redis.extension", "4.0.1.1-SNAPSHOT" ),
+			class: "lucee.extension.io.cache.redis.simple.RedisCache",
+			maven: "org.lucee:redis:" & server.getExtensionVersion( "Redis" ),
 			storage: true,
 			custom: {
 				"host": redis.server,

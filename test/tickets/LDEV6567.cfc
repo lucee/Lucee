@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="datasource,pool" {
 			name="#variables.dsName#"
 			newName="#variables.dsName#"
 			classname="org.h2.Driver"
-			bundlename="org.lucee.h2"
+			maven="org.lucee:h2-jdbc-extension:2.1.214.1-RC"
 			dsn="jdbc:h2:mem:#variables.dsName#"
 			dbusername="sa"
 			dbpassword=""
