@@ -241,10 +241,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	private void function defineDatasource(class,bundle,bundleVersion){
 		var mySQL = server.getDatasource("mysql");
 		mySQL.class=arguments.class;
-		mySQL.bundle=arguments.bundle;
-		mySQL.bundleVersion=arguments.bundleVersion;
+		// LDEV-6627: drop the inherited Maven/OSGi keys so each versioned case resolves its own connector
+		structDelete( mySQL, "maven" );
+		structDelete( mySQL, "bundle" );
+		structDelete( mySQL, "bundleName" );
+		structDelete( mySQL, "bundleVersion" );
+		mySQL.maven = mysqlMavenCoordinate( arguments.bundleVersion );
 		application action="update" datasource=mySQL;
 		expect( getDriverVersion() ).toInclude( arguments.bundleVersion );
+	}
+
+	// Connector/J Maven coordinates: mysql:mysql-connector-java until 8.0.30, then com.mysql:mysql-connector-j
+	private string function mysqlMavenCoordinate( required string version ) {
+		var parts = listToArray( arguments.version, "." );
+		var major = val( parts[ 1 ] );
+		var minor = arrayLen( parts ) GTE 2 ? val( parts[ 2 ] ) : 0;
+		var patch = arrayLen( parts ) GTE 3 ? val( parts[ 3 ] ) : 0;
+		if ( major GTE 9 || ( major EQ 8 && minor GTE 1 ) || ( major EQ 8 && minor EQ 0 && patch GTE 31 ) ) {
+			return "com.mysql:mysql-connector-j:" & arguments.version;
+		}
+		return "mysql:mysql-connector-java:" & arguments.version;
 	}
 
 	private string function getDriverVersion(){

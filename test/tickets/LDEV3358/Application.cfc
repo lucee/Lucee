@@ -4,7 +4,7 @@ component {
 	this.name = "LDEV3358";
 	this.datasources["LDEV3358"] = {
 		  class: 'com.mysql.cj.jdbc.Driver'
-		, maven: 'org.lucee:mysql-jdbc-extension:26.7.0'
+		, maven: 'mysql:mysql-connector-java:8.0.19'
 		, connectionString: 'jdbc:mysql://'&mySQL.server&':'&mySQL.port&'/'&mySQL.database&'?characterEncoding=UTF-8'
 		, username: "root"
 		, password: ""
