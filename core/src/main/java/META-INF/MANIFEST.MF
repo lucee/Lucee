@@ -256,7 +256,7 @@ Export-Package: coldfusion.image,
  lucee.transformer.cfml.script.java.function
 Require-Extension: org.lucee:mysql-jdbc-extension:26.7.0:lite,
  org.lucee:mssql-jdbc-extension:13.4.0.jre11:lite,
- org.lucee:postgresql-jdbc-extension:42.7.11:lite,
+ org.lucee:postgresql-jdbc-extension:42.7.14.1-RC:lite,
  org.lucee:administrator-extension:1.0.0.9,
  org.lucee:documentation-extension:1.0.0.8,
  org.lucee:s3-extension:2.1.0.15:lite,
