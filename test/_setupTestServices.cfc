@@ -783,7 +783,8 @@ component {
 			case "mongoDB":
 				mongoDB = server._getSystemPropOrEnvVars( "SERVER, PORT, DB", "MONGODB_" );
 				mongoDBcreds = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MONGODB_" );
-				if ( structCount( mongoDb ) eq 3 ){
+				// TODO LDEV-6627: the MongoDB extension is not installed in the build until it is Maven based (needs the OSGi extension), so there is no MongoDBConnect() to test with
+				if ( structCount( mongoDb ) eq 3 && structKeyExists( getFunctionList(), "MongoDBConnect" ) ){
 					if (structCount( mongoDBcreds ) eq 2 ){
 						StructAppend(mongoDB, mongoDBcreds)
 					} else {
