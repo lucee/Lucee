@@ -3,7 +3,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="extensions" {
 	function run( testResults, testBox ) {
 		describe( "LDEV-6088 - Verify bundled extensions have all required bundle dependencies", function() {
 
-			it( title="Check each bundled extension has its required bundles and doesn't rely on other extensions", body=function( currentSpec ) {
+			// TODO LDEV-6627: needs the bundle information of the extensions, skipped as long as OSGi is not installed.
+			it( title="Check each bundled extension has its required bundles and doesn't rely on other extensions", skip=!server._hasOSGi(), body=function( currentSpec ) {
 				var cfg = getPageContext().getConfig();
 				var extensions = cfg.getAllRHExtensions();
 				var luceeMajor = listFirst( server.lucee.version, "." );

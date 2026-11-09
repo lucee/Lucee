@@ -29,12 +29,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 	}
 
-	public void function testOSGiBundle(){
+	// TODO LDEV-6627: needs the OSGi extension, skipped as long as OSGi is not installed.
+	public void function testOSGiBundle() skip="notHasOSGi"{
 		local.uri=createURI("CreateDynamicProxy/osgi/index.cfm");
 		local.result=_InternalRequest(template:uri);
 		assertEquals("123",trim(result.filecontent));
 
 		
+	}
+
+	public boolean function notHasOSGi(){
+		return !server._hasOSGi();
 	}
 
 	private string function createURI(string calledName){

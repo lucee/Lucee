@@ -605,6 +605,16 @@ component {
 	}
 
 	public function addSupportFunctions() {
+		// true when an OSGi provider (the OSGi extension) is installed, older engines always have OSGi
+		server._hasOSGi = function () localmode=true{
+			try {
+				return getPageContext().getConfig().getFactory().getEngine().getOSGiService().getClass().getName() != "lucee.runtime.osgi.OSGi$NoOSGiService";
+			}
+			catch ( any e ) {
+				return true;
+			}
+		}
+
 		server._getTempDir = function ( string prefix="" ) localmode=true{
 			if ( len( arguments.prefix ) eq 0 ) {
 				local.dir = getTempDirectory() & "lucee-tests\" & createGUID();
@@ -832,7 +842,7 @@ component {
 			case "memcached":
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
 				// TODO LDEV-6627: the Memcached extension loads as an OSGi bundle, test it again when the OSGi extension is installed
-				if ( memcached.count() eq 2 && getPageContext().getConfig().getFactory().getEngine().getOSGiService().getClass().getName() != "lucee.runtime.osgi.OSGi$NoOSGiService" ){
+				if ( memcached.count() eq 2 && server._hasOSGi() ){
 					return memcached;
 				}
 				break;
