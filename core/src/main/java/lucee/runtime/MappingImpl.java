@@ -221,6 +221,10 @@ public final class MappingImpl implements Mapping {
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
+						if (archiveTemp != null) {
+							archiveTemp.delete();
+							archiveTemp = null;
+						}
 						archMod = tmp.lastModified();
 						config.getLog("application").error("archive", "failed to load archive [" + tmp + "], archive is ignored", t);
 						tmp = null;
@@ -711,12 +715,16 @@ public final class MappingImpl implements Mapping {
 
 	public void close() {
 		pageSourcePool.clearPages(null);
+		closeArchive();
+	}
+
+	private synchronized void closeArchive() {
 		URLClassLoader cl = archiveClassLoader;
+		final java.io.File tempCopy = archiveTemp;
+		archiveTemp = null;
 		if (cl != null) {
 			archiveClassLoader = null;
 			// pages of the archive can still be running, so the loader is closed later
-			final java.io.File tempCopy = archiveTemp;
-			archiveTemp = null;
 			CLOSER.schedule(() -> {
 				IOUtil.closeEL(cl);
 				if (tempCopy != null) tempCopy.delete();
@@ -724,9 +732,8 @@ public final class MappingImpl implements Mapping {
 			// the next use creates the class loader again
 			archive = null;
 		}
-		else if (archiveTemp != null) {
-			archiveTemp.delete();
-			archiveTemp = null;
+		else if (tempCopy != null) {
+			tempCopy.delete();
 		}
 	}
 
