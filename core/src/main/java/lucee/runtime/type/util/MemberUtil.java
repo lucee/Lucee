@@ -131,6 +131,11 @@ public final class MemberUtil {
 							}
 						}
 					}
+					// LDEV-4589: boolean member functions (booleanFormat, yesNoFormat) also work on values that can be cast to a boolean
+					if (member == null && (type == CFTypes.TYPE_NUMERIC || type == CFTypes.TYPE_STRING)) {
+						tmp = getMembers(pc, CFTypes.TYPE_BOOLEAN).get(methodName);
+						if (tmp != null && Decision.isCastableToBoolean(coll)) member = tmp;
+					}
 
 					isChked = true;
 				}
