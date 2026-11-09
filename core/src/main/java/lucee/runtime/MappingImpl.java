@@ -29,6 +29,9 @@ import java.util.jar.JarFile;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.servlet.ServletContext;
 import lucee.commons.io.FileUtil;
@@ -93,6 +96,13 @@ public final class MappingImpl implements Mapping {
 	private boolean ignoreVirtual;
 
 	private ApplicationListener appListener;
+
+	private static final long CLOSE_DELAY_SECONDS = 60;
+	private static final ScheduledExecutorService CLOSER = Executors.newSingleThreadScheduledExecutor(r -> {
+		Thread t = new Thread(r, "lucee-archive-closer");
+		t.setDaemon(true);
+		return t;
+	});
 
 	private URLClassLoader archiveClassLoader;
 	private java.io.File archiveTemp;
@@ -704,14 +714,19 @@ public final class MappingImpl implements Mapping {
 		URLClassLoader cl = archiveClassLoader;
 		if (cl != null) {
 			archiveClassLoader = null;
-			IOUtil.closeEL(cl);
+			// pages of the archive can still be running, so the loader is closed later
+			final java.io.File tempCopy = archiveTemp;
+			archiveTemp = null;
+			CLOSER.schedule(() -> {
+				IOUtil.closeEL(cl);
+				if (tempCopy != null) tempCopy.delete();
+			}, CLOSE_DELAY_SECONDS, TimeUnit.SECONDS);
 			// the next use creates the class loader again
 			archive = null;
 		}
-		java.io.File temp = archiveTemp;
-		if (temp != null) {
+		else if (archiveTemp != null) {
+			archiveTemp.delete();
 			archiveTemp = null;
-			temp.delete();
 		}
 	}
 

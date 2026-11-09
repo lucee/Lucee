@@ -316,7 +316,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Class clusterClass = ClusterNotSupported.class;
 	private Class videoExecuterClass = VideoExecuterNotSupported.class;
 	private Map<Integer, CacheConnection> cacheDefaultConnection = null;
-	private ClassLoader envClassLoader;
 	private static Object token = new Object();
 	private SpoolerEngine remoteClientSpoolerEngine;
 	private Resource antiSamyPolicy;
@@ -2333,8 +2332,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	// do not remove, ised in Hibernate extension
 	@Override
 	public ClassLoader getClassLoaderEnv() {
-		if (envClassLoader == null) envClassLoader = this.getClass().getClassLoader();
-		return envClassLoader;
+		// the class loader of the config sees the jars of the lib directory and the extensions
+		return getClassLoader();
 	}
 
 	@Override

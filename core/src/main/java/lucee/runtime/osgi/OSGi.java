@@ -20,6 +20,9 @@ public final class OSGi {
 	private static volatile OSGiService service;
 	private static volatile File libDir;
 	private static long checkedStamp = -1;
+	private static volatile long lastCheck;
+	// the lib directory is looked at most this often (ms) while no provider is installed
+	private static final long CHECK_INTERVAL = 2000;
 	private static Throwable failure;
 
 	/**
@@ -33,13 +36,16 @@ public final class OSGi {
 	}
 
 	/**
-	 * Forget a service that was not found, so the next call looks again (a jar was added to lib).
+	 * Forget a service that was not found, so the next call looks again (a jar was added to lib). A
+	 * provider that was found stays until the next restart, replacing it while it is in use is not
+	 * supported.
 	 */
 	public static void reset() {
 		synchronized (OSGi.class) {
 			if (service instanceof NoOSGiService) {
 				service = null;
 				checkedStamp = -1;
+				lastCheck = 0;
 			}
 		}
 	}
@@ -68,7 +74,12 @@ public final class OSGi {
 	}
 
 	private static boolean libChanged() {
-		return libDir != null && stamp() != checkedStamp;
+		if (libDir == null) return false;
+		// get() is called from hot paths, so do not look at the file system every time
+		long now = System.currentTimeMillis();
+		if (now - lastCheck < CHECK_INTERVAL) return false;
+		lastCheck = now;
+		return stamp() != checkedStamp;
 	}
 
 	private static OSGiService discover() {

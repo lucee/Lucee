@@ -1318,7 +1318,7 @@ public final class ConfigAdmin {
 		if (fileLib.length() != resJar.length()) {
 			IOUtil.closeEL(config.getClassLoader());
 			ResourceUtil.copy(resJar, fileLib);
-			lucee.runtime.osgi.OSGi.reset();
+			OSGi.reset();
 			// NEXT if (reloadWhenClassicJar) ConfigUtil.reloadLib(config);
 		}
 	}

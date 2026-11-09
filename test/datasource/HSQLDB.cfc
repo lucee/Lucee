@@ -68,7 +68,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq,hsqldb" {
 
 	private void function defineMavenDatasource(maven){
 		var dbPath = getDirectoryFromPath( getCurrentTemplatePath() ) & "/datasource/";
-		var dbFile = "db_maven_" & replace( arguments.maven, '.', '_', 'all');
+		var dbFile = "db_maven_" & reReplace( arguments.maven, "[^a-zA-Z0-9]", "_", "all" );
 		application action="update"
 			datasource={
 			class: 'org.hsqldb.jdbcDriver'

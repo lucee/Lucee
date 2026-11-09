@@ -82,7 +82,6 @@ import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.VersionRange;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
@@ -997,9 +996,14 @@ public final class RHExtension implements Serializable {
 	 * @return the definition or null if the jar is not a bundle
 	 */
 	private static BundleDefinition toBundleDefinition(InputStream is) {
-		try (java.util.jar.JarInputStream jis = new java.util.jar.JarInputStream(is)) {
-			Manifest mf = jis.getManifest();
-			if (mf == null) return null;
+		try (ZipInputStream zis = new ZipInputStream(is)) {
+			// the manifest is not always one of the first entries of a jar
+			ZipEntry e = zis.getNextEntry();
+			while (e != null && !"META-INF/MANIFEST.MF".equalsIgnoreCase(e.getName())) {
+				e = zis.getNextEntry();
+			}
+			if (e == null) return null;
+			Manifest mf = new Manifest(zis);
 			String name = mf.getMainAttributes().getValue("Bundle-SymbolicName");
 			if (StringUtil.isEmpty(name, true)) return null;
 			// remove directives like ;singleton:=true
