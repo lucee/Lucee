@@ -1,12 +1,20 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="extension,maven" skip=false {
 
+	// a SNAPSHOT that is published with GPG signatures (lex.asc, pom.asc and lite + lex.asc).
+	// mail-extension 1.1.0.9-SNAPSHOT (used before) no longer lists any .asc entry in its snapshot metadata.
+	// Central only keeps snapshots for 90 days, so the test is skipped when the signed entries are gone (pick a newer signed SNAPSHOT then).
+	variables.snapshotRepo = "https://central.sonatype.com/repository/maven-snapshots/";
+	variables.group = "org.lucee";
+	variables.artifact = "redis-extension";
+	variables.version = "4.3.0.1-SNAPSHOT";
+
 	function run( testResults, testBox ) {
 		describe( "LDEV-6492 ExtensionProvider.detail() keeps lite and lite.asc separate for SNAPSHOT classifiers", function() {
 
-			it( title="mail-extension SNAPSHOT detail has lite (.lex) and lite.asc, not overwritten by the GPG signature", body=function( currentSpec ) {
-				// mail-extension 1.1.0.9-SNAPSHOT publishes both classifier=lite extension=lex and classifier=lite extension=lex.asc.
+			it( title="#variables.artifact# SNAPSHOT detail has lite (.lex) and lite.asc, not overwritten by the GPG signature", skip=!hasSignedLiteSnapshot(), body=function( currentSpec ) {
+				// the snapshot publishes both classifier=lite extension=lex and classifier=lite extension=lex.asc.
 				// Before the fix, RepoReader.read() remapped both to key "lite", so the later HashMap entry overwrote the real .lex URL with the .asc URL.
-				var detail = LuceeExtension( "org.lucee", "mail-extension", "1.1.0.9-SNAPSHOT" );
+				var detail = LuceeExtension( variables.group, variables.artifact, variables.version );
 
 				expect( isStruct( detail ) ).toBeTrue( "detail() should return a struct" );
 				expect( structKeyExists( detail, "lex" ) ).toBeTrue( "expected key lex; keys=#structKeyList( detail )#" );
@@ -26,6 +34,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="extension,maven" s
 			} );
 
 		} );
+	}
+
+	// true when the remote snapshot metadata still lists lex.asc, pom.asc and lite + lex.asc
+	private boolean function hasSignedLiteSnapshot() {
+		try {
+			var metaUrl = variables.snapshotRepo & replace( variables.group, ".", "/", "all" ) & "/" & variables.artifact & "/" & variables.version & "/maven-metadata.xml";
+			http url=metaUrl method="get" timeout=10 result="local.res";
+			if ( !find( "200", res.statuscode ) ) return false;
+			var entries = xmlSearch( xmlParse( res.fileContent ), "//*[local-name()='snapshotVersion']" );
+			var found = {};
+			for ( var e in entries ) {
+				var classifier = structKeyExists( e, "classifier" ) ? trim( e.classifier.xmlText ) : "";
+				found[ classifier & ":" & trim( e.extension.xmlText ) ] = true;
+			}
+			return structKeyExists( found, ":lex.asc" ) && structKeyExists( found, ":pom.asc" ) && structKeyExists( found, "lite:lex.asc" );
+		}
+		catch ( any e ) {
+			return false;
+		}
 	}
 
 }
