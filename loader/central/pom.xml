@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <!--
     LDEV-6707: what a Lucee release publishes on Maven Central, only the Lucee core file (.lco) and this pom (pom packaging).
-    The .lco is the one built by ../pom.xml (../target/<version>.lco), so build that first, then:
+    The .lco is the one built by ../pom.xml (../target/<version>.lco, copied to target/ here), so build that first, then:
       mvn -f loader/central/pom.xml -Drevision=<version> deploy -DperformRelease=true
     The jar, light, zero, express, WAR and installers go to GitHub Releases (and maven.lucee-services.com) only.
   -->
@@ -18,7 +18,9 @@
 
   <properties>
     <revision>0.0.0.0-SNAPSHOT</revision>
-    <lucee.core.file>${project.basedir}/../target/${project.version}.lco</lucee.core.file>
+    <!-- the .lco built by ../pom.xml, copied into this project's build directory before it gets attached (LDEV-6659) -->
+    <lucee.core.source.dir>${project.basedir}/../target</lucee.core.source.dir>
+    <lucee.core.file>${project.build.directory}/${project.version}.lco</lucee.core.file>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -122,6 +124,36 @@
         </executions>
       </plugin>
 
+
+      <!-- LDEV-6659: maven-gpg-plugin writes the signature of an attached file outside ${project.build.directory}
+           to target/gpg/<path relative to basedir>, for ../target/<version>.lco that is target/gpg/../target/,
+           which does not resolve because target/gpg never gets created, so the .lco is signed from target/ instead -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>copy-lco</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${lucee.core.source.dir}</directory>
+                  <filtering>false</filtering>
+                  <includes>
+                    <include>${project.version}.lco</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
