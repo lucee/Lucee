@@ -719,8 +719,7 @@ component {
 						return mySql;
 					return {
 						class: 'com.mysql.cj.jdbc.Driver'
-						, bundleName: 'com.mysql.cj'
-						, bundleVersion: server.getDefaultBundleVersion( 'com.mysql.cj', '9.6.0' )
+						, maven: 'com.mysql:mysql-connector-j:9.6.0'
 						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false&allowPublicKeyRetrieval=true' & arguments.connectionString
 						, username: mySQL.username
 						, password: mySQL.password
@@ -734,8 +733,7 @@ component {
 						return pgsql;
 					return {
 						class: 'org.postgresql.Driver'
-						, bundleName: 'org.postgresql.jdbc'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc', '42.7.9' )
+						, maven: 'org.postgresql:postgresql:42.7.9'
 						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#' & arguments.connectionString
 						, username: pgsql.username
 						, password: pgsql.password
@@ -752,8 +750,7 @@ component {
 				if ( len( arguments.dbFile ) ){
 					return {
 						class: 'org.h2.Driver'
-						, bundleName: 'org.lucee.h2'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.h2', '2.1.214.0001L' )
+						, maven: 'com.h2database:h2:2.1.214'
 						, connectionString: 'jdbc:h2:#arguments.dbFile#/db;MODE=MySQL' & arguments.connectionString
 					}.append( arguments.options );
 				}
@@ -834,7 +831,8 @@ component {
 				return s3;
 			case "memcached":
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
-				if ( memcached.count() eq 2 ){
+				// TODO LDEV-6627: the Memcached extension loads as an OSGi bundle, test it again when the OSGi extension is installed
+				if ( memcached.count() eq 2 && getPageContext().getConfig().getFactory().getEngine().getOSGiService().getClass().getName() != "lucee.runtime.osgi.OSGi$NoOSGiService" ){
 					return memcached;
 				}
 				break;
