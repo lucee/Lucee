@@ -72,6 +72,7 @@ public final class OSGi {
 	}
 
 	private static OSGiService discover() {
+		URLClassLoader ucl = null;
 		try {
 			List<URL> urls = new ArrayList<>();
 			File dir = libDir;
@@ -81,14 +82,27 @@ public final class OSGi {
 					urls.add(jar.toURI().toURL());
 				}
 			}
-			ClassLoader cl = urls.isEmpty() ? OSGi.class.getClassLoader() : new URLClassLoader(urls.toArray(new URL[0]), OSGi.class.getClassLoader());
+			ClassLoader cl = OSGi.class.getClassLoader();
+			if (!urls.isEmpty()) cl = ucl = new URLClassLoader(urls.toArray(new URL[0]), cl);
 			for (OSGiService os: ServiceLoader.load(OSGiService.class, cl)) {
+				// the provider needs the class loader (and its jars) from now on
+				ucl = null;
 				return os;
 			}
 		}
 		catch (ServiceConfigurationError | LinkageError | IOException e) {
 			// a provider exists but is broken, this is not the same as no provider
 			failure = e;
+		}
+		finally {
+			// no provider found, do not keep the jar files open
+			if (ucl != null) {
+				try {
+					ucl.close();
+				}
+				catch (IOException ioe) {
+				}
+			}
 		}
 		return null;
 	}

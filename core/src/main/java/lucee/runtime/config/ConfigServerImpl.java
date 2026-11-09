@@ -1504,6 +1504,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 		this.engine = engine;
 		if (!essentialOnly) engine.setConfigServerImpl(this);
+		// an extension that provides the OSGiService is installed in the lib directory
+		if (!essentialOnly) {
+			Resource lib = configDir.getRealResource("lib");
+			if (lib instanceof java.io.File) lucee.runtime.osgi.OSGi.setLibraryDirectory((java.io.File) lib);
+		}
 		this.initContextes = initContextes;
 		// this.contextes=contextes;
 		this.rootDir = configDir;
@@ -3790,7 +3795,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	public Resource getLibraryDirectory() {
 		Resource dir = getConfigDir().getRealResource("lib");
 		if (!dir.exists()) dir.mkdir();
-		if (dir instanceof java.io.File) lucee.runtime.osgi.OSGi.setLibraryDirectory((java.io.File) dir);
 		return dir;
 	}
 
