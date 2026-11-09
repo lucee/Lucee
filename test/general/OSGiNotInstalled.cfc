@@ -56,6 +56,34 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( queryColumnData( exts, "id" ) ).notToInclude( id );
 			});
 
+			// the keys an extension defines classes with, a bundle can also be given as name/version (like the Axis extension does)
+			var keys = {
+				"webservice": "{'class':'lucee.osgiguard.Handler','name':'lucee.osgiguard.ws','version':'1.0.0'}",
+				"orm": "{'class':'lucee.osgiguard.ORMEngine','bundle-name':'lucee.osgiguard.orm','bundle-version':'1.0.0'}",
+				"jdbc": "[{'label':'osgiguard','class':'lucee.osgiguard.Driver','bundleName':'lucee.osgiguard.jdbc','bundleVersion':'1.0.0'}]",
+				"monitor": "[{'name':'osgiguard','type':'request','class':'lucee.osgiguard.Monitor','bundleName':'lucee.osgiguard.monitor','bundleVersion':'1.0.0'}]",
+				"startup-hook": "[{'class':'lucee.osgiguard.Hook','bundleName':'lucee.osgiguard.hook','bundleVersion':'1.0.0'}]"
+			};
+			loop struct=keys index="local.key" item="local.value" {
+				it( title: "an extension that defines [#key#] with a bundle is not installed", data: { key: key, value: value }, body: function( data ) {
+					var lex = root & "osgiguard-" & data.key & ".lex";
+					var id = createUUID();
+					createLex( lex, id, { "#data.key#": data.value } );
+					var err = "";
+					try {
+						admin action="updateRHExtension" type="server" password=adminPw source=lex;
+					}
+					catch ( any e ) {
+						err = e.message;
+					}
+					expect( err ).toInclude( "Cannot install the extension [OSGiNotInstalled cache:1.0.0.1]" );
+					expect( err ).toInclude( "from the OSGi bundle [lucee.osgiguard." );
+					expect( err ).toInclude( "OSGi is not installed" );
+					admin action="getRHExtensions" type="server" password=adminPw returnVariable="local.exts";
+					expect( queryColumnData( exts, "id" ) ).notToInclude( id );
+				});
+			}
+
 			it( "an extension with a Maven definition does not need OSGi", function() {
 				var lex = root & "osgiguard-maven.lex";
 				var id = createUUID();

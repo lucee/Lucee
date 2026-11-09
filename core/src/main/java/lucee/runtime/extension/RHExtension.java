@@ -93,6 +93,8 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.wrap.MapAsStruct;
+import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.query.CurrentRow;
@@ -943,42 +945,39 @@ public final class RHExtension implements Serializable {
 		if (OSGi.isAvailable()) return;
 		ExtensionMetadata md = getMetadata();
 		List<String> needs = new ArrayList<String>();
-		collectBundleClasses(needs, md.getMappings());
+		// every setting that is installed as a class definition (see ConfigAdmin.unSyncUpdateExtension)
 		collectBundleClasses(needs, md.getCaches());
 		collectBundleClasses(needs, md.getCacheHandlers());
-		collectBundleClasses(needs, md.getJdbcs());
 		collectBundleClasses(needs, md.getSearchs());
-		collectBundleClasses(needs, md.getOrms());
-		collectBundleClasses(needs, md.getResources());
-		collectBundleClasses(needs, md.getMonitors());
-		collectBundleClasses(needs, md.getWebservices());
-		collectBundleClasses(needs, md.getAMFs());
+		collectBundleClasses(needs, md.getMimeTypes());
 		collectBundleClasses(needs, md.getLogEngines());
 		collectBundleClasses(needs, md.getHttpEngines());
 		collectBundleClasses(needs, md.getRegexEngines());
+		collectBundleClasses(needs, md.getResources());
+		collectBundleClasses(needs, md.getOrms());
+		collectBundleClasses(needs, md.getWebservices());
+		collectBundleClasses(needs, md.getMonitors());
+		collectBundleClasses(needs, md.getJdbcs());
 		collectBundleClasses(needs, md.getStartupHooks());
-		collectBundleClasses(needs, md.getMimeTypes());
+		collectBundleClasses(needs, md.getAMFs());
+		collectBundleClasses(needs, md.getEventGatewayInstances());
 		if (needs.isEmpty()) return;
-		throw new ApplicationException(
-				OSGi.notInstalledMessage("install", "the extension [" + md.getName() + ":" + getVersion() + "] (it loads " + String.join(", ", needs) + ")"));
+		throw new ApplicationException(OSGi.notInstalledMessage("install", "the extension [" + md.getName() + ":" + getVersion() + "] (it loads " + String.join(", ", needs) + ")"));
 	}
 
-	private static void collectBundleClasses(List<String> needs, List<Map<String, String>> settings) {
+	private static void collectBundleClasses(List<String> needs, List<? extends Map<String, ?>> settings) {
 		if (settings == null) return;
-		for (Map<String, String> setting: settings) {
+		for (Map<String, ?> setting: settings) {
 			if (setting == null) continue;
+			// read the setting the same way the installation does (ClassDefinitionImpl.toClassDefinition, not strict), so "name"/"version" are a bundle as well
+			Struct sct = MapAsStruct.toStruct(setting, false);
+			String cn = ClassDefinitionImpl.toClassName(sct, null);
+			if (StringUtil.isEmpty(cn, true)) continue;
 			// a Maven definition wins over a bundle
-			if (!StringUtil.isEmpty(setting.get("maven"), true) || !StringUtil.isEmpty(setting.get("mvn"), true)) continue;
-			String bn = setting.get("bundleName");
-			if (StringUtil.isEmpty(bn, true)) bn = setting.get("bundle-name");
-			if (StringUtil.isEmpty(bn, true)) bn = setting.get("bundle_name");
+			if (!StringUtil.isEmpty(ClassDefinitionImpl.toMaven(sct, null), true)) continue;
+			String bn = ClassDefinitionImpl.toBundleName(sct, null, false);
 			if (StringUtil.isEmpty(bn, true)) continue;
-			String bv = setting.get("bundleVersion");
-			if (StringUtil.isEmpty(bv, true)) bv = setting.get("bundle-version");
-			if (StringUtil.isEmpty(bv, true)) bv = setting.get("bundle_version");
-			String cn = setting.get("class");
-			if (StringUtil.isEmpty(cn, true)) cn = setting.get("class-name");
-			needs.add(OSGi.what(cn, bn.trim(), bv));
+			needs.add(OSGi.what(cn, bn.trim(), ClassDefinitionImpl.toBundleVersion(sct, null, false)));
 		}
 	}
 
