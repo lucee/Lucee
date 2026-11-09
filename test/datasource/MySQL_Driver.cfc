@@ -1,5 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	function isNotSupported() {
+		// TODO LDEV-6627: skipped until the OSGi extension exists, these load the driver as a bundle by version.
+		return true;
 		variables.mySql = getCredentials();
 		if (len(variables.mySql)){
 			return false;

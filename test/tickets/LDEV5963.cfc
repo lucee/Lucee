@@ -18,15 +18,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 				var dsName = "LDEV5963_ds";
 
 				// Create datasource with 1 minute idleTimeout
-				var dsConfig = {
-					class: creds.class,
-					bundleName: creds.bundleName,
-					bundleVersion: creds.bundleVersion,
-					connectionString: creds.connectionString,
-					username: creds.username,
-					password: creds.password,
-					idleTimeout: 1 // 1 minute - should be wired to minEvictableIdleTimeMillis
-				};
+				var dsConfig = duplicate( creds );
+				dsConfig.idleTimeout = 1; // 1 minute - should be wired to minEvictableIdleTimeMillis
 
 				application action="update" datasources={ "#dsName#": dsConfig };
 
