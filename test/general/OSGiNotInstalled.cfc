@@ -38,68 +38,44 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( err ).toInclude( "OSGi is not installed" );
 			});
 
-			it( "an extension that defines a cache with a bundle is not installed", function() {
-				var lex = root & "osgiguard-cache.lex";
-				var id = createUUID();
-				createLex( lex, id, { "cache": "[{'class':'lucee.osgiguard.Cache','bundleName':'lucee.osgiguard.cache','bundleVersion':'1.0.0'}]" } );
-				var err = "";
-				try {
-					admin action="updateRHExtension" type="server" password=adminPw source=lex;
-				}
-				catch ( any e ) {
-					err = e.message;
-				}
-				expect( err ).toInclude( "Cannot install the extension [OSGiNotInstalled cache:1.0.0.1]" );
-				expect( err ).toInclude( "the class [lucee.osgiguard.Cache] from the OSGi bundle [lucee.osgiguard.cache:1.0.0]" );
-				expect( err ).toInclude( "OSGi is not installed" );
-				admin action="getRHExtensions" type="server" password=adminPw returnVariable="local.exts";
-				expect( queryColumnData( exts, "id" ) ).notToInclude( id );
-			});
-
-			// the keys an extension defines classes with, a bundle can also be given as name/version (like the Axis extension does)
+			// installing an extension that defines classes from bundles works without OSGi (the OSGi extension can be installed later),
+			// a bundle can also be given as name/version (like the Axis extension does)
 			var keys = {
+				"cache": "[{'class':'lucee.osgiguard.Cache','bundleName':'lucee.osgiguard.cache','bundleVersion':'1.0.0'}]",
 				"webservice": "{'class':'lucee.osgiguard.Handler','name':'lucee.osgiguard.ws','version':'1.0.0'}",
-				"orm": "{'class':'lucee.osgiguard.ORMEngine','bundle-name':'lucee.osgiguard.orm','bundle-version':'1.0.0'}",
-				"jdbc": "[{'label':'osgiguard','class':'lucee.osgiguard.Driver','bundleName':'lucee.osgiguard.jdbc','bundleVersion':'1.0.0'}]",
-				"monitor": "[{'name':'osgiguard','type':'request','class':'lucee.osgiguard.Monitor','bundleName':'lucee.osgiguard.monitor','bundleVersion':'1.0.0'}]",
-				"startup-hook": "[{'class':'lucee.osgiguard.Hook','bundleName':'lucee.osgiguard.hook','bundleVersion':'1.0.0'}]"
+				"jdbc": "[{'label':'osgiguard','id':'osgiguard','class':'lucee.osgiguard.Driver','bundleName':'lucee.osgiguard.jdbc','bundleVersion':'1.0.0'}]"
 			};
 			loop struct=keys index="local.key" item="local.value" {
-				it( title: "an extension that defines [#key#] with a bundle is not installed", data: { key: key, value: value }, body: function( data ) {
+				it( title: "an extension that defines [#key#] with a bundle is installed, nothing is loaded", data: { key: key, value: value }, body: function( data ) {
 					var lex = root & "osgiguard-" & data.key & ".lex";
 					var id = createUUID();
 					createLex( lex, id, { "#data.key#": data.value } );
-					var err = "";
 					try {
 						admin action="updateRHExtension" type="server" password=adminPw source=lex;
+						admin action="getRHExtensions" type="server" password=adminPw returnVariable="local.exts";
+						expect( queryColumnData( exts, "id" ) ).toInclude( id );
 					}
-					catch ( any e ) {
-						err = e.message;
+					finally {
+						try { admin action="removeRHExtension" type="server" password=adminPw id=id; } catch ( any e ) {}
 					}
-					expect( err ).toInclude( "Cannot install the extension [OSGiNotInstalled cache:1.0.0.1]" );
-					expect( err ).toInclude( "from the OSGi bundle [lucee.osgiguard." );
-					expect( err ).toInclude( "OSGi is not installed" );
-					admin action="getRHExtensions" type="server" password=adminPw returnVariable="local.exts";
-					expect( queryColumnData( exts, "id" ) ).notToInclude( id );
 				});
 			}
 
-			it( "an extension with a Maven definition does not need OSGi", function() {
-				var lex = root & "osgiguard-maven.lex";
+			it( "after installing the extension, a cache with its class fails with a clear exception when it is used", function() {
+				var lex = root & "osgiguard-use.lex";
 				var id = createUUID();
-				createLex( lex, id, { "cache": "[{'class':'lucee.osgiguard.Cache','bundleName':'lucee.osgiguard.cache','maven':'org.lucee:osgiguard:1.0.0'}]" } );
-				var err = "";
+				createLex( lex, id, { "cache": "[{'class':'lucee.osgiguard.Cache','bundleName':'lucee.osgiguard.cache','bundleVersion':'1.0.0'}]" } );
 				try {
 					admin action="updateRHExtension" type="server" password=adminPw source=lex;
-				}
-				catch ( any e ) {
-					// the Maven artifact does not exist, that is a different error
-					err = e.message;
+					var res = _InternalRequest( template: uri & "/index.cfm" );
+					var err = trim( res.filecontent );
+					expect( err ).toInclude( "the class [lucee.osgiguard.Cache] from the OSGi bundle [lucee.osgiguard.cache:1.0.0]" );
+					expect( err ).toInclude( "OSGi is required" );
+					expect( err ).toInclude( "OSGi is not installed" );
 				}
 				finally {
 					try { admin action="removeRHExtension" type="server" password=adminPw id=id; } catch ( any e ) {}
 				}
-				expect( err ).notToInclude( "OSGi is not installed" );
 			});
 
 		});

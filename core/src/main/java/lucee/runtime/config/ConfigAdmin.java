@@ -4018,7 +4018,6 @@ public final class ConfigAdmin {
 		}
 
 		rhext.validate(config);
-		rhext.checkOSGi();
 		// MUST 7 rest all values set
 		try {
 			if (!force && rhext.installed()) {
@@ -6109,15 +6108,17 @@ public final class ConfigAdmin {
 
 		if (prefix.endsWith("-")) prefix = prefix.substring(0, prefix.length() - 1);
 		boolean hp = !prefix.isEmpty();
-		// validate class
-		try {
-			Class clazz = cd instanceof ClassDefinitionImpl ? ((ClassDefinitionImpl) cd).getClazz(false) : cd.getClazz();
+		// validate class, a class from an OSGi bundle can only be validated when OSGi is installed, otherwise it fails with a clear exception when it is used
+		if (!cd.isBundle() || lucee.runtime.osgi.OSGi.isAvailable()) {
+			try {
+				Class clazz = cd instanceof ClassDefinitionImpl ? ((ClassDefinitionImpl) cd).getClazz(false) : cd.getClazz();
 
-			if (instanceOfClass != null && !Reflector.isInstaneOf(clazz, instanceOfClass, false))
-				throw new ApplicationException("Class [" + clazz.getName() + "] is not of type [" + instanceOfClass.getName() + "]");
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
+				if (instanceOfClass != null && !Reflector.isInstaneOf(clazz, instanceOfClass, false))
+					throw new ApplicationException("Class [" + clazz.getName() + "] is not of type [" + instanceOfClass.getName() + "]");
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
 		}
 
 		// first clean up

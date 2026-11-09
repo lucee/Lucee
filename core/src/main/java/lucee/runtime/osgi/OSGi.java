@@ -52,16 +52,6 @@ public final class OSGi {
 	}
 
 	/**
-	 * Throws when OSGi is not available, nothing is downloaded or resolved.
-	 *
-	 * @param what what needs OSGi, for example "the class [x] from the OSGi bundle [y:1.0.0]"
-	 */
-	public static void requireAvailable(String what) throws IOException {
-		OSGiService s = get();
-		if (s instanceof NoOSGiService) throw ((NoOSGiService) s).missing(what);
-	}
-
-	/**
 	 * @return a description of a bundle (and the class) for error messages
 	 */
 	public static String what(String className, String bundleName, String bundleVersion) {
@@ -70,11 +60,7 @@ public final class OSGi {
 	}
 
 	public static String notInstalledMessage(String what) {
-		return notInstalledMessage("load", what);
-	}
-
-	public static String notInstalledMessage(String action, String what) {
-		return "Cannot " + action + " " + what + ": this needs OSGi, but OSGi is not installed. Install the OSGi extension (org.lucee:osgi-extension), "
+		return "Cannot load " + what + ": OSGi is required for this, but OSGi is not installed. Install the OSGi extension (org.lucee:osgi-extension), "
 				+ "or use a Maven based definition (class and maven coordinates) instead of an OSGi bundle.";
 	}
 
