@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="datasource,osgi" {
 	function run( testResults, testBox ) {
 		describe( "LDEV-6722: a datasource must not keep using a JDBC driver from an uninstalled bundle", function() {
 
-			it( title="new connections re-resolve the driver after its bundle got uninstalled", skip=notHasH2(), body=function() {
+			it( title="new connections re-resolve the driver after its bundle got uninstalled", skip=notHasH2OSGiDriver(), body=function() {
 				application action="update" datasources={ "#variables.dsName#": variables.ds };
 				var cd = "";
 				try {
@@ -72,6 +72,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="datasource,osgi" {
 
 	private boolean function notHasH2() {
 		return structIsEmpty( server.getDatasource( "h2", server._getTempDir( "LDEV6722" ) ) );
+	}
+
+	// LDEV-6627: this test uninstalls the JDBC driver's OSGi bundle. Skip when H2 is loaded from Maven
+	// (no bundle) or when no OSGi provider is available — the behaviour under test is OSGi-specific.
+	private boolean function notHasH2OSGiDriver() {
+		if ( notHasH2() ) return true;
+		try {
+			var service = getPageContext().getConfig().getFactory().getEngine().getOSGiService();
+			if ( isNull( service ) || !service.isAvailable() ) return true;
+		}
+		catch ( any e ) {
+			return true;
+		}
+		var ds = server.getDatasource( "h2", server._getTempDir( "LDEV6722" ) );
+		if ( structKeyExists( ds, "maven" ) && !len( trim( ds.bundleName ?: "" ) ) ) return true;
+		return false;
 	}
 
 }
