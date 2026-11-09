@@ -1223,8 +1223,10 @@ public final class QoQ {
 		// print.e(op.getLeft().getClass().getName());
 		Object left = executeExp(pc, sql, source, op.getLeft(), row);
 		Object right = executeExp(pc, sql, source, op.getRight(), row);
-		if (caseSensitive && left instanceof String && right instanceof String) {
-			return ((String) left).compareTo((String) right);
+		// LDEV-4186: two strings are compared as strings (SQL semantics), not as numbers or booleans,
+		// so '2571' does not match '02571' and ' 123' does not match '123'
+		if (left instanceof String && right instanceof String) {
+			return caseSensitive ? ((String) left).compareTo((String) right) : ((String) left).compareToIgnoreCase((String) right);
 		}
 		return compare(pc, left, op.getLeft(), right, op.getRight());
 	}
