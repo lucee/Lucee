@@ -18,12 +18,11 @@
  **/
 package lucee.runtime.type.util;
 
+import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -102,27 +101,155 @@ public final class StructUtil {
 		}
 	}
 
+	/**
+	 * returns a view of the entries of the struct (LDEV-5064): removing through the set or its iterator
+	 * removes the key from the struct, Entry.setValue writes to the struct. The iterator works on a
+	 * snapshot of the entries taken when it is created, so the struct can be modified while iterating.
+	 */
 	public static Set<Entry<String, Object>> entrySet(Struct sct) {
-		boolean linked = sct instanceof StructImpl && (((StructImpl) sct).getType() == Struct.TYPE_LINKED || ((StructImpl) sct).getType() == StructImpl.TYPE_LINKED_NOT_SYNC);
-		Iterator<Entry<Key, Object>> it = sct.entryIterator();
-		Entry<Key, Object> e;
-		Set<Entry<String, Object>> set = linked ? new LinkedHashSet<Entry<String, Object>>() : new HashSet<Entry<String, Object>>();
-		while (it.hasNext()) {
-			e = it.next();
-			set.add(new StructMapEntry(sct, e.getKey(), e.getValue()));
-		}
-		return set;
+		return new EntrySetView(sct);
 	}
 
+	/**
+	 * returns a view of the keys of the struct (LDEV-5064): removing through the set or its iterator
+	 * removes the key from the struct. The iterator works on a snapshot of the keys taken when it is
+	 * created.
+	 */
 	public static Set<String> keySet(Struct sct) {
-		boolean linked = sct instanceof StructSupport && (((StructSupport) sct).getType() == Struct.TYPE_LINKED || ((StructSupport) sct).getType() == StructImpl.TYPE_LINKED_NOT_SYNC);
+		return new KeySetView(sct);
+	}
 
-		Iterator<Key> it = sct.keyIterator();
-		Set<String> set = linked ? new LinkedHashSet<String>() : new HashSet<String>();
-		while (it.hasNext()) {
-			set.add(it.next().getString());
+	private static final class EntrySetView extends AbstractSet<Entry<String, Object>> {
+		private final Struct sct;
+
+		private EntrySetView(Struct sct) {
+			this.sct = sct;
 		}
-		return set;
+
+		@Override
+		public Iterator<Entry<String, Object>> iterator() {
+			ArrayList<Entry<String, Object>> list = new ArrayList<Entry<String, Object>>(sct.size());
+			Iterator<Entry<Key, Object>> it = sct.entryIterator();
+			Entry<Key, Object> e;
+			while (it.hasNext()) {
+				e = it.next();
+				list.add(new StructMapEntry(sct, e.getKey(), e.getValue()));
+			}
+			return new RemovingIterator<Entry<String, Object>>(sct, list.iterator()) {
+				@Override
+				Key toKey(Entry<String, Object> e) {
+					return KeyImpl.init(e.getKey());
+				}
+			};
+		}
+
+		@Override
+		public int size() {
+			return sct.size();
+		}
+
+		@Override
+		public boolean contains(Object o) {
+			if (!(o instanceof Entry)) return false;
+			Entry<?, ?> e = (Entry<?, ?>) o;
+			if (e.getKey() == null) return false;
+			Key k = KeyImpl.toKey(e.getKey(), null);
+			if (k == null || !sct.containsKey(k)) return false;
+			Object v = sct.get(k, null);
+			return v == null ? e.getValue() == null : v.equals(e.getValue());
+		}
+
+		@Override
+		public boolean remove(Object o) {
+			if (!contains(o)) return false;
+			sct.removeEL(KeyImpl.toKey(((Entry<?, ?>) o).getKey(), null));
+			return true;
+		}
+
+		@Override
+		public void clear() {
+			sct.clear();
+		}
+	}
+
+	private static final class KeySetView extends AbstractSet<String> {
+		private final Struct sct;
+
+		private KeySetView(Struct sct) {
+			this.sct = sct;
+		}
+
+		@Override
+		public Iterator<String> iterator() {
+			ArrayList<String> list = new ArrayList<String>(sct.size());
+			Iterator<Key> it = sct.keyIterator();
+			while (it.hasNext()) {
+				list.add(it.next().getString());
+			}
+			return new RemovingIterator<String>(sct, list.iterator()) {
+				@Override
+				Key toKey(String k) {
+					return KeyImpl.init(k);
+				}
+			};
+		}
+
+		@Override
+		public int size() {
+			return sct.size();
+		}
+
+		@Override
+		public boolean contains(Object o) {
+			if (o == null) return false;
+			Key k = KeyImpl.toKey(o, null);
+			return k != null && sct.containsKey(k);
+		}
+
+		@Override
+		public boolean remove(Object o) {
+			if (!contains(o)) return false;
+			sct.removeEL(KeyImpl.toKey(o, null));
+			return true;
+		}
+
+		@Override
+		public void clear() {
+			sct.clear();
+		}
+	}
+
+	private static abstract class RemovingIterator<T> implements Iterator<T> {
+		private final Struct sct;
+		private final Iterator<T> it;
+		private T last;
+		private boolean canRemove;
+
+		private RemovingIterator(Struct sct, Iterator<T> it) {
+			this.sct = sct;
+			this.it = it;
+		}
+
+		abstract Key toKey(T t);
+
+		@Override
+		public boolean hasNext() {
+			return it.hasNext();
+		}
+
+		@Override
+		public T next() {
+			last = it.next();
+			canRemove = true;
+			return last;
+		}
+
+		@Override
+		public void remove() {
+			if (!canRemove) throw new IllegalStateException();
+			canRemove = false;
+			sct.removeEL(toKey(last));
+		}
 	}
 
 	public static DumpTable toDumpTable(Struct sct, String title, PageContext pageContext, int maxlevel, DumpProperties dp) {
