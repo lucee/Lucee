@@ -116,6 +116,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="admin" {
 	// Helper functions
 
 	private void function createDatasource( required string name, required struct config, required string username, required string password ) {
+		// LDEV-6627: H2/MySQL test services may be Maven-based (class + maven) or still OSGi (bundleName/bundleVersion)
+		var maven = structKeyExists( arguments.config, "maven" ) ? arguments.config.maven : "";
+		var bundleName = structKeyExists( arguments.config, "bundleName" ) ? arguments.config.bundleName : "";
+		var bundleVersion = structKeyExists( arguments.config, "bundleVersion" ) ? arguments.config.bundleVersion : "";
 		admin
 			action="updateDatasource"
 			type="server"
@@ -123,8 +127,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="admin" {
 			name="#arguments.name#"
 			newName="#arguments.name#"
 			classname="#arguments.config.class#"
-			bundlename="#arguments.config.bundleName#"
-			bundleversion="#arguments.config.bundleVersion#"
+			bundlename="#bundleName#"
+			bundleversion="#bundleVersion#"
+			maven="#maven#"
 			dsn="#arguments.config.connectionString#"
 			dbusername="#arguments.username#"
 			dbpassword="#arguments.password#"
