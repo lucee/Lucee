@@ -75,8 +75,6 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigServer;
-import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -278,7 +276,7 @@ public final class XMLUtil {
 			synchronized (SystemUtil.createToken("XMLUtil", "newDocumentBuilderFactoryClass")) {
 				if (!initTf) {
 
-					Thread.currentThread().setContextClassLoader(getEnvClassLoader());
+					Thread.currentThread().setContextClassLoader(XMLUtil.class.getClassLoader());
 					Class<TransformerFactory> clazz = null;
 					Log log = ThreadLocalPageContext.getLog("application");
 
@@ -563,7 +561,7 @@ public final class XMLUtil {
 			synchronized (SystemUtil.createToken("XMLUtil", "newDocumentBuilderFactoryClass")) {
 				if (!initDbf) {
 
-					Thread.currentThread().setContextClassLoader(getEnvClassLoader());
+					Thread.currentThread().setContextClassLoader(XMLUtil.class.getClassLoader());
 					Class<DocumentBuilderFactory> clazz = null;
 					Log log = ThreadLocalPageContext.getLog("application");
 
@@ -601,15 +599,9 @@ public final class XMLUtil {
 		return dbf;
 	}
 
-	private static ClassLoader getEnvClassLoader() {
-		ConfigServer cs = ThreadLocalPageContext.getConfigServer();
-		ClassLoader cl = cs instanceof ConfigServerPro ? ((ConfigServerPro) cs).getClassLoaderEnv() : null;
-		return cl != null ? cl : XMLUtil.class.getClassLoader();
-	}
-
 	private static SAXParserFactory newSAXParserFactory() {
 		if (saxParserFactory == null) {
-			Thread.currentThread().setContextClassLoader(getEnvClassLoader());
+			Thread.currentThread().setContextClassLoader(XMLUtil.class.getClassLoader());
 			saxParserFactory = SAXParserFactory.newInstance();
 		}
 		return saxParserFactory;
@@ -630,7 +622,7 @@ public final class XMLUtil {
 	}
 
 	public static XMLReader createXMLReader() throws SAXException {
-		Thread.currentThread().setContextClassLoader(getEnvClassLoader());
+		Thread.currentThread().setContextClassLoader(XMLUtil.class.getClassLoader());
 		Log log = ThreadLocalPageContext.getLog("application");
 		try {
 			return XMLReaderFactory.createXMLReader("com.sun.org.apache.xerces.internal.parsers.SAXParser");

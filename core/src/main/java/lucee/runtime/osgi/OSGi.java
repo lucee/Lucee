@@ -19,11 +19,11 @@ public final class OSGi {
 
 	private static volatile OSGiService service;
 	private static volatile File libDir;
-	private static long checkedStamp = -1;
+	private static volatile long checkedStamp = -1;
 	private static volatile long lastCheck;
 	// the lib directory is looked at most this often (ms) while no provider is installed
 	private static final long CHECK_INTERVAL = 2000;
-	private static Throwable failure;
+	private static volatile Throwable failure;
 
 	/**
 	 * Sets the lib directory of the config, an extension providing the OSGiService is installed there.
@@ -72,9 +72,9 @@ public final class OSGi {
 
 	public static OSGiService get() {
 		OSGiService s = service;
-		if (s != null && !(s instanceof NoOSGiService && libChanged())) return s;
+		if (s != null && !(s instanceof NoOSGiService && shouldCheck())) return s;
 		synchronized (OSGi.class) {
-			if (service == null || (service instanceof NoOSGiService && libChanged())) {
+			if (service == null || (service instanceof NoOSGiService && stamp() != checkedStamp)) {
 				failure = null;
 				OSGiService found = discover();
 				checkedStamp = stamp();
@@ -93,9 +93,9 @@ public final class OSGi {
 		return stamp;
 	}
 
-	private static boolean libChanged() {
+	// get() is called from hot paths, so do not look at the file system every time
+	private static boolean shouldCheck() {
 		if (libDir == null) return false;
-		// get() is called from hot paths, so do not look at the file system every time
 		long now = System.currentTimeMillis();
 		if (now - lastCheck < CHECK_INTERVAL) return false;
 		lastCheck = now;
@@ -116,8 +116,8 @@ public final class OSGi {
 			ClassLoader cl = OSGi.class.getClassLoader();
 			if (!urls.isEmpty()) cl = ucl = new URLClassLoader(urls.toArray(new URL[0]), cl);
 			for (OSGiService os: ServiceLoader.load(OSGiService.class, cl)) {
-				// the provider needs the class loader (and its jars) from now on
-				ucl = null;
+				// the provider needs the class loader (and its jars) from now on, a provider from the parent does not
+				if (os.getClass().getClassLoader() == ucl) ucl = null;
 				return os;
 			}
 		}

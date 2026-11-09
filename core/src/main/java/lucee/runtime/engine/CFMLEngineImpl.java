@@ -1452,6 +1452,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private void shutdownFelix() {
 		try {
+			// the loader still boots Felix, its non daemon threads keep the JVM alive
+			if (factory != null) factory.shutdownFelix();
+		}
+		catch (Exception e) {
+			LogUtil.log(configServer, LOG_TYPE_NAME, e);
+		}
+		try {
 			OSGi.get().shutdown();
 		}
 		catch (Exception e) {

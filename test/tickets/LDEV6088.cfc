@@ -3,8 +3,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="extensions" {
 	function run( testResults, testBox ) {
 		describe( "LDEV-6088 - Verify bundled extensions have all required bundle dependencies", function() {
 
-			// TODO LDEV-6627: needs the bundle information of the extensions, skipped as long as OSGi is not installed.
-			it( title="Check each bundled extension has its required bundles and doesn't rely on other extensions", skip=!server._hasOSGi(), body=function( currentSpec ) {
+			it( title="Check each bundled extension has its required bundles and doesn't rely on other extensions", body=function( currentSpec ) {
 				var cfg = getPageContext().getConfig();
 				var extensions = cfg.getAllRHExtensions();
 				var luceeMajor = listFirst( server.lucee.version, "." );
@@ -24,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="extensions" {
 					extensionVersions[ extName ] = extVersion;
 
 					loop array=bundles item="local.bundle" {
-						var symbolicName = bundle.getSymbolicName();
+						var symbolicName = bundleName( bundle );
 						bundleToExtension[ symbolicName ] = extName;
 						arrayAppend( extensionBundles[ extName ], symbolicName );
 					}
@@ -43,7 +42,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="extensions" {
 					var bundles = luceeMajor gte 7 ? extMeta.getBundles() : ext.bundles;
 
 					loop array=bundles item="local.bundle" {
-						var symbolicName = bundle.getSymbolicName();
+						var symbolicName = bundleName( bundle );
 						var requiredBundles = getBundleRequirements( bundle );
 
 						// Check each required bundle
@@ -180,6 +179,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="extensions" {
 		}
 
 		return requirements;
+	}
+
+	// BundleDefinition (Lucee 7+) has getName(), the OSGi Bundle of older versions getSymbolicName()
+	private string function bundleName( required any bundle ) {
+		try {
+			return arguments.bundle.getSymbolicName();
+		}
+		catch ( any e ) {
+			return arguments.bundle.getName();
+		}
 	}
 
 }

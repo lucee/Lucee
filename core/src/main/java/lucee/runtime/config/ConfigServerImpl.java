@@ -2332,8 +2332,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	// do not remove, ised in Hibernate extension
 	@Override
 	public ClassLoader getClassLoaderEnv() {
-		// the class loader of the config sees the jars of the lib directory and the extensions
-		return getClassLoader();
+		// the context class loader of requests is the core class loader, the class loader of the config (lib and extension jars) is used only where needed (compilers)
+		return this.getClass().getClassLoader();
 	}
 
 	@Override

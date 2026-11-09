@@ -82,7 +82,7 @@ public final class JaninoCompiler implements Compiler {
 			Object emptyRF = rfClass.getField("EMPTY_RESOURCE_FINDER").get(null);
 
 			// new ClassLoaderIClassLoader(new DynamicClassLoader(config.getClassLoaderEnv()))
-			DynamicClassLoader dcl = new DynamicClassLoader(config.getClassLoaderEnv());
+			DynamicClassLoader dcl = new DynamicClassLoader(config.getClassLoader());
 			Class<?> clcl = cl.loadClass("org.codehaus.janino.ClassLoaderIClassLoader");
 			Object iclassLoader = clcl.getConstructor(ClassLoader.class).newInstance(dcl);
 
