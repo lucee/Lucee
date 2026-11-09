@@ -18,15 +18,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 				var dsName = "LDEV5963_ds";
 
 				// Create datasource with 1 minute idleTimeout
+				// LDEV-6627: MySQL test service may be Maven-based (class + maven) or still OSGi
 				var dsConfig = {
 					class: creds.class,
-					bundleName: creds.bundleName,
-					bundleVersion: creds.bundleVersion,
 					connectionString: creds.connectionString,
 					username: creds.username,
 					password: creds.password,
 					idleTimeout: 1 // 1 minute - should be wired to minEvictableIdleTimeMillis
 				};
+				if ( structKeyExists( creds, "maven" ) && len( creds.maven ) ) {
+					dsConfig.maven = creds.maven;
+				} else {
+					dsConfig.bundleName = creds.bundleName;
+					dsConfig.bundleVersion = creds.bundleVersion;
+				}
 
 				application action="update" datasources={ "#dsName#": dsConfig };
 
