@@ -95,6 +95,7 @@ public final class MappingImpl implements Mapping {
 	private ApplicationListener appListener;
 
 	private URLClassLoader archiveClassLoader;
+	private java.io.File archiveTemp;
 
 	private long archMod;
 
@@ -201,6 +202,7 @@ public final class MappingImpl implements Mapping {
 					if (tmp == null || archMod == tmp.lastModified()) return;
 					try {
 						java.io.File jar = toLocalFile(tmp);
+						archiveTemp = tmp instanceof java.io.File ? null : jar;
 						// the class loader opens the file lazy, so check that the archive is readable now
 						try (JarFile jf = new JarFile(jar)) {
 						}
@@ -703,6 +705,13 @@ public final class MappingImpl implements Mapping {
 		if (cl != null) {
 			archiveClassLoader = null;
 			IOUtil.closeEL(cl);
+			// the next use creates the class loader again
+			archive = null;
+		}
+		java.io.File temp = archiveTemp;
+		if (temp != null) {
+			archiveTemp = null;
+			temp.delete();
 		}
 	}
 
