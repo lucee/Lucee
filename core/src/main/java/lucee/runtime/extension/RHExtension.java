@@ -935,6 +935,53 @@ public final class RHExtension implements Serializable {
 		validate(ConfigUtil.getEngine(config).getInfo());
 	}
 
+	/**
+	 * an extension that defines a class (cache, jdbc, orm, ...) loaded from an OSGi bundle can only be
+	 * installed when OSGi is installed, nothing is downloaded or resolved otherwise
+	 */
+	public void checkOSGi() throws ApplicationException {
+		if (OSGi.isAvailable()) return;
+		ExtensionMetadata md = getMetadata();
+		List<String> needs = new ArrayList<String>();
+		collectBundleClasses(needs, md.getMappings());
+		collectBundleClasses(needs, md.getCaches());
+		collectBundleClasses(needs, md.getCacheHandlers());
+		collectBundleClasses(needs, md.getJdbcs());
+		collectBundleClasses(needs, md.getSearchs());
+		collectBundleClasses(needs, md.getOrms());
+		collectBundleClasses(needs, md.getResources());
+		collectBundleClasses(needs, md.getMonitors());
+		collectBundleClasses(needs, md.getWebservices());
+		collectBundleClasses(needs, md.getAMFs());
+		collectBundleClasses(needs, md.getLogEngines());
+		collectBundleClasses(needs, md.getHttpEngines());
+		collectBundleClasses(needs, md.getRegexEngines());
+		collectBundleClasses(needs, md.getStartupHooks());
+		collectBundleClasses(needs, md.getMimeTypes());
+		if (needs.isEmpty()) return;
+		throw new ApplicationException(
+				OSGi.notInstalledMessage("install", "the extension [" + md.getName() + ":" + getVersion() + "] (it loads " + String.join(", ", needs) + ")"));
+	}
+
+	private static void collectBundleClasses(List<String> needs, List<Map<String, String>> settings) {
+		if (settings == null) return;
+		for (Map<String, String> setting: settings) {
+			if (setting == null) continue;
+			// a Maven definition wins over a bundle
+			if (!StringUtil.isEmpty(setting.get("maven"), true) || !StringUtil.isEmpty(setting.get("mvn"), true)) continue;
+			String bn = setting.get("bundleName");
+			if (StringUtil.isEmpty(bn, true)) bn = setting.get("bundle-name");
+			if (StringUtil.isEmpty(bn, true)) bn = setting.get("bundle_name");
+			if (StringUtil.isEmpty(bn, true)) continue;
+			String bv = setting.get("bundleVersion");
+			if (StringUtil.isEmpty(bv, true)) bv = setting.get("bundle-version");
+			if (StringUtil.isEmpty(bv, true)) bv = setting.get("bundle_version");
+			String cn = setting.get("class");
+			if (StringUtil.isEmpty(cn, true)) cn = setting.get("class-name");
+			needs.add(OSGi.what(cn, bn.trim(), bv));
+		}
+	}
+
 	public void validate(Info info) throws ApplicationException {
 		VersionRange minCoreVersion = getMetadata().getMinCoreVersion();
 		if (minCoreVersion != null && !minCoreVersion.isWithin(info.getVersion())) {

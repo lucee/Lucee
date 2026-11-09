@@ -4018,6 +4018,7 @@ public final class ConfigAdmin {
 		}
 
 		rhext.validate(config);
+		rhext.checkOSGi();
 		// MUST 7 rest all values set
 		try {
 			if (!force && rhext.installed()) {
