@@ -1,4 +1,5 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm,cache,ehCache" {
+// TODO LDEV-6897: skipped until the ORM tests work with the Hibernate 7 extension and are moved to the extension.
+component skip="true" extends="org.lucee.cfml.test.LuceeTestCase" labels="orm,cache,ehCache" {
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1741", body=function() {
 			it( title='checking ORM secondary ehcache with this.ormsettings.cacheconfig = "ehcache.xml" ',skip=noOrm(),body=function( currentSpec ) {

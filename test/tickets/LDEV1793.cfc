@@ -1,4 +1,5 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
+// TODO LDEV-6897: skipped until the ORM tests work with the Hibernate 7 extension and are moved to the extension.
+component skip="true" extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 	// skip closure
 	function isNotSupported() {
 		var mySql = getCredentials();
