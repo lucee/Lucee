@@ -39,7 +39,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="datasource" {
 				// allow=0 used to mean "nothing is allowed" on a stored value; 1 only allowed select
 				configImport( data={ "datasources": { "#name#": {
 					"class": "org.h2.Driver",
-					"bundleName": "org.lucee.h2",
+					"maven": "org.lucee:h2-jdbc-extension:2.1.214.1-RC",
 					"dsn": "jdbc:h2:mem:ldev5705import;DB_CLOSE_DELAY=-1",
 					"username": "sa",
 					"password": "",
@@ -52,7 +52,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="datasource" {
 				var name = variables.prefix & "import";
 				configImport( data={ "datasources": { "#name#": {
 					"class": "org.h2.Driver",
-					"bundleName": "org.lucee.h2",
+					"maven": "org.lucee:h2-jdbc-extension:2.1.214.1-RC",
 					"dsn": "jdbc:h2:mem:ldev5705import;DB_CLOSE_DELAY=-1",
 					"username": "sa",
 					"password": "",
@@ -98,7 +98,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="datasource" {
 	private struct function h2( required string id, struct extra={} ) {
 		var ds = {
 			class: "org.h2.Driver",
-			bundleName: "org.lucee.h2",
+			maven: "org.lucee:h2-jdbc-extension:2.1.214.1-RC",
 			connectionString: "jdbc:h2:mem:ldev5705#arguments.id#;DB_CLOSE_DELAY=-1",
 			username: "sa",
 			password: ""
@@ -115,7 +115,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="datasource" {
 			name="#arguments.name#"
 			newName="#arguments.name#"
 			classname="org.h2.Driver"
-			bundlename="org.lucee.h2"
+			maven="org.lucee:h2-jdbc-extension:2.1.214.1-RC"
 			dsn="#arguments.connectionString#"
 			dbusername="sa"
 			dbpassword=""

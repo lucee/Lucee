@@ -9,8 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			directoryCreate( variables.tempDir )
 			variables.h2 =  {
 				class: "org.h2.Driver",
-				bundleName: "org.lucee.h2",
-				bundleVersion: "2.1.214.0001L",
+				maven: "org.lucee:h2-jdbc-extension:2.1.214.1-RC",
 				connectionString: "jdbc:h2:#variables.tempDir#;MODE=MySQL"
 			};
 		}

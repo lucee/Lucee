@@ -264,7 +264,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 	private struct function h2() {
 		var ds = {
 			class: "org.h2.Driver",
-			bundleName: "org.lucee.h2",
+			maven: "org.lucee:h2-jdbc-extension:2.1.214.1-RC",
 			connectionString: "jdbc:h2:mem:ldev1566;MODE=MySQL"
 		};
 		queryExecute( "select 1", {}, { datasource: ds } );
