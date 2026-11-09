@@ -50,10 +50,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq,hsqldb" {
 		testConnection();
 	}
 
+	public void function testConnectionMaven(){
+		defineMavenDatasource('org.lucee:hsqldb-jdbc-extension:2.7.4.3-RC');
+		testConnection();
+	}
+
 	private void function testConnection(){
 		query name="local.qry" {
 			echo("SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS");
 		}
+	}
+
+	private void function defineMavenDatasource(maven){
+		var dbPath = getDirectoryFromPath( getCurrentTemplatePath() ) & "/datasource/";
+		var dbFile = "db_maven_" & reReplace( arguments.maven, "[^a-zA-Z0-9]", "_", "all" );
+		application action="update"
+			datasource={
+			class: 'org.hsqldb.jdbcDriver'
+			, maven: arguments.maven
+			, connectionString: 'jdbc:hsqldb:file:#dbPath##dbFile#'
+		};
 	}
 
 	private void function defineDatasource(bundle,version){

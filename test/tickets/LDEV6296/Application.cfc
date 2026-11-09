@@ -5,7 +5,7 @@ component {
 
 	this.datasources[ "LDEV6296_app" ] = {
 		  class            : "org.hsqldb.jdbcDriver"
-		, bundleName       : "org.lucee.hsqldb"
+		, maven       : "org.lucee:hsqldb-jdbc-extension:2.7.4.3-RC"
 		, connectionString : "jdbc:hsqldb:mem:LDEV6296_app;shutdown=true"
 		, username         : "sa"
 		, password         : ""
