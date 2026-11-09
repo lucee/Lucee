@@ -25,7 +25,7 @@ public final class JVMCompiler implements Compiler {
 
 	@Override
 	public byte[] compile(ConfigPro config, SourceCode sc) throws ApplicationException, JavaCompilerException {
-		ClassLoader cl = config.getClassLoader();
+		ClassLoader cl = config.getClassLoaderEnv();
 
 		// ClassLoader cl =
 		// CFMLEngineFactory.getInstance().getCFMLEngineFactory().getClass().getClassLoader();

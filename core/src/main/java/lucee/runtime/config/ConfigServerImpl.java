@@ -209,6 +209,7 @@ import lucee.runtime.orm.DummyORMEngine;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.orm.ORMEngine;
+import lucee.runtime.osgi.EnvClassLoader;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.regex.Regex;
@@ -316,6 +317,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Class clusterClass = ClusterNotSupported.class;
 	private Class videoExecuterClass = VideoExecuterNotSupported.class;
 	private Map<Integer, CacheConnection> cacheDefaultConnection = null;
+	private ClassLoader envClassLoader;
 	private static Object token = new Object();
 	private SpoolerEngine remoteClientSpoolerEngine;
 	private Resource antiSamyPolicy;
@@ -2332,8 +2334,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	// do not remove, ised in Hibernate extension
 	@Override
 	public ClassLoader getClassLoaderEnv() {
-		// the context class loader of requests is the core class loader, the class loader of the config (lib and extension jars) is used only where needed (compilers)
-		return this.getClass().getClassLoader();
+		if (envClassLoader == null) envClassLoader = new EnvClassLoader(this);
+		return envClassLoader;
 	}
 
 	@Override
