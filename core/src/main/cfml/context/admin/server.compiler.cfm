@@ -40,7 +40,6 @@ Defaults --->
 			<cfif not isDefined('form.handleUnquotedAttributeValueAsString')>
             	<cfset form.handleUnquotedAttributeValueAsString=false>
             </cfif>
-            <cfset systemOutput("preserveCase: #preserveCase#",1,1)>
 			<cfadmin 
 				action="updateCompilerSettings"
 				type="#request.adminType#"
@@ -212,7 +211,7 @@ Redirtect to entry --->
 
 						<cfmodule template="systemSetting.cfm" 
 							name="preserveCase" 
-							value="#setting.nullSupport#"
+							value="#!setting.dotNotationUpperCase#"
 							access="#hasAccess#"
 							codeTip="#codeSample#"
 							codeTipDesc="#stText.settings.codetip#"
