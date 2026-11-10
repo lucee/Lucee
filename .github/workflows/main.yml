@@ -387,12 +387,15 @@ jobs:
           echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
         else
           # LDEV-6707: only the .lco and the pom (pom packaging) go to Maven Central, see loader/central/pom.xml.
-          # The jar, light, zero, express and WAR go to maven.lucee-services.com (S3 upload during the build) and the GitHub release only
-          echo "------- Maven Deploy RELEASE (.lco and pom only) on ${{ github.event_name }} -------";
+          # LDEV-6900: and the main jar again (with the loader sources and a minimal javadoc jar, Central requires both).
+          # Light, zero, the full javadoc, express and WAR go to maven.lucee-services.com (S3 upload during the build) and the GitHub release only
+          echo "------- Maven Deploy RELEASE (jar, .lco and pom) on ${{ github.event_name }} -------";
           mvn -B -e -f loader/pom.xml "${REVISION_ARGS[@]}" clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
-          if [ ! -f "loader/target/$VERSION.lco" ]; then
-            echo "::error::loader/target/$VERSION.lco does not exist, nothing to publish on Maven Central"; exit 1
-          fi
+          for f in "$VERSION.lco" "lucee-$VERSION.jar" "lucee-$VERSION-sources.jar"; do
+            if [ ! -f "loader/target/$f" ]; then
+              echo "::error::loader/target/$f does not exist, nothing to publish on Maven Central"; exit 1
+            fi
+          done
           mvn -B -e -f loader/central/pom.xml -Drevision="$VERSION" clean deploy --settings maven-settings.xml -DperformRelease=true;
           echo "DID_DEPLOY=true" >> "$GITHUB_ENV"
         fi
@@ -469,7 +472,7 @@ jobs:
 
     - name: Trigger the Lucee Docker image build
       # LDEV-6536: runs after the maven deploy (was in ant/upload_to_s3.cfm)
-      # LDEV-6707: and after the GitHub release, the jar is not on Maven Central anymore
+      # LDEV-6707: and after the GitHub release (the jar is on Maven Central again since LDEV-6900, but only for final releases)
       if: success() && env.DID_DEPLOY == 'true' && env.VERSION != ''
       continue-on-error: true
       env:
