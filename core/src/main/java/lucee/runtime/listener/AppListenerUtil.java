@@ -231,7 +231,7 @@ public final class AppListenerUtil {
 			}
 			ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, true, ThreadLocalPageContext.getConfigServer().getIdentification());
 			// LDEV-6908: a class only definition uses the registered JDBC driver (OSGi bundle or Maven)
-			if (cd.hasClass() && !cd.isBundle() && !ClassDefinitionImpl.isMaven(cd)) {
+			if (cd.hasClass() && !cd.isBundle() && !(cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven())) {
 				cd = DataSourceFactory.resolveJDBCDriverClassDefinition((ConfigPro) ThreadLocalPageContext.getConfig(config), cd, null, null);
 			}
 
