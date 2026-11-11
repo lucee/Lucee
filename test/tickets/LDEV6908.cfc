@@ -1,49 +1,53 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="datasource,jdbc,postgres" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="datasource,jdbc" {
 
-	// LDEV-6908 a datasource that only defines the driver class must use the registered JDBC driver,
-	// also when the JDBC extension registers its driver as Maven artifact instead of an OSGi bundle
+	// LDEV-6908 every way to define a datasource must resolve to a JDBC driver that can be loaded,
+	// also when the JDBC extension registers its driver as Maven artifact instead of an OSGi bundle (e.g. PostgreSQL 42.7.11).
+	// The cases are built from the installed JDBC extensions, see LDEV6908/Matrix.cfc
 
-	function beforeAll() {
-		variables.driverClass = "org.postgresql.Driver";
-		variables.pg = structKeyExists( server, "getDatasource" ) ? server.getDatasource( "postgres" ) : {};
+	private function createMatrix() {
+		var services = {};
+		if ( structKeyExists( server, "getDatasource" ) ) {
+			for ( var svc in [ "postgres", "mysql", "mssql", "oracle" ] ) {
+				var cfg = server.getDatasource( service=svc, onlyConfig=true );
+				if ( isStruct( cfg ) && structCount( cfg ) ) services[ svc ] = cfg;
+			}
+		}
+		return new LDEV6908.Matrix(
+			services = services,
+			tempDir = getTempDirectory() & "ldev6908-" & createUUID() & "/",
+			adminPassword = request.serverAdminPassword ?: ""
+		);
+	}
+
+	function afterAll() {
+		if ( structKeyExists( variables, "matrix" ) ) variables.matrix.cleanup();
 	}
 
 	function run( testResults, testBox ) {
-		describe( "LDEV-6908 class only datasource definition", function() {
+		// the cases are built here (specs are declared from the installed extensions), the matrix also runs them
+		variables.matrix = createMatrix();
+		var m = variables.matrix;
+		var drivers = m.getDrivers();
 
-			it( title="application datasource with only [class] resolves to the registered JDBC driver", skip=!hasRegisteredDriver(), body=function( currentSpec ) {
-				var ds = createObject( "java", "lucee.runtime.listener.AppListenerUtil" ).toDataSource(
-					getPageContext().getConfig(),
-					"ldev6908",
-					{ class: variables.driverClass, connectionString: "jdbc:postgresql://localhost:5432/ldev6908" },
-					nullValue()
-				);
-				var cd = ds.getClassDefinition();
-				expect( cd.getClassName() ).toBe( variables.driverClass );
-				expect( hasLoadInfo( cd ) ).toBeTrue( "class definition [#cd.toString()#] has neither bundle nor maven coordinates" );
+		describe( "LDEV-6908 JDBC extensions", function() {
+			it( title="at least one JDBC extension with a registered driver is installed", body=function( currentSpec ) {
+				expect( arrayLen( drivers ) ).toBeGT( 0 );
 			});
-
-			it( title="query with an application datasource with only [class]", skip=( structCount( variables.pg ) == 0 ), body=function( currentSpec ) {
-				var ds = {
-					class: variables.driverClass,
-					connectionString: variables.pg.connectionString,
-					username: variables.pg.username,
-					password: variables.pg.password
-				};
-				var q = queryExecute( "select 6908 as id", {}, { datasource: ds } );
-				expect( q.id ).toBe( 6908 );
-			});
-
 		});
-	}
 
-	private boolean function hasRegisteredDriver() {
-		var jdbc = getPageContext().getConfig().getJDBCDriverByClassName( variables.driverClass, nullValue() );
-		return !isNull( jdbc ) && !isNull( jdbc.cd );
-	}
-
-	private boolean function hasLoadInfo( cd ) {
-		if ( cd.isBundle() ) return true;
-		return isInstanceOf( cd, "lucee.transformer.library.ClassDefinitionImpl" ) && cd.isMaven();
+		for ( var driver in drivers ) {
+			describe( title="LDEV-6908 #driver.extension# #driver.extensionVersion# [#driver.class#]", body=function() {
+				for ( var c in m.getCases( driver ) ) {
+					if ( !c.supported ) continue;
+					it( title="#c.scope#: #c.style#", data={ driver: driver, testCase: c }, body=function( data ) {
+						var r = variables.matrix.runCase( data.driver, data.testCase, variables.matrix.expectConnection( data.driver, data.testCase ) );
+						expect( r.resolved ).toBeTrue( "definition [#serializeJSON( data.testCase.definition )#] resolved to [#r.classDefinition#] without bundle or maven coordinates #r.error#" );
+						if ( variables.matrix.expectConnection( data.driver, data.testCase ) ) {
+							expect( r.connected ).toBeTrue( "connection failed: #r.error#" );
+						}
+					});
+				}
+			});
+		}
 	}
 }
