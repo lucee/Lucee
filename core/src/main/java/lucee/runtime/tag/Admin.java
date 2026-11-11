@@ -2747,6 +2747,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
+		// LDEV-6908: a class only definition uses the registered JDBC driver (OSGi bundle or Maven)
+		cd = ConfigFactoryImpl.resolveJDBCDriverClassDefinition(config, cd);
 
 		// customParameterSyntax
 		// Struct sct = getStruct("customParameterSyntax", null);
