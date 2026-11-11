@@ -5361,6 +5361,7 @@ public final class ConfigAdmin {
 
 			// FLD
 			removeFLDs(logger, rhe.getMetadata().getFlds()); // MUST check if others use one of this fld
+			if (!ArrayUtil.isEmpty(rhe.getMetadata().getFlds())) filter.add("resetFLDs");
 
 			// TLD
 			removeTLDs(logger, rhe.getMetadata().getTlds()); // MUST check if others use one of this tld

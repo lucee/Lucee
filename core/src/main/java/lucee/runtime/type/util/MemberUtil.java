@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.CFTypes;
@@ -57,7 +58,11 @@ import lucee.transformer.library.function.FunctionLibFunctionArg;
 public final class MemberUtil {
 
 	private static final Object DEFAULT = new Object();
-	private static Map<Short, Map<Collection.Key, FunctionLibFunction>> matchesCFML = new HashMap<Short, Map<Collection.Key, FunctionLibFunction>>();
+	private static Map<Short, Map<Collection.Key, FunctionLibFunction>> matchesCFML = new ConcurrentHashMap<Short, Map<Collection.Key, FunctionLibFunction>>();
+
+	public static void clearMembers() {
+		matchesCFML.clear();
+	}
 
 	public static Map<Collection.Key, FunctionLibFunction> getMembers(PageContext pc, short type) {
 

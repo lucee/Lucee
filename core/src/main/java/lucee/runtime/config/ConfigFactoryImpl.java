@@ -2381,6 +2381,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 	}
 
 	public static void loadFunctions(ConfigImpl config, Struct rootMayNull, boolean doNew) {
+		FunctionLib flds = null;
 		try {
 			Resource configDir = config.getConfigDir();
 
@@ -2412,14 +2413,14 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 			// Init flds
 			{
-				config.setFLDs(ConfigUtil.getConfigServerImpl(config).getCoreFLDs().duplicate(false)); // MUST duplicate needed?
+				flds = ConfigUtil.getConfigServerImpl(config).getCoreFLDs().duplicate(false); // MUST duplicate needed?
 
 			}
 
 			// FLDs
 			if (!StringUtil.isEmpty(strDefaultFLDDirectory)) {
 				Resource fld = ConfigUtil.getFile(config, configDir, strDefaultFLDDirectory, FileUtil.TYPE_DIR);
-				if (fld != null) config.setFldFile(fld);
+				if (fld != null) config.setFldFile(fld, flds);
 			}
 
 			// Function files (CFML)
@@ -2450,11 +2451,15 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 					}
 				}
 			}
-			config.setFunctionDirectory(listFuncs);
+			config.setFunctionDirectory(listFuncs, flds);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			log(config, t);
+		}
+		finally {
+			// LDEV-6884 publish the library only once it is complete, a concurrent getFLDs() must never see a partially loaded one
+			if (flds != null) config.setFLDs(flds);
 		}
 	}
 
