@@ -134,14 +134,26 @@ component {
 	 * should a connection be expected for that case?
 	 * - [class + bundleName] without version and older bundle versions depend on what the update provider offers
 	 * - file based drivers (h2, hsqldb, duckdb) need {path}/{mode} in the connection string template, the host/port/database and type styles do not fill them
+	 * - styles that name an OSGi bundle need the OSGi extension; 9.0 CI does not install it (LDEV-6627)
 	 */
 	public boolean function expectConnection( required struct driver, required struct testCase ) {
 		if ( !arguments.testCase.supported ) return false;
 		if ( !getConnection( arguments.driver ).available ) return false;
 		var style = arguments.testCase.style;
 		if ( style == "class + bundleName" || find( "(old ", style ) ) return false;
+		if ( findNoCase( "bundle", style ) && !osgiAvailable() ) return false;
 		if ( listFindNoCase( "h2,hsqldb,duckdb", arguments.driver.id ) && ( style == "type" || style == "class + host/port/database" ) ) return false;
 		return true;
+	}
+
+	private boolean function osgiAvailable() {
+		if ( structKeyExists( server, "_hasOSGi" ) ) return server._hasOSGi();
+		try {
+			return createObject( "java", "lucee.runtime.osgi.OSGi" ).isAvailable();
+		}
+		catch ( any e ) {
+			return true; // older engines always have OSGi
+		}
 	}
 
 	/** resolves (and connects if a database is available) a case: {resolved, classDefinition, connected, error} */
