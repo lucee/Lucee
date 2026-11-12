@@ -43,8 +43,6 @@
 							descOnTop=false>
 							<input type="checkbox" class="checkbox" name="customTagLocalSearch" value="yes" <cfif setting.customTagLocalSearch>checked</cfif>>
 						</cfmodule>
-						<div class="comment">#stText.CustomTags.customTagLocalSearchDesc#</div>
-						<cfset renderSettings("customTagLocalSearch",setting.customTagLocalSearch)>
 					</td>
 				</tr>
 				<!--- customtags path cache ---->
