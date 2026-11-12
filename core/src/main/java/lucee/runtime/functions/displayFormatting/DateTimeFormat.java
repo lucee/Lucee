@@ -129,10 +129,11 @@ public final class DateTimeFormat extends BIF {
 		}
 
 		else {
-			formatter = FormatUtil.getDateTimeFormatter(locale, convertMask(mask));
+			formatter = FormatUtil.getDateTimeFormatter(locale, convertMask(mask, true));
 
 			String result = FormatUtil.format(formatter.formatter, datetime, tz);
 			if (!StringUtil.isEmpty(result)) {
+				result = millis(result);
 				int start, end = 0;
 				String content;
 				while ((start = result.indexOf(">>>")) != -1) {
@@ -157,7 +158,37 @@ public final class DateTimeFormat extends BIF {
 		return call(pc, args[0], Caster.toString(args[1]), Caster.toTimeZone(args[2]));
 	}
 
+	// LDEV-5833 markers around the milliseconds for the masks "l" and "ll" (java.time has no
+	// milli-of-second pattern, "S" is the fraction of the second), see millis(String)
+	private static final char MILLIS_1 = '\uE001';
+	private static final char MILLIS_2 = '\uE002';
+	private static final char MILLIS_END = '\uE003';
+
+	/**
+	 * "l" is the milliseconds without leading zeros, "ll" with at least 2 digits, "lll" 3 digits (like
+	 * Lucee 5 and ACF)
+	 */
+	private static String millis(String result) {
+		int start = -1;
+		for (int i = 0; i < result.length(); i++) {
+			char c = result.charAt(i);
+			if (c == MILLIS_1 || c == MILLIS_2) start = i;
+			else if (c == MILLIS_END && start != -1) {
+				String ms = Integer.toString(Integer.parseInt(result.substring(start + 1, i)));
+				if (result.charAt(start) == MILLIS_2 && ms.length() < 2) ms = "0" + ms;
+				result = result.substring(0, start) + ms + result.substring(i + 1);
+				i = start + ms.length() - 1;
+				start = -1;
+			}
+		}
+		return result;
+	}
+
 	public static String convertMask(String mask) {
+		return convertMask(mask, false);
+	}
+
+	public static String convertMask(String mask, boolean forFormat) {
 		if (mask == null) return DEFAULT_MASK;
 		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) return "yyyy-MM-dd'T'HH:mm:ssXXX";
 		else if ("isoms".equalsIgnoreCase(mask) || "isoMillis".equalsIgnoreCase(mask) || "javascript".equalsIgnoreCase(mask)) return "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
@@ -334,15 +365,18 @@ public final class DateTimeFormat extends BIF {
 				}
 				break;
 			case 'l':
-				if (!inside) {// lllllllll
-					if (!hasAlready(sb, 'S', 9)) sb.append('S');
-				}
-				else {
-					sb.append(c);
-				}
-				break;
 			case 'L':
-				if (!inside) {
+				if (!inside && forFormat && !hasAlready(sb, 'S', 1)) {
+					int count = 1;
+					while (i + count < carr.length && (carr[i + count] == 'l' || carr[i + count] == 'L'))
+						count++;
+					if (count < 3) {
+						sb.append(count == 1 ? MILLIS_1 : MILLIS_2).append("SSS").append(MILLIS_END);
+						i += count - 1;
+						break;
+					}
+				}
+				if (!inside) {// lllllllll
 					if (!hasAlready(sb, 'S', 9)) sb.append('S');
 				}
 				else {
