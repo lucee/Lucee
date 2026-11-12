@@ -482,6 +482,9 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static double toDoubleValue(Object o) throws PageException {
+		// the call site is mixed Integer/Double, so the Number path stays megamorphic; this hands the JIT a
+		// concrete type to devirtualise
+		if (o instanceof Double) return ((Double) o).doubleValue();
 		if (o instanceof Number) {
 			return ((Number) o).doubleValue();
 		}

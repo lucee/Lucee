@@ -19,7 +19,6 @@
 package lucee.runtime.interpreter.ref.op;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
@@ -30,25 +29,19 @@ import lucee.runtime.op.Caster;
  */
 public final class Negate extends RefSupport implements Ref {
 
-	private Ref ref;
-	private boolean limited;
+	private final Ref ref;
 
 	/**
 	 * constructor of the class
-	 * 
+	 *
 	 * @param ref
 	 */
-	public Negate(Ref ref, boolean limited) {
+	public Negate(Ref ref) {
 		this.ref = ref;
-		this.limited = limited;
 	}
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (ThreadLocalPageContext.preciseMath(pc)) {
-			return Caster.negate(Caster.toBigDecimal(ref.getValue(pc)));
-		}
-
 		return Double.valueOf(-Caster.toDoubleValue(ref.getValue(pc)));
 	}
 
