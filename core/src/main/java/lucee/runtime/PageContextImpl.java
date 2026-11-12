@@ -4320,6 +4320,15 @@ public final class PageContextImpl extends PageContext {
 		this.timeZone = null;
 	}
 
+	// a pooled clone is reused by the next parallel element, restore the settings a fresh clone would inherit
+	public void resetSettingsFrom(PageContextImpl tmplPC) {
+		this.requestTimeout = tmplPC.requestTimeout;
+		this.locale = tmplPC.locale;
+		this.timeZone = tmplPC.timeZone;
+		this.applicationContext = tmplPC.applicationContext == initApplicationContext ? null : tmplPC.applicationContext;
+		if (enablecfoutputonly != 0) setCFOutputOnly((short) 0);
+	}
+
 	/**
 	 * @return the requestId
 	 */
