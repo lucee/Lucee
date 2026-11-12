@@ -1794,14 +1794,14 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 								cd = jdbc.cd;
 							}
 						}
-						// we only have a class
-						else if (!cd.isBundle()) {
+						// we only have a class (LDEV-6908: also resolve to a registered driver that is loaded via Maven)
+						else if (!hasJDBCLoadInfo(cd)) {
 							jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
-							if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) cd = jdbc.cd;
+							if (jdbc != null && hasJDBCLoadInfo(jdbc.cd)) cd = jdbc.cd;
 						}
 
-						// still no bundle!
-						if (!cd.isBundle()) cd = patchJDBCClass(config, cd);
+						// still no bundle or maven coordinates!
+						if (!hasJDBCLoadInfo(cd)) cd = patchJDBCClass(config, cd);
 						int idle = Caster.toIntValue(getAttr(config, dataSource, "idleTimeout"), -1);
 						if (idle == -1) idle = Caster.toIntValue(getAttr(config, dataSource, "connectionTimeout"), -1);
 						int defLive = 15;
@@ -1854,21 +1854,37 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		return datasources;
 	}
 
-	private static ClassDefinition patchJDBCClass(ConfigImpl config, ClassDefinition cd) {
+	/**
+	 * LDEV-6908: a datasource that only defines the driver class (no bundle or maven coordinates) is
+	 * resolved to the registered JDBC driver for that class, JDBC extensions can register their driver
+	 * as OSGi bundle or as Maven artifact.
+	 */
+	public static ClassDefinition resolveJDBCDriverClassDefinition(ConfigPro config, ClassDefinition cd) {
+		if (cd == null || !cd.hasClass() || hasJDBCLoadInfo(cd)) return cd;
+		JDBCDriver jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
+		if (jdbc != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
+		return patchJDBCClass(config, cd);
+	}
+
+	private static boolean hasJDBCLoadInfo(ClassDefinition cd) {
+		return cd != null && (cd.isBundle() || (cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven()));
+	}
+
+	private static ClassDefinition patchJDBCClass(ConfigPro config, ClassDefinition cd) {
 		// PATCH for MySQL driver that did change the className within the same extension, JDBC extension
 		// expect that the className does not change.
 		if ("org.gjt.mm.mysql.Driver".equals(cd.getClassName()) || "com.mysql.jdbc.Driver".equals(cd.getClassName()) || "com.mysql.cj.jdbc.Driver".equals(cd.getClassName())) {
 			JDBCDriver jdbc = config.getJDBCDriverById("mysql", null);
-			if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) return jdbc.cd;
+			if (jdbc != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
 			jdbc = config.getJDBCDriverByClassName("com.mysql.cj.jdbc.Driver", null);
-			if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) return jdbc.cd;
+			if (jdbc != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
 			jdbc = config.getJDBCDriverByClassName("com.mysql.jdbc.Driver", null);
-			if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) return jdbc.cd;
+			if (jdbc != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
 			jdbc = config.getJDBCDriverByClassName("org.gjt.mm.mysql.Driver", null);
-			if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) return jdbc.cd;
+			if (jdbc != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
 			ClassDefinitionImpl tmp = new ClassDefinitionImpl("com.mysql.cj.jdbc.Driver", "com.mysql.cj", null, config.getIdentification());
 			if (tmp.getClazz(null) != null) return tmp;
@@ -1878,10 +1894,10 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		}
 		if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cd.getClassName())) {
 			JDBCDriver jdbc = config.getJDBCDriverById("mssql", null);
-			if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) return jdbc.cd;
+			if (jdbc != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
 			jdbc = config.getJDBCDriverByClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver", null);
-			if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) return jdbc.cd;
+			if (jdbc != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 
 			ClassDefinitionImpl tmp = new ClassDefinitionImpl("com.microsoft.sqlserver.jdbc.SQLServerDriver", cd.getName(), cd.getVersionAsString(), config.getIdentification());
 			if (tmp.getClazz(null) != null) return tmp;

@@ -40,6 +40,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigFactoryImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.ConfigWeb;
@@ -229,6 +230,8 @@ public final class AppListenerUtil {
 				data.set(KeyConstants._class, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
 			}
 			ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, true, ThreadLocalPageContext.getConfig().getIdentification());
+			// LDEV-6908: a class only definition uses the registered JDBC driver (OSGi bundle or Maven)
+			cd = ConfigFactoryImpl.resolveJDBCDriverClassDefinition((ConfigPro) ThreadLocalPageContext.getConfig(config), cd);
 
 			try {
 				int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
