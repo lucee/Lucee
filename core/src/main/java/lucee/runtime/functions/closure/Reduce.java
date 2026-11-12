@@ -132,7 +132,7 @@ public final class Reduce extends BIF implements ClosureFunc {
 		Entry e;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			initalValue = udf.call(pc, new Object[] { initalValue, e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, true);
+			initalValue = udf.call(pc, new Object[] { initalValue, e.getValue(), Caster.toDouble(e.getKey()), sld.list, sld.delimiter }, true);
 		}
 		return initalValue;
 	}
@@ -146,7 +146,7 @@ public final class Reduce extends BIF implements ClosureFunc {
 			while (it.hasNext()) {
 				row = it.next();
 				rowNbr = qry.getCurrentrow(pid);
-				initalValue = udf.call(pc, new Object[] { initalValue, row, Caster.toDoubleValue(rowNbr), qry }, true);
+				initalValue = udf.call(pc, new Object[] { initalValue, row, Caster.toDouble(rowNbr), qry }, true);
 			}
 		}
 		finally {
@@ -164,7 +164,7 @@ public final class Reduce extends BIF implements ClosureFunc {
 			index = it.nextIndex();
 			k = ArgumentIntKey.init(index);
 			v = it.next();
-			initalValue = udf.call(pc, new Object[] { initalValue, v, Caster.toDoubleValue(k.getString()), list }, true);
+			initalValue = udf.call(pc, new Object[] { initalValue, v, Caster.toDouble(index), list }, true);
 		}
 		return initalValue;
 	}
