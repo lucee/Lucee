@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE func-lib PUBLIC "-//Lucee//DTD CFML Function Library 1.0//EN" "dtd/web-cfmfunctionlibrary_1_0.dtd">
+<func-lib>
+	<flib-version>1.00</flib-version>
+	<short-name>ldev6884</short-name>
+	<uri>http://test.lucee.org/function/ldev6884</uri>
+	<display-name>ldev6884</display-name>
+	<function>
+		<name>ldev6884MemberCacheTest</name>
+		<class>lucee.runtime.functions.string.UCase</class>
+		<member-name>ldev6884MemberCacheTest</member-name>
+		<argument><name>string</name><type>string</type><required>Yes</required></argument>
+		<return><type>string</type></return>
+	</function>
+</func-lib>

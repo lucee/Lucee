@@ -212,7 +212,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private Map<Integer, CacheConnection> cacheDefaultConnection = null;
 
 	private TagLib[] cfmlTlds;
-	private FunctionLib cfmlFlds;
+	private volatile FunctionLib cfmlFlds;
 
 	private Resource tldFile;
 	private Resource fldFile;
@@ -1892,7 +1892,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		tl.setTag(tlt);
 	}
 
-	protected void setFunctionDirectory(List<Path> listFunctionDirectory) {
+	protected void setFunctionDirectory(List<Path> listFunctionDirectory, FunctionLib flds) {
 		Iterator<Path> it = listFunctionDirectory.iterator();
 		int index = -1;
 		String mappingName;
@@ -1913,7 +1913,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				String[] files = path.res.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
 
 				for (String file: files) {
-					if (cfmlFlds != null) createFunction(cfmlFlds, file, mappingName);
+					if (flds != null) createFunction(flds, file, mappingName);
 
 				}
 			}
@@ -1991,15 +1991,18 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	@Override
 	public FunctionLib getFLDs() {
-		if (cfmlFlds == null) {
+		FunctionLib flds = cfmlFlds;
+		if (flds == null) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getFLDs")) {
-				if (cfmlFlds == null) {
+				flds = cfmlFlds;
+				if (flds == null) {
 					// TODO make some kind of pre state in case root is empty
 					ConfigFactoryImpl.loadFunctions(this, root, newVersion());
+					flds = cfmlFlds;
 				}
 			}
 		}
-		return cfmlFlds;
+		return flds;
 	}
 
 	public ConfigImpl resetFLDs() {
@@ -2020,7 +2023,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return new FunctionLib[] { getFLDs() };
 	}
 
-	protected void setFldFile(Resource fileFld) throws FunctionLibException {
+	protected void setFldFile(Resource fileFld, FunctionLib flds) throws FunctionLibException {
 		if (fileFld == null) return;
 		this.fldFile = fileFld;
 
@@ -2032,7 +2035,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				try {
 					fl = FunctionLibFactory.loadFromFile(files[i], getIdentification());
 
-					overwrite(cfmlFlds, fl);
+					overwrite(flds, fl);
 
 				}
 				catch (FunctionLibException fle) {
@@ -2043,7 +2046,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		}
 		else {
 			fl = FunctionLibFactory.loadFromFile(fileFld, getIdentification());
-			overwrite(cfmlFlds, fl);
+			overwrite(flds, fl);
 		}
 	}
 

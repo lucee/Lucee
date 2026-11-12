@@ -57,16 +57,16 @@ import lucee.transformer.library.function.FunctionLibFunctionArg;
 public final class MemberUtil {
 
 	private static final Object DEFAULT = new Object();
-	private static Map<Short, Map<Collection.Key, FunctionLibFunction>> matchesCFML = new HashMap<Short, Map<Collection.Key, FunctionLibFunction>>();
 
 	public static Map<Collection.Key, FunctionLibFunction> getMembers(PageContext pc, short type) {
-
-		Map<Key, FunctionLibFunction> match = matchesCFML.get(type);
+		// LDEV-6884 the cache lives on the library instance, a reloaded library never sees members built from an old one
+		FunctionLib flds = ((ConfigWebPro) pc.getConfig()).getFLDs();
+		Map<Short, Map<Collection.Key, FunctionLibFunction>> cache = flds.getMemberCache();
+		Map<Key, FunctionLibFunction> match = cache.get(type);
 		if (match == null) {
 			synchronized (SystemUtil.createToken("MemberUtil.getMembers", "type:" + type)) {
-				match = matchesCFML.get(type);
+				match = cache.get(type);
 				if (match == null) {
-					FunctionLib flds = ((ConfigWebPro) pc.getConfig()).getFLDs();
 					Iterator<FunctionLibFunction> it;
 					FunctionLibFunction f;
 					match = new HashMap<Collection.Key, FunctionLibFunction>();
@@ -81,7 +81,7 @@ public final class MemberUtil {
 							}
 						}
 					}
-					matchesCFML.put(type, match);
+					cache.put(type, match);
 				}
 			}
 		}
