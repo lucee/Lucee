@@ -4325,6 +4325,8 @@ public final class PageContextImpl extends PageContext {
 		this.requestTimeout = tmplPC.requestTimeout;
 		this.locale = tmplPC.locale;
 		this.timeZone = tmplPC.timeZone;
+		this.applicationContext = tmplPC.applicationContext == initApplicationContext ? null : tmplPC.applicationContext;
+		if (enablecfoutputonly != 0) setCFOutputOnly((short) 0);
 	}
 
 	/**
