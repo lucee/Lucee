@@ -258,7 +258,8 @@ public class InternalRequest implements Function {
 		String v;
 		Object existing;
 		for (String el: ListUtil.listToList(str, '&', true)) {
-
+			// LDEV-5049 a leading, trailing or double & is not a parameter
+			if (el.isEmpty()) continue;
 			index = el.indexOf('=');
 			if (index == -1) {
 				n = KeyImpl.init(URLDecoder.decode(el, true));
