@@ -18,10 +18,7 @@
  **/
 package lucee.runtime.interpreter.ref.literal;
 
-import java.math.BigDecimal;
-
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.util.RefUtil;
@@ -32,35 +29,33 @@ import lucee.runtime.op.Caster;
  */
 public final class LNumber implements Literal {
 
-	public static final LNumber ZERO = new LNumber(BigDecimal.ZERO);
-	public static final LNumber ONE = new LNumber(BigDecimal.ONE);
-	public static final LNumber MINUS_ONE = new LNumber(BigDecimal.valueOf(Double.valueOf(-1)));
+	public static final LNumber ZERO = new LNumber(0D);
+	public static final LNumber ONE = new LNumber(1D);
+	public static final LNumber MINUS_ONE = new LNumber(-1D);
 
-	private BigDecimal literal;
+	// the interpreter creates LBigNumber instead when preciseMath is on, so the value is final here
+	private final Double literal;
 
-	public LNumber(BigDecimal literal) {
+	public LNumber(Double literal) {
 		this.literal = literal;
 	}
 
 	/**
-	 * constructor of the class
-	 * 
-	 * @param literal
-	 * @throws PageException
+	 * the literal with its sign flipped, negated on the primitive so -0 keeps its sign bit; lets the
+	 * interpreter fold a leading minus into the literal instead of wrapping it in a Negate ref
 	 */
-	public LNumber(String literal) throws PageException {
-		this.literal = Caster.toBigDecimal(literal);
+	public LNumber negate() {
+		return new LNumber(Double.valueOf(-literal.doubleValue()));
 	}
 
 	@Override
 	public Object getValue(PageContext pc) {
-		if (!ThreadLocalPageContext.preciseMath(pc)) return Double.valueOf(literal.doubleValue());
 		return literal;
 	}
 
 	@Override
 	public Object getCollection(PageContext pc) {
-		return getValue(pc);
+		return literal;
 	}
 
 	@Override
@@ -70,7 +65,7 @@ public final class LNumber implements Literal {
 
 	@Override
 	public Object touchValue(PageContext pc) {
-		return getValue(pc);
+		return literal;
 	}
 
 	@Override
@@ -86,7 +81,7 @@ public final class LNumber implements Literal {
 	@Override
 	public boolean eeq(PageContext pc, Ref other) throws PageException {
 		if (other instanceof LNumber) {
-			return getValue(pc).equals(((LNumber) other).getValue(pc)); // doing the methods here to have precisemath flag
+			return literal.equals(((LNumber) other).literal);
 		}
 		return RefUtil.eeq(pc, this, other);
 	}
