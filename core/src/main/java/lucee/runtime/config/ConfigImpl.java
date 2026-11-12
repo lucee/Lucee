@@ -158,7 +158,6 @@ import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
-import lucee.runtime.type.util.MemberUtil;
 import lucee.runtime.type.util.UDFUtil;
 import lucee.runtime.video.VideoExecuterNotSupported;
 import lucee.transformer.dynamic.meta.Method;
@@ -2012,8 +2011,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (cfmlFlds != null) {
 					cfmlFlds = null;
 					fldFile = null;
-					// LDEV-6884 member functions are cached per type, a reloaded library (extension install/uninstall) needs a fresh cache
-					MemberUtil.clearMembers();
 				}
 			}
 		}

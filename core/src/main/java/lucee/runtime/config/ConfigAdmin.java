@@ -5371,6 +5371,7 @@ public final class ConfigAdmin {
 
 			// Functions
 			removeFunctions(logger, rhe.getMetadata().getFunctions());
+			if (!ArrayUtil.isEmpty(rhe.getMetadata().getFunctions())) filter.add("resetFLDs");
 
 			// Event Gateway
 			removeEventGateways(logger, rhe.getMetadata().getEventGateways());

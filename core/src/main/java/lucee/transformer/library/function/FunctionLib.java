@@ -26,10 +26,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.lang.Md5;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.type.Collection;
 import lucee.transformer.library.Lib;
 
 /**
@@ -45,6 +47,8 @@ public final class FunctionLib implements Lib {
 	private String displayName = "";
 	private String description = "";
 	private String source;
+	// LDEV-6884 member functions per type, bound to this library so a reloaded library starts with a fresh cache
+	private final Map<Short, Map<Collection.Key, FunctionLibFunction>> members = new ConcurrentHashMap<Short, Map<Collection.Key, FunctionLibFunction>>();
 
 	/**
 	 * Geschuetzer Konstruktor ohne Argumente.
@@ -131,6 +135,11 @@ public final class FunctionLib implements Lib {
 
 		function.setFunctionLib(this);
 		functions.put(function.getName(), function);
+		members.clear();
+	}
+
+	public Map<Short, Map<Collection.Key, FunctionLibFunction>> getMemberCache() {
+		return members;
 	}
 
 	/**
