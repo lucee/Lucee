@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="internalRequest" {
 
 	function beforeAll() {
 		variables.uri = createURI("LDEV5049");
@@ -75,6 +75,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 				expect( parsedForm ).toHaveKey( "mt" );
 				expect( parsedForm ).toHaveKey( "fieldnames" );
 				expect( structCount( parsedForm ) ).toBe( 2 );
+			});
+
+			it( title='internalRequest string url scope with double & [a=1&&b=2]', body=function( currentSpec ) {
+				local.result = _InternalRequest(
+					template : "#uri#/LDEV5049_url.cfm",
+					urls: "a=1&&b=2"
+				);
+				var parsedUrl = deserializeJSON( result.filecontent );
+				expect( parsedUrl ).toHaveKey( "a" );
+				expect( parsedUrl ).toHaveKey( "b" );
+				expect( structCount( parsedUrl ) ).toBe( 2 );
 			});
 
 			it( title='internalRequest string url [a&=b]', body=function( currentSpec ) {
