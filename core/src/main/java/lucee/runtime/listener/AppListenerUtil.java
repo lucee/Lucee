@@ -50,6 +50,7 @@ import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DBUtil;
 import lucee.runtime.db.DBUtil.DataSourceDefintion;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.DataSourceFactory;
 import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.ParamSyntaxImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -229,6 +230,10 @@ public final class AppListenerUtil {
 				data.set(KeyConstants._class, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
 			}
 			ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, true, ThreadLocalPageContext.getConfigServer().getIdentification());
+			// LDEV-6908: a class only definition uses the registered JDBC driver (OSGi bundle or Maven)
+			if (cd.hasClass() && !cd.isBundle() && !(cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven())) {
+				cd = DataSourceFactory.resolveJDBCDriverClassDefinition((ConfigPro) ThreadLocalPageContext.getConfig(config), cd, null, null);
+			}
 
 			try {
 				int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
