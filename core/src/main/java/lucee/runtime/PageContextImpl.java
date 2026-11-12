@@ -813,6 +813,7 @@ public final class PageContextImpl extends PageContext {
 		writer = null;
 		forceWriter = null;
 		if (pagesUsed.size() > 0) pagesUsed.clear();
+		writerPool.release();
 
 		activeComponent = null;
 		activeUDF = null;
