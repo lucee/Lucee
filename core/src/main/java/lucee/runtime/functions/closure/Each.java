@@ -131,7 +131,7 @@ public final class Each extends BIF implements ClosureFunc {
 			ParentException parentException = execute != null ? new ParentException() : null;
 			while (it.hasNext()) {
 				index = it.nextIndex();
-				_call(pc, parentException, udf, new Object[] { it.next(), Double.valueOf(index), obj }, execute, futures);
+				_call(pc, parentException, udf, new Object[] { it.next(), Caster.toDouble(index), obj }, execute, futures);
 				// udf.call(pc, new Object[]{it.next()}, true);
 			}
 		}
@@ -215,7 +215,7 @@ public final class Each extends BIF implements ClosureFunc {
 			ParentException parentException = execute != null ? new ParentException() : null;
 			while (it.hasNext()) {
 				row = it.next();
-				_call(pc, parentException, udf, new Object[] { row, Caster.toDoubleValue(qry.getCurrentrow(pid)), qry }, execute, futures);
+				_call(pc, parentException, udf, new Object[] { row, Caster.toDouble(qry.getCurrentrow(pid)), qry }, execute, futures);
 			}
 		}
 		finally {
@@ -242,7 +242,7 @@ public final class Each extends BIF implements ClosureFunc {
 		ParentException parentException = execute != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			_call(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, execute, futures);
+			_call(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDouble(e.getKey()), sld.list, sld.delimiter }, execute, futures);
 		}
 
 	}

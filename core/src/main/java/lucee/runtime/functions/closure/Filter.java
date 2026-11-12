@@ -165,7 +165,7 @@ public final class Filter extends BIF implements ClosureFunc {
 		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDouble(e.getKey()), arr }, e.getKey(), e.getValue(), es, futures);
 			if (!async && Caster.toBooleanValue(res)) {
 				rtn.append(e.getValue());
 			}
@@ -188,7 +188,7 @@ public final class Filter extends BIF implements ClosureFunc {
 		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDouble(e.getKey()), sld.list, sld.delimiter }, e.getKey(), e.getValue(), es, futures);
 			if (!async && Caster.toBooleanValue(res)) {
 				rtn.append(e.getValue());
 			}
@@ -211,7 +211,7 @@ public final class Filter extends BIF implements ClosureFunc {
 				row = it.next();
 				rowNbr = qry.getCurrentrow(pid);
 
-				res = _inv(pc, parentException, udf, new Object[] { row, Caster.toDoubleValue(rowNbr), qry }, rowNbr, qry, es, futures);
+				res = _inv(pc, parentException, udf, new Object[] { row, Caster.toDouble(rowNbr), qry }, rowNbr, qry, es, futures);
 				if (!async && Caster.toBooleanValue(res)) {
 					addRow(qry, rtn, rowNbr);
 				}
@@ -244,7 +244,7 @@ public final class Filter extends BIF implements ClosureFunc {
 			index = it.nextIndex();
 			k = ArgumentIntKey.init(index);
 			v = it.next();
-			res = _inv(pc, parentException, udf, new Object[] { v, Caster.toDoubleValue(k.getString()), list }, k, v, es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { v, Caster.toDouble(index), list }, k, v, es, futures);
 			if (!async && Caster.toBooleanValue(res)) rtn.append(v);
 		}
 		return rtn;

@@ -83,13 +83,13 @@ public final class LiteralValue {
 
 	public static Number toNumber(PageContext pc, long l) {
 		if (ThreadLocalPageContext.preciseMath(pc)) return BigDecimal.valueOf(l);
-		else return Double.valueOf(l);
+		else return Caster.toDouble(l);
 
 	}
 
 	public static Number toNumber(PageContext pc, double d) {
 		if (ThreadLocalPageContext.preciseMath(pc)) return BigDecimal.valueOf(d);
-		else return Double.valueOf(d);
+		else return Caster.toDouble(d);
 
 	}
 
