@@ -293,8 +293,16 @@ public final class Execute extends BodyTagImpl {
 		// if(timeout<=0)execute._run();
 		// else {
 		execute.start();
-		if (timeout > 0) execute.join(timeout);
-		else execute.join();
+		try {
+			if (timeout > 0) execute.join(timeout);
+			else execute.join();
+		}
+		catch (InterruptedException ie) {
+			// the request thread got interrupted (e.g. by the request timeout), stop the external process
+			// and propagate the interrupt instead of wrapping it into a generic exception (LDEV-5525)
+			execute.abort(true);
+			throw Caster.toPageException(ie);
+		}
 		if (execute.hasException()) throw new Exception(execute.getException());
 		if (!execute.hasFinished()) {
 			execute.abort(terminateOnTimeout);

@@ -144,13 +144,23 @@ import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.it.CollectionAsEntryIterator;
 import lucee.runtime.type.it.EnumAsIt;
 import lucee.runtime.type.scope.ObjectStruct;
+import lucee.runtime.type.util.ArraySupport;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.ComponentWrap;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.wrap.ArrayAsList;
+import lucee.runtime.type.wrap.BooleanArrayAsArray;
+import lucee.runtime.type.wrap.ByteArrayAsArray;
+import lucee.runtime.type.wrap.CharArrayAsArray;
+import lucee.runtime.type.wrap.DoubleArrayAsArray;
+import lucee.runtime.type.wrap.FloatArrayAsArray;
+import lucee.runtime.type.wrap.IntArrayAsArray;
 import lucee.runtime.type.wrap.ListAsArray;
+import lucee.runtime.type.wrap.LongArrayAsArray;
 import lucee.runtime.type.wrap.MapAsStruct;
+import lucee.runtime.type.wrap.ObjectArrayAsArray;
+import lucee.runtime.type.wrap.ShortArrayAsArray;
 import lucee.runtime.type.wrap.StructAsArray;
 import lucee.runtime.util.ForEachUtil;
 
@@ -537,6 +547,9 @@ public final class Caster {
 		return Integer.parseInt(strNumber, radix);
 	}
 
+	// a number with more digits than this can't be accumulated into a double without losing precision
+	private static final int MAX_EXACT_DOUBLE_DIGITS = 15;
+
 	public static double toDoubleValue(String str, boolean alsoFromDate) throws CasterException {
 		if (str == null) return 0;// throw new CasterException("can't cast empty string to a number value");
 		str = StringUtil.trimAllWS(str);
@@ -559,6 +572,7 @@ public final class Caster {
 			isMinus = true;
 		}
 		boolean hasDot = false;
+		int digits = 0;
 		// boolean hasExp=false;
 		do {
 			curr = str.charAt(pos);
@@ -599,6 +613,7 @@ public final class Caster {
 			else {
 				rtn *= 10;
 				rtn += toDigit(curr);
+				digits++;
 				if (hasDot) {
 					deep *= 10;
 					if (deep > 1000000000000000000000D) return Double.parseDouble(str); // patch for LDEV-2654
@@ -607,6 +622,11 @@ public final class Caster {
 			}
 		}
 		while (++pos < len);
+
+		// the digit by digit accumulation above loses precision once the number has more digits than a double
+		// can hold exactly (LDEV-496), Double.parseDouble returns the nearest double. At this point str only
+		// holds digits, an optional sign and at most one dot, so it always parses.
+		if (digits > MAX_EXACT_DOUBLE_DIGITS) return Double.parseDouble(str);
 
 		if (deep > 1) {
 			rtn /= deep;
@@ -697,6 +717,7 @@ public final class Caster {
 		}
 
 		boolean hasDot = false;
+		int digits = 0;
 		// boolean hasExp=false;
 		do {
 			curr = str.charAt(pos);
@@ -735,11 +756,17 @@ public final class Caster {
 			else {
 				rtn *= 10;
 				rtn += toDigit(curr);
+				digits++;
 				if (hasDot) deep *= 10;
 			}
 
 		}
 		while (++pos < len);
+
+		// the digit by digit accumulation above loses precision once the number has more digits than a double
+		// can hold exactly (LDEV-496), Double.parseDouble returns the nearest double. At this point str only
+		// holds digits, an optional sign and at most one dot, so it always parses.
+		if (digits > MAX_EXACT_DOUBLE_DIGITS) return Double.parseDouble(str);
 
 		if (deep > 1) {
 			rtn /= deep;
@@ -2681,7 +2708,7 @@ public final class Caster {
 	public static Array toArray(Object o) throws PageException {
 		if (o instanceof Array) return (Array) o;
 		else if (o instanceof Object[]) {
-			return new ArrayImpl((Object[]) o);
+			return ObjectArrayAsArray.wrap((Object[]) o);
 		}
 		else if (o instanceof List) {
 			return ListAsArray.toArray((List) o);// new ArrayImpl(((List) o).toArray());
@@ -2734,14 +2761,14 @@ public final class Caster {
 			 * +"] is not a number"); } return arr;
 			 */
 		}
-		else if (o instanceof boolean[]) return new ArrayImpl(ArrayUtil.toReferenceType((boolean[]) o));
-		else if (o instanceof byte[]) return new ArrayImpl(ArrayUtil.toReferenceType((byte[]) o));
-		else if (o instanceof char[]) return new ArrayImpl(ArrayUtil.toReferenceType((char[]) o));
-		else if (o instanceof short[]) return new ArrayImpl(ArrayUtil.toReferenceType((short[]) o));
-		else if (o instanceof int[]) return new ArrayImpl(ArrayUtil.toReferenceType((int[]) o));
-		else if (o instanceof long[]) return new ArrayImpl(ArrayUtil.toReferenceType((long[]) o));
-		else if (o instanceof float[]) return new ArrayImpl(ArrayUtil.toReferenceType((float[]) o));
-		else if (o instanceof double[]) return new ArrayImpl(ArrayUtil.toReferenceType((double[]) o));
+		else if (o instanceof boolean[]) return BooleanArrayAsArray.wrap((boolean[]) o);
+		else if (o instanceof byte[]) return ByteArrayAsArray.wrap((byte[]) o);
+		else if (o instanceof char[]) return CharArrayAsArray.wrap((char[]) o);
+		else if (o instanceof short[]) return ShortArrayAsArray.wrap((short[]) o);
+		else if (o instanceof int[]) return IntArrayAsArray.wrap((int[]) o);
+		else if (o instanceof long[]) return LongArrayAsArray.wrap((long[]) o);
+		else if (o instanceof float[]) return FloatArrayAsArray.wrap((float[]) o);
+		else if (o instanceof double[]) return DoubleArrayAsArray.wrap((double[]) o);
 
 		throw new CasterException(o, "Array");
 	}
@@ -2749,6 +2776,9 @@ public final class Caster {
 	public static Object[] toNativeArray(Object o, Object[] defaultValue) {
 		if (o instanceof Object[]) {
 			return (Object[]) o;
+		}
+		else if (o instanceof ArraySupport) {
+			return ((ArraySupport) o).toNativeArray();
 		}
 		else if (o instanceof Array) {
 			Array arr = (Array) o;
@@ -2803,6 +2833,9 @@ public final class Caster {
 	public static Object[] toNativeArray(Object o) throws PageException {
 		if (o instanceof Object[]) {
 			return (Object[]) o;
+		}
+		else if (o instanceof ArraySupport) {
+			return ((ArraySupport) o).toNativeArray();
 		}
 		else if (o instanceof Array) {
 			Array arr = (Array) o;
@@ -2864,7 +2897,7 @@ public final class Caster {
 	public static Array toArray(Object o, Array defaultValue) {
 		if (o instanceof Array) return (Array) o;
 		else if (o instanceof Object[]) {
-			return new ArrayImpl((Object[]) o);
+			return ObjectArrayAsArray.wrap((Object[]) o);
 		}
 		else if (o instanceof List) {
 			return new ArrayImpl(((List) o).toArray());
@@ -2892,14 +2925,14 @@ public final class Caster {
 			 * } catch (ExpressionException ee) { return defaultValue; } return arr;
 			 */
 		}
-		else if (o instanceof boolean[]) return new ArrayImpl(ArrayUtil.toReferenceType((boolean[]) o));
-		else if (o instanceof byte[]) return new ArrayImpl(ArrayUtil.toReferenceType((byte[]) o));
-		else if (o instanceof char[]) return new ArrayImpl(ArrayUtil.toReferenceType((char[]) o));
-		else if (o instanceof short[]) return new ArrayImpl(ArrayUtil.toReferenceType((short[]) o));
-		else if (o instanceof int[]) return new ArrayImpl(ArrayUtil.toReferenceType((int[]) o));
-		else if (o instanceof long[]) return new ArrayImpl(ArrayUtil.toReferenceType((long[]) o));
-		else if (o instanceof float[]) return new ArrayImpl(ArrayUtil.toReferenceType((float[]) o));
-		else if (o instanceof double[]) return new ArrayImpl(ArrayUtil.toReferenceType((double[]) o));
+		else if (o instanceof boolean[]) return BooleanArrayAsArray.wrap((boolean[]) o);
+		else if (o instanceof byte[]) return ByteArrayAsArray.wrap((byte[]) o);
+		else if (o instanceof char[]) return CharArrayAsArray.wrap((char[]) o);
+		else if (o instanceof short[]) return ShortArrayAsArray.wrap((short[]) o);
+		else if (o instanceof int[]) return IntArrayAsArray.wrap((int[]) o);
+		else if (o instanceof long[]) return LongArrayAsArray.wrap((long[]) o);
+		else if (o instanceof float[]) return FloatArrayAsArray.wrap((float[]) o);
+		else if (o instanceof double[]) return DoubleArrayAsArray.wrap((double[]) o);
 
 		return defaultValue;
 	}

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" {
 	function run( testResults , testBox ) {
 		describe( "Testcase for LDEV-3668", function() {
 			variables.srcArr = ["direct"];
@@ -21,7 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(serializeJSON(arr)).toBe('["direct","by reference"]');
 			});
 
-			xit( title="passby=value for script argument", body=function( currentSpec ){
+			it( title="passby=value for script argument", body=function( currentSpec ){
 				var arr = duplicate(srcArr);
 				expect(serializeJSON(byValue(arr))).toBe('["direct","by value"]');
 				expect(serializeJSON(arr)).toBe('["direct"]');  //unchanged

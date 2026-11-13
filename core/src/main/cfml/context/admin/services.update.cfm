@@ -330,10 +330,12 @@
 	</cfif>
 --->
 	<h2>Changelog</h2>
-	<p class="comment">For a detailed change log, please visit the <a href="https://download.lucee.org/changelog/">Lucee Changelog</a>.</p>
-	
+	<p class="comment">For a detailed change log, please visit the <a href="https://download.lucee.org/changelog.cfm" target="_blank" rel="noopener">Lucee Changelog</a>.</p>
+
 	<h2>Limitation</h2>
 	<p class="comment">#loaderText#</p>
-	<p class="comment">#loaderUpgrade#</p>
+	<cfif !hasLoader7>
+		<p class="comment">#loaderUpgrade#</p>
+	</cfif>
 	<p class="comment">#loaderPath#</p>	
 </cfoutput>

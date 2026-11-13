@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.debug;
 
+import java.lang.ref.SoftReference;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -32,10 +33,16 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
 
+/**
+ * Keeps the debug data of the last requests (limited by "debuggingMaxRecordsLogged") in memory.
+ * The data is only softly referenced (LDEV-2673), so the GC can free it when memory gets low
+ * instead of Lucee running into a low memory situation. Entries that have been cleared by the GC
+ * are skipped and removed.
+ */
 public final class DebuggerPool {
 
 	// private LinkedList<Struct> queue = new LinkedList<Struct>();
-	private Queue<Struct> queue = new ConcurrentLinkedQueue<>();
+	private final Queue<SoftReference<Struct>> queue = new ConcurrentLinkedQueue<>();
 
 	public DebuggerPool(Resource storage) {
 		// this.storage=storage;
@@ -45,11 +52,14 @@ public final class DebuggerPool {
 		if (ReqRspUtil.getScriptName(pc, pc.getHttpServletRequest()).indexOf("/lucee/") == 0) return;
 
 		try {
-			queue.add(debugger.getDebuggingData(pc, true));
+			queue.add(new SoftReference<Struct>(debugger.getDebuggingData(pc, true)));
 		}
 		catch (PageException e) {
 			LogUtil.log(pc, "debugger", e);
 		}
+
+		// entries cleared by the GC do not count
+		queue.removeIf(ref -> ref.get() == null);
 
 		// on overflow
 		while (queue.size() > ((ConfigWebPro) pc.getConfig()).getDebugMaxRecordsLogged()) {
@@ -59,14 +69,37 @@ public final class DebuggerPool {
 
 	public Array getData(PageContext pc) {
 		Array arr = new ArrayImpl();
-		Iterator<Struct> it = queue.iterator();
+		Iterator<SoftReference<Struct>> it = queue.iterator();
+		SoftReference<Struct> ref;
+		Struct data;
 		while (it.hasNext()) {
-			arr.appendEL(it.next());
+			ref = it.next();
+			data = ref.get(); // read only once, it can be cleared at any time
+			if (data == null) it.remove();
+			else arr.appendEL(data);
 		}
 		return arr;
 	}
 
 	public void purge() {
 		queue.clear();
+	}
+
+	/**
+	 * number of entries currently held, including entries cleared by the GC that are not yet removed
+	 */
+	public int size() {
+		return queue.size();
+	}
+
+	/**
+	 * clears all references the way the GC does under memory pressure, the cleared entries are removed
+	 * with the next store or read. Mainly used by tests, because the GC can not be triggered
+	 * deterministically.
+	 */
+	public void clearReferences() {
+		for (SoftReference<Struct> ref: queue) {
+			ref.clear();
+		}
 	}
 }

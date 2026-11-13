@@ -75,6 +75,7 @@ import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLItem;
@@ -339,6 +340,8 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 			while (true);
 		}
 		catch (SQLException e) {
+			// LDEV-4213
+			DatasourceConnectionImpl.markSuspect(dc, e);
 			throw new DatabaseException(e, sql, dc);
 		}
 		catch (Throwable e) {
@@ -465,6 +468,8 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 			while (true);
 		}
 		catch (SQLException e) {
+			// LDEV-4213
+			DatasourceConnectionImpl.markSuspect(dc, e);
 			throw new DatabaseException(e, sql, dc);
 		}
 		catch (Throwable e) {
@@ -3536,6 +3541,20 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	public static QueryImpl cloneQuery(Query qry, boolean deepCopy) {
+		return cloneQuery(qry, deepCopy, false);
+	}
+
+	/**
+	 * Same as a deep copy, but the copy shares the column data with this query and copies a column only
+	 * when the copy or this query writes to that column the first time (copy on write, LDEV-1406). From
+	 * the outside the result behaves exactly like a deep copy. Columns that hold values that need to be
+	 * duplicated (dates, binary, structs, ...) are copied right away like with duplicate().
+	 */
+	public QueryImpl duplicateCopyOnWrite() {
+		return cloneQuery(this, true, true);
+	}
+
+	private static QueryImpl cloneQuery(Query qry, boolean deepCopy, boolean copyOnWrite) {
 		QueryImpl newResult = new QueryImpl();
 		boolean inside = ThreadLocalDuplication.set(qry, newResult);
 		try {
@@ -3547,7 +3566,8 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 				for (int i = 0; i < tmp.length; i++) {
 					newResult.columnNames[i] = tmp[i];
 					QueryColumn srcCol = (qry instanceof QueryImpl) ? ((QueryImpl) qry).columns[i] : qry.getColumn(tmp[i], null);
-					newResult.columns[i] = QueryUtil.duplicate2QueryColumnImpl(newResult, srcCol, deepCopy);
+					if (copyOnWrite && srcCol instanceof QueryColumnImpl) newResult.columns[i] = ((QueryColumnImpl) srcCol).cloneColumnCopyOnWrite(newResult);
+					else newResult.columns[i] = QueryUtil.duplicate2QueryColumnImpl(newResult, srcCol, deepCopy);
 				}
 			}
 			// creatorPid/currentRow/currRow default to 0/0/null — fresh query, no row state (0 maps to row 1

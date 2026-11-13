@@ -327,7 +327,7 @@ function renderSettings(name, value, text="",boolean isExpand=false) {
 		echo('
 System Property:
 <code>-D#data.systemProperties[1]#=#res.sp#</code>
-Enviroment Variable:
+Environment Variable:
 <code>#data.environmentVariables[1]#=#res.ev#</code>
 		');
 		echo('</div>');
@@ -366,11 +366,11 @@ Enviroment Variable:
 		echo('</div>');
 
 		if(!arguments.isExpand) {
-			echo('<div class="coding-tip-trigger">% Enviroment Variables %</div>');
+			echo('<div class="coding-tip-trigger">% Environment Variables %</div>');
 		}
 		echo('<div class="coding-tip #arguments.isExpand ? 'expanded' : ''#">');
 		echo('<div class="disp-flex"><cfif len(desc)><span class="comment">#desc#</span></cfif> <span class="copy flex-pull-right">copy</span></div>');
-		echo('Enviroment Variables:<code>');
+		echo('Environment Variables:<code>');
 		if(isQuery(val)) {
 			var qry=val;
 			var cols=arguments.value.columns;
@@ -523,7 +523,7 @@ function renderSysPropEnvVar(name, value, text="",defaultValue=true,boolean isEx
 <div class="disp-flex"><cfif !(isBoolean(desc) && !desc)>#desc#:</cfif> <span class="copy flex-pull-right">copy</span></div>
 <code>// System Property
 -D#trim(arguments.name)#=#sp# 
-// Enviroment Variable
+// Environment Variable
 #uname#=#ev#</code>
 	</div>
 </cfoutput>
@@ -703,7 +703,7 @@ function renderSysPropEnvVar(name, value, text="",defaultValue=true,boolean isEx
 	}
 
 	function lockedReadOnly () {
-		var info="this record cannot be modified here, because because it is set as readonly.
+		var info="this record cannot be modified here, because it is set as readonly.
 				To modify the record, you will need to change the readonly flag inside the configuration file and then restart the server.";
 
 		return '<span class="locked-indicator" data-tooltip="#info#">&##128274;</span>';

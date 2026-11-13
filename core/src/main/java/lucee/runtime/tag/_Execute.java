@@ -157,10 +157,18 @@ public final class _Execute implements Runnable {
 				if (onError != null) error = new UDFProcessListener(pc, onError);
 				else redirectErrorStream = true;
 				process = Command.createProcess(pc, commands, directory, environment, redirectErrorStream);
+				if (aborted) {
+					process.destroy();
+					return;
+				}
 				result = Command.execute(pc, process, timeout, progress, error);
 			}
 			else {
 				process = Command.createProcess(pc, commands, directory, environment, redirectErrorStream);
+				if (aborted) {
+					process.destroy();
+					return;
+				}
 				result = Command.execute(process);
 			}
 

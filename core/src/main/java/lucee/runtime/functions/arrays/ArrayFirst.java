@@ -32,7 +32,7 @@ public final class ArrayFirst extends BIF {
 
 	public static Object call(PageContext pc, Array array) throws PageException {
 		if (array.size() == 0) throw new ExpressionException("Cannot return first element of array; array is empty");
-		return array.getE(1);
+		return array.get(1, null);
 	}
 
 	@Override

@@ -236,7 +236,13 @@ public final class ScopeContext {
 			if ("memory".equals(storage)) isMemory = true;
 		}
 
-		StorageScope existing = (StorageScope) context.get(pc.getCFID());
+		Scope current = context.get(pc.getCFID());
+		// LDEV-6869 a JEE session left over from before the session type was switched to application
+		if (current instanceof JSession) {
+			if (context.remove(pc.getCFID(), current)) current.release(pc);
+			current = null;
+		}
+		StorageScope existing = (StorageScope) current;
 		if (existing != null && existing.isExpired()) {
 			existing = null;
 		}

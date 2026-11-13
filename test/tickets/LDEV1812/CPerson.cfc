@@ -1,2 +1,0 @@
-interface extends="IPerson"{
-}
