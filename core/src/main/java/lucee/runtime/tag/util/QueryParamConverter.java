@@ -352,6 +352,8 @@ public final class QueryParamConverter {
 
 					String v = Caster.toString(filledItem.getValue());
 					values = ListUtil.listToArrayRemoveEmpty(v, separator);
+					// LDEV-3207 with null=true an empty list is a single null param, not an error
+					if (values.size() == 0 && filledItem.isNulls()) values.append("");
 				}
 
 				int len = values.size();
