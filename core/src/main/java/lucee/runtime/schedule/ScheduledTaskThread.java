@@ -184,11 +184,7 @@ public final class ScheduledTaskThread extends ParentThreasRefThread {
 			finished = true;
 			return;
 		}
-		if (intervall == ScheduleTaskImpl.INTERVAL_EVEREY && startTime > endTime) {
-			log(Log.LEVEL_ERROR, "Invalid task definition: endtime is before starttime");
-			finished = true;
-			return;
-		}
+		// an end time before the start time is a window that spans midnight (for example 22:00 to 06:00)
 
 		long today = System.currentTimeMillis();
 		long execution;
@@ -452,7 +448,13 @@ public final class ScheduledTaskThread extends ParentThreasRefThread {
 		c.set(Calendar.MINUTE, 0);
 		c.set(Calendar.SECOND, 0);
 		c.set(Calendar.MILLISECOND, 0);
-		c.setTimeInMillis(c.getTimeInMillis() + endTime);
+		long midnight = c.getTimeInMillis();
+		// an end time before the start time means the window spans midnight (for example 22:00 to 06:00)
+		long startInDay = (((startHour * 60L + startMinute) * 60L) + startSecond) * 1000L + startMilliSecond;
+		if (endTime < startInDay) {
+			return calculateNextExecutionEveryOvernight(c, now, notNow, startHour, startMinute, startSecond, startMilliSecond, endTime, amount);
+		}
+		c.setTimeInMillis(midnight + endTime);
 		long end = c.getTimeInMillis();
 		// print.e("end:" + c.getTime());
 
@@ -490,6 +492,72 @@ public final class ScheduledTaskThread extends ParentThreasRefThread {
 		}
 		// print.e("next2:" + new Date(next));
 		return next;
+	}
+
+	/**
+	 * calculates the next execution for a window that spans midnight, so the window that started
+	 * yesterday ends today at endTime, and the window that starts today ends tomorrow at endTime
+	 */
+	private static long calculateNextExecutionEveryOvernight(Calendar c, long now, boolean notNow, int startHour, int startMinute, int startSecond, int startMilliSecond,
+			long endTime, int amount) {
+		// window that started yesterday and ends today
+		c.setTimeInMillis(now);
+		setMidnight(c);
+		long endToday = c.getTimeInMillis() + endTime;
+		if (now <= endToday) {
+			setStart(c, now, -1, startHour, startMinute, startSecond, startMilliSecond, amount);
+			long next = nextInWindow(c, now, notNow, endToday, amount);
+			if (next != -1) return next;
+		}
+
+		// window that starts today and ends tomorrow
+		c.setTimeInMillis(now);
+		setMidnight(c);
+		c.add(Calendar.DAY_OF_MONTH, 1);
+		long endTomorrow = c.getTimeInMillis() + endTime;
+		setStart(c, now, 0, startHour, startMinute, startSecond, startMilliSecond, amount);
+		long next = nextInWindow(c, now, notNow, endTomorrow, amount);
+		if (next != -1) return next;
+
+		// window that starts tomorrow
+		setStart(c, now, 1, startHour, startMinute, startSecond, startMilliSecond, amount);
+		return c.getTimeInMillis();
+	}
+
+	private static void setMidnight(Calendar c) {
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+	}
+
+	private static void setStart(Calendar c, long now, int dayOffset, int startHour, int startMinute, int startSecond, int startMilliSecond, int amount) {
+		c.setTimeInMillis(now);
+		c.add(Calendar.DAY_OF_MONTH, dayOffset);
+		c.set(Calendar.HOUR_OF_DAY, startHour);
+		revertDST(c, startHour, Calendar.SECOND, amount);
+		c.set(Calendar.MINUTE, startMinute);
+		c.set(Calendar.SECOND, startSecond);
+		c.set(Calendar.MILLISECOND, startMilliSecond);
+	}
+
+	/**
+	 * walks forward from the window start the calendar is set to and returns the first execution
+	 * inside the window, or -1 when the window ends before that
+	 */
+	private static long nextInWindow(Calendar c, long now, boolean notNow, long end, int amount) {
+		long next = c.getTimeInMillis();
+		while (next <= now) {
+			// we allow now
+			if (!notNow) {
+				long diff = now - next;
+				if (diff >= 0 && diff < 1000) break;
+			}
+			c.add(Calendar.SECOND, amount);
+			next = c.getTimeInMillis();
+			if (next > end) return -1;
+		}
+		return next > end ? -1 : next;
 	}
 
 	private static void revertDST(Calendar c, int hourExpected, int intervall, int amount) {

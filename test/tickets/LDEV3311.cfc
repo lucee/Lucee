@@ -16,7 +16,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			}
 			querySetCell( t2, "id", "lucee rocks", 1 );
 			
-			it( title='QoQ select * from table with reserved word as column name with HSQLDB (one col)' , skip=true, body=function() {
+			it( title='QoQ select * from table with reserved word as column name with HSQLDB (one col)' , body=function() {
 				// force fallback to hsqldb via join
 				var q = QueryExecute(
 					sql = "SELECT t1.unique FROM t1, t2 WHERE t1.id = t2.id",
@@ -27,7 +27,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			});
 
 
-			it( title='QoQ select * from table with reserved word as column name with HSQLDB' , skip=true, body=function() {
+			it( title='QoQ select * from table with reserved word as column name with HSQLDB' , body=function() {
 				// force fallback to hsqldb via join
 				var q = QueryExecute(
 					sql = "SELECT t1.* FROM t1, t2 WHERE t1.id = t2.id",
@@ -37,25 +37,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 				expect( q.recordcount ).toBe( 1 );
 			});
 
-			it( title='QoQ select * from table with reserved word as table name with HSQLDB', skip=true, body=function() {
+			it( title='QoQ select * from table with reserved word as table name with HSQLDB', body=function() {
 				// force fallback to hsqldb via join
 
-				expect(function(){
-					var q = QueryExecute(
-						sql = "SELECT UNIQUE.* FROM UNIQUE, t2 WHERE UNIQUE.id = t2.id",
-						options = { dbtype: 'query' }
-					);
-				}).toThrow(); // reserved words need to be both DOUBLE QUOTED and in UPPER CASE
+				var q = QueryExecute(
+					sql = "SELECT UNIQUE.* FROM UNIQUE, t2 WHERE UNIQUE.id = t2.id",
+					options = { dbtype: 'query' }
+				);
+				expect( q ).toBeQuery();
+				expect( q.recordcount ).toBe( 1 );
 
 				var q = QueryExecute(
-					sql = 'SELECT "UNIQUE".* FROM UNIQUE t2 WHERE "UNIQUE".id = t2.id',
+					sql = 'SELECT "UNIQUE".* FROM UNIQUE, t2 WHERE "UNIQUE".id = t2.id',
 					options = { dbtype: 'query' }
 				);
 				expect( q ).toBeQuery();
 				expect( q.recordcount ).toBe( 1 );
 			});
 
-			it( title='Qoq select * from table with reserved word as column name' , skip=true, body=function() {
+			it( title='Qoq select * from table with reserved word as column name' , body=function() {
 				var q = QueryExecute(
 					sql = "SELECT t1.* FROM t1",
 					options = { dbtype: 'query' }
@@ -64,7 +64,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 				expect( q.recordcount ).toBe( 1 );
 			});
 
-			it( title='Qoq select * from table with reserved word as table name' , skip=true, body=function() {
+			it( title='Qoq select * from table with reserved word as table name' , body=function() {
 				var q = QueryExecute(
 					sql = 'SELECT "UNIQUE".* FROM UNIQUE', 
 					options = { dbtype: 'query' }

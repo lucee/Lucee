@@ -290,6 +290,15 @@ public final class ComponentLoader {
 			}
 		}
 
+		// LDEV-3912: an import found relative to the current template is cached per directory of the
+		// current template, because the same import (e.g. "sub.MyCFC") points to a different component
+		// in another directory
+		String localImportCacheName = null;
+		if (isRealPath && currPS != null && Boolean.TRUE.equals(searchLocal)) {
+			localImportCacheName = currPS.getDisplayPath().replace('\\', '/');
+			localImportCacheName = "import:" + localImportCacheName.substring(0, localImportCacheName.lastIndexOf('/') + 1);
+		}
+
 		// check import cache
 		if (doCache && isRealPath) {
 			ImportDefintion impDef = config.getComponentDefaultImport();
@@ -298,6 +307,13 @@ public final class ComponentLoader {
 			do {
 
 				if ((currDir && impDef.isWildcard()) || impDef.getName().equalsIgnoreCase(path)) {
+					if (localImportCacheName != null) {
+						page = config.getComponentPathCache(pc, localImportCacheName + impDef.getPackageAsPath() + pathWithCFC);
+						if (page != null) {
+							return returnType == RETURN_TYPE_PAGE ? page
+									: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
+						}
+					}
 					page = config.getComponentPathCache(pc, "import:" + impDef.getPackageAsPath() + pathWithCFC);
 					if (page != null) {
 						return returnType == RETURN_TYPE_PAGE ? page
@@ -349,11 +365,11 @@ public final class ComponentLoader {
 				if ((currDir && impDef.isWildcard()) || impDef.getName().equalsIgnoreCase(path)) {
 
 					// search from local first
-					if (searchLocal) {
+					if (Boolean.TRUE.equals(searchLocal)) {
 						arr = ((PageContextImpl) pc).getRelativePageSources(impDef.getPackageAsPath() + pathWithCFC);
 						page = toCIPage(PageSourceImpl.loadPage(pc, arr, null));
 						if (page != null) {
-							if (doCache) config.putComponentPathCache("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
+							if (doCache && localImportCacheName != null) config.putComponentPathCache(localImportCacheName + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
 							return returnType == RETURN_TYPE_PAGE ? page
 									: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 						}

@@ -77,7 +77,9 @@
 			<!--- Action --->
 			<cfcase value="action">
 				<cfif StructKeyExists(form,"name")>
-					<cfloop collection="#form.name#" item="key">
+					<!--- with formUrlAsStruct (default) "name[]" arrives as a list, without it as an array --->
+					<cfset collectionNames=isArray(form.name)?form.name:listToArray(form.name)>
+					<cfloop array="#collectionNames#" item="collectionName">
 						<cfswitch expression="#form.action#">
 							<cfcase value="#stText.Buttons.Purge#">
 								<cfadmin 
@@ -86,7 +88,7 @@
 									password="#session["password"&request.adminType]#"
 									
 									indexAction="purge" 
-									collection="#form.name[key]#"
+									collection="#collectionName#"
 									remoteClients="#request.getRemoteClients()#">
 							</cfcase>
 							<cfcase value="#stText.Buttons.Repair#">
@@ -96,7 +98,7 @@
 									password="#session["password"&request.adminType]#"
 									
 									collectionAction="repair" 
-									collection="#form.name[key]#"
+									collection="#collectionName#"
 									remoteClients="#request.getRemoteClients()#">
 							</cfcase>
 							<cfcase value="#stText.Buttons.Optimize#">
@@ -106,7 +108,7 @@
 									password="#session["password"&request.adminType]#"
 									
 									collectionAction="optimize" 
-									collection="#form.name[key]#"
+									collection="#collectionName#"
 									remoteClients="#request.getRemoteClients()#">
 							</cfcase>	
 							<cfcase value="#stText.Buttons.Delete#">
@@ -116,7 +118,7 @@
 									password="#session["password"&request.adminType]#"
 									
 									collectionAction="delete" 
-									collection="#form.name[key]#"
+									collection="#collectionName#"
 									remoteClients="#request.getRemoteClients()#">
 								
 							</cfcase>

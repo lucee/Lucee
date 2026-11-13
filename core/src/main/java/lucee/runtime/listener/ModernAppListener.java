@@ -336,7 +336,11 @@ public class ModernAppListener extends AppListenerSupport {
 		PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
 		boolean createPc = pc == null;
 		try {
-			if (createPc) pc = createPageContext(factory, app, applicationName, null, KeyConstants._onApplicationEnd, true, -1);
+			if (createPc) {
+				pc = createPageContext(factory, app.getPageSource().getRealpathWithVirtual(), null, true, -1);
+				initApplicationContext(pc, app);
+				pc.setBase(app.getPageSource());
+			}
 			call(app, pc, KeyConstants._onApplicationEnd, new Object[] { pc.applicationScope() }, true);
 		}
 		finally {
@@ -361,28 +365,50 @@ public class ModernAppListener extends AppListenerSupport {
 		}
 		if (hasOnSessionEnd(pc, app)) {
 			session = pc.sessionScope(); // in case of sessionRotate() in onSessionStart
-			if (session instanceof SessionMemory) ((SessionMemory) session).setComponent(app);
-			else if (session instanceof JSession) ((JSession) session).setComponent(app);
+			// LDEV-3320 only remember where the Application.cfc lives, a fresh instance is created for onSessionEnd
+			if (session instanceof SessionMemory) ((SessionMemory) session).setApplicationPageSource(app.getPageSource());
+			else if (session instanceof JSession) ((JSession) session).setApplicationPageSource(app.getPageSource());
 		}
 	}
 
 	@Override
 	public void onSessionEnd(CFMLFactory factory, String applicationName, String cfid) throws PageException {
 		try {
-			Component app = null;
+			PageSource appPS = null;
+			String appPath = null;
 			Session scope = ((CFMLFactoryImpl) factory).getScopeContext().getExistingCFSessionScope(applicationName, cfid);
 
-			if (scope instanceof SessionMemory) app = ((SessionMemory) scope).getComponent();
-			if (scope instanceof JSession) app = ((JSession) scope).getComponent();
-			if (app == null || !app.containsKey(KeyConstants._onSessionEnd)) return;
+			if (scope instanceof SessionMemory) {
+				appPS = ((SessionMemory) scope).getApplicationPageSource();
+				appPath = ((SessionMemory) scope).getApplicationPath();
+			}
+			else if (scope instanceof JSession) {
+				appPS = ((JSession) scope).getApplicationPageSource();
+				appPath = ((JSession) scope).getApplicationPath();
+			}
+			if (appPS != null) appPath = appPS.getRealpathWithVirtual();
+			if (StringUtil.isEmpty(appPath)) return;
+
 			PageContextImpl pc = null;
 			PageContext existing = ThreadLocalPageContext.get();
 			try {
-				pc = createPageContext(factory, app, applicationName, cfid, KeyConstants._onSessionEnd, true, -1);
+				pc = createPageContext(factory, appPath, cfid, true, -1);
+				// the page source is not kept when the session got serialized, resolve it again by its path
+				if (appPS == null) appPS = pc.getPageSourceExisting(appPath);
+				if (appPS == null) {
+					LogUtil.log(Log.LEVEL_ERROR, "application", "unable to load [" + appPath + "] to call onSessionEnd for session [" + applicationName + "/" + cfid + "]");
+					return;
+				}
+				pc.setBase(appPS);
+				Component app = getComponent(pc, appPS.loadPage(pc, false));
+				ModernApplicationContext appContext = initApplicationContext(pc, app);
+				// keep the name of the ending session's application, even if this.name is computed from the request
+				appContext.setName(applicationName);
+				if (!app.containsKey(KeyConstants._onSessionEnd)) return;
 				call(app, pc, KeyConstants._onSessionEnd, new Object[] { pc.sessionScope(false), pc.applicationScope() }, true);
 			}
 			finally {
-				factory.releaseLuceePageContext(pc, true);
+				if (pc != null) factory.releaseLuceePageContext(pc, true);
 				if (existing != null) ThreadLocalPageContext.register(existing);
 			}
 		}
@@ -391,10 +417,8 @@ public class ModernAppListener extends AppListenerSupport {
 		}
 	}
 
-	private PageContextImpl createPageContext(CFMLFactory factory, Component app, String applicationName, String cfid, Collection.Key methodName, boolean register, long timeout)
-			throws PageException {
+	private PageContextImpl createPageContext(CFMLFactory factory, String path, String cfid, boolean register, long timeout) throws PageException {
 		Resource root = factory.getConfig().getRootDirectory();
-		String path = app.getPageSource().getRealpathWithVirtual();
 
 		// Request
 		HttpServletRequestDummy req = new HttpServletRequestDummy(root, "localhost", path, "", null, null, null, null, null, null);
@@ -406,18 +430,7 @@ public class ModernAppListener extends AppListenerSupport {
 		HttpServletResponseDummy rsp = new HttpServletResponseDummy(os);
 
 		// PageContext
-		PageContextImpl pc = (PageContextImpl) factory.getLuceePageContext(factory.getServlet(), req, rsp, null, false, -1, false, register, timeout, true, false);
-
-		// ApplicationContext
-		ClassicApplicationContext ap = new ClassicApplicationContext(factory.getConfig(), applicationName, false,
-				app == null ? null : ResourceUtil.getResource(pc, app.getPageSource(), null));
-		initApplicationContext(pc, app);
-		ap.setName(applicationName);
-		ap.setSetSessionManagement(true);
-
-		// Base
-		pc.setBase(app.getPageSource());
-		return pc;
+		return (PageContextImpl) factory.getLuceePageContext(factory.getServlet(), req, rsp, null, false, -1, false, register, timeout, true, false);
 	}
 
 	@Override
@@ -481,6 +494,7 @@ public class ModernAppListener extends AppListenerSupport {
 
 	@Override
 	public void onError(PageContext pc, PageException pe) {
+		if (pc instanceof PageContextImpl) ((PageContextImpl) pc).setErrorHandledByListener(false);
 		Component app = getComponent(pc);
 		if (app != null && app.containsKey(KeyConstants._onError) && !Abort.isSilentAbort(pe)) {
 			try {
@@ -489,6 +503,8 @@ public class ModernAppListener extends AppListenerSupport {
 				if (eventName == null) eventName = "";
 
 				call(app, pc, KeyConstants._onError, new Object[] { pe.getCatchBlock(pc.getConfig()), eventName }, true);
+				// LDEV-3570 onError completed without throwing, the error is handled, so the engine must not log it again
+				if (pc instanceof PageContextImpl) ((PageContextImpl) pc).setErrorHandledByListener(true);
 				return;
 			}
 			catch (PageException _pe) {

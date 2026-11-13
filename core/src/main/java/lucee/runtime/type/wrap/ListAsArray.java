@@ -231,6 +231,11 @@ public class ListAsArray extends ArraySupport implements Array, List {
 		throw unsupported("toArray");
 	}
 
+	@Override
+	public Object[] toNativeArray() {
+		return list.toArray();
+	}
+
 	public ArrayList toArrayList() {
 		throw unsupported("toArrayList");
 	}

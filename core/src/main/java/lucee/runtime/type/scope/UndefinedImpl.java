@@ -863,6 +863,11 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		if (obj instanceof UDF) {
 			return ((UDF) obj).call(pc, methodName, args, false);
 		}
+		// LDEV-1059 a query column or other none UDF value found first must not hide a function in the variables scope
+		obj = variable.get(pc, methodName, null);
+		if (obj instanceof UDF) {
+			return ((UDF) obj).call(pc, methodName, args, false);
+		}
 		UDF udf = getUDF(pc, methodName);
 		if (udf != null) {
 			return udf.call(pc, methodName, args, false);
@@ -881,6 +886,11 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		if (obj instanceof UDF) {
 			return ((UDF) obj).callWithNamedValues(pc, methodName, args, false);
 		}
+		// LDEV-1059 a query column or other none UDF value found first must not hide a function in the variables scope
+		obj = variable.get(pc, methodName, null);
+		if (obj instanceof UDF) {
+			return ((UDF) obj).callWithNamedValues(pc, methodName, args, false);
+		}
 		UDF udf = getUDF(pc, methodName);
 		if (udf != null) {
 			return udf.callWithNamedValues(pc, methodName, args, false);
@@ -896,32 +906,47 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		ApplicationContextSupport ac = (ApplicationContextSupport) pc.getApplicationContext();
 		if (ac != null) {
 			List<Resource> dirs = ac.getFunctionDirectories();
-			Resource[] files;
 			if (dirs != null && dirs.size() > 0) {
 				Resource file = null;
 				Iterator<Resource> it = dirs.iterator();
-				Resource dir;
 				while (it.hasNext()) {
-					dir = it.next();
-					files = dir.listResources(new ResourceNameFilter() {
-						@Override
-						public boolean accept(Resource dir, String name) {
-							String[] exts = Constants.getTemplateExtensions();
-							for (String ex: exts) {
-								if (name.equalsIgnoreCase(methodName + "." + ex)) return true;
-							}
-							return false;
-						}
-					});
-					if (files != null && files.length > 0) {
-						file = files[0];
-						break;
-					}
+					file = getFunctionFile(it.next(), methodName.getString());
+					if (file != null) break;
 				}
 				if (file != null) {
 					return CFFunction.loadUDF(pc, file, methodName, true, false);
 				}
 			}
+		}
+		return null;
+	}
+
+	/**
+	 * look up the template for a function in a function directory, matching the name and one of the
+	 * template extensions
+	 */
+	private static Resource getFunctionFile(Resource dir, final String name) {
+		final String[] exts = Constants.getTemplateExtensions();
+
+		// direct lookup, no need to list the directory
+		Resource file;
+		for (String ex: exts) {
+			file = dir.getRealResource(name + "." + ex);
+			if (file.isFile()) return file;
+		}
+
+		// on a case sensitive file system the name still has to match case insensitive
+		if (dir.getResourceProvider().isCaseSensitive()) {
+			Resource[] files = dir.listResources(new ResourceNameFilter() {
+				@Override
+				public boolean accept(Resource dir, String fileName) {
+					for (String ex: exts) {
+						if (fileName.equalsIgnoreCase(name + "." + ex)) return true;
+					}
+					return false;
+				}
+			});
+			if (files != null && files.length > 0) return files[0];
 		}
 		return null;
 	}

@@ -47,10 +47,25 @@ public final class StructMapEntry implements Map.Entry<String, Object> {
 
 	@Override
 	public Object setValue(Object value) {
-		Object old = value;
+		Object old = this.value;
 		sct.setEL(key, value);
 		this.value = value;
 		return old;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == this) return true;
+		if (!(o instanceof Map.Entry)) return false;
+		Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
+		Object k = e.getKey();
+		Object v = e.getValue();
+		return (k == null ? false : key.getString().equals(k.toString())) && (value == null ? v == null : value.equals(v));
+	}
+
+	@Override
+	public int hashCode() {
+		return key.getString().hashCode() ^ (value == null ? 0 : value.hashCode());
 	}
 
 }

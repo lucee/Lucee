@@ -6,6 +6,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ssl" {
 		directoryCreate( variables.dir, true );
 		variables.dir &= "/";
 		variables.oldStore = getDirectoryFromPath( getCurrentTemplatePath() ) & "LDEV6741/cacerts-ldev4497";
+		// trust store bundled with Lucee 5.4 since LDEV-4952 (March 2025), still contains the affected roots
+		variables.oldStore54 = getDirectoryFromPath( getCurrentTemplatePath() ) & "LDEV6741/cacerts-ldev4952";
+		variables.oldStore54Hash = "892AD5B2A77D706A0B9115089D0DBE95661A43E6D95E254AC6190F3260AAAF5E";
 		variables.bts = createObject( "java", "lucee.runtime.config.BundledTrustStore" );
 		// SHA-256 fingerprints of the roots affected by CVE-2026-91403
 		variables.affectedFingerprints = [
@@ -96,6 +99,40 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ssl" {
 				expect( hash( fileReadBinary( secDir & "/cacerts" ), "SHA-256" ) ).toBe( bts.getBundledHash() );
 			});
 
+			it( "the trust stores bundled by Lucee 5.x are known as previous bundled versions", function() {
+				var hashes = bts.getPreviousHashes();
+				// update cacerts file (2022, 5.3.9 / early 5.4)
+				expect( hashes.contains( "0d9c408fceb1c7278954fd80dab691f4c99415c48d256234d47032601a6f1327" ) ).toBeTrue();
+				// LDEV-4952 update cacerts march 2025 (5.4)
+				expect( hashes.contains( "892ad5b2a77d706a0b9115089d0dbe95661a43e6d95e254ac6190f3260aaaf5e" ) ).toBeTrue();
+				expect( bts.isPreviousBundledVersion( toResource( copyStore( variables.oldStore54, variables.oldStore54Hash, "known-54" ) ) ) ).toBeTrue();
+			});
+
+			it( "an unmodified trust store from Lucee 5.4 (LDEV-4952) gets updated", function() {
+				var path = copyStore( variables.oldStore54, variables.oldStore54Hash, "unmodified-54" );
+				var affectedBefore = 0;
+				loop array=getFingerprints( loadKeyStore( fileReadBinary( path ) ) ) item="local.fingerprint" {
+					if ( arrayFindNoCase( variables.affectedFingerprints, fingerprint ) ) affectedBefore++;
+				}
+				expect( affectedBefore ).toBe( arrayLen( variables.affectedFingerprints ) );
+
+				expect( bts.updateIfUnmodified( toResource( path ) ) ).toBeTrue();
+				expect( hash( fileReadBinary( path ), "SHA-256" ) ).toBe( bts.getBundledHash() );
+				expect( fileExists( path & ".tmp" ) ).toBeFalse();
+				loop array=getFingerprints( loadKeyStore( fileReadBinary( path ) ) ) item="local.fingerprint" {
+					expect( arrayFindNoCase( variables.affectedFingerprints, fingerprint ) ).toBe( 0 );
+				}
+			});
+
+			it( "deploy updates an unmodified trust store from Lucee 5.4", function() {
+				var secDir = variables.dir & "deploy-54/security";
+				directoryCreate( secDir, true, true );
+				fileCopy( variables.oldStore54, secDir & "/cacerts" );
+				expect( hash( fileReadBinary( secDir & "/cacerts" ), "SHA-256" ) ).toBe( variables.oldStore54Hash );
+				bts.deploy( toResource( secDir ) );
+				expect( hash( fileReadBinary( secDir & "/cacerts" ), "SHA-256" ) ).toBe( bts.getBundledHash() );
+			});
+
 			it( "deploy updates an unmodified trust store from a previous release", function() {
 				var secDir = variables.dir & "deploy-old/security";
 				directoryCreate( secDir, true, true );
@@ -112,6 +149,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ssl" {
 		directoryCreate( getDirectoryFromPath( path ), true, true );
 		fileCopy( variables.oldStore, path );
 		expect( hash( fileReadBinary( path ), "SHA-256" ) ).toBe( "6FE983076DEF1AD7C40DA7093D7D52D897872872D4E9D2089826AF7AE5F05822" );
+		return path;
+	}
+
+	private function copyStore( required string source, required string expectedHash, required string name ) {
+		var path = variables.dir & arguments.name & "/cacerts";
+		directoryCreate( getDirectoryFromPath( path ), true, true );
+		fileCopy( arguments.source, path );
+		expect( hash( fileReadBinary( path ), "SHA-256" ) ).toBe( arguments.expectedHash );
 		return path;
 	}
 
