@@ -89,9 +89,19 @@ public final class JavaCast implements Function {
 		Object trg = java.lang.reflect.Array.newInstance(clazz, arr.length);
 
 		for (int i = arr.length - 1; i >= 0; i--) {
-			java.lang.reflect.Array.set(trg, i, type.endsWith("[]") ? _toArray(pc, type, lcType, arr[i], javaSettings) : to(pc, arr[i], clazz));
+			java.lang.reflect.Array.set(trg, i,
+					type.endsWith("[]") ? _toArray(pc, type, lcType, arr[i], javaSettings) : (clazz == byte.class ? toArrayByte(pc, arr[i]) : to(pc, arr[i], clazz)));
 		}
 		return trg;
+	}
+
+	// LDEV-6915 an element of a byte array may also be an unsigned byte (128 to 255), kept with the same 8 bits
+	private static Object toArrayByte(PageContext pc, Object obj) throws PageException {
+		double d = Double.NaN;
+		if (obj instanceof Number) d = ((Number) obj).doubleValue();
+		else if (obj instanceof CharSequence) d = Caster.toDoubleValue(obj.toString(), Double.NaN);
+		if (d >= 128 && d < 256) return Byte.valueOf((byte) (int) d);
+		return to(pc, obj, byte.class);
 	}
 
 	private static Object to(PageContext pc, Object obj, Class<?> trgClass) throws PageException {
