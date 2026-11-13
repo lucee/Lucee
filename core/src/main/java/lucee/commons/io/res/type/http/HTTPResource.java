@@ -46,6 +46,8 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	private final String name;
 	private HTTPResponse http;
 	private HTTPDownloaderHeadResponse meta;
+	// LDEV-6922: length counted from the body when the server sends no Content-Length header
+	private volatile Long contentLength;
 
 	public HTTPResource(HTTPResourceProvider provider, HTTPConnectionData data) {
 		this.provider = provider;
@@ -243,12 +245,37 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	public long length() {
 		try {
 			if (!exists()) return 0;
-			return getMeta().getContentLength();
+			HTTPDownloaderHeadResponse m = getMeta();
+			if (m.hasContentLength()) return m.getContentLength();
+
+			// LDEV-6922: without a Content-Length header (chunked responses, HEAD responses without it) the
+			// length is calculated by reading the body, as 7.1 does
+			Long cl = contentLength;
+			if (cl == null) contentLength = cl = Long.valueOf(readContentLength());
+			return cl.longValue();
 		}
 		catch (Exception e) {
 			return 0L;
 		}
 
+	}
+
+	private long readContentLength() throws IOException {
+		URL url = getURL();
+		InputStream is = null;
+		try {
+			is = HTTPEngine.get(url, data.username, data.password, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, _getTimeout(), data.userAgent, getProxy(url));
+			byte[] buffer = new byte[8192];
+			long length = 0;
+			int len;
+			while ((len = is.read(buffer)) != -1) {
+				length += len;
+			}
+			return length;
+		}
+		finally {
+			IOUtil.closeEL(is);
+		}
 	}
 
 	@Override
@@ -258,16 +285,19 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 
 	public void setProxyData(ProxyData pd) {
 		this.http = null;
+		this.contentLength = null;
 		this.data.setProxyData(pd);
 	}
 
 	public void setUserAgent(String userAgent) {
 		this.http = null;
+		this.contentLength = null;
 		this.data.userAgent = userAgent;
 	}
 
 	public void setTimeout(int timeout) {
 		this.http = null;
+		this.contentLength = null;
 		data.timeout = timeout;
 	}
 
