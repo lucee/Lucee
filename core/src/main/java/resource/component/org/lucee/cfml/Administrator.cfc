@@ -2211,9 +2211,9 @@ component {
 
 	/**
 	* @hint updates common application settings
-	* @requestTimeout Sets the amount of time the engine will wait for a request to finish before a request timeout will be raised.
+	* @requestTimeout Sets the amount of time the engine will wait for a request to finish before a request timeout will be raised. Deprecated since 7.1.3, a request timeout can only interrupt the request thread; use the timeout of the operation itself (e.g. query or http timeout) instead.
 	* @scriptProtect secures your system from "cross-site scripting"
-	* @allowURLRequestTimeout Whether lucee needs to obey the URL parameter RequestTimeout or not
+	* @allowURLRequestTimeout Whether lucee needs to obey the URL parameter RequestTimeout or not. Deprecated since 7.1.3, see requestTimeout.
 	*/
 	public void function updateApplicationSetting( timespan requestTimeout, string scriptProtect, boolean allowURLRequestTimeout ){
 		var existing = getApplicationSetting();

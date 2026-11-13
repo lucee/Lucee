@@ -1118,33 +1118,37 @@
 	{
 		"sysprop": "lucee.requesttimeout",
 		"envvar": "LUCEE_REQUESTTIMEOUT",
-		"desc": "A boolean value. If `false`, Lucee will disable request timeouts",
+		"desc": "A boolean value. If `false`, Lucee will disable request timeouts. Deprecated since 7.1.3: request timeouts can only interrupt the request thread, which does not stop blocking JDBC, network or native calls; use the timeout of the operation itself (e.g. query or http timeout) instead.",
 		"category": "request",
 		"type": "boolean",
+		"deprecated": "7.1.3",
 		"default": true
 	},
 	{
 		"sysprop": "lucee.requesttimeout.concurrentrequestthreshold",
 		"envvar": "LUCEE_REQUESTTIMEOUT_CONCURRENTREQUESTTHRESHOLD",
-		"desc": "Concurrent request threshold to enforce a request timeout. If a request reaches the timeout, Lucee will only enforce it if this threshold is also reached. For example, setting it to 100 means the timeout is enforced only if there are at least 99 other requests running. Set to 0 to disable",
+		"desc": "Concurrent request threshold to enforce a request timeout. If a request reaches the timeout, Lucee will only enforce it if this threshold is also reached. For example, setting it to 100 means the timeout is enforced only if there are at least 99 other requests running. Set to 0 to disable. Deprecated since 7.1.3: request timeouts can only interrupt the request thread, which does not stop blocking JDBC, network or native calls; use the timeout of the operation itself (e.g. query or http timeout) instead.",
 		"category": "request",
 		"type": "numeric",
+		"deprecated": "7.1.3",
 		"default": 0
 	},
 	{
 		"sysprop": "lucee.requesttimeout.cputhreshold",
 		"envvar": "LUCEE_REQUESTTIMEOUT_CPUTHRESHOLD",
-		"desc": "A floating-point number between 0 and 1. CPU threshold to enforce a request timeout. If a request reaches the timeout, Lucee will only enforce it if the CPU usage of the current core is at least the specified threshold. For example, setting it to 0.5 enforces the timeout if the CPU is at least 50%. Set to 0 to disable",
+		"desc": "A floating-point number between 0 and 1. CPU threshold to enforce a request timeout. If a request reaches the timeout, Lucee will only enforce it if the CPU usage of the current core is at least the specified threshold. For example, setting it to 0.5 enforces the timeout if the CPU is at least 50%. Set to 0 to disable. Deprecated since 7.1.3: request timeouts can only interrupt the request thread, which does not stop blocking JDBC, network or native calls; use the timeout of the operation itself (e.g. query or http timeout) instead.",
 		"category": "request",
 		"type": "numeric",
+		"deprecated": "7.1.3",
 		"default": 0
 	},
 	{
 		"sysprop": "lucee.requesttimeout.memorythreshold",
 		"envvar": "LUCEE_REQUESTTIMEOUT_MEMORYTHRESHOLD",
-		"desc": "A floating-point number between 0 and 1. Memory threshold to enforce a request timeout. If a request reaches the request timeout, Lucee will only enforce that timeout if this threshold is also reached. For example, setting it to 0.5 enforces the timeout if the memory consumption of the server is at least 50%. Set to 0 to disable",
+		"desc": "A floating-point number between 0 and 1. Memory threshold to enforce a request timeout. If a request reaches the request timeout, Lucee will only enforce that timeout if this threshold is also reached. For example, setting it to 0.5 enforces the timeout if the memory consumption of the server is at least 50%. Set to 0 to disable. Deprecated since 7.1.3: request timeouts can only interrupt the request thread, which does not stop blocking JDBC, network or native calls; use the timeout of the operation itself (e.g. query or http timeout) instead.",
 		"category": "request",
 		"type": "numeric",
+		"deprecated": "7.1.3",
 		"default": 0
 	},
 	{
