@@ -5403,7 +5403,10 @@ This attribute only takes effect when a custom debug template is defined in the 
 			<name>requestTimeOut</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>number of seconds. Time limit, after which CFML processes the page as an unresponsive thread.
+			<status>deprecated</status>
+			<description>Deprecated: still honoured, but a request timeout can only interrupt the request thread, which does not stop blocking JDBC, network or native calls (Thread.stop() is not supported since Java 20).
+			Use the timeout of the operation itself instead, for example the "timeout" attribute of cfquery/queryExecute (or this.tag.cfquery.timeout) and cfhttp.
+			Number of seconds. Time limit, after which CFML processes the page as an unresponsive thread.
 			Overrides the timeout set in the Lucee Administrator. </description>
 		</attribute>
 	</tag>
@@ -8288,7 +8291,10 @@ Suport for cookie was removed in Lucee 7
 			<alias>timeout</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Sets the amount of time Lucee will wait for a request to finish before a request timeout will be raised. This means that the execution of the request will be stopped.</description>
+			<status>deprecated</status>
+			<description>Deprecated: still honoured, but a request timeout can only interrupt the request thread, which does not stop blocking JDBC, network or native calls (Thread.stop() is not supported since Java 20).
+			Use the timeout of the operation itself instead, for example the "timeout" attribute of cfquery/queryExecute (or this.tag.cfquery.timeout) and cfhttp.
+			Sets the amount of time Lucee will wait for a request to finish before a request timeout will be raised.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
