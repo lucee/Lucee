@@ -9,7 +9,7 @@
 -->
 <project default="archives" basedir="${rootDir}" name="luceeSingleJar">
 
-  <!-- the libraries that are shaded into the jar (Felix, ASM, commons-pool2) must not be in the classpath of the tests, the jar brings them with the relocated names -->
+  <!-- the libraries that are shaded into the jar (ASM, commons-pool2) must not be in the classpath of the tests, the jar brings them with the relocated names -->
   <path id="runtime_classpath_all">
     <pathelement path="${runtime_classpath}"/>
   </path>
@@ -17,7 +17,6 @@
     <path refid="runtime_classpath_all"/>
     <not xmlns="antlib:org.apache.tools.ant.types.resources.selectors">
       <or>
-        <name name="**/org/apache/felix/**" handledirsep="true"/>
         <name name="**/org/ow2/asm/**" handledirsep="true"/>
         <name name="**/org/apache/commons/commons-pool2/**" handledirsep="true"/>
         <!-- the classes folder is the jar -->
