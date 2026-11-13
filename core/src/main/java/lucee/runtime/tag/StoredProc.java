@@ -609,7 +609,7 @@ public final class StoredProc extends BodyTagTryCatchFinallySupport {
 
 			if (useCache) {
 
-				cacheId = CacheHandlerCollectionImpl.createId(_sql, dsn, username, password, Query.RETURN_TYPE_STORED_PROC, 0);
+				cacheId = CacheHandlerCollectionImpl.createId(_sql, (ds instanceof DataSource) ? ((DataSource) ds).id() : dsn, username, password, Query.RETURN_TYPE_STORED_PROC, 0);
 				cacheHandler = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null).getInstanceMatchingObject(cachedWithin, null);
 
 				if (cacheHandler instanceof CacheHandlerPro) {
