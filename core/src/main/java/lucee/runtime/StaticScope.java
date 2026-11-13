@@ -89,7 +89,7 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 		}
 		// if not the parent (inside the static constructor we do not remove keys from base static scopes)
 
-		if (base != null && !c.insideStaticConstrThread.get()) return base._remove(pc, key);
+		if (base != null && !c.insideStaticConstr) return base._remove(pc, key);
 		return null;
 	}
 
@@ -199,7 +199,7 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 		}
 
 		// if not the parent (we only do this if we are outside the static constructor)
-		if (base != null && !c.insideStaticConstrThread.get()) return base._setIfExists(pc, key, value, access, modifier);
+		if (base != null && !c.insideStaticConstr) return base._setIfExists(pc, key, value, access, modifier);
 		return null;
 	}
 
@@ -519,7 +519,7 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 	}
 
 	public static Variables beforeStaticConstructor(PageContext pc, ComponentImpl c, StaticScope ss) {
-		c.insideStaticConstrThread.set(Boolean.TRUE);
+		c.insideStaticConstr = true;
 		Variables parent = pc.variablesScope();
 		if (parent != ss) {
 			pc.setVariablesScope(ss);
@@ -529,7 +529,7 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 	}
 
 	public static void afterStaticConstructor(PageContext pc, ComponentImpl c, Variables parent) {
-		c.insideStaticConstrThread.set(Boolean.FALSE);
+		c.insideStaticConstr = false;
 		if (parent != null) pc.setVariablesScope(parent);
 	}
 
