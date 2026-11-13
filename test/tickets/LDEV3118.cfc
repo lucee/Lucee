@@ -36,6 +36,35 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 				expectNotRejectedByLucee( "tinyint", "255" );
 			});
 
+			it( title="negative tinyint values still work on a signed tinyint", skip=notHasH2(), body=function() {
+				expect( param( "tinyint", -1 ) ).toBe( -1 );
+				expect( param( "tinyint", "-1" ) ).toBe( -1 );
+			});
+
+			it( title="tinyint values from 0 to 255 work on MSSQL", skip=notHasMSSQL(), body=function() {
+				var mssql = server.getDatasource( "mssql" );
+				expect( param( "tinyint", 0, mssql ) ).toBe( 0 );
+				expect( param( "tinyint", 127, mssql ) ).toBe( 127 );
+				expect( param( "tinyint", "255", mssql ) ).toBe( 255 );
+				expectInvalid( "tinyint", 256, mssql );
+			});
+
+			// MSSQL tinyint is unsigned, the driver wraps a negative value (-128 became 128)
+			it( title="negative tinyint values throw on MSSQL", skip=notHasMSSQL(), body=function() {
+				var mssql = server.getDatasource( "mssql" );
+				expectInvalid( "tinyint", -1, mssql );
+				expectInvalid( "tinyint", "-1", mssql );
+				expectInvalid( "tinyint", -128, mssql );
+			});
+
+			it( title="negative tinyint values still work on MySQL", skip=notHasMySQL(), body=function() {
+				var mysql = server.getDatasource( "mysql" );
+				expect( param( "tinyint", -1, mysql ) ).toBe( -1 );
+				expect( param( "tinyint", -128, mysql ) ).toBe( -128 );
+				expect( param( "tinyint", 127, mysql ) ).toBe( 127 );
+				expectInvalid( "tinyint", 256, mysql );
+			});
+
 		});
 	}
 
@@ -48,8 +77,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 		}
 	}
 
-	private function param( required string type, required any value ) {
-		query name="local.q" datasource=variables.ds {
+	private function param( required string type, required any value, any datasource=variables.ds ) {
+		query name="local.q" datasource=arguments.datasource {
 			echo( "select " );
 			queryparam cfsqltype="cf_sql_#arguments.type#" value=arguments.value;
 			echo( " as r" );
@@ -57,15 +86,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 		return q.r;
 	}
 
-	private function expectInvalid( required string type, required any value ) {
+	private function expectInvalid( required string type, required any value, any datasource=variables.ds ) {
 		var t = arguments.type;
 		var v = arguments.value;
+		var d = arguments.datasource;
 		expect( function() {
-			param( t, v );
+			param( t, v, d );
 		} ).toThrow( message="Invalid data*" );
 	}
 
 	private boolean function notHasH2() {
 		return structIsEmpty( server.getDatasource( "h2", server._getTempDir( "LDEV3118" ) ) );
+	}
+
+	private boolean function notHasMSSQL() {
+		return structIsEmpty( server.getDatasource( "mssql" ) );
+	}
+
+	private boolean function notHasMySQL() {
+		return structIsEmpty( server.getDatasource( "mysql" ) );
 	}
 }

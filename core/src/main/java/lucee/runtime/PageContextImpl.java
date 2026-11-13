@@ -26,6 +26,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -255,6 +256,7 @@ public final class PageContextImpl extends PageContext {
 	private final ArrayList<UDF> udfs = new ArrayList<UDF>();
 	private final ArrayList<PageSource> pathList = new ArrayList<PageSource>();
 	private final ArrayList<PageSource> includePathList = new ArrayList<PageSource>();
+	private Map<String, String> callStackPaths;
 	private final Set<PageSource> includeOnce = new HashSet<PageSource>();
 
 	/**
@@ -376,6 +378,8 @@ public final class PageContextImpl extends PageContext {
 	private LinkedList<DebuggerFrame> debuggerFrames;
 
 	private PageException pe;
+	// LDEV-3570 set when Application.cfc onError has completed without throwing, so the engine does not log the exception again
+	private boolean errorHandledByListener;
 	// private Throwable requestTimeoutException;
 
 	private boolean ignoreScopes = false;
@@ -667,6 +671,8 @@ public final class PageContextImpl extends PageContext {
 			}
 		}
 
+		callStackPaths = null;
+
 		config.releaseCacheHandlers(this);
 		if (debuggerFrames != null) {
 			debuggerFrames = null;
@@ -818,6 +824,7 @@ public final class PageContextImpl extends PageContext {
 		appWriterType = 0;
 		requestWriterType = 0;
 		if (pagesUsed.size() > 0) pagesUsed.clear();
+		writerPool.release();
 
 		activeComponent = null;
 		activeUDF = null;
@@ -836,6 +843,7 @@ public final class PageContextImpl extends PageContext {
 		}
 		includeOnce.clear();
 		pe = null;
+		errorHandledByListener = false;
 		this.literalTimestampWithTSOffset = false;
 		thread = null;
 		tagName = null;
@@ -1006,10 +1014,35 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public PageSource[] getRelativePageSources(String realPath) {
-		if (StringUtil.startsWith(realPath, '/')) return getPageSources(realPath);
+		if (StringUtil.startsWith(realPath, '/')) {
+			PageSource[] sources = getPageSources(realPath);
+			// cfinclude of a real file that is not a virtual page. Web requests call getPageSources directly
+			// and must 404 instead of executing that file from outside the webroot.
+			if (!pageSourceExists(sources)) {
+				PageSource direct = absoluteFilePageSource(realPath);
+				if (direct != null) return new PageSource[] { direct };
+			}
+			return sources;
+		}
 		PageSource ps = pathList.isEmpty() ? null : pathList.get(pathList.size() - 1);
 		if (ps == null) return null;
 		return new PageSource[] { ((PageSourceImpl) ps).getRealPageSource(this, realPath) };
+	}
+
+	private static boolean pageSourceExists(PageSource[] sources) {
+		PageSource best = PageSourceImpl.best(sources);
+		return best != null && PageSourceImpl.pageExist(best);
+	}
+
+	private PageSource absoluteFilePageSource(String realPath) {
+		try {
+			Resource res = config.getResource(realPath);
+			if (res != null && res.isAbsolute() && res.isFile()) return toPageSource(res, null);
+		}
+		catch (PageRuntimeException e) {
+			return null;
+		}
+		return null;
 	}
 
 	public PageSource getPageSource(String realPath) {
@@ -2113,7 +2146,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Object getFunction(Object coll, Key key, Object[] args) throws PageException {
-		if (config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE) && !gatewayContext) {
+		if (hasDebugOptions(ConfigPro.DEBUG_TEMPLATE) && !gatewayContext) {
 			DebugEntryTemplate debugEntry = debugger.getEntry(this, getCurrentTemplatePageSource(), key.toString());
 			long currTime = getExecutionTime();
 			long time = System.nanoTime();
@@ -2142,7 +2175,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Object getFunctionWithNamedValues(Object coll, Key key, Object[] args) throws PageException {
-		if (config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE) && !gatewayContext) {
+		if (hasDebugOptions(ConfigPro.DEBUG_TEMPLATE) && !gatewayContext) {
 			DebugEntryTemplate debugEntry = debugger.getEntry(this, getCurrentTemplatePageSource(), key.toString());
 			long currTime = getExecutionTime();
 			long time = System.nanoTime();
@@ -2502,7 +2535,7 @@ public final class PageContextImpl extends PageContext {
 						variablesScope().setEL(KeyConstants._cfcatch, catchBlock);
 						variablesScope().setEL(KeyConstants._catch, catchBlock);
 						variablesScope().setEL(KeyConstants._error, pe.getErrorBlock(this, new ErrorPageImpl()));
-						doInclude(template, false);
+						doIncludeErrorTemplate(template);
 						return;
 					}
 					catch (PageException e) {
@@ -2518,6 +2551,24 @@ public final class PageContextImpl extends PageContext {
 			}
 			catch (Exception e) {}
 		}
+	}
+
+	/**
+	 * include the configured error template. The template is usually a virtual path, but it can also
+	 * be the absolute path to a file, in that case the virtual lookup finds nothing and we fall back to
+	 * the file itself.
+	 */
+	private void doIncludeErrorTemplate(String template) throws PageException {
+		PageSource[] sources = getRelativePageSources(template);
+		PageSource best = PageSourceImpl.best(sources);
+		if (best == null || !PageSourceImpl.pageExist(best)) {
+			Resource res = config.getResource(template);
+			if (res.isAbsolute() && res.isFile()) {
+				PageSource ps = toPageSource(res, null);
+				if (ps != null) sources = new PageSource[] { ps };
+			}
+		}
+		_doInclude(sources, false, getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 
 	private int getStatusCode(PageException pe) {
@@ -2642,10 +2693,9 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void executeRest(String realPath, boolean throwExcpetion) throws PageException {
-		initallog();
-
 		ApplicationListener listener = null;// config.get ApplicationListener();
 		try {
+			initallog();
 			String pathInfo = req.getPathInfo();
 
 			// charset
@@ -2943,6 +2993,18 @@ public final class PageContextImpl extends PageContext {
 		}
 	}
 
+	/**
+	 * LDEV-3570: Application.cfc onError has handled the current error (completed without throwing).
+	 * The exception is still handed back to the caller of execute, but must not be logged again as an error.
+	 */
+	public void setErrorHandledByListener(boolean errorHandledByListener) {
+		this.errorHandledByListener = errorHandledByListener;
+	}
+
+	public boolean isErrorHandledByListener() {
+		return errorHandledByListener;
+	}
+
 	public boolean show() {
 		if (isGatewayContext()) return false;
 		ApplicationContextSupport ac = applicationContext;
@@ -2981,7 +3043,7 @@ public final class PageContextImpl extends PageContext {
 		return getApplicationContext().getDebugOptions();
 	}
 
-	private void initallog() {
+	private void initallog() throws PageException {
 		if (!isGatewayContext() && config.isMonitoringEnabled()) {
 			RequestMonitor[] monitors = config.getRequestMonitors();
 			if (monitors != null) for (int i = 0; i < monitors.length; i++) {
@@ -2991,6 +3053,8 @@ public final class PageContextImpl extends PageContext {
 					}
 					catch (Throwable e) {
 						ExceptionUtil.rethrowIfNecessary(e);
+						// LDEV-3792 a request monitor can abort the request from init(PageContext)
+						if (Abort.isSilentAbort(e)) throw Caster.toPageException(e);
 					}
 				}
 			}
@@ -3525,11 +3589,11 @@ public final class PageContextImpl extends PageContext {
 			Undefined u = undefinedScope();
 			if (pe == null) {
 				(u.getCheckArguments() ? u.localScope() : u).removeEL(KeyConstants._cfcatch);
-				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).removeEL(KeyImpl.init(name.trim()));
+				if (name != null && !StringUtil.isEmpty(name, true)) removeCatchVariable(u, name.trim());
 			}
 			else {
 				(u.getCheckArguments() ? u.localScope() : u).setEL(KeyConstants._cfcatch, pe.getCatchBlock(config));
-				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.init(name.trim()), pe.getCatchBlock(config));
+				if (name != null && !StringUtil.isEmpty(name, true)) setCatchVariable(u, name.trim(), pe.getCatchBlock(config));
 				if (hasDebugOptions(ConfigPro.DEBUG_EXCEPTION) && !gatewayContext) {
 					/*
 					 * print.e("-----------------------"); print.e("msg:" + pe.getMessage()); print.e("caught:" +
@@ -3538,6 +3602,36 @@ public final class PageContextImpl extends PageContext {
 					debugger.addException(config, exception);
 				}
 			}
+		}
+	}
+
+	/**
+	 * the name of a catch block can be a plain name, which is stored in the (local) scope, or a scoped
+	 * variable name like "variables.err" or "local.err" (LDEV-2659)
+	 */
+	private void setCatchVariable(Undefined u, String name, Object value) {
+		if (name.indexOf('.') == -1 && name.indexOf('[') == -1) {
+			(u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.init(name), value);
+			return;
+		}
+		try {
+			VariableInterpreter.setVariable(this, name, value);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
+
+	private void removeCatchVariable(Undefined u, String name) {
+		if (name.indexOf('.') == -1 && name.indexOf('[') == -1) {
+			(u.getCheckArguments() ? u.localScope() : u).removeEL(KeyImpl.init(name));
+			return;
+		}
+		try {
+			VariableInterpreter.removeVariable(this, name);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
 		}
 	}
 
@@ -3572,6 +3666,15 @@ public final class PageContextImpl extends PageContext {
 	public void removeLastPageSource(boolean alsoInclude) {
 		if (!pathList.isEmpty()) pathList.remove(pathList.size() - 1);
 		if (alsoInclude && !includePathList.isEmpty()) includePathList.remove(includePathList.size() - 1);
+	}
+
+	/**
+	 * cache used by CallStackGet to remember the resolved template paths for the duration of the
+	 * request, see LDEV-3697
+	 */
+	public Map<String, String> getCallStackPaths() {
+		if (callStackPaths == null) callStackPaths = new HashMap<String, String>();
+		return callStackPaths;
 	}
 
 	public UDF[] getUDFs() {
@@ -4394,6 +4497,15 @@ public final class PageContextImpl extends PageContext {
 
 	public void clearTimeZone() {
 		this.timeZone = null;
+	}
+
+	// a pooled clone is reused by the next parallel element, restore the settings a fresh clone would inherit
+	public void resetSettingsFrom(PageContextImpl tmplPC) {
+		this.requestTimeout = tmplPC.requestTimeout;
+		this.locale = tmplPC.locale;
+		this.timeZone = tmplPC.timeZone;
+		this.applicationContext = tmplPC.applicationContext == initApplicationContext ? null : tmplPC.applicationContext;
+		if (enablecfoutputonly != 0) setCFOutputOnly((short) 0);
 	}
 
 	/**

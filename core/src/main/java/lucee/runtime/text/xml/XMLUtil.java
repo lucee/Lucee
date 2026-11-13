@@ -1452,7 +1452,7 @@ public final class XMLUtil {
 		StringWriter sw = new StringWriter();
 		TransformerFactory factory = getTransformerFactory();
 		factory.setErrorListener(SimpleErrorListener.THROW_FATAL);
-		Transformer transformer = factory.newTransformer(new StreamSource(xsl.getCharacterStream()));
+		Transformer transformer = factory.newTransformer(new StreamSource(xsl.getCharacterStream(), xsl.getSystemId()));
 		if (parameters != null) {
 			Iterator<Entry<String, Object>> it = parameters.entrySet().iterator();
 			Entry<String, Object> e;
@@ -1566,6 +1566,30 @@ public final class XMLUtil {
 		}
 		throw new ExpressionException("can't cast object of type [" + Caster.toClassName(value) + "] to an Input for xml parser");
 
+	}
+
+	/**
+	 * same as toInputSource(PageContext, String), but when the value is a path to a local file, the
+	 * InputSource gets the location of that file as systemId, so relative references inside the
+	 * document (for example xsl:include and xsl:import) are resolved against the folder of the file
+	 * instead of the working directory.
+	 */
+	public static InputSource toInputSourceWithSystemId(PageContext pc, String xml) throws IOException, ExpressionException {
+		xml = xml.trim();
+		if (!isPath(xml)) return toInputSource(pc, xml, false);
+		pc = ThreadLocalPageContext.get(pc);
+		Resource res;
+		try {
+			res = ResourceUtil.toResourceExisting(pc, xml);
+		}
+		catch (ExpressionException cause) {
+			ExpressionException ee = new ExpressionException("Failed to convert the string [" + StringUtil.max(xml, 100, "...") + "] to XML");
+			ExceptionUtil.initCauseEL(ee, cause);
+			throw ee;
+		}
+		InputSource is = toInputSource(pc, res);
+		if (res instanceof File) is.setSystemId(((File) res).toURI().toString());
+		return is;
 	}
 
 	public static InputSource toInputSource(PageContext pc, String xml) throws IOException, ExpressionException {

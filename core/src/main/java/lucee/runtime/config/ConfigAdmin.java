@@ -292,8 +292,6 @@ public final class ConfigAdmin {
 		if (!cs.checkForChangesInConfigFile() || !wasConfigFileChangedOutside(cs)) return;
 
 		Resource file = config.getConfigFile();
-		long diff = file.lastModified() - cs.configLastModified();
-		if (diff < 10 && diff > -10) return;
 		// LDEV-5750 do not retry (and log again) as long as the file is unchanged since the last failed reload
 		if (file.lastModified() == lastFailedReload) return;
 		// reload
@@ -316,7 +314,7 @@ public final class ConfigAdmin {
 		Resource file = cs.getConfigFile();
 		long diff = file.lastModified() - cs.configLastModified();
 
-		return diff > 10 && diff < -10;
+		return diff > 10 || diff < -10;
 	}
 
 	public void store() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, ConverterException {
@@ -1359,6 +1357,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to change cfx settings");
 
 		if (name == null || name.length() == 0) throw new ExpressionException("class name can't be an empty value");
+		if (cd == null || StringUtil.isEmpty(cd.getClassName(), true)) throw new ExpressionException("class for CFX tag [" + name + "] can't be an empty value");
 
 		Struct cfxs = ConfigUtil.getAsStruct("cfx", root);
 		Key[] keys = cfxs.keys();
@@ -1378,9 +1377,9 @@ public final class ConfigAdmin {
 
 		// Insert
 		Struct el = new StructImpl(Struct.TYPE_LINKED);
-		cfxs.setEL(name, el);
 		setClass(el, CustomTag.class, "", cd);
 		el.setEL("type", "java");
+		cfxs.setEL(name, el);
 	}
 
 	public void verifyCFX(String name) throws PageException {
@@ -3732,12 +3731,17 @@ public final class ConfigAdmin {
 
 		stopMonitor(ConfigUtil.toMonitorType(type, Monitor.TYPE_INTERVAL), name);
 
-		Array children = ConfigUtil.getAsArray("monitors", root);
+		// same location as _updateMonitor
+		Struct parent = ConfigUtil.getAsStruct("monitoring", root);
+		Array children = ConfigUtil.getAsArray("monitor", parent);
 		Key[] keys = children.keys();
-		for (Key key: keys) {
-			String _name = key.getString();
+		// from the end, removing an entry shifts the keys of the following entries
+		for (int i = keys.length - 1; i >= 0; i--) {
+			Struct el = Caster.toStruct(children.get(keys[i], null), null);
+			if (el == null) continue;
+			String _name = Caster.toString(el.get(KeyConstants._name, null), null);
 			if (_name != null && _name.equalsIgnoreCase(name)) {
-				children.removeEL(key);
+				children.removeEL(keys[i]);
 			}
 		}
 	}
@@ -4692,6 +4696,7 @@ public final class ConfigAdmin {
 
 			// FLD
 			removeFLDs(logger, rhe.getMetadata().getFlds()); // MUST check if others use one of this fld
+			if (!ArrayUtil.isEmpty(rhe.getMetadata().getFlds())) filter.add("resetFLDs");
 
 			// TLD
 			removeTLDs(logger, rhe.getMetadata().getTlds()); // MUST check if others use one of this tld
@@ -4701,6 +4706,7 @@ public final class ConfigAdmin {
 
 			// Functions
 			removeFunctions(logger, rhe.getMetadata().getFunctions());
+			if (!ArrayUtil.isEmpty(rhe.getMetadata().getFunctions())) filter.add("resetFLDs");
 
 			// Event Gateway
 			removeEventGateways(logger, rhe.getMetadata().getEventGateways());

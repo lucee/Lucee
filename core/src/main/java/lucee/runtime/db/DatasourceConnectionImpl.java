@@ -33,8 +33,12 @@ import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 import lucee.commons.db.DBUtil;
@@ -65,6 +69,10 @@ public final class DatasourceConnectionImpl implements DatasourceConnection, Tas
 	private DatasourceConnPool pool;
 	private long lastValidation;
 	private boolean managed;
+	// LDEV-4213 a SQLException happened on this connection, validate it before it is handed out again
+	private volatile boolean suspect;
+	// LDEV-4213 the SQLException says that the connection itself is gone, never return it to the pool
+	private volatile boolean broken;
 
 	/**
 	 * @param pool
@@ -524,6 +532,71 @@ public final class DatasourceConnectionImpl implements DatasourceConnection, Tas
 		if ((lastValidation + VALIDATION_TIMEOUT) < (now = System.currentTimeMillis())) {
 			lastValidation = now;
 			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * LDEV-4213 call this with every SQLException a statement on this connection throws. The connection
+	 * is validated (Connection.isValid) the next time it is borrowed from the pool, even when the
+	 * datasource has validate set to false, so a connection that died (invalid credentials, network
+	 * problem, server side kill) is purged from the pool instead of failing the next requests as well.
+	 * When the exception itself says that the connection is gone (SQLState class 08 or an authentication
+	 * failure) the connection is marked as broken, and it is invalidated when it is released.
+	 * 
+	 * @param dc the connection the statement was executed on, anything else than a pooled connection is
+	 *            ignored
+	 * @param sqle the exception thrown
+	 */
+	public static void markSuspect(DatasourceConnection dc, SQLException sqle) {
+		if (!(dc instanceof DatasourceConnectionImpl)) return;
+		DatasourceConnectionImpl dci = (DatasourceConnectionImpl) dc;
+		dci.suspect = true;
+		if (isConnectionError(sqle)) dci.broken = true;
+	}
+
+	/**
+	 * @return true if the connection threw a SQLException since it was last validated
+	 */
+	public boolean isSuspect() {
+		return suspect;
+	}
+
+	/**
+	 * @return true if a SQLException said that the connection itself is no longer usable
+	 */
+	public boolean isBroken() {
+		return broken;
+	}
+
+	/**
+	 * the connection was validated successfully, it is no longer suspect
+	 */
+	public void clearSuspect() {
+		suspect = false;
+	}
+
+	/**
+	 * checks the SQLState of the exception and of all the exceptions chained to it (cause and next
+	 * exception) for a connection error: class 08 (connection exception) or an authentication failure
+	 * (28000, 28P01)
+	 */
+	public static boolean isConnectionError(SQLException sqle) {
+		// the chain can be cyclic or very long, so we limit what we look at
+		Set<Throwable> visited = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
+		ArrayDeque<Throwable> todo = new ArrayDeque<Throwable>();
+		if (sqle != null) todo.add(sqle);
+		Throwable t;
+		while (!todo.isEmpty() && visited.size() < 20) {
+			t = todo.poll();
+			if (!visited.add(t)) continue;
+			if (t instanceof SQLException) {
+				SQLException se = (SQLException) t;
+				String state = se.getSQLState();
+				if (state != null && (state.startsWith("08") || state.equals("28000") || state.equals("28P01"))) return true;
+				if (se.getNextException() != null) todo.add(se.getNextException());
+			}
+			if (t.getCause() != null) todo.add(t.getCause());
 		}
 		return false;
 	}

@@ -21,6 +21,7 @@ package lucee.runtime.type.scope;
 import java.util.Iterator;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -45,6 +46,11 @@ public final class CallerImpl extends StructSupport implements Caller {
 	private Local localScope;
 	private Argument argumentsScope;
 	private boolean checkArgs;
+
+	private static Object getCurrentThreadScope(PageContext pc) {
+		if (pc instanceof PageContextImpl && ((PageContextImpl) pc).hasFamily()) return ((PageContextImpl) pc).getCurrentThreadScope();
+		return null;
+	}
 
 	@Override
 	public Object get(Collection.Key key) throws PageException {
@@ -76,6 +82,13 @@ public final class CallerImpl extends StructSupport implements Caller {
 		else if ('s' == c) {
 			if (KeyConstants._session.equalsIgnoreCase(key)) return pc.sessionScope();
 			if (KeyConstants._server.equalsIgnoreCase(key)) return pc.serverScope();
+		}
+		else if ('t' == c) {
+			// LDEV-3722: caller.thread is the thread scope of the calling thread, not a key of the variables scope
+			if (KeyConstants._thread.equalsIgnoreCase(key)) {
+				Object t = getCurrentThreadScope(pc);
+				if (t != null) return t;
+			}
 		}
 		else if ('u' == c) {
 			if (KeyConstants._url.equalsIgnoreCase(key)) return pc.urlScope();
@@ -164,6 +177,13 @@ public final class CallerImpl extends StructSupport implements Caller {
 				}
 				catch (PageException e) {
 				}
+			}
+		}
+		else if ('t' == c) {
+			// LDEV-3722: caller.thread is the thread scope of the calling thread, not a key of the variables scope
+			if (KeyConstants._thread.equalsIgnoreCase(key)) {
+				Object t = getCurrentThreadScope(pc);
+				if (t != null) return t;
 			}
 		}
 		else if ('u' == c) {

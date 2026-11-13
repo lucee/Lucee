@@ -47,7 +47,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	private static final int INITIAL_BUFFER_SIZE = 32768;
 	private static final int CHILD_INITIAL_BUFFER_SIZE = 10000;
-	private static final int MAX_REUSABLE_BUFFER_SIZE = 131072;
+	private static final int MAX_REUSABLE_BUFFER_SIZE = WriterPool.MAX_REUSABLE_BUFFER_SIZE;
 	private static final int OUTPUT_ENCODE_BUFFER_SIZE = 8192;
 	private static final int MIN_COMPRESS_BYTES = 2048; // matches Tomcat's default compressionMinSize
 	private OutputStream out;
@@ -493,6 +493,9 @@ public class CFMLWriterImpl extends CFMLWriter {
 	@Override
 	public void close() throws IOException {
 		if (response == null || closed) return;
+		PageContextImpl pcImpl = (PageContextImpl) pc;
+		boolean child = pcImpl.isChild();
+		WriterPool pool = child ? null : pcImpl.getWriterPool();
 		// boolean closeConn=true;
 		if (out == null) {
 			if (response.isCommitted()) {
@@ -500,21 +503,23 @@ public class CFMLWriterImpl extends CFMLWriter {
 				return;
 			}
 			Charset charset = ReqRspUtil.getCharacterEncoding(null, response);
-			PageContextImpl pcImpl = (PageContextImpl) pc;
-			boolean child = pcImpl.isChild();
-			WriterPool pool = child ? null : pcImpl.getWriterPool();
 			ByteArrayOutputStream collector = null;
 			byte[] barrDirect = null;
 			int barrLen = 0;
 			if (htmlHead == null && htmlBody == null) {
 				if (buffer != null && buffer.length() > 0) {
-					if (pool != null && pool.baos != null) {
-						pool.baos.reset();
-						collector = pool.baos;
+					if (buffer.length() <= MAX_REUSABLE_BUFFER_SIZE) {
+						if (pool != null && pool.baos != null) {
+							pool.baos.reset();
+							collector = pool.baos;
+						}
+						else {
+							collector = new WriterPool.PooledByteArrayOutputStream(buffer.length());
+							if (pool != null) pool.baos = collector;
+						}
 					}
 					else {
 						collector = new ByteArrayOutputStream(buffer.length());
-						if (pool != null) pool.baos = collector;
 					}
 					writeBufferTo(collector, charset);
 					barrLen = collector.size();

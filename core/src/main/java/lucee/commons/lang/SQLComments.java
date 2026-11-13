@@ -59,6 +59,36 @@ public final class SQLComments {
 	}
 
 	/**
+	 * If a <code>[ ]</code> (MSSQL) or <code>` `</code> (MySQL) quoted identifier begins at index
+	 * <code>pos</code> of <code>sql</code>, returns the index of the first character <em>after</em> it;
+	 * returns <code>-1</code> when none begins there or it is not closed. A doubled closing character
+	 * (<code>]]</code> or <code>``</code>) is an escaped one and does not end the identifier.
+	 *
+	 * @param sql the SQL string
+	 * @param pos the position to test for the start of a quoted identifier
+	 * @return index just past the end of the identifier, or <code>-1</code>
+	 */
+	public static int identifierEnd(String sql, int pos) {
+		char c = sql.charAt(pos);
+		char close;
+		if (c == '[') close = ']';
+		else if (c == '`') close = '`';
+		else return -1;
+
+		int len = sql.length();
+		for (int i = pos + 1; i < len; i++) {
+			if (sql.charAt(i) == close) {
+				if (i + 1 < len && sql.charAt(i + 1) == close) {
+					i++;
+					continue;
+				}
+				return i + 1;
+			}
+		}
+		return -1;
+	}
+
+	/**
 	 * Returns <code>sql</code> with every SQL comment removed, each replaced by a single space so that
 	 * the tokens on either side of a comment cannot merge. Comment markers that appear inside a string
 	 * literal are left untouched. The result is trimmed.

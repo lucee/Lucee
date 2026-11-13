@@ -103,10 +103,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,http,content"
 					expect( requestLog() ).toBe( "HEAD /missing.txt" );
 				});
 
-				it( title="fileExists() is false for 403 with only one HEAD request", body=function( currentSpec ) {
+				it( title="fileExists() is false for 403 on HEAD and GET with one HEAD and one GET request", body=function( currentSpec ) {
 					variables.requests.clear();
 					expect( fileExists( variables.baseUrl & "forbidden.txt" ) ).toBeFalse();
-					expect( requestLog() ).toBe( "HEAD /forbidden.txt" );
+					expect( requestLog() ).toBe( "HEAD /forbidden.txt,GET /forbidden.txt" );
 				});
 
 			});

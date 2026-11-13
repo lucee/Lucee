@@ -1,12 +1,13 @@
 package lucee.runtime.cfx.customtag;
 
+import lucee.commons.io.log.Log;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigFactoryImpl;
 import lucee.runtime.config.Prop;
 import lucee.runtime.config.PropFactory;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -29,7 +30,8 @@ public class JavaCFXTagClassFactory implements PropFactory<CFXTagClass> {
 
 	@Override
 	public CFXTagClass evaluate(Config config, String name, Object val, short source) throws PageException {
-		Struct cfxTag = Caster.toStruct(val);
+		Struct cfxTag = Caster.toStruct(val, null);
+		if (cfxTag == null) return null;
 
 		try {
 
@@ -42,13 +44,15 @@ public class JavaCFXTagClassFactory implements PropFactory<CFXTagClass> {
 				if (!StringUtil.isEmpty(name) && cd.hasClass()) {
 					return new JavaCFXTagClass(name, cd);
 				}
-				throw new ApplicationException("name is required");
 			}
-			throw new ApplicationException("type [" + type + "] is not supported, only type [java] is supported");
+			// invalid entries are skipped (same as Lucee 7.1), so a single broken entry does not break the whole cfx tag pool
+			ConfigFactoryImpl.log(config, Log.LEVEL_WARN, "cfx tag [" + name + "] ignored, it needs [type:\"java\"] and a [class], but got [type:" + type + "]");
 		}
-		catch (Exception ex) {
-			throw Caster.toPageException(ex);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			ConfigFactoryImpl.log(config, t);
 		}
+		return null;
 	}
 
 	@Override

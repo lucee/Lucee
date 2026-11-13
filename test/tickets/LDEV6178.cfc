@@ -99,9 +99,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="lar,archive" {
 		// build template and archive
 		_buildTemplate( ctx.srcDir, "initial" );
 
-		admin action="updateMapping" type="web" password="#variables.adminPassword#"
-			virtual="#ctx.virtual#" physical="#ctx.srcDir#" archive="" primary="physical"
-			toplevel="true" inspect="always";
+		_updateMapping( ctx: ctx, archive: "", primary: "physical", inspect: "always" );
 
 		admin action="createArchive" type="web" password="#variables.adminPassword#"
 			file="#ctx.larFile#" virtual="#ctx.virtual#" addCFMLFiles="false" addNonCFMLFiles="false";
@@ -115,9 +113,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="lar,archive" {
 		// overwrite with "physical" flag so we can distinguish from archived "initial"
 		_buildTemplate( ctx.srcDir, "physical" );
 
-		admin action="updateMapping" type="web" password="#variables.adminPassword#"
-			virtual="#ctx.virtual#" physical="#ctx.srcDir#" archive="#ctx.larFile#" primary="#arguments.primary#"
-			toplevel="true" inspect="#arguments.inspect#";
+		_updateMapping( ctx: ctx, archive: ctx.larFile, primary: arguments.primary, inspect: arguments.inspect );
 
 		// physical file exists — should serve from disk
 		var resp = _requestPath( ctx );
@@ -156,9 +152,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="lar,archive" {
 		// overwrite with "physical" flag
 		_buildTemplate( ctx.srcDir, "physical" );
 
-		admin action="updateMapping" type="web" password="#variables.adminPassword#"
-			virtual="#ctx.virtual#" physical="#ctx.srcDir#" archive="#ctx.larFile#" primary="#arguments.primary#"
-			toplevel="true" inspect="#arguments.inspect#";
+		_updateMapping( ctx: ctx, archive: ctx.larFile, primary: arguments.primary, inspect: arguments.inspect );
 
 		// physical file exists — should serve from disk
 		var resp = _requestPath( ctx );
@@ -178,9 +172,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="lar,archive" {
 		// overwrite physical with different flag — archive has "initial"
 		_buildTemplate( ctx.srcDir, "physical" );
 
-		admin action="updateMapping" type="web" password="#variables.adminPassword#"
-			virtual="#ctx.virtual#" physical="#ctx.srcDir#" archive="#ctx.larFile#" primary="archive"
-			toplevel="true" inspect="#arguments.inspect#";
+		_updateMapping( ctx: ctx, archive: ctx.larFile, primary: "archive", inspect: arguments.inspect );
 
 		// primary=archive — should serve from archive, not physical
 		var resp = _requestPath( ctx );
@@ -191,9 +183,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="lar,archive" {
 		var ctx = _setupTest( "path-physical" );
 		_buildTemplate( ctx.srcDir, "physical" );
 
-		admin action="updateMapping" type="web" password="#variables.adminPassword#"
-			virtual="#ctx.virtual#" physical="#ctx.srcDir#" archive="#ctx.larFile#" primary="physical"
-			toplevel="true" inspect="always";
+		_updateMapping( ctx: ctx, archive: ctx.larFile, primary: "physical", inspect: "always" );
 
 		var resp = _requestPath( ctx );
 		expect( resp ).toInclude( "flag=physical", "Should serve from physical, got: " & resp );
@@ -206,9 +196,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="lar,archive" {
 		var ctx = _setupTest( "path-fallback" );
 		_buildTemplate( ctx.srcDir, "physical" );
 
-		admin action="updateMapping" type="web" password="#variables.adminPassword#"
-			virtual="#ctx.virtual#" physical="#ctx.srcDir#" archive="#ctx.larFile#" primary="physical"
-			toplevel="true" inspect="always";
+		_updateMapping( ctx: ctx, archive: ctx.larFile, primary: "physical", inspect: "always" );
 
 		// delete the physical file — should fall back to archive
 		fileDelete( ctx.srcDir & "hello.cfm" );
@@ -223,14 +211,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="lar,archive" {
 		var ctx = _setupTest( "path-primary" );
 		_buildTemplate( ctx.srcDir, "physical" );
 
-		admin action="updateMapping" type="web" password="#variables.adminPassword#"
-			virtual="#ctx.virtual#" physical="#ctx.srcDir#" archive="#ctx.larFile#" primary="archive"
-			toplevel="true" inspect="always";
+		_updateMapping( ctx: ctx, archive: ctx.larFile, primary: "archive", inspect: "always" );
 
 		var resp = _requestPath( ctx );
 		expect( resp ).toInclude( "flag=initial", "Should serve archived content, got: " & resp );
 		// getCurrentTemplatePath() should reflect the archive source
 		expect( resp ).toInclude( "path=zip://", "Archive-served path should be a zip:// path, got: " & resp );
+	}
+
+	/**
+	 * updates the mapping and verifies it is visible with the expected settings before the test goes on
+	 * (e.g. createArchive fails with "There is no mapping for [...]" when the mapping is not visible yet)
+	 */
+	private function _updateMapping( required struct ctx, required string archive, required string primary, required string inspect ) {
+		admin action="updateMapping" type="web" password="#variables.adminPassword#"
+			virtual="#arguments.ctx.virtual#" physical="#arguments.ctx.srcDir#" archive="#arguments.archive#" primary="#arguments.primary#"
+			toplevel="true" inspect="#arguments.inspect#";
+
+		admin action="getMappings" type="web" password="#variables.adminPassword#" returnVariable="local.mappings";
+		var virtual = arguments.ctx.virtual;
+		var found = queryFilter( mappings, function( row ) {
+			return row.virtual == virtual;
+		});
+		expect( found.recordCount ).toBe( 1, "mapping [#arguments.ctx.virtual#] should be visible right after updateMapping, existing mappings: #valueList( mappings.virtual )#" );
+		expect( found.strarchive ).toBe( arguments.archive, "mapping [#arguments.ctx.virtual#] should have the archive just set" );
+		expect( found.physicalFirst ).toBe( arguments.primary == "physical", "mapping [#arguments.ctx.virtual#] should have primary [#arguments.primary#]" );
 	}
 
 	private function _buildTemplate( required string dir, required string flag ) {

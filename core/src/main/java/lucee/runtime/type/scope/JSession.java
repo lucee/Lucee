@@ -29,8 +29,8 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpSessionBindingEvent;
 import jakarta.servlet.http.HttpSessionBindingListener;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.runtime.Component;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageSource;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
@@ -55,7 +55,8 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 	private long lastAccess;
 	private long created;
 	private final Struct _tokens = new StructImpl(Struct.TYPE_SYNC, 4);
-	private Component component;
+	private transient PageSource applicationPageSource;
+	private String applicationPath;
 
 	/**
 	 * constructor of the class
@@ -202,12 +203,17 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 		}
 	};
 
-	public void setComponent(Component component) {
-		this.component = component;
+	public void setApplicationPageSource(PageSource applicationPageSource) {
+		this.applicationPageSource = applicationPageSource;
+		this.applicationPath = applicationPageSource == null ? null : applicationPageSource.getRealpathWithVirtual();
 	}
 
-	public Component getComponent() {
-		return component;
+	public PageSource getApplicationPageSource() {
+		return applicationPageSource;
+	}
+
+	public String getApplicationPath() {
+		return applicationPath;
 	}
 
 	@Override

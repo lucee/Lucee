@@ -1,40 +1,28 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="booleanFormat" skip=true {
-	function beforeAll() {
-		variables.uri = createURI("LDEV4589");
-	}
-
-	function run( testResults , testBox ) {
-		describe( title = "Testcase for booleanFormat() function", body = function() {
-			it( title="Checking booleanFormat() with numeric value", body=function( currentSpec ) {
-				var result = _InternalRequest(
-					template : "#uri#\LDEV4589.cfm",
-					forms : {Scene = 1}
-				);
-				expect(result.fileContent.trim()).toBe("true");
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="booleanFormat" {
+	function run( testResults, testBox ) {
+		describe( "LDEV-4589 booleanFormat() member function", function() {
+			it( "numeric variable", function() {
+				var value = 1;
+				expect( value.booleanFormat() ).toBe( "true" );
+				var zero = 0;
+				expect( zero.booleanFormat() ).toBe( "false" );
 			});
-			it( title="Checking booleanFormat() with string value", body=function( currentSpec ) {
-				var result = _InternalRequest(
-					template : "#uri#\LDEV4589.cfm",
-					forms : {Scene = 2}
-				);
-				expect(result.fileContent.trim()).toBe("false");
+			it( "string variable", function() {
+				expect( "false".booleanFormat() ).toBe( "false" );
+				expect( "123".booleanFormat() ).toBe( "true" );
 			});
-			it( title="Checking booleanFormat() with string(numeric) value", body=function( currentSpec ) {
-				var result = _InternalRequest(
-					template : "#uri#\LDEV4589.cfm",
-					forms : {Scene = 3}
-				);
-				expect(result.fileContent.trim()).toBe("true");
+			it( "yesNoFormat() member function on numbers and strings", function() {
+				var value = 1;
+				expect( value.yesNoFormat() ).toBe( "Yes" );
+				expect( "no".yesNoFormat() ).toBe( "No" );
+			});
+			it( "string that is not a boolean still has no booleanFormat() member", function() {
+				expect( function() { "abc".booleanFormat(); } ).toThrow();
+			});
+			it( "boolean variable", function() {
+				var b = true;
+				expect( b.booleanFormat() ).toBe( "true" );
 			});
 		});
-	}
-
-	private string function createURI(string calledName) {
-		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
-		return baseURI&""&calledName;
-	}
-
-	private function noOrm() {
-		return ( structCount( server.getTestService("orm") ) eq 0 );
 	}
 }

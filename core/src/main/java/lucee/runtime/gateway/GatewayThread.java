@@ -53,7 +53,9 @@ public final class GatewayThread extends ParentThreasRefThread {
 		catch (Throwable ge) {
 			ExceptionUtil.rethrowIfNecessary(ge);
 			addParentStacktrace(ge);
-			engine.log(gateway, GatewayEngine.LOGLEVEL_ERROR, ge.getMessage());
+			String msg = ge.getMessage();
+			if (impl != null) msg = impl.withLocation(msg, ge); // LDEV-3645
+			engine.log(gateway, GatewayEngine.LOGLEVEL_ERROR, msg);
 			// keep the exception itself, so the admin can show it (LDEV-3644)
 			if (impl != null) impl.setLastError(gateway.getId(), ge.getMessage(), ge);
 		}

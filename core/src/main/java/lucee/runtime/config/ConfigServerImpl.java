@@ -278,7 +278,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	//////////////////////////
 	private TagLib[] cfmlTlds;
 	private Resource tldFile;
-	private FunctionLib cfmlFlds;
+	private volatile FunctionLib cfmlFlds;
 	private Resource fldFile;
 	protected Mapping defaultFunctionMapping;
 	protected final Map<String, Mapping> functionMappings = new ConcurrentHashMap<String, Mapping>();
@@ -532,19 +532,19 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	public final static Prop<Float> metaRequestTimeoutMemorythreshold = Prop.procentage().parent("requestTimeout").keys("memorythreshold", "requestTimeoutMemoryThreshold")
 			.systemPropEnvVar("lucee.requesttimeout.memorythreshold" /* 7.x name (lower case), alias */)
 			.defaultValue(0f).description("	\n"
-					+ "This setting permits the establishment of a memory usage threshold, guiding Lucee on when to begin enforcing request timeouts based on the system's current memory consumption. The threshold value is a float from 0.0 (indicating 0% memory usage) to 1.0 (representing 100% memory usage). By monitoring memory usage against this threshold, Lucee intelligently decides whether to enforce or relax request timeouts, offering a dynamic approach to resource management. This is particularly advantageous for preventing system overloads and ensuring stable performance by not strictly applying timeouts when memory usage is below the defined threshold. The default threshold is set to 0.0, meaning Lucee will apply request timeouts without considering memory usage. Adjusting this threshold allows for more nuanced control over how your applications respond under various memory load conditions, optimizing both performance and reliability. This setting is only possible via System Property / Enviroment Variable.");
+					+ "This setting permits the establishment of a memory usage threshold, guiding Lucee on when to begin enforcing request timeouts based on the system's current memory consumption. The threshold value is a float from 0.0 (indicating 0% memory usage) to 1.0 (representing 100% memory usage). By monitoring memory usage against this threshold, Lucee intelligently decides whether to enforce or relax request timeouts, offering a dynamic approach to resource management. This is particularly advantageous for preventing system overloads and ensuring stable performance by not strictly applying timeouts when memory usage is below the defined threshold. The default threshold is set to 0.0, meaning Lucee will apply request timeouts without considering memory usage. Adjusting this threshold allows for more nuanced control over how your applications respond under various memory load conditions, optimizing both performance and reliability. This setting is only possible via System Property / Environment Variable.");
 	private final ConfigValue<Float> requestTimeoutMemoryThreshold = new ConfigValue<>(metaRequestTimeoutMemorythreshold);
 
 	public final static Prop<Float> metaRequestTimeoutCPUThreshold = Prop.procentage().parent("requestTimeout").keys("cputhreshold", "requestTimeoutCPUThreshold")
 			.systemPropEnvVar("lucee.requesttimeout.cputhreshold" /* 7.x name (lower case), alias */).defaultValue(0f)
 			.description(
-					"This configuration option allows you to set a CPU usage threshold that Lucee monitors before enforcing request timeouts. The threshold value is a float ranging from 0.0 (representing 0% CPU usage) to 1.0 (indicating 100% CPU usage). When the system's CPU usage is below this threshold, Lucee processes requests without applying the request timeout rule, enabling smoother handling under varying system loads. This mechanism is particularly useful for managing resource allocation and maintaining optimal application responsiveness, especially during periods of high demand or limited system resources. The default setting is 0.0, which means request timeouts are applied regardless of CPU usage. Adjusting this threshold provides a strategic lever to balance between system performance and request responsiveness, tailoring Lucee's behavior to your specific operational needs. This setting is only possible via System Property / Enviroment Variable.");
+					"This configuration option allows you to set a CPU usage threshold that Lucee monitors before enforcing request timeouts. The threshold value is a float ranging from 0.0 (representing 0% CPU usage) to 1.0 (indicating 100% CPU usage). When the system's CPU usage is below this threshold, Lucee processes requests without applying the request timeout rule, enabling smoother handling under varying system loads. This mechanism is particularly useful for managing resource allocation and maintaining optimal application responsiveness, especially during periods of high demand or limited system resources. The default setting is 0.0, which means request timeouts are applied regardless of CPU usage. Adjusting this threshold provides a strategic lever to balance between system performance and request responsiveness, tailoring Lucee's behavior to your specific operational needs. This setting is only possible via System Property / Environment Variable.");
 	private final ConfigValue<Float> requestTimeoutCPUThreshold = new ConfigValue<>(metaRequestTimeoutCPUThreshold);
 
 	public final static Prop<Integer> metaRequestTimeoutConcurrentRequestThreshold = Prop.integer().parent("requestTimeout")
 			.keys("concurrentrequestthreshold", "requestTimeoutConcurrentRequestThreshold")
 			.systemPropEnvVar("lucee.requesttimeout.concurrentrequestthreshold" /* 7.x name (lower case), alias */).defaultValue(0).description(
-					"This setting enables you to specify a threshold for the number of concurrent requests that Lucee can handle before beginning to enforce request timeouts. By adjusting this threshold, you can fine-tune how Lucee manages request timeouts under varying loads. A higher threshold allows more concurrent requests to be processed without enforcing timeouts, potentially improving performance under heavy load at the risk of longer request times. The default threshold is set to 0, meaning request timeouts are enforced immediately for all requests. This setting is only possible via System Property / Enviroment Variable.");
+					"This setting enables you to specify a threshold for the number of concurrent requests that Lucee can handle before beginning to enforce request timeouts. By adjusting this threshold, you can fine-tune how Lucee manages request timeouts under varying loads. A higher threshold allows more concurrent requests to be processed without enforcing timeouts, potentially improving performance under heavy load at the risk of longer request times. The default threshold is set to 0, meaning request timeouts are enforced immediately for all requests. This setting is only possible via System Property / Environment Variable.");
 	private final ConfigValue<Integer> requestTimeoutConcurrentRequestThreshold = new ConfigValue<>(metaRequestTimeoutConcurrentRequestThreshold);
 
 	public final static Prop<Boolean> metaSessionManagement = Prop.bool().keys("sessionManagement").systemPropEnvVar("lucee.session.management").defaultValue(true)
@@ -554,6 +554,10 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	public final static Prop<Boolean> metaClientManagement = Prop.bool().keys("clientManagement").systemPropEnvVar("lucee.client.management").defaultValue(false)
 			.description("By default client management can be enabled. This behaviour can be overridden by the tag cfapplication.");
 	private final ConfigValue<Boolean> clientManagement = new ConfigValue<>(metaClientManagement);
+
+	public final static Prop<Boolean> metaDeployWatch = Prop.bool().keys("deployWatch").systemPropEnvVar("lucee.deploy.watch").defaultValue(true).description(
+			"By default Lucee checks the deploy folder (extensions, archives, ...) every 10 seconds for new files. Set this to false to disable this periodic check, for example on a production server. The deploy folder is still processed once when Lucee starts.");
+	private final ConfigValue<Boolean> deployWatch = new ConfigValue<>(metaDeployWatch);
 
 	public final static Prop<Boolean> metaClientCookies = Prop.bool().keys("clientCookies").defaultValue(true)
 			.description("Enable or disable client cookies. This behaviour can be overridden by the tag cfapplication.");
@@ -2169,6 +2173,15 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		return this;
 	}
 
+	public boolean isDeployWatch() {
+		return deployWatch.get(this, root);
+	}
+
+	public ConfigServerImpl resetDeployWatch() {
+		deployWatch.reset();
+		return this;
+	}
+
 	@Override
 	public boolean isMailSpoolEnable() {
 		return mailSpoolEnable.get(this, root);
@@ -2975,7 +2988,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		tl.setTag(tlt);
 	}
 
-	protected void setFunctionDirectory(List<Path> listFunctionDirectory) {
+	protected void setFunctionDirectory(List<Path> listFunctionDirectory, FunctionLib flds) {
 		Iterator<Path> it = listFunctionDirectory.iterator();
 		int index = -1;
 		String mappingName;
@@ -2996,7 +3009,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 				String[] files = path.res.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
 
 				for (String file: files) {
-					if (cfmlFlds != null) createFunction(cfmlFlds, file, mappingName);
+					if (flds != null) createFunction(flds, file, mappingName);
 
 				}
 			}
@@ -3079,15 +3092,18 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	 */
 	@Override
 	public FunctionLib getFLDs() {
-		if (cfmlFlds == null) {
+		FunctionLib flds = cfmlFlds;
+		if (flds == null) {
 			synchronized (SystemUtil.createToken("config", "getFLDs")) {
-				if (cfmlFlds == null) {
+				flds = cfmlFlds;
+				if (flds == null) {
 					// TODO make some kind of pre state in case root is empty
 					ConfigFactoryImpl.loadFunctions(this, root, newVersion());
+					flds = cfmlFlds;
 				}
 			}
 		}
-		return cfmlFlds;
+		return flds;
 	}
 
 	public ConfigServerImpl resetFLDs() {
@@ -3108,7 +3124,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		return new FunctionLib[] { getFLDs() };
 	}
 
-	protected void setFldFile(Resource fileFld) throws FunctionLibException {
+	protected void setFldFile(Resource fileFld, FunctionLib flds) throws FunctionLibException {
 		if (fileFld == null) return;
 		this.fldFile = fileFld;
 
@@ -3120,7 +3136,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 				try {
 					fl = FunctionLibFactory.loadFromFile(files[i], getIdentification());
 					applyExtensionId(fl, files[i].getName());
-					overwrite(cfmlFlds, fl);
+					overwrite(flds, fl);
 
 				}
 				catch (FunctionLibException fle) {
@@ -3132,16 +3148,16 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		else {
 			fl = FunctionLibFactory.loadFromFile(fileFld, getIdentification());
 			applyExtensionId(fl, fileFld.getName());
-			overwrite(cfmlFlds, fl);
+			overwrite(flds, fl);
 		}
 		// LDEV-3027: the bundled markdown extension escapes HTML in safeMode but does not
 		// drop unsafe URL schemes. Keep its renderer and sanitize href/src afterwards.
-		installMarkdownSafeMode();
+		installMarkdownSafeMode(flds);
 	}
 
-	private void installMarkdownSafeMode() {
-		if (cfmlFlds == null) return;
-		FunctionLibFunction markdown = cfmlFlds.getFunction("markdowntohtml");
+	private void installMarkdownSafeMode(FunctionLib flds) {
+		if (flds == null) return;
+		FunctionLibFunction markdown = flds.getFunction("markdowntohtml");
 		if (markdown == null) return;
 		ClassDefinition cd = markdown.getFunctionClassDefinition();
 		if (cd == null || cd.isClassNameEqualTo(MarkdownToHTML.class.getName())) return;
@@ -4990,7 +5006,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (constants == null) {
 			synchronized (SystemUtil.createToken("config", "getConstants")) {
 				if (constants == null) {
-					constants = resolveConstants(metaConstants.get(this, root));
+					constants = resolveConstants(normalizeConstants(metaConstants.get(this, root)));
 				}
 			}
 		}
@@ -5026,6 +5042,33 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			resolved.setEL(e.getKey(), replaced);
 		}
 		return resolved != null ? resolved : raw;
+	}
+
+	/**
+	 * keeps only the constants that have a simple value (stored as string), constants with a complex
+	 * value like a struct or an array or without a name are skipped
+	 *
+	 * @param raw the constants as defined in the configuration
+	 * @return the constants with a simple value
+	 */
+	public static Struct normalizeConstants(Struct raw) {
+		Struct sct = new StructImpl();
+		if (raw == null) return sct;
+
+		Iterator<Entry<Key, Object>> it = raw.entryIterator();
+		Entry<Key, Object> e;
+		String value;
+		Key name;
+		while (it.hasNext()) {
+			e = it.next();
+			value = Caster.toString(e.getValue(), null);
+			if (value == null) continue;
+
+			name = e.getKey();
+			if (StringUtil.isEmpty(name)) continue;
+			sct.setEL(name, value);
+		}
+		return sct;
 	}
 
 	public ConfigServerImpl resetConstants() {
@@ -5168,7 +5211,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public ExtensionProvider[] getExtensionProviders() {
-		throw new RuntimeException("no longer supported, use getRHExtensionProviders() instead.");
+		throw new RuntimeException("no longer supported, extensions are loaded from Maven, use getExtensionProvidersGroupIds() instead.");
 	}
 
 	@Override

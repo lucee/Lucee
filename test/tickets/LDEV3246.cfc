@@ -1,23 +1,73 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="null" {
 
-	function beforeAll() {
-		variables.uri = createURI("LDEV3246");
+	function afterAll() {
+		application action="update" nullSupport=false;
 	}
 
-	function run( testResults,testBox ) {
-		describe( 'Testcase for LDEV3246' , function() {
-			it( title = 'checking default=null in cfparam' , body = function( currentSpec ) {
-				local.result = _InternalRequest(
-					template : "#uri#/index.cfm"
-				).filecontent.trim();
+	function run( testResults, testBox ) {
+		describe( "LDEV-3246 cfparam default = null with full null support", function() {
 
-				expect(result).toBe("null");
-			})
+			it( "cfparam with a null default defines the variable as null", function() {
+				application action="update" nullSupport=true;
+				var res = "";
+				try {
+					param name="variables.ldev3246" default=nullValue() type="string";
+					res = "ok:" & ( isNull( variables.ldev3246 ) ? "null" : "[" & variables.ldev3246 & "]" );
+				}
+				catch ( any e ) {
+					res = "error:" & e.message;
+				}
+				finally {
+					application action="update" nullSupport=false;
+				}
+				expect( res ).toBe( "ok:null" );
+			});
+
+			it( "cfparam with a null default from a query column", function() {
+				application action="update" nullSupport=true;
+				var res = "";
+				try {
+					var qry = queryNew( "col", "varchar", [ [ nullValue() ] ] );
+					param name="variables.ldev3246b" default=qry.col[ 1 ] type="string";
+					res = "ok:" & ( isNull( variables.ldev3246b ) ? "null" : "[" & variables.ldev3246b & "]" );
+				}
+				catch ( any e ) {
+					res = "error:" & e.message;
+				}
+				finally {
+					application action="update" nullSupport=false;
+				}
+				expect( res ).toBe( "ok:null" );
+			});
+					it( "without full null support a null default still throws (unchanged)", function() {
+				application action="update" nullSupport=false;
+				var res = "";
+				try {
+					param name="variables.ldev3246c" default=nullValue() type="string";
+					res = "ok";
+				}
+				catch ( any e ) {
+					res = "error:" & e.message;
+				}
+				expect( res ).toInclude( "was not provided" );
+			});
+
+			it( "with full null support an existing variable is still validated", function() {
+				application action="update" nullSupport=true;
+				var res = "";
+				try {
+					variables.ldev3246d = "abc";
+					param name="variables.ldev3246d" default=nullValue() type="numeric";
+					res = "ok";
+				}
+				catch ( any e ) {
+					res = "error";
+				}
+				finally {
+					application action="update" nullSupport=false;
+				}
+				expect( res ).toBe( "error" );
+			});
 		});
-	}
-
-	private string function createURI(string calledName) {
-		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()), "\/")#/";
-		return baseURI&""&calledName;
 	}
 }

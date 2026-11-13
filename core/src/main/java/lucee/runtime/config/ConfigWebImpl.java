@@ -321,12 +321,14 @@ public final class ConfigWebImpl implements ConfigWebPro {
 
 	@Override
 	public ConfigWebImpl resetMappings() {
+		// the server mappings are cached independently (e.g. admin actions read them directly), so they always have to be reset,
+		// even when the web mappings were never loaded, otherwise a mapping just added stays invisible
+		cs.resetMappings();
 		if (mappings != null) {
 			synchronized (SystemUtil.createToken("ConfigWebImpl", "getMappings")) {
 				if (mappings != null) {
 					ConfigFactoryImpl.flushPageSourcePool(mappings);
 					mappings = null;
-					cs.resetMappings();
 				}
 			}
 		}
