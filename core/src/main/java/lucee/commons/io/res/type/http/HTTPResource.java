@@ -232,12 +232,24 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	private HTTPDownloaderHeadResponse getMeta() throws IOException {
 		if (meta == null && data.hasHeaders()) {
 			HTTPResponse rsp = invoke(true);
+			HTTPDownloaderHeadResponse m;
 			try {
-				meta = new HTTPDownloaderHeadResponse(rsp);
+				m = new HTTPDownloaderHeadResponse(rsp);
 			}
 			finally {
 				HTTPEngine.closeEL(rsp);
 			}
+			// LDEV-5387: the same GET check for a rejected HEAD as below, with the headers of the resource
+			if (rejectsHead(m.getStatusCode())) {
+				rsp = invoke(false);
+				try {
+					m = new HTTPDownloaderHeadResponse(rsp);
+				}
+				finally {
+					HTTPEngine.closeEL(rsp);
+				}
+			}
+			meta = m;
 		}
 		if (meta == null) {
 			URL url = getURL();

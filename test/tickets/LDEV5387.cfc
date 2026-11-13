@@ -1,5 +1,4 @@
-// TODO LDEV-5387: skipped until the HEAD rejected fallback (check with GET) is ported to the http resource of this version, it came with the 7.1 merge without the code. Remove skip="true" with the port.
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,http,content" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,http,content" {
 
 	function beforeAll() {
 		// minimal local HTTP server (plain ServerSocket) that, like S3 presigned URLs or some web servers,
