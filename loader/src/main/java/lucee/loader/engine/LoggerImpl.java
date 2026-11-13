@@ -109,6 +109,11 @@ public class LoggerImpl {
 
 	public static int toLevel(String level, int defaultValue) {
 		if (level != null) {
+			// the numeric levels of the former Felix log level setting
+			if ("1".equals(level.trim())) return LOG_ERROR;
+			if ("2".equals(level.trim())) return LOG_WARNING;
+			if ("3".equals(level.trim())) return LOG_INFO;
+			if ("4".equals(level.trim())) return LOG_DEBUG;
 			if ("DEBUG".equalsIgnoreCase(level)) return LOG_DEBUG;
 			if ("ERROR".equalsIgnoreCase(level)) return LOG_ERROR;
 			if ("INFO".equalsIgnoreCase(level)) return LOG_INFO;

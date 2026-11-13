@@ -15,7 +15,7 @@ component {
 			variables.bundle = "";
 		}
 		var location = createObject( "java", "lucee.runtime.engine.CFMLEngineImpl" ).getClass().getProtectionDomain().getCodeSource().getLocation().toString();
-		variables.jar = location.endsWith( ".jar" ) ? createObject( "java", "java.net.URI" ).init( location ).getPath() : "";
+		variables.jar = ( location.endsWith( ".jar" ) || location.endsWith( ".lco" ) ) ? createObject( "java", "java.net.URI" ).init( location ).getPath() : "";
 		return this;
 	}
 
