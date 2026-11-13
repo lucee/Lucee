@@ -87,7 +87,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache,hsqldb
 	private struct function hsqlDs( required string memName ) {
 		return {
 			class: "org.hsqldb.jdbcDriver",
-			bundleName: "org.lucee.hsqldb",
+			maven: "org.lucee:hsqldb-jdbc-extension:2.7.4.3-RC",
 			connectionString: "jdbc:hsqldb:mem:#arguments.memName#",
 			username: "sa",
 			password: ""
