@@ -233,7 +233,8 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public Object[] toNativeArray() {
-		return list.toArray();
+		// the subclasses own the storage (ArrayImpl has no list), toArray() returns their own copy
+		return toArray();
 	}
 
 	public ArrayList toArrayList() {
