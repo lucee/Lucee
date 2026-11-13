@@ -162,9 +162,33 @@ public final class HTTPResource extends ReadOnlyResourceSupport {
 	private HTTPDownloaderHeadResponse getMeta() throws IOException {
 		if (meta == null) {
 			URL url = getURL();
-			meta = HTTPEngine.head(url, data.username, data.password, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, _getTimeout(), null, getProxy(url));
+			HTTPDownloaderHeadResponse m = HTTPEngine.head(url, data.username, data.password, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, _getTimeout(), null, getProxy(url));
+			// LDEV-5387: some servers (S3 presigned URLs, servers without HEAD support) reject HEAD but serve
+			// GET, so check those with a GET request. Only the status and headers are used, the response is
+			// closed right away, so no pooled connection is held for a body that may never be read.
+			if (rejectsHead(m.getStatusCode())) {
+				HTTPResponse rsp = null;
+				try {
+					rsp = HTTPEngine.get(url, data.username, data.password, HTTPEngine.DEFAULT_CONNECT_REQUEST_TIMEOUT, HTTPEngine.DEFAULT_CONNECT_TIMEOUT, _getTimeout(), true,
+							null, data.userAgent, getProxy(url), null, true);
+					m = new HTTPDownloaderHeadResponse(rsp);
+				}
+				finally {
+					HTTPEngine.closeEL(rsp);
+				}
+			}
+			meta = m;
 		}
 		return meta;
+	}
+
+	/**
+	 * LDEV-5387: status codes a server returns for a HEAD request it does not support or (like S3
+	 * presigned URLs, signed for GET only) does not accept, while a GET to the same URL can still
+	 * succeed
+	 */
+	private static boolean rejectsHead(int code) {
+		return code == 400 || code == 403 || code == 405 || code == 501;
 	}
 
 	// the resource's own proxy or none, never the server proxy (HTTPEngine falls back to it on null)
