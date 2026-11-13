@@ -243,6 +243,7 @@ public abstract class HTTPEngineBasic {
 		private int statusCode;
 		private String statusText;
 		private long contentLength;
+		private boolean hasContentLength;
 		private long lastModified;
 
 		public HTTPDownloaderHeadResponse(HTTPResponse response) {
@@ -250,12 +251,13 @@ public abstract class HTTPEngineBasic {
 			this.headers = response.getAllHeaders();
 			this.statusCode = response.getStatusCode();
 			this.statusText = response.getStatusText();
-			try {
-				this.contentLength = response.getContentLength();
-			}
-			catch (IOException e) {
-				this.contentLength = 0;
-			}
+			// LDEV-6922: only take the length from the Content-Length header, HTTPResponse.getContentLength()
+			// reads the body when the header is missing, a HEAD response has no body (length 0) and for a GET
+			// response it consumes the stream the caller wants to read
+			lucee.commons.net.http.Header clHeader = response.getLastHeaderIgnoreCase("Content-Length");
+			long cl = clHeader == null ? -1 : Caster.toLongValue(clHeader.getValue(), -1L);
+			this.hasContentLength = cl >= 0;
+			this.contentLength = hasContentLength ? cl : 0;
 
 			lucee.commons.net.http.Header lmHeader = response.getLastHeaderIgnoreCase("last-modified");
 			if (lmHeader != null && statusCode >= 200 && statusCode <= 299) lastModified = Caster.toLongValue(lmHeader.getValue(), 0L);
@@ -263,6 +265,14 @@ public abstract class HTTPEngineBasic {
 
 		public long getContentLength() {
 			return contentLength;
+		}
+
+		/**
+		 * false when the response had no (valid) Content-Length header, getContentLength() then returns 0
+		 * and does not tell the real length
+		 */
+		public boolean hasContentLength() {
+			return hasContentLength;
 		}
 
 		public long getLastModified() {
