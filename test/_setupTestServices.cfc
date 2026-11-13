@@ -258,7 +258,9 @@ component {
 							verify = verifyAimock(cfg);
 							break;
 						case "orm":
-							verify = "ORM engine: " & ( cfg.class ?: "installed" );
+							// LDEV-6897: the engine is only usable if it can actually initialize, a failed
+							// Hibernate 7 boot kills every later ORM call in the JVM, so probe it here.
+							verify = new test._ormProbe().verify( cfg );
 							break;
 						default:
 							verify = verifyDatasource(cfg);
