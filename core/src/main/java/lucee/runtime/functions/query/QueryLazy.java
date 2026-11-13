@@ -22,6 +22,7 @@ import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
@@ -64,6 +65,9 @@ public final class QueryLazy extends BIF {
 	private static int RETURN_TYPE_STRUCT = 3;
 
 	private static final long serialVersionUID = 2886504786460447165L;
+	// aliases of columnKey, the same as defined for the tag cfquery (queryExecute)
+	private static final Key[] COLUMNKEY_ALIASES = new Key[] { KeyImpl.init("columnName"), KeyConstants._column, KeyImpl.init("keyColumn") };
+
 	public static String call(PageContext pc, String sql, UDF listener) throws PageException {
 		return call(pc, sql, listener, null, null);
 	}
@@ -100,6 +104,12 @@ public final class QueryLazy extends BIF {
 		Collection.Key columnKey = null;
 		if (returntype == RETURN_TYPE_STRUCT) {
 			columnKey = getKey(pc, options, KeyConstants._columnkey, null);
+			if (StringUtil.isEmpty(columnKey)) {
+				for (Key alias: COLUMNKEY_ALIASES) {
+					columnKey = getKey(pc, options, alias, null);
+					if (!StringUtil.isEmpty(columnKey)) break;
+				}
+			}
 			if (StringUtil.isEmpty(columnKey)) throw new ApplicationException("attribute columnKey is required when return type is set to struct");
 		}
 		else {
@@ -157,6 +167,8 @@ public final class QueryLazy extends BIF {
 			while (true);
 		}
 		catch (SQLException e) {
+			// LDEV-4213
+			DatasourceConnectionImpl.markSuspect(dc, e);
 			throw new DatabaseException(e, sql, dc);
 		}
 		catch (Throwable e) {

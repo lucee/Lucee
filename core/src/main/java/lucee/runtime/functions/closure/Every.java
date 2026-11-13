@@ -165,7 +165,7 @@ public final class Every extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), e.getValue(), es, futures);
-			if (!async && !Caster.toBooleanValue(res)) {
+			if (!async && !ClosureFunc.toBooleanResult(res, "every")) {
 				return false;
 			}
 		}
@@ -184,7 +184,7 @@ public final class Every extends BIF implements ClosureFunc {
 				row = it.next();
 				r = Caster.toDoubleValue(qry.getCurrentrow(pid));
 				res = _inv(pc, parentException, udf, new Object[] { row, r, qry }, r, row, es, futures);
-				if (!async && !Caster.toBooleanValue(res)) {
+				if (!async && !ClosureFunc.toBooleanResult(res, "every")) {
 					return false;
 				}
 			}
@@ -206,7 +206,7 @@ public final class Every extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), e.getValue(), es, futures);
-			if (!async && !Caster.toBooleanValue(res)) {
+			if (!async && !ClosureFunc.toBooleanResult(res, "every")) {
 				return false;
 			}
 		}
@@ -225,7 +225,7 @@ public final class Every extends BIF implements ClosureFunc {
 			k = ArgumentIntKey.init(index);
 			v = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { v, Caster.toDoubleValue(k.getString()), list }, k, v, es, futures);
-			if (!async && !Caster.toBooleanValue(res)) return false;
+			if (!async && !ClosureFunc.toBooleanResult(res, "every")) return false;
 		}
 		return true;
 	}
@@ -239,7 +239,7 @@ public final class Every extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue(), sct }, e.getKey(), e.getValue(), es, futures);
-			if (!async && !Caster.toBooleanValue(res)) return false;
+			if (!async && !ClosureFunc.toBooleanResult(res, "every")) return false;
 		}
 		return true;
 	}
@@ -253,7 +253,7 @@ public final class Every extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey(), e.getValue(), map }, e.getKey(), e.getValue(), es, futures);
-			if (!async && !Caster.toBooleanValue(res)) return false;
+			if (!async && !ClosureFunc.toBooleanResult(res, "every")) return false;
 		}
 		return true;
 	}
@@ -268,7 +268,7 @@ public final class Every extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue() }, e.getKey(), e.getValue(), es, futures);
-			if (!async && !Caster.toBooleanValue(res)) return false;
+			if (!async && !ClosureFunc.toBooleanResult(res, "every")) return false;
 		}
 		return true;
 	}
@@ -285,7 +285,7 @@ public final class Every extends BIF implements ClosureFunc {
 			v = it.next();
 			k = ArgumentIntKey.init(++count);
 			res = _inv(pc, parentException, udf, new Object[] { v }, k, v, es, futures);
-			if (!async && !Caster.toBooleanValue(res)) return false;
+			if (!async && !ClosureFunc.toBooleanResult(res, "every")) return false;
 		}
 		return true;
 	}
@@ -302,7 +302,7 @@ public final class Every extends BIF implements ClosureFunc {
 			v = e.nextElement();
 			k = ArgumentIntKey.init(++count);
 			res = _inv(pc, parentException, udf, new Object[] { v }, k, v, es, futures);
-			if (!async && !Caster.toBooleanValue(res)) return false;
+			if (!async && !ClosureFunc.toBooleanResult(res, "every")) return false;
 		}
 		return true;
 	}
@@ -325,7 +325,7 @@ public final class Every extends BIF implements ClosureFunc {
 			while (it.hasNext()) {
 				try {
 					d = it.next().get();
-					if (!Caster.toBooleanValue(d.result)) every = false;
+					if (!ClosureFunc.toBooleanResult(d.result, "every")) every = false;
 					pc.write(d.output);
 				}
 				catch (Exception e) {

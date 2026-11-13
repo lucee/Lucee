@@ -333,7 +333,37 @@
 				 _logger( message=mess & " file copy failed", throw=true );
 			}
 			_logger( mess & " SUCCESS");
+			publishHashesToS3( src, trg, mess );
 		}
+	}
+
+	// LDEV-6106: static <file>.sha256 and <file>.sha512 next to every published file, in the format of sha256sum / sha512sum,
+	// so a download can be verified with: sha256sum -c <file>.sha256 (the name inside is the name of the published file)
+	function publishHashesToS3( src, trg, mess ){
+		var name = listLast( arguments.trg, "/" );
+		var hashes = getHashes( arguments.src );
+		loop list="sha256,sha512" item="local.ext" {
+			try {
+				fileWrite( arguments.trg & "." & ext, hashes[ ext ] & "  " & name & chr( 10 ) );
+			} catch (e){
+				// censored error message due to s3 creds!
+				_logger( message=arguments.mess & " writing #name#.#ext# failed", throw=true );
+			}
+			_logger( "Publish #name#.#ext# to S3: SUCCESS" );
+		}
+	}
+
+	// lower case hex SHA-256 and SHA-512 of a local file, calculated once per file (a file is published more than once, root and Maven layout)
+	private function getHashes( src ){
+		variables.hashCache = variables.hashCache ?: {};
+		if ( !structKeyExists( variables.hashCache, arguments.src ) ) {
+			var bytes = fileReadBinary( arguments.src );
+			variables.hashCache[ arguments.src ] = {
+				sha256: lCase( hash( bytes, "SHA-256" ) ),
+				sha512: lCase( hash( bytes, "SHA-512" ) )
+			};
+		}
+		return variables.hashCache[ arguments.src ];
 	}
 
 	private function publishMetadataToS3( version,trg, mvnRootMetadata, mess ){

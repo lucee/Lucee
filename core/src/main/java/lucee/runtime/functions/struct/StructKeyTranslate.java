@@ -33,6 +33,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.scope.util.AbsSystemStruct;
 
 public final class StructKeyTranslate extends BIF {
 
@@ -51,6 +52,9 @@ public final class StructKeyTranslate extends BIF {
 	}
 
 	private static int translate(Collection coll, boolean deep, boolean leaveOrg) throws PageException {
+		// server.system.properties and server.system.environment are views of the JVM system properties
+		// and the environment, translating them would remove (or overwrite) system properties (LDEV-3423)
+		if (coll instanceof AbsSystemStruct) return 0;
 		Key[] keys = coll.keys(); // we do not entry to avoid ConcurrentModificationException
 
 		boolean isStruct = coll instanceof Struct;

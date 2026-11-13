@@ -406,6 +406,10 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 		return name;
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	@Override
 	public int getLoginStorage() {
 		if (!initLoginStorage) {

@@ -56,6 +56,7 @@ import lucee.runtime.db.ParamSyntaxImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
 // import lucee.runtime.net.mail.ServerImpl; // removed with mail functionality
@@ -389,10 +390,11 @@ public final class AppListenerUtil {
 	private static void translateMappingPhysical(ConfigWeb cw, MappingData md, String path, Resource source, boolean allowRelPath, boolean isArchive) {
 		String resolvedPath;
 		boolean matched;
+		Resource absolute = absoluteMappingResource(cw, path);
 
-		if (source == null || !allowRelPath) {
+		if (absolute != null || source == null || !allowRelPath) {
 			resolvedPath = path;
-			matched = false;
+			matched = absolute != null && absolute.exists();
 		}
 		else {
 			int inspect = cw == null ? Config.INSPECT_UNDEFINED : cw.getInspectTemplate();
@@ -425,6 +427,23 @@ public final class AppListenerUtil {
 			md.physical = resolvedPath;
 			md.physicalMatch = matched;
 		}
+	}
+
+	// filesystem-absolute and resource-provider paths are already locations; do not append them to the
+	// directory that holds Application.cfc. "/" is left alone so a root mapping still means the webroot.
+	private static Resource absoluteMappingResource(ConfigWeb cw, String path) {
+		if (cw == null || StringUtil.isEmpty(path, true)) return null;
+		String trimmed = path.trim();
+		if ("/".equals(trimmed) || "\\".equals(trimmed)) return null;
+		try {
+			Resource res = cw.getResource(trimmed);
+			if (res != null && res.isAbsolute()) return res;
+		}
+		catch (PageRuntimeException e) {
+			// unknown resource provider: this is not an absolute location, resolve it the usual way
+			return null;
+		}
+		return null;
 	}
 
 	private static String translateMappingVirtual(String virtual) {

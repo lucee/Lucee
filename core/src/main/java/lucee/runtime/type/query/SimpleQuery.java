@@ -59,6 +59,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLItem;
@@ -160,6 +161,8 @@ public final class SimpleQuery implements Query, ResultSet, Objects, QueryResult
 			while (true);
 		}
 		catch (SQLException e) {
+			// LDEV-4213
+			DatasourceConnectionImpl.markSuspect(dc, e);
 			throw new DatabaseException(e, sql, dc);
 		}
 		catch (Throwable e) {

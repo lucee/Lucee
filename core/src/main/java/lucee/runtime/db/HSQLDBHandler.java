@@ -30,7 +30,9 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -56,6 +58,7 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.IllegalQoQException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.sql.SQLParserException;
 import lucee.runtime.sql.SelectParser;
@@ -216,8 +219,36 @@ public final class HSQLDBHandler {
 	 * @throws PageException
 	 */
 
-	private static void populateTable(Connection conn, PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes, Struct tableCols)
-			throws SQLException, PageException {
+	// LDEV-3514 complex values (e.g. components) can't be stored in HSQLDB, a placeholder goes in and
+	// the original value is put back into the result
+	private static final String COMPLEX_PREFIX = "\u0000lucee-qoq-complex:";
+	private static final String COMPLEX_SUFFIX = "\u0000";
+
+	private static String toStringValue(Object value, Map<String, Object> complexValues) throws PageException {
+		if (complexValues == null || Decision.isSimpleValue(value)) return Caster.toString(value);
+		String placeholder = COMPLEX_PREFIX + complexValues.size() + COMPLEX_SUFFIX;
+		complexValues.put(placeholder, value);
+		return placeholder;
+	}
+
+	private static void restoreComplexValues(QueryImpl qry, Map<String, Object> complexValues) {
+		if (qry == null || complexValues == null || complexValues.isEmpty()) return;
+		Key[] names = qry.getColumnNames();
+		int rows = qry.getRecordcount();
+		Object value, org;
+		for (Key name: names) {
+			for (int row = 1; row <= rows; row++) {
+				value = qry.getAt(name, row, null);
+				if (value instanceof String && ((String) value).startsWith(COMPLEX_PREFIX)) {
+					org = complexValues.get(value);
+					if (org != null) qry.setAtEL(name, row, org);
+				}
+			}
+		}
+	}
+
+	private static void populateTable(Connection conn, PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes, Struct tableCols,
+			Map<String, Object> complexValues) throws SQLException, PageException {
 
 		// Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_MILLI);
 		// stopwatch.start();
@@ -287,11 +318,11 @@ public final class HSQLDBHandler {
 
 				// print.out("*** "+type+":"+Caster.toString(value));
 				if (doSimpleTypes) {
-					prepStat.setObject(i + 1, Caster.toString(value));
+					prepStat.setObject(i + 1, toStringValue(value, complexValues));
 				}
 				else {
 					if (value == null) prepStat.setNull(i + 1, type);
-					else if (type == STRING) prepStat.setObject(i + 1, Caster.toString(value));
+					else if (type == STRING) prepStat.setObject(i + 1, toStringValue(value, complexValues));
 					else if (type == INT) prepStat.setInt(i + 1, (value.equals("")) ? 0 : Caster.toIntValue(value));
 					else if (type == DOUBLE) prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(value));
 					else if (type == DATE) {
@@ -654,6 +685,7 @@ public final class HSQLDBHandler {
 
 		ArrayList<String> qoqTables = new ArrayList<String>();
 		QueryImpl nqr = null;
+		Map<String, Object> complexValues = new HashMap<String, Object>();
 		ConfigPro config = (ConfigPro) pc.getConfig();
 		DatasourceConnection dc = null;
 		Connection conn = null;
@@ -741,13 +773,14 @@ public final class HSQLDBHandler {
 
 					// only populate tables with data if there are used columns, or no needed column data at all
 					if (tableColumns == null || tableColumns.size() > 0) {
-						populateTable(conn, pc, tn[1], tn[0], doSimpleTypes, tableColumns);
+						populateTable(conn, pc, tn[1], tn[0], doSimpleTypes, tableColumns, complexValues);
 					}
 				}
 
 				DBUtil.setReadOnlyEL(conn, true);
 				try {
 					nqr = new QueryImpl(pc, dc, sql, maxrows, fetchsize, timeout, "query", null, false, false, null);
+					restoreComplexValues(nqr, complexValues);
 				}
 				catch (PageException pe) {
 					throw pe;

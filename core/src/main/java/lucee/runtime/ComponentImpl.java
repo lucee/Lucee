@@ -264,7 +264,7 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 
 											js,
 
-											JavaSettingsImpl.readJavaSettings(pc, sct)
+											JavaSettingsImpl.readJavaSettings(pc, sct, "interface [" + i.getPageSource().getDisplayPath() + "]")
 
 									);
 								}
@@ -281,7 +281,7 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 					}
 
 					// current
-					js = JavaSettingsImpl.merge(ConfigUtil.getConfigServerImpl(pc.getConfig()), js, JavaSettingsImpl.readJavaSettings(pc, properties.meta));
+					js = JavaSettingsImpl.merge(ConfigUtil.getConfigServerImpl(pc.getConfig()), js, JavaSettingsImpl.readJavaSettings(pc, properties.meta, "component [" + pageSource.getDisplayPath() + "]"));
 					if (mergeConfig) js = JavaSettingsImpl.merge(ConfigUtil.getConfigServerImpl(pc.getConfig()), ((ConfigPro) pc.getConfig()).getJavaSettings(), js);
 
 					return this.cp.setJavaSettings(js);

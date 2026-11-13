@@ -4652,6 +4652,7 @@ public final class ConfigAdmin {
 
 			// FLD
 			removeFLDs(logger, rhe.getMetadata().getFlds()); // MUST check if others use one of this fld
+			if (!ArrayUtil.isEmpty(rhe.getMetadata().getFlds())) filter.add("resetFLDs");
 
 			// TLD
 			removeTLDs(logger, rhe.getMetadata().getTlds()); // MUST check if others use one of this tld
@@ -4661,6 +4662,7 @@ public final class ConfigAdmin {
 
 			// Functions
 			removeFunctions(logger, rhe.getMetadata().getFunctions());
+			if (!ArrayUtil.isEmpty(rhe.getMetadata().getFunctions())) filter.add("resetFLDs");
 
 			// Event Gateway
 			removeEventGateways(logger, rhe.getMetadata().getEventGateways());

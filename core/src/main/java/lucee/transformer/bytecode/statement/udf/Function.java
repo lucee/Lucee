@@ -308,7 +308,8 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 		boolean light = sType != -1;
 		if (light && !bc.getFactory().EMPTY().equals(displayName)) light = false;
-		if (light && description != null && !bc.getFactory().EMPTY().equals(description)) light = false;
+		ExprString effDescription = getEffectiveDescription();
+		if (light && effDescription != null && !bc.getFactory().EMPTY().equals(effDescription)) light = false;
 		if (light && !bc.getFactory().EMPTY().equals(hint)) light = false;
 		if (light && secureJson != null) light = false;
 		if (light && verifyClient != null) light = false;
@@ -331,7 +332,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		ExpressionUtil.writeOutSilent(displayName, bc, Expression.MODE_REF);// displayName;
 
 		// description
-		if (description != null) ExpressionUtil.writeOutSilent(description, bc, Expression.MODE_REF);// displayName;
+		if (effDescription != null) ExpressionUtil.writeOutSilent(effDescription, bc, Expression.MODE_REF);// displayName;
 		else adapter.push("");
 
 		// hint
@@ -579,6 +580,25 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		Map<String, Attribute> merged = new HashMap<String, Attribute>(annotations);
 		if (metadata != null) merged.putAll(metadata);
 		return merged;
+	}
+
+	/**
+	 * LDEV-3899: the description of the function, an attribute (description="...") wins over a
+	 * docblock tag (@description ...)
+	 */
+	private ExprString getEffectiveDescription() {
+		if (description != null) return description;
+		if (annotations != null) {
+			for (Map.Entry<String, Attribute> entry: annotations.entrySet()) {
+				if (!"description".equalsIgnoreCase(entry.getKey())) continue;
+				Expression value = entry.getValue().getValue();
+				if (value instanceof Literal) {
+					String str = ((Literal) value).getString();
+					if (str != null) return hint.getFactory().createLitString(str.trim());
+				}
+			}
+		}
+		return null;
 	}
 
 	public final void setAnnotations(Map<String, Attribute> annotations) {

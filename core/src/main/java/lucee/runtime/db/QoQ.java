@@ -247,7 +247,7 @@ public final class QoQ {
 
 		// If have a group by, a distinct, or this is part of a "union", or has aggregates in the
 		// select list then we partition
-		if (select.getGroupbys().length > 0 || select.isDistinct() || (select.hasAggregateSelect() && select.getWhere() != null)) {
+		if (select.getGroupbys().length > 0 || select.isDistinct() || select.getHaving() != null || (select.hasAggregateSelect() && select.getWhere() != null)) {
 			executeSinglePartitioned(pc, select, source, target, maxrows, sql, hasOrders, isUnion, trgColumns, trgValues, headers);
 		}
 		// This is a "normal" select with no partitioning
@@ -459,8 +459,9 @@ public final class QoQ {
 
 		// For a non-grouping query with aggregates in the select such as
 		// SELECT count(1) FROM qry WHERE col='foo'
-		// then we need to return a single row
-		if (hasAggregateSelect && select.getGroupbys().length == 0 && source.getRecordcount() == 0) {
+		// then we need to return a single row. With a HAVING clause we fall through, so the HAVING gets
+		// applied to the single empty partition (LDEV-4300).
+		if (hasAggregateSelect && select.getGroupbys().length == 0 && select.getHaving() == null && source.getRecordcount() == 0) {
 			int newRow = target.addRow();
 			for (int cell = 0; cell < headers.length; cell++) {
 				trgColumns[cell].set(1, getValue(pc, sql, source, 1, headers[cell], trgValues[cell], null), true);

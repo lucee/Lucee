@@ -273,7 +273,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	//////////////////////////
 	private TagLib[] cfmlTlds;
 	private Resource tldFile;
-	private FunctionLib cfmlFlds;
+	private volatile FunctionLib cfmlFlds;
 	private Resource fldFile;
 	protected Mapping defaultFunctionMapping;
 	protected final Map<String, Mapping> functionMappings = new ConcurrentHashMap<String, Mapping>();
@@ -2910,7 +2910,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		tl.setTag(tlt);
 	}
 
-	protected void setFunctionDirectory(List<Path> listFunctionDirectory) {
+	protected void setFunctionDirectory(List<Path> listFunctionDirectory, FunctionLib flds) {
 		Iterator<Path> it = listFunctionDirectory.iterator();
 		int index = -1;
 		String mappingName;
@@ -2931,7 +2931,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 				String[] files = path.res.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
 
 				for (String file: files) {
-					if (cfmlFlds != null) createFunction(cfmlFlds, file, mappingName);
+					if (flds != null) createFunction(flds, file, mappingName);
 
 				}
 			}
@@ -3014,15 +3014,18 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	 */
 	@Override
 	public FunctionLib getFLDs() {
-		if (cfmlFlds == null) {
+		FunctionLib flds = cfmlFlds;
+		if (flds == null) {
 			synchronized (SystemUtil.createToken("config", "getFLDs")) {
-				if (cfmlFlds == null) {
+				flds = cfmlFlds;
+				if (flds == null) {
 					// TODO make some kind of pre state in case root is empty
 					ConfigFactoryImpl.loadFunctions(this, root, newVersion());
+					flds = cfmlFlds;
 				}
 			}
 		}
-		return cfmlFlds;
+		return flds;
 	}
 
 	public ConfigServerImpl resetFLDs() {
@@ -3043,7 +3046,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		return new FunctionLib[] { getFLDs() };
 	}
 
-	protected void setFldFile(Resource fileFld) throws FunctionLibException {
+	protected void setFldFile(Resource fileFld, FunctionLib flds) throws FunctionLibException {
 		if (fileFld == null) return;
 		this.fldFile = fileFld;
 
@@ -3055,7 +3058,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 				try {
 					fl = FunctionLibFactory.loadFromFile(files[i], getIdentification());
 					applyExtensionId(fl, files[i].getName());
-					overwrite(cfmlFlds, fl);
+					overwrite(flds, fl);
 
 				}
 				catch (FunctionLibException fle) {
@@ -3067,16 +3070,16 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		else {
 			fl = FunctionLibFactory.loadFromFile(fileFld, getIdentification());
 			applyExtensionId(fl, fileFld.getName());
-			overwrite(cfmlFlds, fl);
+			overwrite(flds, fl);
 		}
 		// LDEV-3027: the bundled markdown extension escapes HTML in safeMode but does not
 		// drop unsafe URL schemes. Keep its renderer and sanitize href/src afterwards.
-		installMarkdownSafeMode();
+		installMarkdownSafeMode(flds);
 	}
 
-	private void installMarkdownSafeMode() {
-		if (cfmlFlds == null) return;
-		FunctionLibFunction markdown = cfmlFlds.getFunction("markdowntohtml");
+	private void installMarkdownSafeMode(FunctionLib flds) {
+		if (flds == null) return;
+		FunctionLibFunction markdown = flds.getFunction("markdowntohtml");
 		if (markdown == null) return;
 		ClassDefinition cd = markdown.getFunctionClassDefinition();
 		if (cd == null || cd.isClassNameEqualTo(MarkdownToHTML.class.getName())) return;

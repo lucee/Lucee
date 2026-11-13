@@ -475,6 +475,8 @@ jobs:
         cp "loader/target/$BUILT.lco" "release-assets/$BUILT.lco"
         .github/scripts/build-express.sh "$BUILT" "loader/target/lucee-$BUILT.jar" "release-assets/lucee-express-$BUILT.zip"
         .github/scripts/build-war.sh "$BUILT" "loader/target/lucee-$BUILT.jar" "release-assets/lucee-$BUILT.war"
+        # LDEV-6106: <file>.sha256 and <file>.sha512 for every file, verify with sha256sum -c <file>.sha256
+        .github/scripts/write-hashes.sh release-assets
         ls -l release-assets
 
         # the release uses the annotated tag created by "Tag published revision" (numeric, without qualifier)

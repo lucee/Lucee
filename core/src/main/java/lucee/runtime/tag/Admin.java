@@ -206,6 +206,7 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.UDFUtil;
 import lucee.runtime.util.PageContextUtil;
+import lucee.runtime.mvn.MavenUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
@@ -2796,6 +2797,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
+		// LDEV-6908: a class only definition uses the registered JDBC driver (OSGi bundle or Maven)
+		if (cd.hasClass() && !cd.isBundle() && !ClassDefinitionImpl.isMaven(cd)) cd = DataSourceFactory.resolveJDBCDriverClassDefinition(config, cd, null, null);
 
 		// customParameterSyntax
 		// Struct sct = getStruct("customParameterSyntax", null);
@@ -3359,7 +3362,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	/**
 	 * @return the Maven coordinates of the class definition as string, null if it is not defined by Maven
 	 */
-	private static String toMavenString(ClassDefinition cd) throws PageException {
+	private static String toMavenString(ClassDefinition<?> cd) throws PageException {
 		if (!ClassDefinitionImpl.isMaven(cd)) return null;
 		return MavenUtil.toString(((ClassDefinitionImpl<?>) cd).getMaven());
 	}
