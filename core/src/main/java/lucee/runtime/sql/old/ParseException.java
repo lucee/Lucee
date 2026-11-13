@@ -41,38 +41,55 @@ public final class ParseException extends Exception {
 		specialConstructor = false;
 	}
 
+	/**
+	 * The short, single line message: what was encountered and where. The list of expected tokens is
+	 * available with {@link #getDetail()}.
+	 */
 	@Override
 	public String getMessage() {
 		if (!specialConstructor) return super.getMessage();
-		String s = "";
-		int i = 0;
-		for (int j = 0; j < expectedTokenSequences.length; j++) {
-			if (i < expectedTokenSequences[j].length) i = expectedTokenSequences[j].length;
-			for (int k = 0; k < expectedTokenSequences[j].length; k++)
-				s = s + tokenImage[expectedTokenSequences[j][k]] + " ";
+		int maxSequenceLength = getMaxSequenceLength();
 
-			if (expectedTokenSequences[j][expectedTokenSequences[j].length - 1] != 0) s = s + "...";
-			s = s + eol + "    ";
-		}
-
-		String s1 = "Encountered \"";
+		StringBuilder sb = new StringBuilder("Encountered \"");
 		Token token = currentToken.next;
-		for (int l = 0; l < i; l++) {
-			if (l != 0) s1 = s1 + " ";
+		for (int l = 0; l < maxSequenceLength; l++) {
+			if (l != 0) sb.append(' ');
 			if (token.kind == 0) {
-				s1 = s1 + tokenImage[0];
+				sb.append(tokenImage[0]);
 				break;
 			}
-			s1 = s1 + add_escapes(token.image);
+			sb.append(add_escapes(token.image));
 			token = token.next;
 		}
 
-		s1 = s1 + "\" at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn;
-		s1 = s1 + "." + eol;
-		if (expectedTokenSequences.length == 1) s1 = s1 + "Was expecting:" + eol + "    ";
-		else s1 = s1 + "Was expecting one of:" + eol + "    ";
-		s1 = s1 + s;
-		return s1;
+		sb.append("\" at line ").append(currentToken.next.beginLine).append(", column ").append(currentToken.next.beginColumn).append('.');
+		return sb.toString();
+	}
+
+	/**
+	 * The list of expected tokens ("Was expecting one of: ..."), or null if this exception does not
+	 * carry one.
+	 */
+	public String getDetail() {
+		if (!specialConstructor) return null;
+
+		StringBuilder sb = new StringBuilder(expectedTokenSequences.length == 1 ? "Was expecting:" : "Was expecting one of:");
+		for (int j = 0; j < expectedTokenSequences.length; j++) {
+			sb.append(eol).append("    ");
+			for (int k = 0; k < expectedTokenSequences[j].length; k++) {
+				sb.append(tokenImage[expectedTokenSequences[j][k]]).append(' ');
+			}
+			if (expectedTokenSequences[j][expectedTokenSequences[j].length - 1] != 0) sb.append("...");
+		}
+		return sb.toString();
+	}
+
+	private int getMaxSequenceLength() {
+		int max = 0;
+		for (int j = 0; j < expectedTokenSequences.length; j++) {
+			if (max < expectedTokenSequences[j].length) max = expectedTokenSequences[j].length;
+		}
+		return max;
 	}
 
 	protected String add_escapes(String s) {

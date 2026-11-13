@@ -283,8 +283,10 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			return;
 		}
 
-		// we reload in case the config file was changed from outside
-
+		// we reload in case the config file was changed from outside, the config is held in memory, so
+		// we have to read the file again (that also remembers the new last modified date, so we do not
+		// reload again on the next call)
+		configServer.load(configFile);
 		load(configServer, quick);
 		// LDEV-6743 same as with a new instance, while the engine only has the essential (quick) config,
 		// extensions are not loaded yet, onStart (onBuild with warmup) is called once the full config is
@@ -1079,6 +1081,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 	}
 
 	public static void loadFunctions(ConfigServerImpl config, Struct rootMayNull, boolean doNew) {
+		FunctionLib flds = null;
 		try {
 			Resource configDir = config.getConfigDir();
 
@@ -1110,14 +1113,14 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 			// Init flds
 			{
-				config.setFLDs(ConfigUtil.getConfigServerImpl(config).getCoreFLDs().duplicate(false)); // MUST duplicate needed?
+				flds = ConfigUtil.getConfigServerImpl(config).getCoreFLDs().duplicate(false); // MUST duplicate needed?
 
 			}
 
 			// FLDs
 			if (!StringUtil.isEmpty(strDefaultFLDDirectory)) {
 				Resource fld = ConfigUtil.getFile(config, configDir, strDefaultFLDDirectory, FileUtil.TYPE_DIR);
-				if (fld != null) config.setFldFile(fld);
+				if (fld != null) config.setFldFile(fld, flds);
 			}
 
 			// Function files (CFML)
@@ -1148,11 +1151,15 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 					}
 				}
 			}
-			config.setFunctionDirectory(listFuncs);
+			config.setFunctionDirectory(listFuncs, flds);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			log(config, t);
+		}
+		finally {
+			// LDEV-6884 publish the library only once it is complete, a concurrent getFLDs() must never see a partially loaded one
+			if (flds != null) config.setFLDs(flds);
 		}
 	}
 

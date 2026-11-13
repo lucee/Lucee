@@ -206,7 +206,12 @@ public final class QueryParam extends TagImpl {
 						arr = new ArrayImpl();
 						arr.append("");
 					}
-					else arr = ListUtil.listToArrayRemoveEmpty(v, separator);
+					else {
+						arr = ListUtil.listToArrayRemoveEmpty(v, separator);
+						// LDEV-3207 a list of only empty elements (e.g. valueList() of empty values) is handled
+						// like an empty string, otherwise the SQL gets "IN ()"
+						if (arr.size() == 0) arr.append("");
+					}
 				}
 
 				int len = arr.size();

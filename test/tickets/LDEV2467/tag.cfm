@@ -1,0 +1,11 @@
+<cfset request.ldev2467 = {}>
+<cfset request.ldev2467.modDiv = 7 % 4 / 2>
+<cfset request.ldev2467.modDivOrig = 5 % 2 / 2>
+<cfset request.ldev2467.modMulti = 10 % 4 * 2>
+<cfset request.ldev2467.modIntDiv = 10 % 7 \ 2>
+<cfset request.ldev2467.keywordDiv = 7 mod 4 / 2>
+<cfset request.ldev2467.keywordMulti = 10 mod 4 * 2>
+<cfset request.ldev2467.divMod = 10 / 2 % 3>
+<cfset request.ldev2467.multiMod = 5 * 3 % 4>
+<cfset request.ldev2467.parens = ( 5 % 2 ) / 2>
+<cfset request.ldev2467.chained = 17 % 10 % 4>

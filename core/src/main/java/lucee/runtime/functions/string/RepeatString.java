@@ -33,15 +33,30 @@ public final class RepeatString extends BIF {
 
 	private static final long serialVersionUID = 6041471441971348584L;
 
+	// the maximum array size of the jvm (Integer.MAX_VALUE - 8)
+	private static final int MAX_LENGTH = Integer.MAX_VALUE - 8;
+
 	public static String call(PageContext pc, String str, Number count) throws ExpressionException {
 		int cnt = Caster.toIntValue(count);
 		if (cnt < 0) throw new ExpressionException("Parameter 2 of function repeatString which is now [" + Caster.toString(cnt) + "] must be a non-negative integer");
+		checkLength(str, cnt);
 		return StringUtil.repeatString(str, cnt);
+	}
+
+	/**
+	 * a java String can not hold more than Integer.MAX_VALUE characters, without this check the length
+	 * calculation (length of str * count) overflows and fails with a NegativeArraySizeException (LDEV-4277)
+	 */
+	private static void checkLength(String str, int count) throws ExpressionException {
+		long total = (long) str.length() * count;
+		if (total > MAX_LENGTH) throw new ExpressionException("The result of function repeatString would be too large: repeating a string of [" + str.length() + "] characters ["
+				+ count + "] times gives [" + total + "] characters, the maximum length of a string is [" + MAX_LENGTH + "] characters");
 	}
 
 	public static String _call(PageContext pc, String str, Number count) throws ExpressionException {
 		int len = Caster.toIntValue(count);
 		if (len < 0) throw new ExpressionException("Parameter 2 of function repeatString which is now [" + len + "] must be a non-negative integer");
+		checkLength(str, len);
 		char[] chars = str.toCharArray();
 		StringBuilder cb = new StringBuilder(chars.length * len);
 		for (int i = 0; i < len; i++)

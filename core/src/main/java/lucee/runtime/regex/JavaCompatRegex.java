@@ -1,9 +1,11 @@
 package lucee.runtime.regex;
 
+import java.util.BitSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -12,27 +14,419 @@ class JavaCompatRegex extends JavaRegex {
 
 	private static final Map<String, Pattern> compatCache = new ConcurrentHashMap<>();
 
+	// Oro's POSIX classes use the Character.isXxx() methods, these are the exact java equivalents
+	private static final String PUNCT = "\\p{Pc}\\p{Pd}\\p{Ps}\\p{Pe}\\p{Po}\\p{Sm}\\p{Sc}\\p{Sk}";
+	// _ first, inside a class a - after the last char would start a range: [\w-\.]
+	private static final String WORD = "_\\p{L}\\p{Nd}";
+	private static final Map<String, String> POSIX = Map.ofEntries(Map.entry("alpha", "\\p{L}"), Map.entry("digit", "\\p{Nd}"), Map.entry("alnum", "\\p{L}\\p{Nd}"),
+			Map.entry("word", WORD), Map.entry("upper", "\\p{IsUppercase}"), Map.entry("lower", "\\p{IsLowercase}"), Map.entry("space", "\\p{javaWhitespace}"),
+			Map.entry("blank", "\\p{javaSpaceChar}"), Map.entry("punct", PUNCT), Map.entry("graph", "\\p{L}\\p{Nd}" + PUNCT), Map.entry("print", "\\p{L}\\p{Nd}" + PUNCT + "\\p{Z}"),
+			Map.entry("cntrl", "\\p{Cc}"), Map.entry("xdigit", "\\p{XDigit}"));
+
+	// Oro's \w \d \s and \b use the same Character.isXxx() methods, java's are ASCII.
+	// UNICODE_CHARACTER_CLASS isn't a match, its \w also takes combining marks and its \s takes nbsp
+	private static final String W = "[" + WORD + "]";
+	private static final Map<Character, String> SHORTHAND = Map.of('w', W, 'W', "[^" + WORD + "]", 'd', "\\p{Nd}", 'D', "\\P{Nd}", 's', "\\p{javaWhitespace}", 'S',
+			"\\P{javaWhitespace}", 'b', "(?:(?<=" + W + ")(?!" + W + ")|(?<!" + W + ")(?=" + W + "))", 'B', "(?:(?<=" + W + ")(?=" + W + ")|(?<!" + W + ")(?!" + W + "))");
+
+	// the whitespace Oro's (?x) skips inside a run of literals, between atoms it skips any Character.isWhitespace()
+	private static final String RUN_SPACE = " \t\n\r\f\u000B";
+	// the inline modifiers Oro accepts in (?...)
+	private static final String ORO_MODIFIERS = "iogmsx-";
+	// the ones that do something, g and o are ignored, and the java flag for each
+	private static final String MOD_LETTERS = "imsx";
+	private static final int[] MOD_FLAGS = { Pattern.CASE_INSENSITIVE, Pattern.MULTILINE, Pattern.DOTALL, Pattern.COMMENTS };
+	private static final int MS = Pattern.MULTILINE | Pattern.DOTALL;
+
+	// letters java.util.regex accepts after a backslash, Oro reads any other letter as itself.
+	// \E is only valid after a \Q, which is copied whole
+	private static final String JAVA_ESCAPE_LETTERS = "tnrfaecdDhHsSvVwWpPbBAGZzQRXNkxu";
+	// inside a class java also rejects the anchors, \R and \X
+	private static final String JAVA_CLASS_ESCAPE_LETTERS = "tnrfaecdDhHsSvVwWpPbQNkxu";
+
+	// Oro compiled non-multiline patterns with SINGLELINE_MASK, so . matches \n, and only \n ends a line
 	@Override
 	protected Pattern toPattern(String strPattern, boolean caseSensitive, boolean multiLine) {
-		int f = 0;
-		if (!caseSensitive) f += Pattern.CASE_INSENSITIVE;
-		if (multiLine) f += Pattern.MULTILINE;
+		int f = Pattern.UNIX_LINES;
+		if (!caseSensitive) f += Pattern.CASE_INSENSITIVE + Pattern.UNICODE_CASE;
+		f += multiLine ? Pattern.MULTILINE : Pattern.DOTALL;
 		final int flags = f;
+		String key = flags + "\0" + strPattern;
+		return compatCache.computeIfAbsent(key, k -> compile(strPattern, flags));
+	}
+
+	// a syntax error names the pattern as written, the index into the translation would be misleading
+	private static Pattern compile(String strPattern, int flags) {
 		String translated = translatePattern(strPattern);
-		String key = flags + "\0" + translated;
-		return compatCache.computeIfAbsent(key, k -> Pattern.compile(translated, flags));
+		try {
+			return Pattern.compile(translated, flags);
+		}
+		catch (PatternSyntaxException e) {
+			if (translated.equals(strPattern)) throw e;
+			PatternSyntaxException pse = new PatternSyntaxException(e.getDescription(), strPattern, -1);
+			pse.initCause(e);
+			throw pse;
+		}
+	}
+
+	// Starts the search at index start without cutting the input there, as Oro's setCurrentOffset() does.
+	// A region on its own has anchoring bounds (^ and \A match at the region start) and opaque bounds
+	// (\b and lookarounds can't see the chars before it), so code that loops reFind from increasing offsets
+	// with a leading ^ re-anchored at every restart, Preside's PresideObjectService._reSearch() for one.
+	// The region end is always the input end, so $ is unchanged.
+	@Override
+	protected void startAt(Matcher matcher, int start) {
+		matcher.region(start, matcher.regionEnd()).useAnchoringBounds(false).useTransparentBounds(true);
+	}
+
+	// Perl doesn't report an empty match where the previous match ended
+	@Override
+	protected boolean findNext(Matcher matcher, int prevEnd) {
+		while (matcher.find()) {
+			if (matcher.start() != matcher.end() || matcher.start() != prevEnd) return true;
+		}
+		return false;
 	}
 
 	// Translates a CFML/Perl pattern string to java.util.regex syntax.
-	// Currently a passthrough — POSIX class mapping etc. added here later.
-	private static String translatePattern(String pattern) {
-		return pattern;
+	// Oro reads these as literals where java throws or reads them differently: a { that doesn't start a quantifier,
+	// a [ or && inside a class, a letter escape java doesn't know, \xH and octal. POSIX [:name:] becomes \p{...},
+	// and \w \W \d \D \s \S \b \B become their Unicode equivalents.
+	// Oro's (?x) and (?#...) are handled here and dropped from the translation, see the comments below.
+	static String translatePattern(String pattern) {
+		if (pattern.indexOf('{') < 0 && pattern.indexOf('[') < 0 && pattern.indexOf('\\') < 0 && pattern.indexOf("(?") < 0) return pattern;
+		// the inline modifiers set so far and the ones that are on, as java flags
+		int[] mods = new int[2];
+		// Oro compiles in two passes and the second starts with the modifiers the first ended with,
+		// so the last (?m) (?s) (?x) also applies before it, and the last (?i) to the whole pattern
+		if (pattern.indexOf("(?") >= 0) translate(pattern, mods);
+		return translate(pattern, mods);
+	}
+
+	private static String translate(String pattern, int[] mods) {
+		int n = pattern.length();
+		StringBuilder sb = new StringBuilder(n + 16);
+		sb.append(modifiers(mods, Pattern.CASE_INSENSITIVE | MS));
+		boolean inClass = false;
+		// Oro's (?x) is on from where it appears to the end of the pattern, or a (?-x), not to the end of the group like java's
+		boolean extended = (mods[1] & Pattern.COMMENTS) != 0;
+		// the same for (?m) and (?s), java turns them off again where the group ends, so after a group that changed
+		// them they're written again, once past any quantifier on the group. Oro's (?i) is in the prefix, see above
+		int depth = 0;
+		BitSet changed = new BitSet();
+		String pending = null;
+		// where the current run of literals starts in sb, and whether (?x) skipped whitespace since its last char:
+		// Oro checks for a quantifier before it skips, so a quantifier after the whitespace is one more literal
+		int runStart = -1;
+		boolean skipped = false;
+		// sb length right after a plain word char literal, so a \b straight after it knows one side
+		int wordEnd = -1;
+		// capturing groups opened so far, Oro reads \NN as octal unless there are that many
+		int groups = 0;
+		// nothing to repeat yet: the start of the pattern, a group or an alternative, or after a modifier group
+		boolean atomStart = true;
+		for (int i = 0; i < n; i++) {
+			char c = pattern.charAt(i);
+			if (extended && !inClass && (c == '#' || (runStart >= 0 ? RUN_SPACE.indexOf(c) >= 0 : Character.isWhitespace(c)))) {
+				if (c == '#') while (i + 1 < n && pattern.charAt(i + 1) != '\n') i++;
+				if (runStart >= 0) skipped = true;
+				continue;
+			}
+			if (pending != null && "*+?".indexOf(c) < 0 && !isOroQuantifier(pattern, i) && !pattern.startsWith("(?#", i)) {
+				sb.append(pending);
+				if (depth > 0) changed.set(depth);
+				pending = null;
+			}
+			int len = sb.length();
+			boolean atStart = atomStart;
+			atomStart = false;
+			if (skipped && "*+?{".indexOf(c) >= 0) {
+				// unless another quantifier follows, which backs it off and then repeats the whole run
+				if (c != '{' && i + 1 < n && isOroQuantifier(pattern, i + 1)) {
+					sb.insert(runStart, "(?:").append(')').append(c);
+					runStart = -1;
+				}
+				else sb.append('\\').append(c);
+				skipped = false;
+				continue;
+			}
+			skipped = false;
+			if (!inClass && pattern.startsWith("(?#", i)) {
+				// a comment runs to the first ), or the end of the pattern. Oro ends a run of literals at the (,
+				// so a quantifier after the comment repeats the whole run
+				int end = pattern.indexOf(')', i + 3);
+				i = end < 0 ? n - 1 : end;
+				if (runStart >= 0 && i + 1 < n && isOroQuantifier(pattern, i + 1)) sb.insert(runStart, "(?:").append(')');
+				runStart = -1;
+				atomStart = atStart;
+				continue;
+			}
+			int modEnd = !inClass && c == '(' ? modifiersEnd(pattern, i) : -1;
+			if (modEnd > 0) {
+				String ms = modifiers(mods, applyModifiers(pattern, i, modEnd, mods) & MS);
+				sb.append(ms);
+				if (depth > 0 && !ms.isEmpty()) changed.set(depth);
+				extended = (mods[1] & Pattern.COMMENTS) != 0;
+				runStart = -1;
+				atomStart = true;
+				i = modEnd;
+			}
+			else if (c == '\\' && !inClass && !extended && i + 1 < n && (pattern.charAt(i + 1) == 'b' || pattern.charAt(i + 1) == 'B')) {
+				int j = translateBoundary(pattern, i, sb.length() == wordEnd, sb);
+				// it moved the following literal in front of the check, which starts a run
+				if (j == i + 2) wordEnd = sb.length();
+				runStart = j == i + 2 ? len : -1;
+				i = j;
+			}
+			else if (c == '\\') {
+				// Oro ends a run of literals at these, any other escape is one more literal
+				boolean ends = i + 1 < n && ("AGZwWbBsSdD".indexOf(pattern.charAt(i + 1)) >= 0 || (pattern.charAt(i + 1) >= '1' && pattern.charAt(i + 1) <= '9'));
+				i = translateEscape(pattern, i, inClass, groups, sb);
+				if (!inClass) runStart = ends ? -1 : runStart < 0 ? len : runStart;
+			}
+			else if (inClass) {
+				if (c == ']') {
+					inClass = false;
+					sb.append(c);
+				}
+				else if (c == '[') {
+					int end = pattern.startsWith("[:", i) ? pattern.indexOf(":]", i + 2) : -1;
+					String name = end < 0 ? null : pattern.substring(i + 2, end);
+					// [:^name:] is the negation, a nested class
+					boolean negated = name != null && name.startsWith("^");
+					String posix = name == null ? null : POSIX.get(negated ? name.substring(1) : name);
+					if (posix == null) sb.append("\\[");
+					else {
+						if (negated) sb.append("[^").append(posix).append(']');
+						else sb.append(posix);
+						i = end + 1;
+					}
+				}
+				else if (c == '&' && i + 1 < n && pattern.charAt(i + 1) == '&') {
+					sb.append("\\&\\&");
+					i++;
+				}
+				else sb.append(c);
+			}
+			else if (c == '[') {
+				inClass = true;
+				runStart = -1;
+				sb.append(c);
+				if (i + 1 < n && pattern.charAt(i + 1) == '^') sb.append(pattern.charAt(++i));
+				// a ] straight after [ or [^ is a literal
+				if (i + 1 < n && pattern.charAt(i + 1) == ']') {
+					sb.append("\\]");
+					i++;
+				}
+			}
+			else if (c == '{') {
+				// a quantifier with nothing to repeat, Oro reads it as a literal
+				int end = atStart ? -1 : quantifierEnd(pattern, i);
+				if (end < 0) {
+					sb.append("\\{");
+					if (runStart < 0) runStart = len;
+				}
+				else {
+					sb.append(pattern, i, end + 1);
+					runStart = -1;
+					i = end;
+				}
+			}
+			else if (c == '(' && i + 2 < n && pattern.charAt(i + 1) == '?' && ":=!".indexOf(pattern.charAt(i + 2)) >= 0) {
+				sb.append(pattern, i, i + 3);
+				runStart = -1;
+				atomStart = true;
+				changed.clear(++depth);
+				i += 2;
+			}
+			else {
+				sb.append(c);
+				if (isWordChar(c)) wordEnd = sb.length();
+				runStart = "^$.()|*+?".indexOf(c) >= 0 ? -1 : runStart < 0 ? len : runStart;
+				if (c == '(' || c == '|') atomStart = true;
+				if (c == '(' && (i + 1 == n || pattern.charAt(i + 1) != '?')) groups++;
+				if (c == '(') changed.clear(++depth);
+				else if (c == ')' && depth > 0) {
+					if (changed.get(depth)) pending = modifiers(mods, MS);
+					depth--;
+				}
+			}
+		}
+		return sb.toString();
+	}
+
+	// index of the ) closing an Oro inline modifier group like (?ix) that starts at i, -1 if it isn't one
+	private static int modifiersEnd(String pattern, int i) {
+		int n = pattern.length(), j = i + 2;
+		if (j > n || pattern.charAt(i + 1) != '?') return -1;
+		while (j < n && ORO_MODIFIERS.indexOf(pattern.charAt(j)) >= 0) j++;
+		return j < n && pattern.charAt(j) == ')' ? j : -1;
+	}
+
+	// applies the modifier group to mods, returns the flags it names
+	private static int applyModifiers(String pattern, int i, int end, int[] mods) {
+		int named = 0;
+		boolean minus = false;
+		for (int j = i + 2; j < end; j++) {
+			char f = pattern.charAt(j);
+			int k = MOD_LETTERS.indexOf(f);
+			// Oro sets the flags before the - and then clears the ones after it
+			if (f == '-') minus = true;
+			else if (k >= 0) {
+				named |= MOD_FLAGS[k];
+				mods[1] = minus ? mods[1] & ~MOD_FLAGS[k] : mods[1] | MOD_FLAGS[k];
+			}
+		}
+		mods[0] |= named;
+		return named;
+	}
+
+	// the java modifier group for the flags in mask that have been set, "" if none have
+	private static String modifiers(int[] mods, int mask) {
+		StringBuilder on = new StringBuilder(), off = new StringBuilder();
+		for (int k = 0; k < 3; k++) {
+			if ((mods[0] & mask & MOD_FLAGS[k]) != 0) ((mods[1] & MOD_FLAGS[k]) != 0 ? on : off).append(MOD_LETTERS.charAt(k));
+		}
+		if (on.length() == 0 && off.length() == 0) return "";
+		return "(?" + on + (off.length() > 0 ? "-" + off : "") + ")";
+	}
+
+	// Oro's test for a quantifier when it decides where a run of literals ends
+	private static boolean isOroQuantifier(String pattern, int j) {
+		char c = pattern.charAt(j);
+		if (c == '*' || c == '+' || c == '?') return true;
+		if (c != '{') return false;
+		int n = pattern.length(), k = j + 1;
+		if (k >= n || !Character.isDigit(pattern.charAt(k))) return false;
+		while (k < n && Character.isDigit(pattern.charAt(k))) k++;
+		if (k < n && pattern.charAt(k) == ',') k++;
+		while (k < n && Character.isDigit(pattern.charAt(k))) k++;
+		return k < n && pattern.charAt(k) == '}';
+	}
+
+	private static boolean isWordChar(char c) {
+		return Character.isLetterOrDigit(c) || c == '_';
+	}
+
+	// \b and \B with a literal word char on one side only need to test the other side.
+	// java tries a pattern's first node at every position, so a leading lookbehind is tried on every char:
+	// \bund becomes u(?<!Wu)nd, which only looks behind where the u matched
+	private static int translateBoundary(String pattern, int i, boolean afterWord, StringBuilder sb) {
+		boolean b = pattern.charAt(i + 1) == 'b';
+		if (afterWord) {
+			sb.append(b ? "(?!" : "(?=").append(W).append(')');
+			return i + 1;
+		}
+		int n = pattern.length();
+		if (i + 2 < n && isWordChar(pattern.charAt(i + 2)) && (i + 3 == n || "?*+{".indexOf(pattern.charAt(i + 3)) < 0)) {
+			char c = pattern.charAt(i + 2);
+			sb.append(c).append(b ? "(?<!" : "(?<=").append(W).append(c).append(')');
+			return i + 2;
+		}
+		sb.append(SHORTHAND.get(pattern.charAt(i + 1)));
+		return i + 1;
+	}
+
+	// appends the escape starting at the backslash at index i, returns the index of its last char
+	private static int translateEscape(String pattern, int i, boolean inClass, int groups, StringBuilder sb) {
+		int n = pattern.length();
+		if (i + 1 == n) {
+			sb.append('\\');
+			return i;
+		}
+		char e = pattern.charAt(i + 1);
+		// \Q..\E, \p{..}, \x{..}, \N{..}, \k<..> and \cX are copied as they are
+		if (e == 'Q') {
+			int end = pattern.indexOf("\\E", i + 2);
+			end = end < 0 ? n - 1 : end + 1;
+			sb.append(pattern, i, end + 1);
+			return end;
+		}
+		if ((e == 'p' || e == 'P' || e == 'x' || e == 'N') && i + 2 < n && pattern.charAt(i + 2) == '{') return copyTo(pattern, i, '}', sb);
+		if (e == 'k' && i + 2 < n && pattern.charAt(i + 2) == '<') return copyTo(pattern, i, '>', sb);
+		// Oro upper cases the letter, \cz is \cZ
+		if (e == 'c' && i + 2 < n) {
+			sb.append("\\c").append(Character.toUpperCase(pattern.charAt(i + 2)));
+			return i + 2;
+		}
+		// the hex digits are copied with it, so they can't be mistaken for literals
+		if (e == 'x') {
+			int digits = 0;
+			while (digits < 2 && i + 2 + digits < n && Character.digit(pattern.charAt(i + 2 + digits), 16) >= 0) digits++;
+			if (digits == 1) sb.append("\\x0").append(pattern.charAt(i + 2));
+			else if (digits == 0) sb.append("\\x00");
+			else sb.append(pattern, i, i + 4);
+			return i + 1 + digits;
+		}
+		if (isAsciiDigit(e)) {
+			// a backreference: one digit, or as many as name a group that's already open
+			int end = i + 1, num = 0;
+			while (end < n && isAsciiDigit(pattern.charAt(end))) num = Math.min(num * 10 + pattern.charAt(end++) - '0', 100000);
+			if (!inClass && e != '0' && (end == i + 2 || num <= groups)) {
+				sb.append(pattern, i, end);
+				return end - 1;
+			}
+			// otherwise Oro reads up to three octal digits, java's octal needs a leading 0 and takes a different number
+			if (e <= '7') return appendOctal(pattern, i + 1, sb);
+		}
+		else if (e == 'b' && inClass) {
+			sb.append("\\x08");
+			return i + 1;
+		}
+		else if (e == 'w' && inClass) {
+			sb.append(WORD);
+			return i + 1;
+		}
+		else if (SHORTHAND.containsKey(e) && !(e == 'B' && inClass)) {
+			sb.append(SHORTHAND.get(e));
+			return i + 1;
+		}
+		// \k and \N without their bracket (handled above) are unknown letters too
+		else if (Character.isLetter(e) && e < 128 && ((inClass ? JAVA_CLASS_ESCAPE_LETTERS : JAVA_ESCAPE_LETTERS).indexOf(e) < 0 || e == 'k' || e == 'N')) {
+			sb.append(e);
+			return i + 1;
+		}
+		sb.append('\\').append(e);
+		return i + 1;
+	}
+
+	// up to three octal digits from start, as \x{..}, returns the index of the last one
+	private static int appendOctal(String pattern, int start, StringBuilder sb) {
+		int end = start, value = 0;
+		while (end < pattern.length() && end < start + 3 && pattern.charAt(end) >= '0' && pattern.charAt(end) <= '7') value = value * 8 + pattern.charAt(end++) - '0';
+		sb.append("\\x{").append(Integer.toHexString(value)).append('}');
+		return end - 1;
+	}
+
+	private static int copyTo(String pattern, int i, char close, StringBuilder sb) {
+		int end = pattern.indexOf(close, i + 3);
+		if (end < 0) end = pattern.length() - 1;
+		sb.append(pattern, i, end + 1);
+		return end;
+	}
+
+	// java only reads ASCII digits in a quantifier
+	private static boolean isAsciiDigit(char c) {
+		return c >= '0' && c <= '9';
+	}
+
+	// index of the } closing a {n}, {n,} or {n,m} quantifier that starts at i, -1 if it isn't one
+	private static int quantifierEnd(String pattern, int i) {
+		int n = pattern.length(), j = i + 1;
+		int start = j;
+		while (j < n && isAsciiDigit(pattern.charAt(j))) j++;
+		if (j == start || j == n) return -1;
+		if (pattern.charAt(j) == ',') {
+			j++;
+			while (j < n && isAsciiDigit(pattern.charAt(j))) j++;
+		}
+		return j < n && pattern.charAt(j) == '}' ? j : -1;
 	}
 
 	@Override
 	public String replace(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
 			if (!m.find()) return strInput;
 			StringBuilder sb = new StringBuilder(strInput.length());
 			m.appendReplacement(sb, Matcher.quoteReplacement(expandReplacement(m, replacement)));
@@ -47,13 +441,13 @@ class JavaCompatRegex extends JavaRegex {
 	@Override
 	public String replaceAll(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			Matcher m = toPattern(strPattern, caseSensitive, multiLine).matcher(new InterruptibleCharSequence(strInput));
 			if (!m.find()) return strInput;
 			StringBuilder sb = new StringBuilder(strInput.length());
 			do {
 				m.appendReplacement(sb, Matcher.quoteReplacement(expandReplacement(m, replacement)));
 			}
-			while (m.find());
+			while (findNext(m, m.end()));
 			m.appendTail(sb);
 			return sb.toString();
 		}

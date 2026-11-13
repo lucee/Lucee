@@ -54,6 +54,13 @@ public final class TagLog extends TagBase {
 		final GeneratorAdapter adapter = bc.getAdapter();
 		Tag tag = (Tag) this;
 
+		// Check for attributeCollection - if present, fall back to regular tag processing
+		if (tag.getAttribute("attributecollection") != null) {
+			// Fall back to regular tag processing for attributeCollection
+			super._writeOut(bc);
+			return;
+		}
+
 		bc.visitLine(tag.getStart());
 
 		try {
@@ -66,14 +73,6 @@ public final class TagLog extends TagBase {
 			adapter.dup();
 			adapter.loadArg(0); // PageContext
 			adapter.invokeVirtual(LOG_TAG_TYPE, SET_PAGE_CONTEXT);
-
-			// Check for attributeCollection - if present, fall back to regular tag processing
-			Attribute attributeCollection = tag.getAttribute("attributecollection");
-			if (attributeCollection != null) {
-				// Fall back to regular tag processing for attributeCollection
-				super._writeOut(bc);
-				return;
-			}
 
 			// Process individual attributes normally
 			Iterator<Attribute> it = tag.getAttributes().values().iterator();

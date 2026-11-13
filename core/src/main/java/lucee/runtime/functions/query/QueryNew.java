@@ -33,6 +33,7 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
@@ -109,15 +110,22 @@ public final class QueryNew extends BIF {
 		Object v;
 		Array arr;
 		int rows = qry.getRecordcount();
+		Key column;
 		while (it.hasNext()) {
 			e = it.next();
-			if (qry.getColumn(e.getKey(), null) != null) {
+			column = e.getKey();
+			// LDEV-3774: a key with leading/trailing whitespace matches the column (ACF compatibility)
+			if (qry.getColumn(column, null) == null) {
+				column = trimmed(column);
+				if (column == null || data.containsKey(column)) continue;
+			}
+			if (qry.getColumn(column, null) != null) {
 				v = e.getValue();
 				if (arrayAsMultiRow) arr = Caster.toArray(v, null);
 				else arr = null;
 
 				if (arr == null) arr = new ArrayImpl(new Object[] { v });
-				populateColumn(qry, e.getKey(), arr, rows);
+				populateColumn(qry, column, arr, rows);
 			}
 		}
 		return qry;
@@ -168,9 +176,37 @@ public final class QueryNew extends BIF {
 		Object value;
 		for (int i = 0; i < columns.length; i++) {
 			value = data.get(columns[i], null);
+			if (value == null) value = getByTrimmedKey(data, columns[i]);
 			if (value != null) qry.setAt(columns[i], row, value);
 		}
 
+	}
+
+	/**
+	 * LDEV-3774: returns the value of a key that only differs from the column name by leading/trailing
+	 * whitespace (ACF compatibility), or null
+	 */
+	private static Object getByTrimmedKey(Struct data, Key column) {
+		Iterator<Entry<Key, Object>> it = data.entryIterator();
+		Entry<Key, Object> e;
+		Key k;
+		while (it.hasNext()) {
+			e = it.next();
+			k = trimmed(e.getKey());
+			if (k != null && k.equals(column)) return e.getValue();
+		}
+		return null;
+	}
+
+	/**
+	 * returns the key without leading/trailing whitespace, or null if the key has none
+	 */
+	private static Key trimmed(Key key) {
+		String str = key.getString();
+		if (str.isEmpty() || (!Character.isWhitespace(str.charAt(0)) && !Character.isWhitespace(str.charAt(str.length() - 1)))) return null;
+		str = str.trim();
+		if (str.isEmpty()) return null;
+		return KeyImpl.init(str);
 	}
 
 	private static void populateRow(Query qry, Array data) throws PageException {

@@ -565,6 +565,7 @@ public final class POM {
 	}
 
 	public static Resource local(Resource dir, String groupId, String artifactId, String version, String classifier, String extension) {
+		MavenUtil.validateCoordinates(groupId, artifactId, version);
 		Resource parent = localDir(dir, groupId, artifactId, version);
 		if (!parent.isDirectory()) parent.mkdirs();
 		return parent.getRealResource(toFileName(artifactId, version, classifier, extension));
@@ -634,6 +635,8 @@ public final class POM {
 
 		Repository[] repos = MavenUtil.sort(repositories);
 
+		MavenUtil.validateCoordinates(groupId, artifactId, version);
+		MavenUtil.validateCoordinate("type", type, false);
 		StringBuilder sb = null;
 		String scriptName = toScriptName(type);
 

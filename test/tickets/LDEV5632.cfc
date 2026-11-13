@@ -36,7 +36,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="javasettings"  {
 	function run( testResults , testBox ) {
 		describe( title="test java settings set directly with createObject", body=function() {
 
-			it(title="validate enviroment", body = function( currentSpec ) {
+			it(title="validate environment", body = function( currentSpec ) {
 				expect( directoryExists(variables.loadPaths) ).toBeTrue();
 				expect( directoryExists(contractPath(variables.loadPaths)) ).toBeTrue();
 			});

@@ -833,7 +833,7 @@ public class ArrayImpl extends ListAsArray {
 	}
 
 	// the refs are copied as a validated lock-free read (see range), the elements are duplicated outside it
-	// (LDEV-384). Null elements are skipped, so trailing nulls are dropped (LDEV-1983)
+	// (LDEV-384). Null elements are skipped, the length is restored afterwards (LDEV-1983)
 	protected Collection duplicate(ArrayImpl arr, boolean deepCopy) {
 		Object[] refs = range(0, Integer.MAX_VALUE);
 		boolean inside = deepCopy ? ThreadLocalDuplication.set(this, arr) : true;
@@ -843,6 +843,13 @@ public class ArrayImpl extends ListAsArray {
 				v = refs[i];
 				if (v == null) continue;
 				arr.setEL(i + 1, deepCopy ? Duplicator.duplicate(v, deepCopy) : v);
+			}
+			// null elements are skipped, keep the length when the array ends with nulls (LDEV-1983)
+			if (arr.size() < refs.length) {
+				try {
+					arr.resize(refs.length);
+				}
+				catch (PageException pe) {}
 			}
 		}
 		finally {

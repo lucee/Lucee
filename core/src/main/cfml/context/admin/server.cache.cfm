@@ -293,7 +293,7 @@ Create Datasource --->
 					</td>
 				</tr>
 
-				<!--- Query.chachedAfter --->
+				<!--- Query.cachedAfter --->
 				<cfif true>
 				<tr>
 					<th scope="row">#stText.setting.cachedAfter#</th>
@@ -302,7 +302,8 @@ Create Datasource --->
 						name="cachedAfter" 
 						value="#settings.cachedAfter#"
 						description="#stText.setting.cachedAfterDesc#"
-						access="#hasAccess#">
+						access="#hasAccess#"
+						codeTip="this.query.cachedAfter = createTimeSpan(#settings.cachedAfter_day#,#settings.cachedAfter_hour#,#settings.cachedAfter_minute#,#settings.cachedAfter_second#);">
 						
 						<cfset timeout=settings.cachedAfter>
 						<table class="maintbl" style="width:auto">
