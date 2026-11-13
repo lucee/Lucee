@@ -4799,6 +4799,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		admin.checkWriteAccess();
 
+		// all attributes are required, otherwise a missing (or misspelled) one silently resets the setting to its default
+		getBool("admin", "UpdateLoginSettings", "loginCaptcha");
+		getInt("admin", "UpdateLoginSettings", "loginDelay");
+		getBool("admin", "UpdateLoginSettings", "loginRememberme");
+
 		ConfigServerImpl.metaLoginCaptcha.write(configServer, attributes);
 		ConfigServerImpl.metaLoginDelay.write(configServer, attributes);
 		ConfigServerImpl.metaRememberMe.write(configServer, attributes);
