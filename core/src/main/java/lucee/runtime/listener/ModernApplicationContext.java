@@ -239,7 +239,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean showMetric = false;
 	private boolean showTest = false;
 
-	private boolean initMonitor = false;
+	private volatile boolean initMonitor = false;
 
 	private TimeZone timeZone;
 	private boolean initTimeZone;
@@ -1220,7 +1220,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	private void initMonitor() {
-		synchronized (KeyConstants._monitoring) {
+		synchronized (this) {
 			if (!initMonitor) {
 				ConfigPro ci = (ConfigPro) config;
 				if (ci.hasDebugOptions(ConfigPro.DEBUG_DATABASE)) this.debugging += ConfigPro.DEBUG_DATABASE;

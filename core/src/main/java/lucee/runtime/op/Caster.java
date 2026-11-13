@@ -327,7 +327,8 @@ public final class Caster {
 	}
 
 	public static Double toDouble(long l) {
-		return (double) l;
+		if (l >= 0 && l < MAX_SMALL_DOUBLE) return smallDoubles[(int) l];
+		return Double.valueOf(l);
 	}
 
 	public static Double toDouble(Long l) {
@@ -343,51 +344,51 @@ public final class Caster {
 	 */
 	public static Double toDouble(Object o) throws PageException {
 		if (o instanceof Double) return (Double) o;
-		return Double.valueOf(toDoubleValue(o));
+		return toDouble(toDoubleValue(o));
 
 	}
 
 	public static Number toNumber(PageContext pc, Object o) throws PageException {
 		if (o instanceof Number) return (Number) o;
 		if (ThreadLocalPageContext.preciseMath(pc)) return toBigDecimal(o);
-		return Double.valueOf(toDoubleValue(o));
+		return toDouble(toDoubleValue(o));
 
 	}
 
 	public static Number toNumber(Object o) throws PageException {
 		if (o instanceof Number) return (Number) o;
 		if (ThreadLocalPageContext.preciseMath(null)) return toBigDecimal(o);
-		return Double.valueOf(toDoubleValue(o));
+		return toDouble(toDoubleValue(o));
 
 	}
 
 	public static Number toNumber(boolean b) {
 		if (ThreadLocalPageContext.preciseMath(null)) return b ? BigDecimal.ONE : BigDecimal.ZERO;
-		return Double.valueOf(b ? 1d : 0d);
+		return toDouble(b);
 
 	}
 
 	public static Number toNumber(PageContext pc, long l) {
 		if (ThreadLocalPageContext.preciseMath(pc)) return BigDecimal.valueOf(l);
-		return Double.valueOf(l);
+		return toDouble(l);
 
 	}
 
 	public static Number toNumber(long l) {
 		if (ThreadLocalPageContext.preciseMath(null)) return BigDecimal.valueOf(l);
-		return Double.valueOf(l);
+		return toDouble(l);
 
 	}
 
 	public static Number toNumber(PageContext pc, double d) {
 		if (ThreadLocalPageContext.preciseMath(pc)) return BigDecimal.valueOf(d);
-		return Double.valueOf(d);
+		return toDouble(d);
 
 	}
 
 	public static Number toNumber(double d) {
 		if (ThreadLocalPageContext.preciseMath(null)) return BigDecimal.valueOf(d);
-		return Double.valueOf(d);
+		return toDouble(d);
 
 	}
 
@@ -409,14 +410,14 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static Double toDouble(String str) throws PageException {
-		return Double.valueOf(toDoubleValue(str));
+		return toDouble(toDoubleValue(str));
 
 	}
 
 	public static Double toDouble(String str, Double defaultValue) {
 		double dbl = toDoubleValue(str, true, Double.NaN);
 		if (Double.isNaN(dbl)) return defaultValue;
-		return Double.valueOf(dbl);
+		return toDouble(dbl);
 	}
 
 	/**
@@ -430,7 +431,7 @@ public final class Caster {
 		if (o instanceof Double) return (Double) o;
 		double dbl = toDoubleValue(o, true, Double.NaN);
 		if (Double.isNaN(dbl)) return defaultValue;
-		return Double.valueOf(dbl);
+		return toDouble(dbl);
 
 	}
 
@@ -451,7 +452,8 @@ public final class Caster {
 	public static Double toDouble(double d) {
 		if (d < MAX_SMALL_DOUBLE && d >= 0) {
 			int i;
-			if ((i = ((int) d)) == d) return smallDoubles[i];
+			// -0.0 passes both the range check and the int round-trip, the sign bit only survives as its own box
+			if ((i = ((int) d)) == d && (i != 0 || Double.doubleToRawLongBits(d) == 0L)) return smallDoubles[i];
 		}
 		return Double.valueOf(d);
 	}
@@ -467,11 +469,11 @@ public final class Caster {
 	 * @return casted Double Object
 	 */
 	public static Double toDouble(boolean b) {
-		return Double.valueOf(b ? 1 : 0);
+		return smallDoubles[b ? 1 : 0];
 	}
 
 	public static Double toDouble(Boolean b) {
-		return Double.valueOf(b ? 1 : 0);
+		return smallDoubles[b ? 1 : 0];
 	}
 
 	/**
@@ -482,6 +484,9 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static double toDoubleValue(Object o) throws PageException {
+		// the call site is mixed Integer/Double, so the Number path stays megamorphic; this hands the JIT a
+		// concrete type to devirtualise
+		if (o instanceof Double) return ((Double) o).doubleValue();
 		if (o instanceof Number) {
 			return ((Number) o).doubleValue();
 		}
@@ -4549,7 +4554,7 @@ public final class Caster {
 	 * @return casted Double
 	 */
 	public static Double toRef(double d) {
-		return Double.valueOf(d);
+		return toDouble(d);
 	}
 
 	/**

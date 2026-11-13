@@ -164,7 +164,7 @@ public final class Every extends BIF implements ClosureFunc {
 		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDouble(e.getKey()), arr }, e.getKey(), e.getValue(), es, futures);
 			if (!async && !Caster.toBooleanValue(res)) {
 				return false;
 			}
@@ -176,13 +176,13 @@ public final class Every extends BIF implements ClosureFunc {
 		final int pid = pc.getId();
 		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
 		boolean async = es != null;
-		double r;
+		Double r;
 		Object res, row;
 		ParentException parentException = es != null ? new ParentException() : null;
 		try {
 			while (it.hasNext()) {
 				row = it.next();
-				r = Caster.toDoubleValue(qry.getCurrentrow(pid));
+				r = Caster.toDouble(qry.getCurrentrow(pid));
 				res = _inv(pc, parentException, udf, new Object[] { row, r, qry }, r, row, es, futures);
 				if (!async && !Caster.toBooleanValue(res)) {
 					return false;
@@ -205,7 +205,7 @@ public final class Every extends BIF implements ClosureFunc {
 		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDouble(e.getKey()), sld.list, sld.delimiter }, e.getKey(), e.getValue(), es, futures);
 			if (!async && !Caster.toBooleanValue(res)) {
 				return false;
 			}
@@ -224,7 +224,7 @@ public final class Every extends BIF implements ClosureFunc {
 			index = it.nextIndex();
 			k = ArgumentIntKey.init(index);
 			v = it.next();
-			res = _inv(pc, parentException, udf, new Object[] { v, Caster.toDoubleValue(k.getString()), list }, k, v, es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { v, Caster.toDouble(index), list }, k, v, es, futures);
 			if (!async && !Caster.toBooleanValue(res)) return false;
 		}
 		return true;

@@ -18,6 +18,9 @@
  */
 package lucee.commons.lang;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+
 import lucee.commons.io.SystemUtil;
 
 /**
@@ -877,6 +880,14 @@ public final class ParserString {
 	@Override
 	public String toString() {
 		return new String(this.text);
+	}
+
+	/**
+	 * BigDecimal of the range [start, start+count) built directly off the text array, no intermediate
+	 * String or char[] copy; the caller has already validated the range as a number literal
+	 */
+	public BigDecimal toBigDecimal(int start, int count, MathContext mc) {
+		return new BigDecimal(text, start, count, mc);
 	}
 
 	/**

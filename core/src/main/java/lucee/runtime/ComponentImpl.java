@@ -176,7 +176,9 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 	private boolean isExtended; // is this component extended by another component?
 
 	StaticScope _static = null;
-	ThreadInsideStaticConstr insideStaticConstrThread = new ThreadInsideStaticConstr();
+	// true only while this instance's own static constructor runs, on the constructing thread, before
+	// the instance is published; volatile so later readers on other threads see the final false
+	volatile boolean insideStaticConstr;
 
 	private AbstractFinal absFin;
 
@@ -2201,7 +2203,7 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
 
-		if (insideStaticConstrThread.get()) {
+		if (insideStaticConstr) {
 			_static.setEL(pc, key, udf);
 			return;
 		}
@@ -3036,15 +3038,6 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 		@Override
 		protected Map<String, Boolean> initialValue() {
 			return new HashMap<>();
-		}
-
-	}
-
-	static class ThreadInsideStaticConstr extends ThreadLocal<Boolean> {
-
-		@Override
-		protected Boolean initialValue() {
-			return Boolean.FALSE;
 		}
 
 	}

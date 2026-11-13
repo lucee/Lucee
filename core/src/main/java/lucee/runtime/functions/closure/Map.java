@@ -165,7 +165,7 @@ public final class Map extends BIF implements ClosureFunc {
 		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDouble(e.getKey()), sld.list, sld.delimiter }, e.getKey(), es, futures);
 			if (!async) rtn.set(Caster.toString(e.getKey()), res);
 		}
 		return rtn;
@@ -180,7 +180,7 @@ public final class Map extends BIF implements ClosureFunc {
 		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDouble(e.getKey()), arr }, e.getKey(), es, futures);
 			if (!async) rtn.set(Caster.toString(e.getKey()), res);
 		}
 		return rtn;
@@ -198,7 +198,7 @@ public final class Map extends BIF implements ClosureFunc {
 			index = it.nextIndex();
 			k = ArgumentIntKey.init(index);
 			v = it.next();
-			res = _inv(pc, parentException, udf, new Object[] { v, Caster.toDoubleValue(k.getString()), list }, k, es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { v, Caster.toDouble(index), list }, k, es, futures);
 			if (!async) rtn.set(k, res);
 		}
 		return rtn;

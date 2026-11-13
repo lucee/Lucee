@@ -19,11 +19,13 @@
 package lucee.runtime.interpreter;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.ParserString;
 import lucee.commons.lang.Range;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -31,6 +33,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.functions.arrays.JsonArray;
@@ -43,6 +46,7 @@ import lucee.runtime.interpreter.ref.Set;
 import lucee.runtime.interpreter.ref.cast.Casting;
 import lucee.runtime.interpreter.ref.func.BIFCall;
 import lucee.runtime.interpreter.ref.func.UDFCall;
+import lucee.runtime.interpreter.ref.literal.LBigNumber;
 import lucee.runtime.interpreter.ref.literal.LBoolean;
 import lucee.runtime.interpreter.ref.literal.LFunctionValue;
 import lucee.runtime.interpreter.ref.literal.LNumber;
@@ -55,6 +59,7 @@ import lucee.runtime.interpreter.ref.op.BigIntDiv;
 import lucee.runtime.interpreter.ref.op.BigMinus;
 import lucee.runtime.interpreter.ref.op.BigMod;
 import lucee.runtime.interpreter.ref.op.BigMulti;
+import lucee.runtime.interpreter.ref.op.BigNegate;
 import lucee.runtime.interpreter.ref.op.BigPlus;
 import lucee.runtime.interpreter.ref.op.CT;
 import lucee.runtime.interpreter.ref.op.Concat;
@@ -160,6 +165,19 @@ public class CFMLExpressionInterpreter {
 
 	protected static final short STATIC = 0;
 	private static final short DYNAMIC = 1;
+
+	/** 10^0 .. 10^22, every entry exactly representable as a double */
+	private static final double[] POW10 = { 1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19,
+			1e20, 1e21, 1e22 };
+
+	/** every integer below this is exactly representable as a double */
+	private static final long TWO_POW_53 = 1L << 53;
+
+	/**
+	 * exponent digits are only accumulated this far, enough to know the value is past the fast path; a runaway
+	 * exponent like 1e999999999 keeps its digits read but cannot overflow the int
+	 */
+	private static final int EXPONENT_CAP = 100_000;
 	private static FunctionLibFunction _LITERAL_ARRAY = null;
 	private static FunctionLibFunction _LITERAL_STRUCT = null;
 	private static FunctionLibFunction _JSON_ARRAY = null;
@@ -942,9 +960,9 @@ public class CFMLExpressionInterpreter {
 
 	private Ref _unaryOp(Ref ref, boolean isPlus) throws PageException {
 		comments();
-		Ref res = preciseMath ? new BigPlus(ref, isPlus ? LNumber.ONE : LNumber.MINUS_ONE, limited) : new Plus(ref, isPlus ? LNumber.ONE : LNumber.MINUS_ONE, limited);
+		Ref res = preciseMath ? new BigPlus(ref, isPlus ? LBigNumber.ONE : LBigNumber.MINUS_ONE, limited) : new Plus(ref, isPlus ? LNumber.ONE : LNumber.MINUS_ONE, limited);
 		ref = new Assign(ref, res, limited);
-		return preciseMath ? new BigPlus(ref, isPlus ? LNumber.MINUS_ONE : LNumber.ONE, limited) : new Plus(ref, isPlus ? LNumber.MINUS_ONE : LNumber.ONE, limited);
+		return preciseMath ? new BigPlus(ref, isPlus ? LBigNumber.MINUS_ONE : LBigNumber.ONE, limited) : new Plus(ref, isPlus ? LNumber.MINUS_ONE : LNumber.ONE, limited);
 	}
 
 	/**
@@ -959,18 +977,21 @@ public class CFMLExpressionInterpreter {
 			if (cfml.forwardIfCurrent('-')) {
 				comments();
 				Ref expr = clip();
-				Ref res = preciseMath ? new BigMinus(expr, LNumber.ONE, limited) : new Minus(expr, LNumber.ONE, limited);
+				Ref res = preciseMath ? new BigMinus(expr, LBigNumber.ONE, limited) : new Minus(expr, LNumber.ONE, limited);
 				return new Assign(expr, res, limited);
 			}
 			comments();
-			return new Negate(clip(), limited);
+			Ref operand = clip();
+			// a bare literal takes the sign itself, so a JSON -12 is one LNumber and no Negate ref
+			if (!preciseMath && operand instanceof LNumber) return ((LNumber) operand).negate();
+			return preciseMath ? new BigNegate(operand) : new Negate(operand);
 
 		}
 		if (cfml.forwardIfCurrent('+')) {
 			if (cfml.forwardIfCurrent('+')) {
 				comments();
 				Ref expr = clip();
-				Ref res = preciseMath ? new BigPlus(expr, LNumber.ONE, limited) : new Plus(expr, LNumber.ONE, limited);
+				Ref res = preciseMath ? new BigPlus(expr, LBigNumber.ONE, limited) : new Plus(expr, LNumber.ONE, limited);
 				return new Assign(expr, res, limited);
 			}
 			comments();
@@ -1150,17 +1171,22 @@ public class CFMLExpressionInterpreter {
 	 * @throws PageException
 	 */
 	private Ref number() throws PageException {
-		// check first character is a number literal representation
-		StringBuilder rtn = new StringBuilder(6);
+		// the literal is walked once: the significand accumulates in a long and the decimal exponent in
+		// an int, so a small literal becomes a double without a String, char[] or BigDecimal; the
+		// range [start, end) is kept for the BigDecimal fallback
+		int start = cfml.getPos();
+		long m = 0;
+		int scale = 0;
+		int exp = 0;
 
 		// get digit on the left site of the dot
-		if (cfml.isCurrent('.')) rtn.append('0');
-		else digit(rtn);
+		if (!cfml.isCurrent('.')) m = digit(m);
+		int digits = cfml.getPos() - start;
 		// read dot if exist
 		if (cfml.forwardIfCurrent('.')) {
-			rtn.append('.');
 			int before = cfml.getPos();
-			digit(rtn);
+			m = digit(m);
+			scale = cfml.getPos() - before;
 
 			if (before < cfml.getPos() && cfml.forwardIfCurrent('e')) {
 				Boolean expOp = null;
@@ -1168,10 +1194,7 @@ public class CFMLExpressionInterpreter {
 				else if (cfml.forwardIfCurrent('-')) expOp = Boolean.FALSE;
 
 				if (cfml.isCurrentDigit()) {
-					if (expOp == Boolean.FALSE) rtn.append("e-");
-					else if (expOp == Boolean.TRUE) rtn.append("e+");
-					else rtn.append('e');
-					digit(rtn);
+					exp = exponent(expOp == Boolean.FALSE);
 				}
 				else {
 					if (expOp != null) cfml.previous();
@@ -1189,37 +1212,68 @@ public class CFMLExpressionInterpreter {
 			else if (cfml.forwardIfCurrent('-')) expOp = Boolean.FALSE;
 
 			if (cfml.isCurrentBetween('0', '9')) {
-				rtn.append('e');
-				if (expOp == Boolean.FALSE) rtn.append('-');
-				else if (expOp == Boolean.TRUE) rtn.append('+');
-				digit(rtn);
+				exp = exponent(expOp == Boolean.FALSE);
 			}
 			else {
 				if (expOp != null) cfml.previous();
 				cfml.previous();
 			}
 		}
+		int end = cfml.getPos();
 		comments();
 		mode = STATIC;
-		return new LNumber(rtn.toString());
 
+		// 18 digits always fit a long, so m is only trusted below that; below 2^53 the significand is
+		// an exact double and 10^k is exact for |k| <= 22, so one multiply or divide is correctly
+		// rounded, the same operation BigDecimal.doubleValue() performs on a compact value
+		if (!preciseMath && digits + scale <= 18 && m < TWO_POW_53) {
+			int k = exp - scale;
+			if (k >= -22 && k <= 22) {
+				double d = m;
+				return new LNumber(Double.valueOf(k < 0 ? d / POW10[-k] : d * POW10[k]));
+			}
+		}
+		BigDecimal bd;
+		try {
+			bd = cfml.toBigDecimal(start, end - start, MathContext.DECIMAL128);
+		}
+		catch (NumberFormatException nfe) {
+			// same failure surface as Caster.toBigDecimal(String), a PageException callers like isJson() handle
+			CasterException ce = new CasterException("cannot convert string [" + cfml.substring(start, end - start) + "] to a number; " + nfe.getMessage());
+			ExceptionUtil.initCauseEL(ce, nfe);
+			throw ce;
+		}
+		return preciseMath ? new LBigNumber(bd) : new LNumber(Double.valueOf(bd.doubleValue()));
 	}
 
 	/**
-	 * Liest die reinen Zahlen innerhalb des CFMLString aus und gibt diese als Zeichenkette zurueck.
+	 * Liest die reinen Zahlen innerhalb des CFMLString aus und akkumuliert sie in den Signifikanten.
 	 * <br />
 	 * EBNF:<br />
 	 * <code>"0"|..|"9";</code>
-	 * 
-	 * @param rtn
+	 *
+	 * @param m significand so far
+	 * @return significand including the digits read; overflows silently past 19 digits, the caller
+	 *         checks the digit count before trusting it
 	 */
-	private void digit(StringBuilder rtn) {
-
+	private long digit(long m) {
 		while (cfml.isValidIndex()) {
 			if (!cfml.isCurrentDigit()) break;
-			rtn.append(cfml.getCurrentLower());
+			m = m * 10 + (cfml.getCurrentLower() - '0');
 			cfml.next();
 		}
+		return m;
+	}
+
+	/** reads the exponent digits, capped so a runaway exponent cannot overflow the int */
+	private int exponent(boolean negative) {
+		int e = 0;
+		while (cfml.isValidIndex()) {
+			if (!cfml.isCurrentDigit()) break;
+			if (e < EXPONENT_CAP) e = e * 10 + (cfml.getCurrentLower() - '0');
+			cfml.next();
+		}
+		return negative ? -e : e;
 	}
 
 	/**
@@ -1303,7 +1357,7 @@ public class CFMLExpressionInterpreter {
 		if (flf == null) throw createSyntaxException("the slice syntax [from:to:step] is not available, function [_arraySlice] is missing", cfml);
 		int omitted = (from == null ? 1 : 0) + (to == null ? 2 : 0) + (step == null ? 4 : 0);
 		return new BIFCall(flf, new Ref[] { array, from == null ? LNumber.ZERO : from, to == null ? LNumber.ZERO : to, step == null ? LNumber.ONE : step,
-				new LNumber(BigDecimal.valueOf(omitted)) });
+				new LNumber(Double.valueOf(omitted)) });
 	}
 
 	private Ref subDynamic(Ref ref) throws PageException {

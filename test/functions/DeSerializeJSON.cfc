@@ -1,5 +1,14 @@
 <cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
 	<cfscript>
+	function beforeAll(){
+		variables.preciseMath = getApplicationSettings().preciseMath;
+		application action="update" preciseMath=false;
+	}
+
+	function afterAll(){
+		application action="update" preciseMath=variables.preciseMath;
+	}
+
 	function run( testResults , testBox ) {
 		describe( title="Test suite for DeserializeJson()", body=function() {
 			it(title="checking testNumber", body = function( currentSpec ) {
@@ -258,6 +267,49 @@
 				}).toThrow();
 			});
 		});
+
+		describe( title="Test suite for DeserializeJson() numeric literals", body=function() {
+			// a JSON number literal becomes a Double through the interpreter fast path (18-digit significand
+			// in a long, one multiply or divide by a power of ten) and a BigDecimal under preciseMath; either
+			// way it has to land on the same 64 bits as Double.parseDouble, and toString() hides a 1ulp
+			// difference behind its shortest representation, so the bits are what gets compared
+			it(title="checking numeric literals land on the parseDouble bits", body = function( currentSpec ) {
+				var literals = [ "0", "-0", "1", "1.5", "1.50", "1e22", "1e23", "1e-22", "1e-23", "1e308", "1e309"
+					, "1234567890123456789", "1234567890123456789012345", "123456789012345678901234567890" ];
+				for ( var literal in literals ) {
+					var value = deserializeJson( literal );
+					assertEquals( "java.lang.Double", value.getClass().getName() );
+					assertEquals( doubleBits( javaDouble( literal ) ), doubleBits( value ) );
+				}
+			});
+
+			it(title="checking -0 keeps its sign bit", body = function( currentSpec ) {
+				assertEquals( "8000000000000000", doubleBits( deserializeJson( "-0" ) ) );
+			});
+
+			it(title="checking numeric literals are BigDecimal with preciseMath", body = function( currentSpec ) {
+				try {
+					application action="update" preciseMath=true;
+					var value = deserializeJson( "1.50" );
+					assertEquals( "java.math.BigDecimal", value.getClass().getName() );
+					assertEquals( "1.5", toString( value ) );
+				}
+				finally {
+					application action="update" preciseMath=false;
+				}
+			});
+
+			it(title="checking a number literal with an overflowing exponent", body = function( currentSpec ) {
+				var message = "";
+				try {
+					deserializeJson( "1e9999999999" );
+				}
+				catch ( any e ) {
+					message = e.message;
+				}
+				assertTrue( findNoCase( "to a number", message ) > 0 );
+			});
+		});
 	}
 
 	private function toHex(nbr){
@@ -265,6 +317,15 @@
 		var str=Integer.toHexString(nbr);
 		while(len(str) LT 4)str=0&str;
 		return str;
+	}
+
+	private function doubleBits( value ){
+		var d = createObject( "java", "java.lang.Double" );
+		return createObject( "java", "java.lang.Long" ).toHexString( d.doubleToLongBits( javaCast( "double", arguments.value ) ) );
+	}
+
+	private function javaDouble( literal ){
+		return createObject( "java", "java.lang.Double" ).parseDouble( arguments.literal );
 	}
 
 	private function toAsc(str){
