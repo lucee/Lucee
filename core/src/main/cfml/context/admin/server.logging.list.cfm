@@ -22,12 +22,12 @@
 					action="updateMainLog"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					mainLogger="#form.mainLog#">
+					mainLogger="#form.mainLogger#">
 			
 		</cfcase>
 
 	</cfswitch>
-	<cfcatch><cfrethrow>
+	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
 	</cfcatch>
@@ -76,6 +76,7 @@ Redirtect to entry --->
 	<cfif access NEQ "yes">
 		<cfset noAccess(stText.Settings.cache.noAccess)>
 	</cfif>
+	<cfset printError(error)>
 	
 	<!---- READ ONLY ---->
 	<cfif request.adminType EQ "web" and hasReadOnly>
@@ -209,7 +210,7 @@ function defaultValue(field) {
 							sp=false
 							descOnTop=true>
 						
-							<select name="mainLog" class="large">
+							<select name="mainLogger" class="large">
 								<cfoutput query="logs">
 									<option value="#logs.name#"
 									<cfif logs.name EQ mainLog?:"">selected</cfif>>
