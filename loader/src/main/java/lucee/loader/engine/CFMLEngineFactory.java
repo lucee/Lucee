@@ -1611,11 +1611,23 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		// the core of a patch file is a plain jar, loaded by its own class loader on top of the one of the loader
 		final URLClassLoader old = coreClassLoader;
 		final URLClassLoader cl = new URLClassLoader(new URL[] { coreFile.toURI().toURL() }, mainClassLoader);
-		final Class<?> clazz = cl.loadClass("lucee.runtime.engine.CFMLEngineImpl");
-		log(LoggerImpl.LOG_DEBUG, "loadClass(CFMLEngineImpl): " + (System.currentTimeMillis() - start) + "ms");
-		final Method m = clazz.getMethod("getInstance", new Class[] { CFMLEngineFactory.class });
-		start = System.currentTimeMillis();
-		final CFMLEngine engine = (CFMLEngine) m.invoke(null, new Object[] { this });
+		final CFMLEngine engine;
+		try {
+			final Class<?> clazz = cl.loadClass("lucee.runtime.engine.CFMLEngineImpl");
+			log(LoggerImpl.LOG_DEBUG, "loadClass(CFMLEngineImpl): " + (System.currentTimeMillis() - start) + "ms");
+			final Method m = clazz.getMethod("getInstance", new Class[] { CFMLEngineFactory.class });
+			start = System.currentTimeMillis();
+			engine = (CFMLEngine) m.invoke(null, new Object[] { this });
+		}
+		catch (final Exception | Error e) {
+			try {
+				cl.close();
+			}
+			catch (final IOException ioe) {
+				log(ioe);
+			}
+			throw e;
+		}
 		coreClassLoader = cl;
 		log(LoggerImpl.LOG_DEBUG, "getInstance().invoke (engine initialization): " + (System.currentTimeMillis() - start) + "ms");
 		if (old != null) {

@@ -334,7 +334,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			java.util.jar.Attributes attrs = loadLuceeManifest().getMainAttributes();
 			java.util.Hashtable<String, String> headers = new java.util.Hashtable<>();
 			for (java.util.Map.Entry<Object, Object> e: attrs.entrySet()) {
-				headers.put(e.getKey().toString(), e.getValue().toString());
+				headers.put(e.getKey().toString(), e.getValue().toString().trim());
 			}
 			this.info = new InfoImpl(lucee.loader.util.VersionImpl.parseOSGi(headers.get("Bundle-Version")), headers);
 		}
