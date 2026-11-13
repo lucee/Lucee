@@ -21,13 +21,16 @@ package lucee.runtime.tag;
 import java.io.File;
 
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.Mapping;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.customtag.CustomTagUtil;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.util.ListUtil;
 
 /**
@@ -39,8 +42,6 @@ public final class CFImportTag extends CFTag {
 	public void initFile() throws PageException {
 		ConfigWeb config = pageContext.getConfig();
 
-		String[] filenames = CustomTagUtil.getFileNames(config, getAppendix());// = appendix+'.'+config.getCFMLExtension();
-
 		String strRealPathes = attributesScope.remove("__custom_tag_path").toString();
 		String[] realPathes = ListUtil.listToStringArray(strRealPathes, File.pathSeparatorChar);
 		for (int i = 0; i < realPathes.length; i++) {
@@ -48,6 +49,21 @@ public final class CFImportTag extends CFTag {
 		}
 
 		// MUSTMUST use cache like regular ct
+		// use the same cache as the regular custom tags (customTagUseCachePath), a cached entry is only used
+		// as long as its page source is still executable according to the template inspection of its mapping
+		ConfigPro cp = (ConfigPro) config;
+		String cacheKey = null;
+		if (cp.useCTPathCache()) {
+			cacheKey = toCacheKey(strRealPathes, realPathes, getAppendix());
+			InitFile cached = cp.getCTInitFile(pageContext, cacheKey);
+			if (cached != null) {
+				source = cached;
+				return;
+			}
+		}
+
+		String[] filenames = CustomTagUtil.getFileNames(config, getAppendix());// = appendix+'.'+config.getCFMLExtension();
+
 		// page source
 		PageSource ps;
 		for (int rp = 0; rp < realPathes.length; rp++) {
@@ -55,6 +71,7 @@ public final class CFImportTag extends CFTag {
 				ps = ((PageContextImpl) pageContext).getRelativePageSourceExisting(realPathes[rp] + filenames[fn]);
 				if (ps != null) {
 					source = new InitFile(pageContext, ps, filenames[fn]);
+					if (cacheKey != null) cp.putCTInitFile(cacheKey, source);
 					return;
 				}
 			}
@@ -73,4 +90,37 @@ public final class CFImportTag extends CFTag {
 
 	}
 
+	/**
+	 * the result of the lookup depends on the taglib directories, on the template calling the tag (relative
+	 * directories) and on the application mappings (directories starting with "/"), so all of them are part
+	 * of the key.
+	 */
+	private String toCacheKey(String strRealPathes, String[] realPathes, String name) {
+		boolean relative = false;
+		boolean absolute = false;
+		for (int i = 0; i < realPathes.length; i++) {
+			if (StringUtil.startsWith(realPathes[i], '/')) absolute = true;
+			else relative = true;
+		}
+
+		StringBuilder sb = new StringBuilder("import:");
+		if (relative) {
+			PageSource current = pageContext.getCurrentPageSource();
+			if (current != null) sb.append(current.getDisplayPath());
+		}
+		sb.append('|');
+		if (absolute) {
+			ApplicationContext ac = pageContext.getApplicationContext();
+			Mapping[] mappings = ac == null ? null : ac.getMappings();
+			if (mappings != null) {
+				int hash = 0;
+				for (int i = 0; i < mappings.length; i++) {
+					hash = 31 * hash + mappings[i].hashCode();
+				}
+				sb.append(hash);
+			}
+		}
+		sb.append('|').append(strRealPathes).append('|').append(name);
+		return sb.toString();
+	}
 }

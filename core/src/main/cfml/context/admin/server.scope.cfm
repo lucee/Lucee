@@ -544,7 +544,6 @@ Error Output --->
 							descOnTop=false>
 							<input class="checkbox" type="checkbox" class="checkbox" name="cascadeToResultset" value="yes" <cfif scope.allowImplicidQueryCall>checked</cfif>>
 						</cfmodule>
-						<div class="comment">#stText.Scopes.CascadeToResultSetDescription#</div>
 					</td>
 				</tr>
 				

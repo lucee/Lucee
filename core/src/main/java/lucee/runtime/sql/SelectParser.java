@@ -114,15 +114,20 @@ public final class SelectParser {
 				if (raw.forwardIfCurrentAndNoWordNumberAfter("by")) {
 					groupByExpressions(raw, select);
 					raw.removeSpace();
-
-					// having
-					if (raw.forwardIfCurrentAndNoWordNumberAfter("having")) havingExpressions(raw, select);
-					raw.removeSpace();
 				}
 				else {
 					throw new SQLParserException("Incomplete group by clause (stop at:" + raw.getCurrent() + ")");
 				}
 			}
+
+			// having (LDEV-4300: also valid without group by, then the whole result is a single group)
+			if (raw.forwardIfCurrentAndNoWordNumberAfter("having")) {
+				havingExpressions(raw, select);
+				if (select.getGroupbys().length == 0 && !select.hasAggregateSelect()) {
+					throw new SQLParserException("HAVING without GROUP BY requires an aggregate in the select list");
+				}
+			}
+			raw.removeSpace();
 			select.calcAdditionalColumns(allColumns);
 			allColumns = new HashSet<Key>();
 			selects.addSelect(select);
@@ -599,7 +604,19 @@ public final class SelectParser {
 			}
 			// not like
 			if (raw.forwardIfCurrentAndNoWordNumberAfter("not", "like")) {
-				expr = decisionOpCreate(raw, Operation.OPERATION2_NOT_LIKE, expr);
+				raw.removeSpace();
+				Expression pattern = plusMinusOp(raw);
+				raw.removeSpace();
+				// value NOT LIKE value ESCAPE value
+				if (raw.forwardIfCurrentAndNoWordNumberAfter("escape ")) {
+					raw.removeSpace();
+					Expression escape = plusMinusOp(raw);
+					raw.removeSpace();
+					expr = new Operation1(new Operation3(expr, pattern, escape, Operation.OPERATION3_LIKE), Operation.OPERATION1_NOT);
+				}
+				else {
+					expr = new Operation2(expr, pattern, Operation.OPERATION2_NOT_LIKE);
+				}
 				hasChanged = true;
 			}
 			/*

@@ -204,6 +204,7 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.UDFUtil;
 import lucee.runtime.util.PageContextUtil;
+import lucee.runtime.mvn.MavenUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
@@ -2143,10 +2144,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		admin.checkWriteAccess();
 
-		ConfigServerImpl.metaShowDebug.write(configServer, attributes);
-		ConfigServerImpl.metaShowMetric.write(configServer, attributes);
-		ConfigServerImpl.metaShowDoc.write(configServer, attributes);
-		ConfigServerImpl.metaShowTest.write(configServer, attributes);
+		Struct input = Caster.toStruct(attributes.get("monitoring", null), null);
+		if (input == null) input = attributes;
+
+		ConfigServerImpl.metaShowDebug.write(configServer, input);
+		ConfigServerImpl.metaShowMetric.write(configServer, input);
+		ConfigServerImpl.metaShowDoc.write(configServer, input);
+		ConfigServerImpl.metaShowTest.write(configServer, input);
 
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetShowDebug().resetShowTest().resetShowMetric().resetShowDoc();
@@ -3533,7 +3537,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	/**
 	 * @return the Maven coordinates of the class definition as string, null if it is not defined by Maven
 	 */
-	private static String toMavenString(ClassDefinition cd) throws PageException {
+	private static String toMavenString(ClassDefinition<?> cd) throws PageException {
 		if (!ClassDefinitionImpl.isMaven(cd)) return null;
 		return MavenUtil.toString(((ClassDefinitionImpl<?>) cd).getMaven());
 	}

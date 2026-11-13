@@ -1073,6 +1073,8 @@ public final class Http extends BodyTagImpl {
 
 			StringBuilder acceptEncoding = new StringBuilder();
 			java.util.List<String[]> postParam = formAllowed ? new ArrayList<String[]>() : null;
+			// formfield params with encoded=false, they are sent as they are
+			java.util.Set<String[]> rawFormParams = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<String[], Boolean>());
 
 			for (int i = 0; i < len; i++) {
 				HttpParamBean param = this.params.get(i);
@@ -1094,7 +1096,9 @@ public final class Http extends BodyTagImpl {
 							parts.add(HTTPRequest.Part.text(param.getName(), param.getValueAsString(), charset));
 						}
 						else {
-							postParam.add(new String[] { param.getName(), param.getValueAsString() });
+							String[] field = new String[] { param.getName(), param.getValueAsString() };
+							postParam.add(field);
+							if (param.getEncoded() == ENCODED_NO) rawFormParams.add(field);
 						}
 					}
 					// else if(multi!=null)multi.addParameter(param.getName(),param.getValueAsString());
@@ -1184,8 +1188,22 @@ public final class Http extends BodyTagImpl {
 
 			// post params
 			if (postParam != null && postParam.size() > 0) {
-				for (String[] field: postParam) {
-					req.addFormField(field[0], field[1]);
+				if (rawFormParams.isEmpty()) {
+					for (String[] field: postParam) {
+						req.addFormField(field[0], field[1]);
+					}
+				}
+				else {
+					// at least one formfield has encoded=false, so we encode the other fields the same way as a url
+					// encoded form and add the not encoded ones unchanged
+					Charset cs = CharsetUtil.toCharset(charset);
+					StringBuilder body = new StringBuilder();
+					for (String[] field: postParam) {
+						if (body.length() > 0) body.append('&');
+						if (rawFormParams.contains(field)) body.append(field[0]).append('=').append(field[1]);
+						else body.append(java.net.URLEncoder.encode(field[0], cs)).append('=').append(java.net.URLEncoder.encode(field[1] == null ? "" : field[1], cs));
+					}
+					req.setBody(body.toString(), "application/x-www-form-urlencoded", cs.name());
 				}
 			}
 
@@ -1516,6 +1534,8 @@ public final class Http extends BodyTagImpl {
 				Charset cs = (StringUtil.isEmpty(charset)) ? responseCharset : CharsetUtil.toCharset(charset, responseCharset);
 				if (barr == null) str = contentAsString(rsp, cs, contentEncoding, e);
 				else str = IOUtil.toString(barr, cs);
+				// a UTF-8 byte order mark is not part of the content
+				if (str.length() > 0 && str.charAt(0) == '\uFEFF' && "UTF-8".equalsIgnoreCase(cs.name())) str = str.substring(1);
 				cfhttp.set(KeyConstants._filecontent, str);
 
 				// store to file

@@ -63,7 +63,10 @@ public final class ApplicationImpl extends ScopeSupport implements Application, 
 	@Override
 	public void touchBeforeRequest(PageContext pc) {
 		ApplicationContext appContext = pc.getApplicationContext();
-		setEL(KeyConstants._applicationname, appContext.getName());
+		String name = appContext.getName();
+		if (!name.equals(get(KeyConstants._applicationname, null))) {
+			setEL(KeyConstants._applicationname, name);
+		}
 		timeSpan = appContext.getApplicationTimeout().getMillis();
 		lastAccess = System.currentTimeMillis();
 	}

@@ -32,16 +32,24 @@ public final class RandRange implements Function {
 
 	public static Number call(PageContext pc, Number number1, Number number2, String algo) throws ExpressionException {
 
-		int min = Caster.toIntValue(number1);
-		int max = Caster.toIntValue(number2);
+		// LDEV-25 calculate with long, an int overflows for ranges like 0 to 2^31-1
+		long min = Caster.toLongValue(number1);
+		long max = Caster.toLongValue(number2);
 
 		if (min > max) {
-			int tmp = min;
+			long tmp = min;
 			min = max;
 			max = tmp;
 		}
-		int diff = max - min;
-		return Caster.toIntValue((Rand.getRandom(pc, algo, Double.NaN).nextDouble() * (diff + 1)) + min);
+		double span = ((double) max - (double) min) + 1D;
+		long result = min + (long) (Rand.getRandom(pc, algo, Double.NaN).nextDouble() * span);
+		// double precision can round up for very large ranges
+		if (result > max) result = max;
+		else if (result < min) result = min;
+
+		// keep returning an int where it fits
+		if (result >= Integer.MIN_VALUE && result <= Integer.MAX_VALUE) return Integer.valueOf((int) result);
+		return Long.valueOf(result);
 	}
 
 	public static int invoke(int min, int max) throws ExpressionException {

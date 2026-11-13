@@ -32,7 +32,7 @@ public final class ArrayLast extends BIF {
 
 	public static Object call(PageContext pc, Array array) throws PageException {
 		if (array.size() == 0) throw new ExpressionException("Cannot return last element of array; array is empty");
-		return array.getE(array.size());
+		return array.get(array.size(), null);
 	}
 
 	@Override

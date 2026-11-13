@@ -117,7 +117,6 @@ Error Output --->
 								<cfif not hasDelay><option value="#settings.loginDelay#" selected="selected">#settings.loginDelay# #stText.Login.seconds#</option></cfif>
 							</select> 
 							</cfmodule>
-							<div class="comment">#stText.Login.delayDesc#</div>
 						</td>
 					</tr>
 					<tr>

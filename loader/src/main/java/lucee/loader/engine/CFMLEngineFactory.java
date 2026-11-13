@@ -406,7 +406,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (!Util.isEmpty(env)) {
 			file = new File(env.trim());
 			if ((dir && !file.isDirectory()) || (!dir && !file.isFile()))
-				throw new IOException("the " + subject + " [" + file + "] (" + desc + ") you have defined via enviroment variable [" + envVarName + "] does not exist!");
+				throw new IOException("the " + subject + " [" + file + "] (" + desc + ") you have defined via environment variable [" + envVarName + "] does not exist!");
 		}
 		// try to figure out based on current location
 		else {
@@ -427,7 +427,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				catch (URISyntaxException e) {}
 			}
 			if (file == null || ((dir && !file.isDirectory()) || (!dir && !file.isFile()))) {
-				throw new IOException("could not find the " + subject + " (" + desc + "), please set the enviroment variable [" + envVarName + "] that points to it.");
+				throw new IOException("could not find the " + subject + " (" + desc + "), please set the environment variable [" + envVarName + "] that points to it.");
 			}
 		}
 		return file;

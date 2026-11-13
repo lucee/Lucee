@@ -18,10 +18,14 @@
  **/
 package lucee.runtime.sql.exp.value;
 
+import java.math.BigDecimal;
+
 import lucee.runtime.op.Caster;
 import lucee.runtime.sql.exp.Literal;
 
 public final class ValueNumber extends ValueSupport implements Literal {
+
+	private static final int MAX_EXACT_DOUBLE_DIGITS = 15;
 
 	private double value;
 
@@ -49,6 +53,19 @@ public final class ValueNumber extends ValueSupport implements Literal {
 	@Override
 	public Object getValue() {
 		return Caster.toDouble(value);
+	}
+
+	/**
+	 * @param preciseMath if true, a number with more digits than a double can hold exactly is returned
+	 *            as a BigDecimal
+	 * @return the value of the literal
+	 */
+	public Object getValue(boolean preciseMath) {
+		if (preciseMath && getString().length() > MAX_EXACT_DOUBLE_DIGITS) {
+			BigDecimal bd = Caster.toBigDecimal(getString(), null);
+			if (bd != null) return bd;
+		}
+		return getValue();
 	}
 
 	public double getValueAsDouble() {

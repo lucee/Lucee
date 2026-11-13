@@ -1,5 +1,5 @@
 // Uploads one Lucee core build into the Maven layout of the Cloudflare R2 bucket (LDEV-6804), next to the S3 upload:
-//   org/lucee/lucee/<version>/lucee-<version>.jar, -light.jar, -zero.jar, .lco, .pom (+ .sha1 of each), maven-metadata.xml
+//   org/lucee/lucee/<version>/lucee-<version>.jar, -light.jar, -zero.jar, .lco, .pom (+ .sha1, .sha256 and .sha512 of each), maven-metadata.xml
 // Only the Maven layout is written, not the legacy bucket-root names (lucee-<version>.jar, lucee-light-<version>.jar, ...).
 // The express zip and the war are only attached to the GitHub release, so they are not uploaded either.
 // Called by the "Build" workflow (main.yml) once the version has been deployed. Settings come from the environment:
@@ -61,6 +61,10 @@ export function buildPuts(files, version, ts = mavenTimestamp()) {
     const body = readFileSync(f.src);
     puts.push({ key: base + f.name, body, type: f.type });
     puts.push({ key: base + f.name + '.sha1', body: createHash('sha1').update(body).digest('hex'), type: 'text/plain' });
+    // LDEV-6106: sha256sum / sha512sum format ("<hash>  <name>"), so a download can be verified with sha256sum -c <file>.sha256
+    for (const algo of ['sha256', 'sha512']) {
+      puts.push({ key: `${base}${f.name}.${algo}`, body: `${createHash(algo).update(body).digest('hex')}  ${f.name}\n`, type: 'text/plain' });
+    }
   }
   puts.push({ key: `${base}maven-metadata.xml`, body: versionMetadataXml(version, ts), type: 'application/xml' });
   return puts;

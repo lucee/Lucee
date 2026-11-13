@@ -1,62 +1,42 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="array" {
 
-    function beforeAll(){
-        application enableNullSupport=false;
-    }
+	function run( testResults, testBox ) {
+		describe( "LDEV-3319 arrayFirst() / arrayLast() with an undefined element", function() {
 
-    function afterAll(){
-        application enableNullSupport=false;
-    }
+			it( "arrayFirst() does not throw when position 1 is undefined", function() {
+				var arr = [];
+				arrayResize( arr, 15 );
+				arr[ 15 ] = 1;
+				var res = arrayFirst( arr );
+				expect( isNull( res ) ).toBeTrue();
+			});
 
-	function run( testResults, testBox ){
-        describe( "Testcase for LDEV-3319", function(){
-            it( title="Check undefined array element with array index a[1]", body=function( currentSpec ){
-                try{
-                    arr = [];
-                    arr[15] = 1;
-                    res = arr[1];
-                }
-                catch(any e){
-                    res = e.message;
-                }
-                expect(res).toBe("Element at position [1] does not exist in list");
-            });
-            it( title="Check undefined array element with array index a[1] and null support true", body=function( currentSpec ){
-                try{
-                    application enableNullSupport=true;
-                    arr = [];
-                    arr[15] = 1;
-                    res = arr[1];
-                }
-                catch(any e){
-                    res = e.message;
-                }
-                expect(res).toBeNull();
-            });
-            it( title="Check undefined array element with arrayfirst and null support true", body=function( currentSpec ){
-                try{
-                    application enableNullSupport=true;
-                    arr = [];
-                    arr[15] = 1;
-                    res = arrayFirst(arr);
-                }
-                catch(any e){
-                    res = e.message;
-                }
-                expect(res).toBeNull();
-            });
-            it( title="Check undefined array element with arrayfirst and null support false", body=function( currentSpec ){
-                try{
-                    application enableNullSupport=false;
-                    arr = [];
-                    arr[15] = 1;
-                    res = arrayFirst(arr);
-                }
-                catch(any e){
-                    res = e.message;
-                }
-                expect(res).toBe("undefined");
-            });
-        });
-    }
+			it( "arrayLast() does not throw when the last position is undefined", function() {
+				var arr = [];
+				arrayResize( arr, 3 );
+				arr[ 1 ] = 1;
+				arr[ 3 ] = 3;
+				arrayDeleteAt( arr, 3 );
+				arrayResize( arr, 3 );
+				var res = arrayLast( arr );
+				expect( isNull( res ) ).toBeTrue();
+			});
+
+			it( "member function first() does not throw when position 1 is undefined", function() {
+				var arr = [];
+				arr[ 5 ] = "x";
+				var res = arr.first();
+				expect( isNull( res ) ).toBeTrue();
+			});
+
+			it( "arrayFirst() still returns a defined first element", function() {
+				expect( arrayFirst( [ "a", "b" ] ) ).toBe( "a" );
+				expect( arrayLast( [ "a", "b" ] ) ).toBe( "b" );
+			});
+
+			it( "arrayFirst() on an empty array still throws", function() {
+				expect( function() { arrayFirst( [] ); } ).toThrow();
+			});
+		});
+	}
 }

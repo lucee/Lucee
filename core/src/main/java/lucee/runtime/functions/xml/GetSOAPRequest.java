@@ -33,7 +33,7 @@ public final class GetSOAPRequest implements Function {
 	}
 
 	public static Object call(PageContext pc, Object webservice) throws PageException {
-		if (webservice != null && !(webservice instanceof WSClient))
+		if (!(webservice instanceof WSClient))
 			throw new FunctionException(pc, "getSOAPRequest", 1, "webservice", "value must be a webservice Object generated with createObject/<cfobject>");
 
 		return ((WSClient) webservice).getSOAPRequest();

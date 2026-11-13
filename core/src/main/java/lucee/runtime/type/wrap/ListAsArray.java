@@ -231,6 +231,12 @@ public class ListAsArray extends ArraySupport implements Array, List {
 		throw unsupported("toArray");
 	}
 
+	@Override
+	public Object[] toNativeArray() {
+		// the subclasses own the storage (ArrayImpl has no list), toArray() returns their own copy
+		return toArray();
+	}
+
 	public ArrayList toArrayList() {
 		throw unsupported("toArrayList");
 	}
