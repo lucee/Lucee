@@ -1,3 +1,0 @@
-<cfscript>
-	echo( "done" );
-</cfscript>

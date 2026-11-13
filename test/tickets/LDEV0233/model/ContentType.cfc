@@ -1,1 +1,0 @@
-component persistent="true" table="ContentType" {	property name="id" column="id" ormtype="int" notnull="true" fieldtype="id";	property name="title" column="title" ormtype="string" length="100" notnull="true";	property name="Attribute" fieldtype="one-to-many" cfc="Attribute" fkcolumn="fkContentType" orderby="sortorder asc";}

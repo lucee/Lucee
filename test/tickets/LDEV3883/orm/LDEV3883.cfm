@@ -1,3 +1,0 @@
-<cfscript>
-    ormGetSession();
-</cfscript>
