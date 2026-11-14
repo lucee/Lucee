@@ -31,6 +31,9 @@
 
 	request.SERVERADMINPASSWORD = len( envAdminPW ) ? envAdminPW : "webweb";
 	server.SERVERADMINPASSWORD = request.SERVERADMINPASSWORD;
+	// there is no web admin any more; older test components still read this key, so alias it to the server password
+	request.WEBADMINPASSWORD = request.SERVERADMINPASSWORD;
+	server.WEBADMINPASSWORD = request.WEBADMINPASSWORD;
 
 	if ( len( envAdminPW ) ) {
 		systemOutput( "admin password is defined via env var / system property, using it as-is", true );
@@ -90,8 +93,8 @@
 
 		fileWrite( testboxArchive, FileReadBinary( testboxUrl ) );
 		testboxDir = "#getTempDirectory()#testbox";
-
 		// the zip has no top level folder
+		if ( !directoryExists( testboxDir ) ) directoryCreate( testboxDir );
 		extract( format="zip", source=testboxArchive, target=testboxDir );
 		testboxArchive = testboxDir;
 
@@ -99,6 +102,7 @@
 		systemOutput( "Downloading [#globberUrl#]", true );
 		fileWrite( globberArchive, FileReadBinary( globberUrl ) );
 		globberTmpDir = "#getTempDirectory()#globber-tmp";
+		if ( !directoryExists( globberTmpDir ) ) directoryCreate( globberTmpDir );
 		extract( format="zip", source=globberArchive, target=globberTmpDir );
 		directoryCopy( "#globberTmpDir#/globber-#globberVersion#", "#testboxDir#/system/modules/globber", true );
 
