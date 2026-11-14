@@ -199,7 +199,7 @@
 		<!--- extension metadata sometimes embeds huge base64 logos; skip before decode/imageRead --->
 		<cfset local.maxEmbeddedSrcLen = 350000>
 		<cfset local.maxLogoBytes = 524288>
-		<cfif !isValid("URL", arguments.src) && !fileExists(arguments.src) && len(arguments.src) GT local.maxEmbeddedSrcLen>
+		<cfif !isValid("URL", arguments.src) && !(len(arguments.src) LT 4096 && fileExists(arguments.src)) && len(arguments.src) GT local.maxEmbeddedSrcLen>
 			<cfreturn "data:image/png;base64,#empty#">
 		</cfif>
 
@@ -237,7 +237,7 @@
 				<cfreturn "data:image/png;base64,#toBase64(fileReadBinary(tmpfile))#">
 			</cfif>
 			
-			<cfif (isValid("URL", arguments.src)) || fileExists(arguments.src)>
+			<cfif (isValid("URL", arguments.src)) || (len(arguments.src) LT 4096 && fileExists(arguments.src))>
 				<!--- fetching from an url can be slow, over 1s --->
 				<cfset local.data=FileReadBinary(arguments.src)>
 			<cfelse>
