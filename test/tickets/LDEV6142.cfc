@@ -27,7 +27,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 					var md = doRequest( "text/markdown" ).filecontent;
 					expect( md ).toInclude( heading( 3, "Stacktrace" ) );
 					expect( md ).toInclude( "**#expandPath( uri & "/throw.cfm" )#: line 1**" );
-					var firstLine = listFirst( fileRead( expandPath( uri & "/throw.cfm" ) ), chr( 10 ) );
+					// the fixture is checked out with the platform line endings, keep only the line text
+					var firstLine = replace( listFirst( fileRead( expandPath( uri & "/throw.cfm" ) ), chr( 10 ) ), chr( 13 ), "", "all" );
 					expect( md ).toInclude( "```" & chr( 10 ) & "1: " & firstLine );
 				});
 
