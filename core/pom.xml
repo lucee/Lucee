@@ -16,8 +16,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compiler.release>21</maven.compiler.release>
-    <!-- loader/pom.xml defines felix.version, this pom is standalone and cannot inherit it, the build (ant/build-core.xml) fails if the two are not the same. Felix is only needed to compile against the OSGi API -->
-    <felix.version>7.0.5</felix.version>
     <asm.version>9.11.1</asm.version>
     <pool2.version>2.13.1</pool2.version>
   </properties>
@@ -87,12 +85,6 @@
       <artifactId>lucee</artifactId>
       <version>7.0.0.211-BETA</version>
       <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.felix</groupId>
-      <artifactId>org.apache.felix.framework</artifactId>
-      <version>${felix.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
