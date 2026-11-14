@@ -182,7 +182,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	}
 
 	private void releaseConnection(PageContext pc, DatasourceConnection dc, boolean ignoreRequestExclusive) {
-		if (!((DatasourceConnectionPro) dc).isManaged() && autoCommit && (ignoreRequestExclusive || !((DataSourcePro) dc.getDatasource()).isRequestExclusive())) {
+		if (!((DatasourceConnectionPro) dc).isManaged() && (ignoreRequestExclusive || !((DataSourcePro) dc.getDatasource()).isRequestExclusive())) {
 			// Always return connection to pool - don't close directly on timeout
 			// Closing directly (IOUtil.closeEL) breaks pool accounting - pool thinks
 			// connection is still borrowed when it's actually closed, causing phantom connections
