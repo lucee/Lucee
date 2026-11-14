@@ -230,7 +230,7 @@
 				<cfreturn "data:image/png;base64,#toBase64(fileReadBinary(tmpfile))#">
 			</cfif>
 			
-			<cfif (isValid("URL", arguments.src)) || fileExists(arguments.src)>
+			<cfif (isValid("URL", arguments.src)) || (len(arguments.src) LT 4096 && fileExists(arguments.src))>
 				<!--- fetching from an url can be slow, over 1s --->
 				<cfset local.data=FileReadBinary(arguments.src)>
 			<cfelse>
