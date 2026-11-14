@@ -78,8 +78,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="whitespace" {
 	}
 
 	private string function req( required string page, struct url={} ) {
-		// the result is not trimmed, as the leading and trailing whitespace is what is tested
+		// the result is not trimmed, as the leading and trailing whitespace is what is tested.
+		// CRLF is normalised to LF: the fixture files are checked out with the platform line
+		// endings, while the expectation is written with chr( 10 ) only (the CRLF handling
+		// itself is covered by the dedicated spec)
 		var res = _InternalRequest( template: createURI( "LDEV1524/" & arguments.page ), url: arguments.url ).fileContent;
+		res = replace( res, "#chr( 13 )##chr( 10 )#", chr( 10 ), "all" );
 		return reReplace( res, "[\r\n]+$", "" );
 	}
 

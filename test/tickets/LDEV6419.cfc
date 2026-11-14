@@ -3,7 +3,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="application" {
 	function beforeAll() {
 		variables.cfg = getPageContext().getConfig();
 		// the physical directory that holds the Application.cfc, no trailing slash (as PageSource.getPhyscalFile().getParent())
-		variables.appDir = reReplace( getDirectoryFromPath( getCurrentTemplatePath() ) & "LDEV6419/app", "[/\\]+$", "" );
+		// the cache key is the resolved physical directory, so the fixture path has to use the
+		// platform separator too (it is built with a forward slash above)
+		variables.appDir = replace( reReplace( getDirectoryFromPath( getCurrentTemplatePath() ) & "LDEV6419/app", "[/\\]+$", "" ), "/", server.separator.file, "all" );
 		variables.appListenerFiles = [ "Application.[cfc|cfm]", "Application.cfc", "Application.cfm" ];
 		// ApplicationListener.MODE_CURRENT2ROOT, MODE_CURRENT, MODE_ROOT, MODE_CURRENT_OR_ROOT
 		variables.appListenerModes = [ 0, 1, 2, 4 ];

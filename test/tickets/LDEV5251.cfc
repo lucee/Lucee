@@ -213,7 +213,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	private string function normalize( required string text, required string virtual ) {
-		return replace( replace( arguments.text, variables.mappingDirs[ arguments.virtual ], "", "all" ), variables.mappingDirs[ arguments.virtual ].replace( "\", "/" ), "", "all" );
+		// the mapping dir is getTempDirectory() glued to a forward-slash suffix, and the compiler
+		// reports the same path with the platform separator, so normalise both sides before
+		// stripping it out of the message
+		var hay = replace( arguments.text, "\", "/", "all" );
+		var needle = replace( variables.mappingDirs[ arguments.virtual ], "\", "/", "all" );
+		return replace( hay, needle, "", "all" );
 	}
 
 	private struct function normalizeErrors( required struct errors, required string virtual ) {
