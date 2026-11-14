@@ -169,12 +169,75 @@ Otherwise, the value, if specified, is treated as a filename to append the dump 
 				admin action="addDump" dump="#result#";
 		} 
 		else {
-			var filename=expandPath(arguments.attrib.output);
+			// LDEV-6936: keep absolute filesystem paths when the parent exists,
+			// but still use expandPath() for relative and mapped/virtual paths (LDEV-5586).
+			var filename=resolveOutputFilePath(arguments.attrib.output);
 			if(arguments.attrib.format == 'text')
 				file action="append" addnewline="yes" file="#filename#" output="#result#";
 			else
 				file action="append" addnewline="yes" file="#filename#" output="<div id=""#dumpID#"" class=""-lucee-dump"">#result#</div>";
 		}
+	}
+
+	/**
+	 * Resolve a cfdump/writeDump output= file path.
+	 *
+	 * Precedence:
+	 * 1. Relative paths always go through expandPath() (LDEV-5586), so names like
+	 *    dumps/out.html are resolved against the current page / webroot.
+	 * 2. If expandPath() points at a location whose file or parent directory already
+	 *    exists and that location is different from the raw path, use the expanded
+	 *    path. That preserves mappings and virtual paths under the webroot.
+	 * 3. If the raw path is an absolute filesystem path and its parent directory
+	 *    (or the file itself) exists, keep the raw path. This restores pre-6.2.2
+	 *    behaviour for paths such as /var/dump, which expandPath() would otherwise
+	 *    rewrite as {webroot}/var/dump.
+	 * 4. Otherwise fall back to the expanded path.
+	 *
+	 * If both the raw parent and the expanded (webroot/mapped) parent exist, the
+	 * expanded path wins, so an earlier run that already created {webroot}/var/dump
+	 * keeps using that location until that file/folder is removed.
+	 */
+	string function resolveOutputFilePath(required string path) {
+		var raw = arguments.path;
+		var expanded = raw;
+		try {
+			expanded = expandPath(raw);
+		}
+		catch (any e) {
+			// e.g. file:// is not a registered resource scheme
+		}
+
+		if (!isAbsoluteFilePath(raw)) {
+			return expanded;
+		}
+
+		var expandedParent = getDirectoryFromPath(expanded);
+		var expandedReady = fileExists(expanded) || directoryExists(expandedParent);
+		if (expandedReady && normalizeFilePath(expanded) != normalizeFilePath(raw)) {
+			return expanded;
+		}
+
+		var rawParent = getDirectoryFromPath(raw);
+		if (fileExists(raw) || directoryExists(rawParent)) {
+			return raw;
+		}
+
+		return expanded;
+	}
+
+	boolean function isAbsoluteFilePath(required string path) {
+		if (!len(arguments.path)) return false;
+		var first = left(arguments.path, 1);
+		if (first == "/" || first == "\\") return true;
+		// Windows drive letter, e.g. C:\temp\out.html
+		return reFindNoCase("^[a-z]:[\\/]", arguments.path) > 0;
+	}
+
+	string function normalizeFilePath(required string path) {
+		var p = replace(arguments.path, "\\", "/", "all");
+		if (len(p) > 1 && right(p, 1) == "/") p = left(p, len(p) - 1);
+		return p;
 	}
 
 
