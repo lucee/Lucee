@@ -87,7 +87,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 		// use the OSGi bundles of the running server, the new server can not necessarily download them
 		var bundleDir = createObject( "java", "lucee.loader.engine.CFMLEngineFactory" ).getInstance().getCFMLEngineFactory().getBundleDirectory().getAbsolutePath();
 		var cmd = [ java ];
-		arrayAppend( cmd, "-Dlucee.extensions.install=false" );
+		arrayInsertAt( cmd, 2, "-Dlucee.extensions.install=false" );
 		loop struct=arguments.sysprops index="local.k" item="local.v" {
 			arrayAppend( cmd, "-D#k#=#v#" );
 		}

@@ -127,7 +127,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="warmup,extensions"
 		var bundleDir = createObject( "java", "lucee.loader.engine.CFMLEngineFactory" ).getInstance().getCFMLEngineFactory().getBundleDirectory().getAbsolutePath();
 		var cmd = [ java ];
 		if ( arguments.warmup ) arrayAppend( cmd, "-Dlucee.enable.warmup=true" );
-		arrayAppend( cmd, "-Dlucee.extensions.install=false" );
+		arrayInsertAt( cmd, 2, "-Dlucee.extensions.install=false" );
 		loop struct=arguments.sysprops index="local.k" item="local.v" {
 			arrayAppend( cmd, "-D#k#=#v#" );
 		}
