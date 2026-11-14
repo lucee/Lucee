@@ -1,6 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="callStackGet,dump" {
 
 	function beforeAll() {
+		variables.util = new test._FileTestUtil();
 		variables.originalMappings = getApplicationSettings().mappings;
 		variables.baseDir = getTempDirectory() & "LDEV3697-" & createUUID() & "/";
 		variables.mapDir = variables.baseDir & "mapped/";
@@ -17,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="callStackGet,dump"
 
 	function afterAll() {
 		application action="update" mappings=variables.originalMappings;
-		if ( directoryExists( variables.baseDir ) ) directoryDelete( variables.baseDir, true );
+		variables.util.deleteDirectoryQuietly( variables.baseDir );
 	}
 
 	function run( testResults, testBox ) {
