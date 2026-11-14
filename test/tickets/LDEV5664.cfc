@@ -63,6 +63,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 		fileWrite( webroot & "index.cfm", '<cfscript>
 			fileWrite( "#webroot#result.tmp", serializeJSON( { "cfid": session.cfid, "cftoken": session.cftoken } ) );
 			fileMove( "#webroot#result.tmp", "#resultFile#" );
+			createObject( "java", "java.lang.System" ).exit( 0 );
 		</cfscript>' );
 		fileWrite( serverContext & "context/Server.cfc", "component { function onBuild() {} }" );
 
@@ -114,19 +115,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 
 		var process = pb.start();
 		var TimeUnit = createObject( "java", "java.util.concurrent.TimeUnit" );
-		var begin = getTickCount();
-		while ( !process.waitFor( 250, TimeUnit.MILLISECONDS ) ) {
-			// the CLI does not end the JVM on its own after a successful request, so once the request was executed we are done
-			if ( fileExists( resultFile ) ) {
-				process.destroyForcibly();
-				process.waitFor( 30, TimeUnit.SECONDS );
-				break;
-			}
-			if ( getTickCount() - begin > 120000 ) {
-				process.destroyForcibly();
-				throw "server [#arguments.name#] did not finish within 2 minutes, output: " & ( fileExists( logFile ) ? right( fileRead( logFile ), 5000 ) : "" );
-			}
+		// the request ends the JVM itself once it has written the result
+		if ( !process.waitFor( 120, TimeUnit.SECONDS ) ) {
+			process.destroyForcibly();
+			throw "server [#arguments.name#] did not finish within 2 minutes, output: " & ( fileExists( logFile ) ? right( fileRead( logFile ), 5000 ) : "" );
 		}
+		var exitCode = process.exitValue();
 		var log = fileExists( logFile ) ? fileRead( logFile ) : "";
 		if ( !fileExists( resultFile ) ) throw "the request of [#arguments.name#] was not executed, output: " & log;
 		var result = deserializeJSON( fileRead( resultFile ) );
