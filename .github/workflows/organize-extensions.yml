@@ -17,6 +17,7 @@ on:
           - com.oracle.database.jdbc
           - com.teradata.jdbc
           - compress-extension
+          - crypto-extension
           - ec2-extension
           - ehcache-extension
           - extension-memcached
@@ -29,6 +30,7 @@ on:
           - hibernate-orm
           - image-extension
           - jtds
+          - jsonata-extension
           - kinesis-extension
           - lucee.extension.couchbase
           - lucee.image.extension
@@ -41,6 +43,7 @@ on:
           - org.lucee.athena.jdbc
           - org.lucee.axis.extension
           - org.lucee.exasol
+          - org.lucee.hsqldb
           - org.duckdb.duckdb_jdbc
           - org.lucee.mssql
           - org.lucee.oracle
@@ -72,6 +75,7 @@ on:
           - chart-extension
           - compress-extension
           - couchbase-extension
+          - crypto-extension
           - documentation-extension
           - duckdb-jdbc-extension
           - ec2-extension
@@ -82,10 +86,12 @@ on:
           - git-extension
           - h2-jdbc-extension
           - hibernate-extension
+          - hsqldb-jdbc-extension
           - image-extension
           - infinispan-extension
           - jtds-jdbc-extension
           - json-extension
+          - jsonata-extension
           - kinesis-extension
           - lucene-search-extension
           - loganalyzer-extension
