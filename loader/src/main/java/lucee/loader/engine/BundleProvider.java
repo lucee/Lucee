@@ -17,8 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
 import lucee.loader.engine.mvn.MavenUpdateProvider;
@@ -564,12 +562,12 @@ put(mappingsFallback, "org.apache.commons.commons-fileupload", new Info("commons
 		return sb.toString();
 	}
 
-	public URL getBundleAsURL(String bundleName, String bundleVersion) throws PageException, IOException, GeneralSecurityException, SAXException, BundleException {
+	public URL getBundleAsURL(String bundleName, String bundleVersion) throws PageException, IOException, GeneralSecurityException, SAXException, IOException {
 		return getBundleAsURL(null, bundleName, bundleVersion, null);
 	}
 
 	public URL getBundleAsURL(CFMLEngineFactory factory, String bundleName, String bundleVersion, final JarFile luceeCore)
-			throws PageException, IOException, GeneralSecurityException, SAXException, BundleException {
+			throws PageException, IOException, GeneralSecurityException, SAXException, IOException {
 		BundleDefinition bd = new BundleDefinition(bundleName, bundleVersion);
 		URL url = null;
 
@@ -580,21 +578,21 @@ put(mappingsFallback, "org.apache.commons.commons-fileupload", new Info("commons
 			String v;
 			for (Info info: infos) {
 
-				if (factory != null) factory.log(org.apache.felix.resolver.Logger.LOG_INFO, "Found Maven/OSGi mapping [" + info + "] for OSGi bundle [" + bd.name + "]");
+				if (factory != null) factory.log(lucee.loader.engine.LoggerImpl.LOG_INFO, "Found Maven/OSGi mapping [" + info + "] for OSGi bundle [" + bd.name + "]");
 
 				if (!info.isMaven()) continue;
 				for (URL repo: getDefaultProviderDetailMvn()) {
 					v = bd.getVersionAsString();
 					url = validate(createURL(repo, info, v), null);
 					if (url != null) {
-						if (factory != null) factory.log(org.apache.felix.resolver.Logger.LOG_INFO, "Found URL [" + url + "] for OSGi bundle [" + bd.name + "]");
+						if (factory != null) factory.log(lucee.loader.engine.LoggerImpl.LOG_INFO, "Found URL [" + url + "] for OSGi bundle [" + bd.name + "]");
 						return url;
 					}
 					if (v != null && v.endsWith(".0")) {
 						v = v.substring(0, v.length() - 2);
 						url = validate(createURL(repo, info, v), null);
 						if (url != null) {
-							if (factory != null) factory.log(org.apache.felix.resolver.Logger.LOG_INFO, "Found URL [" + url + "] for OSGi bundle [" + bd.name + "]");
+							if (factory != null) factory.log(lucee.loader.engine.LoggerImpl.LOG_INFO, "Found URL [" + url + "] for OSGi bundle [" + bd.name + "]");
 							return url;
 						}
 					}
@@ -776,7 +774,7 @@ put(mappingsFallback, "org.apache.commons.commons-fileupload", new Info("commons
 			this.version = version;
 		}
 
-		public BundleDefinition(String name, String version) throws BundleException {
+		public BundleDefinition(String name, String version) throws IOException {
 			this.name = name;
 			this.version = toVersion(version);
 		}
@@ -847,6 +845,57 @@ put(mappingsFallback, "org.apache.commons.commons-fileupload", new Info("commons
 
 	}
 
+	/**
+	 * The version of a bundle: major.minor.micro[.qualifier]
+	 */
+	private static final class Version implements Comparable<Version> {
+		private final int major;
+		private final int minor;
+		private final int micro;
+		private final String qualifier;
+
+		Version(int major, int minor, int micro) {
+			this(major, minor, micro, "");
+		}
+
+		Version(int major, int minor, int micro, String qualifier) {
+			this.major = major;
+			this.minor = minor;
+			this.micro = micro;
+			this.qualifier = qualifier == null ? "" : qualifier;
+		}
+
+		int getMajor() {
+			return major;
+		}
+
+		int getMinor() {
+			return minor;
+		}
+
+		int getMicro() {
+			return micro;
+		}
+
+		String getQualifier() {
+			return qualifier;
+		}
+
+		@Override
+		public int compareTo(Version other) {
+			if (major != other.major) return major - other.major;
+			if (minor != other.minor) return minor - other.minor;
+			if (micro != other.micro) return micro - other.micro;
+			return qualifier.compareTo(other.qualifier);
+		}
+
+		@Override
+		public String toString() {
+			String str = major + "." + minor + "." + micro;
+			return qualifier.isEmpty() ? str : str + "." + qualifier;
+		}
+	}
+
 	private final static class Pair {
 		final long lastModified;
 		final BundleProvider bundleProvider;
@@ -904,10 +953,10 @@ put(mappingsFallback, "org.apache.commons.commons-fileupload", new Info("commons
 		return new Version(major, minor, micro, qualifier);
 	}
 
-	private static Version toVersion(String version) throws BundleException {
+	private static Version toVersion(String version) throws IOException {
 		Version v = toVersion(version, null);
 		if (v != null) return v;
-		throw new BundleException(
+		throw new IOException(
 				"Given version [" + version + "] is invalid, a valid version is following this pattern <major-number>.<minor-number>.<micro-number>[.<qualifier>]");
 	}
 

@@ -35,6 +35,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.nio.file.Paths;
@@ -57,13 +58,8 @@ import java.util.zip.ZipInputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.felix.framework.Felix;
-import org.apache.felix.framework.Logger;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Constants;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
-import org.osgi.framework.launch.Framework;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -77,10 +73,7 @@ import lucee.VersionInfo;
 import lucee.commons.io.log.Log;
 import lucee.loader.TP;
 import lucee.loader.engine.mvn.MavenUpdateProvider;
-import lucee.loader.osgi.BundleCollection;
-import lucee.loader.osgi.BundleLoader;
-import lucee.loader.osgi.BundleUtil;
-import lucee.loader.osgi.LoggerImpl;
+import lucee.loader.util.BundleInfoReader;
 import lucee.loader.util.DownloadVerifier;
 import lucee.loader.util.ExtensionFilter;
 import lucee.loader.util.Util;
@@ -118,8 +111,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	private static File luceeServerRoot;
 
-	private Felix felix;
-	private BundleCollection bundleCollection;
+	// the class loader of the core when it is loaded from a patch file (.lco), null when Lucee is one jar
+	private URLClassLoader coreClassLoader;
 	// private CFMLEngineWrapper engine;
 
 	private final ClassLoader mainClassLoader = new TP().getClass().getClassLoader();
@@ -285,14 +278,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 */
 	private void initEngineIfNecessary() throws ServletException {
 		if (singelton == null) initEngine();
-	}
-
-	public void shutdownFelix() throws BundleException {
-		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "---- Shutdown Felix ----");
-
-		BundleCollection bc = bundleCollection;
-		if (bc == null || bc.felix == null) return;
-		BundleUtil.stop(felix, false);
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -515,14 +500,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	private void initMergedEngine() throws ServletException {
 		long start = System.currentTimeMillis();
 		try {
-			bundleCollection = BundleLoader.loadBundles(this, getResourceRoot(), getBundleDirectory(), bundleCollection);
-			log(LoggerImpl.LOG_DEBUG, "BundleLoader.loadBundles: " + (System.currentTimeMillis() - start) + "ms");
-
 			final Class<?> clazz = Class.forName("lucee.runtime.engine.CFMLEngineImpl", true, mainClassLoader);
-			final Method m = clazz.getMethod("getInstance", new Class[] { CFMLEngineFactory.class, BundleCollection.class });
-			setEngine((CFMLEngine) m.invoke(null, new Object[] { this, bundleCollection }));
+			final Method m = clazz.getMethod("getInstance", new Class[] { CFMLEngineFactory.class });
+			setEngine((CFMLEngine) m.invoke(null, new Object[] { this }));
 			version = singelton.getInfo().getVersion();
-			log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Loaded Lucee Version [" + version + "]");
+			log(LoggerImpl.LOG_DEBUG, "Loaded Lucee Version [" + version + "]");
 		}
 		catch (final InvocationTargetException e) {
 			log(e.getTargetException());
@@ -550,7 +532,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		File patcheDir = null;
 		try {
 			patcheDir = getPatchDirectory();
-			log(org.apache.felix.resolver.Logger.LOG_DEBUG, "lucee-server-root:" + patcheDir.getParent());
+			log(LoggerImpl.LOG_DEBUG, "lucee-server-root:" + patcheDir.getParent());
 		}
 		catch (final IOException e) {
 			throw new ServletException(e);
@@ -578,24 +560,24 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (specificVersion != null) {
 			if (specificVersion.equals(coreVersion)) {
 				// requested version matches the current core version, just use it
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "specific version [" + specificVersion + "] matches core version.");
+				log(LoggerImpl.LOG_DEBUG, "specific version [" + specificVersion + "] matches core version.");
 			}
 			else if (Util.isNewerThan(MIN_VERSION, specificVersion)) {
-				log(org.apache.felix.resolver.Logger.LOG_ERROR,
+				log(LoggerImpl.LOG_ERROR,
 						"Lucee version requested [" + specificVersion
 								+ "] via system property 'lucee.version' or environment variable 'LUCEE_VERSION' cannot be used, this loader requires at least version ["
 								+ MIN_VERSION + "].");
 				specificVersion = null;
 			}
 			else if (MAX_VERSION != null && Util.isNewerThan(specificVersion, MAX_VERSION)) {
-				log(org.apache.felix.resolver.Logger.LOG_ERROR,
+				log(LoggerImpl.LOG_ERROR,
 						"Lucee version requested [" + specificVersion
 								+ "] via system property 'lucee.version' or environment variable 'LUCEE_VERSION' cannot be used, this loader only supports versions up to ["
 								+ MAX_VERSION + "].");
 				specificVersion = null;
 			}
 			else {
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "specific version [" + specificVersion + "] defined.");
+				log(LoggerImpl.LOG_DEBUG, "specific version [" + specificVersion + "] defined.");
 			}
 
 			ltmp = System.currentTimeMillis();
@@ -613,7 +595,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				for (final File patch: patches) {
 					// invalid patches
 					if (patch.getName().startsWith("tmp.lco") || patch.length() < 1000000L) {
-						log(org.apache.felix.resolver.Logger.LOG_INFO, "delete [" + patch + "]");
+						log(LoggerImpl.LOG_INFO, "delete [" + patch + "]");
 						patch.delete();
 						continue;
 					}
@@ -624,7 +606,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					if (specificVersion != null) {
 						if (pv.equals(specificVersion)) {
 							lucee = patch;
-							log(org.apache.felix.resolver.Logger.LOG_DEBUG, "specific version [" + specificVersion + "] is used.");
+							log(LoggerImpl.LOG_DEBUG, "specific version [" + specificVersion + "] is used.");
 							break;
 						}
 						continue;
@@ -638,7 +620,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			}
 
 			if (specificVersion == null && lucee != null && Util.isNewerThan(coreVersion, toVersion(lucee.getName(), VERSION_ZERO))) {
-				log(org.apache.felix.resolver.Logger.LOG_INFO, "ignoring version from patch folder, it is to old");
+				log(LoggerImpl.LOG_INFO, "ignoring version from patch folder, it is to old");
 				lucee = null;
 			}
 		}
@@ -651,7 +633,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			// Load core version from jar when no patch available
 			if (lucee == null) {
 
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Load built-in Core");
+				log(LoggerImpl.LOG_DEBUG, "Load built-in Core");
 				final String coreExt = "lco";
 				// copy core
 				InputStream is = null;
@@ -676,7 +658,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 						copy(is, os);
 					}
 					else {
-						log(org.apache.felix.resolver.Logger.LOG_ERROR,
+						log(LoggerImpl.LOG_ERROR,
 								"/core/core." + coreExt + " not found at " + TP.class.getProtectionDomain().getCodeSource().getLocation().getPath());
 					}
 				}
@@ -730,15 +712,14 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				ltmp = System.currentTimeMillis();
 				log(LoggerImpl.LOG_DEBUG, "loaded bundles in " + (ltmp - start) + "ms");
 				start = ltmp;
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Loaded bundle: [" + bundleCollection.core.getSymbolicName() + "]");
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Loaded engine: [" + singelton + "]");
+				log(LoggerImpl.LOG_DEBUG, "Loaded engine: [" + singelton + "]");
 				ltmp = System.currentTimeMillis();
 				log(LoggerImpl.LOG_DEBUG, "set engine in " + (ltmp - start) + "ms");
 				start = ltmp;
 			}
 			version = singelton.getInfo().getVersion();
 
-			log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Loaded Lucee Version [" + singelton.getInfo().getVersion() + "]");
+			log(LoggerImpl.LOG_DEBUG, "Loaded Lucee Version [" + singelton.getInfo().getVersion() + "]");
 		}
 		catch (final InvocationTargetException e) {
 			log(e.getTargetException());
@@ -767,166 +748,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		return singelton;
 	}
 
-	public Framework getFelix(final File resourceRootDir, Map<String, Object> config) throws BundleException {
-
-		if (config == null) config = new HashMap<>();
-
-		// Log Level
-		int logLevel = 1; // 1 = error, 2 = warning, 3 = information, and 4 = debug
-		String strLogLevel = getSystemPropOrEnvVar("felix.log.level", null);
-		if (Util.isEmpty(strLogLevel)) strLogLevel = (String) config.get("felix.log.level");
-
-		if (!Util.isEmpty(strLogLevel)) {
-			if ("0".equalsIgnoreCase(strLogLevel)) logLevel = 0;
-			else if ("error".equalsIgnoreCase(strLogLevel) || "1".equalsIgnoreCase(strLogLevel)) logLevel = 1;
-			else if ("warning".equalsIgnoreCase(strLogLevel) || "2".equalsIgnoreCase(strLogLevel)) logLevel = 2;
-			else if ("info".equalsIgnoreCase(strLogLevel) || "information".equalsIgnoreCase(strLogLevel) || "3".equalsIgnoreCase(strLogLevel)) logLevel = 3;
-			else if ("debug".equalsIgnoreCase(strLogLevel) || "4".equalsIgnoreCase(strLogLevel)) logLevel = 4;
-		}
-		config.put("felix.log.level", "" + logLevel);
-
-		if (logger != null) {
-			if (logLevel == 2) logger.setLogLevel(org.apache.felix.resolver.Logger.LOG_WARNING);
-			else if (logLevel == 3) logger.setLogLevel(org.apache.felix.resolver.Logger.LOG_INFO);
-			else if (logLevel == 4) logger.setLogLevel(org.apache.felix.resolver.Logger.LOG_DEBUG);
-			else logger.setLogLevel(org.apache.felix.resolver.Logger.LOG_ERROR);
-		}
-
-		if (logger != null) {
-			if (logLevel == 2) logger.setLogLevel(org.apache.felix.resolver.Logger.LOG_WARNING);
-			else if (logLevel == 3) logger.setLogLevel(org.apache.felix.resolver.Logger.LOG_INFO);
-			else if (logLevel == 4) logger.setLogLevel(org.apache.felix.resolver.Logger.LOG_DEBUG);
-			else logger.setLogLevel(org.apache.felix.resolver.Logger.LOG_ERROR);
-		}
-
-		// Allow felix.cache.locking to be overridden by env var (true/false)
-		// Enables or disables bundle cache locking, which is used to prevent concurrent access to the
-		// bundle cache.
-
-		extend(config, "felix.cache.locking", null, false);
-		extend(config, "org.osgi.framework.executionenvironment", null, false);
-		extend(config, "org.osgi.framework.storage", null, false);
-		extend(config, "org.osgi.framework.storage.clean", "none", false);
-		extend(config, Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK, false);
-
-		boolean isNew = false;
-		// felix.cache.rootdir
-		String rootDir = (String) config.get("felix.cache.rootdir");
-
-		File felixCacheRootdir = null;
-		if (Util.isEmpty(rootDir) || !(felixCacheRootdir = new File(rootDir)).isDirectory()) {
-			felixCacheRootdir = resourceRootDir;
-			if (!resourceRootDir.exists()) {
-				resourceRootDir.mkdirs();
-				isNew = true;
-			}
-			if (resourceRootDir.isDirectory()) config.put("felix.cache.rootdir", rootDir = resourceRootDir.getAbsolutePath());
-		}
-
-		extend(config, Constants.FRAMEWORK_BOOTDELEGATION, null, true);
-		extend(config, Constants.FRAMEWORK_SYSTEMPACKAGES, null, true);
-		extend(config, Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, null, true);
-		extend(config, "felix.cache.filelimit", null, false);
-		extend(config, "felix.cache.bufsize", null, false);
-		extend(config, "felix.bootdelegation.implicit", null, false);
-		extend(config, "felix.systembundle.activators", null, false);
-		extend(config, "org.osgi.framework.startlevel.beginning", null, false);
-		extend(config, "felix.service.urlhandlers", null, false);
-		extend(config, "felix.auto.deploy.dir", null, false);
-		extend(config, "felix.auto.deploy.action", null, false);
-		extend(config, "felix.shutdown.hook", null, false);
-		extend(config, "felix.threading.timeout", null, false);
-		extend(config, "felix.service.urlhandlers", null, false);
-		extend(config, "felix.startlevel.bundle", null, false);
-
-		// Felix bundle resolution parallelism: enable parallel resolution with virtual threads.
-		// With virtual threads (Java 21+), parallelism is now beneficial for dependency graph traversal.
-		// Default: Math.min(CPU cores, 8) to balance parallelism without excessive lock contention.
-		// Override via -Dfelix.resolver.parallelism=N
-		int parallelism = Math.min(Math.max(1, Runtime.getRuntime().availableProcessors()), 8);
-		extend(config, "felix.resolver.parallelism", "" + parallelism, false);
-		extend(config, "felix.resolver.parallel", "true", false);
-
-		// Skip waiting for service events to be delivered
-		extend(config, "felix.service.timeout", null, false);
-		extend(config, "felix.threading.timeout", null, false);
-
-		// Set framework start level immediately to final value
-		extend(config, "org.osgi.framework.startlevel.beginning", "1", false); // Start at level 1 immediately
-		extend(config, "felix.startlevel.bundle", "1", false); // Default bundle start level 1
-		extend(config, "felix.auto.start.1", "", false); // Don't auto-start bundles at level 1
-
-		extend(config, "felix.auto.deploy.action", "install", false); // Don't auto-start, just install
-		extend(config, "felix.auto.deploy.start.level", "1", false); // Use start level 1
-		extend(config, "felix.cache.locking", "false", false); // Disable cache locking for speed
-
-		// Add specific timeout values instead of null:
-		extend(config, "felix.service.timeout", "1000", false); // 1 second max service wait
-		extend(config, "felix.threading.timeout", "5000", false); // 5 second thread timeout
-		extend(config, "felix.shutdown.timeout", "2000", false); // Fast shutdown
-
-		if (logger != null) config.put("felix.log.logger", logger);
-		// TODO felix.log.logger
-
-		// remove any empty record, this can produce trouble
-		{
-			final Iterator<Entry<String, Object>> it = config.entrySet().iterator();
-			Entry<String, Object> e;
-			Object v;
-			while (it.hasNext()) {
-				e = it.next();
-				v = e.getValue();
-				if (v == null || v.toString().isEmpty()) it.remove();
-			}
-		}
-
-		// log felix settings
-		String doLog = Util.getSystemPropOrEnvVar("felix.log.settings", null);
-		if (!Util.isEmpty(doLog, true) && doLog.trim().equalsIgnoreCase("true")) {
-			final StringBuilder sb = new StringBuilder("Loading felix with config:");
-			final Iterator<Entry<String, Object>> it = config.entrySet().iterator();
-			Entry<String, Object> e;
-			while (it.hasNext()) {
-				e = it.next();
-				sb.append("\n- ").append(e.getKey()).append(':').append(e.getValue());
-			}
-			log(Logger.LOG_INFO, sb.toString());
-		}
-
-		felix = new Felix(config);
-		try {
-			log(LoggerImpl.LOG_DEBUG, "start felix");
-			felix.start();
-		}
-		catch (BundleException be) {
-			// this could be cause by an invalid felix cache, so we simply delete it and try again
-			if (!isNew && "Error creating bundle cache.".equals(be.getMessage())) {
-				Util.deleteContent(new File(felixCacheRootdir, "felix-cache"), null);
-				felix = new Felix(config);
-				felix.start();
-			}
-
-		}
-
-		return felix;
-	}
-
-	private static void extend(Map<String, Object> config, String name, String defaultValue, boolean add) {
-		String addional = getSystemPropOrEnvVar(name, null);
-		if (Util.isEmpty(addional, true)) {
-			if (Util.isEmpty(defaultValue, true)) return;
-			addional = defaultValue.trim();
-		}
-		if (add) {
-			String existing = (String) config.get(name);
-			if (!Util.isEmpty(existing, true)) config.put(name, existing.trim() + "," + addional.trim());
-			else config.put(name, addional.trim());
-		}
-		else {
-			config.put(name, addional.trim());
-		}
-	}
-
 	protected static String getSystemPropOrEnvVar(String name, String defaultValue) {
 		return Util.getSystemPropOrEnvVar(name, defaultValue);
 	}
@@ -940,7 +761,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	public void log(final Throwable t) {
-		if (logger != null) logger.log(org.apache.felix.resolver.Logger.LOG_ERROR, "", t);
+		if (logger != null) logger.log(LoggerImpl.LOG_ERROR, "", t);
 	}
 
 	public void log(final int level, final String msg) {
@@ -1033,7 +854,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			return false;
 		}
 
-		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Version (" + v + ")installed");
+		log(LoggerImpl.LOG_DEBUG, "Version (" + v + ")installed");
 		return true;
 	}
 
@@ -1075,7 +896,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		jar = deployBundledBundle(jarDir, symbolicName, symbolicVersion);
 		if (jar != null && jar.isFile()) return jar;
 		if (jar != null) {
-			log(org.apache.felix.resolver.Logger.LOG_INFO, jar + " should exist but does not (exist?" + jar.exists() + ";file?" + jar.isFile() + ";hidden?" + jar.isHidden() + ")");
+			log(LoggerImpl.LOG_INFO, jar + " should exist but does not (exist?" + jar.exists() + ";file?" + jar.isFile() + ";hidden?" + jar.isHidden() + ")");
 		}
 
 		String str = getSystemPropOrEnvVar("lucee.enable.bundle.download", null);
@@ -1095,7 +916,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			throw new IOException("Failed to get an endpoint for the bundle  [" + symbolicName + ":" + symbolicVersion + "]", e);
 		}
 
-		log(org.apache.felix.resolver.Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar);
+		log(LoggerImpl.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar);
 
 		int code;
 		HttpURLConnection conn;
@@ -1107,7 +928,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			code = conn.getResponseCode();
 		}
 		catch (UnknownHostException e) {
-			log(org.apache.felix.resolver.Logger.LOG_ERROR,
+			log(LoggerImpl.LOG_ERROR,
 					"Failed to download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "] and copy to [" + jar + "]"); // MUST
 			// remove
 			throw new IOException("Failed to download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "] and copy to [" + jar + "]", e);
@@ -1122,7 +943,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				// just in case we check invalid names
 				if (location == null) location = conn.getHeaderField("location");
 				if (location == null) location = conn.getHeaderField("LOCATION");
-				log(org.apache.felix.resolver.Logger.LOG_INFO, "download redirected:" + location);
+				log(LoggerImpl.LOG_INFO, "download redirected:" + location);
 
 				conn.disconnect();
 				URL url = new URL(location);
@@ -1143,7 +964,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			if (code != 200) {
 				final String msg = "Failed to download the bundle for [" + symbolicName + "] in version [" + symbolicVersion + "] from [" + updateUrl
 						+ "], please download manually and copy to [" + jarDir + "]";
-				log(org.apache.felix.resolver.Logger.LOG_ERROR, msg);
+				log(LoggerImpl.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
 			}
@@ -1171,20 +992,20 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		InputStream is = getClass().getResourceAsStream("bundles/" + osgiFileName);
 		if (is == null) is = getClass().getResourceAsStream("/bundles/" + osgiFileName);
 
-		if (is != null) log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Found ]/bundles/" + osgiFileName + "] in lucee.jar");
-		else log(org.apache.felix.resolver.Logger.LOG_INFO, "Could not find [/bundles/" + osgiFileName + "] in lucee.jar");
+		if (is != null) log(LoggerImpl.LOG_DEBUG, "Found ]/bundles/" + osgiFileName + "] in lucee.jar");
+		else log(LoggerImpl.LOG_INFO, "Could not find [/bundles/" + osgiFileName + "] in lucee.jar");
 
 		if (is != null) {
 			File temp = null;
 			try {
 				// copy to temp file
 				temp = File.createTempFile("bundle", ".tmp");
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Copying [lucee.jar!/bundles/" + osgiFileName + "] to [" + temp + "]");
+				log(LoggerImpl.LOG_DEBUG, "Copying [lucee.jar!/bundles/" + osgiFileName + "] to [" + temp + "]");
 				Util.copy(new BufferedInputStream(is), new FileOutputStream(temp), true, true);
 
 				// adding bundle
 				Util.fileMove(temp, trg);
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
+				log(LoggerImpl.LOG_DEBUG, "Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 				return trg;
 			}
 			catch (IOException ioe) {
@@ -1220,11 +1041,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 							temp = File.createTempFile("bundle", ".tmp");
 							Util.copy(zis, new FileOutputStream(temp), false, true);
 
-							bundleInfo = BundleLoader.loadBundleInfo(temp);
+							bundleInfo = BundleInfoReader.loadBundleInfo(temp);
 							if (bundleInfo != null && nameAndVersion.equals(bundleInfo)) {
 								trg = new File(bundleDirectory, name);
 								temp.renameTo(trg);
-								log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
+								log(LoggerImpl.LOG_DEBUG, "Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 
 								return trg;
 							}
@@ -1265,24 +1086,24 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 		final URL infoUrl = new URL(updateProvider, "/rest/update/provider/update-for/" + version.toString() + (id != null ? id.toQueryString() : ""));
 
-		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Checking for core update at [" + updateProvider + "]");
+		log(LoggerImpl.LOG_DEBUG, "Checking for core update at [" + updateProvider + "]");
 
 		String strAvailableVersion = toString((InputStream) infoUrl.getContent()).trim();
-		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Update provider reports an updated core version available [" + strAvailableVersion + "] ");
+		log(LoggerImpl.LOG_DEBUG, "Update provider reports an updated core version available [" + strAvailableVersion + "] ");
 
 		strAvailableVersion = CFMLEngineFactorySupport.removeQuotes(strAvailableVersion, true);
 
 		if (strAvailableVersion.length() == 0 || !Util.isNewerThan(toVersion(strAvailableVersion, VERSION_ZERO), version)) {
-			log(org.apache.felix.resolver.Logger.LOG_DEBUG, "There is no newer Version available");
+			log(LoggerImpl.LOG_DEBUG, "There is no newer Version available");
 			return null;
 		}
 
-		log(org.apache.felix.resolver.Logger.LOG_INFO,
+		log(LoggerImpl.LOG_INFO,
 				"Found a newer Version \n - current Version [" + version.toString() + "]\n - available Version [" + strAvailableVersion + "]");
 
 		final URL updateUrl = new URL(updateProvider,
 				"/rest/update/provider/download/" + strAvailableVersion + (id != null ? id.toQueryString() : "") + (id == null ? "?" : "&") + "allowRedirect=true");
-		log(org.apache.felix.resolver.Logger.LOG_INFO, "Downloading core update from [" + updateUrl + "]");
+		log(LoggerImpl.LOG_INFO, "Downloading core update from [" + updateUrl + "]");
 
 		// local resource
 		final File patchDir = getPatchDirectory();
@@ -1312,7 +1133,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				// just in case we check invalid names
 				if (location == null) location = conn.getHeaderField("location");
 				if (location == null) location = conn.getHeaderField("LOCATION");
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "download redirected to " + location);
+				log(LoggerImpl.LOG_DEBUG, "download redirected to " + location);
 
 				conn.disconnect();
 				URL url = new URL(location);
@@ -1333,7 +1154,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			if (code != 200) {
 				final String msg = "Lucee failed to download the core for version [" + version.toString() + "] from " + updateUrl + ", please download it manually and copy to ["
 						+ patchDir + "]";
-				log(org.apache.felix.resolver.Logger.LOG_ERROR, msg);
+				log(LoggerImpl.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
 			}
@@ -1353,7 +1174,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			// when it is a loader extract the core from it
 			File tmp = extractCoreIfLoader(newLucee);
 			if (tmp != null) {
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Extract core from loader");
+				log(LoggerImpl.LOG_DEBUG, "Extract core from loader");
 
 				newLucee.delete();
 				tmp.renameTo(newLucee);
@@ -1363,7 +1184,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 		else {
 			conn.disconnect();
-			log(org.apache.felix.resolver.Logger.LOG_DEBUG, "File for new Version already exists, won't copy new one");
+			log(LoggerImpl.LOG_DEBUG, "File for new Version already exists, won't copy new one");
 			return null;
 		}
 		return newLucee;
@@ -1598,11 +1419,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			if (webInf != null) {
 				root = webInf;
 				if (!root.exists()) root.mkdir();
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "war-root-directory:" + root);
+				log(LoggerImpl.LOG_DEBUG, "war-root-directory:" + root);
 			}
 		}
 
-		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "root-directory:" + root);
+		log(LoggerImpl.LOG_DEBUG, "root-directory:" + root);
 
 		if (root == null) throw new IOException("Can't locate the root of the servlet container, please define a location (physical path) for the server configuration"
 				+ " with help of the servlet init param [lucee-server-directory] in the web.xml where the Lucee Servlet is defined" + " or the system property [lucee.base.dir].");
@@ -1611,16 +1432,16 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (true) {
 			// there is a server context in the old lucee location, move that one
 			File classicDir;
-			log(org.apache.felix.resolver.Logger.LOG_DEBUG, "classic-root-directory:" + classicRoot);
+			log(LoggerImpl.LOG_DEBUG, "classic-root-directory:" + classicRoot);
 			boolean had = false;
 			if (classicRoot.isDirectory() && (classicDir = new File(classicRoot, "lucee-server")).isDirectory()) {
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "had lucee-server classic" + classicDir);
+				log(LoggerImpl.LOG_DEBUG, "had lucee-server classic" + classicDir);
 				moveContent(classicDir, modernDir);
 				had = true;
 			}
 			// there is a railo context
 			if (!had && classicRoot.isDirectory() && (classicDir = new File(classicRoot, "railo-server")).isDirectory()) {
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Had railo-server classic" + classicDir);
+				log(LoggerImpl.LOG_DEBUG, "Had railo-server classic" + classicDir);
 				// check if there is a Railo context
 				copyRecursiveAndRename(classicDir, modernDir);
 				// zip the railo-server di and delete it (optional)
@@ -1785,55 +1606,42 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		return file;
 	}
 
-	private CFMLEngine loadAndGetEngine(final File coreFile) throws IOException, BundleException, ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	private CFMLEngine loadAndGetEngine(final File coreFile) throws IOException, ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		long start = System.currentTimeMillis();
-		bundleCollection = BundleLoader.loadBundles(this, getResourceRoot(), getBundleDirectory(), coreFile, bundleCollection);
-		log(LoggerImpl.LOG_DEBUG, "BundleLoader.loadBundles: " + (System.currentTimeMillis() - start) + "ms");
-
-		start = System.currentTimeMillis();
-		CFMLEngine engine = getEngine(bundleCollection);
-		log(LoggerImpl.LOG_DEBUG, "getEngine (load CFMLEngineImpl + getInstance): " + (System.currentTimeMillis() - start) + "ms");
-
-		return engine;
-	}
-
-	/**
-	 * Load CFMl Engine Implementation (lucee.runtime.engine.CFMLEngineImpl) from a Classloader
-	 *
-	 * @param bundle
-	 * @return
-	 * @throws ClassNotFoundException
-	 * @throws SecurityException
-	 * @throws NoSuchMethodException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
-	 * @throws InvocationTargetException
-	 */
-	private CFMLEngine getEngine(final BundleCollection bc)
-			throws ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-
-		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "state: " + BundleUtil.bundleState(bc.core.getState(), ""));
-		log(org.apache.felix.resolver.Logger.LOG_DEBUG, Constants.FRAMEWORK_BOOTDELEGATION + ":" + bc.getBundleContext().getProperty(Constants.FRAMEWORK_BOOTDELEGATION));
-		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "felix.cache.rootdir: " + bc.getBundleContext().getProperty("felix.cache.rootdir"));
-
-		long start = System.currentTimeMillis();
-		final Class<?> clazz = bc.core.loadClass("lucee.runtime.engine.CFMLEngineImpl");
-		log(LoggerImpl.LOG_DEBUG, "loadClass(CFMLEngineImpl): " + (System.currentTimeMillis() - start) + "ms");
-
-		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "class:" + clazz.getName());
-
-		start = System.currentTimeMillis();
-		final Method m = clazz.getMethod("getInstance", new Class[] { CFMLEngineFactory.class, BundleCollection.class });
-		log(LoggerImpl.LOG_DEBUG, "getMethod(getInstance): " + (System.currentTimeMillis() - start) + "ms");
-
-		start = System.currentTimeMillis();
-		CFMLEngine engine = (CFMLEngine) m.invoke(null, new Object[] { this, bc });
+		// the core of a patch file is a plain jar, loaded by its own class loader on top of the one of the loader
+		final URLClassLoader old = coreClassLoader;
+		final URLClassLoader cl = new URLClassLoader(new URL[] { coreFile.toURI().toURL() }, mainClassLoader);
+		final CFMLEngine engine;
+		try {
+			final Class<?> clazz = cl.loadClass("lucee.runtime.engine.CFMLEngineImpl");
+			log(LoggerImpl.LOG_DEBUG, "loadClass(CFMLEngineImpl): " + (System.currentTimeMillis() - start) + "ms");
+			final Method m = clazz.getMethod("getInstance", new Class[] { CFMLEngineFactory.class });
+			start = System.currentTimeMillis();
+			engine = (CFMLEngine) m.invoke(null, new Object[] { this });
+		}
+		catch (final Exception | Error e) {
+			try {
+				cl.close();
+			}
+			catch (final IOException ioe) {
+				log(ioe);
+			}
+			throw e;
+		}
+		coreClassLoader = cl;
 		log(LoggerImpl.LOG_DEBUG, "getInstance().invoke (engine initialization): " + (System.currentTimeMillis() - start) + "ms");
-
+		if (old != null) {
+			try {
+				old.close();
+			}
+			catch (final IOException ioe) {
+				log(ioe);
+			}
+		}
 		return engine;
 	}
 
-	public Logger getLogger() {
+	public LoggerImpl getLogger() {
 		return logger;
 	}
 
