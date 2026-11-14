@@ -70,7 +70,6 @@
 		</cfcase>
 	</cfswitch>
 	<cfcatch>
-		<cfrethrow>
 		<cfif not isNull(driver)>
 			<cfset driver.onBeforeError(cfcatch)>
 		</cfif>

@@ -120,7 +120,7 @@ Error Output --->
 							value="#security.limitEvaluation?:true#"
 							access="#hasAccess#"
 							description="#stText.security.limitEvaluationDesc#">
-							<input type="checkbox" class="checkbox" <cfif (security.limitEvaluation?:true)> checked="checked"</cfif> name="limitEvaluation" value="true" />
+							<input type="checkbox" class="checkbox" <cfif (security.limitEvaluation?:true)> checked="checked"</cfif> name="security_limitEvaluation" value="true" />
 						</cfmodule>
 					</td>
 				</tr>

@@ -22,5 +22,9 @@
     name="abort" type="boolean" required="no" hint="stops further processing of the request."><cfargument 
     name="eval" type="string" required="no" hint="name of the variable to display, also used as label, when no label defined."><!---
 
-    ---><cfdump attributeCollection="#arguments#" contextlevel="3"><!---
+    ---><cfset var attrs={}><!---
+    ---><cfloop collection="#arguments#" item="local.k"><!---
+        ---><cfif !isNull(arguments[local.k])><cfset attrs[local.k]=arguments[local.k]></cfif><!---
+    ---></cfloop><!---
+    ---><cfdump attributeCollection="#attrs#" contextlevel="3"><!---
 ---></cffunction>

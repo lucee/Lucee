@@ -50,7 +50,9 @@ import lucee.runtime.JF;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.CatchBlock;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
@@ -70,6 +72,7 @@ import lucee.runtime.type.Pojo;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.util.ArraySupport;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -416,6 +419,16 @@ public final class Reflector {
 		if (src instanceof ObjectWrap) {
 			src = ((ObjectWrap) src).getEmbededObject();
 			return _convertOrSentinel(src, trgClass, rating);
+		}
+
+		// LDEV-3458: cfcatch passed to an argument of type java.lang.Throwable (or a subclass)
+		if (src instanceof CatchBlock && Throwable.class.isAssignableFrom(trgClass)) {
+			PageException pe = ((CatchBlock) src).getPageException();
+			if (pe instanceof NativeException) {
+				Throwable t = ((NativeException) pe).getException();
+				if (trgClass.isInstance(t)) return t;
+			}
+			if (trgClass.isInstance(pe)) return pe;
 		}
 
 		// component as class
@@ -1361,6 +1374,11 @@ public final class Reflector {
 
 	private static Object toNativeArray(Class clazz, Object obj) throws PageException {
 		// if(obj.getClass()==clazz) return obj;
+		// LDEV-6806 a view that still reads through a native array of the requested type hands that array back as is
+		if (obj instanceof ArraySupport) {
+			Object nativeArr = ((ArraySupport) obj).getNativeArray();
+			if (nativeArr != null && nativeArr.getClass() == clazz) return nativeArr;
+		}
 		Object[] objs = null;
 		if (obj instanceof Array) objs = toRefArray((Array) obj);
 		else if (obj instanceof List) objs = toRefArray((List) obj);

@@ -561,6 +561,8 @@
       srcFile="${core}/default.properties"/>
     <updatedate text="${defprop}" date="${NOW}" property="moddefprop" />
     <echo file="${core}/default.properties" message="${moddefprop}"/>
+    <!-- the core is loaded parent first on top of the loader, a default.properties in the root would resolve to the one of the loader jar, lucee/ is looked up first (BootDelegation, InfoImpl) -->
+    <copy file="${core}/default.properties" tofile="${core}/lucee/default.properties" overwrite="true"/>
 
     <!-- create the manifest file -->
     <manifest file="${core}/META-INF/MANIFEST.MF" mode="update">

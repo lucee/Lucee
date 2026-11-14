@@ -315,6 +315,7 @@ Error Output --->
 							value="#appSettings.requestTimeout#"
 							access="#hasAccess#"
 							description="#stText.application.RequestTimeoutDescription#"
+							codeTip="this.requestTimeout = createTimeSpan(#appSettings.requestTimeout_day#,#appSettings.requestTimeout_hour#,#appSettings.requestTimeout_minute#,#appSettings.requestTimeout_second#);"
 							br=true
 							sp=true
 							descOnTop=true>

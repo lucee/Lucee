@@ -35,6 +35,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.EntryArrayIterator;
 
@@ -303,6 +304,32 @@ public abstract class ArraySupport extends AbstractList implements ArrayPro, Lis
 		return this;
 	}
 
+	/**
+	 * Returns the content of this array as Object[], with the same nullable elements a
+	 * {@code get(index, null)} loop produces. Unlike {@link #toArray()} this is not guaranteed to be a
+	 * copy: a view that still reads through a native Object[] returns that array as is.
+	 *
+	 * @return the elements as Object[]
+	 */
+	public Object[] toNativeArray() {
+		Object[] objs = new Object[size()];
+		for (int i = 0; i < objs.length; i++) {
+			objs[i] = get(i + 1, null);
+		}
+		return objs;
+	}
+
+	/**
+	 * Returns the native Java array (Object[], int[], ...) this array still reads through, so it can be
+	 * handed back to Java without converting it element by element.
+	 *
+	 * @return the wrapped native array, or null when there is none or a mutation has already switched
+	 *         the view to its own copy (copy-on-write)
+	 */
+	public Object getNativeArray() {
+		return null;
+	}
+
 	@Override
 	public Iterator<Object> valueIterator() {
 		return iterator();
@@ -327,12 +354,28 @@ public abstract class ArraySupport extends AbstractList implements ArrayPro, Lis
 
 	@Override
 	public Object call(PageContext pc, Key methodName, Object[] args) throws PageException {
+		// LDEV-2489 myarray[ 1 ]() calls the function stored at that index
+		UDF udf = getUDFAtIndex(methodName);
+		if (udf != null) return udf.call(pc, methodName, args, false);
 		return MemberUtil.call(pc, this, methodName, args, new short[] { CFTypes.TYPE_ARRAY }, new String[] { "array" });
 	}
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
+		UDF udf = getUDFAtIndex(methodName);
+		if (udf != null) return udf.callWithNamedValues(pc, methodName, args, false);
 		return MemberUtil.callWithNamedValues(pc, this, methodName, args, CFTypes.TYPE_ARRAY, "array");
+	}
+
+	/**
+	 * LDEV-2489 if the name is a valid index of this array and the element at that index is a function,
+	 * return it, otherwise null
+	 */
+	private UDF getUDFAtIndex(Key methodName) {
+		int index = Caster.toIntValue(methodName.getString(), Integer.MIN_VALUE);
+		if (index == Integer.MIN_VALUE) return null;
+		Object value = get(methodName, null);
+		return value instanceof UDF ? (UDF) value : null;
 	}
 
 	@Override

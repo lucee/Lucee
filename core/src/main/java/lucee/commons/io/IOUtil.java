@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PushbackInputStream;
@@ -329,6 +330,7 @@ public final class IOUtil {
 				if (len == -1) break;
 				out.write(buffer, 0, len);
 				length -= len;
+				checkInterrupted();
 			}
 		}
 		finally {
@@ -377,6 +379,7 @@ public final class IOUtil {
 				if (len == -1) break;
 				out.write(buffer, 0, len);
 				length -= len;
+				checkInterrupted();
 			}
 		}
 		finally {
@@ -406,11 +409,22 @@ public final class IOUtil {
 			int len;
 			while ((len = in.read(buffer)) != -1) {
 				out.write(buffer, 0, len);
+				checkInterrupted();
 			}
 		}
 		finally {
 			releaseByteBuffer(buffer);
 		}
+	}
+
+	/**
+	 * Throws if the current thread was interrupted, for example by a request timeout or a thread
+	 * termination, so long running copy loops can stop. The interrupt flag is not cleared.
+	 *
+	 * @throws InterruptedIOException if the current thread was interrupted
+	 */
+	public static final void checkInterrupted() throws InterruptedIOException {
+		if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("copy interrupted");
 	}
 
 	/**

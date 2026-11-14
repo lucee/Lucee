@@ -73,6 +73,7 @@ public final class PageContextPool {
 		Entry e = free.poll();
 		if (e != null) {
 			e.baos.reset();
+			e.pc.resetSettingsFrom((PageContextImpl) parent);
 			return e;
 		}
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

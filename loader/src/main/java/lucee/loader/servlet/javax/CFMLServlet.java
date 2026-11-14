@@ -51,7 +51,7 @@ public class CFMLServlet extends AbsServlet {
 			throw new ServletException(e);
 		}
 		if (!engine.getCastUtil().toBooleanValue(Util.getSystemPropOrEnvVar("lucee.suppress.servlet.warning", null), false)) {
-			engine.getCFMLEngineFactory().log(org.apache.felix.resolver.Logger.LOG_WARNING, EMULATION_MESSAGE);
+			engine.getCFMLEngineFactory().log(lucee.loader.engine.LoggerImpl.LOG_WARNING, EMULATION_MESSAGE);
 			System.err.println(EMULATION_MESSAGE);
 		}
 	}
