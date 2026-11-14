@@ -9,7 +9,7 @@
   <name>Lucee</name>
   <description>Building Lucee as a single jar (LDEV-6711), loader and core are compiled together</description>
 
-  <!-- the version properties (lucee.version.*) and the library versions (felix, asm, pool2) are the same as in loader/pom.xml, keep them in sync until loader/pom.xml is gone -->
+  <!-- the version properties (lucee.version.*) and the library versions (asm, pool2) are the same as in loader/pom.xml, keep them in sync until loader/pom.xml is gone -->
   <!-- loader/src and core/src stay where they are so 8.0 can still be merged into 9.0, both are compiled into one jar -->
   <properties>
     <!-- LDEV-6516: CI-friendly version; GHA overrides -Drevision=base.build[-QUALIFIER] -->
@@ -21,8 +21,6 @@
     <!-- true: only compile and package, without the archives, the extensions and the bundles (the jar is not usable) -->
     <lucee.skip.archives>false</lucee.skip.archives>
     <skipTests>false</skipTests>
-    <!-- the version of Felix that gets shaded into the jar, also read by the Ant build (ant/build-core.xml) -->
-    <felix.version>7.0.5</felix.version>
     <!-- the version of ASM that gets shaded into the core -->
     <asm.version>9.11.1</asm.version>
     <!-- the version of commons-pool2 that gets shaded into the core -->
@@ -60,7 +58,6 @@
           <exclude>default.properties</exclude>
         </excludes>
       </resource>
-      <!-- the default.properties of Felix is in the root of the jar (shaded), Felix loads it from there -->
       <resource>
         <directory>core/src/main/java</directory>
         <targetPath>lucee</targetPath>
@@ -275,13 +272,6 @@ Built-Date: ${maven.build.timestamp}</echo>
             <configuration>
               <artifactItems>
                 <artifactItem>
-                  <groupId>org.apache.felix</groupId>
-                  <artifactId>org.apache.felix.framework</artifactId>
-                  <version>${felix.version}</version>
-                  <outputDirectory>${project.build.directory}/licenses/org.apache.felix.framework</outputDirectory>
-                  <includes>META-INF/LICENSE,META-INF/NOTICE,META-INF/DEPENDENCIES</includes>
-                </artifactItem>
-                <artifactItem>
                   <groupId>org.apache.commons</groupId>
                   <artifactId>commons-pool2</artifactId>
                   <version>${pool2.version}</version>
@@ -294,7 +284,7 @@ Built-Date: ${maven.build.timestamp}</echo>
         </executions>
       </plugin>
 
-      <!-- Felix (org.apache.felix -> lucee.shaded.felix), ASM (org.objectweb.asm -> lucee.shaded.asm) and commons-pool2
+      <!-- ASM (org.objectweb.asm -> lucee.shaded.asm) and commons-pool2
            (org.apache.commons.pool2 -> lucee.shaded.pool2) are copied into the jar and relocated, same as ant/shade/pom.xml does for the two jars -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -313,18 +303,12 @@ Built-Date: ${maven.build.timestamp}</echo>
 
               <artifactSet>
                 <includes>
-                  <include>org.apache.felix:org.apache.felix.framework</include>
                   <include>org.ow2.asm:*</include>
                   <include>org.apache.commons:commons-pool2</include>
                 </includes>
               </artifactSet>
 
               <relocations>
-                <!-- org.osgi.* is the OSGi API, bundles and extensions import it from the framework, it stays -->
-                <relocation>
-                  <pattern>org.apache.felix</pattern>
-                  <shadedPattern>lucee.shaded.felix</shadedPattern>
-                </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm</pattern>
                   <shadedPattern>lucee.shaded.asm</shadedPattern>
@@ -336,18 +320,6 @@ Built-Date: ${maven.build.timestamp}</echo>
               </relocations>
 
               <filters>
-                <filter>
-                  <artifact>org.apache.felix:org.apache.felix.framework</artifact>
-                  <excludes>
-                    <exclude>META-INF/MANIFEST.MF</exclude>
-                    <exclude>META-INF/maven/**</exclude>
-                    <exclude>META-INF/native-image/**</exclude>
-                    <exclude>META-INF/DEPENDENCIES</exclude>
-                    <exclude>META-INF/LICENSE</exclude>
-                    <exclude>META-INF/NOTICE</exclude>
-                    <exclude>module-info.class</exclude>
-                  </excludes>
-                </filter>
                 <filter>
                   <artifact>org.ow2.asm:*</artifact>
                   <excludes>
@@ -370,18 +342,6 @@ Built-Date: ${maven.build.timestamp}</echo>
 
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
-                  <resource>META-INF/licenses/org.apache.felix.framework/LICENSE</resource>
-                  <file>${project.build.directory}/licenses/org.apache.felix.framework/META-INF/LICENSE</file>
-                </transformer>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
-                  <resource>META-INF/licenses/org.apache.felix.framework/NOTICE</resource>
-                  <file>${project.build.directory}/licenses/org.apache.felix.framework/META-INF/NOTICE</file>
-                </transformer>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
-                  <resource>META-INF/licenses/org.apache.felix.framework/DEPENDENCIES</resource>
-                  <file>${project.build.directory}/licenses/org.apache.felix.framework/META-INF/DEPENDENCIES</file>
-                </transformer>
                 <!-- the ASM jars do not contain their license (BSD 3-clause) -->
                 <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
                   <resource>META-INF/licenses/org.ow2.asm/LICENSE</resource>
@@ -410,11 +370,6 @@ Built-Date: ${maven.build.timestamp}</echo>
     <artifactId>junit</artifactId>
     <version>4.13.2</version>
     <scope>test</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.apache.felix</groupId>
-    <artifactId>org.apache.felix.framework</artifactId>
-    <version>${felix.version}</version><!-- 4.6.1 -->
   </dependency>
   <dependency>
     <groupId>javax.servlet</groupId>

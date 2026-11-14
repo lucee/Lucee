@@ -95,18 +95,10 @@
 
     <!-- the versions of the libraries that get shaded, defined in loader/pom.xml (already set when Maven starts the build) -->
     <xmlproperty file="${rootDir}/loader/pom.xml" prefix="loaderpom"/>
-    <property name="felix.version" value="${loaderpom.project.properties.felix.version}"/>
     <property name="asm.version" value="${loaderpom.project.properties.asm.version}"/>
     <property name="pool2.version" value="${loaderpom.project.properties.pool2.version}"/>
     <!-- core/pom.xml is a standalone pom and cannot inherit the properties, so the build makes sure they are the same versions -->
     <xmlproperty file="${rootDir}/core/pom.xml" prefix="corepom"/>
-    <fail message="felix.version in core/pom.xml [${corepom.project.properties.felix.version}] must be the same as in loader/pom.xml [${felix.version}]">
-      <condition>
-        <not>
-          <equals arg1="${corepom.project.properties.felix.version}" arg2="${felix.version}"/>
-        </not>
-      </condition>
-    </fail>
     <fail message="asm.version in core/pom.xml [${corepom.project.properties.asm.version}] must be the same as in loader/pom.xml [${asm.version}]">
       <condition>
         <not>
@@ -131,17 +123,7 @@
     </condition>
     <available file="${mvn.settings}" property="mvn.settings.available"/>
 
-    <!-- the classpath without the unshaded Felix (Maven has it as provided, the Ant build resolves it into the classpath), the jars we build must bring their own -->
-    <path id="runtime_classpath_path">
-      <pathelement path="${runtime_classpath}"/>
-    </path>
-    <restrict id="runtime_classpath_shaded_path">
-      <path refid="runtime_classpath_path"/>
-      <rsel:not>
-        <rsel:name name="**/org/apache/felix/**" handledirsep="true"/>
-      </rsel:not>
-    </restrict>
-    <pathconvert property="runtime_classpath_shaded" refid="runtime_classpath_shaded_path"/>
+    <property name="runtime_classpath_shaded" value="${runtime_classpath}"/>
     <property name="test" location="${rootDir}/test"/>
     <!-- free text filter, comma delimitered to filter tests based on path -->
     <property name="testFilter" value=""/>
@@ -643,9 +625,6 @@
       jarfile="${temp}/lucee.jar" 
       manifest="${srcLoader}/META-INF/MANIFEST.MF"/>
 
-    <!-- the archives are built and the test cases run with the shaded jar, the same as what we ship -->
-    <shadeJar profile="loader" input="${temp}/loader" manifest="${srcLoader}/META-INF/MANIFEST.MF" output="${temp}/shade-test"/>
-    <copy file="${temp}/shade-test/lucee-shaded.jar" tofile="${temp}/lucee.jar" overwrite="true"/>
 
 </target>
 
@@ -700,7 +679,6 @@
       <jvmarg value="-Dlucee.compiler.java.version=${javaVersionCoreDefault}"/>
       <!--
       <jvmarg value="-Dlucee.cascading.write.to.variables.log=deploy"/>
-      <jvmarg value="-Dfelix.log.level=debug"/>
       -->
 
     </java>
@@ -856,10 +834,8 @@
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000" if:true="${testDebugger}"/>
       <!--
       <jvmarg value="-Dlucee.cascading.write.to.variables.log=deploy"/>
-      <jvmarg value="-Dfelix.log.level=debug"/>
       -->
       <!--
-        felix.log.level
         lucee.controller.disabled
     -->
 
@@ -906,7 +882,6 @@
       <jvmarg value="-DluceeEnvVars=${trgLoader}/env-vars.json"/>
       <!--
       <jvmarg value="-Dlucee.cascading.write.to.variables.log=deploy"/>
-      <jvmarg value="-Dfelix.log.level=debug"/>
       -->
 
     </java>
@@ -935,7 +910,6 @@
       <jvmarg value="-Dlucee.enable.warmup=true"/>
       <!--
       <jvmarg value="-Dlucee.cascading.write.to.variables.log=deploy"/>
-      <jvmarg value="-Dfelix.log.level=debug"/>
       -->
     </java>
     <echo level="info">${exc4}</echo>
@@ -981,7 +955,6 @@
       <jvmarg value="-Dlucee.enable.bundle.download=true"/>
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
       <jvmarg value="-Dlucee.cascading.write.to.variables.log=deploy"/>
-      <jvmarg value="-Dfelix.log.level=debug"/>
     </java>
     <outputTrimmedString str="${exc}"/> -->
 </target>
@@ -1030,7 +1003,7 @@
   are used when there is one.
   -->
   <macrodef name="shadeJar">
-    <attribute name="profile"/><!-- loader (Felix) or core (ASM, commons-pool2), see ant/shade/pom.xml -->
+    <attribute name="profile"/><!-- core (ASM, commons-pool2), see ant/shade/pom.xml -->
     <attribute name="input"/><!-- the folder that gets shaded -->
     <attribute name="manifest"/><!-- the manifest of the result -->
     <attribute name="output"/><!-- the folder that receives lucee-shaded.jar and the licenses -->
@@ -1047,7 +1020,6 @@
         <arg file="${ant}/shade/pom.xml"/>
         <arg value="package"/>
         <arg value="-P@{profile}"/>
-        <arg value="-Dfelix.version=${felix.version}"/>
         <arg value="-Dasm.version=${asm.version}"/>
         <arg value="-Dpool2.version=${pool2.version}"/>
         <arg value="-Dshade.input=@{input}"/>
@@ -1056,27 +1028,6 @@
       </exec>
     </sequential>
   </macrodef>
-
-  <target name="shade" if="buildLoaderJar">
-    <echots message="shade the third party libraries into ${goal}"/>
-
-    <!-- remove what an earlier build left behind, the libraries come in with the shaded jar -->
-    <delete dir="${goal}/org/apache/felix" quiet="true"/>
-    <delete dir="${goal}/org/osgi" quiet="true"/>
-    <delete dir="${goal}/lucee/shaded" quiet="true"/>
-    <delete dir="${goal}/META-INF/licenses" quiet="true"/>
-    <delete file="${goal}/default.properties" quiet="true"/>
-    <delete file="${goal}/module-info.class" quiet="true"/>
-
-    <shadeJar profile="loader" input="${goal}" manifest="${goal}/META-INF/MANIFEST.MF" output="${temp}/shade"/>
-
-    <!-- the manifest created by createLoaderManifest stays the only one -->
-    <unzip src="${temp}/shade/lucee-shaded.jar" dest="${goal}" overwrite="true">
-      <patternset>
-        <exclude name="META-INF/MANIFEST.MF"/>
-      </patternset>
-    </unzip>
-  </target>
 
   <target name="setMvnEnv" description="set the variable right for ant">
     <property name="goal" location="${outputDir}"/>
@@ -1205,7 +1156,7 @@
     <echots message="build-jar-ant:${goal}/META-INF/MANIFEST.MF"/>  
   </target>
 
-  <target name="_buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addMavenDependencies,addBundles,createLoaderManifest,createCore,shade,createLoader,test_warmup,test_stable_loader" description="generate the loader jar">
+  <target name="_buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addMavenDependencies,addBundles,createLoaderManifest,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar">
     <!-- version -->
     <currentTime property="ct" />
     <echo file="${outputDir}/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
@@ -1221,7 +1172,7 @@
     <echo level="info">after:${goal}</echo>  
   </target>
 
-  <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addMavenDependencies,addBundles,createLoaderManifest,createCore,shade,createLoader,test_warmup,test_stable_loader" description="generate the loader jar" >
+  <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addMavenDependencies,addBundles,createLoaderManifest,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar" >
     <!-- version -->
     <currentTime property="ct" />
     <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
@@ -1230,7 +1181,7 @@
     <echots message="done"/>
   </target>
 
-  <target name="buildLoaderFast" depends="__build,setAntEnv,addExtensions,addMavenDependencies,addBundles,createLoaderManifest,createCore,shade,createLoader" 
+  <target name="buildLoaderFast" depends="__build,setAntEnv,addExtensions,addMavenDependencies,addBundles,createLoaderManifest,createCore,createLoader" 
     description="quick/fast generate the loader jar" >
     <!-- version -->
     <currentTime property="ct" />
