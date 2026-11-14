@@ -42,7 +42,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
             });
 
 			it( title = "should load a class of the loader with 2 arguments", body = function( currentSpec ) {
-                var servlet = createObject( "java", "lucee.loader.servlet.CFMLServlet" );
+                var servlet = createObject( "java", "lucee.loader.servlet.jakarta.CFMLServlet" );
                 
                 // Assert the object was created successfully
                 expect( isObject(servlet) ).toBeTrue();
