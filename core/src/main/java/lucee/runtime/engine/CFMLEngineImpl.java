@@ -84,7 +84,6 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.engine.CFMLEngineFactorySupport;
 import lucee.loader.engine.CFMLEngineWrapper;
-import lucee.loader.osgi.BundleCollection;
 import lucee.loader.util.Util;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
@@ -272,7 +271,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return FACTORY;
 	}
 
-	private CFMLEngineImpl(CFMLEngineFactory factory, BundleCollection bc) {
+	private CFMLEngineImpl(CFMLEngineFactory factory) {
 		long constructorStart = System.currentTimeMillis();
 		long phaseStart = constructorStart;
 
@@ -333,7 +332,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 
 		try {
-			this.info = new InfoImpl(lucee.loader.util.VersionImpl.parseOSGi(bc.getCoreVersion().toString()), bc.getCoreHeaders());
+			java.util.jar.Attributes attrs = loadLuceeManifest().getMainAttributes();
+			java.util.Hashtable<String, String> headers = new java.util.Hashtable<>();
+			for (java.util.Map.Entry<Object, Object> e: attrs.entrySet()) {
+				headers.put(e.getKey().toString(), e.getValue().toString().trim());
+			}
+			this.info = new InfoImpl(lucee.loader.util.VersionImpl.parseOSGi(headers.get("Bundle-Version")), headers);
 		}
 		catch (java.io.IOException e) {
 			throw Caster.toPageRuntimeException(e);
@@ -532,7 +536,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			if (EXTENSIONS_FAIL_ON_ERROR && !isWarmup()) {
 				// the startup is aborted, with warmup the process exits with a non zero exit code, see onStart
 				// stop OSGi, otherwise its threads keep a standalone process (like the CLI) alive after the failed startup
-				shutdownFelix();
+				shutdownOSGi();
 				throw new IllegalStateException(msg + ". Startup aborted because [" + SETTING_EXTENSIONS_FAIL_ON_ERROR + "] is enabled.");
 			}
 		}
@@ -832,7 +836,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	 * @param factory
 	 * @return CFMLEngine
 	 */
-	public static synchronized CFMLEngine getInstance(CFMLEngineFactory factory, BundleCollection bc) {
+	public static synchronized CFMLEngine getInstance(CFMLEngineFactory factory) {
 		if (engine == null) {
 			if (SystemUtil.getLoaderVersion() < 6.0D) {
 				// windows needs 6.0 because restart is not working with older versions
@@ -843,7 +847,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				else if (SystemUtil.getLoaderVersion() < 5.9D) LogUtil.log(Log.LEVEL_INFO, "startup",
 						"To use all features Lucee provides, you need to update your lucee.jar, you can download the latest jar from https://download.lucee.org.");
 			}
-			engine = new CFMLEngineImpl(factory, bc);
+			engine = new CFMLEngineImpl(factory);
 
 		}
 		return engine;
@@ -936,7 +940,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				System.err.println("ERROR: " + msg);
 				LogUtil.logGlobal(Log.LEVEL_ERROR, "startup", msg);
 				if (isWarmup()) {
-					shutdownFelix();
+					shutdownOSGi();
 					System.exit(1);
 				}
 				throw new PageRuntimeException(cfe);
@@ -1446,8 +1450,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			// spooler of the server context (LDEV-6350)
 			if (configId == null) stopSpooler(configServer);
 
-			// release felix itself
-			shutdownFelix();
+			// release the OSGi service
+			shutdownOSGi();
 
 		}
 		catch (Exception ee) {
@@ -1479,14 +1483,45 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 	}
 
-	private void shutdownFelix() {
+	/**
+	 * The manifest of the jar Lucee is loaded from (Lucee is one jar, or the core file of a patch).
+	 */
+	private static java.util.jar.Manifest loadLuceeManifest() throws java.io.IOException {
 		try {
-			// the loader still boots Felix, its non daemon threads keep the JVM alive
-			if (factory != null) factory.shutdownFelix();
+			java.net.URL location = CFMLEngineImpl.class.getProtectionDomain().getCodeSource().getLocation();
+			if (location != null && "file".equals(location.getProtocol())) {
+				File f = new File(location.toURI());
+				if (f.isFile()) {
+					try (java.util.jar.JarFile jf = new java.util.jar.JarFile(f)) {
+						java.util.jar.Manifest mani = jf.getManifest();
+						if (mani != null && "lucee.core".equals(mani.getMainAttributes().getValue("Bundle-SymbolicName"))) return mani;
+					}
+				}
+				else {
+					File mf = new File(f, "META-INF/MANIFEST.MF");
+					if (mf.isFile()) {
+						try (java.io.InputStream is = new java.io.FileInputStream(mf)) {
+							java.util.jar.Manifest mani = new java.util.jar.Manifest(is);
+							if ("lucee.core".equals(mani.getMainAttributes().getValue("Bundle-SymbolicName"))) return mani;
+						}
+					}
+				}
+			}
 		}
-		catch (Exception e) {
-			LogUtil.log(configServer, LOG_TYPE_NAME, e);
+		catch (java.net.URISyntaxException e) {
+			// fallback below
 		}
+		java.util.Enumeration<java.net.URL> urls = CFMLEngineImpl.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
+		while (urls.hasMoreElements()) {
+			try (java.io.InputStream is = urls.nextElement().openStream()) {
+				java.util.jar.Manifest mani = new java.util.jar.Manifest(is);
+				if ("lucee.core".equals(mani.getMainAttributes().getValue("Bundle-SymbolicName"))) return mani;
+			}
+		}
+		throw new java.io.IOException("the manifest of Lucee (Bundle-SymbolicName lucee.core) was not found");
+	}
+
+	private void shutdownOSGi() {
 		try {
 			OSGi.get().shutdown();
 		}
@@ -1882,7 +1917,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				LogUtil.logGlobal(config, Log.LEVEL_ERROR, "config", msg);
 				LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);
 			}
-			shutdownFelix();
+			shutdownOSGi();
 			System.exit(success ? 0 : 1);
 		}
 		else {
@@ -1929,13 +1964,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			System.err.println(msg);
 			LogUtil.logGlobal(cs, Log.LEVEL_ERROR, "config", msg);
 			LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);
-			shutdownFelix();
+			shutdownOSGi();
 			System.exit(1);
 		}
 		String msg = "Lucee warmup completed. Shutting down.";
 		LogUtil.logGlobal(cs, Log.LEVEL_INFO, "config", msg);
 		LogUtil.log(config, Log.LEVEL_INFO, "application", msg);
-		shutdownFelix();
+		shutdownOSGi();
 		System.exit(0);
 	}
 

@@ -6,6 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="log" {
 
 	function beforeAll() {
 		variables.uri = createURI( "LDEV6598" );
+		variables.util = new test._FileTestUtil();
 		variables.adminCfc = new org.lucee.cfml.Administrator( "server", request.ServerAdminPassword );
 		variables.regional = adminCfc.getRegional();
 		adminCfc.updateRegional( variables.configTZ, variables.regional.locale );
@@ -53,7 +54,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="log" {
 				"#arguments.layout#: expected the config timezone [#variables.configTZ#: #before#], request timezone [#variables.requestTZ#: #fmt( arguments.mask, variables.requestTZ )#], JVM default [#TimeZone.getDefault().getID()#: #fmt( arguments.mask, TimeZone.getDefault().getID() )#], log line: #left( line, 150 )#" );
 		}
 		finally {
-			if ( fileExists( logFile ) ) fileDelete( logFile );
+			variables.util.deleteFileQuietly( logFile );
 		}
 	}
 

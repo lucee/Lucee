@@ -42,7 +42,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
             });
 
 			it( title = "should load a class of the loader with 2 arguments", body = function( currentSpec ) {
-                var servlet = createObject( "java", "lucee.loader.servlet.CFMLServlet" );
+                var servlet = createObject( "java", "lucee.loader.servlet.jakarta.CFMLServlet" );
                 
                 // Assert the object was created successfully
                 expect( isObject(servlet) ).toBeTrue();
@@ -467,24 +467,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	private function cleanup(data){
-		try {
-			if(directoryExists(arguments.data.directory)) 
-				directoryDelete(arguments.data.directory, true);
-		} catch( e ){
-			if (!isWindows() || (e.message does not contain "delete file" && e.message does not contain "another process")) {
-				rethrow;
-			} else if (isWindows()) {
-				systemOutput("ERROR: LDEV-5145 Windows locked jars", true);
-				systemOutput( e.message, true );
-				//systemOutput( e.stacktrace, true );
-				//rethrow;
-				
-			}
-		}
-	}
-
-	private function isWindows(){
-		return (server.os.name contains "windows");
+		// locked jars are expected on Windows (LDEV-5145)
+		new test._FileTestUtil().deleteDirectoryQuietly(arguments.data.directory);
 	}
 
 
