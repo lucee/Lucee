@@ -104,7 +104,8 @@
 		globberTmpDir = "#getTempDirectory()#globber-tmp";
 		if ( !directoryExists( globberTmpDir ) ) directoryCreate( globberTmpDir );
 		extract( format="zip", source=globberArchive, target=globberTmpDir );
-		directoryCopy( "#globberTmpDir#/globber-#globberVersion#", "#testboxDir#/system/modules/globber", true );
+		// only the models are needed, the ModuleConfig would register a /globber mapping nothing uses
+		directoryCopy( "#globberTmpDir#/globber-#globberVersion#/models", "#testboxDir#/system/modules/globber/models", true );
 
 		admin
 			action="updateMapping"

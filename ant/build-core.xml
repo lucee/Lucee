@@ -708,7 +708,6 @@
     <unzip src="${cache}/globber-${globberVersion}.zip" dest="${temp}/testbox/system/modules/globber">
       <patternset>
         <include name="globber-${globberVersion}/models/**"/>
-        <include name="globber-${globberVersion}/ModuleConfig.cfc"/>
         <include name="globber-${globberVersion}/box.json"/>
       </patternset>
       <cutdirsmapper dirs="1"/>
