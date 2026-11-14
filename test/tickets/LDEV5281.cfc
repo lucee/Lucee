@@ -107,6 +107,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="warmup,javasetting
 		var bundleDir = createObject( "java", "lucee.loader.engine.CFMLEngineFactory" ).getInstance().getCFMLEngineFactory().getBundleDirectory().getAbsolutePath();
 		var cmd = [ java, "-Dlucee.enable.warmup=true", "-Dlucee.enable.warmup.compile=" & arguments.compile, "-Dlucee.bundles.dir=" & bundleDir,
 			"-Duser.home=" & root & arguments.name & "-home", "-cp", arrayToList( cp, File.pathSeparator ), "lucee.cli.CLI", "webroot=" & webroot, "uri=/index.cfm" ];
+		arrayAppend( cmd, "-Dlucee.extensions.install=false" );
 		var pb = createObject( "java", "java.lang.ProcessBuilder" ).init( cmd );
 		var env = pb.environment();
 		// the new server must not pick up settings from the server running the tests
