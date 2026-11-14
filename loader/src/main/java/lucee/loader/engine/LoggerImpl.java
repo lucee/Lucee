@@ -15,7 +15,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-package lucee.loader.osgi;
+package lucee.loader.engine;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -26,58 +26,55 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Date;
 
-import org.apache.felix.framework.Logger;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.ServiceReference;
+/**
+ * Writes the log of the loader (the startup of Lucee) to a file.
+ */
+public class LoggerImpl {
 
-public class LoggerImpl extends Logger {
+	public static final int LOG_ERROR = 1;
+	public static final int LOG_WARNING = 2;
+	public static final int LOG_INFO = 3;
+	public static final int LOG_DEBUG = 4;
 
 	private final File logFile;
+	private int logLevel;
 
 	public LoggerImpl(final File logFile, int logLevel) {
 		this.logFile = logFile;
-		setLogLevel(logLevel);
+		this.logLevel = logLevel;
 		if (!logFile.exists()) try {
 			logFile.createNewFile();
 		}
 		catch (final IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
-	@Override
-	protected void doLog(final Bundle bundle, final ServiceReference sr, final int level, final String msg, Throwable throwable) {
-		if (level > getLogLevel()) return;
-		String s = "";
-		if (sr != null) s = s + "SvcRef " + sr + " ";
-		else if (bundle != null) s = s + "Bundle " + bundle.toString() + " ";
-		s = s + msg;
+	public int getLogLevel() {
+		return logLevel;
+	}
 
-		// throwable
+	public void setLogLevel(int logLevel) {
+		this.logLevel = logLevel;
+	}
+
+	public void log(final int level, final String msg) {
+		log(level, msg, null);
+	}
+
+	public void log(final int level, final String msg, final Throwable throwable) {
+		if (level > logLevel) return;
+		String s = msg == null ? "" : msg;
 		if (throwable != null) {
-			if ((throwable instanceof BundleException) && (((BundleException) throwable).getNestedException() != null))
-				throwable = ((BundleException) throwable).getNestedException();
 			final StringWriter sw = new StringWriter();
 			final PrintWriter pw = new PrintWriter(sw);
-
 			throwable.printStackTrace(pw);
 			s += "\n" + sw.getBuffer();
 		}
-
-		_log(level, s);
+		write(level, s);
 	}
 
-	@Override
-	protected void _log(Bundle bundle, ServiceReference sr, int level, String msg, Throwable throwable) {
-		_log(level, msg);
-	}
-
-	private void _log(final int level, final String msg) {
-		if (level > getLogLevel()) return;
-
+	private void write(final int level, final String msg) {
 		BufferedWriter bw = null;
 		try {
 			bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(logFile, true)));
@@ -108,11 +105,15 @@ public class LoggerImpl extends Logger {
 		default:
 			return defaultValue;
 		}
-
 	}
 
 	public static int toLevel(String level, int defaultValue) {
 		if (level != null) {
+			// the numeric levels of the former Felix log level setting
+			if ("1".equals(level.trim())) return LOG_ERROR;
+			if ("2".equals(level.trim())) return LOG_WARNING;
+			if ("3".equals(level.trim())) return LOG_INFO;
+			if ("4".equals(level.trim())) return LOG_DEBUG;
 			if ("DEBUG".equalsIgnoreCase(level)) return LOG_DEBUG;
 			if ("ERROR".equalsIgnoreCase(level)) return LOG_ERROR;
 			if ("INFO".equalsIgnoreCase(level)) return LOG_INFO;

@@ -29,7 +29,7 @@ import java.util.EventListener;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.felix.framework.Logger;
+import lucee.loader.engine.LoggerImpl;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterRegistration;
@@ -50,7 +50,7 @@ public class ServletContextImpl implements ServletContext {
 	private final int majorVersion;
 	private final int minorVersion;
 	private final File root;
-	private Logger logger;
+	private LoggerImpl logger;
 
 	public ServletContextImpl(final File root, final Map<String, Object> attributes, final Map<String, String> parameters, final int majorVersion, final int minorVersion) {
 		this.root = root;
@@ -149,8 +149,8 @@ public class ServletContextImpl implements ServletContext {
 	public void log(final String msg, final Throwable t) {// TODO better
 		if (logger == null) return;
 
-		if (t == null) logger.log(Logger.LOG_INFO, msg);
-		else logger.log(Logger.LOG_ERROR, msg, t);
+		if (t == null) logger.log(LoggerImpl.LOG_INFO, msg);
+		else logger.log(LoggerImpl.LOG_ERROR, msg, t);
 	}
 
 	@Override
@@ -330,7 +330,7 @@ public class ServletContextImpl implements ServletContext {
 
 	}
 
-	public void setLogger(Logger logger) {
+	public void setLogger(LoggerImpl logger) {
 		this.logger = logger;
 	}
 
