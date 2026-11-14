@@ -35,6 +35,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.compiler.JavaFunction;
+import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.ConfigPro;
@@ -247,14 +248,16 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 	private Result _compile(ConfigPro config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib fld, Resource classRootDir, boolean returnValue,
 			boolean ignoreScopes) throws TemplateException, IOException {
 		// compilation must not depend on the request that happens to trigger it (the resulting bytecode is
-		// cached and shared across applications/requests); disable the ambient PageContext fallback so any
+		// cached and shared across applications/requests); detach the ambient PageContext so any
 		// indirect lookup resolves deterministic config/server defaults instead of inheriting request state
+		PageContext prevPC = ThreadLocalPageContext.ambientDetach();
 		boolean prevFallback = ThreadLocalPageContext.fallback(false);
 		try {
 			return _compile0(config, ps, sc, className, tld, fld, classRootDir, returnValue, ignoreScopes);
 		}
 		finally {
 			ThreadLocalPageContext.fallback(prevFallback);
+			ThreadLocalPageContext.ambientAttach(prevPC);
 		}
 	}
 

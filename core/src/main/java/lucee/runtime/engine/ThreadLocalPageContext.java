@@ -179,29 +179,34 @@ public final class ThreadLocalPageContext {
 	}
 
 	/**
-	 * Controls whether the ambient (thread bound) PageContext is consulted as a fallback when no
-	 * PageContext is passed in explicitly. This is a general purpose, thread scoped switch: while
-	 * disabled every "grab the PageContext from the current thread" lookup behaves as if no
-	 * PageContext is registered, so callers resolve deterministic config/server defaults instead of
-	 * inheriting state from whatever request happens to run on the thread. Use it wherever the result
-	 * must not depend on the calling request, e.g. while compiling or other cache shared computations.
+	 * Controls whether the inheritable (parent thread) PageContext is consulted as a fallback when the
+	 * current thread has no PageContext bound. This is a general purpose, thread scoped switch: while
+	 * disabled, {@link #get(boolean)} with cloneParentIfNotExist=true and the parent fallback lookups in
+	 * {@link #getConfig()} / {@link #getLog()} do not inherit a parent thread's context, so callers resolve
+	 * deterministic config/server defaults instead of inheriting state from whatever request happens to run
+	 * on the thread. Use it wherever the result must not depend on the calling request, e.g. while compiling
+	 * or other cache shared computations.
 	 *
 	 * <p>
-	 * The switch is sticky on the thread, so always restore the previous value in a finally block
-	 * (this also makes it safe to nest):
+	 * This switch does not suppress the PageContext bound to the current thread itself. To temporarily
+	 * suppress both the current and the inherited PageContext (compilation), pair {@link #ambientDetach()}
+	 * with {@code fallback(false)}. Both are sticky on the thread, so always restore them in a finally
+	 * block (this also makes it safe to nest):
 	 * </p>
 	 *
 	 * <pre>
-	 * boolean prev = ThreadLocalPageContext.fallback(false);
+	 * PageContext prevPC = ThreadLocalPageContext.ambientDetach();
+	 * boolean prevFallback = ThreadLocalPageContext.fallback(false);
 	 * try {
 	 * 	...
 	 * }
 	 * finally {
-	 * 	ThreadLocalPageContext.fallback(prev);
+	 * 	ThreadLocalPageContext.fallback(prevFallback);
+	 * 	ThreadLocalPageContext.ambientAttach(prevPC);
 	 * }
 	 * </pre>
 	 *
-	 * @param enable true to allow ambient lookups (the default), false to disable them
+	 * @param enable true to allow inheritable parent lookups (the default), false to disable them
 	 * @return the previous value, so it can be restored
 	 */
 	public static boolean fallback(boolean enable) {
@@ -210,15 +215,52 @@ public final class ThreadLocalPageContext {
 		return prev;
 	}
 
+	/**
+	 * detaches the ambient PageContext for the current thread and returns what was detached, so a
+	 * block that must not depend on the request that happens to run it (compilation) resolves
+	 * config/server defaults instead of inheriting request state. Always restore in a finally block:
+	 * 
+	 * <pre>
+	 * PageContext prev = ThreadLocalPageContext.ambientDetach();
+	 * try {
+	 * 	...
+	 * }
+	 * finally {
+	 * 	ThreadLocalPageContext.ambientAttach(prev);
+	 * }
+	 * </pre>
+	 * 
+	 * @return the PageContext that was bound to the current thread, or null
+	 */
+	public static PageContext ambientDetach() {
+		PageContext prev = pcThreadLocal.get();
+		pcThreadLocal.set(null);
+		return prev;
+	}
+
+	/**
+	 * restores the ambient PageContext captured by ambientDetach()
+	 * 
+	 * @param pc the PageContext to rebind, or null to restore the unbound state captured by
+	 *        ambientDetach()
+	 */
+	public static void ambientAttach(PageContext pc) {
+		pcThreadLocal.set(pc);
+	}
+
 	private static boolean fallbackEnabled() {
 		return fallbackTL.get();
 	}
 
-	// gated access to the thread bound PageContext, honoring fallback(boolean)
+	// access to the thread bound PageContext; compilation detaches it for the block (see ambientDetach),
+	// so the hot request path does not consult the fallback switch
 	private static PageContext pcCurrent() {
-		return fallbackEnabled() ? pcThreadLocal.get() : null;
+		return pcThreadLocal.get();
 	}
 
+	// gated by fallbackEnabled(): compilation sets fallback(false) alongside ambientDetach(), so a
+	// compile cannot clone or inherit the calling request's PageContext through get(true)
+	// (see get(boolean)) or the parent fallback lookups
 	private static PageContext pcParent() {
 		return fallbackEnabled() ? pcThreadLocalInheritable.get() : null;
 	}
