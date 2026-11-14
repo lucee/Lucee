@@ -16,8 +16,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			} );
 
 			it( title="the Lucee servlets are still available", body=function( currentSpec ) {
-				expect( isObject( createObject( "java", "lucee.loader.servlet.CFMLServlet" ) ) ).toBeTrue();
-				expect( isObject( createObject( "java", "lucee.loader.servlet.RestServlet" ) ) ).toBeTrue();
+				expect( isObject( createObject( "java", "lucee.loader.servlet.jakarta.CFMLServlet" ) ) ).toBeTrue();
+				expect( isObject( createObject( "java", "lucee.loader.servlet.jakarta.RestServlet" ) ) ).toBeTrue();
 			} );
 
 		} );
