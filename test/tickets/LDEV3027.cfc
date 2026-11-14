@@ -40,8 +40,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="security" {
 				}
 				catch ( missinginclude e ) {
 					caught = true;
-					expect( e.message ).toInclude( payload );
-					expect( e.additional.detail ).toInclude( payload );
+					// the platform separator replaces the payload's slash, the path itself stays raw
+					var needle = replace( payload, "/", server.separator.file, "all" );
+					expect( e.message ).toInclude( needle );
+					expect( e.additional.detail ).toInclude( needle );
 				}
 				expect( caught ).toBeTrue( "expected a missinginclude exception" );
 			});

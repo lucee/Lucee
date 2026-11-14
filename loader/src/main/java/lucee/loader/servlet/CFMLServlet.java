@@ -37,7 +37,7 @@ public class CFMLServlet extends lucee.loader.servlet.javax.CFMLServlet {
 	public void init(final ServletConfig sg) throws ServletException {
 		super.init(sg);
 		if (!engine.getCastUtil().toBooleanValue(Util.getSystemPropOrEnvVar("lucee.suppress.servlet.warning", null), false)) {
-			engine.getCFMLEngineFactory().log(org.apache.felix.resolver.Logger.LOG_WARNING, ERROR_MESSAGE);
+			engine.getCFMLEngineFactory().log(lucee.loader.engine.LoggerImpl.LOG_WARNING, ERROR_MESSAGE);
 			System.err.println(ERROR_MESSAGE);
 		}
 	}

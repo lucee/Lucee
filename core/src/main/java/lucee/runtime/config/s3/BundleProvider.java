@@ -54,7 +54,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
-import lucee.loader.osgi.BundleLoader;
+import lucee.loader.util.BundleInfoReader;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.maven.MavenUpdateProvider;
@@ -432,7 +432,7 @@ public final class BundleProvider extends DefaultHandler {
 							temp = File.createTempFile("bundle", ".tmp");
 							Util.copy(zis, new FileOutputStream(temp), false, true);
 
-							bundleInfo = BundleLoader.loadBundleInfo(temp);
+							bundleInfo = BundleInfoReader.loadBundleInfo(temp);
 							if (bundleInfo != null && nameAndVersion.equals(bundleInfo)) {
 								trg = new File(bundleDirectory, name);
 								temp.renameTo(trg);

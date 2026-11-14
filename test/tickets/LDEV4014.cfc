@@ -1,12 +1,13 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,directory" {
 
 	function beforeAll() {
+		variables.util = new test._FileTestUtil();
 		variables.base = getTempDirectory() & "LDEV4014_" & createUniqueId() & "/";
 		directoryCreate( variables.base );
 	}
 
 	function afterAll() {
-		if ( directoryExists( variables.base ) ) directoryDelete( variables.base, true );
+		variables.util.deleteDirectoryQuietly( variables.base );
 	}
 
 	private string function newRoot( required string type ) {
@@ -169,6 +170,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,directory" {
 
 			it( title="several threads removing the same file do not throw", body=function( currentSpec ) {
 				var names = [];
+				var paths = {};
 				loop from=1 to=20 index="local.round" {
 					var file = variables.base & "race_" & round & ".txt";
 					fileWrite( file, "x" );
@@ -177,6 +179,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,directory" {
 						var tn = "LDEV4014_f_#round#_#t#_" & createUniqueId();
 						arrayAppend( round_names, tn );
 						arrayAppend( names, tn );
+						paths[ tn ] = file;
 						thread name=tn file=file {
 							try {
 								fileDelete( file=attributes.file, throwOnMissing=false );
@@ -191,12 +194,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,directory" {
 					expect( fileExists( file ) ).toBeFalse();
 				}
 				loop array=names item="local.n" {
-					expect( cfthread[ n ].error ).toBe( "", "thread [#n#] failed: #cfthread[ n ].error#" );
+					expect( variables.util.isExpectedDeleteRaceError( cfthread[ n ].error, paths[ n ] ) ).toBeTrue( "thread [#n#] failed: #cfthread[ n ].error#" );
 				}
 			});
 
 			it( title="several threads removing the same directory do not throw", body=function( currentSpec ) {
 				var names = [];
+				var dirs = {};
 				loop from=1 to=20 index="local.round" {
 					var dir = variables.base & "race_dir_" & round;
 					directoryCreate( dir & "/sub" );
@@ -206,6 +210,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,directory" {
 						var tn = "LDEV4014_d_#round#_#t#_" & createUniqueId();
 						arrayAppend( round_names, tn );
 						arrayAppend( names, tn );
+						dirs[ tn ] = dir;
 						thread name=tn dir=dir {
 							try {
 								directoryDelete( path=attributes.dir, recurse=true, throwOnMissing=false );
@@ -220,7 +225,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,directory" {
 					expect( directoryExists( dir ) ).toBeFalse();
 				}
 				loop array=names item="local.n" {
-					expect( cfthread[ n ].error ).toBe( "", "thread [#n#] failed: #cfthread[ n ].error#" );
+					expect( variables.util.isExpectedDeleteRaceError( cfthread[ n ].error, dirs[ n ] ) ).toBeTrue( "thread [#n#] failed: #cfthread[ n ].error#" );
 				}
 			});
 
@@ -244,6 +249,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,directory" {
 
 			it( title="several threads removing the same directory never fail with a raw NoSuchFileException", body=function( currentSpec ) {
 				var names = [];
+				var dirs = {};
 				loop from=1 to=30 index="local.round" {
 					var dir = variables.base & "race_" & round;
 					buildTree( dir );
@@ -252,6 +258,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,directory" {
 						var tn = "LDEV4014_#round#_#t#_" & createUniqueId();
 						arrayAppend( round_names, tn );
 						arrayAppend( names, tn );
+						dirs[ tn ] = dir;
 						thread name=tn dir=dir {
 							try {
 								directoryDelete( attributes.dir, true );
@@ -268,12 +275,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,directory" {
 				loop array=names item="local.n" {
 					var err = cfthread[ n ].error;
 					// losing the race for the top level directory is expected, any other error is not
-					expect( err == "" || reFindNoCase( "doesn't exist|does not exist", err ) > 0 ).toBeTrue( "thread [#n#] failed: #err#" );
+					expect( variables.util.isExpectedDeleteRaceError( err, dirs[ n ] ) ).toBeTrue( "thread [#n#] failed: #err#" );
 				}
 			});
 
 			it( title="several threads removing the same large tree with throwOnMissing=false do not throw", body=function( currentSpec ) {
 				var names = [];
+				var dirs = {};
 				loop from=1 to=30 index="local.round" {
 					var dir = variables.base & "race_tom_" & round;
 					buildTree( dir );
@@ -282,6 +290,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,directory" {
 						var tn = "LDEV4014_tom_#round#_#t#_" & createUniqueId();
 						arrayAppend( round_names, tn );
 						arrayAppend( names, tn );
+						dirs[ tn ] = dir;
 						thread name=tn dir=dir {
 							try {
 								directoryDelete( path=attributes.dir, recurse=true, throwOnMissing=false );
@@ -296,7 +305,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,directory" {
 					expect( directoryExists( dir ) ).toBeFalse();
 				}
 				loop array=names item="local.n" {
-					expect( cfthread[ n ].error ).toBe( "", "thread [#n#] failed: #cfthread[ n ].error#" );
+					expect( variables.util.isExpectedDeleteRaceError( cfthread[ n ].error, dirs[ n ] ) ).toBeTrue( "thread [#n#] failed: #cfthread[ n ].error#" );
 				}
 			});
 

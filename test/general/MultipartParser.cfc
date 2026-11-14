@@ -72,7 +72,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="multipart" {
 				var cases = directoryList( variables.fixtures, false, "path", "*.bin", "name" );
 				expect( arrayLen( cases ) ).toBe( 11 );
 				for ( var f in cases ) {
-					var expected = listToArray( fileRead( replace( f, ".bin", ".txt" ), "utf-8" ), chr( 10 ), false, false );
+					// the recorded fixture is checked out with the platform line endings, a trailing CR
+					// would end up inside the charset name and blow up Charset.forName()
+					var recorded = replace( fileRead( replace( f, ".bin", ".txt" ), "utf-8" ), "#chr( 13 )##chr( 10 )#", chr( 10 ), "all" );
+					var expected = listToArray( recorded, chr( 10 ), false, false );
 					var ct = expected[ 1 ];
 					var cs = expected[ 2 ];
 					arrayDeleteAt( expected, 1 );
