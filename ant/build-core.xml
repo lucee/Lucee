@@ -131,6 +131,8 @@
     <property name="testLabels" value=""/>
     <!-- true to hide the java stacktraces in the test output -->
     <property name="testHideJavaStack" value=""/>
+    <!-- true to log the test server deploy log and the maven download messages to the console -->
+    <property name="testVerbose" value="true"/>
     <!-- a local directory to install additional extensions -->
     <property name="testExtensions" value=""/>
     <!-- a local directory to run additional tests  -->
@@ -787,6 +789,7 @@
       <jvmarg value="-DtestFilter=${testFilter}"/>
       <jvmarg value="-DtestLabels=${testLabels}"/>
       <jvmarg value="-DtestHideJavaStack=${testHideJavaStack}"/>
+      <jvmarg value="-DtestVerbose=${testVerbose}"/>
       <jvmarg value="-DtestAdditional=${testAdditional}"/>
       <jvmarg value="-DtestSkip=${testSkip}"/>
       <jvmarg value="-DtestDebug=${testDebug}"/>
@@ -817,7 +820,7 @@
       <!-- some test cases downoad jars, so that is okay, but we wanna see them -->
       <jvmarg value="-Dlucee.maven.download.policy.startup=warn"/>
       <jvmarg value="-Dlucee.maven.download.policy.runtime=warn"/>
-      <jvmarg value="-Dlucee.maven.download.policy.log.level=info"/>
+      <jvmarg value="-Dlucee.maven.download.policy.log.level=info" if:true="${testVerbose}"/>
       <jvmarg value="-Dlucee.vdirs.sharedkey=testsecret"/>
 
       <jvmarg value="-XX:+UnlockExperimentalVMOptions" if:true="${UseEpsilonGC}"/>

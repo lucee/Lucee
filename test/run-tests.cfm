@@ -325,6 +325,14 @@ try {
 	//for ( stat in _reportMemStat2.report )
 	//	systemOutput( stat, true );
 
+	// drop the summary of a previous run, so an aborted run cannot leave stale results behind
+	resultPath = ExpandPath( "/test" ) & "/reports/";
+	if ( !DirectoryExists( resultPath ) )
+		DirectoryCreate( resultPath );
+	markdownFile = resultPath & "test-results-markdown.md";
+	if ( FileExists( markdownFile ) )
+		FileDelete( markdownFile );
+
 	systemOutput(NL & "-------------- Start Tests -----------", true);
 	silent {
 		testResults = new test._testRunner().runTests();
@@ -336,9 +344,6 @@ try {
 	tb = testResults.tb;
 
 	jUnitReporter = new testbox.system.reports.JUnitReporter();
-	resultPath = ExpandPath( "/test" ) & "/reports/";
-	if ( !DirectoryExists( resultPath ) )
-		DirectoryCreate( resultPath );
 	JUnitReportFile = resultPath & "junit-test-results-#server.lucee.version#.xml";
 	FileWrite( JUnitReportFile, jUnitReporter.runReport( results=result, testbox=tb, justReturn=true ) );
 
@@ -412,6 +417,7 @@ try {
 	arrayAppend( results, "-> Failures: #result.getTotalFail()#");
 	arrayAppend( results, "-> Errors:   #result.getTotalError()#");
 	arrayAppend( results, "-> JUnitReport: #JUnitReportFile#");
+	arrayAppend( results, "-> MarkdownSummary: #markdownFile#");
 	arrayAppend( results, "" ); // Add blank line after JUnit report
 	
 	// Add failed services after JUnit report
@@ -491,7 +497,7 @@ try {
 			fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, ArrayToList( results_md, NL ) );
 		}
 		// Also write markdown to local file for debugging
-		fileWrite( ExpandPath( "/test" ) & "/reports/test-results-markdown.md", ArrayToList( results_md, NL ) );
+		fileWrite( markdownFile, ArrayToList( results_md, NL ) );
 		/*
 		loop collection=server.system.environment key="p" value="v" {
 			if ( p contains "GITHUB_")
