@@ -268,16 +268,8 @@ component {
 			//systemOutput(serializeJson(bundle.suiteStats));
 		}
 		// report out any slow test specs, because for Lucee, slow performance is a bug (tm)
-		if ( !isNull( bundle.suiteStats ) ) {
-			loop array=bundle.suiteStats item="local.suiteStat" {
-				if ( !isNull( suiteStat.specStats ) ) {
-					loop array=suiteStat.specStats item="local.specStat" {
-						if ( specStat.totalDuration gt 5000 )
-							systemOutput( TAB & TAB & specStat.name & " took #numberFormat( specStat.totalDuration )#ms", true );
-					}
-				}
-			}
-		}
+		if ( !isNull( bundle.suiteStats ) )
+			reportSlowSpecs( bundle.suiteStats, 1000 );
 
 	// exceptions
 	if ( !isSimpleValue( bundle.globalException ) ) {
@@ -388,6 +380,20 @@ Begin Stack Trace
 		}
 		
 		return stack;
+	}
+
+	// nested describes keep their specs in their own suiteStats, so walk the tree
+	private void function reportSlowSpecs( required array suiteStats, required numeric threshold, numeric depth = 1 ) {
+		loop array=arguments.suiteStats item="local.suiteStat" {
+			if ( !isNull( suiteStat.specStats ) ) {
+				loop array=suiteStat.specStats item="local.specStat" {
+					if ( specStat.totalDuration gt arguments.threshold )
+						systemOutput( repeatString( TAB, arguments.depth + 1 ) & specStat.name & " took #numberFormat( specStat.totalDuration )#ms", true );
+				}
+			}
+			if ( !isNull( suiteStat.suiteStats ) && isArray( suiteStat.suiteStats ) && suiteStat.suiteStats.len() gt 0 )
+				reportSlowSpecs( suiteStat.suiteStats, arguments.threshold, arguments.depth + 1 );
+		}
 	}
 
 }
