@@ -168,9 +168,11 @@ component {
 						loop array=local.specStats item="local.specStat" {
 
 							if ( !isNull( specStat.error ) && !isEmpty( specStat.error ) ){
+								// TestBox sets error for failures as well, the status tells them apart
+								var isError = ( specStat.status ?: "" ) eq "Error";
 
 								var failedTestCase = {
-									 type       : "Errored"
+									 type       : isError ? "Errored" : "Failed"
 									,bundle     : bundle.name
 									,testCase   : specStat.name
 									,errMessage : specStat.error.Message
@@ -183,7 +185,7 @@ component {
 								failedTestCases.append( failedTestCase );
 
 								systemOutput( NL & specStat.name );
-								systemOutput( NL & TAB & "Errored: " & specStat.error.Message, true );
+								systemOutput( NL & TAB & ( isError ? "Errored: " : "Failed: " ) & specStat.error.Message, true );
 								if ( len( specStat.error.Detail ) )
 									systemOutput( TAB & "Detail: " & specStat.error.Detail, true );
 
@@ -219,7 +221,7 @@ component {
 
 							//	systemOutput(NL & serialize(specStat.error), true);
 
-							} else if ( !isNull( specStat.failMessage ) && len( trim( specStat.failMessage ) ) ) {
+							} else if ( ( specStat.status ?: "" ) eq "Failed" && !isNull( specStat.failMessage ) && len( trim( specStat.failMessage ) ) ){
 
 								var failedTestCase = {
 									 type       : "Failed"

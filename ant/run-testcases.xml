@@ -91,17 +91,19 @@
 		primary="physical"
 		trusted="no";
 
-		// set deploy logs to TRACE out to console
-	admin
-		action="updateLogSettings"
-		type="server"
-		password="#request.SERVERADMINPASSWORD#"
-		name="deploy"
-		level="TRACE"
-		appenderClass="lucee.commons.io.log.log4j2.appender.ConsoleAppender"
-		appenderArgs={streamType: "output"}
-		layoutClass="lucee.commons.io.log.log4j2.layout.ClassicLayout"
-		layoutArgs={};
+	// set deploy logs to TRACE out to console, skipped with testVerbose=false
+	if ( getSystemPropOrEnvVar( "testVerbose" ) neq "false" ) {
+		admin
+			action="updateLogSettings"
+			type="server"
+			password="#request.SERVERADMINPASSWORD#"
+			name="deploy"
+			level="TRACE"
+			appenderClass="lucee.commons.io.log.log4j2.appender.ConsoleAppender"
+			appenderArgs={streamType: "output"}
+			layoutClass="lucee.commons.io.log.log4j2.layout.ClassicLayout"
+			layoutArgs={};
+	}
 	
 	// set trace logs to TRACE out to console
 	admin
