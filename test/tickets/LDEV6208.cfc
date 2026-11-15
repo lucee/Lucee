@@ -17,7 +17,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 				expect( r.after ).toBeFalse();
 			} );
 
-			it( title="returns true inside a native ormGetSession().beginTransaction() transaction", skip=noOrm(), body=function( currentSpec ) {
+			it( title="returns true inside a native ormGetSession().beginTransaction() transaction", skip=( noOrm() || isBelow71() ), body=function( currentSpec ) {
 				var r = request( "orm/native.cfm" );
 				expect( r.before ).toBeFalse();
 				expect( r.insideCommit ).toBeTrue();
@@ -42,6 +42,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 		} );
 
+	}
+
+
+	// isWithinTransaction() for native ORM transactions landed in 7.1 (LDEV-6208)
+	private boolean function isBelow71() {
+		return !server.checkVersionGTE( server.lucee.version, 7, 1 );
 	}
 
 	private boolean function noOrm() {
