@@ -11,13 +11,17 @@ on:
           - administrator-extension
           - argon2-extension
           - ajax.extension
+          - ajax-extension
           - chart-extension
           - com.microsoft.sqlserver.mssql-jdbc
           - com.mysql.cj
+          - com.mysql.jdbc
           - com.oracle.database.jdbc
           - com.teradata.jdbc
           - compress-extension
+          - couchbase-extension
           - crypto-extension
+          - debugger-extension
           - dynamodb-extension
           - ec2-extension
           - ehcache-extension
@@ -25,21 +29,29 @@ on:
           - extension-infinispan
           - extension-json-extension
           - extension-loganalyzer
+          - extension-redissentinel
           - esapi-extension
           - form-extension
           - ftp-extension
           - git-extension
+          - hibernate-extension
           - hibernate-orm
+          - hypersonic.hsqldb
           - image-extension
           - jtds
+          - json-extension
           - jsonata-extension
           - kinesis-extension
+          - lucee.admin.extension
+          - lucee.doc.extension
           - lucee.extension.couchbase
           - lucee.image.extension
           - lucene-search
           - lucene-search-extension
           - mail-extension
+          - mcp-server-extension
           - memcached-extension
+          - microsoft.sqljdbc
           - mongodb-extension
           - mssqljdbc4
           - org.lucee.athena.jdbc
@@ -49,6 +61,9 @@ on:
           - org.duckdb.duckdb_jdbc
           - org.lucee.mssql
           - org.lucee.oracle
+          - org.lucee.postgresql
+          - org.postgresql.jdbc
+          - org.postgresql.jdbc42
           - org.postgresql.postgresql
           - org.h2
           - org.hsqldb.hsqldb
@@ -57,12 +72,14 @@ on:
           - pdf-extension
           - poi-extension
           - redis.extension
+          - redis-extension
           - redis.clients.jedis
           - redshift-jdbc-extension
           - sentry-extension
           - s3-extension
           - sapdbc
           - cfspreadsheet
+          - tasks-extension
           - websocket-extension
           - websocket-client-extension
         default: com.mysql.cj
@@ -80,6 +97,7 @@ on:
           - compress-extension
           - couchbase-extension
           - crypto-extension
+          - debugger-extension
           - documentation-extension
           - duckdb-jdbc-extension
           - dynamodb-extension
@@ -102,6 +120,7 @@ on:
           - lucene-search-extension
           - loganalyzer-extension
           - mail-extension
+          - mcp-server-extension
           - memcached-extension
           - mongodb-extension
           - mssql-jdbc-extension
