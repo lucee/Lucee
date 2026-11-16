@@ -74,14 +74,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="warmup,extensions"
 				});
 
 				it( "is aborted when lucee.extensions.fail.on.error is true and an entry is malformed", function() {
-					var res = runServer( "start-fatal-malformed", false, { "LUCEE_EXTENSIONS": malformed, "LUCEE_EXTENSIONS_FAIL_ON_ERROR": "true" }, {}, true );
+					var res = runServer( "start-fatal-malformed", false, { "LUCEE_EXTENSIONS": malformed, "LUCEE_EXTENSIONS_FAIL_ON_ERROR": "true" }, {} );
 					expect( res.exitCode ).notToBe( 0, res.log );
 					expect( fileExists( root & "start-fatal-malformed/started.txt" ) ).toBeFalse( "the request was executed: " & res.log );
 					expect( res.log ).toInclude( "does-not-exist-LDEV5272.lex", res.log );
 				});
 
 				it( "is aborted when lucee.extensions.fail.on.error is true and an extension can not be installed", function() {
-					var res = runServer( "start-fatal-unknown", false, { "LUCEE_EXTENSIONS": unknown }, { "lucee.extensions.fail.on.error": "true" }, true );
+					var res = runServer( "start-fatal-unknown", false, { "LUCEE_EXTENSIONS": unknown }, { "lucee.extensions.fail.on.error": "true" } );
 					expect( res.exitCode ).notToBe( 0, res.log );
 					expect( fileExists( root & "start-fatal-unknown/started.txt" ) ).toBeFalse( "the request was executed: " & res.log );
 					expect( res.log ).toInclude( "ldev5272-does-not-exist", res.log );
@@ -98,12 +98,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="warmup,extensions"
 	}
 
 	// starts a new Lucee server (fresh server directory) in a separate JVM, with or without warmup
-	private struct function runServer( required string name, required boolean warmup, required struct env, required struct sysprops, boolean mustExit = false ) {
+	private struct function runServer( required string name, required boolean warmup, required struct env, required struct sysprops ) {
 		var webroot = root & arguments.name & "/";
 		var serverContext = webroot & "WEB-INF/lucee-server/context/";
 		var logFile = root & arguments.name & ".log";
 		directoryCreate( serverContext & "context", true );
-		fileWrite( webroot & "index.cfm", '<cfscript>fileWrite( "#webroot#started.txt", "started" );</cfscript>' );
+		fileWrite( webroot & "index.cfm", '<cfscript>fileWrite( "#webroot#started.txt", "started" );createObject( "java", "java.lang.System" ).exit( 0 );</cfscript>' );
 		fileWrite( serverContext & "context/Server.cfc", "component { function onBuild() {} }" );
 
 		var System = createObject( "java", "java.lang.System" );
@@ -127,6 +127,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="warmup,extensions"
 		var bundleDir = createObject( "java", "lucee.loader.engine.CFMLEngineFactory" ).getInstance().getCFMLEngineFactory().getBundleDirectory().getAbsolutePath();
 		var cmd = [ java ];
 		if ( arguments.warmup ) arrayAppend( cmd, "-Dlucee.enable.warmup=true" );
+		arrayInsertAt( cmd, 2, "-Dlucee.extensions.install=false" );
 		loop struct=arguments.sysprops index="local.k" item="local.v" {
 			arrayAppend( cmd, "-D#k#=#v#" );
 		}
@@ -154,21 +155,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="warmup,extensions"
 
 		var process = pb.start();
 		var TimeUnit = createObject( "java", "java.util.concurrent.TimeUnit" );
-		var started = webroot & "started.txt";
-		var begin = getTickCount();
-		while ( !process.waitFor( 250, TimeUnit.MILLISECONDS ) ) {
-			// the CLI does not end the JVM on its own after a successful request, so once the request was executed we are done
-			if ( !arguments.mustExit && !arguments.warmup && fileExists( started ) ) {
-				process.destroyForcibly();
-				process.waitFor( 30, TimeUnit.SECONDS );
-				break;
-			}
-			if ( getTickCount() - begin > 120000 ) {
-				// report where the server hangs
-				var threads = threadDump( process, logFile );
-				process.destroyForcibly();
-				throw "server [#arguments.name#] did not finish within 2 minutes, output: " & ( fileExists( logFile ) ? right( fileRead( logFile ), 5000 ) : "" ) & chr( 10 ) & "threads: " & threads;
-			}
+		// the request ends the JVM on its own (index.cfm calls System.exit), a fatal startup never reaches it
+		if ( !process.waitFor( 120, TimeUnit.SECONDS ) ) {
+			var threads = threadDump( process, logFile );
+			process.destroyForcibly();
+			throw "server [#arguments.name#] did not finish within 2 minutes, output: " & ( fileExists( logFile ) ? right( fileRead( logFile ), 5000 ) : "" ) & chr( 10 ) & "threads: " & threads;
 		}
 		return {
 			"exitCode": process.exitValue(),

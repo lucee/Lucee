@@ -63,6 +63,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="warmup" {
 		// use the OSGi bundles of the running server, the new server can not necessarily download them
 		var bundleDir = createObject( "java", "lucee.loader.engine.CFMLEngineFactory" ).getInstance().getCFMLEngineFactory().getBundleDirectory().getAbsolutePath();
 		var cmd = [ java, "-Dlucee.enable.warmup=true", "-Dlucee.bundles.dir=" & bundleDir, "-cp", arrayToList( cp, File.pathSeparator ), "lucee.cli.CLI", "webroot=" & webroot, "uri=/index.cfm" ];
+		arrayInsertAt( cmd, 2, "-Dlucee.extensions.install=false" );
 		var pb = createObject( "java", "java.lang.ProcessBuilder" ).init( cmd );
 		var env = pb.environment();
 		// the new server must not pick up settings from the server running the tests

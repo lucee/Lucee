@@ -71,6 +71,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="logs" {
 		// the settings are passed as system properties, same as the environment variables of the same name
 		var cmd = [ java, "-Dlucee.bundles.dir=" & bundleDir, "-DLDEV5554.marker=" & marker, "-Dlucee.system.log.level=info", "-Dlucee.system.out=log", "-Dlucee.system.err=log", "-cp", arrayToList( cp, File.pathSeparator ), "lucee.cli.CLI", "webroot=" & webroot, "uri=/index.cfm" ];
 		if ( len( arguments.forceAppender ) ) arrayInsertAt( cmd, 2, "-Dlucee.logging.force.appender=" & arguments.forceAppender );
+		// the JVM arguments have to come before the main class in the array
+		arrayInsertAt( cmd, 2, "-Dlucee.extensions.install=false" );
 		var pb = createObject( "java", "java.lang.ProcessBuilder" ).init( cmd );
 		var env = pb.environment();
 		// the new server must not pick up settings from the server running the tests
