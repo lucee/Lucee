@@ -441,49 +441,182 @@
 
 	}
 
+// rewrites the artifact maven-metadata.xml with the new version added: <versions> in Maven version order (oldest first),
+// <latest> = highest version, <release> = highest non-SNAPSHOT version. It used to append the new version at the end and
+// set latest/release to it, so the file was in publish order and latest/release jumped between the 6.2/7.1/8.0/9.0 lines.
 private function updateMetadata(version, existing) {
-	if(find("<version>#version#</version>",existing)) return existing;
-    
-    var dateStr = dateTimeFormat( now(), "yyyyMMddHHnnss" );
-    
-    
-    // lastUpdated
-    var start=find("<lastUpdated>",existing);
-    if(start==0) throw "invalid input:#existing#";
-    var end=find("</lastUpdated>",existing,start+1);
-    if(end==0) throw "invalid input:#existing#";
-    existing=mid(existing,1,start+12)&dateStr&mid(existing,end);
-    
-    
-    // latest
-    var start=find("<latest>",existing);
-    if(start==0) throw "invalid input:#existing#";
-    var end=find("</latest>",existing,start+1);
-    if(end==0) throw "invalid input:#existing#";
-    existing=mid(existing,1,start+7)&arguments.version&mid(existing,end);
-    
-    // release
-    if(!findNoCase("-SNAPSHOT",arguments.version)) {
-        var start=find("<release>",existing);
-        if(start==0) throw "invalid input:#existing#";
-        var end=find("</release>",existing,start+1);
-        if(end==0) throw "invalid input:#existing#";
-        existing=mid(existing,1,start+8)&arguments.version&mid(existing,end);
-    }
-    
-    // add version
-    var start=findLast("</version>",existing);
-    if(start==0) throw "invalid input:#existing#";
-    var end=find("</versions>",existing,start+1);
-    if(end==0) throw "invalid input:#existing#";
-    
-    existing=mid(existing,1,start+9)
-        &"
-        <version>#arguments.version#</version>
-"
-        &mid(existing,end);
-    
-    return existing;
+	var versions = [];
+	var block = reFind( "<versions>(.*?)</versions>", arguments.existing, 1, true );
+	if ( !block.len[ 1 ] ) throw "invalid input:#arguments.existing#";
+	var content = mid( arguments.existing, block.pos[ 2 ], block.len[ 2 ] );
+	var pos = 1;
+	while ( true ) {
+		var m = reFind( "<version>([^<]+)</version>", content, pos, true );
+		if ( !m.len[ 1 ] ) break;
+		var v = trim( mid( content, m.pos[ 2 ], m.len[ 2 ] ) );
+		if ( !arrayFindNoCase( versions, v ) ) arrayAppend( versions, v );
+		pos = m.pos[ 1 ] + m.len[ 1 ];
+	}
+	if ( !arrayFindNoCase( versions, arguments.version ) ) arrayAppend( versions, arguments.version );
+	versions = sortMavenVersions( versions );
+
+	var latest = versions[ arrayLen( versions ) ];
+	var release = "";
+	for ( var i = arrayLen( versions ); i >= 1; i-- ) {
+		if ( !findNoCase( "-SNAPSHOT", versions[ i ] ) ) {
+			release = versions[ i ];
+			break;
+		}
+	}
+
+	var groupId = reFind( "<groupId>([^<]+)</groupId>", arguments.existing, 1, true );
+	var artifactId = reFind( "<artifactId>([^<]+)</artifactId>", arguments.existing, 1, true );
+	var nl = chr( 10 );
+	var xml = '<?xml version="1.0" encoding="UTF-8"?>' & nl
+		& '<metadata>' & nl
+		& '  <groupId>' & ( groupId.len[ 1 ] ? mid( arguments.existing, groupId.pos[ 2 ], groupId.len[ 2 ] ) : "org.lucee" ) & '</groupId>' & nl
+		& '  <artifactId>' & ( artifactId.len[ 1 ] ? mid( arguments.existing, artifactId.pos[ 2 ], artifactId.len[ 2 ] ) : "lucee" ) & '</artifactId>' & nl
+		& '  <versioning>' & nl
+		& '    <latest>' & latest & '</latest>' & nl
+		& '    <release>' & release & '</release>' & nl
+		& '    <versions>' & nl;
+	for ( var v in versions ) xml &= '      <version>' & v & '</version>' & nl;
+	xml &= '    </versions>' & nl
+		& '    <lastUpdated>' & dateTimeFormat( now(), "yyyyMMddHHnnss" ) & '</lastUpdated>' & nl
+		& '  </versioning>' & nl
+		& '</metadata>';
+	return xml;
+}
+
+// Maven ComparableVersion order (org.apache.maven.artifact.versioning.ComparableVersion), same as
+// .github/scripts/maven-group-metadata.js: numbers compare numerically, alpha < beta < milestone < rc < snapshot < release < sp
+private function sortMavenVersions( required array versions ) {
+	var parsed = {};
+	for ( var v in arguments.versions ) parsed[ v ] = parseMavenVersion( v );
+	var sorted = duplicate( arguments.versions );
+	arraySort( sorted, function( a, b ) {
+		var c = compareMavenItems( parsed[ a ], parsed[ b ] );
+		return c != 0 ? c : compare( a, b );
+	} );
+	return sorted;
+}
+
+private function compareMavenVersions( required string a, required string b ) {
+	return compareMavenItems( parseMavenVersion( arguments.a ), parseMavenVersion( arguments.b ) );
+}
+
+private function mavenQualifier( required string q ) {
+	var qualifiers = [ "alpha", "beta", "milestone", "rc", "snapshot", "", "sp" ];
+	var i = arrayFind( qualifiers, arguments.q );
+	return i ? toString( i - 1 ) : arrayLen( qualifiers ) & "-" & arguments.q;
+}
+
+private function mavenStringItem( required string value, boolean followedByDigit=false ) {
+	var v = arguments.value;
+	if ( arguments.followedByDigit && len( v ) == 1 ) {
+		if ( v == "a" ) v = "alpha";
+		else if ( v == "b" ) v = "beta";
+		else if ( v == "m" ) v = "milestone";
+	}
+	if ( v == "ga" || v == "final" || v == "release" ) v = "";
+	else if ( v == "cr" ) v = "rc";
+	return { type: "string", value: v };
+}
+
+private function mavenParseItem( required boolean isDigit, required string buf ) {
+	if ( !arguments.isDigit ) return mavenStringItem( arguments.buf );
+	var n = reReplace( arguments.buf, "^0+", "" );
+	return { type: "int", value: n }; // digits without leading zeros, "" is 0
+}
+
+private function mavenIsNull( required struct item ) {
+	if ( item.type == "int" ) return item.value == "";
+	if ( item.type == "string" ) return mavenQualifier( item.value ) == "5";
+	return arrayLen( item.items ) == 0;
+}
+
+private function parseMavenVersion( required string version ) {
+	var v = lCase( trim( arguments.version ) );
+	var root = { type: "list", items: [] };
+	var list = root;
+	var stack = [ root ];
+	var isDigit = false;
+	var start = 1;
+	var l = len( v );
+	for ( var i = 1; i <= l; i++ ) {
+		var c = mid( v, i, 1 );
+		if ( c == "." || c == "-" ) {
+			arrayAppend( list.items, i == start ? { type: "int", value: "" } : mavenParseItem( isDigit, mid( v, start, i - start ) ) );
+			start = i + 1;
+			if ( c == "-" ) {
+				var sub = { type: "list", items: [] };
+				arrayAppend( list.items, sub );
+				list = sub;
+				arrayAppend( stack, sub );
+			}
+		}
+		else if ( asc( c ) >= 48 && asc( c ) <= 57 ) {
+			if ( !isDigit && i > start ) {
+				arrayAppend( list.items, mavenStringItem( mid( v, start, i - start ), true ) );
+				start = i;
+				var sub = { type: "list", items: [] };
+				arrayAppend( list.items, sub );
+				list = sub;
+				arrayAppend( stack, sub );
+			}
+			isDigit = true;
+		}
+		else {
+			if ( isDigit && i > start ) {
+				arrayAppend( list.items, mavenParseItem( true, mid( v, start, i - start ) ) );
+				start = i;
+				var sub = { type: "list", items: [] };
+				arrayAppend( list.items, sub );
+				list = sub;
+				arrayAppend( stack, sub );
+			}
+			isDigit = false;
+		}
+	}
+	if ( l >= start ) arrayAppend( list.items, mavenParseItem( isDigit, mid( v, start, l - start + 1 ) ) );
+	// normalize: drop trailing null items (0, "", release qualifiers, empty lists) of every list, innermost first
+	for ( var s = arrayLen( stack ); s >= 1; s-- ) {
+		var items = stack[ s ].items;
+		for ( var i = arrayLen( items ); i >= 1; i-- ) {
+			if ( mavenIsNull( items[ i ] ) ) arrayDeleteAt( items, i );
+			else if ( items[ i ].type != "list" ) break;
+		}
+	}
+	return root;
+}
+
+private function compareMavenItems( required struct a, struct b ) {
+	if ( isNull( arguments.b ) ) {
+		if ( a.type == "int" ) return a.value == "" ? 0 : 1;
+		if ( a.type == "string" ) return sgn( compare( mavenQualifier( a.value ), "5" ) );
+		return arrayLen( a.items ) ? compareMavenItems( a.items[ 1 ] ) : 0;
+	}
+	if ( a.type == "int" ) {
+		if ( b.type != "int" ) return 1;
+		if ( len( a.value ) != len( b.value ) ) return len( a.value ) < len( b.value ) ? -1 : 1;
+		return sgn( compare( a.value, b.value ) );
+	}
+	if ( a.type == "string" ) {
+		if ( b.type != "string" ) return -1;
+		return sgn( compare( mavenQualifier( a.value ), mavenQualifier( b.value ) ) );
+	}
+	if ( b.type == "int" ) return -1;
+	if ( b.type == "string" ) return 1;
+	var n = max( arrayLen( a.items ), arrayLen( b.items ) );
+	for ( var i = 1; i <= n; i++ ) {
+		var hasL = i <= arrayLen( a.items );
+		var hasR = i <= arrayLen( b.items );
+		var r = 0;
+		if ( !hasL ) r = hasR ? -compareMavenItems( b.items[ i ] ) : 0;
+		else r = hasR ? compareMavenItems( a.items[ i ], b.items[ i ] ) : compareMavenItems( a.items[ i ] );
+		if ( r != 0 ) return r;
+	}
+	return 0;
 }
 
 

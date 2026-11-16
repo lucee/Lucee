@@ -1,7 +1,9 @@
 import { S3Client, ListObjectsV2Command, CopyObjectCommand, DeleteObjectCommand, PutObjectCommand, GetObjectCommand, HeadObjectCommand, GetBucketLocationCommand } from '@aws-sdk/client-s3';
 import {
   generateAndUploadDirectoryListing,
-  generateAndUploadGroupMetadata
+  generateAndUploadGroupMetadata,
+  sortVersions,
+  findLatestRelease
 } from './maven-group-metadata.js';
 
 // Helper function to log with timestamp
@@ -547,23 +549,13 @@ function addVersionToMetadata(existingXml, newVersion, timestamp) {
     existingVersions.push(newVersion);
   }
   
-  // Sort versions (simple string sort, which works reasonably well for semantic versions)
-  existingVersions.sort();
-  
-  // Determine latest and release versions
-  const latest = newVersion; // Always set the new version as latest
-  let release = '';
-  
-  // Find the latest non-SNAPSHOT version for release
-  for (let i = existingVersions.length - 1; i >= 0; i--) {
-    if (!existingVersions[i].includes('SNAPSHOT')) {
-      release = existingVersions[i];
-      break;
-    }
-  }
-  
+  // Maven version order (not string order, not publish order), latest = highest, release = highest non-SNAPSHOT
+  const sortedVersions = sortVersions(existingVersions);
+  const latest = sortedVersions[sortedVersions.length - 1];
+  const release = findLatestRelease(sortedVersions);
+
   // Generate properly formatted XML
-  const versionsXml = existingVersions.map(v => `      <version>${v}</version>`).join('\n');
+  const versionsXml = sortedVersions.map(v => `      <version>${v}</version>`).join('\n');
   
   return `<?xml version="1.0" encoding="UTF-8"?>
 <metadata>
