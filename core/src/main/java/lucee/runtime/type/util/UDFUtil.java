@@ -180,22 +180,29 @@ public final class UDFUtil {
 				Iterator<Key> it = argColl.keyIterator();
 				Key k;
 				int i = -1;
+				int restIndex = indexOfRestArgument(funcArgs);
 				while (it.hasNext()) {
 					i++;
 					k = it.next();
-					// LDEV-6947: a positional key that addresses the rest parameter must stay
-					// positional, so defineArguments can gather the surplus into an array.
-					// Use the integer key (1-based), not the loop index, because a forwarded
-					// arguments scope can have named keys in front of the leftover positionals.
+					// LDEV-6947: every positional key at or past the rest parameter
+					// must stay positional, so defineArguments can gather the surplus
+					// into an array. Use the integer key (1-based), not the loop index,
+					// because a forwarded arguments scope can have named keys in front
+					// of the leftover positionals. Surplus keys after the rest slot
+					// would otherwise be mapped onto rest as a scalar.
 					if (k instanceof ArgumentIntKey) {
 						int idx = ((ArgumentIntKey) k).getIntKey() - 1;
-						if (idx >= 0 && idx < funcArgs.length && isRestArgument(funcArgs[idx])) {
+						if (restIndex >= 0 && idx >= restIndex) {
 							if (!values.containsKey(k)) values.setEL(k, argColl.get(k, Argument.NULL));
 							continue;
 						}
 					}
 					if (funcArgs.length > i && k instanceof ArgumentIntKey) {
-						if (!values.containsKey(funcArgs[i].getName())) values.setEL(funcArgs[i].getName(), argColl.get(k, Argument.NULL));
+						// Never write a scalar onto the rest parameter via the loop index.
+						if (i == restIndex) {
+							if (!values.containsKey(k)) values.setEL(k, argColl.get(k, Argument.NULL));
+						}
+						else if (!values.containsKey(funcArgs[i].getName())) values.setEL(funcArgs[i].getName(), argColl.get(k, Argument.NULL));
 						else values.setEL(k, argColl.get(k, Argument.NULL));
 					}
 					else if (!values.containsKey(k)) {
@@ -449,6 +456,14 @@ public final class UDFUtil {
 
 
 	private static final Key REST_META = KeyImpl.init("rest");
+
+	private static int indexOfRestArgument(FunctionArgument[] funcArgs) {
+		if (funcArgs == null) return -1;
+		for (int i = 0; i < funcArgs.length; i++) {
+			if (isRestArgument(funcArgs[i])) return i;
+		}
+		return -1;
+	}
 
 	private static boolean isRestArgument(FunctionArgument arg) {
 		if (arg == null) return false;
