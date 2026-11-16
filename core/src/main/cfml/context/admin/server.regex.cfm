@@ -89,8 +89,10 @@ Redirtect to entry --->
 	stText.regex.typeDesc="Which regular expression dialect should be used.";
 	stText.regex.type_java="Modern";
 	stText.regex.type_perl="Classic (CFML Default, deprecated)";
+	stText.regex.type_compat="Compat";
 	stText.regex.typedesc_java="Modern type is the dialect used by Java itself.";
-	stText.regex.typedesc_perl="Classic type is the Perl5 dialect used by CFML tradionally. Deprecated as the default: Lucee 9 uses Modern (java) as the default, Classic (perl) is then only available with the Perl Regex extension.";
+	stText.regex.typedesc_perl="Classic type is the Perl5 dialect used by CFML traditionally. Deprecated as the default: Lucee 9 uses Modern (java) as the default, Classic (perl) is then only available with the Perl Regex extension.";
+	stText.regex.typedesc_compat="Compat type uses the Java engine but behaves like Classic: patterns and replacements written for the Perl5 dialect (backreferences \1, case modifiers \u \l \U \L \E, POSIX classes, . matching newlines) keep working, and Java features like lookbehind and named groups are also available.";
 </cfscript>
 <!--- 
 Error Output --->
@@ -119,7 +121,7 @@ Error Output --->
 							descOnTop=true>
 							<ul class="radiolist">
 
-								<cfloop list="java,perl" item="_type">
+								<cfloop list="java,compat,perl" item="_type">
 								<li>
 									<label>
 										<input class="radio" type="radio" name="regexType" value="#_type#"<cfif regex.type EQ _type> checked="checked"</cfif>>
