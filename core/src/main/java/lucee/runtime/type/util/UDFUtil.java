@@ -92,6 +92,34 @@ import lucee.transformer.library.function.FunctionLibFunctionArg;
 
 public final class UDFUtil {
 
+	/**
+	 * Converts the return value of a comparator function (arraySort, structSort, querySort, ...) to a
+	 * compare result. Only the sign matters, so a decimal like 0.5 or -0.3 (e.g. from "return a - b;")
+	 * or a value outside the int range keeps its meaning instead of being truncated to 0 / overflowing.
+	 * 
+	 * @param res return value of the comparator function
+	 * @return -1, 0 or 1, or null if the value cannot be converted to a number
+	 */
+	public static Integer toCompareResult(Object res) {
+		if (res instanceof Integer) {
+			int i = ((Integer) res).intValue();
+			return i < 0 ? -1 : (i > 0 ? 1 : 0);
+		}
+		Double d = Caster.toDouble(res, null);
+		if (d == null || d.isNaN()) return null;
+		double v = d.doubleValue();
+		return v < 0 ? -1 : (v > 0 ? 1 : 0);
+	}
+
+	/**
+	 * same as toCompareResult(Object) but throws the usual cast exception if the value is not a number
+	 */
+	public static int toCompareResultValue(Object res) throws PageException {
+		Integer i = toCompareResult(res);
+		if (i == null) return Caster.toIntValue(res);
+		return i.intValue();
+	}
+
 	public static final short TYPE_UDF = 1;
 	public static final short TYPE_BIF = 2;
 	public static final short TYPE_CLOSURE = 4;

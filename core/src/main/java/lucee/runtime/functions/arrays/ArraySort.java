@@ -37,6 +37,7 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.Closure;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.UDFUtil;
 
 public final class ArraySort extends BIF {
 
@@ -119,7 +120,7 @@ class UDFComparator implements Comparator<Object> {
 			args[0] = oLeft;
 			args[1] = oRight;
 			Object res = udf.call(pc, args, false);
-			Integer i = Caster.toInteger(res, null);
+			Integer i = UDFUtil.toCompareResult(res);
 			if (i == null) throw new FunctionException(pc, "ArraySort", 2, "function",
 					"return value of the " + (udf instanceof Closure ? "closure" : "function [" + udf.getFunctionName() + "]") + " cannot be casted to an integer.",
 					CasterException.createMessage(res, "integer"));

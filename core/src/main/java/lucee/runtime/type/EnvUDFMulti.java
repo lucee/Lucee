@@ -20,6 +20,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.scope.Variables;
+import lucee.runtime.type.util.UDFUtil;
 
 public abstract class EnvUDFMulti extends EnvUDF implements Comparator, ToIntBiFunction, ToLongBiFunction, ToDoubleBiFunction, BiConsumer, BiFunction, BiPredicate, BinaryOperator,
 		LongBinaryOperator, DoubleBinaryOperator, IntBinaryOperator, ObjDoubleConsumer, ObjIntConsumer, ObjLongConsumer {
@@ -39,7 +40,7 @@ public abstract class EnvUDFMulti extends EnvUDF implements Comparator, ToIntBiF
 	@Override
 	public int compare(Object o1, Object o2) {
 		try {
-			return Caster.toIntValue(call(ThreadLocalPageContext.get(), new Object[] { o1, o2 }, true));
+			return UDFUtil.toCompareResultValue(call(ThreadLocalPageContext.get(), new Object[] { o1, o2 }, true));
 		}
 		catch (PageException pe) {
 			throw new PageRuntimeException(pe);

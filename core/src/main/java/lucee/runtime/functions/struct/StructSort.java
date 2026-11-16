@@ -43,6 +43,7 @@ import lucee.runtime.type.comparator.NumberSortRegisterComparator;
 import lucee.runtime.type.comparator.SortRegister;
 import lucee.runtime.type.comparator.SortRegisterComparator;
 import lucee.runtime.type.util.CollectionUtil;
+import lucee.runtime.type.util.UDFUtil;
 
 public final class StructSort extends BIF {
 	private static final long serialVersionUID = -7945612992641626477L;
@@ -145,7 +146,7 @@ public final class StructSort extends BIF {
 		@Override
 		public int compare(SortRegister left, SortRegister right) {
 			try {
-				return Caster.toIntValue(udf.call(pc, new Object[] { left.getValue(), right.getValue() }, true));
+				return UDFUtil.toCompareResultValue(udf.call(pc, new Object[] { left.getValue(), right.getValue() }, true));
 			}
 			catch (PageException pe) {
 				throw new PageRuntimeException(pe);
