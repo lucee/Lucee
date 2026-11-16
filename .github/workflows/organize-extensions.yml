@@ -27,6 +27,7 @@ on:
           - extension-loganalyzer
           - esapi-extension
           - form-extension
+          - ftp-extension
           - git-extension
           - hibernate-orm
           - image-extension
@@ -87,6 +88,7 @@ on:
           - esapi-extension
           - exasol-jdbc-extension
           - form-extension
+          - ftp-extension
           - git-extension
           - h2-jdbc-extension
           - hibernate-extension
