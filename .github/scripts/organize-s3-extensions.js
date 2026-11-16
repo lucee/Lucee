@@ -565,8 +565,8 @@ function addVersionToExtensionMetadata(existingXml, newVersion, timestamp) {
 
   const sortedVersions = sortVersions(existingVersions);
 
-  // Determine latest and release versions
-  const latest = newVersion;
+  // latest = highest version, release = highest non-SNAPSHOT (not simply the version just published)
+  const latest = sortedVersions[sortedVersions.length - 1];
   const release = findLatestRelease(sortedVersions);
   
   // Generate properly formatted XML - extract artifact ID from existing metadata

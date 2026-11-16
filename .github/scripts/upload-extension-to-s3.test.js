@@ -30,6 +30,16 @@ test('artifact metadata adds the version and keeps release on non-snapshots', ()
   assert.match(x2, /<release>1\.0\.0\.7<\/release>/);
   assert.match(x2, /<latest>1\.0\.0\.7<\/latest>/);
 });
+test('artifact metadata keeps Maven version order when an older line is published last', () => {
+  let x = artifactMetadataXml('s3-extension', null, '2.2.0.3-RC', '20261104000000');
+  x = artifactMetadataXml('s3-extension', x, '2.2.0.6-SNAPSHOT', '20261110000000');
+  x = artifactMetadataXml('s3-extension', x, '2.0.3.10', '20261111000000'); // backport, published after 2.2
+  x = artifactMetadataXml('s3-extension', x, '2.0.3.9', '20261112000000');
+  const versions = [...x.matchAll(/<version>([^<]+)<\/version>/g)].map(m => m[1]);
+  assert.deepEqual(versions, ['2.0.3.9', '2.0.3.10', '2.2.0.3-RC', '2.2.0.6-SNAPSHOT']);
+  assert.match(x, /<latest>2\.2\.0\.6-SNAPSHOT<\/latest>/);
+  assert.match(x, /<release>2\.2\.0\.3-RC<\/release>/);
+});
 
 const V = '1.0.0.9-SNAPSHOT';
 test('finds .lex files in target/ below the flattened POM (upload-artifact layout)', () => {

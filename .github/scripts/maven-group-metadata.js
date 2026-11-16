@@ -12,26 +12,123 @@ export const GROUP_INDEX_KEY = 'org/lucee/index.html';
 
 const SNAPSHOT_SUFFIX = '-SNAPSHOT';
 
-/**
- * Maven-style version sort key (ported from maven-bridge BridgeSupport.cfc).
- */
-export function versionSortKey(version) {
-  const parts = version.split(/[.-]/);
-  let key = '';
-  for (const part of parts) {
-    if (part.toUpperCase() === 'SNAPSHOT') {
-      key += '.999999';
-    } else if (/^\d+$/.test(part)) {
-      key += '.' + String(Number(part)).padStart(5, '0');
+// Maven ComparableVersion ordering (same rules as org.apache.maven.artifact.versioning.ComparableVersion):
+// numeric segments compare numerically, a qualifier sorts before the plain release of the same number
+// and the known qualifiers are ordered alpha < beta < milestone < rc < snapshot < (release) < sp,
+// unknown qualifiers after sp (lexically). So 5.0.0.60-BETA < 5.0.0.252, 8.0.0.304-RC < 8.0.0.304 and
+// 7.1.3.0-SNAPSHOT < 7.1.3.0. maven-metadata.xml lists <versions> in this order, oldest first.
+const QUALIFIERS = ['alpha', 'beta', 'milestone', 'rc', 'snapshot', '', 'sp'];
+const QUALIFIER_ALIASES = { ga: '', final: '', release: '', cr: 'rc' };
+const RELEASE_INDEX = String(QUALIFIERS.indexOf(''));
+const INT = 0, STR = 1, LIST = 2;
+
+function comparableQualifier(q) {
+  const i = QUALIFIERS.indexOf(q);
+  return i === -1 ? `${QUALIFIERS.length}-${q}` : String(i);
+}
+
+function stringItem(value, followedByDigit) {
+  if (followedByDigit && value.length === 1) {
+    value = { a: 'alpha', b: 'beta', m: 'milestone' }[value] || value;
+  }
+  value = QUALIFIER_ALIASES[value] ?? value;
+  return { type: STR, value };
+}
+
+function isNullItem(item) {
+  if (item.type === INT) return item.value === 0n;
+  if (item.type === STR) return comparableQualifier(item.value) === RELEASE_INDEX;
+  return item.items.length === 0;
+}
+
+function normalize(list) {
+  for (let i = list.items.length - 1; i >= 0; i--) {
+    const item = list.items[i];
+    if (isNullItem(item)) list.items.splice(i, 1);
+    else if (item.type !== LIST) break;
+  }
+}
+
+function parseItem(isDigit, buf) {
+  return isDigit ? { type: INT, value: BigInt(buf) } : stringItem(buf, false);
+}
+
+export function parseMavenVersion(version) {
+  const v = String(version).trim().toLowerCase();
+  const root = { type: LIST, items: [] };
+  let list = root;
+  const stack = [list];
+  let isDigit = false;
+  let start = 0;
+  const push = () => { const sub = { type: LIST, items: [] }; list.items.push(sub); list = sub; stack.push(sub); };
+  for (let i = 0; i < v.length; i++) {
+    const c = v[i];
+    if (c === '.') {
+      list.items.push(i === start ? { type: INT, value: 0n } : parseItem(isDigit, v.slice(start, i)));
+      start = i + 1;
+    } else if (c === '-') {
+      list.items.push(i === start ? { type: INT, value: 0n } : parseItem(isDigit, v.slice(start, i)));
+      start = i + 1;
+      push();
+    } else if (c >= '0' && c <= '9') {
+      if (!isDigit && i > start) {
+        list.items.push(stringItem(v.slice(start, i), true));
+        start = i;
+        push();
+      }
+      isDigit = true;
     } else {
-      key += '.' + part.toLowerCase();
+      if (isDigit && i > start) {
+        list.items.push(parseItem(true, v.slice(start, i)));
+        start = i;
+        push();
+      }
+      isDigit = false;
     }
   }
-  return key;
+  if (v.length > start) list.items.push(parseItem(isDigit, v.slice(start)));
+  while (stack.length) normalize(stack.pop());
+  return root;
+}
+
+function compareItems(a, b) {
+  if (b === undefined) {
+    if (a.type === INT) return a.value === 0n ? 0 : 1;
+    if (a.type === STR) return cmp(comparableQualifier(a.value), RELEASE_INDEX);
+    return a.items.length === 0 ? 0 : compareItems(a.items[0], undefined);
+  }
+  if (a.type === INT) {
+    if (b.type === INT) return a.value < b.value ? -1 : a.value > b.value ? 1 : 0;
+    return 1;
+  }
+  if (a.type === STR) {
+    if (b.type === INT || b.type === LIST) return -1;
+    return cmp(comparableQualifier(a.value), comparableQualifier(b.value));
+  }
+  if (b.type === INT) return -1;
+  if (b.type === STR) return 1;
+  const n = Math.max(a.items.length, b.items.length);
+  for (let i = 0; i < n; i++) {
+    const l = a.items[i];
+    const r = b.items[i];
+    const result = l === undefined ? (r === undefined ? 0 : -compareItems(r, undefined)) : compareItems(l, r);
+    if (result !== 0) return result;
+  }
+  return 0;
+}
+
+function cmp(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/** Compares two Maven versions, <0, 0 or >0 (ComparableVersion semantics, case-insensitive). */
+export function compareVersions(a, b) {
+  return compareItems(parseMavenVersion(a), parseMavenVersion(b));
 }
 
 export function sortVersions(versions) {
-  return [...versions].sort((a, b) => versionSortKey(a).localeCompare(versionSortKey(b)));
+  // ties (e.g. 1.0 and 1.0.0) keep a stable, deterministic order
+  return [...versions].sort((a, b) => compareVersions(a, b) || cmp(a, b));
 }
 
 export function findLatestRelease(sortedVersions) {
@@ -80,8 +177,9 @@ export function parseArtifactMetadataXml(xml) {
 
   return {
     versions: sorted,
-    latest: latestMatch?.[1]?.trim() || sorted[sorted.length - 1] || '',
-    release: releaseMatch?.[1]?.trim() || findLatestRelease(sorted)
+    // highest version / highest non-SNAPSHOT, not what the file says (older writers set the last published one)
+    latest: sorted[sorted.length - 1] || latestMatch?.[1]?.trim() || '',
+    release: findLatestRelease(sorted) || releaseMatch?.[1]?.trim() || ''
   };
 }
 
