@@ -1113,9 +1113,27 @@ public final class SystemUtil {
 		}
 
 		public TemplateLine(String templateAndLine) {
+			// LDEV-6945: only treat "template:line" as a split when the suffix is a line number.
+			// Otherwise a Windows path such as D:\app\test.cfc is truncated to "D".
 			int index = templateAndLine.lastIndexOf(':');
-			this.template = index == -1 ? templateAndLine : templateAndLine.substring(0, index);
-			this.line = index == -1 ? 0 : Caster.toIntValue(templateAndLine.substring(index + 1), 0);
+			String suffix = index == -1 ? "" : templateAndLine.substring(index + 1);
+			if (index > 1 && isLineNumber(suffix)) {
+				this.template = templateAndLine.substring(0, index);
+				this.line = Caster.toIntValue(suffix, 0);
+			}
+			else {
+				this.template = templateAndLine;
+				this.line = 0;
+			}
+		}
+
+		private static boolean isLineNumber(String suffix) {
+			if (suffix == null || suffix.isEmpty()) return false;
+			for (int i = 0; i < suffix.length(); i++) {
+				char c = suffix.charAt(i);
+				if (c < '0' || c > '9') return false;
+			}
+			return true;
 		}
 
 		@Override
