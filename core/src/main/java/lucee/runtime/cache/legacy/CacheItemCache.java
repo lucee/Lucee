@@ -45,7 +45,7 @@ public final class CacheItemCache extends CacheItem {
 		super(pc, req, id, key, useId, useQueryString);
 		this.cache = cache;
 		this.timespan = timespan;
-		key = fileName + ":" + ((ConfigWebPro) pc.getConfig()).getId();
+		this.key = fileName + ":" + ((ConfigWebPro) pc.getConfig()).getId();
 	}
 
 	@Override
