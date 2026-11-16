@@ -18,6 +18,7 @@ on:
           - com.teradata.jdbc
           - compress-extension
           - crypto-extension
+          - dynamodb-extension
           - ec2-extension
           - ehcache-extension
           - extension-memcached
@@ -80,6 +81,7 @@ on:
           - crypto-extension
           - documentation-extension
           - duckdb-jdbc-extension
+          - dynamodb-extension
           - ec2-extension
           - ehcache-extension
           - esapi-extension
