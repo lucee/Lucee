@@ -52,8 +52,8 @@ public final class JDBCDriver {
 		if ("h2".equalsIgnoreCase(id)) return "jdbc:h2:{path}{database};MODE={mode}";
 		if ("mysql".equalsIgnoreCase(id)) return "jdbc:mysql://{host}:{port}/{database}";
 		if ("postgresql".equalsIgnoreCase(id)) return "jdbc:postgresql://{host}:{port}/{database}";
-		if ("mssql".equalsIgnoreCase(id)) return "jdbc:sqlserver://{host}:{port}";
-		if ("oracle".equalsIgnoreCase(id)) return "jdbc:oracle:{drivertype}:@{host}:{port}:{database}";
+		if ("mssql".equalsIgnoreCase(id)) return "jdbc:sqlserver://{host}:{port};databaseName={database}";
+		if ("oracle".equalsIgnoreCase(id)) return "jdbc:oracle:thin:@{host}:{port}:{database}";
 		if ("derby".equalsIgnoreCase(id)) return "jdbc:derby:{mode}:{path}{database}";
 		return null;
 	}
