@@ -41,6 +41,7 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -81,13 +82,17 @@ public final class StructUtil {
 	public static Struct duplicate(Struct sct, boolean deepCopy) {
 
 		Struct rtn = new StructImpl();
-		// lucee.runtime.type.Collection.Key[] keys=sct.keys();
-		// lucee.runtime.type.Collection.Key key;
-		Iterator<Entry<Key, Object>> it = sct.entryIterator();
-		Entry<Key, Object> e;
-		while (it.hasNext()) {
-			e = it.next();
-			rtn.setEL(e.getKey(), Duplicator.duplicate(e.getValue(), deepCopy));
+		boolean inside = ThreadLocalDuplication.set(sct, rtn);
+		try {
+			Iterator<Entry<Key, Object>> it = sct.entryIterator();
+			Entry<Key, Object> e;
+			while (it.hasNext()) {
+				e = it.next();
+				rtn.setEL(e.getKey(), Duplicator.duplicate(e.getValue(), deepCopy));
+			}
+		}
+		finally {
+			if (!inside) ThreadLocalDuplication.reset();
 		}
 		return rtn;
 	}
