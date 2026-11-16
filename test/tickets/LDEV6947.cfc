@@ -19,8 +19,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="function" {
 				expect( f( argumentCollection=[ 1, 2, 3, 4 ] ) ).toBe( [ 3, 4 ] );
 			});
 
-			// LDEV-6947: throws today, remove skip=true with the fix
-			it( title="forwarded scope gathers the surplus into rest", skip=true, body=function() {
+			it( "forwarded scope gathers the surplus into rest", function() {
 				function target( a, b, ...rest ) {
 					return rest;
 				}
@@ -30,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="function" {
 				expect( wrapper( 1, 2, 3, 4 ) ).toBe( [ 3, 4 ] );
 			});
 
-			it( title="forwarded scope after removing a named argument", skip=true, body=function() {
+			it( "forwarded scope after removing a named argument still gathers the surplus", function() {
 				function target( a, b, ...rest ) {
 					return rest;
 				}
@@ -41,7 +40,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="function" {
 				expect( wrapper( 1, 2, 3, 4 ) ).toBe( [ 3, 4 ] );
 			});
 
-			it( title="forwarded scope leaves no untranslated integer keys behind", skip=true, body=function() {
+			it( "forwarded scope leaves no untranslated integer keys behind", function() {
 				function target( a, b, ...rest ) {
 					return arguments;
 				}
