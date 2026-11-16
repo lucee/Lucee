@@ -135,6 +135,24 @@ public final class StaticScope extends StructSupport implements Variables, Objec
 		return null;
 	}
 
+	/**
+	 * LDEV-3683: returns the member with that key of the nearest base component (no access check), if
+	 * it is declared as final
+	 */
+	Pair<Member, ComponentImpl> getFinalFromBase(PageContext pc, Key key) {
+		StaticScope ss = base;
+		while (ss != null) {
+			ComponentPageImpl cp = ss.cpr.get(pc, null);
+			StaticStruct st = cp == null ? null : cp.getStaticStruct();
+			if (st != null) {
+				Member m = st.get(key);
+				if (m != null) return m.getModifier() == Member.MODIFIER_FINAL ? new Pair<Member, ComponentImpl>(m, ss.c) : null;
+			}
+			ss = ss.base;
+		}
+		return null;
+	}
+
 	private Pair<Member, ComponentImpl> _getWithBase(PageContext pc, Key key, Member defaultValue) {
 		// does the current struct has this key
 		ComponentPageImpl cp = cpr.get(pc, null);
