@@ -49,6 +49,7 @@ on:
           - org.lucee.oracle
           - org.postgresql.postgresql
           - org.h2
+          - org.hsqldb.hsqldb
           - org.mongodb.mongo-java-driver
           - quartz-extension
           - pdf-extension
