@@ -81,6 +81,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.FunctionArgument;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFGSProperty;
@@ -182,6 +183,17 @@ public final class UDFUtil {
 				while (it.hasNext()) {
 					i++;
 					k = it.next();
+					// LDEV-6947: a positional key that addresses the rest parameter must stay
+					// positional, so defineArguments can gather the surplus into an array.
+					// Use the integer key (1-based), not the loop index, because a forwarded
+					// arguments scope can have named keys in front of the leftover positionals.
+					if (k instanceof ArgumentIntKey) {
+						int idx = ((ArgumentIntKey) k).getIntKey() - 1;
+						if (idx >= 0 && idx < funcArgs.length && isRestArgument(funcArgs[idx])) {
+							if (!values.containsKey(k)) values.setEL(k, argColl.get(k, Argument.NULL));
+							continue;
+						}
+					}
 					if (funcArgs.length > i && k instanceof ArgumentIntKey) {
 						if (!values.containsKey(funcArgs[i].getName())) values.setEL(funcArgs[i].getName(), argColl.get(k, Argument.NULL));
 						else values.setEL(k, argColl.get(k, Argument.NULL));
@@ -433,6 +445,15 @@ public final class UDFUtil {
 	private static void addComment(DumpTable dt, String comment) {
 		if (StringUtil.isEmpty(dt.getComment()) || dt.getComment().indexOf(comment) != -1) dt.setComment(comment);
 		else dt.setComment(dt.getComment() + "\n" + comment);
+	}
+
+
+	private static final Key REST_META = KeyImpl.init("rest");
+
+	private static boolean isRestArgument(FunctionArgument arg) {
+		if (arg == null) return false;
+		Struct meta = arg.getMetaData();
+		return meta != null && meta.containsKey(REST_META);
 	}
 
 }
