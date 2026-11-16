@@ -1509,11 +1509,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 		this.engine = engine;
 		if (!essentialOnly) engine.setConfigServerImpl(this);
-		// an extension that provides the OSGiService is installed in the lib directory
-		if (!essentialOnly) {
-			Resource lib = configDir.getRealResource("lib");
-			if (lib instanceof java.io.File) lucee.runtime.osgi.OSGi.setLibraryDirectory((java.io.File) lib);
-		}
+		// an extension that provides the OSGiService is installed in the lib directory.
+		// this has to be set for the essential config as well, the startup creates the config with
+		// essentialOnly=true and keeps using that instance, the constructor is not called again
+		Resource lib = configDir.getRealResource("lib");
+		if (lib instanceof java.io.File) lucee.runtime.osgi.OSGi.setLibraryDirectory((java.io.File) lib);
 		this.initContextes = initContextes;
 		// this.contextes=contextes;
 		this.rootDir = configDir;

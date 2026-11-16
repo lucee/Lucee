@@ -12,7 +12,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 	}
 
 	function run( testResults, testBox ) {
-		describe( "OSGi bundles without the OSGi extension", function() {
+		// LDEV-6948 these tests are about a Lucee without the OSGi extension, they do not apply when it is
+		// installed (the CI of the OSGi extension runs the tests with the label osgi)
+		describe( title="OSGi bundles without the OSGi extension", skip=server._hasOSGi(), body=function() {
 
 			it( "OSGi is not available", function() {
 				expect( createObject( "java", "lucee.runtime.osgi.OSGi" ).isAvailable() ).toBeFalse();
