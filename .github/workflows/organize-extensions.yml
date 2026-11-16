@@ -56,6 +56,7 @@ on:
           - poi-extension
           - redis.extension
           - redis.clients.jedis
+          - redshift-jdbc-extension
           - sentry-extension
           - s3-extension
           - sapdbc
@@ -107,6 +108,7 @@ on:
           - pdf-extension
           - quartz-extension
           - redis-extension
+          - redshift-jdbc-extension
           - s3-extension
           - spreadsheet-extension
           - scheduler-classic-extension
