@@ -22,7 +22,9 @@ Defaults --->
 <cfset _port=session.certPort>
 
 <cfscript>
-	customCaCertsEnabled = compareNoCase(server.system.properties["lucee.ssl.customcacerts.enabled"]?: "true", "false") != 0;
+	customCaCertsEnabled = compareNoCase(server.system.properties["lucee.ssl.customcacerts.enabled"]
+		?: server.system.environment["LUCEE_SSL_CUSTOMCACERTS_ENABLED"]
+		?: "true", "false") != 0;
 </cfscript>
 
 <cfif !customCaCertsEnabled>
@@ -92,7 +94,7 @@ Error Output --->
 				<tr>
 					<td colspan="2">
 						<input class="bl button submit" type="submit" name="mainAction" value="#stText.services.certificate.list#">
-						<input class="bm button submit" type="submit" name="mainAction" value="#stText.services.certificate.install#">
+						<cfif customCaCertsEnabled><input class="bm button submit" type="submit" name="mainAction" value="#stText.services.certificate.install#"></cfif>
 						<input class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" type="reset" name="cancel" value="#stText.Buttons.Cancel#">
 						<cfif not request.singleMode and request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 					</td>
