@@ -22,10 +22,12 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TimeZone;
+import java.util.regex.Pattern;
 
 import org.osgi.framework.BundleException;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
@@ -112,6 +114,8 @@ public final class DataSourceImpl extends DataSourceSupport {
 		this.paramSyntax = (paramSyntax == null) ? ParamSyntaxImpl.DEFAULT : paramSyntax;
 		this.alwaysSetTimeout = alwaysSetTimeout;
 		translateConnStr();
+		// LDEV-6910
+		connStrTranslated = fillFileDatabaseDefaults(ThreadLocalPageContext.getConfig(config), connStrTranslated);
 
 		this.dbdriver = dbdriver;
 	}
@@ -133,6 +137,53 @@ public final class DataSourceImpl extends DataSourceSupport {
 				connStrTranslated = replace(connStrTranslated, e.getKey().getString(), Caster.toString(e.getValue(), ""), true, leading);
 				leading = false;
 			}
+		}
+	}
+
+	private static final Pattern EMPTY_MODE_PARAM = Pattern.compile(";MODE=(?=;|$)", Pattern.CASE_INSENSITIVE);
+	private static final String PATH = "{path}";
+	private static final String MODE = "{mode}";
+
+	/**
+	 * LDEV-6910: the connection string templates of the file based databases (H2, HSQLDB, DuckDB,
+	 * Derby) contain {path} and (H2, Derby) {mode}. Only the admin driver forms fill them (through the
+	 * custom settings), so a datasource defined with [type] or with class + host/port/database kept them
+	 * as literal text in the connection URL. What is still not filled after the regular replacements
+	 * gets a default: {path} the directory "db" in the Lucee config directory, {mode} nothing (a
+	 * dangling ";MODE=" is removed).
+	 *
+	 * @param config config used to resolve the default path
+	 * @param connStr connection string after the regular replacements
+	 * @return connection string without {path} and {mode}
+	 */
+	public static String fillFileDatabaseDefaults(Config config, String connStr) {
+		if (connStr == null) return connStr;
+		boolean hasPath = StringUtil.indexOfIgnoreCase(connStr, PATH) != -1;
+		boolean hasMode = StringUtil.indexOfIgnoreCase(connStr, MODE) != -1;
+		if (!hasPath && !hasMode) return connStr;
+
+		if (hasPath) {
+			String path = getDefaultFileDatabasePath(config);
+			if (path != null) connStr = StringUtil.replace(connStr, PATH, path, false, true);
+		}
+		if (hasMode) {
+			connStr = StringUtil.replace(connStr, MODE + ":", "", false, true); // Derby: jdbc:derby:{mode}:{path}{database}
+			connStr = StringUtil.replace(connStr, MODE, "", false, true);
+			connStr = EMPTY_MODE_PARAM.matcher(connStr).replaceAll("");
+		}
+		return connStr;
+	}
+
+	private static String getDefaultFileDatabasePath(Config config) {
+		if (config == null) return null;
+		try {
+			Resource dir = config.getConfigDir().getRealResource("db");
+			if (!dir.isDirectory()) dir.mkdirs();
+			String path = dir.getAbsolutePath().replace('\\', '/');
+			return path.endsWith("/") ? path : path + "/";
+		}
+		catch (Exception e) {
+			return null;
 		}
 	}
 
