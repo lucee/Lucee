@@ -1,6 +1,7 @@
 package lucee.runtime.mvn;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -99,6 +100,7 @@ public final class MavenBundleCollector {
 		File file = new File(cache, "mvn_" + group + "_" + artifact + "_" + version + classifier + ".lex");
 		if (file.isFile() && file.length() > 0) return file;
 		StringBuilder tried = new StringBuilder();
+		boolean failed = false;
 		for (String repo: repos) {
 			String url = repo + group.replace('.', '/') + "/" + artifact + "/" + version + "/" + artifact + "-" + version + classifier + ".lex";
 			System.out.println("download " + url);
@@ -121,13 +123,29 @@ public final class MavenBundleCollector {
 				}
 				return file;
 			}
-			catch (IOException ioe) {
+			catch ( FileNotFoundException fnfe ) {
 				Files.deleteIfExists(part.toPath());
-				tried.append("\n- ").append(url).append(" ").append(ioe.getClass().getSimpleName()).append(": ").append(ioe.getMessage());
+				recordAttempt( tried, url, "not available", fnfe );
+			}
+			catch ( IOException ioe ) {
+				Files.deleteIfExists(part.toPath());
+				failed = true;
+				recordAttempt( tried, url, "failed", ioe );
 			}
 		}
-		if (lite) return null;
-		throw new IOException("could not download extension [" + group + ":" + artifact + ":" + version + "], tried:" + tried);
+		if ( lite ) {
+			if ( !failed ) return null;
+			throw downloadException( "transfer of the lite variant of [" + group + ":" + artifact + ":" + version + "] failed", tried );
+		}
+		throw downloadException( "could not download extension [" + group + ":" + artifact + ":" + version + "]", tried );
+	}
+
+	private static void recordAttempt(StringBuilder tried, String url, String reason, Exception e) {
+		tried.append("\n- ").append(url).append(" ").append(reason).append(": ").append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
+	}
+
+	private static IOException downloadException(String message, StringBuilder tried) {
+		return new IOException(message + ", tried:" + tried);
 	}
 
 	private static int copyMavenFolder(File lex, File target) throws IOException {
