@@ -47,7 +47,7 @@ Defaults --->
 					domaincookies="#isDefined("form.domaincookies") and form.domaincookies#"
 					sessionStorage="#form.sessionStorage#"
 					clientStorage="#form.clientStorage#"
-					cgiScopeReadOnly="#isDefined("form.cgiReadonly") and form.cgiReadonly#"
+					cgiScopeReadOnly="#form.cgiReadonly ?: form.cgiScopeReadOnly ?: false#"
 					remoteClients="#request.getRemoteClients()#">
 				
 			</cfcase>

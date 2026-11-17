@@ -79,7 +79,7 @@ Defaults --->
 					password="#session["password"&request.adminType]#"
 
 					requestQueueEnable="#structKeyExists(form,'requestQueueEnable') and form.requestQueueEnable#"
-					requestQueueMax="#structKeyExists(form,'ConcurrentRequestMax')?form.ConcurrentRequestMax:""#"
+					requestQueueMax="#form.ConcurrentRequestMax ?: form.requestQueueMax ?: ''#"
 					requestQueueTimeout="#timeoutMS#"
 					remoteClients="#request.getRemoteClients()#">
 				</cfif>

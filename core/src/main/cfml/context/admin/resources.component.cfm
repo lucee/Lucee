@@ -206,7 +206,7 @@ Defaults --->
                     
                     componentDumpTemplate="#form.componentDumpTemplate#"
                     componentDataMemberDefaultAccess="#form.componentDataMemberAccess#"
-                    triggerDataMember="#isDefined('form.triggerDataMember')#"
+                    triggerDataMember="#form.triggerDataMember ?: form.componentImplicitNotation ?: false#"
                     useShadow="#isDefined('form.componentUseVariablesScope')#"
                     componentDefaultImport="#form.componentAutoImport#"
                     componentLocalSearch="#isDefined('form.componentLocalSearch')#"
