@@ -83,7 +83,7 @@ public final class DynamicInvoker {
 		}
 		catch (Exception e) {
 			if (getLog() != null) getLog().error("dynamic", e);
-			this.root = SystemUtil.getTempDirectory();
+			this.root = SystemUtil.getProcessTempDirectory().getRealResource("dynclasses");
 			// loader = new DirectClassLoader(SystemUtil.getTempDirectory());
 
 			// e.printStackTrace();

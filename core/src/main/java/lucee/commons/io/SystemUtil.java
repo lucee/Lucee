@@ -410,6 +410,42 @@ public final class SystemUtil {
 	}
 
 	/**
+	 * returns the temp directory of this JVM process, separate from the instance temp directory
+	 * 
+	 * @return process temp directory
+	 */
+	public static Resource getProcessTempDirectory() {
+		if ( processTempDirectory == null ) {
+			 synchronized ( SystemUtil.class ) {
+				 if ( processTempDirectory == null ) {
+					 String tmpStr = System.getProperty( "java.io.tmpdir" );
+					 if ( tmpStr == null ) throw new RuntimeException( "java.io.tmpdir is not defined" );
+					 File dir = new File( tmpStr, "lucee-pid-" + ProcessHandle.current().pid() );
+					 if ( !dir.isDirectory() && !dir.mkdirs() ) throw new RuntimeException( "could not create the process temp directory [" + dir + "]" );
+					processTempDirectory = ResourcesImpl.getFileResourceProvider().getResource( dir.getAbsolutePath() );
+					// leftovers from a previous process with this recycled pid are not ours to keep
+					ResourceUtil.removeChildrenEL( processTempDirectory, false );
+					Runtime.getRuntime().addShutdownHook( new Thread() {
+						@Override
+						public void run() {
+							try {
+								ResourceUtil.removeChildrenEL( processTempDirectory, false );
+								processTempDirectory.delete();
+							}
+							catch ( Exception e ) {
+								// a teardown race must not fail the JVM on exit
+							}
+						}
+					} );
+				 }
+			 }
+		 }
+		 return processTempDirectory;
+	}
+
+	private static Resource processTempDirectory;
+
+	/**
 	 * returns a unique temp file (with no auto delete)
 	 * 
 	 * @param extension

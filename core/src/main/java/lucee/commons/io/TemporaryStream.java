@@ -179,7 +179,7 @@ public final class TemporaryStream extends OutputStream {
 
 	public static Resource getTempDirectory() {
 		if (tempFile != null) return tempFile;
-		String tmpStr = System.getProperty("java.io.tmpdir");
+		String tmpStr = SystemUtil.getProcessTempDirectory().getAbsolutePath();
 		if (tmpStr != null) {
 
 			tempFile = ResourceUtil.toResourceNotExisting(ThreadLocalPageContext.get(), tmpStr);
