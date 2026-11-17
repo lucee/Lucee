@@ -3,7 +3,7 @@
  *
  * Endpoint: POST /lucee/admin/mcp.cfm
  * Auth: Authorization: Bearer <Lucee Server Administrator password>
- * Methods: initialize, tools/list, tools/call
+ * Methods: initialize, tools/list, tools/call, ping
  */
 component extends="lucee.admin.mcp.MCPSupport" {
 
@@ -85,6 +85,9 @@ component extends="lucee.admin.mcp.MCPSupport" {
 			}
 			else if (method == "tools/call") {
 				handleToolsCall(requestId, params);
+			}
+			else if (method == "ping") {
+				writeResult(requestId, {});
 			}
 			else {
 				writeError(requestId, -32601, "Method not found: " & method);
