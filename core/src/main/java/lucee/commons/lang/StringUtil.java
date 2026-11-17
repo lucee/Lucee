@@ -818,8 +818,12 @@ public final class StringUtil {
 				_input = input.toLowerCase();
 			}
 		}
+		// LDEV-6917: if both case conversions change the length (e.g. input contains U+00DF and U+0130),
+		// offsets found in the converted copy do not line up with the original input anymore,
+		// so we compare char by char on the original input instead
+		boolean regionMatch = ignoreCase && (_find.length() != find.length() || _input.length() != input.length());
 
-		int pos = ignoreCase ? _input.indexOf(_find) : input.indexOf(find);
+		int pos = regionMatch ? indexOfIgnoreCaseSameLength(input, find, 0) : (ignoreCase ? _input.indexOf(_find) : input.indexOf(find));
 		if (pos == -1) return input;
 
 		int start = 0;
@@ -831,10 +835,23 @@ public final class StringUtil {
 			sb.append(repl);
 			start = pos + findLen;
 			if (firstOnly) break;
-			pos = ignoreCase ? _input.indexOf(_find, start) : input.indexOf(find, start);
+			pos = regionMatch ? indexOfIgnoreCaseSameLength(input, find, start) : (ignoreCase ? _input.indexOf(_find, start) : input.indexOf(find, start));
 		}
 		if (input.length() > start) sb.append(input.substring(start));
 		return sb;
+	}
+
+	/**
+	 * case insensitive indexOf that works on the original string, so the returned position is always a
+	 * valid offset in {@code input} and a match always has the length of {@code find}
+	 */
+	private static int indexOfIgnoreCaseSameLength(String input, String find, int start) {
+		int findLen = find.length();
+		int max = input.length() - findLen;
+		for (int i = start; i <= max; i++) {
+			if (input.regionMatches(true, i, find, 0, findLen)) return i;
+		}
+		return -1;
 	}
 
 	private static class Pos {
