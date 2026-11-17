@@ -10,6 +10,7 @@ import lucee.commons.net.HTTPUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.ai.AIEngine;
 import lucee.runtime.ai.AIEngineSupport;
+import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.AIModel;
 import lucee.runtime.ai.AISession;
 import lucee.runtime.ai.Conversation;
@@ -39,6 +40,13 @@ public final class ClaudeEngine extends AIEngineSupport {
 	private String charset;
 	private int conversationSizeLimit = DEFAULT_CONVERSATION_SIZE_LIMIT;
 	Struct custom;
+
+	/**
+	 * LDEV-6831: request parameters of the Claude messages API that are passed through from the
+	 * connection settings
+	 */
+	public static final String[] PROVIDER_PARAMETERS = new String[] { "max_tokens", "metadata", "stop_sequences", "top_k", "top_p", "tools", "tool_choice",
+			"thinking", "service_tier", "container", "mcp_servers" };
 	Map<String, String> headers;
 
 	@Override
@@ -98,7 +106,7 @@ public final class ClaudeEngine extends AIEngineSupport {
 		props.remove(KeyConstants._timeout, null);
 		props.remove(KeyConstants._apikey, null);
 
-		this.custom = props;
+		this.custom = AIUtil.toProviderParameters(name, props, PROVIDER_PARAMETERS);
 
 		return this;
 	}
