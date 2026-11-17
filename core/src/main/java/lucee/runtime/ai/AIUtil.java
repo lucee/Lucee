@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.http.StatusLine;
 import org.apache.http.client.config.CookieSpecs;
@@ -15,6 +18,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import lucee.commons.digest.Base64Encoder;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.lang.ClassException;
@@ -463,5 +467,68 @@ public final class AIUtil {
 		Config config = ThreadLocalPageContext.getConfig();
 		if (config == null) return null;
 		return ProxyDataImpl.validate(config.getProxyData(), host);
+	}
+
+	/**
+	 * key of a struct in the AI connection settings whose entries are sent to the provider as they are
+	 */
+	public static final Key PASSTHROUGH = KeyImpl.init("passthrough");
+
+	/**
+	 * LDEV-6831: builds the extra parameters that are added to the request body sent to the provider.
+	 * Only keys the provider knows (allowed) and the entries of the [passthrough] struct are sent, any
+	 * other setting the engine did not consume (typos, settings of another driver, newer Lucee settings)
+	 * is ignored and logged as a warning, so it can not make the provider reject the request (HTTP 400).
+	 *
+	 * @param connectionName name of the AI connection, only used for logging
+	 * @param remaining connection settings that are left after the engine has removed the ones it knows
+	 * @param allowed request parameters of the provider that are passed through as they are (case
+	 *            insensitive)
+	 * @return parameters to add to the request body, never null
+	 */
+	public static Struct toProviderParameters(String connectionName, Struct remaining, String[] allowed) {
+		Struct result = new StructImpl(StructImpl.TYPE_LINKED);
+		if (remaining == null || remaining.isEmpty()) return result;
+
+		Set<String> allowedSet = new HashSet<>();
+		if (allowed != null) {
+			for (String a: allowed) {
+				allowedSet.add(a.toLowerCase());
+			}
+		}
+
+		List<String> ignored = new ArrayList<>();
+		Struct passthrough = null;
+		Iterator<Entry<Key, Object>> it = remaining.entryIterator();
+		Entry<Key, Object> e;
+		while (it.hasNext()) {
+			e = it.next();
+			if (PASSTHROUGH.equals(e.getKey())) {
+				passthrough = Caster.toStruct(e.getValue(), null);
+				if (passthrough == null) ignored.add(e.getKey().getString());
+			}
+			else if (allowedSet.contains(e.getKey().getLowerString())) {
+				result.setEL(e.getKey(), e.getValue());
+			}
+			else {
+				ignored.add(e.getKey().getString());
+			}
+		}
+		// explicit passthrough entries win over the top level ones
+		if (passthrough != null) {
+			it = passthrough.entryIterator();
+			while (it.hasNext()) {
+				e = it.next();
+				result.setEL(e.getKey(), e.getValue());
+			}
+		}
+		if (!ignored.isEmpty()) {
+			LogUtil.logx(null, Log.LEVEL_WARN, "ai",
+					"AI connection [" + connectionName + "]: the setting(s) [" + String.join(", ", ignored)
+							+ "] are not known and are not sent to the provider; to send provider specific request parameters, define them in a struct with the key ["
+							+ PASSTHROUGH.getString() + "]",
+					"ai", "application");
+		}
+		return result;
 	}
 }
