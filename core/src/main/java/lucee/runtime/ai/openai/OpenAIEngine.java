@@ -142,6 +142,17 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 	private Boolean multiPartSupported;
 	URI chatCompletionsURI;
 	Struct custom;
+
+	/**
+	 * LDEV-6831: request parameters of OpenAI (and OpenAI compatible providers like Ollama) that are
+	 * passed through from the connection settings
+	 */
+	public static final String[] PROVIDER_PARAMETERS = new String[] { "frequency_penalty", "logit_bias", "logprobs", "top_logprobs", "max_tokens",
+			"max_completion_tokens", "n", "presence_penalty", "response_format", "seed", "service_tier", "stop", "stream_options", "top_p", "tools", "tool_choice",
+			"parallel_tool_calls", "user", "reasoning_effort", "store", "metadata", "modalities", "audio", "prediction", "verbosity", "web_search_options",
+			"safety_identifier", "prompt_cache_key",
+			// Ollama
+			"options", "format", "keep_alive", "think" };
 	Map<String, String> headers;
 
 	@Override
@@ -255,7 +266,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		props.remove(KeyConstants._timeout, null);
 		props.remove(KeyConstants._apikey, null);
 
-		this.custom = props;
+		this.custom = AIUtil.toProviderParameters(name, props, PROVIDER_PARAMETERS);
 
 		return this;
 	}

@@ -63,6 +63,13 @@ public final class GeminiEngine extends AIEngineSupport {
 	public Double temperature = null;
 	Struct generationConfig;
 	Struct custom;
+
+	/**
+	 * LDEV-6831: request parameters of the Gemini generateContent API that are passed through from the
+	 * connection settings
+	 */
+	public static final String[] PROVIDER_PARAMETERS = new String[] { "tools", "toolConfig", "tool_config", "safetySettings", "safety_settings",
+			"systemInstruction", "system_instruction", "cachedContent", "cached_content", "labels" };
 	Map<String, String> headers;
 
 	@Override
@@ -143,7 +150,7 @@ public final class GeminiEngine extends AIEngineSupport {
 
 		props.remove(KeyConstants._timeout, null);
 
-		this.custom = props;
+		this.custom = AIUtil.toProviderParameters(name, props, PROVIDER_PARAMETERS);
 		return this;
 
 	}
