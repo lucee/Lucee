@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -100,13 +102,28 @@ public final class MavenBundleCollector {
 		for (String repo: repos) {
 			String url = repo + group.replace('.', '/') + "/" + artifact + "/" + version + "/" + artifact + "-" + version + classifier + ".lex";
 			System.out.println("download " + url);
+			// a shared cache can be written by several builds at once, so the final name must only ever exist complete
+			File part = new File(cache, file.getName() + ".part." + ProcessHandle.current().pid());
 			try (InputStream is = new URL(url).openStream()) {
-				Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				Files.copy(is, part.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				try (ZipFile zip = new ZipFile(part)) {
+					zip.entries();
+				}
+				try {
+					Files.move(part.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE);
+				}
+				catch ( FileAlreadyExistsException faee ) {
+					// another build published it first, ours is redundant and must not overwrite a complete file
+					Files.deleteIfExists(part.toPath());
+				}
+				catch ( AtomicMoveNotSupportedException amnse ) {
+					Files.move(part.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				}
 				return file;
 			}
 			catch (IOException ioe) {
-				Files.deleteIfExists(file.toPath());
-				tried.append("\n- ").append(url);
+				Files.deleteIfExists(part.toPath());
+				tried.append("\n- ").append(url).append(" ").append(ioe.getClass().getSimpleName()).append(": ").append(ioe.getMessage());
 			}
 		}
 		if (lite) return null;
