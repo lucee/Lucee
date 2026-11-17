@@ -586,6 +586,8 @@
 	<target name="addExtensions" if="buildLoaderJar">
 		<echots message="add extensions"/>
 		
+		<!-- the jar is built from ${goal}, so leftovers from a crashed build would be bundled into it -->
+		<delete dir="${goal}/extensions" quiet="true"/>
 		<mkdir dir="${goal}/extensions/"/>
 
 		<!-- add extension MySQL -->
