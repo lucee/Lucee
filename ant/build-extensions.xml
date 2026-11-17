@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="all" basedir="." name="LuceeExtensions" xmlns:unless="ant:unless">
+<project default="all" basedir="." name="LuceeExtensions" xmlns:if="ant:if" xmlns:unless="ant:unless">
 
 <scriptdef name="readRequiredExtensions" language="javascript" classpath="${nashorn_classpath}">
 	<attribute name="file" />
@@ -169,12 +169,12 @@
 	    ]]>
 	</scriptdef>
 
-	<scriptdef name="getExtensionLex" language="javascript" classpath="${nashorn_classpath}">
+	<scriptdef name="resolveExtensionLex" language="javascript" classpath="${nashorn_classpath}">
 		<attribute name="group" />
 		<attribute name="artifact" />
 		<attribute name="version" />
 		<attribute name="classifier" />
-		<attribute name="dest" />
+		<attribute name="property" />
 		<![CDATA[
 			function normalizeUrl(base) {
 				return base.endsWith("/") ? base : base + "/";
@@ -268,16 +268,11 @@
 				}
 			}
 
-			function tryDownload(url, dest, tried) {
+			function tryResolve(url, tried) {
 				var urlStr = String(url);
 				tried.push(urlStr);
 				var status = httpStatus(urlStr);
 				if (status >= 200 && status < 300) {
-					project.log("Downloading extension from " + urlStr);
-					var get = project.createTask("get");
-					get.setSrc(new java.net.URL(urlStr));
-					get.setDest(new java.io.File(dest));
-					get.perform();
 					return true;
 				}
 				project.log("Extension not found (" + status + "): " + urlStr);
@@ -287,7 +282,7 @@
 			var group = attributes.get("group").trim();
 			var artifact = attributes.get("artifact").trim();
 			var version = attributes.get("version").trim();
-			var dest = attributes.get("dest").trim();
+			var property = attributes.get("property").trim();
 			var classifier = attributes.get("classifier");
 			// an unset ant property is passed as the literal ${...}
 			classifier = (classifier === null || String(classifier).startsWith("${")) ? "" : String(classifier).trim();
@@ -308,8 +303,8 @@
 			}
 
 			var tried = [];
-			var downloaded = false;
-			for (var r = 0; r < repos.length && !downloaded; r++) {
+			var resolvedUrl = null;
+			for (var r = 0; r < repos.length && resolvedUrl === null; r++) {
 				var repoUrl = repos[r];
 				if (!repoUrl) {
 					continue;
@@ -319,65 +314,90 @@
 					// for SNAPSHOTs always use metadata resolution to get the latest timestamped build
 					var resolved = resolveSnapshotLexValue(repoUrl, group, artifact, version, classifier);
 					if (resolved) {
-						downloaded = tryDownload(resolvedLexUrl(repoUrl, group, artifact, version, resolved, classifier), dest, tried);
+						var snapshotUrl = resolvedLexUrl(repoUrl, group, artifact, version, resolved, classifier);
+						if (tryResolve(snapshotUrl, tried)) {
+							resolvedUrl = snapshotUrl;
+						}
 					}
 				} else {
-					if (tryDownload(literalLexUrl(repoUrl, group, artifact, version, classifier), dest, tried)) {
-						downloaded = true;
+					var literalUrl = literalLexUrl(repoUrl, group, artifact, version, classifier);
+					if (tryResolve(literalUrl, tried)) {
+						resolvedUrl = literalUrl;
 					}
 				}
 			}
 
-			if (!downloaded) {
+			if (resolvedUrl === null) {
 				throw new java.lang.RuntimeException(
-					"Could not download [" + group + ":" + artifact + ":" + version + (classifier ? ":" + classifier : "") + ".lex] from any repository. Tried:\n- "
+					"Could not find [" + group + ":" + artifact + ":" + version + (classifier ? ":" + classifier : "") + ".lex] in any repository. Tried:\n- "
 					+ tried.join("\n- ")
 				);
 			}
+
+			project.setProperty(property, resolvedUrl);
+		]]>
+	</scriptdef>
+
+	<scriptdef name="isCompleteArchive" language="javascript" classpath="${nashorn_classpath}">
+		<attribute name="file"/>
+		<attribute name="property"/>
+		<![CDATA[
+			var file = new java.io.File( attributes.get( "file" ) );
+			var complete = file.isFile() && file.length() > 0;
+			if ( complete ) {
+				try {
+					var zip = new java.util.zip.ZipFile( file );
+					complete = zip.size() > 0;
+					zip.close();
+				}
+				catch ( e ) {
+					complete = false;
+				}
+			}
+			if ( complete ) project.setProperty( attributes.get( "property" ), "true" );
 		]]>
 	</scriptdef>
 
 	<!--
-		Downloads an extension (.lex) into the build cache.
-		Tries Maven Central (extURLMaven) first and falls back to cdn.lucee.org (extURLCDN),
-		e.g. for SNAPSHOT builds that are not published to Maven Central.
-		Fails with both URLs in the message if neither has the file.
+		Downloads into the build cache. The download goes to a name only this build process uses and is only moved to the
+		final name once it is complete, so a build in another git worktree sharing the cache never copies a partial download.
 	-->
-	<macrodef name="download-extension">
-		<attribute name="groupPath" description="group as path, e.g. org/lucee"/>
-		<attribute name="artifact" description="artifact id, e.g. mail-extension"/>
-		<attribute name="version" description="version, e.g. 1.1.0.9-SNAPSHOT"/>
-		<attribute name="dest" description="target file in the cache"/>
+	<macrodef name="download-to-cache">
+		<attribute name="src"/>
+		<attribute name="dest"/>
+		<attribute name="fail" default="true"/>
 		<sequential>
-			<local name="ext.downloaded"/>
-			<local name="ext.urlMaven"/>
-			<local name="ext.urlCDN"/>
-			<property name="ext.urlMaven" value="${extURLMaven}@{groupPath}/@{artifact}/@{version}/@{artifact}-@{version}.lex"/>
-			<property name="ext.urlCDN" value="${extURLCDN}@{groupPath}/@{artifact}/@{version}/@{artifact}-@{version}.lex"/>
-
-			<!-- 1. Maven Central -->
-			<echo level="info">download @{artifact}-@{version} from Maven Central: ${ext.urlMaven}</echo>
-			<get src="${ext.urlMaven}" dest="@{dest}" ignoreerrors="true"/>
-			<condition property="ext.downloaded">
+			<local name="cache.part"/>
+			<local name="cache.downloaded"/>
+			<property name="cache.part" value="@{dest}.part.${build.pid}"/>
+			<get src="@{src}" dest="${cache.part}" ignoreerrors="true"/>
+			<isCompleteArchive file="${cache.part}" property="cache.downloaded"/>
+			<move if:set="cache.downloaded" file="${cache.part}" tofile="@{dest}" overwrite="true"/>
+			<delete unless:set="cache.downloaded" file="${cache.part}" quiet="true"/>
+			<condition property="cache.failed">
 				<and>
-					<available file="@{dest}"/>
-					<length file="@{dest}" when="greater" length="0"/>
+					<not><isset property="cache.downloaded"/></not>
+					<equals arg1="@{fail}" arg2="true"/>
 				</and>
 			</condition>
+			<fail if="cache.failed" message="could not download @{src} to @{dest}"/>
+		</sequential>
+	</macrodef>
 
-			<!-- 2. fallback: cdn.lucee.org -->
-			<echo unless:set="ext.downloaded" level="warning">@{artifact}-@{version} not available on Maven Central, falling back to CDN: ${ext.urlCDN}</echo>
-			<delete unless:set="ext.downloaded" file="@{dest}" quiet="true"/>
-			<get unless:set="ext.downloaded" src="${ext.urlCDN}" dest="@{dest}" ignoreerrors="true"/>
-			<condition property="ext.downloaded">
-				<and>
-					<available file="@{dest}"/>
-					<length file="@{dest}" when="greater" length="0"/>
-				</and>
-			</condition>
-
-			<delete unless:set="ext.downloaded" file="@{dest}" quiet="true"/>
-			<fail unless="ext.downloaded" message="Could not download extension @{artifact}-@{version}, tried:${line.separator}  - ${ext.urlMaven}${line.separator}  - ${ext.urlCDN}"/>
+	<!--
+		Resolves an extension (.lex) in the repositories and downloads it into the build cache, see resolveExtensionLex
+		and download-to-cache.
+	-->
+	<macrodef name="getExtensionLex">
+		<attribute name="group"/>
+		<attribute name="artifact"/>
+		<attribute name="version"/>
+		<attribute name="classifier"/>
+		<attribute name="dest"/>
+		<sequential>
+			<local name="ext.resolve.url"/>
+			<resolveExtensionLex group="@{group}" artifact="@{artifact}" version="@{version}" classifier="@{classifier}" property="ext.resolve.url"/>
+			<download-to-cache src="${ext.resolve.url}" dest="@{dest}"/>
 		</sequential>
 	</macrodef>
 
@@ -527,10 +547,10 @@
 
 
 	<target name="check-testbox" depends="check-cache" unless="testbox.present">
-		<get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
+		<download-to-cache src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
 	</target> 
 	<target name="check-testbox-globber" depends="check-cache" unless="globber.present">
-		<get src="${globberURL}" dest="${cache}/globber-${globberVersion}.zip"/>
+		<download-to-cache src="${globberURL}" dest="${cache}/globber-${globberVersion}.zip"/>
 	</target> 
 	<target name="addExtensions" if="buildLoaderJar">
 		<echots message="add extensions"/>
@@ -773,7 +793,7 @@
 
 	<target name="download-lucee-loader-jar" unless="lucee.loader-jar.present">
 		<mkdir dir="${cache}"/>
-		<get src="${cdnUrl}${stableLoader}.jar" dest="${cache}/${stableLoader}.jar"/>
+		<download-to-cache src="${cdnUrl}${stableLoader}.jar" dest="${cache}/${stableLoader}.jar"/>
 	</target>
 
 	<scriptdef name="copyExtensions" language="javascript" classpath="${nashorn_classpath}">

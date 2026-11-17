@@ -87,6 +87,48 @@
     <property name="srcCore" location="${rootDir}/core/src/main/java"/>
     <property name="coreManifest" location="${srcCore}/META-INF/MANIFEST.MF"/>
     <property name="cache" location="${rootDir}/cache"/>
+    <available file="${rootDir}/.git" type="file" property="git.isWorktreeFile"/>
+    <!-- in a git worktree .git is a file that points to the main worktree, the downloaded extensions (${cache}) are shared with it, so a new worktree does not download them again -->
+    <script language="javascript" classpath="${nashorn_classpath}"><![CDATA[
+      // the id of this build process, a download in progress gets a name only this process uses, see download-to-cache
+      project.setProperty( "build.pid", java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split( "@" )[ 0 ] );
+      // a -Dcache=... comes from Ant as a user property, from Maven (antrun) as a normal property, so compare the value with the default
+      var rootDir = new java.io.File( project.getProperty( "rootDir" ) );
+      var defaultCache = new java.io.File( rootDir, "cache" );
+      if ( !new java.io.File( project.getProperty( "cache" ) ).getCanonicalFile().equals( defaultCache.getCanonicalFile() ) ) {
+        project.log( "cache set by the user: " + project.getProperty( "cache" ) );
+      }
+      else if ( project.getProperty( "git.isWorktreeFile" ) != null ) {
+        var line = new java.io.BufferedReader( new java.io.FileReader( new java.io.File( rootDir, ".git" ) ) ).readLine();
+        // "gitdir: <main>/.git/worktrees/<name>", a submodule has "<main>/.git/modules/<name>" and is left alone
+        var gitdir = line == null ? "" : line.substring( line.indexOf( ":" ) + 1 ).trim();
+        var idx = gitdir.lastIndexOf( "/worktrees/" );
+        if ( idx == -1 ) idx = gitdir.lastIndexOf( "\\worktrees\\" );
+        // a bare repository has "<bare>/worktrees/<name>" as well, only "<main>/.git/worktrees/<name>" is a worktree of a normal repository
+        var commonDir = idx == -1 ? null : new java.io.File( gitdir.substring( 0, idx ) );
+        if ( commonDir == null || commonDir.getName() != ".git" || !commonDir.isDirectory() ) {
+          project.log( rootDir + " is no worktree of a normal repository, the cache stays in this tree" );
+        }
+        else {
+          var mainWorktree = commonDir.getParentFile();
+          var shared = new java.io.File( mainWorktree, "cache" );
+          project.log( "worktree of " + mainWorktree + ", the extension cache is shared: " + shared );
+          project.setProperty( "cache", shared.getAbsolutePath() );
+        }
+      }
+
+      // a download that was interrupted leaves its part file behind, it is never used and is only removed once it is old enough to not belong to a running build
+      var cacheDir = new java.io.File( project.getProperty( "cache" ) );
+      var parts = cacheDir.listFiles();
+      if ( parts != null ) {
+        var cutoff = java.lang.System.currentTimeMillis() - 3600000;
+        for ( var i = 0; i < parts.length; i++ ) {
+          if ( parts[ i ].isFile() && parts[ i ].getName().indexOf( ".part." ) !== -1 && parts[ i ].lastModified() < cutoff ) {
+            parts[ i ].delete();
+          }
+        }
+      }
+    ]]></script>
     <property name="trgLoader" location="${rootDir}/loader/target"/>
     <property name="trgCore" location="${rootDir}/core/target"/>
     <property name="srcCFML" location="${rootDir}/core/src/main/cfml"/>
