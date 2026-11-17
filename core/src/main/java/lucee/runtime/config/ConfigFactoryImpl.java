@@ -1832,6 +1832,14 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 							jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
 							if (jdbc != null && hasJDBCLoadInfo(jdbc.cd)) cd = jdbc.cd;
 						}
+						// LDEV-6909 / LDEV-6912: a bundle name without version uses the driver of the installed extension
+						else if (isVersionlessBundle(cd)) {
+							JDBCDriver registered = getRegisteredJDBCDriverForVersionlessBundle(config, cd);
+							if (registered != null) {
+								jdbc = registered;
+								cd = registered.cd;
+							}
+						}
 
 						// still no bundle or maven coordinates!
 						if (!hasJDBCLoadInfo(cd)) cd = patchJDBCClass(config, cd);
@@ -1899,10 +1907,52 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 	 * as OSGi bundle or as Maven artifact.
 	 */
 	public static ClassDefinition resolveJDBCDriverClassDefinition(ConfigPro config, ClassDefinition cd) {
-		if (cd == null || !cd.hasClass() || hasJDBCLoadInfo(cd)) return cd;
+		if (cd == null || !cd.hasClass()) return cd;
+		// LDEV-6909 / LDEV-6912: a bundle name without version uses the driver of the installed extension
+		if (isVersionlessBundle(cd)) {
+			JDBCDriver registered = getRegisteredJDBCDriverForVersionlessBundle(config, cd);
+			return registered != null ? registered.cd : cd;
+		}
+		if (hasJDBCLoadInfo(cd)) return cd;
 		JDBCDriver jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
 		if (jdbc != null && hasJDBCLoadInfo(jdbc.cd)) return jdbc.cd;
 		return patchJDBCClass(config, cd);
+	}
+
+	/**
+	 * @return true if the class definition names an OSGi bundle but no version (and no Maven
+	 *         coordinates), loading it does a versionless bundle lookup
+	 */
+	private static boolean isVersionlessBundle(ClassDefinition cd) {
+		return cd != null && cd.hasClass() && cd.isBundle() && cd.getVersion() == null && !ClassDefinitionImpl.isMaven(cd);
+	}
+
+	/**
+	 * LDEV-6909 / LDEV-6912: a datasource that defines the driver class and a bundle name, but no
+	 * bundle version, should use the driver the installed JDBC extension registered for that class,
+	 * and not do a versionless bundle lookup, which fails when the extension ships the driver as Maven
+	 * artifact (no bundle installed) or can download a newer driver version from the update provider.
+	 * 
+	 * A registered driver with the same bundle name and a version is used first, otherwise a registered
+	 * driver for the same class that is loaded via Maven.
+	 * 
+	 * @return the registered driver to use or null if there is none
+	 */
+	public static JDBCDriver getRegisteredJDBCDriverForVersionlessBundle(ConfigPro config, ClassDefinition cd) {
+		if (!isVersionlessBundle(cd)) return null;
+		JDBCDriver[] drivers = config.getJDBCDrivers();
+		if (drivers == null) return null;
+		JDBCDriver maven = null;
+		for (JDBCDriver d: drivers) {
+			if (d == null || d.cd == null || !cd.getClassName().equals(d.cd.getClassName())) continue;
+			if (ClassDefinitionImpl.isMaven(d.cd)) {
+				if (maven == null) maven = d;
+			}
+			else if (d.cd.isBundle() && d.cd.getVersion() != null && cd.getName().equalsIgnoreCase(d.cd.getName())) {
+				return d;
+			}
+		}
+		return maven;
 	}
 
 	private static boolean hasJDBCLoadInfo(ClassDefinition cd) {
