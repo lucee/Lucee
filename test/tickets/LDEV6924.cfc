@@ -4,6 +4,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="admin" {
 		variables.adminRoot = getAdminRoot();
 		// ConfigServerImpl.metaCustomTagExtensions is backed by the system property "lucee.customTagExtensions"
 		variables.propName = "lucee.customTagExtensions";
+		// log in once, a second admin login within the login delay (default 1s) is rejected
+		if ( len( variables.adminRoot ) ) variables.cookies = login();
 	}
 
 	function run( testResults, testBox ) {
@@ -59,7 +61,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="admin" {
 			template: adminRoot & "index.cfm",
 			urls: { action: "resources.customtags" },
 			forms: forms,
-			cookies: login()
+			cookies: variables.cookies
 		);
 	}
 
@@ -73,6 +75,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="admin" {
 			template: variables.adminRoot & "index.cfm",
 			forms: { login_passwordserver: server.SERVERADMINPASSWORD, lang: "en", rememberMe: "s", submit: "submit" }
 		);
+		// another test may have logged in to the admin just before, wait for the login delay and try once more
+		if ( findNoCase( "login_password", result.fileContent ) ) {
+			admin action="getLoginSettings" type="server" password=server.SERVERADMINPASSWORD returnVariable="local.loginSettings";
+			sleep( ( loginSettings.loginDelay + 1 ) * 1000 );
+			result = _internalRequest(
+				template: variables.adminRoot & "index.cfm",
+				forms: { login_passwordserver: server.SERVERADMINPASSWORD, lang: "en", rememberMe: "s", submit: "submit" }
+			);
+		}
 		if ( findNoCase( "login_password", result.fileContent ) ) throw( message="login failed" );
 		return { cfid: result.session.cfid, cftoken: result.session.cftoken };
 	}
