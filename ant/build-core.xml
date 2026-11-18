@@ -22,6 +22,9 @@
   <property name="extURLMaven" value="https://repo1.maven.org/maven2/"/>
   <property name="extURLCDN" value="https://maven.lucee-services.com/"/>
   <property name="extURLSnapshot" value="https://central.sonatype.com/repository/maven-snapshots/"/>
+  <!-- the jakarta 11 patch in __build_testbox: the version is defined here once, see getJakartaJar -->
+  <property name="jakarta.patch.version" value="11.0.0"/>
+  <property name="jakarta.m2.dir" location="${user.home}/.m2/repository/jakarta/platform"/>
   
   <property name="extMongo"     value="org.lucee:mongodb-extension:3.12.13.10"/>
   <property name="extH2"        value="org.lucee:h2-jdbc-extension:2.1.214.1-RC"/>
@@ -117,18 +120,10 @@
         }
       }
 
-      // a download that was interrupted leaves its part file behind, it is never used and is only removed once it is old enough to not belong to a running build
-      var cacheDir = new java.io.File( project.getProperty( "cache" ) );
-      var parts = cacheDir.listFiles();
-      if ( parts != null ) {
-        var cutoff = java.lang.System.currentTimeMillis() - 3600000;
-        for ( var i = 0; i < parts.length; i++ ) {
-          if ( parts[ i ].isFile() && parts[ i ].getName().indexOf( ".part." ) !== -1 && parts[ i ].lastModified() < cutoff ) {
-            parts[ i ].delete();
-          }
-        }
-      }
     ]]></script>
+    <!-- a download that was interrupted leaves its part file behind, it is never used and is only removed once it is old enough to not belong to a running build -->
+    <cleanStalePartFiles dir="${cache}" older_than="3600000"/>
+    <cleanStalePartFiles dir="${jakarta.m2.dir}" older_than="3600000"/>
     <property name="trgLoader" location="${rootDir}/loader/target"/>
     <property name="trgCore" location="${rootDir}/core/target"/>
     <property name="srcCFML" location="${rootDir}/core/src/main/cfml"/>
@@ -779,17 +774,9 @@
       -->
 
 
-    <!-- Download Jakarta EE 11.0.0 JARs if they don't exist -->
-    <mkdir dir="${user.home}/.m2/repository/jakarta/platform/jakarta.jakartaee-api/11.0.0"/>
-    <mkdir dir="${user.home}/.m2/repository/jakarta/platform/jakarta.jakartaee-web-api/11.0.0"/>
-    
-    <get src="https://repo1.maven.org/maven2/jakarta/platform/jakarta.jakartaee-api/11.0.0/jakarta.jakartaee-api-11.0.0.jar"
-         dest="${user.home}/.m2/repository/jakarta/platform/jakarta.jakartaee-api/11.0.0/jakarta.jakartaee-api-11.0.0.jar"
-         skipexisting="true"/>
-    
-    <get src="https://repo1.maven.org/maven2/jakarta/platform/jakarta.jakartaee-web-api/11.0.0/jakarta.jakartaee-web-api-11.0.0.jar"
-         dest="${user.home}/.m2/repository/jakarta/platform/jakarta.jakartaee-web-api/11.0.0/jakarta.jakartaee-web-api-11.0.0.jar"
-         skipexisting="true"/>
+    <!-- Download Jakarta EE JARs if they are not in the repository -->
+    <getJakartaJar artifact="jakarta.jakartaee-api"/>
+    <getJakartaJar artifact="jakarta.jakartaee-web-api"/>
     
     <!-- Replace Jakarta EE API versions for Java 17 compatibility -->
     <loadresource property="runtime_classpath_updated">
@@ -799,9 +786,9 @@
                 <stringtokenizer/>
                 <!-- Replace full path including directory and filename -->
                 <replaceregex pattern="jakarta/platform/jakarta\.jakartaee-api/10\.0\.0/jakarta\.jakartaee-api-10\.0\.0\.jar" 
-                             replace="jakarta/platform/jakarta.jakartaee-api/11.0.0/jakarta.jakartaee-api-11.0.0.jar" flags="g"/>
+                             replace="jakarta/platform/jakarta.jakartaee-api/${jakarta.patch.version}/jakarta.jakartaee-api-${jakarta.patch.version}.jar" flags="g"/>
                 <replaceregex pattern="jakarta/platform/jakarta\.jakartaee-web-api/10\.0\.0/jakarta\.jakartaee-web-api-10\.0\.0\.jar" 
-                             replace="jakarta/platform/jakarta.jakartaee-web-api/11.0.0/jakarta.jakartaee-web-api-11.0.0.jar" flags="g"/>
+                             replace="jakarta/platform/jakarta.jakartaee-web-api/${jakarta.patch.version}/jakarta.jakartaee-web-api-${jakarta.patch.version}.jar" flags="g"/>
             </tokenfilter>
         </filterchain>
     </loadresource>

@@ -400,6 +400,7 @@
 		<sequential>
 			<local name="cache.part"/>
 			<local name="cache.downloaded"/>
+			<local name="cache.failed"/>
 			<property name="cache.part" value="@{dest}.part.${build.pid}"/>
 			<get src="@{src}" dest="${cache.part}" ignoreerrors="true"/>
 			<isCompleteArchive file="${cache.part}" property="cache.downloaded"/>
@@ -412,6 +413,25 @@
 				</and>
 			</condition>
 			<fail if="cache.failed" message="could not download @{src} to @{dest}"/>
+		</sequential>
+	</macrodef>
+
+	<!--
+		One jakarta jar in the shared ~/.m2 repository, for the jakarta 11 patch in build-core.xml. A complete archive
+		at the final name skips the download, an interrupted one leaves only a part file, so a build in another
+		worktree never reads a truncated jar. The version and the repository directory come from build-core.xml.
+	-->
+	<macrodef name="getJakartaJar">
+		<attribute name="artifact"/>
+		<sequential>
+			<local name="jakarta.jar.dir"/>
+			<local name="jakarta.jar.present"/>
+			<property name="jakarta.jar.dir" location="${jakarta.m2.dir}/@{artifact}/${jakarta.patch.version}"/>
+			<mkdir dir="${jakarta.jar.dir}"/>
+			<isCompleteArchive file="${jakarta.jar.dir}/@{artifact}-${jakarta.patch.version}.jar" property="jakarta.jar.present"/>
+			<download-to-cache unless:set="jakarta.jar.present"
+				src="${extURLMaven}jakarta/platform/@{artifact}/${jakarta.patch.version}/@{artifact}-${jakarta.patch.version}.jar"
+				dest="${jakarta.jar.dir}/@{artifact}-${jakarta.patch.version}.jar"/>
 		</sequential>
 	</macrodef>
 
