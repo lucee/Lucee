@@ -41,6 +41,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
@@ -416,34 +418,34 @@ public final class SystemUtil {
 	 */
 	public static Resource getProcessTempDirectory() {
 		if ( processTempDirectory == null ) {
-			 synchronized ( SystemUtil.class ) {
-				 if ( processTempDirectory == null ) {
-					 String tmpStr = System.getProperty( "java.io.tmpdir" );
-					 if ( tmpStr == null ) throw new RuntimeException( "java.io.tmpdir is not defined" );
-					 File dir = new File( tmpStr, "lucee-pid-" + ProcessHandle.current().pid() );
-					 if ( !dir.isDirectory() && !dir.mkdirs() ) throw new RuntimeException( "could not create the process temp directory [" + dir + "]" );
-					processTempDirectory = ResourcesImpl.getFileResourceProvider().getResource( dir.getAbsolutePath() );
-					// leftovers from a previous process with this recycled pid are not ours to keep
-					ResourceUtil.removeChildrenEL( processTempDirectory, false );
-					Runtime.getRuntime().addShutdownHook( new Thread() {
-						@Override
-						public void run() {
-							try {
-								ResourceUtil.removeChildrenEL( processTempDirectory, false );
-								processTempDirectory.delete();
+			synchronized ( SystemUtil.class ) {
+				if ( processTempDirectory == null ) {
+					try {
+						Path dir = Files.createTempDirectory( "lucee-pid-" + ProcessHandle.current().pid() + "-" );
+						processTempDirectory = ResourcesImpl.getFileResourceProvider().getResource( dir.toString() );
+						Runtime.getRuntime().addShutdownHook( new Thread() {
+							@Override
+							public void run() {
+								try {
+									ResourceUtil.removeChildrenEL( processTempDirectory, false );
+									processTempDirectory.delete();
+								}
+								catch ( Exception e ) {
+									// a teardown race must not fail the JVM on exit
+								}
 							}
-							catch ( Exception e ) {
-								// a teardown race must not fail the JVM on exit
-							}
-						}
-					} );
-				 }
-			 }
-		 }
-		 return processTempDirectory;
+						} );
+					}
+					catch ( IOException ioe ) {
+						throw new RuntimeException( "could not create the process temp directory", ioe );
+					}
+				}
+			}
+		}
+		return processTempDirectory;
 	}
 
-	private static Resource processTempDirectory;
+	private static volatile Resource processTempDirectory;
 
 	/**
 	 * returns a unique temp file (with no auto delete)
