@@ -3581,6 +3581,8 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 									else {
 										log(config, Log.LEVEL_ERROR, "the extension resource [" + strRes + "] does not exist, the extension is not installed");
 									}
+									// LDEV-6958 keep using an already installed version of that extension
+									useInstalledVersion(config, id, version, extensionsConfig);
 									continue;
 								}
 							}
@@ -3603,6 +3605,8 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
 						log(config, t);
+						// LDEV-6958 the configured version could not be installed (e.g. download failed), keep using an already installed version
+						useInstalledVersion(config, id, getAttr(config, child, KeyConstants._version), extensionsConfig);
 						continue;
 					}
 				}
@@ -3700,6 +3704,50 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			}
 			// set
 			config.setExtensions(extensionsConfig.values().toArray(new RHExtension[extensionsConfig.size()]), md5);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, t);
+		}
+	}
+
+	/**
+	 * LDEV-6958 if the configured version of an extension could not be installed, but another version
+	 * of the same extension is already installed, we keep using (register and start) that installed
+	 * version instead of ending up with no extension at all
+	 */
+	private static void useInstalledVersion(ConfigServerImpl config, String id, String configuredVersion, Map<String, RHExtension> extensionsConfig) {
+		if (StringUtil.isEmpty(id, true)) return;
+		id = id.trim();
+		try {
+			Map<String, Resource> installed = RHExtension.loadExtensionInstalledFiles(config);
+			if (installed == null) return;
+
+			String name = null;
+			RHExtension match = null;
+			org.osgi.framework.Version matchVersion = null;
+			for (Entry<String, Resource> e: installed.entrySet()) {
+				RHExtension ext = RHExtension.getInstance(config, e.getValue(), null);
+				if (ext == null || ext.getId() == null || !id.equalsIgnoreCase(ext.getId().trim())) continue;
+				// if multiple versions are installed, we take the highest
+				org.osgi.framework.Version v = OSGiUtil.toVersion(ext.getVersion(), null);
+				if (match == null || (v != null && (matchVersion == null || v.compareTo(matchVersion) > 0))) {
+					name = e.getKey();
+					match = ext;
+					matchVersion = v;
+				}
+			}
+			if (match == null) return;
+			// already registered (e.g. listed twice in the config)
+			for (RHExtension e: extensionsConfig.values()) {
+				if (id.equalsIgnoreCase(e.getId())) return;
+			}
+
+			log(config, Log.LEVEL_ERROR, "the extension [" + id + "] could not be installed in the configured version ["
+					+ (StringUtil.isEmpty(configuredVersion, true) ? "latest" : configuredVersion.trim()) + "], so the already installed version [" + match.getVersion()
+					+ "] is used");
+			// key is the name of the installed file, so the cleanup further down keeps that file
+			extensionsConfig.put(name, match);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
