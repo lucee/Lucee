@@ -210,7 +210,6 @@ import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.EnvClassLoader;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.regex.Regex;
@@ -5461,14 +5460,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			if (installed == null || installed.isEmpty()) return;
 
 			RHExtension match = null;
-			org.osgi.framework.Version matchVersion = null;
+			Version matchVersion = null;
 			String name = null;
 			for (lucee.runtime.extension.RHExtensionCollection.Entry entry: installed) {
 				RHExtension ext = entry.getRHExtension();
 				if (ext == null || ext.getId() == null || !id.equalsIgnoreCase(ext.getId().trim())) continue;
 				// if multiple versions are installed, we take the highest
-				// fully qualified: this class already imports lucee.runtime.config.maven.Version
-				org.osgi.framework.Version v = OSGiUtil.toVersion(ext.getVersion(), null);
+				// Version is lucee.runtime.config.maven.Version (this class already imports it); OSGiUtil is not in 9.0
+				Version v = VersionImpl.parseVersion(ext.getVersion(), null);
 				if (match == null || (v != null && (matchVersion == null || v.compareTo(matchVersion) > 0))) {
 					name = entry.getFilename();
 					match = ext;
