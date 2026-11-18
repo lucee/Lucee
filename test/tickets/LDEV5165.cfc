@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="LDEV5165" {
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-5165 script components are only parsed into lines once", function() {
