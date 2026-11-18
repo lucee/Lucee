@@ -478,10 +478,15 @@ public class Prop<T> {
 		}
 
 		// a setting defined via system property / environment variable always takes precedence over the
-		// config file (see get()), so updating it here would silently have no effect - fail with a clear
+		// config file (see get()), so changing it here would silently have no effect - fail with a clear
 		// message instead of writing a value that will be ignored.
+		// If the incoming value is unchanged, skip the write so a multi-setting admin update (LDEV-6925)
+		// can still save the other settings of the same page.
 		String envSource = getEnvVarSystemPropSource();
 		if (envSource != null) {
+			T incoming = getFromInput(config, input);
+			T current = get(config, root, true);
+			if (Objects.equals(incoming, current)) return;
 			String settingName = StringUtil.isEmpty(parent, true) ? keys[0] : (parent + "." + keys[0]);
 			throw new ApplicationException("cannot update the setting [" + settingName + "], because it is defined via the system property [" + envSource
 					+ "] / environment variable [" + SystemUtil.convertSystemPropToEnvVar(envSource) + "], which takes precedence over the configuration file");

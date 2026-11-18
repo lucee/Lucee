@@ -20,14 +20,26 @@ Defaults --->
 		<cfswitch expression="#form.mainAction#">
 		<!--- UPDATE --->
 			<cfcase value="#stText.Buttons.Update#">
-			
+				<!--- LDEV-6923: when a template is locked by env/sysprop, systemSetting.cfm replaces
+				     the errtype radios with a hidden errorGeneralTemplate / errorMissingTemplate field --->
+				<cfif not structKeyExists(form, "errtype500")>
+					<cfparam name="form.errorTemplate_File500" default="#structKeyExists(form, 'errorGeneralTemplate') ? form.errorGeneralTemplate : ''#">
+					<cfset form.errtype500 = "File">
+				</cfif>
+				<cfif not structKeyExists(form, "errtype404")>
+					<cfparam name="form.errorTemplate_File404" default="#structKeyExists(form, 'errorMissingTemplate') ? form.errorMissingTemplate : ''#">
+					<cfset form.errtype404 = "File">
+				</cfif>
+				<cfset statusCodeOn = (structKeyExists(form, "doStatusCode") and form.doStatusCode)
+					or (structKeyExists(form, "errorStatusCode") and form.errorStatusCode)>
+
 				<cfadmin 
 					action="updateError"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
 					template500="#form["errorTemplate_"&form.errtype500&500]#"
 					template404="#form["errorTemplate_"&form.errtype404&404]#"
-					statuscode="#structKeyExists(form,'errorStatusCode') and form.errorStatusCode#"
+					statuscode="#statusCodeOn#"
 					
 					remoteClients="#request.getRemoteClients()#">
 				
