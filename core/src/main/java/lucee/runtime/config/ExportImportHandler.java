@@ -37,7 +37,7 @@ public final class ExportImportHandler {
 	public static void export(PageContext pc, ConfigServer cs, short types, String target, boolean addOptionalArtifacts, String regularMappingFilter, String componentMappingFilter,
 			String customtagMappingFilter) throws IOException, ConverterException {
 
-		Resource tmp = SystemUtil.getTempDirectory();
+		Resource tmp = SystemUtil.getProcessTempDirectory();
 		Resource dir;
 		// we need a new directory
 		do {

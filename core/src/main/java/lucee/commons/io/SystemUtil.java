@@ -460,7 +460,7 @@ public final class SystemUtil {
 			if (extension.startsWith(".")) filename += extension;
 			else filename += "." + extension;
 		}
-		Resource file = getTempDirectory().getRealResource(filename);
+		Resource file = getProcessTempDirectory().getRealResource(filename);
 		if (touch) ResourceUtil.touch(file);
 		return file;
 	}

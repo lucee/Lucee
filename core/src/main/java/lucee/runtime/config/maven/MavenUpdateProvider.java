@@ -784,7 +784,7 @@ public final class MavenUpdateProvider {
 				cacheRootDirectory = ThreadLocalPageContext.getConfigServer().getConfigDir();
 			}
 			catch (Exception e) {
-				cacheRootDirectory = SystemUtil.getTempDirectory();
+				cacheRootDirectory = SystemUtil.getProcessTempDirectory();
 			}
 		}
 

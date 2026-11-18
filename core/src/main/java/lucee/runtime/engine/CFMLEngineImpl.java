@@ -791,7 +791,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 				try {
 					// copy to temp
-					temp = SystemUtil.getTempDirectory().getRealResource(name);
+					temp = SystemUtil.getProcessTempDirectory().getRealResource(name);
 					log.info("extract-extension", "Copy extension [" + name + "] to temp directory [" + temp.getParent() + "]");
 					ResourceUtil.touch(temp);
 					Util.copy(is, temp.getOutputStream(), false, true);

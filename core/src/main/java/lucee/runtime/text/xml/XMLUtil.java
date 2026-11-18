@@ -250,7 +250,7 @@ public final class XMLUtil {
 	public static URL getTransformerFactoryResource() throws IOException {
 		if (transformerFactoryResource == null) {
 			String name = getTransformerFactoryName();
-			Resource localFile = SystemUtil.getTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
+			Resource localFile = SystemUtil.getProcessTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
 			IOUtil.write(localFile, name.getBytes());
 			transformerFactoryResource = ((File) localFile).toURI().toURL();
 		}
@@ -528,7 +528,7 @@ public final class XMLUtil {
 	public static URL getDocumentBuilderFactoryResource() throws IOException {
 		if (documentBuilderFactoryResource == null) {
 			String name = getDocumentBuilderFactoryName();
-			Resource localFile = SystemUtil.getTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
+			Resource localFile = SystemUtil.getProcessTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
 			IOUtil.write(localFile, name.getBytes());
 			documentBuilderFactoryResource = ((File) localFile).toURI().toURL();
 		}
@@ -615,7 +615,7 @@ public final class XMLUtil {
 	public static URL getSAXParserFactoryResource() throws IOException {
 		if (saxParserFactoryResource == null) {
 			String name = getSAXParserFactoryName();
-			Resource localFile = SystemUtil.getTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
+			Resource localFile = SystemUtil.getProcessTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
 			IOUtil.write(localFile, name.getBytes());
 			saxParserFactoryResource = ((File) localFile).toURI().toURL();
 		}
