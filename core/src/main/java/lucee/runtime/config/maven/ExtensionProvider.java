@@ -114,6 +114,7 @@ public class ExtensionProvider {
 		uuidMapping.put("058215B3-5544-4392-A187A1649EB5CA90", "websocket-client-extension");
 		uuidMapping.put("212BA548-F15A-4EBD-8B1EEDF8DD8A844D", "mail-extension");
 		uuidMapping.put("C09479BE-3309-47AB-BD2D89F9973D8A03", "ftp-extension");
+		uuidMapping.put("037A27FF-0B80-4CBA-B954BEBD790B460E", "spreadsheet-extension");
 
 	}
 
