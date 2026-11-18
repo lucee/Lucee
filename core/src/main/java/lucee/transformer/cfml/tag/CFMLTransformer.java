@@ -167,42 +167,38 @@ public final class CFMLTransformer {
 		boolean allowUnknownTags = ast;
 		TemplateException tagException = null;
 		while (true) {
-			PageSourceCode psc = null;
 			try {
-				psc = new PageSourceCode(ps, charset, writeLog);
-				sc = psc;
+				// LDEV-5165 read the source once and only build the SourceCode that is actually parsed
+				String text = PageSourceCode.toString(ps, charset);
+				sc = null;
 				// script files (cfs)
 				if (Constants.isCFMLScriptExtension(ListUtil.last(ps.getRealpath(), '.'))) {
-					TagLibTag scriptTag = CFMLTransformer.getTLT(sc, Constants.CFML_SCRIPT_TAG_NAME, config.getIdentification());
-
-					sc.setPos(0);
-					SourceCode original = sc;
+					TagLibTag scriptTag = getScriptTag(ps, text, charset, writeLog, config.getIdentification());
 
 					// try inside a cfscript
-					String text = "<" + scriptTag.getFullName() + ">" + original.getText() + "\n</" + scriptTag.getFullName() + ">";
+					String wrappedText = "<" + scriptTag.getFullName() + ">" + text + "\n</" + scriptTag.getFullName() + ">";
 					int sourceOffset = ("<" + scriptTag.getFullName() + ">").length();
-					sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
+					sc = new PageSourceCode(ps, wrappedText, charset, writeLog, sourceOffset);
 				}
 				else if (isCFMLCompExt) {
-					TagLib tl = CFMLTransformer.getTagLib(sc, config.getIdentification());
-					String text = sc.getText();
+					TagLib tl = loadTagLib(ps, text, charset, writeLog, config.getIdentification());
 					// no tags at all, or a script component that only contains "<cf" inside a string or comment
 					// (LDEV-3228)
 					if ((StringUtil.indexOfIgnoreCase(text, "<" + tl.getNameSpaceAndSeparator()) == -1
 							&& StringUtil.indexOfIgnoreCase(text, "</" + tl.getNameSpaceAndSeparator()) == -1) || startsWithScriptComponent(text)) {
 
-						TagLibTag scriptTag = CFMLTransformer.getTLT(sc, Constants.CFML_SCRIPT_TAG_NAME, config.getIdentification());
-						sc.setPos(0);
+						TagLibTag scriptTag = getScriptTag(ps, text, charset, writeLog, config.getIdentification());
 						// try inside a cfscript
-						text = "<" + scriptTag.getFullName() + ">" + text + "\n</" + scriptTag.getFullName() + ">";
+						String wrappedText = "<" + scriptTag.getFullName() + ">" + text + "\n</" + scriptTag.getFullName() + ">";
 						int sourceOffset = ("<" + scriptTag.getFullName() + ">").length();
-						sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
+						sc = new PageSourceCode(ps, wrappedText, charset, writeLog, sourceOffset);
 						sc.setWrappedInScript(true);
 						wrapped = true;
 
 					}
 
 				}
+				if (sc == null) sc = new PageSourceCode(ps, text, charset, writeLog);
 				p = transform(factory, config, sc, tlibs, flibs, ps.getResource().lastModified(), dotUpper, returnValue, ignoreScopes, hasWriteLog, hasUpper, hasCharset,
 						allowUnknownTags);
 				break;
@@ -223,7 +219,7 @@ public final class CFMLTransformer {
 			}
 			catch (TemplateException te) {
 				// a script component can contain "<cf" in a comment or string, retry it as script below
-				if (!isCFMLCompExt || wrapped || te instanceof ComponentTemplateException) throw te;
+				if (!isCFMLCompExt || wrapped || sc == null || te instanceof ComponentTemplateException) throw te;
 				tagException = te;
 				p = null;
 				break;
@@ -383,6 +379,19 @@ public final class CFMLTransformer {
 		catch (TagLibException e) {
 			throw new TemplateException(cfml, e);
 		}
+	}
+
+	private static TagLib loadTagLib(PageSource ps, String text, Charset charset, boolean writeLog, Identification id) throws TemplateException {
+		try {
+			return TagLibFactory.loadFromSystem(id);
+		}
+		catch (TagLibException e) {
+			throw new TemplateException(new PageSourceCode(ps, text, charset, writeLog), e);
+		}
+	}
+
+	private static TagLibTag getScriptTag(PageSource ps, String text, Charset charset, boolean writeLog, Identification id) throws TemplateException {
+		return loadTagLib(ps, text, charset, writeLog, id).getTag(Constants.CFML_SCRIPT_TAG_NAME);
 	}
 
 	public static TagLib getTagLib(SourceCode cfml, Identification id) throws TemplateException {
