@@ -6381,6 +6381,10 @@ public final class ConfigAdmin {
 		}
 
 		// ConfigWeb
+		deployFileFromStream(root, is, realpath, closeStream, filesDeployed);
+	}
+
+	private static void deployFileFromStream(Resource root, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed) throws IOException {
 		Resource trg = root.getRealResource(realpath);
 		if (trg.exists()) trg.remove(true);
 		Resource p = trg.getParentResource();
@@ -6862,7 +6866,8 @@ public final class ConfigAdmin {
 
 	Resource[] updatePlugin(InputStream is, String realpath, boolean closeStream) throws PageException, IOException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
-		deployFilesFromStream(config, config.getPluginDirectory(), is, realpath, closeStream, filesDeployed);
+		// LDEV-5847 plugins are shared by all web contexts, so deploy them even before a web context exists (e.g. extensions installed via .CFConfig.json on startup)
+		deployFileFromStream(config.getPluginDirectory(), is, realpath, closeStream, filesDeployed);
 		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
 	}
 
