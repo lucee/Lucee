@@ -1,5 +1,4 @@
-// TODO LDEV-6627: skipped until the OSGi extension exists, this tests code that moved out of core into the OSGi extension (OSGi service, OSGiUtil, Felix). Move to the extension or enable again (remove skip="true") as soon as that is done.
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 
 	function run( testResults, testBox ) {
 		describe( "versions of bundles with a qualifier that is not a number", function() {
@@ -68,7 +67,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" skip="true" 
 				expect( a.equals( cls.init( "org.lucee.hsqldb", "2.7.3-jdk8" ) ) ).toBeFalse();
 			});
 
-			it( "toBundleVersion keeps the OSGi string that toLucee would hyphenate", function() {
+			// TODO LDEV-6627: OSGiUtil was removed from core and is not provided by the OSGi extension under that name.
+			it( title="toBundleVersion keeps the OSGi string that toLucee would hyphenate", skip=true, body=function() {
 				var osgi = createObject( "java", "org.osgi.framework.Version" ).init( "2.7.2.jdk8" );
 				var util = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
 				expect( util.toLucee( osgi ).toString() ).toBe( "2.7.2-jdk8" );

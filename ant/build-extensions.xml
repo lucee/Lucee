@@ -473,6 +473,7 @@
 		<available file="${cache}/${extFtpExtensionFilename}" property="ftp.present"/>
 		<available file="${cache}/${extMarkdownExtensionFilename}" property="markdown.present"/>
 		<available file="${cache}/${extSmbExtensionFilename}" property="smb.present"/>
+		<available file="${cache}/${extOsgiExtensionFilename}" property="osgi.present"/>
 	</target>
 
 	<target name="check-mysql" depends="check-cache" unless="mysql.present">
@@ -596,6 +597,14 @@
 			version="${extSmbExtensionVersion}"
 			classifier="${extSmbExtensionClassifier}"
 			dest="${cache}/${extSmbExtensionFilename}"/>
+	</target>
+	<target name="check-osgi" depends="check-cache" unless="osgi.present">
+		<getExtensionLex
+			group="${extOsgiExtensionGroup}"
+			artifact="${extOsgiExtensionArtifact}"
+			version="${extOsgiExtensionVersion}"
+			classifier="${extOsgiExtensionClassifier}"
+			dest="${cache}/${extOsgiExtensionFilename}"/>
 	</target>
 
 
@@ -839,6 +848,21 @@
 			tofile="${goal}/extensions/${ext_smb.filename}"/>
 		<echo level="info">add:${goal}/extensions/${ext_smb.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_smb.filename};</echo>
+
+		<!-- add extension OSGi -->
+		<loadmf jar="${cache}/${extOsgiExtensionFilename}" prefix="ext_osgi."/>
+		<toFileName id="${ext_osgi.id}" name="${ext_osgi.name}" version="${ext_osgi.version}" 
+		    group="${extOsgiExtensionGroup}"
+		    artifact="${extOsgiExtensionArtifact}"
+		    property="ext_osgi.filename"/>
+		<copy 
+			file="${cache}/${extOsgiExtensionFilename}" 
+			todir="${goal}/extensions/"/>
+		<move 
+			file="${goal}/extensions/${extOsgiExtensionFilename}" 
+			tofile="${goal}/extensions/${ext_osgi.filename}"/>
+		<echo level="info">add:${goal}/extensions/${ext_osgi.filename}</echo>
+		<echo file="${goal}/extensions/.index" append="true">${ext_osgi.filename};</echo>
 
 	</target>
 
