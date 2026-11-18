@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -114,9 +115,11 @@ public final class MavenBundleCollector {
 				try {
 					Files.move(part.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE);
 				}
-				catch ( FileAlreadyExistsException faee ) {
-					// another build published it first, ours is redundant and must not overwrite a complete file
-					Files.deleteIfExists(part.toPath());
+				catch ( FileAlreadyExistsException | AccessDeniedException e ) {
+					// another build published it first - on Windows the rename onto a file that build still has open
+					// fails with AccessDeniedException rather than FileAlreadyExistsException
+					if ( !file.isFile() || file.length() <= 0 ) throw e;
+					Files.deleteIfExists( part.toPath() );
 				}
 				catch ( AtomicMoveNotSupportedException amnse ) {
 					Files.move(part.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);

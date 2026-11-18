@@ -375,8 +375,10 @@
 			catch ( e ) {
 				// a catch binding must be an identifier, so dispatch on the exception class
 				var cls = e.getClass().getName();
-				if ( cls === "java.nio.file.FileAlreadyExistsException" ) {
-					// another build published it first, ours is redundant and must not overwrite a complete file
+				if ( cls === "java.nio.file.FileAlreadyExistsException" || cls === "java.nio.file.AccessDeniedException" ) {
+					// another build published it first; on Windows the rename onto a file that build still has open
+					// fails with AccessDeniedException rather than FileAlreadyExistsException
+					if ( !java.nio.file.Files.isRegularFile( dest ) || java.nio.file.Files.size( dest ) <= 0 ) throw e;
 					java.nio.file.Files.deleteIfExists( part );
 				}
 				else if ( cls === "java.nio.file.AtomicMoveNotSupportedException" ) {
