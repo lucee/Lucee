@@ -418,7 +418,7 @@ public final class SystemUtil {
 	 */
 	public static Resource getProcessTempDirectory() {
 		if ( processTempDirectory == null ) {
-			synchronized ( SystemUtil.class ) {
+			synchronized ( createToken( "io", "processTempDirectory" ) ) {
 				if ( processTempDirectory == null ) {
 					try {
 						Path dir = Files.createTempDirectory( "lucee-pid-" + ProcessHandle.current().pid() + "-" );

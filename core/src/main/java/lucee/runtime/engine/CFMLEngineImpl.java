@@ -352,6 +352,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			configDir = getSeverContextConfigDirectory(factory);
 			updateInfo = ConfigFactory.getNew(this, configDir, true);
 			LogUtil.log(Log.LEVEL_DEBUG, LOG_NAME, "ConfigFactory.getNew: " + (System.currentTimeMillis() - tConfig) + "ms");
+			SystemUtil.getProcessTempDirectory();
 		}
 		catch (Exception e) {
 			throw Caster.toPageRuntimeException(e);
