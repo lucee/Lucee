@@ -5064,6 +5064,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					Log log = getLog("deploy");
 					extensionsLoadCount++;
 					List<ExtensionDefintion> definitions = getExtensionDefinitions();
+					// LDEV-6958 ids of all configured extensions, including the ones that failed to install/download
+					Set<String> configuredIds = new HashSet<>();
+					for (ExtensionDefintion def: definitions) {
+						if (def != null && !StringUtil.isEmpty(def.getId(), true)) configuredIds.add(def.getId().trim().toLowerCase());
+					}
 					if (LogUtil.doesInfo(log)) log.info("extensions", "Loading " + definitions.size() + " extension definitions from config");
 					// print.e(extensions);
 					Map<String, RHExtension> exts = new HashMap<>();
@@ -5086,6 +5091,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 									if (LogUtil.doesError(log)) {
 										log.error("start-bundles", ex);
 									}
+									// LDEV-6958 the configured version could not be installed (e.g. download failed), keep using an already installed version
+									useInstalledVersion(this, ed, exts, log);
 								}
 
 							}
@@ -5149,6 +5156,13 @@ public final class ConfigServerImpl implements ConfigServerPro {
 													if (LogUtil.doesError(log)) {
 														log.error("start-bundles", ex);
 													}
+												}
+											}
+											// LDEV-6958 configured, but it could not be installed/downloaded (e.g. provider error), keep what is installed
+											else if (entry.getRHExtension().getId() != null && configuredIds.contains(entry.getRHExtension().getId().trim().toLowerCase())) {
+												if (LogUtil.doesError(log)) {
+													log.error("start-bundles", "the extension [" + entry.getRHExtension().toExtensionDefinition()
+															+ "] is configured, but could not be installed in the configured version, so we keep the already installed version");
 												}
 											}
 											else {
@@ -5243,6 +5257,54 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		}
 		if (LogUtil.doesInfo(log)) log.info("extensions", "Finished bundles for extension: " + rhe.getId());
 
+	}
+
+
+	/**
+	 * LDEV-6958 if the configured version of an extension could not be installed, but another version
+	 * of the same extension is already installed, we keep using (register and start) that installed
+	 * version instead of ending up with no extension at all
+	 */
+	private static void useInstalledVersion(ConfigServerImpl config, ExtensionDefintion ed, Map<String, RHExtension> exts, Log log) {
+		if (ed == null || StringUtil.isEmpty(ed.getId(), true)) return;
+		String id = ed.getId().trim();
+		try {
+			List<lucee.runtime.extension.RHExtensionCollection.Entry> installed = RHExtension.getInstalledExtensions(config);
+			if (installed == null || installed.isEmpty()) return;
+
+			RHExtension match = null;
+			Version matchVersion = null;
+			String name = null;
+			for (lucee.runtime.extension.RHExtensionCollection.Entry entry: installed) {
+				RHExtension ext = entry.getRHExtension();
+				if (ext == null || ext.getId() == null || !id.equalsIgnoreCase(ext.getId().trim())) continue;
+				// if multiple versions are installed, we take the highest
+				Version v = OSGiUtil.toVersion(ext.getVersion(), null);
+				if (match == null || (v != null && (matchVersion == null || v.compareTo(matchVersion) > 0))) {
+					name = entry.getFilename();
+					match = ext;
+					matchVersion = v;
+				}
+			}
+			if (match == null) return;
+			// already registered (e.g. listed twice in the config)
+			for (RHExtension e: exts.values()) {
+				if (id.equalsIgnoreCase(e.getId())) return;
+			}
+
+			if (LogUtil.doesError(log)) {
+				log.error("start-bundles", "the extension [" + id + "] could not be installed in the configured version ["
+						+ (StringUtil.isEmpty(ed.getVersion(), true) ? "latest" : ed.getVersion().trim()) + "], so the already installed version [" + match.getVersion()
+						+ "] is used");
+			}
+			// key is the name of the installed file, so the cleanup further down keeps that file
+			exts.put(name != null ? name : match.getStorageName(), match);
+		}
+		catch (Exception t) {
+			if (LogUtil.doesError(log)) {
+				log.error("start-bundles", t);
+			}
+		}
 	}
 
 	public ConfigServerImpl resetRHExtensions() {
