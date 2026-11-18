@@ -3540,6 +3540,8 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			}
 
 			Map<String, RHExtension> extensionsConfig = new ConcurrentHashMap<>();
+			// LDEV-6958 ids of all configured extensions, including the ones that failed to install/download
+			Set<String> configuredIds = new HashSet<>();
 
 			{
 				String strBundles;
@@ -3553,6 +3555,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 					child = Caster.toStruct(it.next(), null);
 					if (child == null) continue;
 					id = getAttr(config, child, KeyConstants._id);
+					if (!StringUtil.isEmpty(id, true)) configuredIds.add(id.trim().toLowerCase());
 					BundleInfo[] bfsq;
 					try {
 						String strRes = getAttr(config, child, KeyConstants._resource, KeyConstants._path, KeyConstants._url);
@@ -3666,8 +3669,13 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 									}
 								}
 
+								// LDEV-6958 configured, but it could not be installed/downloaded (e.g. provider error), keep what is installed
+								if (match == null && ext.getId() != null && configuredIds.contains(ext.getId().trim().toLowerCase())) {
+									log(config, Log.LEVEL_ERROR, "the extension [" + ext
+											+ "] is configured, but could not be installed in the configured version, so we keep the already installed version");
+								}
 								// maybe it got updated and the extension file was not removed
-								if (match != null) {
+								else if (match != null) {
 
 									if (deployLog != null) deployLog.info("extension", "Found the extension [" + ext
 											+ "] in the installed folder that is in a different version in the configuraton [" + match + "], so we delete that extension file.");
