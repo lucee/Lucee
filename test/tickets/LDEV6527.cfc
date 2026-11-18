@@ -3,6 +3,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ai" {
 	variables.names = [ "ldev6527-openai", "ldev6527-claude", "ldev6527-gemini", "ldev6527-nostreamopts", "ldev6527-nousage", "ldev6527-down" ];
 
 	function beforeAll() {
+		variables.util = new test._FileTestUtil();
 		variables.dir = getTempDirectory() & "ldev6527-" & createUUID() & "/";
 		directoryCreate( variables.dir );
 		variables.logFile = variables.dir & "ai.log";
@@ -48,7 +49,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ai" {
 		else {
 			admin action="removeLogSetting" type="server" password="#pw#" name="ai";
 		}
-		if ( !isNull( variables.dir ) && directoryExists( variables.dir ) ) directoryDelete( variables.dir, true );
+		if ( !isNull( variables.dir ) ) variables.util.deleteDirectoryQuietly( variables.dir );
 	}
 
 	function run( testResults, testBox ) {
