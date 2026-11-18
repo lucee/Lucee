@@ -179,22 +179,10 @@ public final class TemporaryStream extends OutputStream {
 
 	public static Resource getTempDirectory() {
 		if (tempFile != null) return tempFile;
-		String tmpStr = SystemUtil.getProcessTempDirectory().getAbsolutePath();
-		if (tmpStr != null) {
-
-			tempFile = ResourceUtil.toResourceNotExisting(ThreadLocalPageContext.get(), tmpStr);
-			// tempFile=CFMLEngineFactory.getInstance().getCastUtil().toResource(tmpStr,null);
-
-			if (tempFile != null && tempFile.exists()) {
-				tempFile = getCanonicalResourceEL(tempFile);
-				return tempFile;
-			}
-		}
 		File tmp = null;
 		try {
-			tmp = File.createTempFile("stream-check-temp-dir", ".tmp");
+			tmp = File.createTempFile("process-temp-dir-writeable-check", ".tmp", new File(SystemUtil.getProcessTempDirectory().getAbsolutePath()));
 			tempFile = ResourceUtil.toResourceNotExisting(ThreadLocalPageContext.get(), tmp.getParent());
-			// tempFile=CFMLEngineFactory.getInstance().getCastUtil().toResource(tmp.getParent(),null);
 			tempFile = getCanonicalResourceEL(tempFile);
 		}
 		catch (IOException ioe) {
