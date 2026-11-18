@@ -22,6 +22,9 @@
   <property name="extURLMaven" value="https://repo1.maven.org/maven2/"/>
   <property name="extURLCDN" value="https://maven.lucee-services.com/"/>
   <property name="extURLSnapshot" value="https://central.sonatype.com/repository/maven-snapshots/"/>
+  <!-- the jakarta 11 patch in __build_testbox: the version is defined here once, see getJakartaJar -->
+  <property name="jakarta.patch.version" value="11.0.0"/>
+  <property name="jakarta.m2.dir" location="${user.home}/.m2/repository/jakarta/platform"/>
   
   <property name="extMongo"     value="org.lucee:mongodb-extension:3.12.13.10"/>
   <property name="extH2"        value="org.lucee:h2-jdbc-extension:2.1.214.1-RC"/>
@@ -87,6 +90,40 @@
     <property name="srcCore" location="${rootDir}/core/src/main/java"/>
     <property name="coreManifest" location="${srcCore}/META-INF/MANIFEST.MF"/>
     <property name="cache" location="${rootDir}/cache"/>
+    <available file="${rootDir}/.git" type="file" property="git.isWorktreeFile"/>
+    <!-- in a git worktree .git is a file that points to the main worktree, the downloaded extensions (${cache}) are shared with it, so a new worktree does not download them again -->
+    <script language="javascript" classpath="${nashorn_classpath}"><![CDATA[
+      // the id of this build process, a download in progress gets a name only this process uses, see download-to-cache
+      project.setProperty( "build.pid", java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split( "@" )[ 0 ] );
+      // a -Dcache=... comes from Ant as a user property, from Maven (antrun) as a normal property, so compare the value with the default
+      var rootDir = new java.io.File( project.getProperty( "rootDir" ) );
+      var defaultCache = new java.io.File( rootDir, "cache" );
+      if ( !new java.io.File( project.getProperty( "cache" ) ).getCanonicalFile().equals( defaultCache.getCanonicalFile() ) ) {
+        project.log( "cache set by the user: " + project.getProperty( "cache" ) );
+      }
+      else if ( project.getProperty( "git.isWorktreeFile" ) != null ) {
+        var line = new java.io.BufferedReader( new java.io.FileReader( new java.io.File( rootDir, ".git" ) ) ).readLine();
+        // "gitdir: <main>/.git/worktrees/<name>", a submodule has "<main>/.git/modules/<name>" and is left alone
+        var gitdir = line == null ? "" : line.substring( line.indexOf( ":" ) + 1 ).trim();
+        var idx = gitdir.lastIndexOf( "/worktrees/" );
+        if ( idx == -1 ) idx = gitdir.lastIndexOf( "\\worktrees\\" );
+        // a bare repository has "<bare>/worktrees/<name>" as well, only "<main>/.git/worktrees/<name>" is a worktree of a normal repository
+        var commonDir = idx == -1 ? null : new java.io.File( gitdir.substring( 0, idx ) );
+        if ( commonDir == null || commonDir.getName() != ".git" || !commonDir.isDirectory() ) {
+          project.log( rootDir + " is no worktree of a normal repository, the cache stays in this tree" );
+        }
+        else {
+          var mainWorktree = commonDir.getParentFile();
+          var shared = new java.io.File( mainWorktree, "cache" );
+          project.log( "worktree of " + mainWorktree + ", the extension cache is shared: " + shared );
+          project.setProperty( "cache", shared.getAbsolutePath() );
+        }
+      }
+
+    ]]></script>
+    <!-- a download that was interrupted leaves its part file behind, it is never used and is only removed once it is old enough to not belong to a running build -->
+    <cleanStalePartFiles dir="${cache}" older_than="3600000"/>
+    <cleanStalePartFiles dir="${jakarta.m2.dir}" older_than="3600000"/>
     <property name="trgLoader" location="${rootDir}/loader/target"/>
     <property name="trgCore" location="${rootDir}/core/target"/>
     <property name="srcCFML" location="${rootDir}/core/src/main/cfml"/>
@@ -737,17 +774,9 @@
       -->
 
 
-    <!-- Download Jakarta EE 11.0.0 JARs if they don't exist -->
-    <mkdir dir="${user.home}/.m2/repository/jakarta/platform/jakarta.jakartaee-api/11.0.0"/>
-    <mkdir dir="${user.home}/.m2/repository/jakarta/platform/jakarta.jakartaee-web-api/11.0.0"/>
-    
-    <get src="https://repo1.maven.org/maven2/jakarta/platform/jakarta.jakartaee-api/11.0.0/jakarta.jakartaee-api-11.0.0.jar"
-         dest="${user.home}/.m2/repository/jakarta/platform/jakarta.jakartaee-api/11.0.0/jakarta.jakartaee-api-11.0.0.jar"
-         skipexisting="true"/>
-    
-    <get src="https://repo1.maven.org/maven2/jakarta/platform/jakarta.jakartaee-web-api/11.0.0/jakarta.jakartaee-web-api-11.0.0.jar"
-         dest="${user.home}/.m2/repository/jakarta/platform/jakarta.jakartaee-web-api/11.0.0/jakarta.jakartaee-web-api-11.0.0.jar"
-         skipexisting="true"/>
+    <!-- Download Jakarta EE JARs if they are not in the repository -->
+    <getJakartaJar artifact="jakarta.jakartaee-api"/>
+    <getJakartaJar artifact="jakarta.jakartaee-web-api"/>
     
     <!-- Replace Jakarta EE API versions for Java 17 compatibility -->
     <loadresource property="runtime_classpath_updated">
@@ -757,9 +786,9 @@
                 <stringtokenizer/>
                 <!-- Replace full path including directory and filename -->
                 <replaceregex pattern="jakarta/platform/jakarta\.jakartaee-api/10\.0\.0/jakarta\.jakartaee-api-10\.0\.0\.jar" 
-                             replace="jakarta/platform/jakarta.jakartaee-api/11.0.0/jakarta.jakartaee-api-11.0.0.jar" flags="g"/>
+                             replace="jakarta/platform/jakarta.jakartaee-api/${jakarta.patch.version}/jakarta.jakartaee-api-${jakarta.patch.version}.jar" flags="g"/>
                 <replaceregex pattern="jakarta/platform/jakarta\.jakartaee-web-api/10\.0\.0/jakarta\.jakartaee-web-api-10\.0\.0\.jar" 
-                             replace="jakarta/platform/jakarta.jakartaee-web-api/11.0.0/jakarta.jakartaee-web-api-11.0.0.jar" flags="g"/>
+                             replace="jakarta/platform/jakarta.jakartaee-web-api/${jakarta.patch.version}/jakarta.jakartaee-web-api-${jakarta.patch.version}.jar" flags="g"/>
             </tokenfilter>
         </filterchain>
     </loadresource>

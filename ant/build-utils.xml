@@ -22,6 +22,31 @@
     ]]>
 </scriptdef>
 
+  <!--
+    Removes part files a build left behind when it was interrupted, so they do not pile up in a cache that is shared
+    between worktrees. Only files older than older_than are removed, a fresh one may belong to a running build. Only
+    the <name>.jar.part.<pid> naming download-to-cache uses is matched, so a download a Maven process has in progress
+    under ~/.m2 is never touched.
+  -->
+  <scriptdef name="cleanStalePartFiles" language="javascript" classpath="${nashorn_classpath}">
+    <attribute name="dir" />
+    <attribute name="older_than" />
+    <![CDATA[
+        var dir = new java.io.File( attributes.get( "dir" ) );
+        if ( dir.isDirectory() ) {
+            var cutoff = java.lang.System.currentTimeMillis() - java.lang.Long.parseLong( attributes.get( "older_than" ) );
+            var stream = java.nio.file.Files.walk( dir.toPath() );
+            var files = stream.filter( function ( path ) {
+                return java.nio.file.Files.isRegularFile( path ) && path.getFileName().toString().match( /\.jar\.part\.\d+$/ ) != null && path.toFile().lastModified() < cutoff;
+            } ).toArray();
+            stream.close();
+            for ( var i = 0; i < files.length; i++ ) {
+                java.nio.file.Files.delete( files[ i ] );
+            }
+        }
+    ]]>
+  </scriptdef>
+
   <scriptdef name="listDirectory" language="javascript" classpath="${nashorn_classpath}">
     <attribute name="directory" />
     <attribute name="delimiter" />

@@ -1,10 +1,14 @@
 package lucee.runtime.mvn;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -97,20 +101,54 @@ public final class MavenBundleCollector {
 		File file = new File(cache, "mvn_" + group + "_" + artifact + "_" + version + classifier + ".lex");
 		if (file.isFile() && file.length() > 0) return file;
 		StringBuilder tried = new StringBuilder();
+		boolean failed = false;
 		for (String repo: repos) {
 			String url = repo + group.replace('.', '/') + "/" + artifact + "/" + version + "/" + artifact + "-" + version + classifier + ".lex";
 			System.out.println("download " + url);
+			// a shared cache can be written by several builds at once, so the final name must only ever exist complete
+			File part = new File(cache, file.getName() + ".part." + ProcessHandle.current().pid());
 			try (InputStream is = new URL(url).openStream()) {
-				Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				Files.copy(is, part.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				try (ZipFile zip = new ZipFile(part)) {
+					zip.entries();
+				}
+				try {
+					Files.move(part.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE);
+				}
+				catch ( FileAlreadyExistsException | AccessDeniedException e ) {
+					// another build published it first - on Windows the rename onto a file that build still has open
+					// fails with AccessDeniedException rather than FileAlreadyExistsException
+					if ( !file.isFile() || file.length() <= 0 ) throw e;
+					Files.deleteIfExists( part.toPath() );
+				}
+				catch ( AtomicMoveNotSupportedException amnse ) {
+					Files.move(part.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				}
 				return file;
 			}
-			catch (IOException ioe) {
-				Files.deleteIfExists(file.toPath());
-				tried.append("\n- ").append(url);
+			catch ( FileNotFoundException fnfe ) {
+				Files.deleteIfExists(part.toPath());
+				recordAttempt( tried, url, "not available", fnfe );
+			}
+			catch ( IOException ioe ) {
+				Files.deleteIfExists(part.toPath());
+				failed = true;
+				recordAttempt( tried, url, "failed", ioe );
 			}
 		}
-		if (lite) return null;
-		throw new IOException("could not download extension [" + group + ":" + artifact + ":" + version + "], tried:" + tried);
+		if ( lite ) {
+			if ( !failed ) return null;
+			throw downloadException( "transfer of the lite variant of [" + group + ":" + artifact + ":" + version + "] failed", tried );
+		}
+		throw downloadException( "could not download extension [" + group + ":" + artifact + ":" + version + "]", tried );
+	}
+
+	private static void recordAttempt(StringBuilder tried, String url, String reason, Exception e) {
+		tried.append("\n- ").append(url).append(" ").append(reason).append(": ").append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
+	}
+
+	private static IOException downloadException(String message, StringBuilder tried) {
+		return new IOException(message + ", tried:" + tried);
 	}
 
 	private static int copyMavenFolder(File lex, File target) throws IOException {
