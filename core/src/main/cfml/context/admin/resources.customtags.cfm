@@ -141,6 +141,7 @@
 			
 		<!--- setting --->
 			<cfelseif form.subAction EQ "setting">
+				<cfparam name="form.extensions" default="#form.customTagExtensions?:""#">
 				<cfif form.extensions EQ "custom">
 					<cfset form.extensions=form.extensions_custom>
 				</cfif>
