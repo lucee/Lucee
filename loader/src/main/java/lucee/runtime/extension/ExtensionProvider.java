@@ -21,6 +21,11 @@ package lucee.runtime.extension;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+/**
+ * @deprecated since 8.0 extensions are only downloaded from Maven, URL based REST extension providers
+ *             are no longer supported.
+ */
+@Deprecated
 public interface ExtensionProvider {
 
 	/**

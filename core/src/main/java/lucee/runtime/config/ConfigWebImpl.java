@@ -1286,6 +1286,7 @@ public final class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
+	@Deprecated
 	public ExtensionProvider[] getExtensionProviders() {
 		return cs.getExtensionProviders();
 	}
