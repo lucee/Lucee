@@ -1,12 +1,13 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="file,directory" {
 
 	function beforeAll() {
+		variables.util = new test._FileTestUtil();
 		variables.base = getTempDirectory() & "LDEV4014_" & createUniqueId() & "/";
 		directoryCreate( variables.base );
 	}
 
 	function afterAll() {
-		if ( directoryExists( variables.base ) ) directoryDelete( variables.base, true );
+		variables.util.deleteDirectoryQuietly( variables.base );
 	}
 
 	private void function buildTree( required string dir ) {

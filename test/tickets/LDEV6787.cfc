@@ -39,8 +39,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="config" {
 					loop collection=loaded item="local.v" index="local.k" {
 						constants[ k ] = v;
 					}
-					expect( expandPath( "{ldev6787-lib}/sub/file.txt" ) ).toBe( base & "/sub/file.txt" );
-					expect( expandPath( "{ldev6787-other}/x" ) ).toBe( base & "/other/x" );
+					// expandPath resolves with the platform separator, so the expected path has to use it too
+					expect( expandPath( "{ldev6787-lib}/sub/file.txt" ) ).toBe( replace( base & "/sub/file.txt", "/", server.separator.file, "all" ) );
+					expect( expandPath( "{ldev6787-other}/x" ) ).toBe( replace( base & "/other/x", "/", server.separator.file, "all" ) );
 				}
 				finally {
 					loop collection=loaded item="local.v" index="local.k" {

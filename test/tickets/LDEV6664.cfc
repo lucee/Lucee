@@ -2,6 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="java,maven,log" {
 
 	function beforeAll() {
 		variables.uri = createURI( "LDEV6664" );
+		variables.util = new test._FileTestUtil();
 	}
 
 	function run( testResults, testBox ) {
@@ -24,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="java,maven,log" {
 					expect( content ).toInclude( "ERROR" );
 				}
 				finally {
-					if ( fileExists( logFile ) ) fileDelete( logFile );
+					variables.util.deleteFileQuietly( logFile );
 				}
 			});
 		});
