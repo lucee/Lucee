@@ -1,5 +1,9 @@
-<cfset caller["url.cfset"] = "url.cfset from custom tag">
-<cfset param = "url.param">
-<cfparam name="caller.#param#" DEFAULT = "url.param from custom tag">
-<cfset setFunc = "url.setvariable">
-<cfset setVariable("caller.#setFunc#","url.setVariable from custom tag")>
+<cfif thisTag.executionMode eq "start">
+	<cfif attributes.mode eq "set">
+		<cfset caller[ attributes.target ] = attributes.value>
+	<cfelseif attributes.mode eq "param">
+		<cfparam name="caller.#attributes.target#" default="#attributes.value#">
+	<cfelse>
+		<cfset setVariable( "caller.#attributes.target#", attributes.value )>
+	</cfif>
+</cfif>

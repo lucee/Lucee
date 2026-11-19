@@ -20,6 +20,7 @@ package lucee.runtime.type.scope;
 
 import java.util.Iterator;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.NullSupportHelper;
@@ -27,11 +28,15 @@ import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructSupport;
 
 /**
@@ -261,8 +266,41 @@ public final class CallerImpl extends StructSupport implements Caller {
 		variablesScope.clear();
 	}
 
+	/**
+	 * LDEV-3309: caller[ "url.foo" ] = value (dotted key starting with a scope name) sets foo in that
+	 * scope of the caller (like ACF), instead of a key "url.foo" in the variables scope.
+	 */
+	private Collection scopedTarget(Key key, Key[] last) throws PageException {
+		String str = key.getString();
+		int index = str.indexOf('.');
+		if (index < 1 || index == str.length() - 1) return null;
+		Key first = KeyImpl.init(str.substring(0, index));
+		if (VariableInterpreter.scopeKey2Int(first) == Scope.SCOPE_UNDEFINED && !KeyConstants._local.equalsIgnoreCase(first)) return null;
+		Object o = get(pc, first, null);
+		if (!(o instanceof Collection)) return null;
+		String[] names = ListUtil.listToStringArray(str.substring(index + 1), '.');
+		for (int i = 0; i < names.length; i++) {
+			if (StringUtil.isEmpty(names[i], true)) return null;
+		}
+		Collection coll = (Collection) o;
+		for (int i = 0; i < names.length - 1; i++) {
+			Key k = KeyImpl.init(names[i].trim());
+			Object child = coll.get(k, null);
+			if (!(child instanceof Collection)) {
+				child = new StructImpl();
+				coll.set(k, child);
+			}
+			coll = (Collection) child;
+		}
+		last[0] = KeyImpl.init(names[names.length - 1].trim());
+		return coll;
+	}
+
 	@Override
 	public Object set(Key key, Object value) throws PageException {
+		Key[] last = new Key[1];
+		Collection target = scopedTarget(key, last);
+		if (target != null) return target.set(last[0], value);
 		if (checkArgs) {
 			if (localScope.containsKey(key)) return localScope.set(key, value);
 			if (argumentsScope.containsKey(key)) return argumentsScope.set(key, value);
@@ -272,6 +310,13 @@ public final class CallerImpl extends StructSupport implements Caller {
 
 	@Override
 	public Object setEL(Key key, Object value) {
+		try {
+			Key[] last = new Key[1];
+			Collection target = scopedTarget(key, last);
+			if (target != null) return target.setEL(last[0], value);
+		}
+		catch (PageException e) {
+		}
 		if (checkArgs) {
 			if (localScope.containsKey(key)) return localScope.setEL(key, value);
 			if (argumentsScope.containsKey(key)) return argumentsScope.setEL(key, value);
