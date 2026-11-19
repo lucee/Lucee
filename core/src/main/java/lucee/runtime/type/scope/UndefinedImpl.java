@@ -196,13 +196,13 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 	@Override
 	public Object remove(Collection.Key key) throws PageException {
 		if (checkArguments && local.containsKey(key)) return local.remove(key);
-		return variable.remove(key);
+		return ClosureScope.removeCascading(variable, key);
 	}
 
 	@Override
 	public Object removeEL(Collection.Key key) {
 		if (checkArguments && local.containsKey(key)) return local.removeEL(key);
-		return variable.removeEL(key);
+		return ClosureScope.removeELCascading(variable, key);
 	}
 
 	@Override
@@ -250,7 +250,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		}
 
 		// variable
-		rtn = variable.get(pc, key, _null);
+		rtn = ClosureScope.getCascading(pc, variable, key, _null);
 		if (rtn != _null) {
 			if (debug && checkArguments) debugCascadedAccess(pc, variable, rtn, key);
 			return rtn;
@@ -340,7 +340,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		}
 
 		// variable
-		rtn = variable.get(key, _null);
+		rtn = ClosureScope.getCascading(pc, variable, key, _null);
 		if (rtn != _null) {
 			sct.setEL(KeyConstants._variables, rtn);
 		}
@@ -385,9 +385,9 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		}
 
 		// variable
-		rtn = variable.get(key, _null);
-		if (rtn != _null) {
-			return variable;
+		Collection coll = ClosureScope.scopeFor(pc, variable, key);
+		if (coll != null) {
+			return coll;
 		}
 
 		// thread scopes
@@ -459,7 +459,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		}
 
 		// variable
-		rtn = variable.get(pc, key, _null);
+		rtn = ClosureScope.getCascading(pc, variable, key, _null);
 		if (rtn != _null) {
 			if (debug && checkArguments) debugCascadedAccess(pc, variable, rtn, key);
 			return rtn;
@@ -527,7 +527,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		}
 
 		// variable
-		rtn = variable.get(pc, key, _null);
+		rtn = ClosureScope.getCascading(pc, variable, key, _null);
 		if (rtn != _null) {
 			if (debug && checkArguments) debugCascadedAccess(pc, variable, rtn, key);
 			return rtn;
@@ -583,7 +583,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		if (checkArguments) {
 			if (local.containsKey(key)) return local.setEL(key, value);
 			// LDEV-2213: in a closure, update a variable of the enclosing function instead of creating a new local
-			if (localAlways) return isCaptured(key) ? variable.setEL(key, value) : local.setEL(key, value);
+			if (localAlways) return isCaptured(key) ? ClosureScope.setELCascading(variable, key, value) : local.setEL(key, value);
 			if (argument.containsFunctionArgumentKey(key)) {
 				if (debug) debugCascadedAccess(pc, argument.getTypeAsString(), key);
 				return argument.setEL(key, value);
@@ -595,7 +595,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 								+ "]. This occurs when no explicit scope (such as local, arguments, or variables) is specified in the assignment.");
 			}
 		}
-		return variable.setEL(key, value);
+		return ClosureScope.setELCascading(variable, key, value);
 	}
 
 	@Override
@@ -603,7 +603,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		if (checkArguments) {
 			if (local.containsKey(key)) return local.set(key, value);
 			// LDEV-2213: in a closure, update a variable of the enclosing function instead of creating a new local
-			if (localAlways) return isCaptured(key) ? variable.set(key, value) : local.set(key, value);
+			if (localAlways) return isCaptured(key) ? ClosureScope.setCascading(variable, key, value) : local.set(key, value);
 			if (argument.containsFunctionArgumentKey(key)) {
 				if (debug) debugCascadedAccess(pc, argument.getTypeAsString(), key);
 				return argument.set(key, value);
@@ -615,7 +615,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 								+ "]. This occurs when no explicit scope (such as local, arguments, or variables) is specified in the assignment.");
 			}
 		}
-		return variable.set(key, value);
+		return ClosureScope.setCascading(variable, key, value);
 	}
 
 	@Override
@@ -864,7 +864,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 			return ((UDF) obj).call(pc, methodName, args, false);
 		}
 		// LDEV-1059 a query column or other none UDF value found first must not hide a function in the variables scope
-		obj = variable.get(pc, methodName, null);
+		obj = ClosureScope.getCascading(pc, variable, methodName, null);
 		if (obj instanceof UDF) {
 			return ((UDF) obj).call(pc, methodName, args, false);
 		}
@@ -887,7 +887,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 			return ((UDF) obj).callWithNamedValues(pc, methodName, args, false);
 		}
 		// LDEV-1059 a query column or other none UDF value found first must not hide a function in the variables scope
-		obj = variable.get(pc, methodName, null);
+		obj = ClosureScope.getCascading(pc, variable, methodName, null);
 		if (obj instanceof UDF) {
 			return ((UDF) obj).callWithNamedValues(pc, methodName, args, false);
 		}
