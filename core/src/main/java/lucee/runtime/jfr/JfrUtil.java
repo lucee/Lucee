@@ -19,6 +19,8 @@ public class JfrUtil {
 	private static final boolean JFR_AVAILABLE;
 	private static final ConcurrentHashMap<String, jdk.jfr.Event> activeEvents = new ConcurrentHashMap<>();
 	private static final AtomicLong eventIdCounter = new AtomicLong( 1 );
+	// null means "not decided yet"; a recording start or end clears it so mid-run arming still works.
+	private static volatile Boolean enabled = null;
 
 	static {
 		boolean available = false;
@@ -34,16 +36,43 @@ public class JfrUtil {
 		JFR_AVAILABLE = available;
 	}
 
+
+	static {
+		if( JFR_AVAILABLE ) {
+			jdk.jfr.FlightRecorder.addListener( new jdk.jfr.FlightRecorderListener() {
+				public void recordingStateChanged( jdk.jfr.Recording recording ) {
+					enabled = null;
+				}
+			} );
+		}
+	}
+
 	public static boolean isAvailable() {
 		return JFR_AVAILABLE;
 	}
 
+	/**
+	 * Whether a JFR recording is running. The answer is cached, because probing it
+	 * allocates: FlightRecorder.getRecordings() copies the recording set into a new
+	 * List on every call.
+	 */
 	public static boolean isEnabled() {
 		if( !JFR_AVAILABLE ) return false;
+		Boolean cached = enabled;
+		if( cached == null ) {
+			cached = probe();
+			enabled = cached;
+		}
+		return cached.booleanValue();
+	}
+
+	private static boolean probe() {
 		try {
 			return jdk.jfr.FlightRecorder.isAvailable() && !jdk.jfr.FlightRecorder.getFlightRecorder().getRecordings().isEmpty();
 		}
-		catch( Exception e ) {
+		catch( Throwable t ) {
+			// a false here turns off every event gated on this, so the cause must not vanish
+			t.printStackTrace();
 			return false;
 		}
 	}
