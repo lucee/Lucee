@@ -444,6 +444,12 @@ jobs:
       with:
         name: Lucee-${{ steps.cleanrefname.outputs.value }}-junit-test-results-${{ github.run_number }}
         path: test/reports/*.xml
+    - name: Upload Artifact (workflow-summary)
+      uses: actions/upload-artifact@v7
+      if: always()
+      with:
+        name: workflow-summary
+        path: test/reports/test-results-markdown.md
     - name: Remove Lucee build artifacts from local maven cache (avoid growing cache)
       run: |
         rm -rfv ~/.m2/repository/org/lucee/lucee/
