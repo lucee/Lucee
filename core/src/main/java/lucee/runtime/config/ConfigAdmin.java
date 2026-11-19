@@ -5070,6 +5070,14 @@ public final class ConfigAdmin {
 		return name.substring(index + 1);
 	}
 
+	/**
+	 * Verifies a legacy REST (URL based) extension provider.
+	 * 
+	 * @deprecated since 8.0 extensions are only downloaded from Maven (configured by groupId), URL based
+	 *             REST extension providers are no longer used. Only kept so the admin action
+	 *             "verifyExtensionProvider" keeps working for existing callers.
+	 */
+	@Deprecated
 	public void verifyExtensionProvider(String strUrl) throws PageException {
 		HTTPDownloaderHeadResponse rsp;
 		URL url = null;
