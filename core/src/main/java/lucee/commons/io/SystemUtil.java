@@ -41,6 +41,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
@@ -410,6 +412,42 @@ public final class SystemUtil {
 	}
 
 	/**
+	 * returns the temp directory of this JVM process, separate from the instance temp directory
+	 * 
+	 * @return process temp directory
+	 */
+	public static Resource getProcessTempDirectory() {
+		if ( processTempDirectory == null ) {
+			synchronized ( createToken( "io", "processTempDirectory" ) ) {
+				if ( processTempDirectory == null ) {
+					try {
+						Path dir = Files.createTempDirectory( "lucee-pid-" + ProcessHandle.current().pid() + "-" );
+						processTempDirectory = ResourcesImpl.getFileResourceProvider().getResource( dir.toString() );
+						Runtime.getRuntime().addShutdownHook( new Thread() {
+							@Override
+							public void run() {
+								try {
+									ResourceUtil.removeChildrenEL( processTempDirectory, false );
+									processTempDirectory.delete();
+								}
+								catch ( Exception e ) {
+									// a teardown race must not fail the JVM on exit
+								}
+							}
+						} );
+					}
+					catch ( IOException ioe ) {
+						throw new RuntimeException( "could not create the process temp directory", ioe );
+					}
+				}
+			}
+		}
+		return processTempDirectory;
+	}
+
+	private static volatile Resource processTempDirectory;
+
+	/**
 	 * returns a unique temp file (with no auto delete)
 	 * 
 	 * @param extension
@@ -422,7 +460,7 @@ public final class SystemUtil {
 			if (extension.startsWith(".")) filename += extension;
 			else filename += "." + extension;
 		}
-		Resource file = getTempDirectory().getRealResource(filename);
+		Resource file = getProcessTempDirectory().getRealResource(filename);
 		if (touch) ResourceUtil.touch(file);
 		return file;
 	}

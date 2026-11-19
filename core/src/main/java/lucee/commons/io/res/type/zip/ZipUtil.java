@@ -117,7 +117,7 @@ final class ZipUtil {
 							cid = cs.getIdentification().getId();
 							temp = cs.getTempDirectory();
 						}
-						if (temp == null) temp = SystemUtil.getTempDirectory();
+						if (temp == null) temp = SystemUtil.getProcessTempDirectory();
 
 						temp = temp.getRealResource("compress");
 						temp = temp.getRealResource(HashUtil.create64BitHashAsString(cid + "-" + key, Character.MAX_RADIX));

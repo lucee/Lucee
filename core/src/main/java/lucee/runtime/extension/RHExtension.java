@@ -1060,7 +1060,7 @@ public final class RHExtension implements Serializable {
 	}
 
 	private static String jarKey(ZipInputStream zis, ZipEntry entry) throws IOException {
-		Resource tmp = SystemUtil.getTempDirectory().getRealResource(fileName(entry));
+		Resource tmp = SystemUtil.getProcessTempDirectory().getRealResource(fileName(entry));
 		try {
 			IOUtil.copy(zis, tmp, false);
 			// the crc is only known after the entry was read
@@ -1109,7 +1109,7 @@ public final class RHExtension implements Serializable {
 			String type = getMetadata().getType();
 			while ((entry = zis.getNextEntry()) != null) {
 				if (isJarEntry(entry, type)) {
-					Resource tmp = SystemUtil.getTempDirectory().getRealResource(fileName(entry));
+					Resource tmp = SystemUtil.getProcessTempDirectory().getRealResource(fileName(entry));
 					try {
 						IOUtil.copy(zis, tmp, false);
 						File jar = ResourceUtil.toFile(tmp);

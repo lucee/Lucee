@@ -1333,7 +1333,7 @@ public final class ConfigAdmin {
 	}
 
 	public static void updateJar(Config config, InputStream is, String name, boolean closeStream, boolean start) throws IOException {
-		Resource tmp = SystemUtil.getTempDirectory().getRealResource(name);
+		Resource tmp = SystemUtil.getProcessTempDirectory().getRealResource(name);
 		try {
 			IOUtil.copy(is, tmp, closeStream);
 			updateJar(config, tmp, true, start);
@@ -5160,7 +5160,7 @@ public final class ConfigAdmin {
 	}
 
 	void updateArchive(InputStream is, String name, boolean closeStream) throws IOException, PageException {
-		Resource res = write(SystemUtil.getTempDirectory(), is, name, closeStream, true);
+		Resource res = write(SystemUtil.getProcessTempDirectory(), is, name, closeStream, true);
 		// Resource res = write(DeployHandler.getDeployDirectory(config),is,name,closeStream);
 		updateArchive(config, res);
 	}

@@ -1085,7 +1085,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		Resource classRoot = mapping.getClassRootDirectory();
-		Resource temp = SystemUtil.getTempDirectory().getRealResource("mani-" + IDGenerator.stringId());
+		Resource temp = SystemUtil.getProcessTempDirectory().getRealResource("mani-" + IDGenerator.stringId());
 		Resource mani = temp.getRealResource("META-INF/MANIFEST.MF");
 
 		try {

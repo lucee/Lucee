@@ -352,6 +352,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			configDir = getSeverContextConfigDirectory(factory);
 			updateInfo = ConfigFactory.getNew(this, configDir, true);
 			LogUtil.log(Log.LEVEL_DEBUG, LOG_NAME, "ConfigFactory.getNew: " + (System.currentTimeMillis() - tConfig) + "ms");
+			SystemUtil.getProcessTempDirectory();
 		}
 		catch (Exception e) {
 			throw Caster.toPageRuntimeException(e);
@@ -790,7 +791,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 				try {
 					// copy to temp
-					temp = SystemUtil.getTempDirectory().getRealResource(name);
+					temp = SystemUtil.getProcessTempDirectory().getRealResource(name);
 					log.info("extract-extension", "Copy extension [" + name + "] to temp directory [" + temp.getParent() + "]");
 					ResourceUtil.touch(temp);
 					Util.copy(is, temp.getOutputStream(), false, true);
