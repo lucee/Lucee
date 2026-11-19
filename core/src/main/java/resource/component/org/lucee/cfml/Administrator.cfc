@@ -156,13 +156,13 @@ component {
 	* @allowCompression  allowCompression in lucee Output settings
 	* @bufferOutput  bufferOutput in lucee Output settings
 	*/
-	public void function updateOutputSetting( required string cfmlWriter, boolean suppressContent, boolean allowCompression, boolean bufferOutput ){
+	public void function updateOutputSetting( string cfmlWriter, boolean suppressContent, boolean allowCompression, boolean bufferOutput ){
 		var existing = getOutputSetting();
 		admin
 			action="updateOutputSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			cfmlWriter="#arguments.cfmlWriter#"
+			cfmlWriter=isNull(arguments.cfmlWriter) ? existing.cfmlWriter : arguments.cfmlWriter
 			suppressContent=isNull(arguments.suppressContent) || isEmpty(arguments.suppressContent) ? existing.suppressContent : arguments.suppressContent
 			allowCompression=isNull(arguments.allowCompression) || isEmpty(arguments.allowCompression) ? existing.allowCompression : arguments.allowCompression
 			bufferOutput=isNull(arguments.bufferOutput) || isEmpty(arguments.bufferOutput) ? existing.bufferOutput : arguments.bufferOutput
@@ -1054,20 +1054,22 @@ component {
 	* @componentPathCache Component path is cached and not resolved again
 	* @componentDeepSearchDesc Search for CFCs in the subdirectories of the "Additional Resources" below.
 	*/
-	public void function updateComponent(string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
+	public void function updateComponent(string componentDumpTemplate, string componentDataMemberDefaultAccess, boolean triggerDataMember, boolean useShadow, string componentDefaultImport, boolean componentLocalSearch, boolean componentPathCache, boolean componentDeepSearchDesc){
+		var existing = getComponent();
 		admin
 			action="updateComponent"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			componentDumpTemplate="#arguments.componentDumpTemplate#"
-			componentDataMemberDefaultAccess="#arguments.componentDataMemberDefaultAccess#"
-			triggerDataMember="#arguments.triggerDataMember#"
-			useShadow="#arguments.useShadow#"
-			componentDefaultImport="#arguments.componentDefaultImport#"
-			componentLocalSearch="#arguments.componentLocalSearch#"
-			componentPathCache="#arguments.componentPathCache#"
-			deepSearch="#arguments.componentDeepSearchDesc#"
+			componentDumpTemplate=isNull(arguments.componentDumpTemplate) ? existing.strComponentDumpTemplate : arguments.componentDumpTemplate
+			componentDataMemberDefaultAccess=isNull(arguments.componentDataMemberDefaultAccess) ? existing.componentDataMemberDefaultAccess : arguments.componentDataMemberDefaultAccess
+			triggerDataMember=isNull(arguments.triggerDataMember) ? existing.triggerDataMember : arguments.triggerDataMember
+			useShadow=isNull(arguments.useShadow) ? existing.useShadow : arguments.useShadow
+			componentDefaultImport=isNull(arguments.componentDefaultImport) ? existing.componentDefaultImport : arguments.componentDefaultImport
+			componentLocalSearch=isNull(arguments.componentLocalSearch) ? existing.componentLocalSearch : arguments.componentLocalSearch
+			componentPathCache=isNull(arguments.componentPathCache) ? existing.componentPathCache : arguments.componentPathCache
+			deepSearch=isNull(arguments.componentDeepSearchDesc) ? existing.deepSearch : arguments.componentDeepSearchDesc
+			returnFormat=existing.returnFormat
 
 			remoteClients="#variables.remoteClients#";
 	}
@@ -1233,19 +1235,20 @@ component {
 	* @handleUnquotedAttrValueAsString Handle unquoted tag attribute values as strings.
 	* @externalizeStringGTE Externalize strings from generated class files to separate files.
 	*/
-	public void function updateCompilerSettings( required string templateCharset, required string dotNotationUpperCase, boolean nullSupport, boolean suppressWSBeforeArg, boolean handleUnquotedAttrValueAsString, numeric externalizeStringGTE, boolean preciseMath){
-		var dotNotUpper=true;
+	public void function updateCompilerSettings( string templateCharset, string dotNotationUpperCase, boolean nullSupport, boolean suppressWSBeforeArg, boolean handleUnquotedAttrValueAsString, numeric externalizeStringGTE, boolean preciseMath){
+		var existing = getCompilerSettings();
+		var dotNotUpper=existing.dotNotationUpperCase;
 		if ( isDefined( 'arguments.dotNotationUpperCase' ) ) {
+			dotNotUpper=true;
 			if ( arguments.dotNotationUpperCase EQ "oc" or !arguments.dotNotationUpperCase )
 				dotNotUpper=false;
-		} 
-		var existing = getCompilerSettings();
+		}
 		admin
 			action="updateCompilerSettings"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			templateCharset="#arguments.templateCharset#"
+			templateCharset=isNull(arguments.templateCharset) ? existing.templateCharset.name() : arguments.templateCharset
 			dotNotationUpperCase="#dotNotUpper#"
 			nullSupport=isNull(arguments.nullSupport) || isEmpty(arguments.nullSupport) ? existing.nullSupport  : arguments.nullSupport
 			suppressWSBeforeArg=isNull(arguments.suppressWSBeforeArg) || isEmpty(arguments.suppressWSBeforeArg) ? existing.suppressWSBeforeArg : arguments.suppressWSBeforeArg
@@ -1291,15 +1294,18 @@ component {
 	* @inspectTemplate sets the type of inspection for files inside the template cache
 	* @typeChecking If disabled, Lucee ignores type definitions with function arguments and return values
 	*/
-	public void function updatePerformanceSettings( required string inspectTemplate, boolean typeChecking){
+	public void function updatePerformanceSettings( string inspectTemplate, boolean typeChecking){
 		var existing = getPerformanceSettings();
 		admin
 			action="updatePerformanceSettings"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			inspectTemplate="#arguments.inspectTemplate#"
+			inspectTemplate=isNull(arguments.inspectTemplate) ? existing.inspectTemplate : arguments.inspectTemplate
 			typeChecking=isNull(arguments.typeChecking) || isEmpty(arguments.typeChecking) ? existing.typeChecking : arguments.typeChecking
+			inspectTemplateIntervalSlow=existing.inspectTemplateIntervalSlow
+			inspectTemplateIntervalFast=existing.inspectTemplateIntervalFast
+			cachedAfter=existing.cachedAfter > 0 ? existing.cachedAfter : ""
 
 			remoteClients="#variables.remoteClients#";
 	}
@@ -2911,15 +2917,16 @@ component {
 	/**
 	* @hint updates proxy settings
 	*/
-	public void function updateProxy(boolean proxyEnabled, string proxyServer="", numeric proxyPort=80, string proxyUsername="", string proxyPassword=""){
+	public void function updateProxy(boolean proxyEnabled, string proxyServer="", numeric proxyPort, string proxyUsername="", string proxyPassword=""){
 		var existing = getProxy();
+		// getProxy() only returns the server of an enabled proxy; a port of 0 keeps the stored port
 		admin
 			action="updateProxy"
 			type="#variables.type#"
 			password="#variables.password#"
-			proxyEnabled=isNull(arguments.proxyEnabled) ? (existing.enabled ?: false) : arguments.proxyEnabled
+			proxyEnabled=isNull(arguments.proxyEnabled) ? len(existing.server) > 0 : arguments.proxyEnabled
 			proxyServer=isNull(arguments.proxyServer) || isEmpty(arguments.proxyServer) ? (existing.server ?: "") : arguments.proxyServer
-			proxyPort=isNull(arguments.proxyPort) || arguments.proxyPort == 0 ? (existing.port ?: 80) : arguments.proxyPort
+			proxyPort=arguments.proxyPort ?: 0
 			proxyUsername=isNull(arguments.proxyUsername) ? (existing.username ?: "") : arguments.proxyUsername
 			proxyPassword=isNull(arguments.proxyPassword) ? (existing.password ?: "") : arguments.proxyPassword;
 	}

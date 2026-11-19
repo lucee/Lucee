@@ -47,7 +47,7 @@ abstract component {
 			"properties": duplicate(arguments.extraProperties)
 		};
 		if (arrayLen(arguments.required)) {
-			schema.required = arguments.required;
+			schema["required"] = arguments.required;
 		}
 		return schema;
 	}
