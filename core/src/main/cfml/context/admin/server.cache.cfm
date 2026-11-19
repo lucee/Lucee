@@ -154,14 +154,22 @@ Defaults --->
 						form.cachedAfter_minutes,
 						form.cachedAfter_seconds
 					)>
-				<cfadmin 
+				<!--- the interval fields are not rendered when inspectTemplate is set via env var/system property, so keep the current values --->
+				<cfif isNull(form.inspectTemplateIntervalSlow) or isNull(form.inspectTemplateIntervalFast)>
+					<cfadmin
+						type="#request.adminType#"
+						password="#session["password"&request.adminType]#"
+						action="getPerformanceSettings"
+						returnVariable="currentSettings">
+				</cfif>
+				<cfadmin
 					action="updatePerformanceSettings"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
 					cachedAfter="#cachedAfter#"
 					inspectTemplate="#form.inspectTemplate#"
-					inspectTemplateIntervalSlow="#form.inspectTemplateIntervalSlow?:'10000'#"
-					inspectTemplateIntervalFast="#form.inspectTemplateIntervalFast?:'100'#"
+					inspectTemplateIntervalSlow="#form.inspectTemplateIntervalSlow?:currentSettings.inspectTemplateIntervalSlow#"
+					inspectTemplateIntervalFast="#form.inspectTemplateIntervalFast?:currentSettings.inspectTemplateIntervalFast#"
 					typeChecking="#!isNull(form.typeChecking) and form.typeChecking EQ true#"
 					remoteClients="#request.getRemoteClients()#"
 					>
