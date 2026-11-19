@@ -24,9 +24,12 @@ package lucee.runtime.functions.decision;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Decision;
+import lucee.runtime.type.dt.TimeSpan;
 
 public final class IsNumeric implements Function {
 	public static boolean call(PageContext pc, Object object) {
+		// LDEV-3840 a timespan (createTimeSpan()) is a number of days (like ACF)
+		if (object instanceof TimeSpan) return true;
 		return Decision.isNumber(object);
 	}
 }
