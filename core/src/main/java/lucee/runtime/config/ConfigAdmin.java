@@ -2675,6 +2675,15 @@ public final class ConfigAdmin {
 		if (!StringUtil.isEmpty(password)) proxy.setEL("password", password);
 	}
 
+	public void removeProxy() throws SecurityException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+
+		if (!hasAccess) throw new SecurityException("no access to remove proxy settings");
+
+		root.removeEL(KeyImpl.init("proxy"));
+	}
+
 	/**
 	 * enable or desable session management
 	 * 

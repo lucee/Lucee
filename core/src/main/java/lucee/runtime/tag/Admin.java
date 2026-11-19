@@ -710,6 +710,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("updateApplicationListener", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateApplicationListener();
 		else if (check("updateCachedWithin", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCachedWithin();
 		else if (check("updateproxy", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateProxy();
+		else if (check("removeproxy", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveProxy();
 		else if (check("updateCharset", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCharset();
 		else if (check("updatecomponent", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateComponent();
 		else if (check("updatescope", ACCESS_FREE) && check2(ACCESS_WRITE)) {
@@ -5168,6 +5169,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateProxy() throws PageException {
 		admin.updateProxy(getBool("admin", action, "proxyenabled"), getString("admin", action, "proxyserver"), getInt("admin", action, "proxyport"),
 				getString("admin", action, "proxyusername"), getString("admin", action, "proxypassword"));
+		store();
+		ConfigUtil.getConfigServerImpl(config).resetProxyData();
+	}
+
+	private void doRemoveProxy() throws PageException {
+		admin.removeProxy();
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetProxyData();
 	}

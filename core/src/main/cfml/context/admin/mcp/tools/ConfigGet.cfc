@@ -69,7 +69,7 @@ component extends="lucee.admin.mcp.tools.Tool" {
 					"connections": arguments.administrator.getCacheConnections()
 				};
 				if (len(arguments.name)) {
-					cacheResult.connection = arguments.administrator.getCacheConnection(arguments.name);
+					cacheResult["connection"] = arguments.administrator.getCacheConnection(arguments.name);
 				}
 				return cacheResult;
 			case "compiler":
