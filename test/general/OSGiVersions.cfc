@@ -68,7 +68,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 			});
 
 			// TODO LDEV-6627: OSGiUtil was removed from core and is not provided by the OSGi extension under that name.
-			it( title="toBundleVersion keeps the OSGi string that toLucee would hyphenate", skip=true, body=function() {
+			it( title="toBundleVersion keeps the OSGi string that toLucee would hyphenate", body=function() {
 				var osgi = createObject( "java", "org.osgi.framework.Version" ).init( "2.7.2.jdk8" );
 				var util = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
 				expect( util.toLucee( osgi ).toString() ).toBe( "2.7.2-jdk8" );

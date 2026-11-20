@@ -4,7 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		describe( "LDEV-6313 bundle not available error keeps the underlying download error as cause", function() {
 
 			// TODO LDEV-6627: with the OSGi extension the BundleException has no cause ("missing cause"); the failed download is not attached.
-			it( title="the BundleException has the failed download as its cause", skip=true, body=function() {
+			it( title="the BundleException has the failed download as its cause", body=function() {
 				var caught = false;
 				try {
 					createObject( "java", "org.ldev6313.DoesNotExist", "org.lucee.ldev6313.does-not-exist", "1.2.3" );

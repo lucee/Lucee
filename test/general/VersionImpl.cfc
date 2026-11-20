@@ -88,7 +88,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 			});
 
 			// TODO LDEV-6627: skipped until the OSGi extension exists, OSGiUtil moved to the extension.
-			it( title="toOSGi and toLucee round trip", skip=true, body=function() {
+			it( title="toOSGi and toLucee round trip", body=function() {
 				var osgi = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
 				for ( var v in [ "1.2.3", "3.12.13.10", "12.2.0.jre8", "5.2.0.RELEASE", "1.0.0.SNAPSHOT", "1.0.0.20240101123456" ] ) {
 					var l = po( v );
@@ -99,7 +99,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 			});
 
 			// TODO LDEV-6627: skipped until the OSGi extension exists, OSGiUtil moved to the extension.
-			it( title="toOSGi gives the OSGi version with the same ordering", skip=true, body=function() {
+			it( title="toOSGi gives the OSGi version with the same ordering", body=function() {
 				var osgi = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
 				var names = [ "12.2.0.jre8", "12.9.0.jre8", "12.10.0.jre8", "13.0.0.jre8" ];
 				for ( var i = 1; i < arrayLen( names ); i++ ) {
