@@ -844,7 +844,6 @@ component {
 				return s3;
 			case "memcached":
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
-				// TODO LDEV-6627: the Memcached extension loads as an OSGi bundle, test it again when the OSGi extension is installed
 				if ( memcached.count() eq 2 && server._hasOSGi() ){
 					return memcached;
 				}
