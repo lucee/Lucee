@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.res.Resource;
@@ -46,6 +47,8 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
 public final class CFMLResourceProvider implements ResourceProviderPro {
@@ -267,9 +270,27 @@ public final class CFMLResourceProvider implements ResourceProviderPro {
 		if (StringUtil.isEmpty(componentPath, true)) throw new ApplicationException("You need to define the argument [component] for the [CFMLResourceProvider]");
 		componentPath = componentPath.trim();
 		this.component = pc.loadComponent(componentPath);
-		call(pc, this.component, "init", new Object[] { scheme, Caster.toStruct(args) });
+		call(pc, this.component, "init", new Object[] { scheme, toInitArguments(args) });
 
 		return this.component;
+	}
+
+	/**
+	 * the arguments from the configuration as a regular (case insensitive) CFML struct, not a wrapped
+	 * case sensitive java.util.Map
+	 */
+	private static Struct toInitArguments(Map args) {
+		Struct sct = new StructImpl(Struct.TYPE_LINKED);
+		if (args != null) {
+			Iterator<Entry> it = args.entrySet().iterator();
+			Entry e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (e.getKey() == null) continue;
+				sct.setEL(KeyImpl.init(e.getKey().toString()), e.getValue());
+			}
+		}
+		return sct;
 	}
 
 	@Override
