@@ -1,15 +1,28 @@
 /**
  * LDEV-1903: cfpop getAll, looping over message.cids and reading message.cids[key] throws "key [...] not found".
- * Uses the pop + smtp test services (greenmail in CI, auth disabled so every login creates its own mailbox).
+ * Runs against a self-contained GreenMail mock (SMTP + POP3), so the spec always executes.
  */
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 
-	variables.popCfg = server.getTestService( "pop" );
-	variables.smtpCfg = server.getTestService( "smtp" );
+	variables.user = "ldev1903_" & lCase( left( replace( createUUID(), "-", "", "all" ), 16 ) ) & "@localhost";
+	variables.pass = "ldev1903pass";
+
+
+	// a component UDF, not a closure: a closure's variables writes stay in the closure scope
+	function startGreenMail() {
+		variables.helper = new test._GreenMail();
+		variables.greenMail = variables.helper.start( [ "smtp", "pop" ] );
+		variables.helper.user( variables.greenMail, variables.user, variables.pass );
+	}
+
+	function stopGreenMail() {
+		variables.helper.stop( variables.greenMail );
+	}
 
 	function run( testResults, testBox ) {
-		describe( title="LDEV-1903 cfpop message.cids", skip=notHasServices(), body=function() {
-
+		describe( title="LDEV-1903 cfpop message.cids", body=function() {
+			beforeEach( startGreenMail );
+			afterEach( stopGreenMail );
 			it( title="cids has the inline image", body=function( currentSpec ) {
 				var message = getMessage();
 				expect( message.recordCount ).toBe( 1 );
@@ -60,13 +73,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 		});
 	}
 
-	private boolean function notHasServices() {
-		return structCount( variables.popCfg ) == 0 || structCount( variables.smtpCfg ) == 0;
-	}
 
 	// a fresh mailbox with one html mail that has an inline image (Content-ID), read back with cfpop getAll
 	private query function getMessage( string attachmentPath="" ) {
-		var user = "ldev1903_" & lCase( left( replace( createUUID(), "-", "", "all" ), 16 ) ) & "@localhost";
+		// Outlook style inline image: filename image001.png, Content-ID image001.png@<id>, like in the ticket
 		// Outlook style inline image: filename image001.png, Content-ID image001.png@<id>, like in the ticket
 		var imgDir = getTempDirectory() & "ldev1903-img-" & createUUID() & "/";
 		directoryCreate( imgDir );
@@ -74,8 +84,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 		// 1x1 png
 		fileWrite( img, binaryDecode( "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64" ) );
 		try {
-			mail to=user from="ldev1903@localhost" subject="LDEV-1903" type="html"
-					server=variables.smtpCfg.SERVER port=variables.smtpCfg.PORT_INSECURE spoolEnable=false {
+			mail to=variables.user from="ldev1903@localhost" subject="LDEV-1903" type="html"
+					server="localhost" port=variables.greenMail.ports.smtp spoolEnable=false {
 				mailparam file=img contentID="image001.png@01D40D23.A10F2DD0" disposition="inline";
 				echo( '<p>LDEV-1903 <img src="cid:image001.png@01D40D23.A10F2DD0"></p>' );
 			}
@@ -84,10 +94,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 			directoryDelete( imgDir, true );
 		}
 		var args = {
-			server: variables.popCfg.SERVER,
-			port: variables.popCfg.PORT_INSECURE,
-			username: user,
-			password: variables.popCfg.PASSWORD,
+			server: "localhost",
+			port: variables.greenMail.ports.pop,
+			username: variables.user,
+			password: variables.pass,
 			secure: false
 		};
 		if ( len( arguments.attachmentPath ) ) args.attachmentPath = arguments.attachmentPath;

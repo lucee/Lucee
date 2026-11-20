@@ -20,65 +20,53 @@
  * is what surfaces the extension regression.
  */
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings='{
-		"maven": [
-			"com.icegreen:greenmail:2.1.7"
-		]
+	"maven": [
+		"com.icegreen:greenmail:2.1.7"
+	]
 	}' {
 
-	import "com.icegreen.greenmail.util.ServerSetup";
-	import "com.icegreen.greenmail.util.GreenMail";
 	processingdirective pageencoding="UTF-8";
 
-	variables.port = 30251;
 	variables.from = "susi@sorglos.de";
 	variables.to   = "geisse@peter.ch";
 
-	function beforeAll() {
-		if ( isNull( application.testSMTPSpool ) ) {
-			application.testSMTPSpool = new GreenMail( new ServerSetup( variables.port, nullValue(), ServerSetup::PROTOCOL_SMTP ) );
-			application.testSMTPSpool.start();
-		}
-		else {
-			application.testSMTPSpool.purgeEmailFromAllMailboxes();
-		}
+
+	// a component UDF, not a closure: a closure's variables writes stay in the closure scope
+	function startGreenMail() {
+		variables.helper = new test._GreenMail();
+		variables.greenMail = variables.helper.start( [ "smtp" ] );
 	}
 
-	function afterAll() {
-		if ( !isNull( application.testSMTPSpool ) ) {
-			application.testSMTPSpool.purgeEmailFromAllMailboxes();
-			application.testSMTPSpool.stop();
-		}
+	function stopGreenMail() {
+		variables.helper.stop( variables.greenMail );
 	}
 
 	function run( testResults, testBox ) {
 		describe( title = "cfmail spooled delivery (LDEV-6455)", body = function() {
-
+			beforeEach( startGreenMail );
+			afterEach( stopGreenMail );
 			it( title = "a spooled mail is serialized without error and delivered", body = function( currentSpec ) {
-				lock name = "test:mailspool" timeout = 60 {
-					application.testSMTPSpool.purgeEmailFromAllMailboxes();
+				var errorsBefore = countSpoolerPersistErrors();
 
-					var errorsBefore = countSpoolerPersistErrors();
+				mail to = variables.to from = variables.from subject = "spooled mail"
+						spoolEnable = true server = "localhost" port = variables.greenMail.ports.smtp {
+					echo( "This is a spooled email!" );
+				}
 
-					mail to = variables.to from = variables.from subject = "spooled mail"
-							spoolEnable = true server = "localhost" port = variables.port {
-						echo( "This is a spooled email!" );
-					}
+				// delivered inline (buggy extension, via the core fallback) or by the async spooler (fixed)
+				var messages = waitForMessages( variables.greenMail.server, 1, 20000 );
 
-					// delivered inline (buggy extension, via the core fallback) or by the async spooler (fixed)
-					var messages = waitForMessages( application.testSMTPSpool, 1, 20000 );
+				// (1) delivery contract
+				expect( arrayLen( messages ) ).toBe( 1, "spooled mail was not delivered" );
+				expect( messages[ 1 ].getSubject().toString() ).toBe( "spooled mail" );
 
-					// (1) delivery contract
-					expect( arrayLen( messages ) ).toBe( 1, "spooled mail was not delivered" );
-					expect( messages[ 1 ].getSubject().toString() ).toBe( "spooled mail" );
-
-					// (2) regression: the spool task must serialize cleanly - no persistence failure logged
-					var errorsAfter = countSpoolerPersistErrors();
-					expect( errorsAfter ).toBe( errorsBefore,
-						"the spool task failed to serialize (NotSerializableException) - "
-						& "mail-extension holds a non-serializable field; see the spooler persistence error in the logs" );
+				// (2) regression: the spool task must serialize cleanly - no persistence failure logged
+				var errorsAfter = countSpoolerPersistErrors();
+				expect( errorsAfter ).toBe( errorsBefore,
+					"the spool task failed to serialize (NotSerializableException) - "
+					& "mail-extension holds a non-serializable field; see the spooler persistence error in the logs" );
 				}
 			});
-
 		});
 	}
 
@@ -100,5 +88,4 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings
 
 	private array function waitForMessages( smtp, required numeric count, numeric timeout = 20000 ) localmode = true {
 		return new test._GreenMail().waitForIncoming( arguments.smtp, arguments.count, arguments.timeout );
-	}
 }

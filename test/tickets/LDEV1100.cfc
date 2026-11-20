@@ -13,54 +13,41 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings
 		]
 	}' {
 
-	import "com.icegreen.greenmail.util.ServerSetup";
-	import "com.icegreen.greenmail.util.GreenMail";
-
-	variables.smtpPort = 30253;
-	variables.popPort = 30111;
-	variables.popsPort = 30995;
 	variables.user = "ldev1100@localhost";
 	variables.pass = "ldev1100pass";
 
-	function beforeAll() {
-		if ( isNull( application.testLDEV1100 ) ) {
-			application.testLDEV1100 = new GreenMail( [
-				new ServerSetup( variables.smtpPort, nullValue(), ServerSetup::PROTOCOL_SMTP ),
-				new ServerSetup( variables.popPort, nullValue(), ServerSetup::PROTOCOL_POP3 ),
-				new ServerSetup( variables.popsPort, nullValue(), ServerSetup::PROTOCOL_POP3S )
-			] );
-			application.testLDEV1100.start();
-			application.testLDEV1100.setUser( variables.user, variables.user, variables.pass );
-		}
-		application.testLDEV1100.purgeEmailFromAllMailboxes();
+	// a component UDF, not a closure: a closure's variables writes stay in the closure scope
+	function startGreenMail() {
+		variables.helper = new test._GreenMail();
+		variables.greenMail = variables.helper.start( [ "smtp", "pop", "pops" ] );
+		variables.helper.user( variables.greenMail, variables.user, variables.pass );
+
 		variables.subject = "LDEV1100-" & createUUID();
-		mail to=variables.user from="sender@localhost" subject=variables.subject server="localhost" port=variables.smtpPort spoolEnable=false {
+		mail to=variables.user from="sender@localhost" subject=variables.subject server="localhost" port=variables.greenMail.ports.smtp spoolEnable=false {
 			echo( "LDEV-1100 body" );
 		}
-		new test._GreenMail().waitForIncoming( application.testLDEV1100, 1 );
+		variables.helper.waitForIncoming( variables.greenMail.server, 1 );
 	}
 
-	function afterAll() {
-		if ( !isNull( application.testLDEV1100 ) ) {
-			application.testLDEV1100.purgeEmailFromAllMailboxes();
-			application.testLDEV1100.stop();
-			structDelete( application, "testLDEV1100" );
-		}
+	function stopGreenMail() {
+		variables.helper.stop( variables.greenMail );
 	}
 
 	function run( testResults, testBox ) {
-		describe( "LDEV-1100 cfpop login (USER/PASS)", function() {
 
+		describe( "LDEV-1100 cfpop login (USER/PASS)", function() {
+			beforeEach( startGreenMail );
+			afterEach( stopGreenMail );
 			it( title="getHeaderOnly over plain POP3 logs in and lists the message", body=function( currentSpec ) {
-				pop action="getHeaderOnly" server="localhost" port=variables.popPort secure=false
-						username=variables.user password=variables.pass name="local.q" timeout=20;
+					pop action="getHeaderOnly" server="localhost" port=variables.greenMail.ports.pop secure=false
+							username=variables.user password=variables.pass name="local.q" timeout=20;
 				expect( q.recordCount ).toBe( 1 );
 				expect( q.subject ).toBe( variables.subject );
 			});
 
 			it( title="getHeaderOnly with secure=true (POP3S) logs in and lists the message", body=function( currentSpec ) {
 				var q = secure( function() {
-					pop action="getHeaderOnly" server="localhost" port=variables.popsPort secure=true
+					pop action="getHeaderOnly" server="localhost" port=variables.greenMail.ports.pops secure=true
 							username=variables.user password=variables.pass name="local.q" timeout=20;
 					return q;
 				} );
@@ -70,7 +57,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings
 
 			it( title="getAll with secure=true (POP3S) returns the body", body=function( currentSpec ) {
 				var q = secure( function() {
-					pop action="getAll" server="localhost" port=variables.popsPort secure=true
+					pop action="getAll" server="localhost" port=variables.greenMail.ports.pops secure=true
 							username=variables.user password=variables.pass name="local.q" timeout=20;
 					return q;
 				} );
@@ -81,7 +68,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings
 			it( title="a wrong password gives an authentication error, not a protocol error", body=function( currentSpec ) {
 				var err = "";
 				try {
-					pop action="getHeaderOnly" server="localhost" port=variables.popPort secure=false
+					pop action="getHeaderOnly" server="localhost" port=variables.greenMail.ports.pop secure=false
 							username=variables.user password="wrong" name="local.q" timeout=20;
 				}
 				catch ( any e ) {

@@ -12,31 +12,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings
 		]
 	}' {
 
-	import "com.icegreen.greenmail.util.ServerSetup";
-	import "com.icegreen.greenmail.util.GreenMail";
 
-	variables.port = 30252;
-	variables.deadPort = 30259; // nothing listens here
-
-	function beforeAll() {
-		if ( isNull( application.testSMTPLDEV1720 ) ) {
-			application.testSMTPLDEV1720 = new GreenMail( new ServerSetup( variables.port, nullValue(), ServerSetup::PROTOCOL_SMTP ) );
-			application.testSMTPLDEV1720.start();
-		}
-		application.testSMTPLDEV1720.purgeEmailFromAllMailboxes();
+	// a component UDF, not a closure: a closure's variables writes stay in the closure scope
+	function startGreenMail() {
+		variables.helper = new test._GreenMail();
+		variables.greenMail = variables.helper.start( [ "smtp" ] );
+		variables.deadPort = variables.helper.freePort(); // nothing listens here
 	}
 
-	function afterAll() {
-		if ( !isNull( application.testSMTPLDEV1720 ) ) {
-			application.testSMTPLDEV1720.purgeEmailFromAllMailboxes();
-			application.testSMTPLDEV1720.stop();
-			structDelete( application, "testSMTPLDEV1720" );
-		}
+	function stopGreenMail() {
+		variables.helper.stop( variables.greenMail );
 	}
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-1720 cfmail under load", function() {
-
+			beforeEach( startGreenMail );
+			afterEach( stopGreenMail );
 			it( title="200 spooled mails sent from 10 parallel threads are all delivered and leave the queue", body=function( currentSpec ) {
 				var prefix = "LDEV1720-spool-" & left( createUUID(), 8 ) & "-";
 				burst( prefix, 10, 20, true );
@@ -78,7 +69,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings
 		for ( var t = 1; t <= arguments.threads; t++ ) {
 			var tn = "ldev1720_" & replace( createUUID(), "-", "", "all" );
 			arrayAppend( names, tn );
-			thread name=tn action="run" prefix=arguments.prefix t=t perThread=arguments.perThread spool=arguments.spool port=variables.port {
+			thread name=tn action="run" prefix=arguments.prefix t=t perThread=arguments.perThread spool=arguments.spool port=variables.greenMail.ports.smtp {
 				for ( var i = 1; i <= attributes.perThread; i++ ) {
 					mail to="r@lucee.org" from="s@lucee.org" subject="#attributes.prefix##attributes.t#-#i#"
 							server="localhost" port=attributes.port spoolEnable=attributes.spool {
@@ -100,7 +91,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings
 		var expected = arguments.expected;
 		return new test._GreenMail().waitFor( function() {
 			var n = 0;
-			for ( var msg in application.testSMTPLDEV1720.getReceivedMessages() ) {
+			for ( var msg in variables.greenMail.server.getReceivedMessages() ) {
 				if ( left( msg.getSubject() ?: "", len( p ) ) == p ) n++;
 			}
 			return n >= expected ? n : nullValue();

@@ -6,16 +6,43 @@ component javaSettings='{
 	import "com.icegreen.greenmail.util.ServerSetup";
 	import "com.icegreen.greenmail.util.GreenMail";
 
-	public any function smtpOnly( required numeric port ) {
-		return new GreenMail( [ new ServerSetup( arguments.port, nullValue(), ServerSetup::PROTOCOL_SMTP ) ] );
+	private struct function protocolSetups() {
+		return {
+			smtp: ServerSetup::PROTOCOL_SMTP
+			,pop: ServerSetup::PROTOCOL_POP3
+			,pops: ServerSetup::PROTOCOL_POP3S
+			,imap: ServerSetup::PROTOCOL_IMAP
+		};
 	}
 
-	public any function withPop( required numeric smtpPort, required numeric popPort, required numeric popsPort ) {
-		return new GreenMail( [
-			new ServerSetup( arguments.smtpPort, nullValue(), ServerSetup::PROTOCOL_SMTP )
-			,new ServerSetup( arguments.popPort, nullValue(), ServerSetup::PROTOCOL_POP3 )
-			,new ServerSetup( arguments.popsPort, nullValue(), ServerSetup::PROTOCOL_POP3S )
-		] );
+	// bind port 0 and read back what the OS handed out, so no suite picks a port itself
+	public numeric function freePort() {
+		var socket = createObject( "java", "java.net.ServerSocket" ).init( 0 );
+		var port = socket.getLocalPort();
+		socket.close();
+		return port;
+	}
+
+	// one mock per spec: start( ["smtp"] ) returns the server plus the ports it listens on
+	public struct function start( required array protocols ) {
+		var setups = [];
+		var ports = {};
+		for ( var protocol in arguments.protocols ) {
+			var port = freePort();
+			ports[ protocol ] = port;
+			arrayAppend( setups, new ServerSetup( port, nullValue(), protocolSetups()[ protocol ] ) );
+		}
+		var greenMail = new GreenMail( setups );
+		greenMail.start();
+		return { server: greenMail, ports: ports };
+	}
+
+	public void function stop( required struct greenMail ) {
+		arguments.greenMail.server.stop();
+	}
+
+	public void function user( required struct greenMail, required string mail, required string password ) {
+		arguments.greenMail.server.setUser( arguments.mail, arguments.mail, arguments.password );
 	}
 
 	// greenmail counts a latch down when the SMTP manager accepts a message, so this blocks until
@@ -27,7 +54,7 @@ component javaSettings='{
 		return arguments.greenMail.getReceivedMessages();
 	}
 
-	// for mail greenmail does not own: a POP inbox on the standalone server, or .eml files on disk
+	// for mail greenmail does not own: a POP inbox read back with cfpop, or .eml files on disk
 	public any function waitFor( required any probe, required numeric timeout, numeric tick = 25 ) {
 		var end = getTickCount() + arguments.timeout;
 		while ( true ) {
