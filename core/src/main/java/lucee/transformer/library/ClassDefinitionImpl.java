@@ -47,6 +47,7 @@ import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGi;
+import lucee.runtime.osgi.OSGiToMaven;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.KeyImpl;
@@ -281,7 +282,11 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		if (maven != null) {
 			ConfigServerPro cs = ThreadLocalPageContext.getConfigServer();
 			try {
-				return clazz = (Class<T>) cs.getRPCClassLoader(false, JavaSettingsImpl.getInstance(cs, getMaven())).loadClass(className);
+				MavenCoordinate[] coordinates = getMaven();
+				// LDEV-6973: like for OSGi, use whatever version is installed locally, the version only matters
+				// when downloading
+				if (versionOnlyMattersWhenDownloading) coordinates = OSGiToMaven.toLocallyAvailable(cs, coordinates);
+				return clazz = (Class<T>) cs.getRPCClassLoader(false, JavaSettingsImpl.getInstance(cs, coordinates)).loadClass(className);
 			}
 			catch (Exception e) {
 				ClassException ce = new ClassException("Failed to load class [" + className + "]");

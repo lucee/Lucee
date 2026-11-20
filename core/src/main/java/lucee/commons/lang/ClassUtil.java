@@ -62,6 +62,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.OSGiService;
 import lucee.runtime.osgi.OSGi;
+import lucee.runtime.osgi.OSGiToMaven;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
@@ -174,6 +175,11 @@ public final class ClassUtil {
 
 	public static Class<?> loadClassByBundle(String className, BundleDefinition bundle, BundleDefinition[] relatedBundles, Identification id, List<Resource> addional,
 			boolean versionOnlyMattersForDownload) throws IOException, ClassException {
+		// LDEV-6973: compiled code may still reference the OSGi bundle of an extension that switched to Maven
+		if (versionOnlyMattersForDownload && relatedBundles == null && OSGiToMaven.isMapped(bundle.getName())) {
+			Class<?> clazz = loadClassFromMavenReplacement(className, bundle);
+			if (clazz != null) return clazz;
+		}
 		try {
 			OSGiService osgi = OSGi.get();
 			if (relatedBundles != null) {
@@ -197,6 +203,22 @@ public final class ClassUtil {
 			ExceptionUtil.initCauseEL(ce, e);
 			throw ce;
 		}
+	}
+
+	/**
+	 * only when the OSGi bundle is not available locally (in any version), the class is loaded from
+	 * the locally installed Maven artifact that replaces that bundle.
+	 * On 9.0 there is no OSGiUtil.loadBundle(..., downloadIfNecessary=false); findClass searches
+	 * already available bundles only and does not download.
+	 */
+	private static Class<?> loadClassFromMavenReplacement(String className, BundleDefinition bundle) {
+		try {
+			if (OSGi.isAvailable() && OSGi.get().findClass(className, bundle.getName()) != null) return null;
+		}
+		catch (Exception e) {
+			// not available locally
+		}
+		return OSGiToMaven.loadClass(null, className, bundle.getName());
 	}
 
 	private static java.io.File[] toFiles(List<Resource> resources) {

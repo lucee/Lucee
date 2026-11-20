@@ -45,6 +45,9 @@ public final class TagHandlerPool {
 	};
 
 	private ConcurrentHashMap<String, Queue<Tag>> map = new ConcurrentHashMap<String, Queue<Tag>>();
+	// LDEV-6973: pool id of a loaded tag class -> pool id requested by the compiled code, only used
+	// when the tag class was renamed (OSGi bundle replaced by a Maven artifact)
+	private ConcurrentHashMap<String, String> aliases = new ConcurrentHashMap<String, String>();
 	private ConfigWeb config;
 
 	public TagHandlerPool(ConfigWeb config) {
@@ -94,7 +97,9 @@ public final class TagHandlerPool {
 
 	public void reuse(Tag tag, String bundleName, String bundleVersion) {
 		tag.release();
-		Queue<Tag> queue = getQueue(toId(CLASS_NAMES.get(tag.getClass()), bundleName, bundleVersion));
+		String id = toId(CLASS_NAMES.get(tag.getClass()), bundleName, bundleVersion);
+		String alias = aliases.isEmpty() ? null : aliases.get(id);
+		Queue<Tag> queue = getQueue(alias != null ? alias : id);
 		queue.add(tag);
 	}
 
@@ -120,8 +125,15 @@ public final class TagHandlerPool {
 
 	private Tag loadTag(String className, String tagBundleName, String tagBundleVersion, Identification id) throws PageException {
 		try {
-			return TagProxy.getInstance(
-					ClassUtil.newInstance(new ClassDefinitionImpl(className, tagBundleName, tagBundleVersion, id).setVersionOnlyMattersWhenDownloading(true).getClazz()));
+			Object obj = ClassUtil.newInstance(new ClassDefinitionImpl(className, tagBundleName, tagBundleVersion, id).setVersionOnlyMattersWhenDownloading(true).getClazz());
+			Tag tag = TagProxy.getInstance(obj);
+			// the class was loaded under a different name (Maven replacement of an OSGi bundle), make sure the
+			// tag goes back to the queue it was requested from
+			if (tag == obj) {
+				String loadedClassName = CLASS_NAMES.get(tag.getClass());
+				if (!loadedClassName.equals(className)) aliases.putIfAbsent(toId(loadedClassName, tagBundleName, tagBundleVersion), toId(className, tagBundleName, tagBundleVersion));
+			}
+			return tag;
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -134,5 +146,6 @@ public final class TagHandlerPool {
 
 	public void reset() {
 		map.clear();
+		aliases.clear();
 	}
 }
