@@ -1,0 +1,76 @@
+name: Upload Maven jar
+
+# Publishes one jar that is not on a public Maven repository (for example an OSGi bundle a Lucee extension requires,
+# like org.lucee:spymemcached) as org.lucee:<artifactId>:<version> into the Maven layout of lucee-downloads
+# (cdn.lucee.org and maven.lucee-services.com). A version that already exists is never overwritten.
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_id:
+        description: 'Target artifactId in group org.lucee (e.g. spymemcached)'
+        required: true
+        type: string
+      version:
+        description: 'Version, the same as the Bundle-Version of the jar (e.g. 2.12.3.0001)'
+        required: true
+        type: string
+      jar_url:
+        description: 'https URL of the jar (e.g. a GitHub release asset)'
+        required: true
+        type: string
+      pom_url:
+        description: 'Optional: https URL of the pom.xml. Without it the pom embedded in the jar is used, when there is one'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run - only show what would be done'
+        required: false
+        type: boolean
+        default: false
+
+# two runs would rewrite the same maven-metadata.xml
+concurrency:
+  group: upload-maven-jar
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: |
+        cd .github/scripts
+        npm install
+
+    - name: Upload Maven jar
+      run: |
+        cd .github/scripts
+        node upload-maven-jar-to-s3.js
+      env:
+        INPUT_ARTIFACT_ID: ${{ inputs.artifact_id }}
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_JAR_URL: ${{ inputs.jar_url }}
+        INPUT_POM_URL: ${{ inputs.pom_url }}
+        INPUT_DRY_RUN: ${{ inputs.dry_run }}
+        INPUT_S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
+        INPUT_S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
+        INPUT_S3_BUCKET: 'lucee-downloads'
+        INPUT_S3_REGION: 'us-east-1'
+        R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+        R2_BUCKET: ${{ vars.R2_BUCKET }}
+        R2_PREFIX: ${{ vars.R2_PREFIX }}
+        R2_SNAPSHOT_PREFIX: ${{ vars.R2_SNAPSHOT_PREFIX }}
+        R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+        R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
