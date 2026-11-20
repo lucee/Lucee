@@ -37,16 +37,19 @@ public final class ListFirst extends BIF {
 	}
 
 	public static String call(PageContext pc, String list, String delimiter) {
+		if (isEmptyDelimiter(delimiter)) return firstChars(list, 1);
 		return ListUtil.first(list, delimiter, true, 1);
 	}
 
 	public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields) {
+		if (isEmptyDelimiter(delimiter)) return firstChars(list, 1);
 		return ListUtil.first(list, delimiter, !includeEmptyFields, 1);
 	}
 
 	public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields, Number count) throws FunctionException {
 		int cnt = Caster.toIntValue(count);
 		if (cnt < 1) throw new FunctionException(pc, "ListFirst", 4, "count", "Argument count must be a positive value greater than 0");
+		if (isEmptyDelimiter(delimiter)) return firstChars(list, cnt);
 		return ListUtil.first(list, delimiter, !includeEmptyFields, cnt);
 	}
 
@@ -54,6 +57,24 @@ public final class ListFirst extends BIF {
 		if (!ListUtil.isMultiCharDelimiter(delimiter, multiCharacterDelimiter)) return call(pc, list, delimiter, includeEmptyFields, count);
 		char c = ListUtil.freeChar(list);
 		return ListUtil.unmask(call(pc, ListUtil.mask(list, delimiter, c), String.valueOf(c), includeEmptyFields, count), delimiter, c);
+	}
+
+	/**
+	 * LDEV-4596: an empty delimiter splits the list into single characters (like listToArray( list, "" )),
+	 * so listFirst( "ab,c", "" ) is "a"
+	 */
+	static boolean isEmptyDelimiter(String delimiter) {
+		return delimiter != null && delimiter.isEmpty();
+	}
+
+	static String firstChars(String list, int count) {
+		if (list == null) return "";
+		return list.length() <= count ? list : list.substring(0, count);
+	}
+
+	static String lastChars(String list, int count) {
+		if (list == null) return "";
+		return list.length() <= count ? list : list.substring(list.length() - count);
 	}
 
 	@Override
