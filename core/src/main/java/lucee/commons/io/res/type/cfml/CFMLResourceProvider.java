@@ -94,7 +94,8 @@ public final class CFMLResourceProvider implements ResourceProviderPro {
 	}
 
 	private PageContext getPageContext(PageContext pc) {
-		ThreadLocalPageContext.get(pc);
+		// use the PageContext of the current request (if there is one), so the component runs with the mappings and scopes of the caller
+		pc = ThreadLocalPageContext.get(pc);
 		if (pc != null) return pc;
 
 		Config c = ThreadLocalPageContext.getConfig();
