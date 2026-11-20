@@ -41,6 +41,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.type.util.UDFUtil;
 
 public final class QuerySort extends BIF {
 
@@ -150,7 +151,7 @@ public final class QuerySort extends BIF {
 		@Override
 		public int compare(QueryRow left, QueryRow right) {
 			try {
-				return Caster.toIntValue(udf.call(pc, new Object[] { left.row, right.row }, true));
+				return UDFUtil.toCompareResultValue(udf.call(pc, new Object[] { left.row, right.row }, true));
 			}
 			catch (PageException pe) {
 				throw new PageRuntimeException(pe);
