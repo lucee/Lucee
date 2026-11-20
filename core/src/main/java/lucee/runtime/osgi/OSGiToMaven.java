@@ -52,11 +52,11 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public final class OSGiToMaven {
 
-	// lower case OSGi bundle name -> { groupId, artifactId }
-	private static final Map<String, String[]> MAPPING;
+	// lower case OSGi bundle name -> Maven coordinates (groupId and artifactId, no version)
+	private static final Map<String, GAVSO> MAPPING;
 
 	static {
-		Map<String, String[]> m = new HashMap<>();
+		Map<String, GAVSO> m = new HashMap<>();
 		add(m, "org.lucee", "chart", "org.lucee.chart.extension", "chart.extension");
 		add(m, "org.lucee", "image", "org.lucee.image.extension", "image.extension", "lucee.image.extension");
 		add(m, "org.lucee", "pdf", "org.lucee.pdf.extension", "pdf.extension");
@@ -69,8 +69,8 @@ public final class OSGiToMaven {
 		MAPPING = Collections.unmodifiableMap(m);
 	}
 
-	private static void add(Map<String, String[]> m, String groupId, String artifactId, String... bundleNames) {
-		String[] ga = new String[] { groupId, artifactId };
+	private static void add(Map<String, GAVSO> m, String groupId, String artifactId, String... bundleNames) {
+		GAVSO ga = new GAVSO(groupId, artifactId, null);
 		for (String bn: bundleNames) {
 			m.put(bn.toLowerCase(), ga);
 		}
@@ -81,15 +81,15 @@ public final class OSGiToMaven {
 	 * @return the Maven coordinates (groupId:artifactId) that replace the given OSGi bundle or null
 	 */
 	public static String getMavenFor(String bundleName) {
-		String[] ga = getGA(bundleName);
-		return ga == null ? null : ga[0] + ":" + ga[1];
+		GAVSO ga = getGA(bundleName);
+		return ga == null ? null : ga.g + ":" + ga.a;
 	}
 
 	public static boolean isMapped(String bundleName) {
 		return getGA(bundleName) != null;
 	}
 
-	private static String[] getGA(String bundleName) {
+	private static GAVSO getGA(String bundleName) {
 		if (StringUtil.isEmpty(bundleName, true)) return null;
 		return MAPPING.get(bundleName.trim().toLowerCase());
 	}
@@ -103,7 +103,7 @@ public final class OSGiToMaven {
 	 * @return the loaded class or null when the bundle is not mapped or nothing is installed locally
 	 */
 	public static Class<?> loadClass(Config config, String className, String bundleName) {
-		String[] ga = getGA(bundleName);
+		GAVSO ga = getGA(bundleName);
 		if (ga == null || StringUtil.isEmpty(className, true)) return null;
 		config = ThreadLocalPageContext.getConfig(config);
 		if (!(config instanceof ConfigPro)) return null;
@@ -111,7 +111,7 @@ public final class OSGiToMaven {
 		className = className.trim();
 
 		// the class definitions of the currently installed extension (TLD/FLD) for that artifact
-		List<ClassDefinitionImpl<?>> installed = getInstalledClassDefinitions(cp, ga[0], ga[1]);
+		List<ClassDefinitionImpl<?>> installed = getInstalledClassDefinitions(cp, ga.g, ga.a);
 
 		// 1. the same class is still defined in a loaded TLD/FLD
 		for (ClassDefinitionImpl<?> cd: installed) {
@@ -122,9 +122,9 @@ public final class OSGiToMaven {
 		}
 
 		// 2. the class still exists in the installed artifact, but is not (directly) used by a TLD/FLD
-		String version = getInstalledVersion(cp, ga[0], ga[1], installed);
+		String version = getInstalledVersion(cp, ga.g, ga.a, installed);
 		if (version != null) {
-			Class<?> clazz = load(new ClassDefinitionImpl<>(className, ga[0] + ":" + ga[1] + ":" + version), bundleName, className);
+			Class<?> clazz = load(new ClassDefinitionImpl<>(className, ga.g + ":" + ga.a + ":" + version), bundleName, className);
 			if (clazz != null) return clazz;
 		}
 
