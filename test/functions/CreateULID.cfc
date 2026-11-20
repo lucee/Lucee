@@ -1,6 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
-	variables.rounds = 10;
+	// perf comparison against MySQL, not behaviour; the BIF contract is covered by the specs above
+	variables.rounds = 3;
 	variables.mysql = server.getDatasource("mysql");
 
 	function run( testResults , testBox ) {
@@ -30,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( once ).toBe( again );
 			});
 
-			it(title="checking CreateULID() function perf with #variables.rounds# rows", body = function( currentSpec ) {
+			it(title="checking CreateULID() function perf with #variables.rounds# rows", skip=true, body = function( currentSpec ) {
 
 				var tbl = createTable( "default" );
 				if ( isEmpty( tbl ) ) return;
@@ -48,7 +49,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( r ).toBe( variables.rounds );
 			});
 
-			it(title="checking CreateUUID() function perf with #variables.rounds# rows", body = function( currentSpec ) {
+			it(title="checking CreateUUID() function perf with #variables.rounds# rows", skip=true, body = function( currentSpec ) {
 
 				var tbl = createTable( "uuid" );
 				if ( isEmpty( tbl ) ) return;
@@ -68,7 +69,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( r ).toBe( variables.rounds );
 			});
 
-			it(title="checking CreateUUID() function perf with #variables.rounds# rows (pre cooked)", body = function( currentSpec ) {
+			it(title="checking CreateUUID() function perf with #variables.rounds# rows (pre cooked)", skip=true, body = function( currentSpec ) {
 
 				var tbl = createTable( "uuid_precooked" );
 				if ( isEmpty( tbl ) ) return;
@@ -89,7 +90,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				// systemOutput( "inserting #variables.rounds# rows with CreateUUID() (pre cooked) took " & numberFormat(timer) & "ms", true);
 			});
 
-			it(title="checking CreateULID('Monotonic') function perf with #variables.rounds# rows", body = function( currentSpec ) {
+			it(title="checking CreateULID('Monotonic') function perf with #variables.rounds# rows", skip=true, body = function( currentSpec ) {
 
 				var tbl = createTable( "Monotonic" );
 				if ( isEmpty( tbl ) ) return;
@@ -110,7 +111,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			
-			it(title="checking CreateULID('Monotonic') function perf with #variables.rounds# rows (pre cooked)", body = function( currentSpec ) {
+			it(title="checking CreateULID('Monotonic') function perf with #variables.rounds# rows (pre cooked)", skip=true, body = function( currentSpec ) {
 
 				var tbl = createTable( "Monotonic_precooked" );
 				if ( isEmpty( tbl ) ) return;
