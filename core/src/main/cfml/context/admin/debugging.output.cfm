@@ -33,7 +33,7 @@
 						"showDebug":form.monitoring_showDebug?:false,
 						"showMetric":form.monitoring_showMetric?:false,
 						"showDoc":form.monitoring_showDoc?:false,
-						"showTest":form.monitoring_showTest?:false
+						"showTest":form.monitoring_showTest?:_mon.test
 					}#">
 		</cfcase>
 		<cfcase value="#stText.Buttons.resetServerAdmin#">
