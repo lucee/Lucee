@@ -49,6 +49,7 @@ import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.GAVSO;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.OSGiToMaven;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.thread.ThreadUtil;
@@ -286,7 +287,11 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		if (maven != null) {
 			ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig();
 			try {
-				return clazz = (Class<T>) config.getRPCClassLoader(false, JavaSettingsImpl.getInstance(config, getMaven())).loadClass(className);
+				GAVSO[] gavsos = getMaven();
+				// LDEV-6973: like for OSGi, use whatever version is installed locally, the version only matters
+				// when downloading
+				if (versionOnlyMattersWhenDownloading) gavsos = OSGiToMaven.toLocallyAvailable(config, gavsos);
+				return clazz = (Class<T>) config.getRPCClassLoader(false, JavaSettingsImpl.getInstance(config, gavsos)).loadClass(className);
 			}
 			catch (Exception e) {
 				ClassException ce = new ClassException("Failed to load class [" + className + "] from [" + maven + "]");
