@@ -1,5 +1,4 @@
-// TODO LDEV-6627: skipped until the OSGi extension exists, this tests code that moved out of core into the OSGi extension (OSGi service, OSGiUtil, Felix). Move to the extension or enable again (remove skip="true") as soon as that is done.
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi,maven" skip="true" javaSettings='{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi,maven" javaSettings='{
 		"maven": [
 			"org.mozilla:rhino:1.9.2"
 		]
@@ -11,9 +10,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi,maven" skip="
 		describe( "LDEV-6791 jdk.* is part of the default bootdelegation", function() {
 
 			it( title="jdk.* packages are in the effective bootdelegation", body=function( currentSpec ) {
-				var osgiUtil = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
-				expect( osgiUtil.isPackageInBootelegation( "jdk.dynalink" ) ).toBeTrue();
-				expect( osgiUtil.isClassInBootelegation( "jdk.dynalink.RelinkableCallSite" ) ).toBeTrue();
+				var bootDelegation = createObject( "java", "lucee.commons.lang.BootDelegation" );
+				expect( bootDelegation.isPackageInBootelegation( "jdk.dynalink" ) ).toBeTrue();
+				expect( bootDelegation.isClassInBootelegation( "jdk.dynalink.RelinkableCallSite" ) ).toBeTrue();
 			});
 
 			it( title="a jdk.dynalink class is loadable from a Maven loaded context", body=function( currentSpec ) {

@@ -156,8 +156,7 @@ public class GreeterConsumer {
 				}
 			});
 
-			// TODO LDEV-6627: skipped until the OSGi extension exists, EnvClassLoader moved to the extension.
-			it( title="EnvClassLoader callerCache is populated and queryable", skip=true, body=function() {
+			it( title="EnvClassLoader callerCache is populated and queryable", body=function() {
 				// Verify callerCache exists and is used. This cache is the secondary
 				// staleness vector (after findLoadedClass). Unlike findLoadedClass,
 				// callerCache CAN be cleared - that's the fix for LDEV-6240.
@@ -173,8 +172,7 @@ public class GreeterConsumer {
 				);
 			});
 
-			// TODO LDEV-6627: skipped until the OSGi extension exists, EnvClassLoader moved to the extension.
-			it( title="EnvClassLoader has no cache invalidation API", skip=true, body=function() {
+			it( title="EnvClassLoader has no cache invalidation API", body=function() {
 				// Documents the gap: there is no way to clear EnvClassLoader's caches.
 				// After LDEV-6240 fix, update this test to verify clearCallerCache() works.
 				var envCL = getEnvClassLoader();

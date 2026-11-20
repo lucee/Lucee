@@ -11,56 +11,56 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 		describe( 'LDEV-561' , function() {
 
-			// TODO LDEV-6627: skipped until the OSGi extension exists, the specs load org.apache.oro by bundle name which needs the OSGi service. Enable them (remove skip=true) as soon as the OSGi extension is available.
 			describe( 'CreateObject loads java classes by bundle name and value' , function() {
-				it( title='for createObject("java",<class-name>)', skip=true, body=function() {
+			// LDEV-6627: oro is not on Maven Central as an OSGi bundle (only on the Lucee S3 bucket), so the specs use commons-net, a valid OSGi bundle from the Maven mapping.
+				it( title='for createObject("java",<class-name>)', body=function() {
 					 
 					expect(
-						createObject("java","org.apache.oro.text.regex.Pattern")
+						createObject("java","org.apache.commons.net.util.SubnetUtils")
 						.getClass().getName()
 					).toBe(
-						'org.apache.oro.text.regex.Pattern'
+						'org.apache.commons.net.util.SubnetUtils'
 					);
 				}); 
 
-				it( title='for createObject("java",<class-name>,<bundle-name>)', skip=true, body=function() {
+				it( title='for createObject("java",<class-name>,<bundle-name>)', body=function() {
 					 
 					expect(
-						createObject("java","org.apache.oro.text.regex.Pattern","org.apache.oro")
+						createObject("java","org.apache.commons.net.util.SubnetUtils","org.apache.commons.commons-net")
 						.getClass().getName()
 					).toBe(
-						'org.apache.oro.text.regex.Pattern'
+						'org.apache.commons.net.util.SubnetUtils'
 					);
 				}); 
 
-				it( title='for createObject(type:"java",clas:<class-name>,name:<bundle-name>)', skip=true, body=function() {
+				it( title='for createObject(type:"java",clas:<class-name>,name:<bundle-name>)', body=function() {
 					 
 					expect(
-						createObject(type:"java",class:"org.apache.oro.text.regex.Pattern",name:"org.apache.oro")
+						createObject(type:"java",class:"org.apache.commons.net.util.SubnetUtils",name:"org.apache.commons.commons-net")
 						.getClass().getName()
 					).toBe(
-						'org.apache.oro.text.regex.Pattern'
+						'org.apache.commons.net.util.SubnetUtils'
 					);
 				}); 
 
 
-				it( title='for createObject("java",<class-name>,<bundle-name>,<bundle-version>)', skip=true, body=function() {
+				it( title='for createObject("java",<class-name>,<bundle-name>,<bundle-version>)', body=function() {
 					 
 					expect(
-						createObject("java","org.apache.oro.text.regex.Pattern","org.apache.oro","2.0.8")
+						createObject("java","org.apache.commons.net.util.SubnetUtils","org.apache.commons.commons-net","3.11.1")
 						.getClass().getName()
 					).toBe(
-						'org.apache.oro.text.regex.Pattern'
+						'org.apache.commons.net.util.SubnetUtils'
 					);
 				}); 
 
-				it( title='for createObject(type:"java",clas:<class-name>,name:<bundle-name>,version:<bundle-version>)', skip=true, body=function() {
+				it( title='for createObject(type:"java",clas:<class-name>,name:<bundle-name>,version:<bundle-version>)', body=function() {
 					 
 					expect(
-						createObject(type:"java",class:"org.apache.oro.text.regex.Pattern",name:"org.apache.oro",version:"2.0.8")
+						createObject(type:"java",class:"org.apache.commons.net.util.SubnetUtils",name:"org.apache.commons.commons-net",version:"3.11.1")
 						.getClass().getName()
 					).toBe(
-						'org.apache.oro.text.regex.Pattern'
+						'org.apache.commons.net.util.SubnetUtils'
 					);
 				}); 
 

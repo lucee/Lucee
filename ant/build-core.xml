@@ -331,6 +331,14 @@
         </or>
     </condition>
 </fail>
+<fail message="Missing OSGi data from [Require-Extension] inside ${coreManifest}.">
+    <condition>
+        <or>
+            <not><isset property="extOsgiExtension"/></not>
+            <not><isset property="extOsgiExtensionVersion"/></not>
+        </or>
+    </condition>
+</fail>
 
 <echo level="info">  
 
@@ -411,7 +419,7 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-s3,check-pdf,check-admin,check-doc,check-image,check-esapi,check-scheduler,check-compress,check-mail,check-ftp,check-markdown,check-smb,check-testbox,check-testbox-globber,check-lucee-loader-jar,download-lucee-loader-jar">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-s3,check-pdf,check-admin,check-doc,check-image,check-esapi,check-scheduler,check-compress,check-mail,check-ftp,check-markdown,check-smb,check-osgi,check-testbox,check-testbox-globber,check-lucee-loader-jar,download-lucee-loader-jar">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 

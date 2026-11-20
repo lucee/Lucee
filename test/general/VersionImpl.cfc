@@ -87,23 +87,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi" {
 				expect( impl.compare( po( "1.2" ), po( "1.2.0" ) ) ).toBe( 0 );
 			});
 
-			// TODO LDEV-6627: skipped until the OSGi extension exists, OSGiUtil moved to the extension.
-			it( title="toOSGi and toLucee round trip", skip=true, body=function() {
-				var osgi = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
+			it( title="a version survives the round trip through its string", body=function() {
 				for ( var v in [ "1.2.3", "3.12.13.10", "12.2.0.jre8", "5.2.0.RELEASE", "1.0.0.SNAPSHOT", "1.0.0.20240101123456" ] ) {
 					var l = po( v );
-					var back = osgi.toLucee( osgi.toOSGi( l ) );
+					var back = po( l.toString() );
 					expect( impl.compare( l, back ) ).toBe( 0, "round trip of #v#" );
-					expect( replace( back.toString(), "-", ".", "all" ) ).toBe( replace( l.toString(), "-", ".", "all" ), "string of #v#" );
+					expect( back.toString() ).toBe( l.toString(), "string of #v#" );
 				}
 			});
 
-			// TODO LDEV-6627: skipped until the OSGi extension exists, OSGiUtil moved to the extension.
-			it( title="toOSGi gives the OSGi version with the same ordering", skip=true, body=function() {
-				var osgi = createObject( "java", "lucee.runtime.osgi.OSGiUtil" );
+			it( title="versions with a qualifier are ordered by their numbers", body=function() {
 				var names = [ "12.2.0.jre8", "12.9.0.jre8", "12.10.0.jre8", "13.0.0.jre8" ];
 				for ( var i = 1; i < arrayLen( names ); i++ ) {
-					expect( osgi.toOSGi( po( names[ i ] ) ).compareTo( osgi.toOSGi( po( names[ i + 1 ] ) ) ) ).toBeLT( 0 );
+					expect( impl.compare( po( names[ i ] ), po( names[ i + 1 ] ) ) ).toBeLT( 0 );
 				}
 			});
 
