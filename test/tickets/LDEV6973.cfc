@@ -37,7 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image,extension" {
 
 			it( title="maven: a version that is not installed falls back to the installed one", skip=noMavenImage(), body=function() {
 				var pc = getPageContext();
-				var mvn = "org.lucee:image:3.1.0.1";
+				var mvn = "org.lucee:image:0.0.0.LDEV6973";
 				var args = javacast( "java.lang.Object[]", [ "", 5, 6 ] );
 				var img = createObject( "java", "lucee.runtime.functions.FunctionHandlerPool" )
 					.invoke( pc, args, "org.lucee.extension.image.functions.ImageNew", mvn );
