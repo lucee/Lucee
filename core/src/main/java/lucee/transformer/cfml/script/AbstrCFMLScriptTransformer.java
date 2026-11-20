@@ -755,7 +755,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private final Statement funcStatement(Data data, Body parent) throws TemplateException {
 		int pos = data.srcCode.getPos();
 
-		// read 5 tokens (returntype,access modifier,"abstract|final|static","function", function name)
+		// read up to 6 tokens (returntype,access modifier,"abstract|final","static","function", function name)
+		// LDEV-3683: "static" can be combined with "final" ("public static final string function g()")
 		String str = variableDec(data, false);
 		// if there is no token at all we have no function
 		if (str == null) {
@@ -763,7 +764,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			return null;
 		}
 		comments(data);
-		String[] tokens = new String[] { str, null, null, null, null };
+		String[] tokens = new String[] { str, null, null, null, null, null };
 
 		tokens[1] = variableDec(data, false);
 		comments(data);
@@ -776,6 +777,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				if (tokens[3] != null) {
 					tokens[4] = identifier(data, false);
 					comments(data);
+					if (tokens[4] != null) {
+						tokens[5] = identifier(data, false);
+						comments(data);
+					}
 				}
 			}
 		}
@@ -848,8 +853,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 				// abstract|final
 				if (_modifier != Component.MODIFIER_NONE) {
-					// we already have an Non access modifier
-					if (modifier != Component.MODIFIER_NONE || isStatic) {
+					// we already have an Non access modifier (only "static final" can be combined, LDEV-3683)
+					if (modifier != Component.MODIFIER_NONE || (isStatic && _modifier != Component.MODIFIER_FINAL)) {
 						// we already have a return type
 						if (returnType != null) throw new TemplateException(data.srcCode, "invalid syntax");
 						returnType = tokens[i];
@@ -859,8 +864,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				}
 				// static
 				else if (tokens[i].equalsIgnoreCase("static")) {
-					// we already have an Non access modifier
-					if (modifier != Component.MODIFIER_NONE || isStatic) {
+					// we already have an Non access modifier (only "static final" can be combined, LDEV-3683)
+					if (isStatic || (modifier != Component.MODIFIER_NONE && modifier != Component.MODIFIER_FINAL)) {
 						// we already have a return type
 						if (returnType != null) throw new TemplateException(data.srcCode, "invalid syntax");
 						returnType = tokens[i];

@@ -2095,7 +2095,15 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		registerUDF(key, jf);
 	}
 
-	public void registerStaticUDF(Key key, UDFProperties prop) {
+	public void registerStaticUDF(Key key, UDFProperties prop) throws ApplicationException {
+		// LDEV-3683 a static function declared as final in a base component cannot be overridden
+		if (_static != null) {
+			Pair<Member, ComponentImpl> p = _static.getFinalFromBase(null, key);
+			if (p != null) {
+				throw new ApplicationException("The static function [" + key + "] of the component [" + _getPageSource().getDisplayPath()
+						+ "] cannot override the static function of the base component [" + p.getValue()._getPageSource().getDisplayPath() + "], that function is declared as 'final'.");
+			}
+		}
 		_static.put(key, new UDFImpl(prop, this));
 	}
 
