@@ -293,10 +293,12 @@
 
 			var repos = [];
 			if (isSnapshot(version)) {
-				// CDN is excluded for SNAPSHOTs: it caches the literal URL and serves stale builds
-				// when a snapshot is republished. Always resolve via maven-metadata.xml instead.
+				// CDN caches the literal URL and serves stale builds when a snapshot is republished, so it is
+				// only the last resort, for snapshots that are published to maven.lucee-services.com only
+				// (like the OSGi extension), after the Central snapshot repository and Maven Central.
 				repos.push(project.getProperty("extURLSnapshot"));
 				repos.push(project.getProperty("extURLMaven"));
+				repos.push(project.getProperty("extURLCDN"));
 			} else {
 				repos.push(project.getProperty("extURLMaven"));
 				repos.push(project.getProperty("extURLCDN"));
@@ -313,11 +315,16 @@
 				if (isSnapshot(version)) {
 					// for SNAPSHOTs always use metadata resolution to get the latest timestamped build
 					var resolved = resolveSnapshotLexValue(repoUrl, group, artifact, version, classifier);
+					var snapshotUrl = null;
 					if (resolved) {
-						var snapshotUrl = resolvedLexUrl(repoUrl, group, artifact, version, resolved, classifier);
-						if (tryResolve(snapshotUrl, tried)) {
-							resolvedUrl = snapshotUrl;
-						}
+						snapshotUrl = resolvedLexUrl(repoUrl, group, artifact, version, resolved, classifier);
+					}
+					else if (repoUrl === project.getProperty("extURLCDN")) {
+						// the metadata of a snapshot published to maven.lucee-services.com has no entry for a classifier like "lite"
+						snapshotUrl = literalLexUrl(repoUrl, group, artifact, version, classifier);
+					}
+					if (snapshotUrl !== null && tryResolve(snapshotUrl, tried)) {
+						resolvedUrl = snapshotUrl;
 					}
 				} else {
 					var literalUrl = literalLexUrl(repoUrl, group, artifact, version, classifier);
