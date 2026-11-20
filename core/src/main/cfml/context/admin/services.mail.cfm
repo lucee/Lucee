@@ -31,14 +31,22 @@ Defaults --->
 
 <cfscript>
 	variables.stars = "*********";
-	function toPassword(host,pw, ms)
+	function toPassword(host,pw, ms, id="", username="")
 	{
 		var i=1;
 		if(arguments.pw EQ variables.stars)
 		{
+			// the edited server is identified by its id, the host may have been changed in the form
+			if(isNumeric(arguments.id) && arguments.id GT 0) {
+				for(i=1;i<=arguments.ms.recordcount;i++)
+				{
+					if(arguments.ms.id[i] EQ arguments.id)
+						return arguments.ms.password[i];
+				}
+			}
 			for(i=arguments.ms.recordcount;i>0;i--)
 			{
-				if(arguments.host EQ arguments.ms.hostname[i])
+				if(arguments.host EQ arguments.ms.hostname[i] && (!len(arguments.username) || arguments.username EQ arguments.ms.username[i]))
 					return arguments.ms.password[i];
 			}
 		}
@@ -133,7 +141,7 @@ Defaults --->
 							password="#pw#"
 							hostname="#data.hosts[idx]#"
 							dbusername="#data.usernames[idx]#"
-							dbpassword="#toPassword(data.hosts[idx],data.passwords[idx], ms)#"
+							dbpassword="#toPassword(data.hosts[idx],data.passwords[idx], ms, data.ids[idx]?:'', data.usernames[idx]?:'')#"
 							life="#data.lifes[idx]#"
 							idle="#data.idles[idx]#"
 							
@@ -183,7 +191,7 @@ Defaults --->
 								hostname="#data.hosts[idx]#"
 								port="#data.ports[idx]#"
 								mailusername="#data.usernames[idx]#"
-								mailpassword="#toPassword(data.hosts[idx],data.passwords[idx], ms)#">
+								mailpassword="#toPassword(data.hosts[idx],data.passwords[idx], ms, "", data.usernames[idx]?:'')#">
 							<cfset stVeritfyMessages[data.hosts[idx]].Label = "OK">
 							<cfcatch>
 								<cfset stVeritfyMessages[data.hosts[idx]].Label = "Error">
