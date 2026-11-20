@@ -23,8 +23,6 @@ import java.net.URL;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.net.HTTPUtil;
-import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.type.util.ArrayUtil;
 
 public final class Constants {
@@ -69,10 +67,6 @@ public final class Constants {
 		}
 	}
 	public static String DEFAULT_UPDATE_TYPE = "manual";
-
-	public static final RHExtensionProvider[] RH_EXTENSION_PROVIDERS = new RHExtensionProvider[] {
-			new RHExtensionProvider(HTTPUtil.toURL("https://extension.lucee.org", HTTPUtil.ENCODED_NO, null), true),
-			new RHExtensionProvider(HTTPUtil.toURL("https://www.forgebox.io", HTTPUtil.ENCODED_NO, null), true) };
 
 	public static final String CFML_SCRIPT_TAG_NAME = "script";
 

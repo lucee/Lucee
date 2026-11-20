@@ -636,6 +636,13 @@ public interface Config {
 
 	public Resource getExtensionDirectory();
 
+	/**
+	 * @return nothing, always throws a RuntimeException
+	 * @deprecated since 8.0 extensions are only downloaded from Maven, URL based REST extension
+	 *             providers are no longer supported and this method always throws. Extension providers
+	 *             are now configured as Maven groupIds.
+	 */
+	@Deprecated
 	public ExtensionProvider[] getExtensionProviders();
 
 	public Extension[] getExtensions();

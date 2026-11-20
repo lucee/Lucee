@@ -178,7 +178,6 @@ import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionDefintionFactory;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
-import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.gateway.GatewayEntry;
@@ -284,7 +283,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	protected final Map<String, Mapping> functionMappings = new ConcurrentHashMap<String, Mapping>();
 	protected Mapping defaultTagMapping;
 	protected final Map<String, Mapping> tagMappings = new ConcurrentHashMap<String, Mapping>();
-	private RHExtensionProvider[] rhextensionProviders;
 	private Map<String, ComponentMetaData> componentMetaData;
 	private DumpWriterEntry[] dumpWriters;
 
@@ -5210,6 +5208,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	@Override
+	@Deprecated
 	public ExtensionProvider[] getExtensionProviders() {
 		throw new RuntimeException("no longer supported, extensions are loaded from Maven, use getExtensionProvidersGroupIds() instead.");
 	}
@@ -5244,8 +5243,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		}
 		return this;
 	}
-
-	// = Constants.RH_EXTENSION_PROVIDERS;
 
 	@Override
 	public Extension[] getExtensions() {
