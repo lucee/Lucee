@@ -751,6 +751,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		return onMissingMethod(pc, access, member, key.getString(), args, namedArgs, superAccess);
 	}
 
+	private static final Collection.Key MISSING_METHOD_NAME = KeyImpl.getInstance("missingMethodName");
+	private static final Collection.Key MISSING_METHOD_ARGS = KeyImpl.getInstance("missingMethodArguments");
+
 	public Object onMissingMethod(PageContext pc, int access, Member member, String name, Object _args[], Struct _namedArgs, boolean superAccess) throws PageException {
 		Member ommm = access == -1 ? getMember(pc, KeyConstants._onmissingmethod, false, superAccess) : getMember(access, KeyConstants._onmissingmethod, false, superAccess);
 		if (ommm instanceof UDF) {
@@ -772,9 +775,14 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 			}
 
-			// Struct newArgs=new StructImpl(StructImpl.TYPE_SYNC);
-			// newArgs.setEL(MISSING_METHOD_NAME, name);
-			// newArgs.setEL(MISSING_METHOD_ARGS, args);
+			// LDEV-3605 no arguments declared: pass them by name like ACF (missingMethodName,
+			// missingMethodArguments), arguments[1] / arguments[2] still work
+			if (((UDF) ommm).getFunctionArguments().length == 0) {
+				Struct newNamedArgs = new StructImpl(Struct.TYPE_LINKED);
+				newNamedArgs.setEL(MISSING_METHOD_NAME, name);
+				newNamedArgs.setEL(MISSING_METHOD_ARGS, args);
+				return _call(pc, KeyConstants._onmissingmethod, (UDF) ommm, newNamedArgs, null);
+			}
 			Object[] newArgs = new Object[] { name, args };
 
 			return _call(pc, KeyConstants._onmissingmethod, (UDF) ommm, null, newArgs);
