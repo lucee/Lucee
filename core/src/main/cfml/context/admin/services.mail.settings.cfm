@@ -6,13 +6,14 @@
 			<tr>
 				<th scope="row">#stText.mail.DefaultEncoding#</th>
 				<td>
-					<cfif hasAccess>
+					<cfmodule template="systemSetting.cfm"
+						name="defaultencoding"
+						propName="mailDefaultEncoding"
+						value="#mail.defaultEncoding#"
+						access="#hasAccess#"
+						description="#stText.mail.DefaultEncodingDescription#">
 						<cfinputClassic type="text" name="defaultencoding" value="#mail.defaultEncoding#" class="medium" required="no" message="#stText.mail.missingEncoding#">
-					<cfelse>
-						<input type="hidden" name="defaultencoding" value="#mail.defaultEncoding#">
-						<b>#mail.defaultEncoding#</b>
-					</cfif>
-					<div class="comment">#stText.mail.DefaultEncodingDescription#</div>
+					</cfmodule>
 				</td>
 			</tr>
 <!---
@@ -47,12 +48,14 @@
 			<tr>
 				<th scope="row">#stText.Mail.SpoolEnabled#</th>
 				<td>
-					<cfif hasAccess>
-						<input type="checkbox" class="checkbox" name="spoolEnable" value="yes"<cfif mail.spoolEnable> checked</cfif> /><br>
-					<cfelse>
-						<b>#iif(mail.spoolEnable,de('Yes'),de('No'))#</b><br>
-					</cfif>
-					<div class="comment">#stText.mail.SpoolEnabledDesc#</div>
+					<cfmodule template="systemSetting.cfm"
+						name="spoolEnable"
+						propName="mailSpoolEnable"
+						value="#mail.spoolEnable#"
+						access="#hasAccess#"
+						description="#stText.mail.SpoolEnabledDesc#">
+						<input type="checkbox" class="checkbox" name="spoolEnable" value="yes"<cfif mail.spoolEnable> checked</cfif> />
+					</cfmodule>
 				</td>
 			</tr>
 			<tr>
@@ -77,12 +80,14 @@
 			<tr>
 				<th scope="row">#stText.Mail.Timeout#</th>
 				<td>
-					<cfif hasAccess>
+					<cfmodule template="systemSetting.cfm"
+						name="timeout"
+						propName="mailConnectionTimeout"
+						value="#mail.timeout#"
+						access="#hasAccess#"
+						description="#stText.mail.TimeoutDesc#">
 						<cfinputClassic type="text" name="timeout" value="#mail.timeout#" validate="integer" class="number" required="no"> #stText.mail.seconds#
-					<cfelse>
-						<b>#mail.timeout# #stText.mail.seconds#</b><br>
-					</cfif>
-					<div class="comment">#stText.mail.TimeoutDesc#</div>
+					</cfmodule>
 				</td>
 			</tr>
 			<cfif hasAccess>

@@ -255,16 +255,6 @@ Create Datasource --->
 									<td style="border:0;padding:3px;margin:0px">
 										<h3>#stText.setting["inspectTemplate"&item]#</h3>
 										<div>#stText.setting["inspectTemplate"&item&"Desc"]#</div>
-										<cfif item EQ "auto">
-											<br><b>#stText.setting.inspectTemplateInterval#</b>
-											<div class="comment">#stText.setting.inspectTemplateIntervalDesc#</div>
-
-											<input type="text" name="inspectTemplateIntervalSlow" value="#settings.inspectTemplateIntervalSlow?:"10000"#" size="6"> #stText.setting.inspectTemplateIntervalSlow#<br>
-											<cfset renderSettings( "inspectTemplateIntervalSlow",settings.inspectTemplateIntervalSlow?:"10000")>
-											<input type="text" name="inspectTemplateIntervalFast" value="#settings.inspectTemplateIntervalFast?:"100"#" size="6"> #stText.setting.inspectTemplateIntervalFast#<br>
-											<cfset renderSettings( "inspectTemplateIntervalFast",settings.inspectTemplateIntervalFast?:"100")>
-											
-										</cfif>
 									</td>
 								</tr>
 							</cfloop>
@@ -273,13 +263,32 @@ Create Datasource --->
 						<cfelse>
 							<cfif ListFindNoCase("never,once,always,auto",settings.inspectTemplate)>
 								<input type="hidden" name="inspectTemplate" value="#settings.inspectTemplate#">
-								<input type="hidden" name="inspectTemplateIntervalSlow" value="#settings.inspectTemplateIntervalSlow?:"10000"#">
-								<input type="hidden" name="inspectTemplateIntervalFast" value="#settings.inspectTemplateIntervalFast?:"100"#">
 								<b>#stText.setting["inspectTemplate"& settings.inspectTemplate]#</b><br />
 								<div class="comment">#stText.setting["inspectTemplate#settings.inspectTemplate#Desc"]#</div>
 							</cfif>
 						</cfif>
 						
+						</cfmodule>
+					</td>
+				</tr>
+				<!--- Inspect template intervals (used in auto mode); kept outside inspectTemplate so they still submit when that row is locked --->
+				<tr>
+					<th scope="row">#stText.setting.inspectTemplateInterval#</th>
+					<td>
+						<div class="comment">#stText.setting.inspectTemplateIntervalDesc#</div>
+						<cfmodule template="systemSetting.cfm"
+							name="inspectTemplateIntervalSlow"
+							value="#settings.inspectTemplateIntervalSlow?:"10000"#"
+							access="#hasAccess#"
+							sp=false
+							br=false>
+							<input type="text" name="inspectTemplateIntervalSlow" value="#settings.inspectTemplateIntervalSlow?:"10000"#" size="6"> #stText.setting.inspectTemplateIntervalSlow#
+						</cfmodule>
+						<cfmodule template="systemSetting.cfm"
+							name="inspectTemplateIntervalFast"
+							value="#settings.inspectTemplateIntervalFast?:"100"#"
+							access="#hasAccess#">
+							<input type="text" name="inspectTemplateIntervalFast" value="#settings.inspectTemplateIntervalFast?:"100"#" size="6"> #stText.setting.inspectTemplateIntervalFast#
 						</cfmodule>
 					</td>
 				</tr>
@@ -437,14 +446,20 @@ Create Datasource --->
 						type="#request.adminType#"
 						password="#session["password"&request.adminType]#"
 						returnVariable="mode">
-					<!--- Type Checking --->
+					<!--- Develop Mode --->
 					<tr>
 						<th scope="row">Develop Mode</th>
 						<td class="fieldPadded">
-							<label>
-								<input class="checkbox" type="checkbox" name="mode" value="true"<cfif  mode.developMode EQ true> checked="checked"</cfif>>
-							</label>
-							<div class="comment">#stText.setting.developMode#</div>
+							<cfmodule template="systemSetting.cfm"
+								name="mode"
+								propName="developMode"
+								value="#mode.developMode#"
+								access="#hasAccess#"
+								description="#stText.setting.developMode#">
+								<label>
+									<input class="checkbox" type="checkbox" name="mode" value="true"<cfif  mode.developMode EQ true> checked="checked"</cfif>>
+								</label>
+							</cfmodule>
 						</td>
 					</tr>
 				</cfif>
