@@ -129,16 +129,16 @@ function doEnableProxy(enableProxy) {
 <tr>
 	<th scope="row">#stText.proxy.serverName#</th>
 	<td>
-		<div class="comment">#stText.proxy.serverDescription#</div><br />
-		<cfif hasAccess>
-		<cfinputClassic type="text" name="server" value="#proxy.server#"
-			style="width:200px" required="no">
-
-		<cfelse>
-			<input type="hidden" name="server" value="#proxy.server#">
-
-			<b>#proxy.server#</b>
-		</cfif>
+		<cfmodule template="systemSetting.cfm"
+			name="server"
+			propName="proxy_server"
+			value="#proxy.server#"
+			access="#hasAccess#"
+			description="#stText.proxy.serverDescription#"
+			descOnTop=true>
+			<cfinputClassic type="text" name="server" value="#proxy.server#"
+				style="width:200px" required="no">
+		</cfmodule>
 	</td>
 </tr>
 
@@ -146,16 +146,16 @@ function doEnableProxy(enableProxy) {
 <tr>
 	<th scope="row">#stText.proxy.port#</th>
 	<td>
-		<div class="comment">#stText.proxy.portDescription#</div><br />
-		<cfif hasAccess>
-		<cfinputClassic type="text" name="port" value="#proxy.port#"
-			style="width:50px" required="yes" message="#stText.proxy.missingPort#">
-
-		<cfelse>
-			<input type="hidden" name="port" value="#proxy.port#">
-
-			<b>#proxy.port#</b>
-		</cfif>
+		<cfmodule template="systemSetting.cfm"
+			name="port"
+			propName="proxy_port"
+			value="#proxy.port#"
+			access="#hasAccess#"
+			description="#stText.proxy.portDescription#"
+			descOnTop=true>
+			<cfinputClassic type="text" name="port" value="#proxy.port#"
+				style="width:50px" required="yes" message="#stText.proxy.missingPort#">
+		</cfmodule>
 	</td>
 </tr>
 
@@ -163,16 +163,16 @@ function doEnableProxy(enableProxy) {
 <tr>
 	<th scope="row">#stText.proxy.username#</th>
 	<td>
-		<div class="comment">#stText.proxy.usernameDescription#</div><br />
-		<cfif hasAccess>
-		<cfinputClassic type="text" name="username" value="#proxy.username#"
-			style="width:200px" required="no">
-
-		<cfelse>
-			<input type="hidden" name="username" value="#proxy.username#">
-
-			<b>#proxy.username#</b>
-		</cfif>
+		<cfmodule template="systemSetting.cfm"
+			name="username"
+			propName="proxy_username"
+			value="#proxy.username#"
+			access="#hasAccess#"
+			description="#stText.proxy.usernameDescription#"
+			descOnTop=true>
+			<cfinputClassic type="text" name="username" value="#proxy.username#"
+				style="width:200px" required="no">
+		</cfmodule>
 	</td>
 </tr>
 
@@ -180,30 +180,30 @@ function doEnableProxy(enableProxy) {
 <tr>
 	<th scope="row">#stText.proxy.password#</th>
 	<td>
-		<div class="comment">#stText.proxy.passwordDescription#</div><br />
-		<cfif hasAccess>
-		<cfinputClassic type="password" name="password" value="#proxy.password#"
-			style="width:200px" required="no" passthrough='autocomplete="off"'>
-
-		<cfelse>
-			<input type="hidden" name="password" value="#proxy.password#">
-
-			<b>#proxy.password#</b>
-		</cfif>
+		<cfmodule template="systemSetting.cfm"
+			name="password"
+			propName="proxy_password"
+			value="#proxy.password#"
+			access="#hasAccess#"
+			description="#stText.proxy.passwordDescription#"
+			descOnTop=true>
+			<cfinputClassic type="password" name="password" value="#proxy.password#"
+				style="width:200px" required="no" passthrough='autocomplete="off"'>
+		</cfmodule>
 	</td>
 </tr>
 
 <!--- Enabled --->
 <tr>
 	<th scope="row">#stText.proxy.enable#</th>
-	<td>		
-		<cfif hasAccess>
+	<td>
+		<cfmodule template="systemSetting.cfm"
+			name="enabled"
+			propName="proxy_enabled"
+			value="#proxy.enabled#"
+			access="#hasAccess#">
 			<cfinputClassic type="checkbox" name="enabled" value="true" checked="#proxy.enabled#">
-		<cfelse>
-			<input type="hidden" name="eabled" value="#proxy.enabled#">
-
-			<b>#proxy.enabled#</b>
-		</cfif>
+		</cfmodule>
 	</td>
 </tr>
 
