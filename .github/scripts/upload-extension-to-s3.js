@@ -189,7 +189,7 @@ export function findInputs(dir, version) {
   return { full, lite, pom };
 }
 
-async function client(accessKeyId, secretAccessKey, bucket, region) {
+export async function client(accessKeyId, secretAccessKey, bucket, region) {
   let c = new S3Client({ region, credentials: { accessKeyId, secretAccessKey } });
   try { await c.send(new ListObjectsV2Command({ Bucket: bucket, MaxKeys: 1 })); return c; }
   catch (e) {
@@ -199,7 +199,7 @@ async function client(accessKeyId, secretAccessKey, bucket, region) {
   }
 }
 
-async function getText(c, bucket, key) {
+export async function getText(c, bucket, key) {
   try { return await (await c.send(new GetObjectCommand({ Bucket: bucket, Key: key }))).Body.transformToString(); }
   catch (e) { if (e.name === 'NoSuchKey' || e.$metadata?.httpStatusCode === 404) return null; throw e; }
 }
