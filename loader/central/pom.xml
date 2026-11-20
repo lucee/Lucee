@@ -1,9 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <!--
-    LDEV-6707: what a Lucee release publishes on Maven Central, only the Lucee core file (.lco) and this pom (pom packaging).
-    The .lco is the one built by ../pom.xml (../target/<version>.lco, copied to target/ here), so build that first, then:
+    LDEV-6707: what a Lucee release publishes on Maven Central, the Lucee core file (.lco) and this pom (pom packaging).
+    LDEV-6900: and the main jar (lucee-<version>.jar) again, with the loader sources jar and a minimal javadoc jar (Central requires both for a jar).
+    The .lco, the jar and the sources jar are the ones built by ../pom.xml (../target/, copied to target/ here), so build (install) that first, then:
       mvn -f loader/central/pom.xml -Drevision=<version> deploy -DperformRelease=true
-    The jar, light, zero, express, WAR and installers go to GitHub Releases (and maven.lucee-services.com) only.
+    Light, zero, the full javadoc, express, WAR and installers go to GitHub Releases (and maven.lucee-services.com) only.
   -->
   <modelVersion>4.0.0</modelVersion>
 
@@ -13,7 +14,7 @@
   <packaging>pom</packaging>
 
   <name>Lucee</name>
-  <description>Lucee Core File (.lco), the jar, light, zero, express and WAR builds are attached to the GitHub release of this version</description>
+  <description>Lucee jar and Lucee Core File (.lco), the light, zero, express and WAR builds are attached to the GitHub release of this version</description>
   <url>https://github.com/lucee/Lucee</url>
 
   <properties>
@@ -21,6 +22,9 @@
     <!-- the .lco built by ../pom.xml, copied into this project's build directory before it gets attached (LDEV-6659) -->
     <lucee.core.source.dir>${project.basedir}/../target</lucee.core.source.dir>
     <lucee.core.file>${project.build.directory}/${project.version}.lco</lucee.core.file>
+    <!-- LDEV-6900: the main jar and the loader sources jar built by ../pom.xml, copied the same way as the .lco -->
+    <lucee.jar.file>${project.build.directory}/lucee-${project.version}.jar</lucee.jar.file>
+    <lucee.sources.file>${project.build.directory}/lucee-${project.version}-sources.jar</lucee.sources.file>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -147,6 +151,8 @@
                   <filtering>false</filtering>
                   <includes>
                     <include>${project.version}.lco</include>
+                    <include>lucee-${project.version}.jar</include>
+                    <include>lucee-${project.version}-sources.jar</include>
                   </includes>
                 </resource>
               </resources>
@@ -172,7 +178,37 @@
                   <file>${lucee.core.file}</file>
                   <type>lco</type>
                 </artifact>
+                <!-- LDEV-6900: the main jar, so org.lucee:lucee:<version> resolves as a jar dependency from Maven Central again -->
+                <artifact>
+                  <file>${lucee.jar.file}</file>
+                  <type>jar</type>
+                </artifact>
+                <artifact>
+                  <file>${lucee.sources.file}</file>
+                  <type>jar</type>
+                  <classifier>sources</classifier>
+                </artifact>
               </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- LDEV-6900: minimal javadoc jar (Central requires one next to a jar), the full loader javadoc stays off Central (same as Lucee 9, LDEV-6708) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.3.0</version>
+        <executions>
+          <execution>
+            <id>attach-minimal-javadoc</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>javadoc</classifier>
+              <classesDirectory>${project.basedir}/javadoc</classesDirectory>
             </configuration>
           </execution>
         </executions>
