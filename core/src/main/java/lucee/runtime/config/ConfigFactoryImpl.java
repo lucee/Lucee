@@ -664,7 +664,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 				Map<String, String> args = new HashMap<>();
 				args.put("lock-timeout", "1000");
 				args.put("case-sensitive", "true");
-				config.addResourceProvider("tar", new ClassDefinitionImpl<>(CacheResourceProvider.class), args);
+				config.addResourceProvider("ram", new ClassDefinitionImpl<>(CacheResourceProvider.class), args);
 			}
 			if (!hasS3) {
 				ClassDefinition s3Class = new ClassDefinitionImpl(DummyS3ResourceProvider.class);
