@@ -91,7 +91,7 @@ public final class FunctionHandlerPool {
 			Class<?> clazz;
 			// Maven
 			if (!StringUtil.isEmpty(maven)) {
-				clazz = new ClassDefinitionImpl(className, maven).getClazz();
+				clazz = new ClassDefinitionImpl(className, maven).setVersionOnlyMattersWhenDownloading(true).getClazz();
 			}
 			// JAR
 			else {
