@@ -67,7 +67,7 @@ public final class ConstructorInstance {
 			try {
 				DynamicInvoker di = DynamicInvoker.getExistingInstance();
 				Clazz clazzz = di.toClazz(clazz);
-				constr = clazzz.getConstructor(args, true, convertComparsion);
+				constr = clazzz.getConstructor(args, true, convertComparsion, null);
 			}
 			catch (Exception ex) {
 				return defaultValue;
