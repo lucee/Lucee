@@ -96,15 +96,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings
 	}
 
 	private numeric function waitForCount( required string prefix, required numeric expected, numeric timeout=60000 ) {
-		var start = getTickCount();
-		while ( true ) {
+		var p = arguments.prefix;
+		var expected = arguments.expected;
+		return new test._GreenMail().waitFor( function() {
 			var n = 0;
 			for ( var msg in application.testSMTPLDEV1720.getReceivedMessages() ) {
-				if ( left( msg.getSubject() ?: "", len( arguments.prefix ) ) == arguments.prefix ) n++;
+				if ( left( msg.getSubject() ?: "", len( p ) ) == p ) n++;
 			}
-			if ( n >= arguments.expected || ( getTickCount() - start ) > arguments.timeout ) return n;
-			sleep( 250 );
-		}
+			return n >= expected ? n : nullValue();
+		}, arguments.timeout );
 	}
 
 	private query function tasksWithPrefix( required string prefix ) {

@@ -99,12 +99,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings
 	}
 
 	private array function waitForMessages( smtp, required numeric count, numeric timeout = 20000 ) localmode = true {
-		var start = getTickCount();
-		var msgs  = arguments.smtp.getReceivedMessages();
-		while ( arrayLen( msgs ) < arguments.count && ( getTickCount() - start ) < arguments.timeout ) {
-			sleep( 250 );
-			msgs = arguments.smtp.getReceivedMessages();
-		}
-		return msgs;
+		return new test._GreenMail().waitForIncoming( arguments.smtp, arguments.count, arguments.timeout );
 	}
 }

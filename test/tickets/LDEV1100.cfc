@@ -37,8 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" javaSettings
 		mail to=variables.user from="sender@localhost" subject=variables.subject server="localhost" port=variables.smtpPort spoolEnable=false {
 			echo( "LDEV-1100 body" );
 		}
-		var start = getTickCount();
-		while ( arrayLen( application.testLDEV1100.getReceivedMessages() ) < 1 && getTickCount() - start < 10000 ) sleep( 100 );
+		new test._GreenMail().waitForIncoming( application.testLDEV1100, 1 );
 	}
 
 	function afterAll() {

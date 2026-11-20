@@ -91,12 +91,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 			secure: false
 		};
 		if ( len( arguments.attachmentPath ) ) args.attachmentPath = arguments.attachmentPath;
-		var start = getTickCount();
-		while ( true ) {
+		local.message = new test._GreenMail().waitFor( function() {
 			pop action="getAll" name="local.message" attributeCollection=args;
-			if ( local.message.recordCount > 0 || getTickCount() - start > 10000 ) break;
-			sleep( 200 );
-		}
+			return local.message.recordCount > 0 ? local.message : nullValue();
+		}, 10000 );
 		systemOutput( "LDEV1903 cids: " & serializeJSON( local.message.cids ), true );
 		return local.message;
 	}
