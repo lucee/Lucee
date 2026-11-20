@@ -168,15 +168,19 @@ public final class ClosureScope extends ScopeSupport implements Variables, Exter
 		return var.keys();
 	}
 
+	/*
+	 * LDEV-3696: the methods of the Variables interface (get, set, remove, containsKey) are used for an
+	 * explicit "variables." access inside the closure, they only see the variables scope of the
+	 * enclosing component / page (like ACF). The "...Cascading" methods below also look in the
+	 * captured local and arguments scopes, they are used by the undefined scope for unscoped access.
+	 */
 	@Override
 	public Object remove(Key key) throws PageException {
-		if (local.containsKey(key)) return local.remove(key);
 		return var.remove(key);
 	}
 
 	@Override
 	public Object removeEL(Key key) {
-		if (local.containsKey(key)) return local.removeEL(key);
 		return var.removeEL(key);
 	}
 
@@ -187,99 +191,109 @@ public final class ClosureScope extends ScopeSupport implements Variables, Exter
 
 	@Override
 	public Object get(Key key) throws PageException {
-		Object value = local.get(key, CollectionUtil.NULL);
-		if (value != CollectionUtil.NULL) return value;
-		value = arg.get(key, CollectionUtil.NULL);
-		if (value != CollectionUtil.NULL) {
-			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
-			return value;
-		}
-
-		value = var.get(key);
-		if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
-		return value;
+		return var.get(key);
 	}
 
 	@Override
 	public Object get(PageContext pc, Key key) throws PageException {
-		Object value = local.get(pc, key, CollectionUtil.NULL);
-		if (value != CollectionUtil.NULL) return value;
-		value = arg.get(pc, key, CollectionUtil.NULL);
-		if (value != CollectionUtil.NULL) {
-			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), arg.getTypeAsString(), key);
-			return value;
-		}
-
-		value = var.get(pc, key);
-		if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), var.getTypeAsString(), key);
-		return value;
+		return var.get(pc, key);
 	}
 
 	@Override
 	public Object get(Key key, Object defaultValue) {
-		// local
-		Object value = local.get(key, CollectionUtil.NULL);
-		if (value != CollectionUtil.NULL) return value;
-
-		// arg
-		value = arg.get(key, CollectionUtil.NULL);
-		if (value != CollectionUtil.NULL) {
-			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
-			return value;
-		}
-
-		// var
-		value = var.get(key, CollectionUtil.NULL);
-		if (value != CollectionUtil.NULL) {
-			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
-			return value;
-		}
-		return defaultValue;
+		return var.get(key, defaultValue);
 	}
 
 	@Override
 	public Object get(PageContext pc, Key key, Object defaultValue) {
-		// local
-		Object value = local.get(pc, key, CollectionUtil.NULL);
-		if (value != CollectionUtil.NULL) return value;
-
-		// arg
-		value = arg.get(pc, key, CollectionUtil.NULL);
-		if (value != CollectionUtil.NULL) {
-			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), arg.getTypeAsString(), key);
-			return value;
-		}
-
-		// var
-		value = var.get(pc, key, CollectionUtil.NULL);
-		if (value != CollectionUtil.NULL) {
-			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), var.getTypeAsString(), key);
-			return value;
-		}
-		return defaultValue;
+		return var.get(pc, key, defaultValue);
 	}
 
 	@Override
 	public Object set(Key key, Object value) throws PageException {
-		if (local.containsKey(key)) return local.set(key, value);
-		if (arg.containsKey(key)) {
-			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
-			return arg.set(key, value);
-		}
-		if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
 		return var.set(key, value);
 	}
 
 	@Override
 	public Object setEL(Key key, Object value) {
-		if (local.containsKey(key)) return local.setEL(key, value);
-		if (arg.containsKey(key)) {
-			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
-			return arg.setEL(key, value);
+		return var.setEL(key, value);
+	}
+
+	public static Object removeCascading(Variables var, Key key) throws PageException {
+		if (var instanceof ClosureScope) {
+			ClosureScope cs = (ClosureScope) var;
+			if (cs.local.containsKey(key)) return cs.local.remove(key);
+			return removeCascading(cs.var, key);
+		}
+		return var.remove(key);
+	}
+
+	public static Object removeELCascading(Variables var, Key key) {
+		if (var instanceof ClosureScope) {
+			ClosureScope cs = (ClosureScope) var;
+			if (cs.local.containsKey(key)) return cs.local.removeEL(key);
+			return removeELCascading(cs.var, key);
+		}
+		return var.removeEL(key);
+	}
+
+	public static Object getCascading(PageContext pc, Variables var, Key key, Object defaultValue) {
+		if (!(var instanceof ClosureScope)) return var.get(pc, key, defaultValue);
+		ClosureScope cs = (ClosureScope) var;
+		// local
+		Object value = cs.local.get(pc, key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) return value;
+
+		// arg
+		value = cs.arg.get(pc, key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) {
+			if (cs.debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), cs.arg.getTypeAsString(), key);
+			return value;
 		}
 
-		if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
-		return var.setEL(key, value);
+		// var
+		value = getCascading(pc, cs.var, key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) {
+			if (cs.debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), cs.var.getTypeAsString(), key);
+			return value;
+		}
+		return defaultValue;
+	}
+
+	/**
+	 * the scope (captured local, captured arguments or variables) an unscoped key is found in, null if
+	 * not found
+	 */
+	public static Collection scopeFor(PageContext pc, Variables var, Key key) {
+		if (!(var instanceof ClosureScope)) return var.get(pc, key, CollectionUtil.NULL) != CollectionUtil.NULL ? var : null;
+		ClosureScope cs = (ClosureScope) var;
+		if (cs.local.get(pc, key, CollectionUtil.NULL) != CollectionUtil.NULL) return cs.local;
+		if (cs.arg.get(pc, key, CollectionUtil.NULL) != CollectionUtil.NULL) return cs.arg;
+		return scopeFor(pc, cs.var, key);
+	}
+
+	public static Object setCascading(Variables var, Key key, Object value) throws PageException {
+		if (!(var instanceof ClosureScope)) return var.set(key, value);
+		ClosureScope cs = (ClosureScope) var;
+		if (cs.local.containsKey(key)) return cs.local.set(key, value);
+		if (cs.arg.containsKey(key)) {
+			if (cs.debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), cs.arg.getTypeAsString(), key);
+			return cs.arg.set(key, value);
+		}
+		if (cs.debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), cs.var.getTypeAsString(), key);
+		return setCascading(cs.var, key, value);
+	}
+
+	public static Object setELCascading(Variables var, Key key, Object value) {
+		if (!(var instanceof ClosureScope)) return var.setEL(key, value);
+		ClosureScope cs = (ClosureScope) var;
+		if (cs.local.containsKey(key)) return cs.local.setEL(key, value);
+		if (cs.arg.containsKey(key)) {
+			if (cs.debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), cs.arg.getTypeAsString(), key);
+			return cs.arg.setEL(key, value);
+		}
+		if (cs.debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), cs.var.getTypeAsString(), key);
+		return setELCascading(cs.var, key, value);
 	}
 
 	@Override
