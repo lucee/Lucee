@@ -5,7 +5,8 @@ function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked
 	try{
 		arguments._cfcNames=ComponentListPackage(arguments.package);
 		loop array="#arguments._cfcNames#" index="local.i" item="local.el" {
-			arguments.cfcNames[local.el]=arguments.package&"."& local.el;
+			// keep the fully qualified name, a relative package name only resolves when "Search local" is enabled
+			if(!structKeyExists(arguments.cfcNames,local.el)) arguments.cfcNames[local.el]=arguments.package&"."& local.el;
 		}
 	}
 	catch(e){}
