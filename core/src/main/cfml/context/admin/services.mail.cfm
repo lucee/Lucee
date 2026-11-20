@@ -154,7 +154,7 @@ Defaults --->
 				<cflock type="exclusive" scope="application" timeout="5"></cflock> --->
 				<cfset len=arrayLen(data.hosts)>
 				<cfloop index="idx" from="1" to="#len#">
-					<cfif (data.hosts[idx]?:"") NEQ "">
+					<cfif arrayIndexExists(data.rows, idx) and (data.hosts[idx]?:"") NEQ "">
 						<cfadmin 
 							action="removeMailServer"
 							type="#request.adminType#"
