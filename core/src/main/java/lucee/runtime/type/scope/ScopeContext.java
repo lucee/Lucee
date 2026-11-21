@@ -18,8 +18,11 @@
  */
 package lucee.runtime.type.scope;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -34,10 +37,16 @@ import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.CFMLFactoryImpl;
+import lucee.runtime.Component;
+import lucee.runtime.ComponentImpl;
+import lucee.runtime.ComponentScope;
+import lucee.runtime.ComponentScopeShadow;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
+import lucee.runtime.component.DataMember;
+import lucee.runtime.component.Member;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.DataSource;
@@ -51,10 +60,12 @@ import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.scope.client.ClientCookie;
 import lucee.runtime.type.scope.client.ClientFile;
 import lucee.runtime.type.scope.client.ClientMemory;
@@ -890,9 +901,104 @@ public final class ScopeContext {
 			if (ignoreSimpleValues && Decision.isSimpleValue(e.getValue().getValue())) {
 				continue;
 			}
-			result = 31 * result + (e.getValue() == null ? 0 : e.getValue().hashCode());
+			result = 31 * result + hash(e.getValue());
 		}
 		return result;
+	}
+
+	/**
+	 * same filter as hash(Map, int, boolean), but one hash per key, so the caller can tell which entries changed
+	 */
+	public static Map<Key, Integer> hashes(Map<Key, IKStorageScopeItem> map, int type, boolean ignoreSimpleValues) {
+		Map<Key, Integer> result = new HashMap<>();
+		for (Entry<Key, IKStorageScopeItem> e: map.entrySet()) {
+			if (type == Scope.SCOPE_CLIENT ? IGNORE_CLIENT.contains(e.getKey()) : IGNORE_SESSION.contains(e.getKey())) {
+				continue;
+			}
+			if (ignoreSimpleValues && Decision.isSimpleValue(e.getValue().getValue())) {
+				continue;
+			}
+			result.put(e.getKey(), hash(e.getValue()));
+		}
+		return result;
+	}
+
+	/**
+	 * LDEV-6939: a content hash of a stored value, used to detect changes made inside it (for example a
+	 * component property set via its accessor). Components hash by identity, so their state is walked
+	 * here instead, without changing Component.hashCode(). Cycles are cut with an identity set.
+	 */
+	public static int hash(IKStorageScopeItem item) {
+		if (item == null) return 0;
+		Object value = item.getValue();
+		try {
+			return contentHash(value, new IdentityHashMap<Object, Boolean>());
+		}
+		catch (StackOverflowError | RuntimeException e) {
+			return System.identityHashCode(value);
+		}
+	}
+
+	private static int contentHash(Object o, IdentityHashMap<Object, Boolean> seen) {
+		if (o == null) return 0;
+		if (o instanceof DataMember) o = ((DataMember) o).getValue();
+		if (o == null) return 0;
+
+		if (o instanceof ComponentImpl) {
+			if (seen.put(o, Boolean.TRUE) != null) return 1;
+			ComponentImpl c = (ComponentImpl) o;
+			int h = System.identityHashCode(c);
+			Member m;
+			for (Key k: c.keys(Component.ACCESS_PRIVATE)) {
+				m = c.getMember(Component.ACCESS_PRIVATE, k, true, false);
+				if (m != null && !(m instanceof UDF)) h += k.hashCode() ^ contentHash(m.getValue(), seen);
+			}
+			ComponentScope cs = c.getComponentScope();
+			if (cs instanceof ComponentScopeShadow) {
+				for (Entry<Key, Object> se: ((ComponentScopeShadow) cs).getShadow().entrySet()) {
+					if (se.getValue() instanceof UDF) continue;
+					h += 31 * (se.getKey().hashCode() ^ contentHash(se.getValue(), seen));
+				}
+			}
+			return h;
+		}
+		if (o instanceof Struct) {
+			if (seen.put(o, Boolean.TRUE) != null) return 1;
+			int h = 0;
+			Iterator<Entry<Key, Object>> it = ((Struct) o).entryIterator();
+			Entry<Key, Object> e;
+			while (it.hasNext()) {
+				e = it.next();
+				h += e.getKey().hashCode() ^ contentHash(e.getValue(), seen);
+			}
+			return h;
+		}
+		if (o instanceof Array) {
+			if (seen.put(o, Boolean.TRUE) != null) return 1;
+			int h = 1;
+			Iterator<Object> it = ((Array) o).valueIterator();
+			while (it.hasNext()) {
+				h = 31 * h + contentHash(it.next(), seen);
+			}
+			return h;
+		}
+		if (o instanceof Map) {
+			if (seen.put(o, Boolean.TRUE) != null) return 1;
+			int h = 0;
+			for (Entry<?, ?> e: ((Map<?, ?>) o).entrySet()) {
+				h += (e.getKey() == null ? 0 : e.getKey().hashCode()) ^ contentHash(e.getValue(), seen);
+			}
+			return h;
+		}
+		if (o instanceof List) {
+			if (seen.put(o, Boolean.TRUE) != null) return 1;
+			int h = 1;
+			for (Object v: (List<?>) o) {
+				h = 31 * h + contentHash(v, seen);
+			}
+			return h;
+		}
+		return o.hashCode();
 	}
 
 	/**

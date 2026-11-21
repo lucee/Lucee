@@ -110,7 +110,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	private String appName;
 	private String name;
 
-	private int hash;
+	private transient Map<Collection.Key, Integer> hashes;
 
 	public IKStorageScopeSupport(PageContext pc, IKHandler handler, String appName, String name, String strType, int type, Map<Collection.Key, IKStorageScopeItem> data,
 			long lastModified, long timeSpan) {
@@ -258,7 +258,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 		if (storage != null) {
 			// we have set "ignoreSimpleValues" to true, because this is already covered by "hasChanges"
-			hash = ScopeContext.hash(data0, type, true);
+			hashes = ScopeContext.hashes(data0, type, true);
 		}
 	}
 
@@ -553,6 +553,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 
 	private boolean isDirty(PageContext pc, Log log) {
+		// checked even when hasChanges is set, so values changed in place get a current timestamp for merge (LDEV-6938)
+		boolean valueChanged = touchChangedValues();
 		if (hasChanges) {
 			if (LogUtil.doesDebug(log)) {
 				ScopeContext.debug(log, "detected a change in the root keys of the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
@@ -560,10 +562,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			}
 			return true;
 		}
-		// we have set "ignoreSimpleValues" to true, because this is already covered by "hasChanges" above
-		int newHash = ScopeContext.hash(data0, type, true);
-		if (newHash != hash) {
-			hash = newHash;
+		if (valueChanged) {
 			if (LogUtil.doesDebug(log)) {
 				ScopeContext.debug(log, "detected a change in one of the values in the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
 						+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + ".");
@@ -571,6 +570,44 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * compares the per key hashes taken in touchBeforeRequest with the current ones. A complex value that
+	 * was changed in place (a struct key, a component property via its accessor) keeps its
+	 * IKStorageScopeItem and so its old timestamp, which made it lose against storage in merge(). Those
+	 * items are replaced with a fresh one carrying the current time.
+	 * 
+	 * @return true if any of the complex values changed
+	 */
+	private boolean touchChangedValues() {
+		// we have set "ignoreSimpleValues" to true, because this is already covered by "hasChanges"
+		Map<Collection.Key, Integer> newHashes = ScopeContext.hashes(data0, type, true);
+		Map<Collection.Key, Integer> oldHashes = hashes;
+		hashes = newHashes;
+		if (oldHashes == null) return !newHashes.isEmpty();
+		boolean changed = touchChanged(oldHashes, newHashes);
+		return changed || !newHashes.keySet().equals(oldHashes.keySet());
+	}
+
+	private boolean touchChanged(Map<Collection.Key, Integer> oldHashes, Map<Collection.Key, Integer> newHashes) {
+		boolean changed = false;
+		Integer oldHash;
+		IKStorageScopeItem item, fresh;
+		for (Entry<Collection.Key, Integer> e: newHashes.entrySet()) {
+			oldHash = oldHashes.get(e.getKey());
+			if (oldHash == null || oldHash.intValue() == e.getValue().intValue()) continue;
+			changed = true;
+			item = data0.get(e.getKey());
+			if (item == null || item.removed()) continue;
+			fresh = new IKStorageScopeItem(item.getValue());
+			// no Map.replace(k,old,new), IKStorageScopeItem.equals compares the wrapped value
+			if (data0.get(e.getKey()) == item) {
+				data0.put(e.getKey(), fresh);
+				lastModified = Math.max(lastModified, fresh.lastModified());
+			}
+		}
+		return changed;
 	}
 
 	private boolean isStale(PageContext pc, Log log) {
@@ -759,6 +796,15 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	};
 
 	public static void merge(Map<Key, IKStorageScopeItem> local, Map<Key, IKStorageScopeItem> storage, Log log, int type, long storageLastModified) {
+		merge(local, storage, log, type, storageLastModified, -1L);
+	}
+
+	/**
+	 * @param lastModifiedAtInit timestamp of the storage version the local scope was loaded from, 0 if
+	 *            it was created without one
+	 */
+	public static void merge(Map<Key, IKStorageScopeItem> local, Map<Key, IKStorageScopeItem> storage, Log log, int type, long storageLastModified,
+			long lastModifiedAtInit) {
 		Iterator<Entry<Key, IKStorageScopeItem>> it = local.entrySet().iterator();
 		Entry<Key, IKStorageScopeItem> e;
 		IKStorageScopeItem storageItem;
@@ -767,11 +813,12 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			e = it.next();
 			storageItem = storage.get(e.getKey());
 
-			// we ignore entries older than the storage
-			if (storageLastModified > e.getValue().lastModified()) continue;
-
 			// this entry not exist in the storage
 			if (storageItem == null) {
+				// we ignore entries older than the storage
+				// LDEV-6938: an entry older than the storage that is missing there may have been removed there, we can
+				// only tell if we loaded the scope from storage, a scope created without it keeps what it wrote
+				if (lastModifiedAtInit != 0L && storageLastModified > e.getValue().lastModified()) continue;
 				if (!e.getValue().removed()) {
 					storage.put(e.getKey(), e.getValue());
 					if (LogUtil.doesInfo(log)) {
@@ -850,7 +897,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 				ScopeContext.info(log, "the " + (type == Scope.SCOPE_SESSION ? "session" : "client")
 						+ " scope in the storage has changed since we loaded it at the beginning of the request, so we have to sync it with the local data.");
 			}
-			merge(local, storageData, log, type, storageLastMod);
+			merge(local, storageData, log, type, storageLastMod, lastModifiedAtInit);
 			return storageData;
 		}
 
