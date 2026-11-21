@@ -103,6 +103,7 @@ import lucee.runtime.exp.HTTPException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.ExtensionDefintion;
+import lucee.runtime.extension.ExtensionDependencies;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.other.CreateObject;
 import lucee.runtime.functions.other.URLEncodedFormat;
@@ -3993,9 +3994,26 @@ public final class ConfigAdmin {
 	}
 
 	private RHExtension updateExtension(Config config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force, short action, Log log) throws PageException {
+		return updateExtension(config, rhext, filter, reload, force, action, log, true);
+	}
+
+	private RHExtension updateExtension(Config config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force, short action, Log log, boolean installRequired)
+			throws PageException {
 		synchronized (SystemUtil.createToken("updateExtension", rhext.getId())) {
+			// LDEV-6808 the extensions this extension needs: everything is resolved first (nothing is installed when one
+			// cannot be resolved), then they are installed in dependency order. The list is complete (including the extensions
+			// the required extensions need), so they do not resolve their own.
 			// install
 			try {
+				if (installRequired) {
+					// only an extension that is installed in another version can be affected by an installed extension that needs it
+					if (RHExtension.getInstalledDifferentVersion(config, rhext.toExtensionDefinition(), log) != null) ExtensionDependencies.checkDependentsAccept(config, rhext);
+					for (RHExtension dep: ExtensionDependencies.resolve(config, rhext)) {
+						if (LogUtil.doesDebug(log)) log.debug("extension", "install the extension [" + dep.toExtensionDefinition() + "] required by [" + rhext.toExtensionDefinition() + "]");
+						// an extension that is in the installed folder, but not part of the configuration, is registered (force)
+						updateExtension(config, dep, filter, false, dep.installed(), action, log, false);
+					}
+				}
 
 				unSyncUpdateExtension(config, rhext, filter, reload, force, log);
 			}
@@ -4628,6 +4646,13 @@ public final class ConfigAdmin {
 	}
 
 	public void removeRHExtension(ExtensionDefintion ed, Log log) throws PageException {
+		removeRHExtension(ed, log, false);
+	}
+
+	/**
+	 * @param force remove the extension even when other installed extensions require it (LDEV-6808)
+	 */
+	public void removeRHExtension(ExtensionDefintion ed, Log log, boolean force) throws PageException {
 		checkWriteAccess();
 
 		if (ed == null) return;
@@ -4638,6 +4663,7 @@ public final class ConfigAdmin {
 			RHExtension ext = getInstalledRHExtension(ed);
 			if (ext == null) ext = RHExtension.getInstance(config, ed, false, config.getLog("deploy"));
 			synchronized (SystemUtil.createToken("updateExtension", ext.getId())) {
+				if (!force) ExtensionDependencies.checkNoDependents(config, ext);
 				unSyncRemoveExtension(config, ext, null, filter, true, log);
 			}
 		}

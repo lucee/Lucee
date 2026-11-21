@@ -4394,7 +4394,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			ed.setCoordinate(new MavenCoordinate(groupId, artifactId, null));
 		}
 
-		admin.removeRHExtension(ed, config.getLog("deploy"));
+		// LDEV-6808 removing an extension that other extensions require is refused, unless forced
+		admin.removeRHExtension(ed, config.getLog("deploy"), getBoolV("force", false));
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetExtensionDefinitions().resetRHExtensions();
 
@@ -4474,7 +4475,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (!Decision.isUUId(id)) throw new ApplicationException("Invalid id [" + id + "], id must be a UUID");
 		ExtensionDefintion ed = new ExtensionDefintion(id);
 
-		admin.removeRHExtension(ed, config.getLog("deploy"));
+		// LDEV-6808 removing an extension that other extensions require is refused, unless forced
+		admin.removeRHExtension(ed, config.getLog("deploy"), getBoolV("force", false));
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetExtensionDefinitions().resetRHExtensions();
 	}

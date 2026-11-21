@@ -2,23 +2,28 @@ package lucee.runtime.functions.system;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.extension.ExtensionDependencies;
 import lucee.runtime.extension.ExtensionMetadata;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleDefinition;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 
 public final class ExtensionInfo extends BIF implements Function {
 
@@ -26,10 +31,10 @@ public final class ExtensionInfo extends BIF implements Function {
 
 	public static Struct call(PageContext pc, String id) throws PageException {
 		if (StringUtil.isEmpty(id, true)) return new StructImpl();
-		return getInfo(id.trim(), ((ConfigWebPro) pc.getConfig()).getRHExtensions());
+		return getInfo(pc.getConfig(), id.trim(), ((ConfigWebPro) pc.getConfig()).getRHExtensions());
 	}
 
-	private static Struct getInfo(String id, RHExtension[] extensions) throws PageException {
+	private static Struct getInfo(Config config, String id, RHExtension[] extensions) throws PageException {
 		Struct sct = new StructImpl();
 
 		// is id a gav?
@@ -65,6 +70,13 @@ public final class ExtensionInfo extends BIF implements Function {
 					sct.set(KeyConstants._components, Caster.toArray(md.getComponents()));
 					sct.set(KeyConstants._plugins, Caster.toArray(md.getPlugins()));
 					sct.set(KeyConstants._startBundles, Caster.toBoolean(md.isStartBundles()));
+					// LDEV-6808 the extensions this extension needs and the installed extensions that need it
+					sct.set("requiredExtensions", ListUtil.listToArrayTrim(md.getRequiredExtensions() == null ? "" : md.getRequiredExtensions(), ","));
+					Array requiredBy = new ArrayImpl();
+					for (RHExtension dependent: ExtensionDependencies.getDependents(config, ext, extensions)) {
+						requiredBy.append(dependent.getId());
+					}
+					sct.set("requiredBy", requiredBy);
 
 					BundleDefinition[] bfs = md.getBundles();
 					Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs == null ? 0 : bfs.length, "bundles");

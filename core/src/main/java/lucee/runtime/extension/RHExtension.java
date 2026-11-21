@@ -913,6 +913,7 @@ public final class RHExtension implements Serializable {
 		metadata.setMinCoreVersion(StringUtil.unwrap(attr.getValue("lucee-core-version")), info);
 		metadata.setMinLoaderVersion(StringUtil.unwrap(attr.getValue("lucee-loader-version")), info);
 		metadata.setStartBundles(Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("start-bundles")), true));
+		metadata.setRequiredExtensions(StringUtil.unwrap(attr.getValue("require-extension")));
 
 		metadata.setAMF(StringUtil.unwrap(attr.getValue("amf")), logger);
 		metadata.setResource(StringUtil.unwrap(attr.getValue("resource")), logger);
@@ -982,7 +983,36 @@ public final class RHExtension implements Serializable {
 		return null;
 	}
 
-	private boolean isOlderThan(ExtensionDefintion ed) {
+	/**
+	 * the extensions this extension needs (LDEV-6808), declared with the manifest key require-extension.
+	 * 
+	 * @throws ApplicationException when an entry is malformed
+	 */
+	public List<ExtensionDefintion> getRequiredExtensions() throws ApplicationException {
+		String raw = getMetadata().getRequiredExtensions();
+		if (StringUtil.isEmpty(raw, true)) return new ArrayList<ExtensionDefintion>();
+		List<String> malformed = new ArrayList<String>();
+		List<ExtensionDefintion> result = toExtensionDefinitions(raw, malformed);
+		if (!malformed.isEmpty()) {
+			throw new ApplicationException("The extension [" + getMetadata().getName() + "] has an invalid definition of the required extensions: " + String.join("; ", malformed));
+		}
+		return result;
+	}
+
+	/**
+	 * same as getRequiredExtensions, but an invalid definition is logged and ignored
+	 */
+	public List<ExtensionDefintion> getRequiredExtensionsEL() {
+		try {
+			return getRequiredExtensions();
+		}
+		catch (ApplicationException e) {
+			LogUtil.log("deploy", "extension", e);
+			return new ArrayList<ExtensionDefintion>();
+		}
+	}
+
+	public boolean isOlderThan(ExtensionDefintion ed) {
 		if (StringUtil.isEmpty(ed.getVersion(), true)) return false;
 		Version reqVersion = VersionImpl.parseOSGi(ed.getVersion(), null);
 		if (reqVersion == null) return false;
@@ -1443,6 +1473,7 @@ public final class RHExtension implements Serializable {
 		coll.setEL(KeyConstants._components, toArray(md.getComponents()));
 		coll.setEL(KeyConstants._plugins, toArray(md.getPlugins()));
 		coll.setEL(KeyConstants._startBundles, Caster.toBoolean(md.isStartBundles()));
+		coll.setEL(KeyImpl.init("requiredExtensions"), md.getRequiredExtensions() == null ? "" : md.getRequiredExtensions());
 		coll.setEL(KeyConstants._amf, toArray(md.getAMFs()));
 		coll.setEL(KeyConstants._resource, toArray(md.getResources()));
 		coll.setEL(KeyConstants._search, toArray(md.getSearchs()));
