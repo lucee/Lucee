@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="session,mysql" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="session,mysql" {
 
 	// LDEV-5930: Component properties stored in session scope are lost when
 	// using database-backed session storage and the in-memory session is evicted.
@@ -59,7 +59,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session,mysql" ski
 			});
 
 			it( title="component property changes via accessor should persist with sessionCluster=true",
-				skip=true,
+				skip=isMySqlNotSupported(),
 				body=function( currentSpec ) {
 				var uri = createURI( "LDEV5930" );
 
