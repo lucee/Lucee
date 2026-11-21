@@ -186,6 +186,11 @@ public final class QueryPartitions {
 				if (columns[cell] instanceof Value) {
 					value = ((Value) columns[cell]).getValue();
 				}
+				// A bound param (?) in the select list has no source column; resolve it the same way the
+				// other QoQ paths do (QoQ.executeColumn reads the SQLItem by its param index) (LDEV-6976)
+				else if (columns[cell] instanceof ColumnExpression && ((ColumnExpression) columns[cell]).isParam()) {
+					value = qoQ.getValue(pc, sql, source, row, null, columns[cell]);
+				}
 				// A column expression is read by column Key (ColumnExpression caches its source col internally)
 				else if (columns[cell] instanceof ColumnExpression) {
 					try {
