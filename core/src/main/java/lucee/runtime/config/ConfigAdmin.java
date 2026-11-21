@@ -3999,38 +3999,50 @@ public final class ConfigAdmin {
 
 	private RHExtension updateExtension(Config config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force, short action, Log log, boolean installRequired)
 			throws PageException {
-		synchronized (SystemUtil.createToken("updateExtension", rhext.getId())) {
-			// LDEV-6808 the extensions this extension needs: everything is resolved first (nothing is installed when one
-			// cannot be resolved), then they are installed in dependency order. The list is complete (including the extensions
-			// the required extensions need), so they do not resolve their own.
-			// install
-			try {
-				if (installRequired) {
-					// only an extension that is installed in another version can be affected by an installed extension that needs it
-					if (RHExtension.getInstalledDifferentVersion(config, rhext.toExtensionDefinition(), log) != null) ExtensionDependencies.checkDependentsAccept(config, rhext);
-					for (RHExtension dep: ExtensionDependencies.resolve(config, rhext)) {
-						if (LogUtil.doesDebug(log)) log.debug("extension", "install the extension [" + dep.toExtensionDefinition() + "] required by [" + rhext.toExtensionDefinition() + "]");
-						// an extension that is in the installed folder, but not part of the configuration, is registered (force)
-						updateExtension(config, dep, filter, false, dep.installed(), action, log, false);
+		// LDEV-6808 install and remove share a lock when dependencies are involved, so an extension that is required cannot be
+		// removed while an extension that needs it is installed
+		synchronized (installRequired ? SystemUtil.createToken("updateExtension", "dependencies") : new Object()) {
+			synchronized (SystemUtil.createToken("updateExtension", rhext.getId())) {
+				// LDEV-6808 the extensions this extension needs: everything is resolved and validated first (nothing is installed
+				// when one cannot be resolved or does not fit), then they are installed in dependency order. The list is complete
+				// (including the extensions the required extensions need), so they do not resolve their own.
+				// install
+				try {
+					if (installRequired) {
+						// only an extension that is installed in another version can be affected by an installed extension that needs it
+						if (RHExtension.getInstalledDifferentVersion(config, rhext.toExtensionDefinition(), log) != null) ExtensionDependencies.checkDependentsAccept(config, rhext);
+						List<RHExtension> required = ExtensionDependencies.resolve(config, rhext);
+						if (!required.isEmpty()) {
+							rhext.validate(config);
+							for (RHExtension dep: required) {
+								dep.validate(config);
+							}
+						}
+						for (RHExtension dep: required) {
+							if (LogUtil.doesDebug(log)) log.debug("extension", "install the extension [" + dep.toExtensionDefinition() + "] required by [" + rhext.toExtensionDefinition() + "]");
+							// an extension that is in the installed folder, but not part of the configuration, is registered (force), a
+							// dependency does not come from the deploy folder, it is always copied
+							updateExtension(config, dep, filter, false, dep.installed(), RHExtension.ACTION_COPY, log, false);
+						}
 					}
+
+					unSyncUpdateExtension(config, rhext, filter, reload, force, log);
+				}
+				catch (Exception ex) {
+					RHExtension.flush(rhext);
+					throw Caster.toPageException(ex);
 				}
 
-				unSyncUpdateExtension(config, rhext, filter, reload, force, log);
+				try {
+					rhext.addToAvailable(config);
+					if (RHExtension.ACTION_COPY == action) rhext.act(config, RHExtension.ACTION_COPY);
+					else if (RHExtension.ACTION_MOVE == action) rhext.act(config, RHExtension.ACTION_MOVE);
+				}
+				catch (Exception ex) {
+					throw Caster.toPageException(ex);
+				}
+				return rhext;
 			}
-			catch (Exception ex) {
-				RHExtension.flush(rhext);
-				throw Caster.toPageException(ex);
-			}
-
-			try {
-				rhext.addToAvailable(config);
-				if (RHExtension.ACTION_COPY == action) rhext.act(config, RHExtension.ACTION_COPY);
-				else if (RHExtension.ACTION_MOVE == action) rhext.act(config, RHExtension.ACTION_MOVE);
-			}
-			catch (Exception ex) {
-				throw Caster.toPageException(ex);
-			}
-			return rhext;
 		}
 	}
 
@@ -4662,9 +4674,11 @@ public final class ConfigAdmin {
 			// only look at what is installed, never resolve or download a version from a provider
 			RHExtension ext = getInstalledRHExtension(ed);
 			if (ext == null) ext = RHExtension.getInstance(config, ed, false, config.getLog("deploy"));
-			synchronized (SystemUtil.createToken("updateExtension", ext.getId())) {
-				if (!force) ExtensionDependencies.checkNoDependents(config, ext);
-				unSyncRemoveExtension(config, ext, null, filter, true, log);
+			synchronized (SystemUtil.createToken("updateExtension", "dependencies")) {
+				synchronized (SystemUtil.createToken("updateExtension", ext.getId())) {
+					if (!force) ExtensionDependencies.checkNoDependents(config, ext);
+					unSyncRemoveExtension(config, ext, null, filter, true, log);
+				}
 			}
 		}
 		catch (Exception e) {

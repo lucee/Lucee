@@ -71,7 +71,7 @@ public final class ExtensionInfo extends BIF implements Function {
 					sct.set(KeyConstants._plugins, Caster.toArray(md.getPlugins()));
 					sct.set(KeyConstants._startBundles, Caster.toBoolean(md.isStartBundles()));
 					// LDEV-6808 the extensions this extension needs and the installed extensions that need it
-					sct.set("requiredExtensions", ListUtil.listToArrayTrim(md.getRequiredExtensions() == null ? "" : md.getRequiredExtensions(), ","));
+					sct.set("requiredExtensions", ListUtil.listToArrayTrim(ext.getRequiredRaw(), ","));
 					Array requiredBy = new ArrayImpl();
 					for (RHExtension dependent: ExtensionDependencies.getDependents(config, ext, extensions)) {
 						requiredBy.append(dependent.getId());

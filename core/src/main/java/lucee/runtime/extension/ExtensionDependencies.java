@@ -8,6 +8,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.Config;
@@ -15,7 +19,9 @@ import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.maven.Version;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
+import lucee.runtime.type.util.ListUtil;
 
 /**
  * LDEV-6808 an extension can declare the extensions it needs with the manifest key
@@ -23,6 +29,13 @@ import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
  * is a minimum, a newer installed version is fine.
  */
 public final class ExtensionDependencies {
+
+	private static final ThreadLocal<Boolean> CONFIGURED = new ThreadLocal<Boolean>() {
+		@Override
+		protected Boolean initialValue() {
+			return Boolean.FALSE;
+		}
+	};
 
 	private ExtensionDependencies() {
 	}
@@ -127,12 +140,18 @@ public final class ExtensionDependencies {
 		return compare(a, b) >= 0 ? a : b;
 	}
 
-	/** compares the versions of two definitions, a definition without a version is the lowest */
+	/**
+	 * compares the versions of two definitions, a definition without a version is the lowest, a version
+	 * that cannot be parsed is unknown and counts as equal (the same as RHExtension.isOlderThan: when in
+	 * doubt the version is good enough)
+	 */
 	private static int compare(ExtensionDefintion a, ExtensionDefintion b) {
-		Version va = StringUtil.isEmpty(a.getVersion(), true) ? null : VersionImpl.parseOSGi(a.getVersion(), null);
-		Version vb = StringUtil.isEmpty(b.getVersion(), true) ? null : VersionImpl.parseOSGi(b.getVersion(), null);
-		if (va == null) return vb == null ? 0 : -1;
-		if (vb == null) return 1;
+		boolean emptyA = StringUtil.isEmpty(a.getVersion(), true);
+		boolean emptyB = StringUtil.isEmpty(b.getVersion(), true);
+		if (emptyA || emptyB) return emptyA ? (emptyB ? 0 : -1) : 1;
+		Version va = VersionImpl.parseOSGi(a.getVersion(), null);
+		Version vb = VersionImpl.parseOSGi(b.getVersion(), null);
+		if (va == null || vb == null) return 0;
 		return VersionImpl.compare(va, vb);
 	}
 
@@ -162,8 +181,8 @@ public final class ExtensionDependencies {
 		List<RHExtension> result = new ArrayList<RHExtension>();
 		for (RHExtension other: installed) {
 			if (other.getId().equalsIgnoreCase(rhext.getId())) continue;
-			for (ExtensionDefintion req: other.getRequiredExtensionsEL()) {
-				if (matches(config, req, rhext)) {
+			for (Requirement req: other.getRequirements()) {
+				if (req.matches(rhext)) {
 					result.add(other);
 					break;
 				}
@@ -173,19 +192,49 @@ public final class ExtensionDependencies {
 	}
 
 	/**
-	 * installing the given version of an extension that is installed in another version is an error
-	 * when an installed extension needs a version that is not satisfied by it
+	 * the installed extensions that need a newer version than the given extension, installing the given
+	 * extension in another version than the installed one would break them
 	 */
-	public static void checkDependentsAccept(Config config, RHExtension rhext) throws ApplicationException {
+	public static List<String> getConflicts(Config config, RHExtension rhext) {
+		List<String> result = new ArrayList<String>();
 		for (RHExtension other: ((ConfigPro) config).getRHExtensions()) {
 			if (other.getId().equalsIgnoreCase(rhext.getId())) continue;
-			for (ExtensionDefintion req: other.getRequiredExtensionsEL()) {
-				if (matches(config, req, rhext) && rhext.isOlderThan(req)) {
-					throw new ApplicationException("The extension [" + label(rhext) + "] cannot be installed in version [" + rhext.getVersion() + "], the installed extension ["
-							+ label(other) + "] requires at least version [" + req.getVersion() + "].");
+			for (Requirement req: other.getRequirements()) {
+				if (req.matches(rhext) && req.isNewerThan(rhext)) {
+					result.add("The extension [" + label(rhext) + "] cannot be installed in version [" + rhext.getVersion() + "], the installed extension [" + label(other)
+							+ "] requires at least version [" + req.version + "].");
 				}
 			}
 		}
+		return result;
+	}
+
+	/**
+	 * the extensions that are defined in the configuration, a system property or an environment variable
+	 * always win: a version that does not satisfy an installed extension is installed anyway, and the
+	 * conflict is logged.
+	 */
+	public static boolean setConfigured(boolean configured) {
+		boolean prev = CONFIGURED.get();
+		CONFIGURED.set(configured);
+		return prev;
+	}
+
+	/**
+	 * installing the given version of an extension that is installed in another version is an error
+	 * when an installed extension needs a version that is not satisfied by it, unless the extension is
+	 * defined in the configuration, then the conflict is only logged
+	 */
+	public static void checkDependentsAccept(Config config, RHExtension rhext) throws ApplicationException {
+		List<String> conflicts = getConflicts(config, rhext);
+		if (conflicts.isEmpty()) return;
+		if (CONFIGURED.get()) {
+			for (String conflict: conflicts) {
+				LogUtil.log(Log.LEVEL_WARN, "deploy", "extension", conflict + " The version defined in the configuration is installed anyway.");
+			}
+			return;
+		}
+		throw new ApplicationException(conflicts.get(0));
 	}
 
 	/**
@@ -201,6 +250,141 @@ public final class ExtensionDependencies {
 		}
 		throw new ApplicationException("The extension [" + label(rhext) + "] cannot be removed, it is required by the extension" + (dependents.size() > 1 ? "s" : "") + " [" + sb
 				+ "]. Remove them first or force the removal.");
+	}
+
+	/**
+	 * the lex files of the deploy folder sorted in dependency order, a file that another file needs is
+	 * before it, so the files can be deployed one after the other without downloading anything. Files
+	 * that are not an extension, cannot be read or are part of a cycle keep their order.
+	 */
+	public static Resource[] sortForDeploy(Config config, Resource[] children, Log log) {
+		List<Resource> others = new ArrayList<Resource>();
+		List<Resource> lexes = new ArrayList<Resource>();
+		Map<Resource, RHExtension> exts = new HashMap<Resource, RHExtension>();
+		for (Resource child: children) {
+			if (!child.isFile() || !"lex".equalsIgnoreCase(ResourceUtil.getExtension(child, null))) {
+				others.add(child);
+				continue;
+			}
+			try {
+				exts.put(child, RHExtension.getInstance(config, child, log));
+				lexes.add(child);
+			}
+			catch (Exception e) {
+				others.add(child); // the deploy reports the problem
+			}
+		}
+		List<Resource> sorted = new ArrayList<Resource>();
+		List<Resource> open = new ArrayList<Resource>(lexes);
+		while (!open.isEmpty()) {
+			Resource next = null;
+			for (Resource candidate: open) {
+				if (!needsOneOf(exts.get(candidate), open, exts)) {
+					next = candidate;
+					break;
+				}
+			}
+			if (next == null) { // a cycle, the install reports it
+				sorted.addAll(open);
+				break;
+			}
+			sorted.add(next);
+			open.remove(next);
+		}
+		sorted.addAll(others);
+		return sorted.toArray(new Resource[sorted.size()]);
+	}
+
+	private static boolean needsOneOf(RHExtension ext, List<Resource> open, Map<Resource, RHExtension> exts) {
+		for (Requirement req: ext.getRequirements()) {
+			for (Resource r: open) {
+				RHExtension other = exts.get(r);
+				if (other != ext && !other.getId().equalsIgnoreCase(ext.getId()) && req.matches(other)) return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * What an extension needs, read from the raw entry of the header, without resolving anything (no
+	 * download, no maven lookup).
+	 */
+	public static final class Requirement {
+
+		public final String groupId;
+		public final String artifactId;
+		public final String id;
+		public final String version;
+
+		private Requirement(String groupId, String artifactId, String id, String version) {
+			this.groupId = groupId;
+			this.artifactId = artifactId;
+			this.id = id;
+			this.version = version;
+		}
+
+		public boolean matches(RHExtension ext) {
+			if (!StringUtil.isEmpty(groupId) && !StringUtil.isEmpty(artifactId) && ext.hasGAV() && groupId.equalsIgnoreCase(ext.getGroupId())
+					&& artifactId.equalsIgnoreCase(ext.getArtifactId())) {
+				return true;
+			}
+			return !StringUtil.isEmpty(id, true) && id.trim().equalsIgnoreCase(ext.getId());
+		}
+
+		/** the version of the given extension is older than the version needed */
+		public boolean isNewerThan(RHExtension ext) {
+			if (StringUtil.isEmpty(version, true)) return false;
+			Version req = VersionImpl.parseOSGi(version, null);
+			Version have = VersionImpl.parseOSGi(ext.getVersion(), null);
+			return req != null && have != null && VersionImpl.compare(have, req) < 0;
+		}
+	}
+
+	/**
+	 * parses the header, an entry that cannot be read is ignored, it does not drop the others
+	 */
+	public static List<Requirement> parseRequirements(String raw) {
+		List<Requirement> result = new ArrayList<Requirement>();
+		if (StringUtil.isEmpty(raw, true)) return result;
+		for (String entry: ListUtil.trimItems(ListUtil.listToStringArray(raw, ','))) {
+			if (StringUtil.isEmpty(entry, true)) continue;
+			try {
+				Requirement req = parseRequirement(entry);
+				if (req != null) result.add(req);
+			}
+			catch (Exception e) {
+				LogUtil.log("deploy", "extension", e);
+			}
+		}
+		return result;
+	}
+
+	private static Requirement parseRequirement(String entry) {
+		String id = null;
+		String version = null;
+		boolean path = false;
+		MavenCoordinate coordinate = null;
+		for (String ss: ListUtil.trimItems(ListUtil.listToStringArray(entry, ';'))) {
+			if (ss.length() > 5 && ss.regionMatches(true, ss.length() - 5, ":lite", 0, 5) && ss.chars().filter(ch -> ch == ':').count() == 3) ss = ss.substring(0, ss.length() - 5);
+			int index = ss.indexOf('=');
+			if (index != -1) {
+				String name = ss.substring(0, index).trim();
+				String value = ss.substring(index + 1).trim();
+				if ("version".equalsIgnoreCase(name) || "extension-version".equalsIgnoreCase(name)) version = value;
+				else if ("path".equalsIgnoreCase(name)) path = true;
+			}
+			else if (id == null && coordinate == null && (coordinate = MavenUtil.toCoordinate(ss, null)) != null) {
+				// the coordinate
+			}
+			else if (id == null) id = ss;
+		}
+		if (path) {
+			// a file: the id and version are in the file, no network involved
+			ExtensionDefintion ed = RHExtension.toExtensionDefinition(entry);
+			return ed == null ? null : new Requirement(ed.getGroupId(), ed.getArtifactId(), ed.getId(), ed.getVersion());
+		}
+		if (coordinate != null) return new Requirement(coordinate.groupId, coordinate.artifactId, id, StringUtil.isEmpty(coordinate.version, true) ? version : coordinate.version);
+		return id == null ? null : new Requirement(null, null, id, version);
 	}
 
 	private static boolean matches(Config config, ExtensionDefintion ed, RHExtension ext) {

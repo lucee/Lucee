@@ -532,7 +532,8 @@ public final class ExtensionMetadata implements Serializable {
 	}
 
 	public void setRequiredExtensions(String requiredExtensions) {
-		this.requiredExtensions = StringUtil.isEmpty(requiredExtensions, true) ? null : requiredExtensions.trim();
+		// null means not read yet, "" means none
+		this.requiredExtensions = requiredExtensions == null ? null : requiredExtensions.trim();
 	}
 
 	public BundleDefinition[] getBundles() {
