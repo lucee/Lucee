@@ -38,6 +38,7 @@ public final class ExtensionMetadata implements Serializable {
 	private boolean trial;
 	private String image;
 	private boolean startBundles;
+	private String requiredExtensions;
 	private BundleDefinition[] bundles;
 	private VersionRange minCoreVersion;
 	private double minLoaderVersion;
@@ -520,6 +521,19 @@ public final class ExtensionMetadata implements Serializable {
 
 	public void setStartBundles(boolean startBundles) {
 		this.startBundles = startBundles;
+	}
+
+	/**
+	 * the extensions this extension needs (LDEV-6808), comma separated list in the syntax of the header
+	 * Require-Extension of the core, null if there are none
+	 */
+	public String getRequiredExtensions() {
+		return requiredExtensions;
+	}
+
+	public void setRequiredExtensions(String requiredExtensions) {
+		// null means not read yet, "" means none
+		this.requiredExtensions = requiredExtensions == null ? null : requiredExtensions.trim();
 	}
 
 	public BundleDefinition[] getBundles() {
