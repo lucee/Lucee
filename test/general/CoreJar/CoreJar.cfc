@@ -29,7 +29,7 @@ component {
 		return variables.cl.getResource( arguments.path );
 	}
 
-	/** the headers of the manifest of Lucee (the one with the Bundle-SymbolicName lucee.core) */
+	/** the headers of the manifest of Lucee (the one with the header Lucee-Version, or the Bundle-SymbolicName lucee.core of a core file from the old build) */
 	function getHeaders() {
 		if ( !isSimpleValue( variables.bundle ) ) return variables.bundle.getHeaders();
 		var headers = createObject( "java", "java.util.Hashtable" ).init();
@@ -37,7 +37,7 @@ component {
 		while ( urls.hasMoreElements() ) {
 			var mani = createObject( "java", "java.util.jar.Manifest" ).init( urls.nextElement().openStream() );
 			var attrs = mani.getMainAttributes();
-			if ( isNull( attrs.getValue( "Bundle-SymbolicName" ) ) || attrs.getValue( "Bundle-SymbolicName" ) != "lucee.core" ) continue;
+			if ( isNull( attrs.getValue( "Lucee-Version" ) ) && ( isNull( attrs.getValue( "Bundle-SymbolicName" ) ) || attrs.getValue( "Bundle-SymbolicName" ) != "lucee.core" ) ) continue;
 			var it = attrs.entrySet().iterator();
 			while ( it.hasNext() ) {
 				var e = it.next();

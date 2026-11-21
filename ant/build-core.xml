@@ -595,6 +595,7 @@
 
     <!-- create the manifest file -->
     <manifest file="${core}/META-INF/MANIFEST.MF" mode="update">
+      <attribute name="Lucee-Version" value="${version}"/>
       <attribute name="Bundle-Version" value="${version}"/>
       <attribute name="Bundle-Name" value="${bundleName}"/>
       <attribute name="Bundle-SymbolicName" value="${bundleSymbolicName}"/>
