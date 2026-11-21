@@ -593,17 +593,17 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	private boolean touchChanged(Map<Collection.Key, Integer> oldHashes, Map<Collection.Key, Integer> newHashes) {
 		boolean changed = false;
 		Integer oldHash;
-		IKStorageScopeItem item, fresh;
 		for (Entry<Collection.Key, Integer> e: newHashes.entrySet()) {
 			oldHash = oldHashes.get(e.getKey());
 			if (oldHash == null || oldHash.intValue() == e.getValue().intValue()) continue;
 			changed = true;
-			item = data0.get(e.getKey());
+			final IKStorageScopeItem item = data0.get(e.getKey());
 			if (item == null || item.removed()) continue;
-			fresh = new IKStorageScopeItem(item.getValue());
-			// no Map.replace(k,old,new), IKStorageScopeItem.equals compares the wrapped value
-			if (data0.get(e.getKey()) == item) {
-				data0.put(e.getKey(), fresh);
+			final IKStorageScopeItem fresh = new IKStorageScopeItem(item.getValue());
+			// swap atomically and only if nobody replaced the item in the meantime, a concurrent request may have
+			// set a new value for this key. no Map.replace(k,old,new), IKStorageScopeItem.equals compares the
+			// wrapped value
+			if (data0.computeIfPresent(e.getKey(), (k, v) -> v == item ? fresh : v) == fresh) {
 				lastModified = Math.max(lastModified, fresh.lastModified());
 			}
 		}
