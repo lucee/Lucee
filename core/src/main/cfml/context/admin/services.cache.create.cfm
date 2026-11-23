@@ -93,7 +93,8 @@ Redirtect to entry --->
 </cfif>
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>
-	<cfif structKeyExists(form,"subAction") AND form.subAction == btnClearCache>
+	<!--- the button label shows a live element count, so the button is identified by its name, not by its label --->
+	<cfif structKeyExists(form,"clearCache")>
 	<!--- cache clear --->
 		<cfset cacheClear(cacheName=connection.name)>
 		<cfset cacheItemCount = validConnection ? cacheCount(cacheName=connection.name) : -1>
@@ -184,7 +185,7 @@ Redirtect to entry --->
 					<tr>
 						<th scope="row">#stText.settings.cache.clearCacheTitle#</th>
 						<td>
-							<cfinputClassic type="submit" class="button submit" name="subAction" value="#btnClearCache#">
+							<cfinputClassic type="submit" class="button submit" name="clearCache" value="#btnClearCache#">
 						</td>
 					</tr>
 				</cfif>
