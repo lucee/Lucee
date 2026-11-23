@@ -31,6 +31,7 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
@@ -580,13 +581,13 @@ public final class FileResource extends File implements Resource {
 
 					@Override
 					public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-						if (exc instanceof NoSuchFileException) return FileVisitResult.CONTINUE;
+						if (isGone(file, exc)) return FileVisitResult.CONTINUE;
 						throw exc;
 					}
 
 					@Override
 					public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-						if (exc != null && !(exc instanceof NoSuchFileException)) {
+						if (exc != null && !isGone(dir, exc)) {
 							throw exc;
 						}
 						// Skip deleting the root directory itself, we'll do that outside the walkFileTree
@@ -607,6 +608,8 @@ public final class FileResource extends File implements Resource {
 				throw new IOException("Can't delete directory as it's not empty [" + this + "]", dne);
 			}
 			catch (IOException e) {
+				// removed by another thread at the same time (e.g. on Windows without NoSuchFileException), same as NoSuchFileException
+				if (isGone(p, e)) throw new IOException("Can't delete [" + this + "], as it doesn't exist", e);
 				throw new IOException("Can't delete [" + this + "], " + e.getMessage(), e);
 			}
 		}
@@ -619,9 +622,22 @@ public final class FileResource extends File implements Resource {
 		try {
 			Files.delete(path);
 		}
-		catch (NoSuchFileException nsfe) {
+		catch (IOException e) {
 			// removed by somebody else in the meantime
+			if (!isGone(path, e)) throw e;
 		}
+	}
+
+	/**
+	 * true if the entry was removed by somebody else in the meantime. On Windows the losing thread
+	 * may not get a NoSuchFileException but an AccessDeniedException / FileSystemException, so for any
+	 * other IOException we check again if the entry is known to be gone. If its existence cannot be
+	 * determined, or it is still there (e.g. a real lock by another process), the exception is thrown.
+	 * Only called on the exception path.
+	 */
+	private static boolean isGone(Path path, IOException e) {
+		if (e instanceof NoSuchFileException) return true;
+		return Files.notExists(path, LinkOption.NOFOLLOW_LINKS);
 	}
 
 	@Override
