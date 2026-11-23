@@ -565,6 +565,16 @@ public final class HSQLDBHandler {
 		try {
 			boolean isUnion = false;
 			Set<String> tables = null;
+			// engine=hsqldb skips the native parser, but its parse result is still the best way to find the
+			// invoked tables, the old ZQL parser does not understand for example COUNT(1) or HAVING without
+			// GROUP BY (LDEV-4300)
+			if (selects == null && !useNative) {
+				try {
+					selects = new SelectParser().parse(sql.getSQLString());
+				}
+				catch (Exception e) {
+				}
+			}
 			if (selects != null) {
 				HSQLUtil2 hsql2 = new HSQLUtil2(selects);
 				isUnion = hsql2.isUnion();
