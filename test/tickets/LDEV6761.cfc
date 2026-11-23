@@ -1,7 +1,10 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function beforeAll() {
-		variables.headers = new test.general.CoreJar.CoreJar().getHeaders();
+		var corejar = new test.general.CoreJar.CoreJar();
+		variables.headers = corejar.getHeaders();
+		// in the old build the core is a separate file, Main-Class and Bundle-Vendor are headers of the loader jar
+		variables.singleJar = !corejar.isCoreFile();
 	}
 
 	function run( testResults, testBox ) {
@@ -11,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( variables.headers.get( "Lucee-Version" ) ?: "" ).toBe( server.lucee.version );
 				expect( variables.headers.get( "Built-Date" ) ?: "" ).notToBeEmpty();
 				expect( variables.headers.get( "Minor-Name" ) ?: "" ).notToBeEmpty();
-				expect( variables.headers.get( "Main-Class" ) ?: "" ).notToBeEmpty();
+				if ( variables.singleJar ) expect( variables.headers.get( "Main-Class" ) ?: "" ).notToBeEmpty();
 				expect( variables.headers.get( "Multi-Release" ) ?: "" ).toBe( "true" );
 			});
 
@@ -26,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it( title="the descriptive headers of the loader stay", body=function( currentSpec ) {
-				expect( variables.headers.get( "Bundle-Vendor" ) ?: "" ).notToBeEmpty();
+				if ( variables.singleJar ) expect( variables.headers.get( "Bundle-Vendor" ) ?: "" ).notToBeEmpty();
 			});
 
 		});

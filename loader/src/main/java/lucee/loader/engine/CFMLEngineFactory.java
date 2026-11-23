@@ -347,6 +347,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		System.out.println("VERSION: " + bundleVersion);
 
 		main.put(new Attributes.Name("Bundle-Version"), bundleVersion);
+		main.put(new Attributes.Name("Lucee-Version"), bundleVersion);
 
 		File bundleFile = File.createTempFile(bundleName + "-", ".lco");
 		bundleFile.deleteOnExit();

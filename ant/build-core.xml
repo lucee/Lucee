@@ -8,8 +8,6 @@
   </description>
 
   <property name="build.compiler" value="extJavac"/>
-  <property name="bundleName" value="Lucee Core"/>
-  <property name="bundleSymbolicName" value="lucee.core"/>
   
   <property name="testboxVersion" value="7.2.2"/>
   <property name="testboxURL" 
@@ -593,13 +591,12 @@
     <!-- the core is loaded parent first on top of the loader, a default.properties in the root would resolve to the one of the loader jar, lucee/ is looked up first (BootDelegation, InfoImpl) -->
     <copy file="${core}/default.properties" tofile="${core}/lucee/default.properties" overwrite="true"/>
 
+    <!-- Lucee is not an OSGi bundle (LDEV-6761): the OSGi headers of the former core bundle (the source manifest is shared with 8.0) are not part of the manifest, the multi line headers go with their continuation lines -->
+    <replaceregexp file="${core}/META-INF/MANIFEST.MF" match="^(Bundle-Version|Bundle-Name|Bundle-SymbolicName|Bundle-ManifestVersion|Bundle-RequiredExecutionEnvironment|Bundle-ClassPath|Import-Package|Export-Package):[^\n]*\n( [^\n]*\n)*" replace="" flags="gm" byline="false"/>
+
     <!-- create the manifest file -->
     <manifest file="${core}/META-INF/MANIFEST.MF" mode="update">
       <attribute name="Lucee-Version" value="${version}"/>
-      <attribute name="Bundle-Version" value="${version}"/>
-      <attribute name="Bundle-Name" value="${bundleName}"/>
-      <attribute name="Bundle-SymbolicName" value="${bundleSymbolicName}"/>
-      <attribute name="Bundle-ManifestVersion" value="2"/>
       <attribute name="Built-Date" value="${NOW}"/>
       <!-- <attribute name="State" value="${state}"/>
       <attribute name="Minor-Name" value="${name}"/>

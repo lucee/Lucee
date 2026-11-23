@@ -19,6 +19,11 @@ component {
 		return this;
 	}
 
+	/** the old build has the core as a separate file (.lco), the headers of the loader (Main-Class, Bundle-Vendor) are in the jar of the loader */
+	function isCoreFile() {
+		return !isSimpleValue( variables.bundle ) || right( variables.jar, 4 ) == ".lco";
+	}
+
 	function loadClass( required string className ) {
 		if ( !isSimpleValue( variables.bundle ) ) return variables.bundle.loadClass( arguments.className );
 		return createObject( "java", "java.lang.Class" ).forName( arguments.className, false, variables.cl );
@@ -29,7 +34,7 @@ component {
 		return variables.cl.getResource( arguments.path );
 	}
 
-	/** the headers of the manifest of Lucee (the one with the header Lucee-Version, or the Bundle-SymbolicName lucee.core of a core file from the old build) */
+	/** the headers of the manifest of Lucee (the one with the header Lucee-Version) */
 	function getHeaders() {
 		if ( !isSimpleValue( variables.bundle ) ) return variables.bundle.getHeaders();
 		var headers = createObject( "java", "java.util.Hashtable" ).init();
@@ -37,7 +42,7 @@ component {
 		while ( urls.hasMoreElements() ) {
 			var mani = createObject( "java", "java.util.jar.Manifest" ).init( urls.nextElement().openStream() );
 			var attrs = mani.getMainAttributes();
-			if ( isNull( attrs.getValue( "Lucee-Version" ) ) && ( isNull( attrs.getValue( "Bundle-SymbolicName" ) ) || attrs.getValue( "Bundle-SymbolicName" ) != "lucee.core" ) ) continue;
+			if ( isNull( attrs.getValue( "Lucee-Version" ) ) ) continue;
 			var it = attrs.entrySet().iterator();
 			while ( it.hasNext() ) {
 				var e = it.next();

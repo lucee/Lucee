@@ -337,10 +337,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			for (java.util.Map.Entry<Object, Object> e: attrs.entrySet()) {
 				headers.put(e.getKey().toString(), e.getValue().toString().trim());
 			}
-			// Lucee-Version, the manifest of an older core file (.lco) only has Bundle-Version
-			String strVersion = headers.get("Lucee-Version");
-			if (strVersion == null) strVersion = headers.get("Bundle-Version");
-			this.info = new InfoImpl(lucee.loader.util.VersionImpl.parseOSGi(strVersion), headers);
+			this.info = new InfoImpl(lucee.loader.util.VersionImpl.parseOSGi(headers.get("Lucee-Version")), headers);
 		}
 		catch (java.io.IOException e) {
 			throw Caster.toPageRuntimeException(e);
@@ -1525,14 +1522,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		throw new java.io.IOException("the manifest of Lucee (header Lucee-Version) was not found");
 	}
 
-	/**
-	 * The manifest of Lucee has the header Lucee-Version. An older core file (.lco) only has the OSGi
-	 * headers of the former core bundle, Bundle-SymbolicName lucee.core.
-	 */
+	/** The manifest of Lucee has the header Lucee-Version. */
 	private static boolean isLuceeManifest(java.util.jar.Manifest mani) {
-		if (mani == null) return false;
-		java.util.jar.Attributes attrs = mani.getMainAttributes();
-		return attrs.getValue("Lucee-Version") != null || "lucee.core".equals(attrs.getValue("Bundle-SymbolicName"));
+		return mani != null && mani.getMainAttributes().getValue("Lucee-Version") != null;
 	}
 
 	private void shutdownOSGi() {
