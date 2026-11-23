@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.type.scope.Scope;
 import lucee.transformer.Body;
 import lucee.transformer.Factory;
@@ -78,13 +79,8 @@ import lucee.transformer.statement.Statement;
  */
 final class ForCounter {
 
-	private static final Set<String> SCOPE_NAMES = new HashSet<>();
 	private static final Set<String> BIF_DENY = new HashSet<>();
 	static {
-		for (String name: new String[] { "variables", "local", "arguments", "this", "application", "session", "request", "server", "cgi", "form", "url", "cookie", "client", "cluster",
-				"super" }) {
-			SCOPE_NAMES.add(name);
-		}
 		// functions that can write a variable by name, run code or give access to the scopes
 		for (String name: new String[] { "evaluate", "precisionevaluate", "setvariable", "iif", "invoke", "queryexecute", "getpagecontext", "createobject", "callstackget",
 				"getfunctiondata", "getcomponentmetadata", "getmetadata" }) {
@@ -178,13 +174,25 @@ final class ForCounter {
 		Member m = members.get(0);
 		if (!(m instanceof DataMember) || m.getSafeNavigated() || m.isOptional()) return null;
 		String name = literalName(((DataMember) m).getName());
-		if (name == null || SCOPE_NAMES.contains(name.toLowerCase())) return null;
+		if (name == null || isScopeName(name)) return null;
 		return name;
 	}
 
 	private static String literalName(Expression expr) {
 		if (expr instanceof LitString) return ((LitString) expr).getString();
 		return null;
+	}
+
+	/**
+	 * True if {@code name} is a known scope, using {@link VariableInterpreter#scopeString2Int(boolean, String)}
+	 * so this class does not keep its own list. "this", "static" and "super" are not Scope.SCOPE_* values;
+	 * the compiler special-cases "this" and "static" in VariableImpl._writeOutFirstDataMember, and "super"
+	 * is the same kind of identifier, so none of them can be used as a counter.
+	 */
+	private static boolean isScopeName(String name) {
+		if (name == null || name.isEmpty()) return false;
+		if (VariableInterpreter.scopeString2Int(false, name) != Scope.SCOPE_UNDEFINED) return true;
+		return "this".equalsIgnoreCase(name) || "static".equalsIgnoreCase(name) || "super".equalsIgnoreCase(name);
 	}
 
 	private static Expression unwrap(Expression expr) {
@@ -280,7 +288,7 @@ final class ForCounter {
 		if (members.isEmpty()) return false;
 		if (members.size() == 1 && members.get(0) instanceof DataMember) {
 			String n = literalName(((DataMember) members.get(0)).getName());
-			if (n != null && SCOPE_NAMES.contains(n.toLowerCase())) return false;
+			if (n != null && isScopeName(n)) return false;
 		}
 		if (!safeExpression(var.getDefaultValue(), name, w)) return false;
 		return safeMembers(members, name, w);
