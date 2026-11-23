@@ -987,6 +987,16 @@ public final class PageContextImpl extends PageContext {
 		return new PageSource[] { ((PageSourceImpl) ps).getRealPageSource(this, realPath) };
 	}
 
+	/**
+	 * LDEV-3580: a relative include without a current template (for example code run via JSR-223 /
+	 * the script engine) is resolved from the webroot, instead of failing with a NullPointerException
+	 */
+	private PageSource[] getIncludePageSources(String realPath) {
+		PageSource[] sources = getRelativePageSources(realPath);
+		if (sources == null && !StringUtil.isEmpty(realPath)) return getRelativePageSources("/" + realPath);
+		return sources;
+	}
+
 	private static boolean pageSourceExists(PageSource[] sources) {
 		PageSource best = PageSourceImpl.best(sources);
 		return best != null && PageSourceImpl.pageExist(best);
@@ -1035,18 +1045,18 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void doInclude(String realPath) throws PageException {
-		_doInclude(getRelativePageSources(realPath), false, getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
+		_doInclude(getIncludePageSources(realPath), false, getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 
 	@Override
 	public void doInclude(String realPath, boolean runOnce) throws PageException {
-		_doInclude(getRelativePageSources(realPath), runOnce, getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
+		_doInclude(getIncludePageSources(realPath), runOnce, getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 
 	// used by the transformer
 	public void doInclude(String realPath, boolean runOnce, Object cachedWithin) throws PageException {
 		if (cachedWithin == null) cachedWithin = getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE);
-		_doInclude(getRelativePageSources(realPath), runOnce, cachedWithin);
+		_doInclude(getIncludePageSources(realPath), runOnce, cachedWithin);
 	}
 
 	@Override
