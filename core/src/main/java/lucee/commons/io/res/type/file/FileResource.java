@@ -608,7 +608,7 @@ public final class FileResource extends File implements Resource {
 				throw new IOException("Can't delete directory as it's not empty [" + this + "]", dne);
 			}
 			catch (IOException e) {
-				// Windows: removed by another thread at the same time (delete pending), same as NoSuchFileException
+				// removed by another thread at the same time (e.g. on Windows without NoSuchFileException), same as NoSuchFileException
 				if (isGone(p, e)) throw new IOException("Can't delete [" + this + "], as it doesn't exist", e);
 				throw new IOException("Can't delete [" + this + "], " + e.getMessage(), e);
 			}
@@ -630,13 +630,14 @@ public final class FileResource extends File implements Resource {
 
 	/**
 	 * true if the entry was removed by somebody else in the meantime. On Windows the losing thread
-	 * does not get a NoSuchFileException but an AccessDeniedException / FileSystemException (the entry is
-	 * delete pending), so for any other IOException we check again if the entry is still there; a real
-	 * lock by another process keeps the entry and still throws. Only called on the exception path.
+	 * may not get a NoSuchFileException but an AccessDeniedException / FileSystemException, so for any
+	 * other IOException we check again if the entry is known to be gone. If its existence cannot be
+	 * determined, or it is still there (e.g. a real lock by another process), the exception is thrown.
+	 * Only called on the exception path.
 	 */
 	private static boolean isGone(Path path, IOException e) {
 		if (e instanceof NoSuchFileException) return true;
-		return !Files.exists(path, LinkOption.NOFOLLOW_LINKS);
+		return Files.notExists(path, LinkOption.NOFOLLOW_LINKS);
 	}
 
 	@Override
