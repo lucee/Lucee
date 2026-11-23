@@ -603,6 +603,14 @@
       srcdir="${testExtensions}" 
       deploydir="${temp}/archive/base/lucee-server/deploy/"/>
 
+    <!-- get the test extensions here (with retries) and put them into the local extension provider,
+    so they are installed from there and not downloaded by Lucee during the test run -->
+    <getTestExtensions
+      extensions="${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis},${extHibernate}"
+      url="${extURL}"
+      cache="${cache}"
+      target="${temp}/archive/base/lucee-server/context/extensions/available"/>
+
     <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
     <echots message="execute testcases with java ${testJavaVersionExec}"/>
     <!-- execute CFML testcases -->

@@ -387,4 +387,48 @@
 		]]>
 	</scriptdef>
 
+
+	<!-- downloads the given extensions ("id;version=x", comma separated, entries without a version are skipped) into the cache (when not already there)
+	and copies them into the local extension provider directory, so Lucee installs them from there instead of downloading them itself -->
+	<scriptdef name="getTestExtensions" language="javascript" classpath="${nashorn_classpath}">
+		<attribute name="extensions" />
+		<attribute name="url" />
+		<attribute name="cache" />
+		<attribute name="target" />
+		<![CDATA[
+			var extensions = attributes.get( "extensions" ).split( "," );
+			var url = attributes.get( "url" );
+			var cacheDir = new java.io.File( attributes.get( "cache" ) );
+			var targetDir = new java.io.File( attributes.get( "target" ) );
+			targetDir.mkdirs();
+			var echo = project.createTask( "echo" );
+			var copy = project.createTask( "copy" );
+			for ( var e in extensions ) {
+				var ext = extensions[ e ].trim();
+				var index = ext.indexOf( ";version=" );
+				if ( index == -1 ) continue;
+				var id = ext.substring( 0, index );
+				var version = ext.substring( index + 9 );
+				var file = new java.io.File( cacheDir, id + "-" + version + ".lex" );
+				if ( !file.isFile() || file.length() == 0 ) {
+					var get = project.createTask( "get" );
+					get.setSrc( new java.net.URL( url + id + "?version=" + version ) );
+					get.setDest( file );
+					get.setRetries( 3 );
+					get.setIgnoreErrors( true );
+					get.perform();
+				}
+				if ( file.isFile() && file.length() > 0 ) {
+					copy.setFile( file );
+					copy.setTofile( new java.io.File( targetDir, file.getName() ) );
+					copy.perform();
+				}
+				else {
+					echo.setMessage( "could not download test extension " + ext + ", Lucee will try to download it itself" );
+					echo.perform();
+				}
+			}
+		]]>
+	</scriptdef>
+
 </project>
