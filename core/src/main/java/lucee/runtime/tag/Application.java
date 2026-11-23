@@ -157,6 +157,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Boolean searchQueries = null;
 	private Boolean suppress;
 	private Boolean cgiReadOnly = null;
+	private Boolean formUrlAsStruct = null;
 	private Boolean preciseMath = null;
 	private Integer returnFormat = null;
 	private SessionCookieData sessionCookie;
@@ -247,6 +248,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 		triggerDataMember = null;
 		cgiReadOnly = null;
+		formUrlAsStruct = null;
 		preciseMath = null;
 
 		cacheFunction = null;
@@ -719,6 +721,13 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.cgiReadOnly = cgiReadOnly;
 	}
 
+	/**
+	 * LDEV-5685: same as this.formUrlAsStruct in Application.cfc
+	 */
+	public void setFormurlasstruct(boolean formUrlAsStruct) {
+		this.formUrlAsStruct = formUrlAsStruct;
+	}
+
 	public void setPrecisemath(boolean preciseMath) {
 		this.preciseMath = preciseMath;
 	}
@@ -993,6 +1002,11 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 		// Scope cascading
 		if (scopeCascading != -1) ac.setScopeCascading(scopeCascading);
+		// LDEV-5685
+		if (formUrlAsStruct != null) {
+			if (ac instanceof ClassicApplicationContext) ((ClassicApplicationContext) ac).setFormUrlAsStruct(pageContext, formUrlAsStruct.booleanValue());
+			else if (ac instanceof ModernApplicationContext) ((ModernApplicationContext) ac).setFormUrlAsStruct(pageContext, formUrlAsStruct.booleanValue());
+		}
 		if (blockedExtForFileUpload != null) {
 			if (ac instanceof ClassicApplicationContext) {
 				((ClassicApplicationContext) ac).setBlockedextforfileupload(blockedExtForFileUpload);

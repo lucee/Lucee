@@ -779,6 +779,21 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 		return formUrlAsStruct;
 	}
 
+	/**
+	 * LDEV-5685: application action="update" formUrlAsStruct=...
+	 */
+	public void setFormUrlAsStruct(PageContext pc, boolean formUrlAsStruct) {
+		boolean changed = this.formUrlAsStruct != formUrlAsStruct;
+		this.formUrlAsStruct = formUrlAsStruct;
+		if (changed) {
+			pc = ThreadLocalPageContext.get(pc);
+			if (pc != null) {
+				pc.urlScope().reinitialize(this);
+				pc.formScope().reinitialize(this);
+			}
+		}
+	}
+
 	public void initContext(PageContext pc) {
 		Charset cs = getWebCharset();
 		// has defined a web charset

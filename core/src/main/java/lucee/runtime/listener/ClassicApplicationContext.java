@@ -837,7 +837,8 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	public void setFormUrlAsStruct(PageContext pc, boolean formUrlAsStruct) {
-		boolean changed = this.formUrlAsStruct != formUrlAsStruct;
+		// LDEV-5685: the field is null until set (null = admin setting)
+		boolean changed = getFormUrlAsStruct() != formUrlAsStruct;
 		this.formUrlAsStruct = formUrlAsStruct;
 		if (changed) {
 			pc.urlScope().reinitialize(this);

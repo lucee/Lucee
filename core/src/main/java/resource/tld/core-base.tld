@@ -8226,6 +8226,14 @@ Suport for cookie was removed in Lucee 7
 		</attribute>
 		<attribute>
 			<type>boolean</type>
+			<name>formUrlAsStruct</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>If set to true (default, see the Lucee Administrator "Scope" settings), URL and Form variables with dot notation (a.b=1) are parsed into structs (url.a.b). If set to false, the key is kept as is (url["a.b"]). Same as this.formUrlAsStruct in Application.cfc.</description>
+			<introduced>7.1.3.0</introduced>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
 			<name>bufferOutput</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
