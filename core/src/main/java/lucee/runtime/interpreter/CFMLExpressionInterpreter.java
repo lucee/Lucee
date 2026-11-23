@@ -1427,7 +1427,8 @@ public class CFMLExpressionInterpreter {
 			scope = VariableInterpreter.scopeString2Int(pc != null && pc.ignoreScopes(), idStr);
 		}
 		if (scope == Scope.SCOPE_UNDEFINED) {
-			return new Variable(new lucee.runtime.interpreter.ref.var.Scope(Scope.SCOPE_UNDEFINED), idStr, limited);
+			// in JSON an unquoted name is only valid as key, not as value
+			return new Variable(new lucee.runtime.interpreter.ref.var.Scope(Scope.SCOPE_UNDEFINED), idStr, limited, isJson);
 		}
 		return new lucee.runtime.interpreter.ref.var.Scope(scope);
 
