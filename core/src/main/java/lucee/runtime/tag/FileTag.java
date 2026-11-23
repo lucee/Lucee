@@ -1095,15 +1095,19 @@ public final class FileTag extends BodyTagImpl {
 		cffile.set(KeyConstants._oldfilesize, Long.valueOf(length));
 		cffile.set(KeyConstants._filesize, Long.valueOf(length));
 
-		// client file
+		// client file, the name sent by the client is only used as a plain file name
 		String strClientFile = formItem.getName();
-		while (strClientFile.indexOf('\\') != -1)
-			strClientFile = strClientFile.replace('\\', '/');
-		Resource clientFile = pageContext.getConfig().getResource(strClientFile);
-		String clientFileName = clientFile.getName();
+		if (strClientFile == null) strClientFile = "";
+		strClientFile = strClientFile.replace('\\', '/');
+		int lastSlash = strClientFile.lastIndexOf('/');
+		String clientDirectory = lastSlash == -1 ? "" : strClientFile.substring(0, lastSlash);
+		String clientFileName = ResourceUtil.toFileName(strClientFile, null);
+		if (clientFileName == null) throw new ApplicationException("The uploaded file has no valid file name");
+		// only used for the extension checks, it is never read or written
+		Resource clientFile = formItem.getResource().getParentResource().getRealResource(clientFileName);
 		// content type
 		String contentType;
-		if (ALLOW_MIMETYPE_DETECTION) contentType = ResourceUtil.getMimeType(formItem.getResource(), clientFile.getName(), formItem.getContentType());
+		if (ALLOW_MIMETYPE_DETECTION) contentType = ResourceUtil.getMimeType(formItem.getResource(), clientFileName, formItem.getContentType());
 		else contentType = formItem.getContentType();
 
 		cffile.set(KeyConstants._contenttype, ListFirst.call(pageContext, contentType, "/", false, 1));
@@ -1112,10 +1116,10 @@ public final class FileTag extends BodyTagImpl {
 		// check file type
 		checkContentType(contentType, accept, allowedExtensions, blockedExtensions, clientFile, strict, pageContext.getApplicationContext());
 
-		cffile.set(KeyConstants._clientdirectory, getParent(clientFile));
-		cffile.set(KeyConstants._clientfile, clientFile.getName());
-		cffile.set(KeyConstants._clientfileext, ResourceUtil.getExtension(clientFile, ""));
-		cffile.set(KeyConstants._clientfilename, ResourceUtil.getName(clientFile));
+		cffile.set(KeyConstants._clientdirectory, clientDirectory);
+		cffile.set(KeyConstants._clientfile, clientFileName);
+		cffile.set(KeyConstants._clientfileext, ResourceUtil.getExtension(clientFileName, ""));
+		cffile.set(KeyConstants._clientfilename, ResourceUtil.getName(clientFileName));
 
 		// check destination
 		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is required for tag [file], when action is [" + actionValue + "]");
