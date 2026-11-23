@@ -45,6 +45,7 @@ import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
+import lucee.runtime.extension.ExtensionDependencies;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.mvn.MavenUtil.MavenCoordinate;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -77,7 +78,8 @@ public final class DeployHandler {
 			if (!dir.exists()) dir.mkdirs();
 
 			// check deploy directory
-			Resource[] children = dir.listResources(ALL_EXT);
+			// LDEV-6808 an extension is deployed after the extensions in the folder that it needs
+			Resource[] children = ExtensionDependencies.sortForDeploy(config, dir.listResources(ALL_EXT), log);
 			String ext;
 			if (children.length > 0) {
 				ThreadQueue queue = config.getThreadQueue();
@@ -220,6 +222,19 @@ public final class DeployHandler {
 	}
 
 	public static Map<ExtensionDefintion, Boolean> deployExtensions(Config config, ExtensionDefintion[] eds, final Log log, boolean force, boolean throwOnError)
+			throws PageException {
+		// LDEV-6808 what is defined in the configuration, a system property or an environment variable wins over the extensions
+		// that need another version
+		boolean prevConfigured = ExtensionDependencies.setConfigured(!throwOnError);
+		try {
+			return _deployExtensions(config, eds, log, force, throwOnError);
+		}
+		finally {
+			ExtensionDependencies.setConfigured(prevConfigured);
+		}
+	}
+
+	private static Map<ExtensionDefintion, Boolean> _deployExtensions(Config config, ExtensionDefintion[] eds, final Log log, boolean force, boolean throwOnError)
 			throws PageException {
 		Map<ExtensionDefintion, Boolean> results = throwOnError ? null : new HashMap<>();
 		if (!ArrayUtil.isEmpty(eds)) {
