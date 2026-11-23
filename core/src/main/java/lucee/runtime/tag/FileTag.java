@@ -956,15 +956,19 @@ public final class FileTag extends BodyTagImpl {
 		cffile.set(KeyConstants._oldfilesize, Long.valueOf(length));
 		cffile.set(KeyConstants._filesize, Long.valueOf(length));
 
-		// client file
+		// client file, the name sent by the client is only used as a plain file name
 		String strClientFile = formItem.getName();
-		while (strClientFile.indexOf('\\') != -1)
-			strClientFile = strClientFile.replace('\\', '/');
-		Resource clientFile = pageContext.getConfig().getResource(strClientFile);
-		String clientFileName = clientFile.getName();
+		if (strClientFile == null) strClientFile = "";
+		strClientFile = strClientFile.replace('\\', '/');
+		int lastSlash = strClientFile.lastIndexOf('/');
+		String clientDirectory = lastSlash == -1 ? "" : strClientFile.substring(0, lastSlash);
+		String clientFileName = toClientFileName(lastSlash == -1 ? strClientFile : strClientFile.substring(lastSlash + 1));
+		if (clientFileName == null) throw new ApplicationException("The uploaded file has no valid file name");
+		// only used for the extension checks, it is never read or written
+		Resource clientFile = formItem.getResource().getParentResource().getRealResource(clientFileName);
 		// content type
 		String contentType;
-		if (ALLOW_MIMETYPE_DETECTION) contentType = ResourceUtil.getMimeType(formItem.getResource(), clientFile.getName(), formItem.getContentType());
+		if (ALLOW_MIMETYPE_DETECTION) contentType = ResourceUtil.getMimeType(formItem.getResource(), clientFileName, formItem.getContentType());
 		else contentType = formItem.getContentType();
 
 		cffile.set(KeyConstants._contenttype, ListFirst.call(pageContext, contentType, "/", false, 1));
@@ -973,10 +977,10 @@ public final class FileTag extends BodyTagImpl {
 		// check file type
 		checkContentType(contentType, accept, allowedExtensions, blockedExtensions, clientFile, strict, pageContext.getApplicationContext());
 
-		cffile.set(KeyConstants._clientdirectory, getParent(clientFile));
-		cffile.set(KeyConstants._clientfile, clientFile.getName());
-		cffile.set(KeyConstants._clientfileext, ResourceUtil.getExtension(clientFile, ""));
-		cffile.set(KeyConstants._clientfilename, ResourceUtil.getName(clientFile));
+		cffile.set(KeyConstants._clientdirectory, clientDirectory);
+		cffile.set(KeyConstants._clientfile, clientFileName);
+		cffile.set(KeyConstants._clientfileext, ResourceUtil.getExtension(clientFileName, ""));
+		cffile.set(KeyConstants._clientfilename, ResourceUtil.getName(clientFileName));
 
 		// check destination
 		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is required for tag [file], when action is [" + actionValue + "]");
@@ -1201,6 +1205,37 @@ public final class FileTag extends BodyTagImpl {
 
 		Form scope = pageContext.formScope();
 		return scope.getFileItems();
+	}
+
+	/**
+	 * turns the file name sent by the client into a plain file name: control characters are removed,
+	 * characters that are not allowed in file names on Windows are replaced with "_" and trailing dots
+	 * and spaces are removed (Windows drops them silently)
+	 * 
+	 * @param name last segment of the client file name
+	 * @return the file name, or null when nothing usable is left
+	 */
+	static String toClientFileName(String name) {
+		if (name == null) return null;
+		int len = name.length();
+		StringBuilder sb = null;
+		char c;
+		for (int i = 0; i < len; i++) {
+			c = name.charAt(i);
+			if (c < 32 || c == 127) {
+				if (sb == null) sb = new StringBuilder(len).append(name, 0, i);
+			}
+			else if (c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' || c == '|' || c == '/' || c == '\\') {
+				if (sb == null) sb = new StringBuilder(len).append(name, 0, i);
+				sb.append('_');
+			}
+			else if (sb != null) sb.append(c);
+		}
+		String result = sb == null ? name : sb.toString();
+		int end = result.length();
+		while (end > 0 && ((c = result.charAt(end - 1)) == '.' || c == ' ')) end--;
+		if (end == 0) return null;
+		return end == result.length() ? result : result.substring(0, end);
 	}
 
 	private static String getParent(Resource res) {
