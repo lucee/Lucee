@@ -230,6 +230,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 	 *   user[tags][] -> ["user", "tags[]"]
 	 *   user.tags[] -> ["user", "tags[]"]
 	 *   user[]name -> ["user", "name"]
+	 *   tags[0][] -> ["tags", "0[]"] (tags is a struct, tags.0 an array)
 	 *
 	 * @param name The parameter name to parse
 	 * @return List of segments, or null if malformed brackets detected

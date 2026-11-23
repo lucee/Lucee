@@ -55,7 +55,41 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="form,url" {
 				assertArrayField( "form", "user.tags[]=foo&user.tags[]=bar", "form|user|tags", [ "foo", "bar" ] );
 			});
 
+			it( "keeps non-trailing empty brackets skipped: url user[]name is a simple value", function() {
+				assertSimpleField( "url", "user[]name=test", "url|user|name", "test" );
+			});
+
+			it( "keeps non-trailing empty brackets skipped: form user[]name is a simple value", function() {
+				assertSimpleField( "form", "user[]name=test", "form|user|name", "test" );
+			});
+
+			it( "returns an array per index for url tags[0][] fields", function() {
+				var report = requestScope( "url", "tags[0][]=a&tags[1][]=b" );
+				assertReportArray( report, "url|tags|0", [ "a" ] );
+				assertReportArray( report, "url|tags|1", [ "b" ] );
+			});
+
+			it( "returns an array per index for form tags[0][] fields", function() {
+				var report = requestScope( "form", "tags[0][]=a&tags[1][]=b" );
+				assertReportArray( report, "form|tags|0", [ "a" ] );
+				assertReportArray( report, "form|tags|1", [ "b" ] );
+			});
+
 		});
+	}
+
+	private void function assertSimpleField( required string scope, required string query, required string path, required string value ) {
+		var report = requestScope( arguments.scope, arguments.query );
+		expect( report ).toHaveKey( arguments.path );
+		expect( report[ arguments.path ].type ).toBe( "simple" );
+		expect( report[ arguments.path ].value ).toBe( arguments.value );
+	}
+
+	private void function assertReportArray( required struct report, required string path, required array values ) {
+		expect( arguments.report ).toHaveKey( arguments.path );
+		var entry = arguments.report[ arguments.path ];
+		expect( entry.type ).toBe( "array" );
+		expect( entry.value ).toBe( arguments.values );
 	}
 
 	private void function assertArrayField( required string scope, required string query, required string path, required array values ) {
