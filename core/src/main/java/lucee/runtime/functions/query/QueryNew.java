@@ -18,8 +18,10 @@
  **/
 package lucee.runtime.functions.query;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -99,18 +101,41 @@ public final class QueryNew extends BIF {
 	}
 
 	public static Query populate(PageContext pc, Query qry, Object data, boolean arrayAsMultiRow) throws PageException {
+		populateAndGetLastRow(pc, qry, data, arrayAsMultiRow);
+		return qry;
+	}
+
+	/**
+	 * populates the query and returns the number of the last row written by this call (or the record
+	 * count when no row was added). LDEV-6815: the rows are reserved before they are written, so
+	 * parallel calls on the same query never write into the same row.
+	 */
+	public static int populateAndGetLastRow(PageContext pc, Query qry, Object data, boolean arrayAsMultiRow) throws PageException {
 		if (Decision.isArray(data)) return _populate(pc, qry, Caster.toArray(data));
 		else if (Decision.isStruct(data)) return _populate(pc, qry, Caster.toStruct(data), arrayAsMultiRow);
 		else throw new FunctionException(pc, "QueryNew", 3, "data", "the date must be defined as array of structs , array of arrays or struct of arrays");
 	}
 
-	private static Query _populate(PageContext pc, Query qry, Struct data, boolean arrayAsMultiRow) throws PageException {
+	/**
+	 * adds count rows and returns the number of the last row added (thread safe for QueryImpl)
+	 */
+	private static int addRows(Query qry, int count) {
+		if (qry instanceof QueryImpl) return ((QueryImpl) qry).addRowAndGet(count);
+		synchronized (qry) {
+			qry.addRow(count);
+			return qry.getRecordcount();
+		}
+	}
+
+	private static int _populate(PageContext pc, Query qry, Struct data, boolean arrayAsMultiRow) throws PageException {
 		Iterator<Entry<Key, Object>> it = data.entryIterator();
 		Entry<Key, Object> e;
 		Object v;
 		Array arr;
-		int rows = qry.getRecordcount();
 		Key column;
+		List<Key> columns = new ArrayList<>();
+		List<Array> values = new ArrayList<>();
+		int rows = 0;
 		while (it.hasNext()) {
 			e = it.next();
 			column = e.getKey();
@@ -125,23 +150,31 @@ public final class QueryNew extends BIF {
 				else arr = null;
 
 				if (arr == null) arr = new ArrayImpl(new Object[] { v });
-				populateColumn(qry, column, arr, rows);
+				columns.add(column);
+				values.add(arr);
+				if (arr.size() > rows) rows = arr.size();
 			}
 		}
-		return qry;
+		if (rows == 0) return qry.getRecordcount();
+
+		// LDEV-6815: reserve the rows first, then write into them
+		int last = addRows(qry, rows);
+		int first = last - rows + 1;
+		for (int i = 0; i < columns.size(); i++) {
+			populateColumn(qry, columns.get(i), values.get(i), first);
+		}
+		return last;
 	}
 
-	private static void populateColumn(Query qry, Key column, Array data, int rows) throws PageException {
+	private static void populateColumn(Query qry, Key column, Array data, int firstRow) throws PageException {
 		Iterator<?> it = data.valueIterator();
-		int row = rows;
+		int row = firstRow;
 		while (it.hasNext()) {
-			row++;
-			if (row > qry.getRecordcount()) qry.addRow();
-			qry.setAt(column, row, it.next());
+			qry.setAt(column, row++, it.next());
 		}
 	}
 
-	private static Query _populate(PageContext pc, Query qry, Array data) throws PageException {
+	private static int _populate(PageContext pc, Query qry, Array data) throws PageException {
 		// check if the array only contains simple values or mixed
 		Iterator<?> it = data.valueIterator();
 		Object o;
@@ -152,27 +185,30 @@ public final class QueryNew extends BIF {
 		}
 
 		if (hasSimpleValues) {
-			qry.addRow();
-			populateRow(qry, data);
+			int row = addRows(qry, 1);
+			populateRow(qry, row, data);
+			return row;
 		}
-		else {
-			it = data.valueIterator();
-			while (it.hasNext()) {
-				o = it.next();
-				qry.addRow();
-				if (Decision.isStruct(o)) populateRow(qry, Caster.toStruct(o));
-				else if (Decision.isArray(o)) populateRow(qry, Caster.toArray(o));
-				else {
-					populateRow(qry, new ArrayImpl(new Object[] { o }));
-				}
+		if (data.size() == 0) return qry.getRecordcount();
+
+		// LDEV-6815: reserve the rows first, then write into them
+		int last = addRows(qry, data.size());
+		int row = last - data.size();
+		it = data.valueIterator();
+		while (it.hasNext()) {
+			o = it.next();
+			row++;
+			if (Decision.isStruct(o)) populateRow(qry, row, Caster.toStruct(o));
+			else if (Decision.isArray(o)) populateRow(qry, row, Caster.toArray(o));
+			else {
+				populateRow(qry, row, new ArrayImpl(new Object[] { o }));
 			}
 		}
-		return qry;
+		return last;
 	}
 
-	private static void populateRow(Query qry, Struct data) throws PageException {
+	private static void populateRow(Query qry, int row, Struct data) throws PageException {
 		Key[] columns = QueryUtil.getColumnNames(qry);
-		int row = qry.getRecordcount();
 		Object value;
 		for (int i = 0; i < columns.length; i++) {
 			value = data.get(columns[i], null);
@@ -209,10 +245,9 @@ public final class QueryNew extends BIF {
 		return KeyImpl.init(str);
 	}
 
-	private static void populateRow(Query qry, Array data) throws PageException {
+	private static void populateRow(Query qry, int row, Array data) throws PageException {
 		Iterator<?> it = data.valueIterator();
 		Key[] columns = QueryUtil.getColumnNames(qry);
-		int row = qry.getRecordcount();
 		int index = -1;
 		while (it.hasNext()) {
 			index++;
