@@ -82,11 +82,14 @@ Defaults --->
 							<cfif arrayIndexExists( data.archivePaths, idx ) and len( trim( data.archivePaths[ idx ] ) )>
 								<cfset filename = trim( data.archivePaths[ idx ] )>
 							</cfif>
+							<cfif right( filename, len( ext ) + 1 ) NEQ "." & ext>
+								<cfset filename = filename & "." & ext>
+							</cfif>
 							<cfset target = expandPath( "{lucee-config}/context/archives/" & filename )>
 							<cfset count = 0>
 							<cfwhile fileExists( target )>
 								<cfset count = count + 1>
-								<cfset target = expandPath( "{lucee-config}/context/archives/" & replace( filename, '.' & ext, count & '.' & ext ) )>
+								<cfset target = expandPath( "{lucee-config}/context/archives/" & reReplaceNoCase( filename, "(\.#ext#)$", count & "\1" ) )>
 							</cfwhile>
 						</cfif>
 						<cfadmin
