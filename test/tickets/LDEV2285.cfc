@@ -79,19 +79,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file" {
 			it( title="cffile uploadAll takes the plain file names", body=function( currentSpec ) {
 				var res = upload( "uploadAll", [ "one:a.txt", "C:\Users\x\two.txt" ] );
 				expect( res ).toHaveKey( "results" );
-				expect( arrayLen( res.results ) ).toBe( 2 );
-				expect( res.results[ 1 ].serverFile ).toBe( "one_a.txt" );
-				expect( res.results[ 2 ].serverFile ).toBe( "two.txt" );
+				expect( serverFiles( res.results ) ).toBe( [ "one_a.txt", "two.txt" ] );
 			});
 
 			it( title="fileUploadAll() takes the plain file names", body=function( currentSpec ) {
 				var res = upload( "functionAll", [ "one:a.txt", "C:\Users\x\two.txt" ] );
 				expect( res ).toHaveKey( "results" );
-				expect( arrayLen( res.results ) ).toBe( 2 );
-				expect( res.results[ 1 ].serverFile ).toBe( "one_a.txt" );
-				expect( res.results[ 2 ].serverFile ).toBe( "two.txt" );
+				expect( serverFiles( res.results ) ).toBe( [ "one_a.txt", "two.txt" ] );
 			});
 		});
+	}
+
+	// the order of the uploaded files is not defined
+	private array function serverFiles( required array results ) {
+		var names = [];
+		for ( var r in arguments.results ) arrayAppend( names, r.serverFile );
+		arraySort( names, "textnocase" );
+		return names;
 	}
 
 	private struct function uploadOne( required string mode, required string fileName ) {
