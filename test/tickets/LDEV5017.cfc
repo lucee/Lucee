@@ -41,7 +41,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="json" {
 			});
 
 			it( title="unquoted keys (json5) still work", body=function( currentSpec ) {
-				expect( isJson( '{a:1}' ) ).toBeTrue();
+				expect( isJson( '{a:1}', "json5" ) ).toBeTrue(); // isJson is strict JSON by default in 9.0
 				var res = deserializeJSON( '{a:1, b:"x", c:true}' );
 				expect( res.a ).toBe( 1 );
 				expect( res.b ).toBe( "x" );
