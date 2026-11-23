@@ -36,6 +36,7 @@ public abstract class FlowControlBody extends BodyBase implements FlowControlBre
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 
+		end = new Label(); // LDEV-6979 fresh label per emission, a finally body is written more than once
 		super._writeOut(bc);
 		bc.getAdapter().visitLabel(end);
 	}
