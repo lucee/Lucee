@@ -962,7 +962,7 @@ public final class FileTag extends BodyTagImpl {
 		strClientFile = strClientFile.replace('\\', '/');
 		int lastSlash = strClientFile.lastIndexOf('/');
 		String clientDirectory = lastSlash == -1 ? "" : strClientFile.substring(0, lastSlash);
-		String clientFileName = toClientFileName(lastSlash == -1 ? strClientFile : strClientFile.substring(lastSlash + 1));
+		String clientFileName = ResourceUtil.toFileName(strClientFile, null);
 		if (clientFileName == null) throw new ApplicationException("The uploaded file has no valid file name");
 		// only used for the extension checks, it is never read or written
 		Resource clientFile = formItem.getResource().getParentResource().getRealResource(clientFileName);
@@ -1205,37 +1205,6 @@ public final class FileTag extends BodyTagImpl {
 
 		Form scope = pageContext.formScope();
 		return scope.getFileItems();
-	}
-
-	/**
-	 * turns the file name sent by the client into a plain file name: control characters are removed,
-	 * characters that are not allowed in file names on Windows are replaced with "_" and trailing dots
-	 * and spaces are removed (Windows drops them silently)
-	 * 
-	 * @param name last segment of the client file name
-	 * @return the file name, or null when nothing usable is left
-	 */
-	static String toClientFileName(String name) {
-		if (name == null) return null;
-		int len = name.length();
-		StringBuilder sb = null;
-		char c;
-		for (int i = 0; i < len; i++) {
-			c = name.charAt(i);
-			if (c < 32 || c == 127) {
-				if (sb == null) sb = new StringBuilder(len).append(name, 0, i);
-			}
-			else if (c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' || c == '|' || c == '/' || c == '\\') {
-				if (sb == null) sb = new StringBuilder(len).append(name, 0, i);
-				sb.append('_');
-			}
-			else if (sb != null) sb.append(c);
-		}
-		String result = sb == null ? name : sb.toString();
-		int end = result.length();
-		while (end > 0 && ((c = result.charAt(end - 1)) == '.' || c == ' ')) end--;
-		if (end == 0) return null;
-		return end == result.length() ? result : result.substring(0, end);
 	}
 
 	private static String getParent(Resource res) {

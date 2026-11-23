@@ -69,6 +69,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file" {
 				expect( res ).toHaveKey( "error" );
 			});
 
+			it( title="the shared file name helper", body=function( currentSpec ) {
+				var util = createObject( "java", "lucee.commons.io.res.util.ResourceUtil" );
+				expect( util.toFileName( "MyFunny:File.pdf", "" ) ).toBe( "MyFunny_File.pdf" );
+				expect( util.toFileName( "C:\Users\x\file.pdf", "" ) ).toBe( "file.pdf" );
+				expect( util.toFileName( "images/chart.png", "" ) ).toBe( "chart.png" );
+				expect( util.toFileName( "Öffnungszeiten.pdf", "" ) ).toBe( "Öffnungszeiten.pdf" );
+				expect( util.toFileName( "report.pdf. ", "" ) ).toBe( "report.pdf" );
+				expect( util.toFileName( "notes.txt", "" ) ).toBe( "notes.txt" );
+				expect( util.toFileName( "   ", "none" ) ).toBe( "none" );
+				expect( util.toFileName( "images/", "none" ) ).toBe( "none" );
+			});
+
 			it( title="fileUpload() takes the plain file name", body=function( currentSpec ) {
 				var r = uploadOne( "function", "C:\Users\x\My:File.pdf" );
 				expect( r.clientFile ).toBe( "My_File.pdf" );
