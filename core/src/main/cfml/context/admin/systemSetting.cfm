@@ -11,9 +11,11 @@
 	stText=caller.stText;
 
 	// values for example renderings
-	settingsVal=attributes.value;
-	codeTip=attributes.value;
-	isTimeSpan=isInstanceOf(attributes.value, "lucee.runtime.type.dt.TimeSpan");
+	// masked: secrets (e.g. passwords) are never written into the page, neither displayed nor in the examples or hidden fields
+	isMasked=attributes.masked?:false;
+	settingsVal=isMasked?"********":attributes.value;
+	codeTip=settingsVal;
+	isTimeSpan=!isMasked && isInstanceOf(attributes.value, "lucee.runtime.type.dt.TimeSpan");
 	if(isTimeSpan) {
 		// reading the properties of a timespan requires direct java access, serialize returns them as they are stored (not normalized, e.g. 0,0,90,0)
 		timeSpanParts=reMatch("-?[0-9]+",serialize(attributes.value));
@@ -114,6 +116,14 @@
 				<input type="hidden" name="#attributes.name#_hours" value="#timeSpan.hour#">
 				<input type="hidden" name="#attributes.name#_minutes" value="#timeSpan.minute#">
 				<input type="hidden" name="#attributes.name#_seconds" value="#timeSpan.second#">
+			<cfelseif isMasked>
+				<table  class="maintbl">
+				<tbody>
+					<tr>
+						<td align="center"><b>#len(attributes.value)?"********":""#</b></td>
+					</tr>
+				</tbody>
+				</table>
 			<cfelseif isNumeric(attributes.value)>
 				<table  class="maintbl">
 				<tbody>

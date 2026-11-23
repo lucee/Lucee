@@ -9,6 +9,7 @@
 					<cfmodule template="systemSetting.cfm"
 						name="defaultencoding"
 						propName="mailDefaultEncoding"
+						sp=false
 						value="#mail.defaultEncoding#"
 						access="#hasAccess#"
 						description="#stText.mail.DefaultEncodingDescription#">
@@ -51,6 +52,7 @@
 					<cfmodule template="systemSetting.cfm"
 						name="spoolEnable"
 						propName="mailSpoolEnable"
+						sp=false
 						value="#mail.spoolEnable#"
 						access="#hasAccess#"
 						description="#stText.mail.SpoolEnabledDesc#">
@@ -83,6 +85,7 @@
 					<cfmodule template="systemSetting.cfm"
 						name="timeout"
 						propName="mailConnectionTimeout"
+						sp=false
 						value="#mail.timeout#"
 						access="#hasAccess#"
 						description="#stText.mail.TimeoutDesc#">

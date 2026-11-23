@@ -63,7 +63,7 @@ Defaults --->
 				proxyServer="#form.server#"
 				proxyPort="#form.port#"
 				proxyUsername="#form.username#"
-				proxyPassword="#form.password#"	
+				proxyPassword="#form.password?:""#"	
 				>
 
 		</cfcase>
@@ -109,6 +109,8 @@ function doEnableProxy(enableProxy) {
 
 	for(var i=0;i<fields.length;i++) {
 		var field=fields[i];
+		// a locked secret (e.g. password set by env var) has no form field
+		if(!form[field]) continue;
 		form[field].disabled=disable;
 		if(disable) {
 			proxy[field]=form[field].value;
@@ -184,6 +186,7 @@ function doEnableProxy(enableProxy) {
 			name="password"
 			propName="proxy_password"
 			value="#proxy.password#"
+			masked=true
 			access="#hasAccess#"
 			description="#stText.proxy.passwordDescription#"
 			descOnTop=true>

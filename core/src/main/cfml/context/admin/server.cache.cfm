@@ -287,7 +287,8 @@ Create Datasource --->
 						<cfmodule template="systemSetting.cfm"
 							name="inspectTemplateIntervalFast"
 							value="#settings.inspectTemplateIntervalFast?:"100"#"
-							access="#hasAccess#">
+							access="#hasAccess#"
+							sp=false>
 							<input type="text" name="inspectTemplateIntervalFast" value="#settings.inspectTemplateIntervalFast?:"100"#" size="6"> #stText.setting.inspectTemplateIntervalFast#
 						</cfmodule>
 					</td>
@@ -454,6 +455,7 @@ Create Datasource --->
 								name="mode"
 								propName="developMode"
 								value="#mode.developMode#"
+								sp=false
 								access="#hasAccess#"
 								description="#stText.setting.developMode#">
 								<label>
