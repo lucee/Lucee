@@ -664,7 +664,10 @@ public class Prop<T> {
 				for (String key: envVarSystemProps()) {
 					Object val = SystemUtil.getSystemPropOrEnvVarObject(key, null);
 					if (StringUtil.isEmpty(val)) continue;
-					Array arr = Caster.toArray(val, null);
+					// LDEV-6551: only the explicitly declared names (systemPropEnvVar(...)) accept a plain
+					// string / comma separated list, the generated names (e.g. lucee.extensions) keep their
+					// own handling
+					Array arr = isCustomEnvVarSystemProp(key) ? toEnvVarArray(val) : Caster.toArray(val, null);
 					if (arr == null) continue;
 					list(config, arr, list, Prop.SOURCE_SYSPROPENVVAR);
 
@@ -699,6 +702,44 @@ public class Prop<T> {
 			}
 
 		}
+	}
+
+	private boolean isCustomEnvVarSystemProp(String key) {
+		if (customEnvVarSystemProps == null) return false;
+		for (String k: customEnvVarSystemProps) {
+			if (k.equals(key)) return true;
+		}
+		return false;
+	}
+
+	/**
+	 * LDEV-6551: a list defined as system property / environment variable is a single value, a comma
+	 * separated list, a JSON array (or a single JSON object), or the indexed form (name.0, name.1, ...)
+	 */
+	private static Array toEnvVarArray(Object val) throws PageException {
+		if (val instanceof CharSequence) {
+			String str = val.toString().trim();
+			if (str.isEmpty()) return null;
+			if (str.startsWith("[") || str.startsWith("{")) {
+				Object obj = new JSONExpressionInterpreter(false, JSONExpressionInterpreter.FORMAT_JSON5).interpret(null, str);
+				Array arr = Caster.toArray(obj, null);
+				if (arr != null && !(obj instanceof Struct)) return arr;
+				arr = new ArrayImpl();
+				arr.appendEL(obj);
+				return arr;
+			}
+			Array arr = new ArrayImpl();
+			for (String item: ListUtil.listToStringArray(str, ',')) {
+				if (!StringUtil.isEmpty(item, true)) arr.appendEL(item.trim());
+			}
+			return arr;
+		}
+		if (val instanceof Struct && !(val instanceof Array)) {
+			Array arr = new ArrayImpl();
+			arr.appendEL(val);
+			return arr;
+		}
+		return Caster.toArray(val, null);
 	}
 
 	private void list(ConfigServerImpl config, Array raw, List<T> list, short source) throws PageException {

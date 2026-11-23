@@ -1437,11 +1437,20 @@ public final class SystemUtil {
 		}
 
 		if (can) {
+			// LDEV-6551: the indexed form can be 0 based (name.0, name.1, ...), CFML arrays are 1 based
+			int offset = 0;
+			it = data.entryIterator();
+			while (it.hasNext()) {
+				if (Caster.toIntValue(it.next().getKey().getString(), 1) < 1) {
+					offset = 1;
+					break;
+				}
+			}
 			it = data.entryIterator();
 			Array arr = new ArrayImpl(1);
 			while (it.hasNext()) {
 				Entry<Key, Object> e = it.next();
-				arr.setEL(e.getKey(), e.getValue());
+				arr.setEL(Caster.toIntValue(e.getKey().getString(), 0) + offset, e.getValue());
 			}
 			return arr;
 		}
