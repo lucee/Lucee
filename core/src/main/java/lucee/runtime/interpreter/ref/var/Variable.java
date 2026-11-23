@@ -20,6 +20,7 @@ package lucee.runtime.interpreter.ref.var;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.interpreter.SecurityInterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
@@ -38,6 +39,7 @@ public final class Variable extends RefSupport implements Set {
 	private Ref parent;
 	private Ref refKey;
 	private boolean limited;
+	private boolean nameOnly;
 
 	/**
 	 * @param parent
@@ -48,6 +50,20 @@ public final class Variable extends RefSupport implements Set {
 		this.parent = parent;
 		this.key = key;
 		this.limited = limited;
+	}
+
+	/**
+	 * @param parent
+	 * @param key
+	 * @param limited
+	 * @param nameOnly if true, this element can only be used as a name (for example an unquoted key in
+	 *            JSON5), it has no value
+	 */
+	public Variable(Ref parent, String key, boolean limited, boolean nameOnly) {
+		this.parent = parent;
+		this.key = key;
+		this.limited = limited;
+		this.nameOnly = nameOnly;
 	}
 
 	/**
@@ -63,13 +79,13 @@ public final class Variable extends RefSupport implements Set {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (limited) checkSecurity(refKey);
+		if (limited) checkLimited();
 		return pc.get(parent.getCollection(pc), KeyImpl.init(getKeyAsString(pc)));
 	}
 
 	@Override
 	public Object touchValue(PageContext pc) throws PageException {
-		if (limited) checkSecurity(refKey);
+		if (limited) checkLimited();
 		Object p = parent.touchValue(pc);
 		if (p instanceof Query) {
 			Object o = ((Query) p).getColumn(KeyImpl.init(getKeyAsString(pc)), null);
@@ -82,7 +98,7 @@ public final class Variable extends RefSupport implements Set {
 
 	@Override
 	public Object getCollection(PageContext pc) throws PageException {
-		if (limited) checkSecurity(refKey);
+		if (limited) checkLimited();
 		Object p = parent.getValue(pc);
 		if (p instanceof Query) {
 			return ((Query) p).getColumn(KeyImpl.init(getKeyAsString(pc)));
@@ -92,7 +108,7 @@ public final class Variable extends RefSupport implements Set {
 
 	@Override
 	public Object setValue(PageContext pc, Object obj) throws PageException {
-		if (limited) checkSecurity(refKey);
+		if (limited) checkLimited();
 		return pc.set(parent.touchValue(pc), KeyImpl.init(getKeyAsString(pc)), obj);
 	}
 
@@ -116,6 +132,12 @@ public final class Variable extends RefSupport implements Set {
 	@Override
 	public Ref getParent(PageContext pc) throws PageException {
 		return parent;
+	}
+
+	private void checkLimited() throws PageException {
+		// an unquoted name in JSON is only valid as a key, a value needs to be a literal
+		if (nameOnly) throw new InterpreterException("Invalid JSON, unquoted value [" + key + "] found, only [true], [false] and [null] can be used without quotes");
+		checkSecurity(refKey);
 	}
 
 	/**
