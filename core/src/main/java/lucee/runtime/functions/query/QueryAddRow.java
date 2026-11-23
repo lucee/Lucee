@@ -42,10 +42,8 @@ public final class QueryAddRow extends BIF {
 		else if (Decision.isNumber(numberOrData)) {
 			return Caster.toNumber(pc, ((QueryImpl) query).addRowAndGet(Caster.toIntValue(numberOrData)));
 		}
-		else {
-			QueryNew.populate(pc, query, numberOrData, false);
-		}
-		return Caster.toNumber(pc, query.getRecordcount());
+		// LDEV-6815: return the last row this call wrote, not the record count (other threads may have added rows)
+		return Caster.toNumber(pc, QueryNew.populateAndGetLastRow(pc, query, numberOrData, false));
 	}
 
 	@Override
