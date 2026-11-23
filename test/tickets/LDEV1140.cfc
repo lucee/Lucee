@@ -16,13 +16,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="compress" {
 			it( "extracts a nested folder structure", function() {
 				var out = dir & "nested-extract/";
 				directoryCreate( out );
-				extract( "zip", fixtures & "nested-utf8.zip", out );
+				extractCore( "zip", fixtures & "nested-utf8.zip", out );
 				expect( fileRead( out & "photos/2024/a.txt" ) ).toBe( "hello nested" );
 
 				if ( coreExtractsTar() ) {
 					var outTar = dir & "nested-tar/";
 					directoryCreate( outTar );
-					extract( "tar", fixtures & "nested.tar", outTar );
+					extractCore( "tar", fixtures & "nested.tar", outTar );
 					expect( fileRead( outTar & "photos/2024/a.txt" ) ).toBe( "hello nested" );
 				}
 			});
@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="compress" {
 			it( "extracts a zip whose entry names are not UTF-8", function() {
 				var out = dir & "cp437-extract/";
 				directoryCreate( out );
-				extract( "zip", fixtures & "cp437-kase.zip", out );
+				extractCore( "zip", fixtures & "cp437-kase.zip", out );
 				expect( fileExists( out & "käse.txt" ) ).toBeTrue();
 				expect( fileRead( out & "käse.txt" ) ).toBe( "LDEV-1140" );
 			});
@@ -38,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="compress" {
 			it( "extracts a nested non-UTF-8 entry name", function() {
 				var out = dir & "cp437-nested/";
 				directoryCreate( out );
-				extract( "zip", fixtures & "cp437-nested.zip", out );
+				extractCore( "zip", fixtures & "cp437-nested.zip", out );
 				expect( fileRead( out & "photos/2024/käse.txt" ) ).toBe( "LDEV-1140" );
 			});
 
@@ -66,12 +66,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="compress" {
 		});
 	}
 
-	// core extract() still handles tar on 6.2 and 7.0; 7.1+ only does zip/gzip in core
+	// call core CompressUtil directly: on 7.0+ the extract() BIF is provided by the
+	// compress extension when that extension is installed
+	private void function extractCore( required string format, required string archive, required string dest ) {
+		var CU = createObject( "java", "lucee.commons.io.compress.CompressUtil" );
+		var fmt = CU.FORMAT_ZIP;
+		if ( arguments.format == "tar" ) fmt = CU.FORMAT_TAR;
+		var src = getPageContext().getConfig().getResource( arguments.archive );
+		var trg = getPageContext().getConfig().getResource( arguments.dest );
+		CU.extract( fmt, src, trg );
+	}
+
+	// core CompressUtil still handles tar on 6.2 and 7.0; 7.1+ only does zip/gzip in core
 	private boolean function coreExtractsTar() {
-		var v = server.lucee.version;
-		var maj = val( listFirst( v, "." ) );
-		var min = val( listGetAt( v, 2, "." ) );
-		return maj < 7 || ( maj == 7 && min == 0 );
+		try {
+			var CU = createObject( "java", "lucee.commons.io.compress.CompressUtil" );
+			return !isNull( CU.FORMAT_TAR );
+		}
+		catch ( any e ) {
+			return false;
+		}
 	}
 
 	private void function assertRejected( required string format, required string archive, required string label, required string outsideName ) {
@@ -80,7 +94,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="compress" {
 		directoryCreate( dest );
 		var failed = false;
 		try {
-			extract( format, archive, dest );
+			extractCore( format, archive, dest );
 		}
 		catch ( any e ) {
 			failed = true;
@@ -99,7 +113,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="compress" {
 		directoryCreate( sibling );
 		var failed = false;
 		try {
-			extract( format, archive, dest );
+			extractCore( format, archive, dest );
 		}
 		catch ( any e ) {
 			failed = true;
