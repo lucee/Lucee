@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
@@ -209,9 +210,10 @@ public final class CompressUtil {
 			tis = new TarArchiveInputStream(IOUtil.toBufferedInputStream(tarFile.getInputStream()));
 			TarArchiveEntry entry;
 			int mode;
+			String targetPrefix = ZipUtil.canonicalDirPrefix(targetDir);
 			while ((entry = tis.getNextTarEntry()) != null) {
 				// print.ln(entry);
-				Resource target = targetDir.getRealResource(entry.getName());
+				Resource target = ZipUtil.toResource(targetDir, targetPrefix, entry.getName());
 				if (entry.isDirectory()) {
 					target.mkdirs();
 				}
@@ -223,7 +225,7 @@ public final class CompressUtil {
 				target.setLastModified(entry.getModTime().getTime());
 				mode = entry.getMode();
 				if (mode > 0) {
-					target.setMode(ModeUtil.extractPermissions(mode, false));
+					target.setMode(ModeUtil.extractPermissions(mode, false) & 0777);
 				}
 			}
 		}
@@ -266,10 +268,12 @@ public final class CompressUtil {
 
 		ZipInputStream zis = null;
 		try {
-			zis = new ZipInputStream(IOUtil.toBufferedInputStream(zipFile.getInputStream()));
+			Charset charset = ZipUtil.charsetForZip(zipFile);
+			String targetPrefix = ZipUtil.canonicalDirPrefix(targetDir);
+			zis = new ZipInputStream(IOUtil.toBufferedInputStream(zipFile.getInputStream()), charset);
 			ZipEntry entry;
 			while ((entry = zis.getNextEntry()) != null) {
-				Resource target = ZipUtil.toResource(targetDir, entry);
+				Resource target = ZipUtil.toResource(targetDir, targetPrefix, entry.getName());
 				if (entry.isDirectory()) {
 					target.mkdirs();
 				}
@@ -589,7 +593,7 @@ public final class CompressUtil {
 			for (Resource r: sources) {
 
 				try {
-					zis = new ZipInputStream(IOUtil.toBufferedInputStream(r.getInputStream()));
+					zis = new ZipInputStream(IOUtil.toBufferedInputStream(r.getInputStream()), ZipUtil.charsetForZip(r));
 					while ((entry = zis.getNextEntry()) != null) {
 						if (!done.contains(entry.getName())) {
 							zos.putNextEntry(entry);
