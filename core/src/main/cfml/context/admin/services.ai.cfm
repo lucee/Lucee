@@ -23,6 +23,9 @@
 	stText.Settings.ai.defaultTypeAdministrator="Administrator";
 	stText.Settings.ai.defaultTypeAdministratorDesc="Use this connection to for AI related actions in the Lucee Administrator.";
 
+	stText.Settings.ai.defaultTypeNone="None";
+	stText.Settings.ai.defaultTypeNoneDesc="This connection is not used as default for any functionality.";
+
 	stText.Settings.ai.NameDesc="you can use this name to reference this connection in our code.";
 	error.message="";
 	error.detail="";
