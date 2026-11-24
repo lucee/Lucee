@@ -133,10 +133,9 @@ hasCache=hasObj || hasTem || hasQry || hasRes || hasFun || hasInc;
 <cfoutput>
 
 <cfsavecontent variable="codeSample">
-	<span style="overflow-wrap: break-word">
 	component {
 
-	this.name = "#info.label ?: '&lt;application-name&gt;' #"; // name of the application context
+	this.name = "#info.label ?: '<application-name>'#"; // name of the application context
 
 // regional
 	// default locale used for formating dates, numbers ...
@@ -218,15 +217,15 @@ if(datasources.blob) optional.append('blob:#datasources.blob# // default: false'
 if(datasources.clob) optional.append('clob:#datasources.clob# // default: false');
 if(isNumeric(datasources.connectionLimit))optional.append('connectionLimit:#datasources.connectionLimit# // default:-1');
 if(datasources.connectionTimeout NEQ 10)optional.append('connectionTimeout:#datasources.connectionTimeout# // default: 10; unit: minutes');
-if(datasources.metaCacheTimeout NEQ 60000)optional.append(',metaCacheTimeout:#datasources.metaCacheTimeout# // default: 60000; unit: milliseconds');
+if(datasources.metaCacheTimeout NEQ 60000)optional.append('metaCacheTimeout:#datasources.metaCacheTimeout# // default: 60000; unit: milliseconds');
 if(len(datasources.timezone))optional.append("timezone:'#replace(datasources.timezone,"'","''","all")#'");
 if(datasources.storage) optional.append('storage:#datasources.storage# // default: false');
 if(datasources.readOnly) optional.append('readOnly:#datasources.readOnly# // default: false');
 </cfscript>
 	this.datasources<cfif isValid('variableName',datasources.name) and !find('.',datasources.name)>["#datasources.name#"]<cfelse>['#datasources.name#']</cfif> = {
 	  class: '#datasources.classname#'
-	, connectionString: '#replace(datasources.dsnTranslated,"'","''","all")#'<cfif len(datasources.password)>
-	, username: '#replace(datasources.username,"'","''","all")#'
+	, connectionString: '#replace(datasources.dsnTranslated,"'","''","all")#'<cfif len(datasources.username)>
+	, username: '#replace(datasources.username,"'","''","all")#'</cfif><cfif len(datasources.password)>
 	, password: "#datasources.passwordEncrypted#"</cfif><cfif optional.len()>
 	
 	// optional settings
@@ -266,13 +265,12 @@ this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mapp
 		#del#primary:"<cfif mappings.PhysicalFirst>physical<cfelse>archive</cfif>"<cfset del=","></cfif>}</cfif>;
 </cfloop>
 }
-</span>
 </cfsavecontent>
 
 
 <cfif form.subAction EQ stText.Buttons.export>
 	<cfheader name="Content-Disposition" value="inline; filename=Application.cfc">
-	<cfcontent reset="true" variable="#toBinary(codeSample,"utf-8")#" type="application/cfml">
+	<cfcontent reset="true" variable="#toBinary(trim(codeSample),"utf-8")#" type="application/cfml">
 	<cfabort>
 </cfif>
 
@@ -285,6 +283,6 @@ this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mapp
 </cfformClassic>
 
 
-<cfset renderCodingTip( codeSample,false, true )>
+<cfset renderCodingTip( '<span style="overflow-wrap: break-word">' & htmlEditFormat( trim( codeSample ) ) & '</span>', false, true )>
 
 </cfoutput>
