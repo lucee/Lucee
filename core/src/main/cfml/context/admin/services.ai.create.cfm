@@ -325,6 +325,14 @@ Redirtect to entry --->
 				<tr>
 					<td>
 						<table>
+							<!--- empty value removes the default role on save, a radio group cannot be unchecked otherwise --->
+							<tr>
+								<td style="border:0;padding:0px;margin:0px"><input <cfif !arrayFindNoCase( defaults, connection.default )>checked="checked"</cfif> type="radio" class="radio" name="default" value=""></td>
+								<td style="border:0;padding:3px;margin:0px">
+									<h3>#stText.Settings.ai.defaultTypeNone#</h3>
+									<div>#stText.Settings.ai.defaultTypeNoneDesc#</div>
+								</td>
+							</tr>
 							<cfloop array="#defaults#" item="type" >
 								<tr>
 									<td style="border:0;padding:0px;margin:0px"><input <cfif connection.default EQ type>checked="checked"</cfif> type="radio" class="radio" name="default" value="#type#"></td>
