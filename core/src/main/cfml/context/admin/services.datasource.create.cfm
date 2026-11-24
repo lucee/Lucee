@@ -627,7 +627,7 @@ if(isDefined('datasource.maxIdle') && isNumeric(datasource.maxIdle) && datasourc
 if(isDefined('datasource.minIdle') && isNumeric(datasource.minIdle) && datasource.minIdle>0)optional.append('minIdle:#datasource.minIdle# // default: 0');
 if(datasource.connectionTimeout NEQ 10 && isNumeric(datasource.connectionTimeout))optional.append('connectionTimeout:#datasource.connectionTimeout# // default: 10; unit: minutes');
 if(isNumeric(datasource.liveTimeout) && datasource.liveTimeout>0)optional.append('liveTimeout:#datasource.liveTimeout# // default: -1; unit: minutes');
-if(datasource.metaCacheTimeout NEQ 60000 && isNumeric(datasource.metaCacheTimeout))optional.append(',metaCacheTimeout:#datasource.metaCacheTimeout# // default: 60000; unit: milliseconds');
+if(datasource.metaCacheTimeout NEQ 60000 && isNumeric(datasource.metaCacheTimeout))optional.append('metaCacheTimeout:#datasource.metaCacheTimeout# // default: 60000; unit: milliseconds');
 if(len(datasource.timezone))optional.append("timezone:'#replace(datasource.timezone,"'","''","all")#' // default is same as lucee instance");
 if(datasource.storage) optional.append('storage:#datasource.storage# // default: false');
 if(datasource.readOnly) optional.append('readOnly:#datasource.readOnly# // default: false');
