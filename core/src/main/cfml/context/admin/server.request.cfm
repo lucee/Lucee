@@ -20,6 +20,21 @@
 		type="#request.adminType#"
 		password="#session["password"&request.adminType]#"
 		returnVariable="queueSettings">
+	<cfscript>
+		// LDEV-6992 queue settings set by system property or environment variable win over the config (see ConfigWebFactory._loadQueue),
+		// so they are shown read-only and are not stored by this page
+		queueEnvVar={};
+		queueEnvVarTitle={};
+		queueEnvVarReadonly={};
+		loop list="enable,max,timeout" item="qKey" {
+			qVal=server.system.environment["lucee.queue."&qKey]?:"";
+			if(!len(qVal)) qVal=server.system.properties["lucee.queue."&qKey]?:"";
+			if(!len(qVal)) qVal=server.system.environment["LUCEE_QUEUE_"&ucase(qKey)]?:"";
+			queueEnvVar[qKey]=qKey=="enable"?isBoolean(qVal):isNumeric(qVal);
+			queueEnvVarTitle[qKey]=queueEnvVar[qKey]?stText.settings.syspropenvvarset&" (-Dlucee.queue.#qKey# / LUCEE_QUEUE_#ucase(qKey)#)":"";
+			queueEnvVarReadonly[qKey]=queueEnvVar[qKey]?'readonly="readonly"':"";
+		}
+	</cfscript>
 </cfif>
 <cfadmin
 	action="getApplicationListener"
@@ -58,17 +73,24 @@ Defaults --->
 
 				<cfif request.admintype =="server">
 					<cfscript>
-						// LDEV-6992 the max and timeout fields are not part of the request when they are disabled,
-						// in that case we keep the current values, an empty string would remove them from the config
-						if(structKeyExists(form,'timeout_days')) {
+						// LDEV-6992 when the max and timeout fields are missing in the request, we keep the current values,
+						// the admin tag treats an empty string as "remove from the config".
+						// values set by system property or environment variable are not stored (empty string)
+						if(queueEnvVar.timeout) timeoutMS="";
+						else if(structKeyExists(form,'timeout_days')) {
 							timeoutMS=
-								(form.timeout_seconds*1000)+
-								(form.timeout_minutes*60*1000)+
-								(form.timeout_hours*60*60*1000)+
-								(form.timeout_days*60*60*24*1000);
+								((form.timeout_seconds?:0)*1000)+
+								((form.timeout_minutes?:0)*60*1000)+
+								((form.timeout_hours?:0)*60*60*1000)+
+								((form.timeout_days?:0)*60*60*24*1000);
 						}
 						else timeoutMS=queueSettings.timeout;
-						queueMax=structKeyExists(form,'ConcurrentRequestMax')?form.ConcurrentRequestMax:queueSettings.max;
+
+						if(queueEnvVar.max) queueMax="";
+						else queueMax=structKeyExists(form,'ConcurrentRequestMax')?form.ConcurrentRequestMax:queueSettings.max;
+
+						if(queueEnvVar.enable) queueEnable="";
+						else queueEnable=structKeyExists(form,'ConcurrentRequestEnable') and form.ConcurrentRequestEnable;
 					</cfscript>
 
 
@@ -77,7 +99,7 @@ Defaults --->
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
 
-					enable="#structKeyExists(form,'ConcurrentRequestEnable') and form.ConcurrentRequestEnable#"
+					enable="#queueEnable#"
 					max="#queueMax#"
 					timeout="#timeoutMS#"
 					remoteClients="#request.getRemoteClients()#">
@@ -191,9 +213,10 @@ Error Output --->
 			$('#ConcurrentRequestTimeout').css('opacity', (isChecked ? 1:.5));
 
 
-			// LDEV-6992 readonly and not disabled, disabled fields are not submitted and the values would get lost
-			$('#ConcurrentRequestMax').prop('readonly', !isChecked);
-			$('#ConcurrentRequestTimeout input').prop('readonly', !isChecked);
+			// LDEV-6992 readonly and not disabled, disabled fields are not submitted and the values would get lost,
+			// fields set by system property or environment variable (class sysprop-envvar) stay read-only
+			$('#ConcurrentRequestMax').not('.sysprop-envvar').prop('readonly', !isChecked);
+			$('#ConcurrentRequestTimeout input').not('.sysprop-envvar').prop('readonly', !isChecked);
 		}
 		$(function(){
 			$('#ConcurrentRequestEnableSpan input.checkbox').bind('click change', concurrent);
@@ -435,7 +458,7 @@ Error Output --->
 					<td>
 						<span id="ConcurrentRequestEnableSpan"><cfif hasAccess>
 							<input type="checkbox" name="ConcurrentRequestEnable" value="true" class="checkbox"
-							<cfif queueSettings.enable>  checked="checked"</cfif>>
+							<cfif queueSettings.enable>  checked="checked"</cfif><cfif queueEnvVar.enable> onclick="return false;" title="#queueEnvVarTitle.enable#"</cfif>>
 						<cfelse>
 							<b>#yesNoFormat(queueSettings.enable)#</b>
 						</cfif>
@@ -453,7 +476,8 @@ Error Output --->
 					<td>
 						<cfif hasAccess>
 							<cfinputClassic type="text" name="ConcurrentRequestMax" value="#queueSettings.max#"
-									class="number" required="yes" validate="integer" id="ConcurrentRequestMax"
+									class="number#queueEnvVar.max?' sysprop-envvar':''#" required="yes" validate="integer" id="ConcurrentRequestMax"
+									passThrough="#queueEnvVarReadonly.max#" title="#queueEnvVarTitle.max#"
 									message="#stText.application.ConcurrentRequestMaxError#">
 
 						<cfelse>
@@ -497,16 +521,20 @@ Error Output --->
 
 									<tr>
 										<td><cfinputClassic type="text" name="timeout_days" value="#days#"
-											class="number" required="yes" validate="integer"
+											class="number#queueEnvVar.timeout?' sysprop-envvar':''#" required="yes" validate="integer"
+											passThrough="#queueEnvVarReadonly.timeout#" title="#queueEnvVarTitle.timeout#"
 											message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
 										<td><cfinputClassic type="text" name="timeout_hours" value="#hours#"
-											class="number" required="yes" validate="integer"
+											class="number#queueEnvVar.timeout?' sysprop-envvar':''#" required="yes" validate="integer"
+											passThrough="#queueEnvVarReadonly.timeout#" title="#queueEnvVarTitle.timeout#"
 											message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
 										<td><cfinputClassic type="text" name="timeout_minutes" value="#minutes#"
-											class="number" required="yes" validate="integer"
+											class="number#queueEnvVar.timeout?' sysprop-envvar':''#" required="yes" validate="integer"
+											passThrough="#queueEnvVarReadonly.timeout#" title="#queueEnvVarTitle.timeout#"
 											message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
 										<td><cfinputClassic type="text" name="timeout_seconds" value="#seconds#"
-											class="number" required="yes" validate="integer"
+											class="number#queueEnvVar.timeout?' sysprop-envvar':''#" required="yes" validate="integer"
+											passThrough="#queueEnvVarReadonly.timeout#" title="#queueEnvVarTitle.timeout#"
 											message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
 									</tr>
 								<cfelse>
