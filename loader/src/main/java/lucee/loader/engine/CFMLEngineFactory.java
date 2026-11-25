@@ -874,19 +874,65 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		felix = new Felix(config);
 		try {
 			log(LoggerImpl.LOG_DEBUG, "start felix");
-			felix.start();
+			startFelix(felix);
 		}
 		catch (BundleException be) {
 			// this could be cause by an invalid felix cache, so we simply delete it and try again
 			if (!isNew && "Error creating bundle cache.".equals(be.getMessage())) {
 				Util.deleteContent(new File(felixCacheRootdir, "felix-cache"), null);
 				felix = new Felix(config);
-				felix.start();
+				startFelix(felix);
 			}
 
 		}
 
 		return felix;
+	}
+
+	/**
+	 * LDEV-6990: Felix creates its event dispatcher thread ("FelixDispatchQueue") with a plain
+	 * {@code new Thread}, so the thread inherits the daemon flag of the thread that starts the
+	 * framework (the servlet container's startup thread for example, which is a non daemon thread).
+	 * The dispatcher only ends when the framework is stopped, which normally happens in
+	 * {@code CFMLServlet.destroy()} (engine.reset() / shutdownFelix()). This is defence in depth: if the
+	 * framework is not stopped for whatever reason, the dispatcher must not keep the JVM alive on
+	 * shutdown, like all the other Felix threads (FelixStartLevel, FelixFrameworkWiring,
+	 * FelixResolver), which are daemon threads already. So we start the framework from a daemon
+	 * thread.
+	 */
+	static void startFelix(final Felix felix) throws BundleException {
+		final Throwable[] error = new Throwable[1];
+		Thread starter = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					felix.start();
+				}
+				catch (Throwable t) {
+					error[0] = t;
+				}
+			}
+		}, "LuceeFelixStarter");
+		starter.setDaemon(true);
+		starter.start();
+
+		boolean interrupted = false;
+		while (starter.isAlive()) {
+			try {
+				starter.join();
+			}
+			catch (InterruptedException ie) {
+				interrupted = true;
+			}
+		}
+		if (interrupted) Thread.currentThread().interrupt();
+
+		Throwable t = error[0];
+		if (t == null) return;
+		if (t instanceof BundleException) throw (BundleException) t;
+		if (t instanceof RuntimeException) throw (RuntimeException) t;
+		if (t instanceof Error) throw (Error) t;
+		throw new BundleException("failed to start the OSGi framework", t);
 	}
 
 	private static void extend(Map<String, Object> config, String name, String defaultValue, boolean add) {
