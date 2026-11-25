@@ -34,6 +34,7 @@
 	contentBefore = "";
 	contentAfter = rawContent;
 	showBar = false;
+	showError = false;
 
 	function adminAIFindPageIntroEnd(required string raw) {
 		var searchFrom = 1;
@@ -311,29 +312,50 @@
 		catch (any e) {
 			stored = "";
 			adminAIStoreDelete(request.adminAI.pageHash);
-			ais = createAISession("default:administrator", request.adminAI.systemMessage, 8, 0.3);
-			stored = SerializeAISession(ais);
-		}
-
-		label = structKeyExists(pageStore, "label") ? (pageStore.label ?: "") : "";
-		if (!len(label)) {
+			// a failing connection (invalid key, no model, provider unreachable) must not break every admin page, the panel is disabled instead
 			try {
-				meta = AIGetMetaData(ais);
-				label = (meta.label ?: "") & " (" & (meta.model ?: "") & ")";
+				ais = createAISession("default:administrator", request.adminAI.systemMessage, 8, 0.3);
+				stored = SerializeAISession(ais);
 			}
 			catch (any e) {
-				label = "";
+				request.adminAI.enabled = false;
+				request.adminAI.error = e.message;
+				// logged once per session and message, not on every admin page
+				if ((session.adminAIError ?: "") != e.message) {
+					session.adminAIError = e.message;
+					writeLog(text="Admin AI panel disabled, the default:administrator AI session could not be created: " & e.message, type="error", log="application");
+				}
 			}
 		}
 
-		adminAIStoreSet(request.adminAI.pageHash, {
-			"serialized": stored,
-			"label": label,
-			"systemMessage": request.adminAI.systemMessage
-		});
-		request.adminAI.chatHistory = adminAIGetHistory(stored);
+		if (request.adminAI.enabled) {
+			label = structKeyExists(pageStore, "label") ? (pageStore.label ?: "") : "";
+			if (!len(label)) {
+				try {
+					meta = AIGetMetaData(ais);
+					label = (meta.label ?: "") & " (" & (meta.model ?: "") & ")";
+				}
+				catch (any e) {
+					label = "";
+				}
+			}
+
+			adminAIStoreSet(request.adminAI.pageHash, {
+				"serialized": stored,
+				"label": label,
+				"systemMessage": request.adminAI.systemMessage
+			});
+			request.adminAI.chatHistory = adminAIGetHistory(stored);
+		}
 	}
 
+	if (!len(request.adminAI.error ?: "")) {
+		structDelete(session, "adminAIError");
+	}
+	showError = len(request.adminAI.error ?: "") && !structKeyExists(request.adminAI, "rendered");
+	if (showError) {
+		request.adminAI.rendered = true;
+	}
 	showBar = request.adminAI.enabled && !structKeyExists(request.adminAI, "rendered");
 	if (showBar) {
 		request.adminAI.rendered = true;
@@ -382,6 +404,9 @@
 	</div>
 </div>
 </div>
+</cfif>
+<cfif showError>
+<div class="warning nofocus">The AI assistant is not available, the AI connection with the default role "Administrator" could not be used: #encodeForHTML(request.adminAI.error)# Check the connection under Services - AI.</div>
 </cfif>
 <cfif thisTag.hasEndTag>#contentBefore##contentAfter#</cfif>
 </cfoutput>
