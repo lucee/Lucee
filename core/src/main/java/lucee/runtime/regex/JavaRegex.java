@@ -295,4 +295,15 @@ class JavaRegex implements Regex {
 		return "java";
 	}
 
+	// stateless, so all instances of the same engine are equal (needed to detect an unchanged setting)
+	@Override
+	public boolean equals(Object obj) {
+		return obj != null && obj.getClass() == getClass();
+	}
+
+	@Override
+	public int hashCode() {
+		return getClass().hashCode();
+	}
+
 }
