@@ -228,6 +228,8 @@ Create Datasource --->
 	<div class="pageintro">#stText.setting.cacheDesc#</div>
 	
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<!--- the Enter key submits the first submit button of the form, without this it would be "Clear Page Pool Cache" instead of "update" --->
+		<cfif hasAccess><input type="submit" name="mainAction" value="#stText.Buttons.update#" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;"></cfif>
 		<table class="maintbl">
 			<tbody>
 				<tr>
