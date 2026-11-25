@@ -214,7 +214,8 @@ Error Output --->
 
 
 			// LDEV-6992 readonly and not disabled, disabled fields are not submitted and the values would get lost,
-			// fields set by system property or environment variable (class sysprop-envvar) stay read-only
+			// fields set by system property or environment variable (class sysprop-envvar) stay read-only,
+			// an enable checkbox set that way is disabled (its value is ignored by the update), so it never triggers this function
 			$('#ConcurrentRequestMax').not('.sysprop-envvar').prop('readonly', !isChecked);
 			$('#ConcurrentRequestTimeout input').not('.sysprop-envvar').prop('readonly', !isChecked);
 		}
@@ -458,7 +459,7 @@ Error Output --->
 					<td>
 						<span id="ConcurrentRequestEnableSpan"><cfif hasAccess>
 							<input type="checkbox" name="ConcurrentRequestEnable" value="true" class="checkbox"
-							<cfif queueSettings.enable>  checked="checked"</cfif><cfif queueEnvVar.enable> onclick="return false;" title="#queueEnvVarTitle.enable#"</cfif>>
+							<cfif queueSettings.enable>  checked="checked"</cfif><cfif queueEnvVar.enable> disabled="disabled" title="#encodeForHTMLAttribute(queueEnvVarTitle.enable)#"</cfif>>
 						<cfelse>
 							<b>#yesNoFormat(queueSettings.enable)#</b>
 						</cfif>

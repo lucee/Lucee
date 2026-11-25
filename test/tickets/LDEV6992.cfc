@@ -115,6 +115,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="admin" {
 	private struct function postRequestSettings( required struct forms ) {
 		return _internalRequest(
 			template: adminRoot & adminPage,
+			method: "POST", // the page only redirects (302) after a POST
 			urls: "action=server.request",
 			forms: arguments.forms,
 			cookies: variables.cookies
