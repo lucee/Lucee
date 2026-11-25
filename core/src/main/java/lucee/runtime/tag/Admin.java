@@ -5359,7 +5359,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ProxyData pd = config.getProxyData();
 		String port = pd == null || pd.getPort() <= 0 ? "" : Caster.toString(pd.getPort());
 
-		// sct.set("enabled",Caster.toBoolean(config.isProxyEnable()));
+		// effective value, so an env var / system property (LUCEE_PROXY_ENABLED) is reflected
+		sct.set(KeyConstants._enabled, ConfigUtil.getConfigServerImpl(config).getProxyEnabled());
 		sct.set(KeyConstants._port, port);
 		sct.set(KeyConstants._server, pd == null ? "" : emptyIfNull(pd.getServer()));
 		sct.set(KeyConstants._username, pd == null ? "" : emptyIfNull(pd.getUsername()));
