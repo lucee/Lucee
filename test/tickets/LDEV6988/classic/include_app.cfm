@@ -1,0 +1,1 @@
+<cfinclude template="Application.cfm"><cfoutput>included</cfoutput>
