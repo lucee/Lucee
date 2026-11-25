@@ -190,8 +190,9 @@ Error Output --->
 			$('#ConcurrentRequestTimeout').css('opacity', (isChecked ? 1:.5));
 
 
-			$('#ConcurrentRequestMax').prop('disabled', !isChecked);
-			$('#ConcurrentRequestTimeout input').prop('disabled', !isChecked);
+			// readonly instead of disabled, disabled inputs are not submitted and the saved max/timeout would be removed
+			$('#ConcurrentRequestMax').prop('readonly', !isChecked);
+			$('#ConcurrentRequestTimeout input').prop('readonly', !isChecked);
 		}
 		$(function(){
 			$('#ConcurrentRequestEnableSpan input.checkbox').bind('click change', concurrent);
