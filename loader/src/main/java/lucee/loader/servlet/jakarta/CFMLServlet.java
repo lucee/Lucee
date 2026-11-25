@@ -40,4 +40,20 @@ public class CFMLServlet extends AbsServlet {
 	protected void service(final HttpServletRequest req, final HttpServletResponse rsp) throws ServletException, IOException {
 		engine.serviceCFML(this, req, rsp);
 	}
+
+	/**
+	 * LDEV-6990: shut down the engine (and with it the OSGi framework) when the servlet is taken out
+	 * of service (context stop, undeploy, JVM shutdown). This is needed when the
+	 * LuceeServletContextListener is not registered (for example with a WAR whose web.xml is
+	 * metadata-complete), otherwise Felix and Lucee threads keep running and the JVM does not exit
+	 * (same fix as LDEV-5334 on 6.2, lost with the Jakarta migration). reset() does nothing when the
+	 * engine was already reset by the listener, so calling it from both places is safe.
+	 */
+	@Override
+	public void destroy() {
+		if (engine != null) {
+			engine.reset();
+		}
+		super.destroy();
+	}
 }
