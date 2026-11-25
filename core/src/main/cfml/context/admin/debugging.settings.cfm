@@ -142,7 +142,7 @@ Redirtect to entry --->
 																description="#stText.debug.settings["queryUsageDesc"]#"
 																br=false
 																sp=true
-																descOnTop=false>#_debug.debuggingQueryUsage#
+																descOnTop=false>
 															<cfset lbl = _debug.debuggingQueryUsage ? stText.general.yes : stText.general.no>
 																<label><input type="checkbox" class="checkbox" 
 																	name="debuggingQueryUsage" 
