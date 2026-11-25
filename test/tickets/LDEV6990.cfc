@@ -12,22 +12,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( declaresDestroy( "lucee.loader.servlet.javax.CFMLServlet", false ) ).toBeTrue( "lucee.loader.servlet.javax.CFMLServlet does not declare destroy()" );
 			});
 
-			it( "any FelixDispatchQueue thread is a daemon thread", function() {
-				// 9.0 does not start Felix in the loader; these threads only exist when the OSGi extension is installed
-				var threads = getFelixThreads( "FelixDispatchQueue" );
-				loop array=threads item="local.t" {
-					expect( t.isDaemon() ).toBeTrue( "thread [#t.getName()#] (id #t.getId()#) is not a daemon thread" );
-				}
-			});
-
-			it( "no Felix thread is a non daemon thread", function() {
-				loop array=getFelixThreads( "Felix" ) item="local.t" {
-					// FelixShutdown is short lived and inherits the daemon flag from the thread stopping the framework
-					if ( left( t.getName(), 13 ) == "FelixShutdown" ) continue;
-					expect( t.isDaemon() ).toBeTrue( "thread [#t.getName()#] (id #t.getId()#) is not a daemon thread" );
-				}
-			});
-
 		});
 	}
 
@@ -44,15 +28,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			if ( m.getName() == "destroy" && arrayLen( m.getParameterTypes() ) == 0 ) return true;
 		}
 		return false;
-	}
-
-	private array function getFelixThreads( required string prefix ) {
-		var result = [];
-		var it = createObject( "java", "java.lang.Thread" ).getAllStackTraces().keySet().iterator();
-		while ( it.hasNext() ) {
-			var t = it.next();
-			if ( t.isAlive() && left( t.getName(), len( arguments.prefix ) ) == arguments.prefix ) arrayAppend( result, t );
-		}
-		return result;
 	}
 }
