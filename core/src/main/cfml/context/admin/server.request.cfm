@@ -58,6 +58,8 @@ Defaults --->
 
 				<cfif request.admintype =="server">
 					<cfscript>
+						// LDEV-6992 the max and timeout fields are not part of the request when they are disabled,
+						// in that case we keep the current values, an empty string would remove them from the config
 						if(structKeyExists(form,'timeout_days')) {
 							timeoutMS=
 								(form.timeout_seconds*1000)+
@@ -65,7 +67,8 @@ Defaults --->
 								(form.timeout_hours*60*60*1000)+
 								(form.timeout_days*60*60*24*1000);
 						}
-						else timeoutMS="";// emty string==removed
+						else timeoutMS=queueSettings.timeout;
+						queueMax=structKeyExists(form,'ConcurrentRequestMax')?form.ConcurrentRequestMax:queueSettings.max;
 					</cfscript>
 
 
@@ -75,7 +78,7 @@ Defaults --->
 					password="#session["password"&request.adminType]#"
 
 					enable="#structKeyExists(form,'ConcurrentRequestEnable') and form.ConcurrentRequestEnable#"
-					max="#structKeyExists(form,'ConcurrentRequestMax')?form.ConcurrentRequestMax:""#"
+					max="#queueMax#"
 					timeout="#timeoutMS#"
 					remoteClients="#request.getRemoteClients()#">
 				</cfif>
@@ -188,8 +191,9 @@ Error Output --->
 			$('#ConcurrentRequestTimeout').css('opacity', (isChecked ? 1:.5));
 
 
-			$('#ConcurrentRequestMax').prop('disabled', !isChecked);
-			$('#ConcurrentRequestTimeout input').prop('disabled', !isChecked);
+			// LDEV-6992 readonly and not disabled, disabled fields are not submitted and the values would get lost
+			$('#ConcurrentRequestMax').prop('readonly', !isChecked);
+			$('#ConcurrentRequestTimeout input').prop('readonly', !isChecked);
 		}
 		$(function(){
 			$('#ConcurrentRequestEnableSpan input.checkbox').bind('click change', concurrent);
