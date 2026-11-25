@@ -1493,6 +1493,7 @@
       "appcfc": "Application.cfc",
       "appcfccode": "Application.cfc / Code",
       "syspropenvvar": "System Property / Enviroment Variable",
+      "syspropenvvarset": "This value is set by a System Property / Environment Variable and cannot be changed here",
       "appcfcdesc": "You can also set this in the Application.cfc as follows",
       "sysopenvvar": "You can also set the default behaviour as System Property or Enviroment Variable",
       "appcfcSomedesc": "Some of this settings can be done in the Application.cfc as well",
