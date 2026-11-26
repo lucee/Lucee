@@ -2803,6 +2803,15 @@ public final class PageContextImpl extends PageContext {
 		execute(base, throwExcpetion, onlyTopLevel);
 	}
 
+	private static boolean isApplicationTemplate(PageSource ps) {
+		if (ps == null) return false;
+		String fileName = ps.getFileName();
+		if (fileName == null) return false;
+		return fileName.equalsIgnoreCase(Constants.CFML_APPLICATION_EVENT_HANDLER)
+				|| fileName.equalsIgnoreCase(Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER)
+				|| fileName.equalsIgnoreCase(Constants.CFML_CLASSIC_APPLICATION_END_EVENT_HANDLER);
+	}
+
 	private final void execute(PageSource ps, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
 		ApplicationListener listener;
 		// if a listener is called (Web.cfc/Server.cfc we don't wanna any Application.cfc to be executed)
@@ -2813,6 +2822,9 @@ public final class PageContextImpl extends PageContext {
 		Throwable _t = null;
 		try {
 			initallog();
+			if (!listenerContext && !gatewayContext && isApplicationTemplate(ps)) {
+				throw new MissingIncludeException(ps);
+			}
 			listener.onRequest(this, ps, null);
 			if (ormSession != null) {
 				releaseORM();
