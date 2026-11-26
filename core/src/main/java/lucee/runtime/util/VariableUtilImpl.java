@@ -332,7 +332,8 @@ public final class VariableUtilImpl implements VariableUtil {
 		else if (coll instanceof String) {
 			if (Decision.isInteger(key.getString())) { // i do the decision call and the caster call, because in most cases the if will be false
 				String str = (String) coll;
-				int index = Caster.toIntValue(key.getString(), -1);
+				int index = Caster.toIntValue(key.getString(), 0);
+				if (index < 0) index = str.length() + index + 1; // negative index counts from the end (LDEV-4373), like arrays
 				if (index > 0 && index <= str.length()) {
 					return str.substring(index - 1, index);
 				}
