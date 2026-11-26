@@ -1,5 +1,4 @@
-<cfparam name="cookie.lucee_admin_lang" default="en">
-<cfset session.lucee_admin_lang = cookie.lucee_admin_lang>
+<cfset session.lucee_admin_lang = cookie.lucee_admin_lang ?: "en">
 <cfparam name="languages" default="#{en:'English',de:'Deutsch'}#">
 <cfscript>
 try{

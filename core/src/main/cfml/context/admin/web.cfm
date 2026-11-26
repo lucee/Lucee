@@ -55,8 +55,7 @@
 		location url="#cgi.SCRIPT_NAME#?action=logout&full=true" addtoken="No";
 	}
 </cfscript>
-<cfparam name="cookie.lucee_admin_lang" default="en">
-<cfset session.lucee_admin_lang = cookie.lucee_admin_lang>
+<cfset session.lucee_admin_lang = cookie.lucee_admin_lang ?: "en">
 
 <cfset login_error = "">
 
