@@ -53,6 +53,7 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.regex.Regex;
 import lucee.runtime.rest.RestSettings;
@@ -168,6 +169,7 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	private Regex regex;
 
 	private Boolean preciseMath;
+	private Short dateParser;
 	private Boolean formUrlAsStruct;
 
 	private Integer returnFormat;
@@ -197,7 +199,7 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 		this.isDefault = isDefault;
 		this.source = source;
 		this.wstype = WS_TYPE_AXIS1;
-
+		cp.getDateParser(); // LDEV-7006 loads the config value, so DateCaster knows if it needs to check it
 	}
 
 	/**
@@ -278,6 +280,7 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.sessionCluster = sessionCluster;
 		dbl.clientCluster = clientCluster;
 		dbl.preciseMath = preciseMath;
+		dbl.dateParser = dateParser;
 		dbl.source = source;
 		dbl.cgiScopeReadonly = cgiScopeReadonly;
 		dbl.antiSamyPolicy = antiSamyPolicy;
@@ -1235,6 +1238,18 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setPreciseMath(boolean preciseMath) {
 		this.preciseMath = preciseMath;
+	}
+
+	@Override
+	public short getDateParser() {
+		if (dateParser == null) return cp.getDateParser();
+		return dateParser;
+	}
+
+	@Override
+	public void setDateParser(short dateParser) {
+		this.dateParser = dateParser;
+		if (dateParser == DateCaster.PARSER_LOCALE) DateCaster.localeParserInUse = true;
 	}
 
 	@Override

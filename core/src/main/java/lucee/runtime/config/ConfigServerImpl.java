@@ -204,6 +204,7 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.orm.DummyORMEngine;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
@@ -1102,6 +1103,17 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private static Prop<Boolean> metaPreciseMath = Prop.bool().keys("preciseMath").systemPropEnvVar("lucee.precise.math").defaultValue(false)
 			.description("If enabled, this improves the accuracy of floating point calculations but makes them slightly slower.");
 	private final ConfigValue<Boolean> preciseMath = new ConfigValue<>(metaPreciseMath);
+
+	@SuppressWarnings("unchecked")
+	public final static Prop<Short> metaDateParser = Prop.shor().keys("dateParser").systemPropEnvVar("lucee.date.parser").defaultValue(DateCaster.PARSER_SIMPLE)
+			.choices(
+					new Choice<Short>(DateCaster.PARSER_SIMPLE, "simple").description(
+							"Default: locale independent parser, a value like 02/01/2026 is always read month first (US style), as in all previous Lucee versions and ACF."),
+					new Choice<Short>(DateCaster.PARSER_LOCALE, "locale").description(
+							"Locale-aware: the date formats of the current locale are tried first (like lsParseDateTime()), so 02/01/2026 is 2 January with the locale en_GB. Values the locale formats cannot read are handled by the simple parser."))
+			.description("Defines the parser used when a string is converted to a date without an explicit locale or mask, for example by isDate(), parseDateTime(), "
+					+ "dateTimeFormat(), dateAdd() or any implicit conversion. 'simple' (default) is locale independent, 'locale' uses the formats of the current locale first.");
+	private final ConfigValue<Short> dateParser = new ConfigValue<>(metaDateParser);
 
 	public final static Prop<String> metaMainLoggerName = Prop.str().keys("mainLogger").systemPropEnvVar("lucee.logging.main").defaultValue("application")
 			.description("defines the main logger used by Lucee, this logger is used when no log name was provided or the provided name does not exist.");
@@ -7906,6 +7918,18 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public ConfigServerImpl resetPreciseMath() {
 		preciseMath.reset();
+		return this;
+	}
+
+	@Override
+	public short getDateParser() {
+		short parser = dateParser.get(this, root);
+		if (parser == DateCaster.PARSER_LOCALE) DateCaster.localeParserInUse = true;
+		return parser;
+	}
+
+	public ConfigServerImpl resetDateParser() {
+		dateParser.reset();
 		return this;
 	}
 

@@ -368,6 +368,11 @@ public interface ConfigPro extends Config {
 
 	public boolean getPreciseMath();
 
+	/**
+	 * LDEV-7006 the default string-to-date parser, DateCaster.PARSER_SIMPLE or DateCaster.PARSER_LOCALE
+	 */
+	public short getDateParser();
+
 	public boolean limitEvaluation();
 
 	public String getMainLogger();

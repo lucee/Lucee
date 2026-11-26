@@ -62,6 +62,7 @@ import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.listener.TagListenerSupport;
@@ -204,6 +205,7 @@ public final class GetApplicationSettings extends BIF {
 		sct.setEL("dotNotationUpperCase", Caster.toBoolean(((ConfigPro) pc.getConfig()).getDotNotationUpperCase()));
 		sct.setEL("formUrlAsStruct", Caster.toBoolean(acs.getFormUrlAsStruct()));
 		sct.setEL("preciseMath", Caster.toBoolean(acs.getPreciseMath()));
+		sct.setEL("dateParser", DateCaster.toDateParserName(acs.getDateParser()));
 		sct.setEL("sameFormFieldsAsArray", Caster.toBoolean(ac.getSameFieldAsArray(Scope.SCOPE_FORM)));
 		sct.setEL("sameUrlFieldsAsArray", Caster.toBoolean(ac.getSameFieldAsArray(Scope.SCOPE_URL)));
 		sct.setEL("scriptProtect", AppListenerUtil.translateScriptProtect(ac.getScriptProtect()));

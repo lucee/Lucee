@@ -1922,6 +1922,11 @@ public final class ConfigWebImpl implements ConfigWebPro {
 		return cs.getPreciseMath();
 	}
 
+	@Override
+	public short getDateParser() {
+		return cs.getDateParser();
+	}
+
 	public Object[] getConsoleLayouts() throws PageException {
 		return cs.getConsoleLayouts();
 	}

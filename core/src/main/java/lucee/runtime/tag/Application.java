@@ -56,6 +56,7 @@ import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.orm.ORMUtil;
 import lucee.runtime.regex.Regex;
 import lucee.runtime.regex.RegexFactory;
@@ -163,6 +164,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Boolean suppress;
 	private Boolean cgiReadOnly = null;
 	private Boolean preciseMath = null;
+	private short dateParser = -1;
 	private Integer returnFormat = null;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
@@ -256,6 +258,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		triggerDataMember = null;
 		cgiReadOnly = null;
 		preciseMath = null;
+		dateParser = -1;
 
 		cacheFunction = null;
 		cacheQuery = null;
@@ -743,6 +746,11 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.preciseMath = preciseMath;
 	}
 
+	public void setDateparser(String dateParser) throws ApplicationException {
+		this.dateParser = DateCaster.toDateParser(dateParser, (short) -1);
+		if (this.dateParser == -1) throw new ApplicationException("invalid value [" + dateParser + "] for the attribute [dateParser], valid values are [simple, locale]");
+	}
+
 	public void setReturnformat(String returnFormat) throws PageException {
 		this.returnFormat = UDFUtil.toReturnFormat(returnFormat);
 	}
@@ -1016,6 +1024,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			ac.setPreciseMath(preciseMath.booleanValue());
 			if (pageContext instanceof PageContextImpl) ((PageContextImpl) pageContext).resetPreciseMath();
 		}
+		if (dateParser != -1) acs.setDateParser(dateParser);
 		if (returnFormat != null) ac.setReturnFormat(returnFormat.intValue());
 		if (s3 != null) ac.setS3(AppListenerUtil.toS3(s3));
 		if (ftp != null) ac.setFTP(AppListenerUtil.toFTP(ftp));
