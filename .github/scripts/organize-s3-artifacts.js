@@ -123,7 +123,7 @@ async function run() {
       log(`${'='.repeat(60)}`);
 
       try {
-        const versionStats = await processVersion(s3Client, bucket, version, operation, dryRun);
+        const versionStats = await processVersion(s3Client, bucket, version, operation, dryRun, i === 0);
         totalProcessed += versionStats.processed;
         totalMissing += versionStats.missing;
         totalSkipped += versionStats.skipped;
@@ -189,7 +189,7 @@ async function run() {
   }
 }
 
-async function processVersion(s3Client, bucket, version, operation, dryRun) {
+async function processVersion(s3Client, bucket, version, operation, dryRun, isFirst = false) {
   log(`Starting processing for version: ${version}`);
 
   // Define file mappings from source to target for this version
@@ -231,7 +231,7 @@ async function processVersion(s3Client, bucket, version, operation, dryRun) {
   log(`Found ${fileMappings.length} file mappings to process for version ${version}`);
 
   // In dry run mode, also list files in bucket to help with debugging (only for first version)
-  if (dryRun && version === versions[0]) {
+  if (dryRun && isFirst) {
     try {
       log('Listing files in S3 bucket (first 50 files):');
       const listResponse = await s3Client.send(new ListObjectsV2Command({
