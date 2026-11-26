@@ -33,11 +33,11 @@
 
 <cfset flushName="#stText.Buttons.flush# (#structCount(ctCacheList())#)">
 <cftry>
+	<!--- the flush button shows a live path count, so it is identified by its name, not by its label --->
+	<cfif structKeyExists(form, "flushCache")>
+		<cfset ctCacheClear()>
+	</cfif>
 	<cfswitch expression="#form.mainAction#">
-		<!--- UPDATE --->
-		<cfcase value="#flushName#">
-			 <cfset ctCacheClear()>
-		</cfcase>
 		<!--- update --->
 		<cfcase value="#stText.Buttons.Update#">
 			
