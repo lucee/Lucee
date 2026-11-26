@@ -229,7 +229,12 @@ public abstract class ComponentPageImpl extends ComponentPage {
 				}
 
 				if (qs != null) {
-					int rf = UDFUtil.toReturnFormat(qs.trim(), -1);
+					String qst = qs.trim();
+					int amp = qst.indexOf('&');
+					String first = (amp == -1 ? qst : qst.substring(0, amp)).trim();
+					int eq = first.indexOf('=');
+					if (eq != -1 && StringUtil.isEmpty(first.substring(eq + 1), true)) first = first.substring(0, eq);
+					int rf = UDFUtil.toReturnFormat(first, -1);
 					if (rf != -1) callCFCMetaData(pc, component, rf);
 					// close(pc);
 					return null;
@@ -1003,11 +1008,10 @@ public abstract class ComponentPageImpl extends ComponentPage {
 	}
 
 	private void callCFCMetaData(PageContext pc, Component cfc, int format) throws IOException, PageException, ConverterException {
-		ComponentSpecificAccess cw = new ComponentSpecificAccess(Component.ACCESS_REMOTE, cfc);
-		ComponentScope scope = cw.getComponentScope();
+		ComponentSpecificAccess cw = ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_REMOTE, cfc);
 		Struct udfs = new StructImpl(), sctUDF, sctArg;
 		Array arrArg;
-		Iterator<Object> it = scope.valueIterator();
+		Iterator<Object> it = cw.valueIterator();
 		Object v;
 		UDF udf;
 		FunctionArgument[] args;
