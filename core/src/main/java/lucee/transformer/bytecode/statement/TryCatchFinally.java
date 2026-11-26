@@ -135,6 +135,9 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 		final GeneratorAdapter adapter = bc.getAdapter();
 
+		// LDEV-6997 fresh labels per emission, a finally body is written more than once
+		begin = new Label();
+		fcf = null;
 		adapter.visitLabel(begin);
 
 		// Reference ref=null;

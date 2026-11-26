@@ -67,7 +67,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" {
                 catch(any e){
                     result.fileContent = e.message;
                 }
-                expect(trim(result.fileContent)).notToInclude("java.lang.NullPointerException");
+                // the template returns a pdf (fileContent_binary) when it compiles, LDEV-6997
+                expect(trim(result.fileContent ?: "")).notToInclude("java.lang.NullPointerException");
+                expect(trim(result.fileContent ?: "")).notToInclude("VerifyError");
             });
             it( title="checking Nested try/finally block LDEV-4451", body=function( currentSpec ){
                 try {

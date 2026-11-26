@@ -78,6 +78,9 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 		final GeneratorAdapter adapter = bc.getAdapter();
+		// LDEV-6997 fresh labels per emission, a finally body is written more than once
+		begin = new Label();
+		if (fcf != null) fcf = new FlowControlFinalImpl();
 		adapter.visitLabel(begin);
 		Body tryBody = new BodyBase(getFactory());
 		List<Tag> catches = new ArrayList<Tag>();
