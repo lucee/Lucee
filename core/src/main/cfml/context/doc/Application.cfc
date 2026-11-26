@@ -42,8 +42,7 @@ component {
 
 	function onRequestStart( target ) {
 
-		param name="cookie.lucee_admin_lang" default="en";
-		Session.lucee_admin_lang = cookie.lucee_admin_lang;
+		Session.lucee_admin_lang = cookie.lucee_admin_lang ?: "en";
 
 		param name="URL.item"   default="";
 		param name="URL.format" default="html";
