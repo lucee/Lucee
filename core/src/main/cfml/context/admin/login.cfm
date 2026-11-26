@@ -16,8 +16,7 @@
 
 
 <cfparam name="form.rememberMe" default="s" />
-<cfparam name="cookie.lucee_admin_lang" default="en">
-<cfset session.lucee_admin_lang = cookie.lucee_admin_lang>
+<cfset session.lucee_admin_lang = cookie.lucee_admin_lang ?: "en">
 <cfif isDefined('url.action')>
 	<cfset self=request.self&"?action="&url.action>
 <cfelse>
