@@ -168,7 +168,6 @@ public final class ConfigAdmin {
 
 	private static final int DOWNLOAD_CONNECT_TIMEOUT = 10000; // 10 seconds
 	private static final int DOWNLOAD_READ_TIMEOUT = 60000; // 60 seconds
-	private static final String DOWNLOAD_USER_AGENT = "Lucee";
 
 	static {
 		// exclude list
@@ -3884,7 +3883,7 @@ public final class ConfigAdmin {
 		// copy it to local directory
 		if (newLucee.createNewFile()) {
 			try {
-				HTTPDownloader.downloadToFile(updateUrl, newLucee, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT);
+				HTTPDownloader.downloadToFile(updateUrl, newLucee, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, Constants.getUserAgent());
 
 				// when it is a loader extract the core from it
 				File tmp = CFMLEngineFactory.extractCoreIfLoader(newLucee);

@@ -3053,7 +3053,7 @@ component {
 			return local.ext;
 		}
 		else {
-			http url="#uri#?coreVersion=#server.lucee.version##len(arguments.version)?'&version='&arguments.version:''#" result="local.http" {
+			http url="#uri#?coreVersion=#server.lucee.version##len(arguments.version)?'&version='&arguments.version:''#" result="local.http" useragent="Lucee/#server.lucee.version# (CFML Engine)" {
 				httpparam type="header" name="accept" value="application/cfml";
 				if(!isNull(apiKey))httpparam type="url" name="ioid" value="#apikey#";
 
