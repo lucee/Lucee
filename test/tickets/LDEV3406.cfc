@@ -1,24 +1,34 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"  skip=true {
-    function run( testResults, testBox ){
-        describe("Testcase for LDEV-3406", function() {
-            it( title="serializeJSON() with struct", body=function( currentSpec ){
-                sct = {boolean:true,int:100,string:"string",intString:"1000",booleanString:"true"}
-                res = serializeJSON(sct);
-                writeDump(res);
-                expect(res).toBe('{"INT":100,"BOOLEANSTRING":"true","BOOLEAN":true,"INTSTRING":"1000","STRING":"string"}')
-            });
-            it( title="serializeJSON() with query column type bit", body=function( currentSpec ){
-                qry = queryNew("bitCol","bit",[{"bitCol":0},{"bitCol":1}]);
-                expect(serializeJSON(qry)).toBe('{"COLUMNS":["bitCol"],"DATA":[[false],[true]]}');
-            });
-            it( title="serializeJSON() with query column type integer", body=function( currentSpec ){
-                qry = queryNew("intCol","integer",[{"intCol":1000},{"intCol":"1000"}]);
-                expect(serializeJSON(qry)).toBe('{"COLUMNS":["intCol"],"DATA":[[1000],[1000]]}');
-            });
-            it( title="serializeJSON() with query column type varchar", body=function( currentSpec ){
-                qry = queryNew("varcharCol","varchar",[{"varcharCol":1000},{"varcharCol":"1000"}]);
-                expect(serializeJSON(qry)).toBe('{"COLUMNS":["varcharCol"],"DATA":[["1000"],["1000"]]}');
-            });
-        });
-    }
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="json" {
+
+	function run( testResults, testBox ) {
+		describe( "Testcase for LDEV-3406", function() {
+
+			it( title="serializeJSON() of a query with a bit column writes true/false (row format)", body=function( currentSpec ) {
+				var qry = queryNew( "BITCOL", "bit", [ { "BITCOL": 0 }, { "BITCOL": 1 } ] );
+				expect( serializeJSON( qry ) ).toBe( '{"COLUMNS":["BITCOL"],"DATA":[[false],[true]]}' );
+			});
+
+			it( title="serializeJSON() of a query with a bit column writes true/false (column format)", body=function( currentSpec ) {
+				var qry = queryNew( "BITCOL", "bit", [ { "BITCOL": 0 }, { "BITCOL": 1 } ] );
+				expect( serializeJSON( qry, "column" ) ).toBe( '{"ROWCOUNT":2,"COLUMNS":["BITCOL"],"DATA":{"BITCOL":[false,true]}}' );
+			});
+
+			it( title="serializeJSON() of a query with a bit column writes true/false (struct format)", body=function( currentSpec ) {
+				var qry = queryNew( "BITCOL", "bit", [ { "BITCOL": 0 }, { "BITCOL": 1 } ] );
+				expect( serializeJSON( qry, "struct" ) ).toBe( '[{"BITCOL":false},{"BITCOL":true}]' );
+			});
+
+			it( title="serializeJSON() of a query with bit and integer columns only changes the bit column", body=function( currentSpec ) {
+				var qry = queryNew( "ID,FLAG", "integer,bit", [ { "ID": 1, "FLAG": 0 }, { "ID": 2, "FLAG": 1 } ] );
+				expect( serializeJSON( qry ) ).toBe( '{"COLUMNS":["ID","FLAG"],"DATA":[[1,false],[2,true]]}' );
+			});
+
+			it( title="serializeJSON() of a query with a varchar column still keeps the value as is", body=function( currentSpec ) {
+				var qry = queryNew( "STR", "varchar", [ { "STR": "true" }, { "STR": "0" } ] );
+				expect( serializeJSON( qry ) ).toBe( '{"COLUMNS":["STR"],"DATA":[["true"],["0"]]}' );
+			});
+
+		});
+	}
+
 }

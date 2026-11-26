@@ -539,6 +539,15 @@ public final class JSONConverter extends ConverterSupport {
 		// TODO key SuperScope and next?
 	}
 
+	private static Object queryCell(Query query, Collection.Key key, int row, boolean bool) throws PageException {
+		Object value = query.getAt(key, row);
+		if (bool && value != null && !(value instanceof Boolean)) {
+			Boolean b = Caster.toBoolean(value, null);
+			if (b != null) return b;
+		}
+		return value;
+	}
+
 	/**
 	 * serialize a Query
 	 * 
@@ -555,6 +564,21 @@ public final class JSONConverter extends ConverterSupport {
 
 		Collection.Key[] _keys = CollectionUtil.keys(query);
 
+		// LDEV-3406: columns of type bit/boolean are serialized as true/false
+		boolean[] isBool = new boolean[_keys.length];
+		{
+			int[] types = query.getTypes();
+			Collection.Key[] names = query.getColumnNames();
+			for (int i = 0; i < _keys.length; i++) {
+				for (int j = 0; j < names.length && j < types.length; j++) {
+					if (names[j].equals(_keys[i])) {
+						isBool[i] = types[j] == java.sql.Types.BIT || types[j] == java.sql.Types.BOOLEAN;
+						break;
+					}
+				}
+			}
+		}
+
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_STRUCT) {
 			sb.append(indent());
 			sb.append("[");
@@ -567,7 +591,7 @@ public final class JSONConverter extends ConverterSupport {
 					sb.append(StringUtil.escapeJS(preCase ? _keys[col].getString() : _keys[col].getUpperString(), '"', charsetEncoder));
 					sb.append(compact ? ":" : ": ");
 					try {
-						_serialize(pc, query.getAt(_keys[col], row), sb, queryFormat, preserveCase, done);
+						_serialize(pc, queryCell(query, _keys[col], row, isBool[col]), sb, queryFormat, preserveCase, done);
 					}
 					catch (PageException e) {
 						_serialize(pc, e.getMessage(), sb, queryFormat, preserveCase, done);
@@ -657,7 +681,7 @@ public final class JSONConverter extends ConverterSupport {
 					}
 					doIt = true;
 					try {
-						_serialize(pc, query.getAt(_keys[i], y), sb, queryFormat, preserveCase, done);
+						_serialize(pc, queryCell(query, _keys[i], y, isBool[i]), sb, queryFormat, preserveCase, done);
 					}
 					catch (PageException e) {
 						_serialize(pc, e.getMessage(), sb, queryFormat, preserveCase, done);
@@ -705,7 +729,7 @@ public final class JSONConverter extends ConverterSupport {
 					}
 					doIt = true;
 					try {
-						_serialize(pc, query.getAt(_keys[col], row), sb, queryFormat, preserveCase, done);
+						_serialize(pc, queryCell(query, _keys[col], row, isBool[col]), sb, queryFormat, preserveCase, done);
 					}
 					catch (PageException e) {
 						_serialize(pc, e.getMessage(), sb, queryFormat, preserveCase, done);
