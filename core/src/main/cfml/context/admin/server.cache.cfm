@@ -113,6 +113,12 @@ Defaults --->
 </cfsilent>
 <cfif hasAccess>
 	<cftry>
+		<!--- the object cache buttons show a live element count, so the clicked one is identified by its name, not by its label --->
+		<cfloop collection="#objectCache#" index="cacheType" item="cacheSize">
+			<cfif structKeyExists( form, "clearObjectCache_" & cacheType )>
+				<cfobjectcache type="#cacheType#" action="clear">
+			</cfif>
+		</cfloop>
 		<cfswitch expression="#form.mainAction#">
 		
 			<cfcase value="#btnClearComponentCache#">
@@ -126,24 +132,6 @@ Defaults --->
 			</cfcase>
 			<cfcase value="#btnClearTemplateCache#">
 				<cfset inspectTemplates()>
-			</cfcase>
-			<cfcase value="#clearButton['function']#">
-				<cfobjectcache type="function" action="clear">
-			</cfcase>
-			<cfcase value="#clearButton.include#">
-				<cfobjectcache type="include" action="clear">
-			</cfcase>
-			<cfcase value="#clearButton.object#">
-				<cfobjectcache type="object" action="clear">
-			</cfcase>
-			<cfcase value="#clearButton.query#">
-				<cfobjectcache type="query" action="clear">
-			</cfcase>
-			<cfcase value="#clearButton.resource#">
-				<cfobjectcache type="resource" action="clear">
-			</cfcase>
-			<cfcase value="#clearButton.template#">
-				<cfobjectcache type="template" action="clear">
 			</cfcase>
 			<!--- Update ---->
 			<cfcase value="#stText.Buttons.Update#">
@@ -353,7 +341,7 @@ Create Datasource --->
 					<td class="fieldPadded">
 						<cfloop collection="#objectCache#" index="cacheType" item="cacheSize">
 							<cfif cacheSize EQ -1><cfcontinue></cfif>
-							<input class="button submit" type="submit" name="mainAction" value="#clearButton[cacheType]#">
+							<input class="button submit" type="submit" name="clearObjectCache_#cacheType#" value="#clearButton[cacheType]#">
 							<div class="comment">#replace(stText.setting.cacheClearDesc,'{name}',ucFirst(string:cacheType,doLowerIfAllUppercase:true))#</div>
 						</cfloop>
 						
