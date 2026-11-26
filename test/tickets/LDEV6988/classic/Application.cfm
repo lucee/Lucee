@@ -1,0 +1,1 @@
+<cfsilent><cfapplication name="ldev6988_classic_#hash( getCurrentTemplatePath() )#"><cfset server.ldev6988_classic_hits = ( server.ldev6988_classic_hits ?: 0 ) + 1></cfsilent>
