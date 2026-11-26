@@ -141,6 +141,7 @@
 								<cfset _path=el.scope.cgi.SCRIPT_NAME& (len(el.scope.cgi.QUERY_STRING)?"?"& el.scope.cgi.QUERY_STRING:"")>
 								<cfif 
 									doFilter(session.debugFilter.path,_path,false) and 
+									(!isDate(session.debugFilter.starttime) or el.starttime GTE session.debugFilter.starttime) and
 									doFilterMin(session.debugFilter.query,_query) and 
 									doFilterMin(session.debugFilter.app,_app) and 
 									doFilterMin(session.debugFilter.total,_total)> 
