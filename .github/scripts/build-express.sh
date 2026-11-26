@@ -2,8 +2,8 @@
 # LDEV-6529: build lucee-express-<version>.zip from a Lucee jar, without cdn.lucee.org/lucee-express-*.zip.
 # Same layout as createExpress() in lucee-data-provider (apps/updateserver/services/legacy/S3.cfc), which built the
 # express zips on the update server until now:
-#   - the Lucee Tomcat express template (built by lucee-installer express-template.yml, the update server's
-#     /rest/update/provider/expressTemplates returns the current one per Tomcat major)
+#   - the Lucee Tomcat express template (built by lucee-installer express-template.yml and attached to the
+#     lucee-installer "express-templates" GitHub release, whose express-templates.json has the current one per Tomcat major)
 #   - lib/ext/lucee-<version>.jar
 #   - License.txt and webapps/ROOT (welcome page) from lucee-data-provider
 #   - empty lucee-server/context/deploy/
@@ -18,7 +18,7 @@ fi
 VERSION="$1"
 JAR="$2"
 TRG="$3"
-TEMPLATES_URL="${EXPRESS_TEMPLATES_URL:-https://update.lucee.org/rest/update/provider/expressTemplates}"
+TEMPLATES_URL="${EXPRESS_TEMPLATES_URL:-https://github.com/lucee/lucee-installer/releases/download/express-templates/express-templates.json}"
 DATA_PROVIDER_REPO="${DATA_PROVIDER_REPO:-https://github.com/lucee/lucee-data-provider.git}"
 DP_BUILD=apps/updateserver/services/legacy/build
 
