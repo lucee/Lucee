@@ -337,7 +337,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			for (java.util.Map.Entry<Object, Object> e: attrs.entrySet()) {
 				headers.put(e.getKey().toString(), e.getValue().toString().trim());
 			}
-			this.info = new InfoImpl(lucee.loader.util.VersionImpl.parseOSGi(headers.get("Bundle-Version")), headers);
+			this.info = new InfoImpl(lucee.loader.util.VersionImpl.parseOSGi(headers.get("Lucee-Version")), headers);
 		}
 		catch (java.io.IOException e) {
 			throw Caster.toPageRuntimeException(e);
@@ -1495,7 +1495,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				if (f.isFile()) {
 					try (java.util.jar.JarFile jf = new java.util.jar.JarFile(f)) {
 						java.util.jar.Manifest mani = jf.getManifest();
-						if (mani != null && "lucee.core".equals(mani.getMainAttributes().getValue("Bundle-SymbolicName"))) return mani;
+						if (isLuceeManifest(mani)) return mani;
 					}
 				}
 				else {
@@ -1503,7 +1503,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					if (mf.isFile()) {
 						try (java.io.InputStream is = new java.io.FileInputStream(mf)) {
 							java.util.jar.Manifest mani = new java.util.jar.Manifest(is);
-							if ("lucee.core".equals(mani.getMainAttributes().getValue("Bundle-SymbolicName"))) return mani;
+							if (isLuceeManifest(mani)) return mani;
 						}
 					}
 				}
@@ -1516,10 +1516,15 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		while (urls.hasMoreElements()) {
 			try (java.io.InputStream is = urls.nextElement().openStream()) {
 				java.util.jar.Manifest mani = new java.util.jar.Manifest(is);
-				if ("lucee.core".equals(mani.getMainAttributes().getValue("Bundle-SymbolicName"))) return mani;
+				if (isLuceeManifest(mani)) return mani;
 			}
 		}
-		throw new java.io.IOException("the manifest of Lucee (Bundle-SymbolicName lucee.core) was not found");
+		throw new java.io.IOException("the manifest of Lucee (header Lucee-Version) was not found");
+	}
+
+	/** The manifest of Lucee has the header Lucee-Version. */
+	private static boolean isLuceeManifest(java.util.jar.Manifest mani) {
+		return mani != null && mani.getMainAttributes().getValue("Lucee-Version") != null;
 	}
 
 	private void shutdownOSGi() {
