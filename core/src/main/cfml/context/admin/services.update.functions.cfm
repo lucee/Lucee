@@ -26,7 +26,7 @@
 
 			http cachedWithin=createTimespan(0,0,5,0)
 			url="#update.location##restBasePath#info/#server.lucee.version#"
-			method="get" resolveurl="no" result="local.http" {
+			method="get" resolveurl="no" result="local.http" useragent="Lucee/#server.lucee.version# (CFML Engine)" {
 				if(!isNull(apiKey))httpparam type="header" name="ioid" value="#apikey#";
 			}
 			

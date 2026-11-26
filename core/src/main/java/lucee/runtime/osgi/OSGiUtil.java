@@ -80,6 +80,7 @@ import lucee.loader.osgi.BundleUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigFactoryImpl;
+import lucee.runtime.config.Constants;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.s3.BundleProvider;
@@ -103,7 +104,6 @@ public final class OSGiUtil {
 
 	private static final int DOWNLOAD_CONNECT_TIMEOUT = 10000; // 10 seconds
 	private static final int DOWNLOAD_READ_TIMEOUT = 60000; // 60 seconds
-	private static final String DOWNLOAD_USER_AGENT = "Lucee";
 
 	private static ClassLoader emptyBundleClassLoader;
 
@@ -983,7 +983,7 @@ public final class OSGiUtil {
 
 		Resource jar = jarDir.getRealResource(symbolicName + "-" + symbolicVersion + ".jar");
 		try {
-			HTTPDownloader.downloadToFile(updateUrl, ResourceUtil.toFile(jar), DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, DOWNLOAD_USER_AGENT);
+			HTTPDownloader.downloadToFile(updateUrl, ResourceUtil.toFile(jar), DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, Constants.getUserAgent());
 		}
 		catch (GeneralSecurityException e) {
 			final String msg = "Download bundle failed for [" + symbolicName + "] in version [" + symbolicVersion + "] from [" + updateUrl

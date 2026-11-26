@@ -521,10 +521,7 @@
 			var start=getTickCount();
 
 			try{
-				http url="#uri#?type=all&coreVersion=#server.lucee.version#" cachedWithin=createTimespan(0,0,5,0) result="local.http" timeout=arguments.timeout {
-					httpparam type="header" name="accept" value="application/json";
-					if(!isNull(apikey))httpparam type="url" name="ioid" value="#apikey#";
-				}
+				local.http=providerInfoRequest(uri, local.apiKey?:nullValue(), arguments.timeout);
 			}
 			catch(e) {
 				writeLog("Provider calls to #arguments.provider# failed with #e.message# #e.stacktrace#" , "error");
@@ -580,6 +577,50 @@
 	}
 
 
+	/**
+	* User-Agent for the calls to an extension provider, so the provider can tell which Lucee version is asking
+	*/
+	string function providerUserAgent(){
+		return "Lucee/" & server.lucee.version & " (CFML Engine)";
+	}
+
+	/**
+	* loads the listing (/info) of a provider. The last listing per provider is kept together with its ETag.
+	* Within 5 minutes the kept listing is used as is, after that the request sends the ETag as If-None-Match
+	* and a "304 Not Modified" reuses the kept listing, so an unchanged listing is not transferred again.
+	* returns the keys of cfhttp used by the caller (status_code, fileContent), a reused listing has status_code 200
+	*/
+	struct function providerInfoRequest(required string uri, string apiKey, numeric timeout=10){
+		var listingUrl=arguments.uri & "?type=all&coreVersion=" & server.lucee.version;
+		var key=hash(listingUrl & "|" & (arguments.apiKey?:""), "md5");
+		if(isNull(application.providerInfoListings)) application.providerInfoListings={};
+		var last=application.providerInfoListings[key]?:nullValue();
+
+		if(!isNull(last) && dateDiff("s", last.loaded, now()) < 300) return _keptListing(last);
+
+		http url="#listingUrl#" cachedWithin=createTimespan(0,0,5,0) result="local.rsp" timeout=arguments.timeout useragent=providerUserAgent() {
+			httpparam type="header" name="accept" value="application/json";
+			if(!isNull(last)) httpparam type="header" name="If-None-Match" value="#last.etag#";
+			if(!isNull(arguments.apiKey)) httpparam type="url" name="ioid" value="#arguments.apiKey#";
+		}
+
+		var status=val(rsp.status_code?:0);
+		if(status==304 && !isNull(last)) {
+			last.loaded=now();
+			return _keptListing(last);
+		}
+		if(status==200) {
+			var etag=trim(rsp.responseHeader.ETag?:"");
+			if(len(etag)) application.providerInfoListings[key]={etag:etag, fileContent:rsp.fileContent, loaded:now()};
+			else structDelete(application.providerInfoListings, key);
+		}
+		return rsp;
+	}
+
+	private struct function _keptListing(required struct listing){
+		return {status_code:200, statusCode:"200 OK", fileContent:arguments.listing.fileContent, notModified:true};
+	}
+
 	function downloadFull(required string provider,required string id, string version=""){
 		return _download("full",provider,id,version);
 	}
@@ -611,7 +652,7 @@
 			return local.ext;
 		}
 		else {
-			http url="#uri#?type=all&coreVersion=#server.lucee.version##len(arguments.version)?'&version='&arguments.version:''#" result="local.http"  cachedWithin=createTimespan(0,0,5,0) {
+			http url="#uri#?type=all&coreVersion=#server.lucee.version##len(arguments.version)?'&version='&arguments.version:''#" result="local.http"  cachedWithin=createTimespan(0,0,5,0) useragent=providerUserAgent() {
 				httpparam type="header" name="accept" value="application/cfml";
 				if(!isNull(apiKey))httpparam type="url" name="ioid" value="#apikey#";
 

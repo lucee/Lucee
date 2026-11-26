@@ -24,6 +24,8 @@ import java.net.URL;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
+import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.exp.PageServletException;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -57,6 +59,8 @@ public final class Constants {
 	public static final String WEBSERVICE_NAMESPACE_URI = "http://rpc.xml.coldfusion";
 
 	public static URL DEFAULT_UPDATE_URL;
+
+	private static String userAgent;
 	private static String[] extensions;
 	private static String[] cfmlExtensions;
 	private static String[] componentExtensions;
@@ -147,5 +151,22 @@ public final class Constants {
 			if (file.getName().endsWith("." + ext)) return true;
 		}
 		return false;
+	}
+
+	/**
+	 * User-Agent for the calls to the extension and update provider: "Lucee/&lt;version&gt; (CFML Engine)",
+	 * so a provider can tell which Lucee version is asking.
+	 */
+	public static String getUserAgent() {
+		String ua = userAgent;
+		if (ua != null) return ua;
+		try {
+			ua = NAME + "/" + CFMLEngineImpl.getInstance().getInfo().getVersion() + " (CFML Engine)";
+		}
+		catch (PageServletException e) {
+			// engine not loaded yet, don't remember the fallback
+			return NAME + " (CFML Engine)";
+		}
+		return userAgent = ua;
 	}
 }
