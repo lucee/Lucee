@@ -48,7 +48,7 @@ public final class ApplicationImpl extends ScopeSupport implements Application, 
 	 * default constructor of the session scope
 	 */
 	public ApplicationImpl() {
-		super("application", SCOPE_APPLICATION, Struct.TYPE_LINKED);
+		super("application", SCOPE_APPLICATION, Struct.TYPE_SYNC);
 		created = System.currentTimeMillis();
 	}
 
