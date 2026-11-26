@@ -48,7 +48,7 @@
 							<b>#yesNoFormat(setting.customTagPathCache)#</b>
 						</cfif>
 						<div class="comment">#stText.CustomTags.customTagPathCacheDesc#</div>
-						<cfif setting.customTagPathCache><input type="submit" class="button submit" name="mainAction" value="#flushName#"></cfif>
+						<cfif setting.customTagPathCache><input type="submit" class="button submit" name="flushCache" value="#flushName#"></cfif>
 					</td>
 				</tr>
 

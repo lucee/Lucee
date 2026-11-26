@@ -65,7 +65,7 @@
 							<input type="checkbox" class="checkbox" name="componentPathCache" value="yes" <cfif component.componentPathCache>checked</cfif>>
 							<div class="comment">#stText.Components.componentPathCacheDesc#</div>
 							<cfif component.componentPathCache>
-								<input type="submit" class="button submit" name="mainAction" value="#flushName#">
+								<input type="submit" class="button submit" name="flushCache" value="#flushName#">
 							</cfif>
 						<cfelse>
 							<b>#YesNoFormat(component.componentPathCache)#</b>

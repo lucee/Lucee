@@ -33,23 +33,11 @@ Defaults --->
 <cfparam name="form.mainAction" default="none">
 <cfparam name="form.subAction" default="none">
 <cftry>
+	<!--- the flush button shows a live path count, so it is identified by its name, not by its label --->
+	<cfif structKeyExists(form, "flushCache")>
+		<cfset componentCacheClear()>
+	</cfif>
 	<cfswitch expression="#form.mainAction#">
-	
-	
-	
-	
-    
-    
-    
-    
-    
-    
-    
-		<cfcase value="#flushName#">
-           <cfset componentCacheClear()>
-            
-            
-        </cfcase>
         <cfcase value="#stText.Buttons.Update#">
         
         
