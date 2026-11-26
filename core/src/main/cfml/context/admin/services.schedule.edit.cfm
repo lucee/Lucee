@@ -265,7 +265,7 @@ Error Output--->
 				<tr>
 					<th scope="row">#stText.Schedule.Password#</th>
 					<td>
-						<cfinputClassic type="text" name="proxypassword" value="#task.proxypassword#" class="medium" required="no">
+						<cfinputClassic type="password" passthrough='autocomplete="off"' name="proxypassword" value="#task.proxypassword#" class="medium" required="no">
 						<div class="comment">#stText.Schedule.ProxyPassword#</div>
 					</td>
 				</tr>
