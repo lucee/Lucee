@@ -449,7 +449,7 @@ public final class ComponentSpecificAccess extends StructSupport implements Comp
 
 	@Override
 	public int size(int access) {
-		return component.size();
+		return component.size(access);
 	}
 
 	@Override
