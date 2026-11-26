@@ -8,8 +8,16 @@ component {
 		return "line" & chr( 10 );
 	}
 
+	remote string function getBuffered() returnformat="plain" {
+		writeOutput( "BUFFERED-" );
+		return "RETURN";
+	}
+
 	remote string function ping() {
 		return "pong";
+	}
+
+	public void function onRequestStart() {
 	}
 
 	public string function sharedFn() {

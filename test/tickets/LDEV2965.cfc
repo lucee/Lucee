@@ -2,12 +2,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function beforeAll() {
 		variables.uri = createURI( "LDEV2965" );
+		variables.remoteFns = [ "getFileName", "getLine", "getBuffered", "ping" ];
+		variables.hiddenFns = [ "onRequestStart", "sharedFn", "packageFn", "localFn" ];
 	}
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-2965", function() {
 
-			it( title="remote function with returnformat plain has no trailing newline", body=function() {
+			it( title="remote function with returnformat plain returns exactly the returned string", body=function() {
 				var res = _InternalRequest(
 					template: "#variables.uri#/Service.cfc",
 					url: { method: "getFileName" }
@@ -28,32 +30,73 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( resLine.fileContent ).toBe( "line" & chr( 10 ) );
 			});
 
-			it( title="remote proxy lists remote functions", body=function() {
+			it( title="remote function with returnformat plain keeps buffered output", body=function() {
 				var res = _InternalRequest(
 					template: "#variables.uri#/Service.cfc",
-					url: "json"
+					url: { method: "getBuffered" }
 				);
-				var meta = deserializeJSON( res.fileContent );
-				expect( meta ).toHaveKey( "functions" );
-				expect( meta.functions ).toHaveKey( "getFileName" );
-				expect( meta.functions ).toHaveKey( "getLine" );
-				expect( meta.functions ).toHaveKey( "ping" );
-				expect( meta.functions ).notToHaveKey( "sharedFn" );
-				expect( meta.functions ).notToHaveKey( "packageFn" );
-				expect( meta.functions ).notToHaveKey( "localFn" );
-
-				var child = _InternalRequest(
-					template: "#variables.uri#/ChildService.cfc",
-					url: "json"
-				);
-				var childMeta = deserializeJSON( child.fileContent );
-				expect( childMeta.functions ).toHaveKey( "childPing" );
-				expect( childMeta.functions ).toHaveKey( "ping" );
-				expect( childMeta.functions ).notToHaveKey( "sharedFn" );
-				expect( childMeta.functions ).notToHaveKey( "localFn" );
+				expect( res.fileContent ).toBe( "BUFFERED-RETURN" );
 			});
 
+			it( title="non remote functions can not be called remotely", body=function() {
+				loop array=variables.hiddenFns item="local.fn" {
+					expect( function() {
+						_InternalRequest(
+							template: "#variables.uri#/Service.cfc",
+							url: { method: fn }
+						);
+					}).toThrow( regex="no remote function" );
+				}
+			});
+
+			loop list="json,json=,cfml,wddx,xml" item="local.qs" {
+				it( title="remote proxy metadata [?#qs#] only lists remote functions", data={ qs: qs }, body=function( data ) {
+					var fns = listedFunctions( "Service.cfc", data.qs );
+					loop array=variables.remoteFns item="local.fn" {
+						expect( fns ).toInclude( lCase( fn ) );
+					}
+					loop array=variables.hiddenFns item="local.fn" {
+						expect( fns ).notToInclude( lCase( fn ) );
+					}
+					expect( fns.len() ).toBe( variables.remoteFns.len() );
+
+					var childFns = listedFunctions( "ChildService.cfc", data.qs );
+					loop array=variables.remoteFns.merge( [ "childPing" ] ) item="local.fn" {
+						expect( childFns ).toInclude( lCase( fn ) );
+					}
+					loop array=variables.hiddenFns.merge( [ "childShared", "childLocal" ] ) item="local.fn" {
+						expect( childFns ).notToInclude( lCase( fn ) );
+					}
+				});
+			}
+
 		});
+	}
+
+	private array function listedFunctions( required string cfc, required string qs ) {
+		var content = _InternalRequest(
+			template: "#variables.uri#/#arguments.cfc#",
+			url: arguments.qs
+		).fileContent;
+		var format = listFirst( arguments.qs, "=" );
+		var names = [];
+		if ( format == "json" ) {
+			names = structKeyArray( deserializeJSON( content ).functions );
+		}
+		else if ( format == "cfml" ) {
+			names = structKeyArray( evaluate( content ).functions );
+		}
+		else if ( format == "wddx" ) {
+			wddx action="wddx2cfml" input=content output="local.meta";
+			names = structKeyArray( meta.functions );
+		}
+		else {
+			var nodes = xmlSearch( xmlParse( content ), "/STRUCT/ENTRY[@NAME='functions']/STRUCT/ENTRY" );
+			loop array=nodes item="local.node" {
+				names.append( node.xmlAttributes.NAME );
+			}
+		}
+		return names.map( function( n ) { return lCase( n ); } );
 	}
 
 	private string function createURI( string calledName ) {

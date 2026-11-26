@@ -975,21 +975,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 		}
 		// Plain
 		else if (UDF.RETURN_FORMAT_PLAIN == props.format) {
-			String str = Caster.toString(rtn);
-			if (cs == null) {
-				cs = ReqRspUtil.getCharacterEncoding(pc, pc.getHttpServletResponse());
-				if (cs == null) cs = pc.getWebCharset();
-			}
-			OutputStream os = null;
-			try {
-				os = pc.getResponseStream();
-				os.write(str.getBytes(cs));
-			}
-			finally {
-				IOUtil.flushEL(os);
-				IOUtil.close(os);
-				((PageContextImpl) pc).getRootOut().setClosed(true);
-			}
+			pc.forceWrite(Caster.toString(rtn));
 		}
 
 		// JAVA
