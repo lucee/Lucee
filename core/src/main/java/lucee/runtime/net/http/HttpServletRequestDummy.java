@@ -504,7 +504,7 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 
 	@Override
 	public String getContentType() {
-		return contentType;
+		return contentType != null ? contentType : getHeader("Content-Type");
 	}
 
 	/**

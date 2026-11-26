@@ -950,6 +950,40 @@ public final class ResourceUtil {
 		return strFile.substring(pos + 1);
 	}
 
+	/**
+	 * turns a name that comes from outside (for example the file name sent with an upload) into a
+	 * plain file name: only the part after the last "/" or "\" is used, control characters are
+	 * removed, characters that are not allowed in file names on Windows are replaced with "_" and
+	 * trailing dots and spaces are removed (Windows drops them silently)
+	 * 
+	 * @param name the name to convert
+	 * @param defaultValue returned when nothing usable is left
+	 * @return the file name
+	 */
+	public static String toFileName(String name, String defaultValue) {
+		if (name == null) return defaultValue;
+		int start = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
+		int len = name.length();
+		StringBuilder sb = null;
+		char c;
+		for (int i = start; i < len; i++) {
+			c = name.charAt(i);
+			if (c < 32 || c == 127) {
+				if (sb == null) sb = new StringBuilder(len - start).append(name, start, i);
+			}
+			else if (c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' || c == '|') {
+				if (sb == null) sb = new StringBuilder(len - start).append(name, start, i);
+				sb.append('_');
+			}
+			else if (sb != null) sb.append(c);
+		}
+		String result = sb == null ? (start == 0 ? name : name.substring(start)) : sb.toString();
+		int end = result.length();
+		while (end > 0 && ((c = result.charAt(end - 1)) == '.' || c == ' ')) end--;
+		if (end == 0) return defaultValue;
+		return end == result.length() ? result : result.substring(0, end);
+	}
+
 	public static String getName(String strFileName) {
 		int pos = strFileName.lastIndexOf('.');
 		if (pos == -1) return strFileName;
