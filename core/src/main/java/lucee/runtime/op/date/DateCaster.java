@@ -34,10 +34,16 @@ import lucee.commons.i18n.FormatterWrapper;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
+import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.international.LSParseDateTime;
 import lucee.runtime.i18n.LocaleFactory;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -68,6 +74,23 @@ public final class DateCaster {
 
 	private static boolean firstCountCheck = true;
 	private static int countCheck = 0;
+
+	/**
+	 * LDEV-7006 default string-to-date parser: locale independent, nn/nn/yyyy is read month first (as
+	 * in all previous versions and ACF)
+	 */
+	public static final short PARSER_SIMPLE = 0;
+	/**
+	 * LDEV-7006 default string-to-date parser: the formats of the current locale are tried first (like
+	 * lsParseDateTime), the simple parser is used for everything the locale formats cannot read
+	 */
+	public static final short PARSER_LOCALE = 1;
+
+	/**
+	 * LDEV-7006 set to true as soon as the locale-aware parser is configured anywhere (server config or
+	 * any application), so as long as nobody opts in, the default path only checks this field
+	 */
+	public static boolean localeParserInUse = false;
 
 	/**
 	 * converts an Object to a DateTime Object (Advanced but slower)
@@ -152,11 +175,71 @@ public final class DateCaster {
 		if (!hasDigits(str)) return defaultValue; // every format has digits
 		str = replaceETCTimezoneDefintions(StringUtil.replaceSpecialWhiteSpace(str));
 		timeZone = ThreadLocalPageContext.getTimeZone(timeZone);
+		if (localeParserInUse) {
+			Locale locale = getLocaleParserLocale(str);
+			if (locale != null) {
+				DateTime dt = toDateTime(locale, str, timeZone, null, false);
+				if (dt != null) return dt;
+			}
+		}
 		DateTime dt = toDateSimple(str, convertingType, true, timeZone, defaultValue);
 		if (dt == null) {
 			dt = toDateTime(Locale.US, str, timeZone, defaultValue, false);
 		}
 		return dt;
+	}
+
+	/**
+	 * LDEV-7006 returns the locale to parse the given string with first, or null when the simple parser
+	 * should be used (the default, a US like locale, or a string the simple parser reads unambiguously)
+	 */
+	private static Locale getLocaleParserLocale(String str) {
+		// timestamp literals and year first formats (ISO 8601, yyyy/mm/dd, ...) are not ambiguous
+		if (str.charAt(0) == '{' || isYearFirst(str)) return null;
+
+		PageContext pc = ThreadLocalPageContext.get();
+		short parser;
+		if (pc != null) {
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac instanceof ApplicationContextSupport) parser = ((ApplicationContextSupport) ac).getDateParser();
+			else {
+				Config c = pc.getConfig();
+				parser = c instanceof ConfigPro ? ((ConfigPro) c).getDateParser() : PARSER_SIMPLE;
+			}
+		}
+		else {
+			Config c = ThreadLocalPageContext.getConfig();
+			parser = c instanceof ConfigPro ? ((ConfigPro) c).getDateParser() : PARSER_SIMPLE;
+		}
+		if (parser != PARSER_LOCALE) return null;
+
+		Locale locale = ThreadLocalPageContext.getLocale(pc);
+		// for a US like locale the simple parser already is the locale-aware parser
+		if (locale == null || LSParseDateTime.isUSLike(locale)) return null;
+		return locale;
+	}
+
+	private static boolean isYearFirst(String str) {
+		if (str.length() < 5) return false;
+		for (int i = 0; i < 4; i++) {
+			if (!Character.isDigit(str.charAt(i))) return false;
+		}
+		return !Character.isDigit(str.charAt(4));
+	}
+
+	/**
+	 * LDEV-7006 converts the name of a date parser ("simple" or "locale") to its constant
+	 */
+	public static short toDateParser(String str, short defaultValue) {
+		if (StringUtil.isEmpty(str, true)) return defaultValue;
+		str = str.trim();
+		if ("simple".equalsIgnoreCase(str)) return PARSER_SIMPLE;
+		if ("locale".equalsIgnoreCase(str)) return PARSER_LOCALE;
+		return defaultValue;
+	}
+
+	public static String toDateParserName(short parser) {
+		return parser == PARSER_LOCALE ? "locale" : "simple";
 	}
 
 	private static String replaceETCTimezoneDefintions(String str) {

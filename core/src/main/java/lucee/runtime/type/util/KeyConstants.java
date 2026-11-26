@@ -2744,6 +2744,7 @@ public final class KeyConstants {
 	public static final Key _logfilecreated = init("logfilecreated");
 	public static final Key _logfilesize = init("logfilesize");
 	public static final Key _dateformat = init("dateformat");
+	public static final Key _dateParser = init("dateParser");
 	public static final Key _momentDateformat = init("momentDateformat");
 	public static final Key _timeformatshort = init("timeformatshort");
 	public static final Key _occurrences = init("occurrences");

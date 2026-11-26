@@ -285,6 +285,16 @@
 		"default": 5
 	},
 	{
+		"sysprop": "lucee.date.parser",
+		"envvar": "LUCEE_DATE_PARSER",
+		"desc": "Defines the parser used when a string is converted to a date without an explicit locale or mask, for example by isDate(), parseDateTime(), dateTimeFormat(), dateAdd() or any implicit conversion. `simple` (default): locale independent, a value like 02/01/2026 is always read month first (US style), as in all previous versions. `locale`: the date formats of the current locale are tried first (like lsParseDateTime()), so 02/01/2026 is 2 January with the locale en_GB; values the locale formats cannot read are handled by the simple parser. Also available as `dateParser` in .CFConfig.json and as `this.dateParser` in Application.cfc",
+		"category": "application",
+		"functions": [ "isDate", "parseDateTime", "dateTimeFormat", "dateFormat", "dateAdd" ],
+		"type": "string",
+		"introduced": "9.0.0.0",
+		"default": "simple"
+	},
+	{
 		"sysprop": "lucee.date.twodigityear.pivot",
 		"envvar": "LUCEE_DATE_TWODIGITYEAR_PIVOT",
 		"desc": "Controls how two-digit years are converted to full years by all date parsing and casting (parseDateTime(), lsParseDateTime(), createDate(), implicit casts, ...). By default (empty or `sliding`) Java's sliding window is used, as java.text.SimpleDateFormat does: a two-digit year is placed within 80 years before and 20 years after the current date. A number from 0 to 100 sets a fixed pivot instead: two-digit years below the pivot become 20xx, all others 19xx (e.g. `30` maps 00-29 to 2000-2029 and 30-99 to 1930-1999, as createDate() did before Lucee 8.0)",

@@ -76,6 +76,7 @@ import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.regex.Regex;
 import lucee.runtime.regex.RegexFactory;
@@ -159,6 +160,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private Map<String, CustomType> customTypes;
 	private boolean cgiScopeReadonly;
 	private boolean preciseMath;
+	private short dateParser;
 	private int returnFormat = UDF.RETURN_FORMAT_WDDX;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
@@ -247,6 +249,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private CharsetX resourceCharset;
 	private boolean initCGIScopeReadonly;
 	private boolean initPreciseMath;
+	private boolean initDateParser;
 	private boolean initReturnFormat;
 	private boolean initSessionCookie;
 	private boolean initAuthCookie;
@@ -312,6 +315,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 		initContext(pc);
 		getFullNullSupport();
 		getPreciseMath();
+		getDateParser();
 
 		// ORM
 		// if (((ConfigPro) config).hasORMEngine()) {
@@ -2241,6 +2245,26 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public void setPreciseMath(boolean preciseMath) {
 		this.preciseMath = preciseMath;
 		this.initPreciseMath = true;
+	}
+
+	@Override
+	public short getDateParser() {
+		if (!initDateParser) {
+			String str = Caster.toString(get(component, KeyConstants._dateParser, null), null);
+			short parser = ((ConfigPro) config).getDateParser();
+			if (!StringUtil.isEmpty(str, true)) parser = DateCaster.toDateParser(str, parser);
+			if (parser == DateCaster.PARSER_LOCALE) DateCaster.localeParserInUse = true;
+			dateParser = parser;
+			initDateParser = true;
+		}
+		return dateParser;
+	}
+
+	@Override
+	public void setDateParser(short dateParser) {
+		this.dateParser = dateParser;
+		this.initDateParser = true;
+		if (dateParser == DateCaster.PARSER_LOCALE) DateCaster.localeParserInUse = true;
 	}
 
 	@Override

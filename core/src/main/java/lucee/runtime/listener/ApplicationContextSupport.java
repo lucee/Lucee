@@ -69,6 +69,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract void setHttpListener(TagListener listener);
 
+	/**
+	 * LDEV-7006 the default string-to-date parser, DateCaster.PARSER_SIMPLE or DateCaster.PARSER_LOCALE
+	 */
+	public abstract short getDateParser();
+
+	public abstract void setDateParser(short dateParser);
+
 	private static Map<Collection.Key, LoggerAndSourceData> _loggers = new ConcurrentHashMap<Collection.Key, LoggerAndSourceData>();
 
 	protected int idletimeout = 1800;

@@ -8968,6 +8968,20 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<introduced>6.0.0.114</introduced>
 		</attribute>
 		<attribute>
+			<type>string</type>
+			<name>dateParser</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+			Defines the parser used when a string is converted to a date without an explicit locale or mask
+			(isDate, parseDateTime, dateTimeFormat, dateAdd, implicit conversions, ...).
+			- simple (default): locale independent, a value like 02/01/2026 is always read month first (US style)
+			- locale: the date formats of the current locale are tried first (like lsParseDateTime), so 02/01/2026 is 2 January with the locale en_GB;
+			  values the locale formats cannot read are handled by the simple parser
+			</description>
+			<introduced>9.0.0.0</introduced>
+		</attribute>
+		<attribute>
 			<type>boolean</type>
 			<name>psq</name>
 			<required>false</required>
