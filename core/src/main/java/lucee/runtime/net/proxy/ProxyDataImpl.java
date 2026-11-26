@@ -196,7 +196,7 @@ public final class ProxyDataImpl implements ProxyData, Serializable {
 	}
 
 	public static boolean hasCredentials(ProxyData data) {
-		return StringUtil.isEmpty(data.getUsername(), true);
+		return !StringUtil.isEmpty(data.getUsername(), true);
 	}
 
 	public static ProxyData getInstance(String proxyserver, int proxyport, String proxyuser, String proxypassword) {
