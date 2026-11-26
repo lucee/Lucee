@@ -67,6 +67,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" {
                 catch(any e){
                     result.fileContent = e.message;
                 }
+                // once the template compiles, cfdocument returns the pdf as fileContent_binary
+                if ( !structKeyExists( result, "fileContent" ) ) {
+                    expect( structKeyExists( result, "error" ) ).toBeFalse();
+                    expect( result ).toHaveKey( "fileContent_binary" );
+                    expect( len( result.fileContent_binary ) ).toBeGT( 0 );
+                    return;
+                }
                 expect(trim(result.fileContent)).notToInclude("java.lang.NullPointerException");
             });
             it( title="checking Nested try/finally block LDEV-4451", body=function( currentSpec ){
