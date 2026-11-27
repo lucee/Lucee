@@ -291,10 +291,10 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 				}
 			}
 
-			boolean isBootDelegated = BootDelegation.isClassInBootelegation(name);
+			boolean isParentFirst = ParentFirstPackages.isClassParentFirst(name);
 
-			// For classes in boot delegation list, always delegate to parent first
-			if (isBootDelegated) {
+			// For the parent first packages, always delegate to the parent first
+			if (isParentFirst) {
 				ClassLoader parent = getParent();
 				if (parent != null) {
 					try {
@@ -308,7 +308,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 				}
 			}
 
-			// Try resources (Maven libraries override core, but respect boot delegation)
+			// Try resources (Maven libraries override core, but respect the parent first packages)
 			try {
 				c = super.findClass(name);
 				if (resolve) resolveClass(c);
@@ -316,7 +316,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 			}
 			catch (ClassNotFoundException e1) {
 				// Resources didn't have it, try parent if not already tried
-				if (!isBootDelegated) {
+				if (!isParentFirst) {
 					ClassLoader parent = getParent();
 					if (parent != null) {
 						try {

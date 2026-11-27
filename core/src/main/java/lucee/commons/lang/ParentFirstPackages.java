@@ -7,12 +7,12 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
 
 /**
- * The packages the class loader of Lucee hands over to the parent. The system property / environment variable org.osgi.framework.bootdelegation adds packages.
+ * The packages the class loader of Lucee always loads from its parent first (the JDK, the servlet container, Lucee itself), a library with its own copy of them does not override them. The system property / environment variable org.osgi.framework.bootdelegation adds packages.
  */
-public final class BootDelegation {
+public final class ParentFirstPackages {
 
 	// the packages that are always handed over to the parent: the JDK, the servlet container and the Lucee core
-	private static final String[] DEFAULT_BOOT_DELEGATION = new String[] {
+	private static final String[] DEFAULT_PARENT_FIRST = new String[] {
 			"coldfusion.xml.rpc",
 			"com.apple.laf", "com.apple.laf.*", "com.integral.fusiondebug.server", "com.sun.jndi", "com.sun.jndi.*", "com.sun.msv.datatype", "com.sun.msv.datatype.*", "com.sun.org.apache.xerces.internal.*", "com.sun.org.glassfish", "com.sun.org.glassfish.*", "com.sun.proxy", "com.sun.proxy.*", "com.sun.xml.internal.ws.api.*",
 			"jakarta.annotation", "jakarta.annotation.processing", "jakarta.el", "jakarta.enterprise.context", "jakarta.enterprise.inject", "jakarta.inject", "jakarta.security.*", "jakarta.security.auth", "jakarta.security.auth.callback", "jakarta.security.auth.login", "jakarta.security.auth.x500", "jakarta.security.cert", "jakarta.security.cert.*", "jakarta.security.sasl", "jakarta.servlet", "jakarta.servlet.http", "jakarta.servlet.jsp", "jakarta.servlet.jsp.tagext", "jakarta.servlet.jsp.el", "jakarta.transaction", "jakarta.validation", "jakarta.websocket", "jakarta.websocket.*", "jakarta.xml.*",
@@ -23,47 +23,47 @@ public final class BootDelegation {
 			"org.ietf.jgss", "org.osgi.framework", "org.omg.CORBA", "org.omg.CORBA.portable", "org.osgi.*", "org.w3c.dom", "org.w3c.dom.*", "org.xml.sax", "org.xml.sax.*",
 			"sun.*", "sun.misc" };
 
-	private static String[] bootDelegation;
+	private static String[] parentFirst;
 
-	public static String[] getBootdelegation() {
-		if (bootDelegation == null) {
+	public static String[] getPackages() {
+		if (parentFirst == null) {
 			// the system property / environment variable adds packages to the list
 			String additional = Caster.toString(SystemUtil.getSystemPropOrEnvVar("org.osgi.framework.bootdelegation", null), null);
-			if (StringUtil.isEmpty(additional, true)) bootDelegation = DEFAULT_BOOT_DELEGATION;
+			if (StringUtil.isEmpty(additional, true)) parentFirst = DEFAULT_PARENT_FIRST;
 			else {
 				String[] add = ListUtil.trimItems(ListUtil.listToStringArray(StringUtil.unwrap(additional.trim()), ','));
-				String[] result = new String[add.length + DEFAULT_BOOT_DELEGATION.length];
+				String[] result = new String[add.length + DEFAULT_PARENT_FIRST.length];
 				System.arraycopy(add, 0, result, 0, add.length);
-				System.arraycopy(DEFAULT_BOOT_DELEGATION, 0, result, add.length, DEFAULT_BOOT_DELEGATION.length);
-				bootDelegation = result;
+				System.arraycopy(DEFAULT_PARENT_FIRST, 0, result, add.length, DEFAULT_PARENT_FIRST.length);
+				parentFirst = result;
 			}
 		}
-		return bootDelegation;
+		return parentFirst;
 	}
 
-	// the result only depends on the package and the boot delegation list (loaded once), so we cache by
+	// the result only depends on the package and the package list (loaded once), so we cache by
 	// package name; the number of packages is small, but we still cap the cache to avoid slow growth
-	private static final int BOOTELEGATION_CACHE_MAX = 10_000;
-	private static final ConcurrentHashMap<String, Boolean> BOOTELEGATION_CACHE = new ConcurrentHashMap<>();
+	private static final int PARENT_FIRST_CACHE_MAX = 10_000;
+	private static final ConcurrentHashMap<String, Boolean> PARENT_FIRST_CACHE = new ConcurrentHashMap<>();
 
-	public static boolean isClassInBootelegation(String className) {
+	public static boolean isClassParentFirst(String className) {
 		int index = className.lastIndexOf('.');
 		if (index == -1) return false;
-		return isPackageInBootelegation(className.substring(0, index));
+		return isPackageParentFirst(className.substring(0, index));
 	}
 
-	public static boolean isPackageInBootelegation(String packageName) {
-		Boolean cached = BOOTELEGATION_CACHE.get(packageName);
+	public static boolean isPackageParentFirst(String packageName) {
+		Boolean cached = PARENT_FIRST_CACHE.get(packageName);
 		if (cached != null) return cached.booleanValue();
-		boolean result = isInBootelegation(packageName, true);
-		// only cache once the boot delegation list is available
-		if (getBootdelegation().length == 0) return result;
-		if (BOOTELEGATION_CACHE.size() >= BOOTELEGATION_CACHE_MAX) BOOTELEGATION_CACHE.clear();
-		BOOTELEGATION_CACHE.put(packageName, result ? Boolean.TRUE : Boolean.FALSE);
+		boolean result = isInParentFirst(packageName, true);
+		// only cache once the package list is available
+		if (getPackages().length == 0) return result;
+		if (PARENT_FIRST_CACHE.size() >= PARENT_FIRST_CACHE_MAX) PARENT_FIRST_CACHE.clear();
+		PARENT_FIRST_CACHE.put(packageName, result ? Boolean.TRUE : Boolean.FALSE);
 		return result;
 	}
 
-	private static boolean isInBootelegation(String name, boolean isPackage) {
+	private static boolean isInParentFirst(String name, boolean isPackage) {
 		// extract package
 		String pack;
 		if (isPackage) pack = name;
@@ -73,7 +73,7 @@ public final class BootDelegation {
 			pack = name.substring(0, index);
 		}
 
-		String[] arr = getBootdelegation();
+		String[] arr = getPackages();
 		for (String bd: arr) {
 			// with wildcard
 			if (bd.endsWith(".*")) {
