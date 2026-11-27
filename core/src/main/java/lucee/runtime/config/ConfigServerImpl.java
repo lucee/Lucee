@@ -5261,6 +5261,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		throw new PageRuntimeException("no longer supported");
 	}
 
+	/**
+	 * @return true when the current thread is loading the extensions, a lock that is taken while waiting for the extensions
+	 *         to load must not be waited for by this thread
+	 */
+	public boolean isLoadingExtensions() {
+		return extensionsLock.isHeldByCurrentThread();
+	}
+
 	@Override
 	public RHExtension[] getRHExtensions() {
 

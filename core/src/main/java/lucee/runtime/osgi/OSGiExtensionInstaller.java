@@ -100,7 +100,18 @@ public final class OSGiExtensionInstaller {
 		// the thread that loads the extensions waits for the tasks that start the bundles, they cannot wait for it
 		if (startingBundles.get() != null) return null;
 
-		LOCK.lock();
+		// The lock is never held while waiting for the extensions to load, and the thread that loads the extensions never waits for the
+		// lock: the thread that holds the lock needs the extensions (findInstalled, deploy), the loading thread would wait for it.
+		ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
+		if (cs.isLoadingExtensions()) {
+			// somebody else is installing it, so it will be there
+			if (!LOCK.tryLock()) return null;
+		}
+		else {
+			// wait for the extensions to load first
+			cs.getRHExtensions();
+			LOCK.lock();
+		}
 		try {
 			// another thread did it while we were waiting
 			if (OSGi.isAvailable()) return OSGi.get();
