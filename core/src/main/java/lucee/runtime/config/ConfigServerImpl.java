@@ -1425,6 +1425,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private volatile boolean fldExtensionIdsPending;
 	private int extensionsLoadCount = 0;
 	private Map<String, RHExtension> extensionsLoading;
+	private volatile Thread extensionsLoadingThread;
 	private final ReentrantLock extensionsLock = new ReentrantLock();
 
 	private static Prop<ResourceProviderDef> metaDefaultResourceProviderDef = Prop.custom(ResourceProviderDefFactory.getInstance(false)).keys("defaultResourceProvider")
@@ -5261,6 +5262,15 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		throw new PageRuntimeException("no longer supported");
 	}
 
+	/**
+	 * @return true when another thread is loading the extensions, a thread that waits for that thread must
+	 *         not try to install an extension
+	 */
+	public boolean isLoadingExtensionsByOtherThread() {
+		Thread t = extensionsLoadingThread;
+		return t != null && t != Thread.currentThread();
+	}
+
 	@Override
 	public RHExtension[] getRHExtensions() {
 
@@ -5286,6 +5296,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					// print.e(extensions);
 					Map<String, RHExtension> exts = new HashMap<>();
 					extensionsLoading = exts;
+					extensionsLoadingThread = Thread.currentThread();
 					try {
 						{
 							RHExtension ext;
@@ -5309,6 +5320,23 @@ public final class ConfigServerImpl implements ConfigServerPro {
 								}
 
 							}
+						}
+
+						// LDEV-7012 an extension that needs OSGi installs the OSGi extension when it is missing, this is done here (not in the
+						// parallel tasks below, they cannot wait for the lock this thread holds) and the OSGi extension is part of the loaded extensions
+						try {
+							for (RHExtension ext: new ArrayList<RHExtension>(exts.values())) {
+								if (!lucee.runtime.osgi.OSGiExtensionInstaller.needsOSGi(ext)) continue;
+								lucee.runtime.osgi.OSGiExtensionInstaller.ensureAvailableFor(ext);
+								for (lucee.runtime.extension.RHExtensionCollection.Entry entry: RHExtension.getInstalledExtensions(this)) {
+									RHExtension osgiExt = entry.getRHExtension();
+									if (lucee.runtime.osgi.OSGiExtensionInstaller.isOSGiExtension(osgiExt)) exts.put(osgiExt.getStorageName(), osgiExt);
+								}
+								break;
+							}
+						}
+						catch (Exception ex) {
+							if (LogUtil.doesError(log)) log.error("start-bundles", ex);
 						}
 
 						// start bundles in parallel but wait for them to finish
@@ -5416,6 +5444,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					}
 					finally {
 						extensionsLoading = null;
+						extensionsLoadingThread = null;
 					}
 				}
 			}

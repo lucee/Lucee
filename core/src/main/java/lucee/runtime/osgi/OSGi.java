@@ -159,13 +159,28 @@ public final class OSGi {
 			return new OSGiNotAvailableException(notInstalledMessage(what));
 		}
 
+		/**
+		 * LDEV-7012 something needs OSGi and it is not installed: the OSGi extension is installed (if that is
+		 * allowed) and the call goes to the new service. Returns null when this is not possible, then the
+		 * error is thrown.
+		 */
+		private OSGiService recover(String what) throws IOException {
+			// an installed extension that does not load is not the same as an extension that is missing
+			if (cause != null) return null;
+			return OSGiExtensionInstaller.ensureAvailable(what);
+		}
+
 		@Override
-		public Class<?> loadClass(String name, String version, String className) throws IOException {
+		public Class<?> loadClass(String name, String version, String className) throws IOException, ClassNotFoundException {
+			OSGiService s = recover(what(className, name, version));
+			if (s != null) return s.loadClass(name, version, className);
 			throw missing(name, version, className);
 		}
 
 		@Override
-		public Class<?> loadClass(String name, String version, String className, File[] dirs, boolean versionOnlyMattersForDownload) throws IOException {
+		public Class<?> loadClass(String name, String version, String className, File[] dirs, boolean versionOnlyMattersForDownload) throws IOException, ClassNotFoundException {
+			OSGiService s = recover(what(className, name, version));
+			if (s != null) return s.loadClass(name, version, className, dirs, versionOnlyMattersForDownload);
 			throw missing(name, version, className);
 		}
 
@@ -191,11 +206,15 @@ public final class OSGi {
 
 		@Override
 		public ClassLoader getClassLoader(String name, String version) throws IOException {
+			OSGiService s = recover(what(null, name, version));
+			if (s != null) return s.getClassLoader(name, version);
 			throw missing(name, version);
 		}
 
 		@Override
 		public ClassLoader getClassLoader(String name, String version, File[] dirs) throws IOException {
+			OSGiService s = recover(what(null, name, version));
+			if (s != null) return s.getClassLoader(name, version, dirs);
 			throw missing(name, version);
 		}
 
