@@ -132,6 +132,21 @@
             </goals>
             <configuration>
               <target>
+                <!-- LDEV-7013 the manifest of the core has no OSGi headers anymore, the file is merged from 8.0: when the headers come back with a merge, keep the 9.0 version of the file -->
+                <fail message="core/src/main/java/META-INF/MANIFEST.MF contains OSGi headers, Lucee 9 is not an OSGi bundle (LDEV-7013). When merging 8.0 into 9.0 keep the 9.0 version of the file.">
+                  <condition>
+                    <or>
+                      <resourcecontains resource="${project.basedir}/core/src/main/java/META-INF/MANIFEST.MF" substring="&#10;Bundle-Version:"/>
+                      <resourcecontains resource="${project.basedir}/core/src/main/java/META-INF/MANIFEST.MF" substring="&#10;Bundle-Name:"/>
+                      <resourcecontains resource="${project.basedir}/core/src/main/java/META-INF/MANIFEST.MF" substring="&#10;Bundle-SymbolicName:"/>
+                      <resourcecontains resource="${project.basedir}/core/src/main/java/META-INF/MANIFEST.MF" substring="&#10;Bundle-ManifestVersion:"/>
+                      <resourcecontains resource="${project.basedir}/core/src/main/java/META-INF/MANIFEST.MF" substring="&#10;Bundle-RequiredExecutionEnvironment:"/>
+                      <resourcecontains resource="${project.basedir}/core/src/main/java/META-INF/MANIFEST.MF" substring="&#10;Bundle-ClassPath:"/>
+                      <resourcecontains resource="${project.basedir}/core/src/main/java/META-INF/MANIFEST.MF" substring="&#10;Import-Package:"/>
+                      <resourcecontains resource="${project.basedir}/core/src/main/java/META-INF/MANIFEST.MF" substring="&#10;Export-Package:"/>
+                    </or>
+                  </condition>
+                </fail>
                 <echo file="${project.build.outputDirectory}/lucee/version" message="${project.version}:${maven.build.timestamp}" encoding="UTF-8"/>
                 <concat destfile="${project.build.outputDirectory}/META-INF/MANIFEST.MF" fixlastline="yes" eol="lf">
                   <fileset file="${project.basedir}/loader/src/main/java/META-INF/MANIFEST.MF"/>
@@ -148,7 +163,7 @@
                       <regexp pattern="^\s*$"/>
                     </linecontainsregexp>
                     <linecontainsregexp negate="true">
-                      <regexp pattern="^(Manifest-Version|Built-Date):"/>
+                      <regexp pattern="^Manifest-Version:"/>
                     </linecontainsregexp>
                   </filterchain>
                 </concat>

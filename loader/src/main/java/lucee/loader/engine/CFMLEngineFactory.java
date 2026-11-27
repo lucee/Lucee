@@ -347,6 +347,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		System.out.println("VERSION: " + bundleVersion);
 
 		main.put(new Attributes.Name("Lucee-Version"), bundleVersion);
+		// the source manifest has no build date, InfoImpl needs one
+		java.text.SimpleDateFormat builtDate = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm:ss 'UTC'", java.util.Locale.ENGLISH);
+		builtDate.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+		main.put(new Attributes.Name("Built-Date"), builtDate.format(new java.util.Date()));
 
 		File bundleFile = File.createTempFile(bundleName + "-", ".lco");
 		bundleFile.deleteOnExit();
