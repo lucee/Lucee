@@ -1,5 +1,6 @@
 // Uploads one Lucee core build into the Maven layout of the Cloudflare R2 bucket (LDEV-6804), next to the S3 upload:
-//   org/lucee/lucee/<version>/lucee-<version>.jar, -light.jar, -zero.jar, .lco, .pom (+ .sha1, .sha256 and .sha512 of each), maven-metadata.xml
+//   org/lucee/lucee/<version>/lucee-<version>.jar, -light.jar, -zero.jar, .lco, .pom (+ .sha1, .sha256 and .sha512 of each)
+//   maven-metadata.xml is still built in the put list but is not written to R2 (the Maven bridge worker generates metadata from the bucket)
 // Only the Maven layout is written, not the legacy bucket-root names (lucee-<version>.jar, lucee-light-<version>.jar, ...).
 // The express zip and the war are only attached to the GitHub release, so they are not uploaded either.
 // Called by the "Build" workflow (main.yml) once the version has been deployed. Settings come from the environment:
