@@ -5261,6 +5261,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		throw new PageRuntimeException("no longer supported");
 	}
 
+	/**
+	 * @return true when the current thread is loading the extensions, a lock that is taken while waiting for the extensions
+	 *         to load must not be waited for by this thread
+	 */
+	public boolean isLoadingExtensions() {
+		return extensionsLock.isHeldByCurrentThread();
+	}
+
 	@Override
 	public RHExtension[] getRHExtensions() {
 
@@ -5311,12 +5319,31 @@ public final class ConfigServerImpl implements ConfigServerPro {
 							}
 						}
 
+						// LDEV-7012 an extension that needs OSGi installs the OSGi extension when it is missing, this is done here (not in the
+						// parallel tasks below, they cannot wait for the lock this thread holds) and the OSGi extension is part of the loaded extensions
+						try {
+							for (RHExtension ext: new ArrayList<RHExtension>(exts.values())) {
+								if (!lucee.runtime.osgi.OSGiExtensionInstaller.needsOSGi(ext)) continue;
+								lucee.runtime.osgi.OSGiExtensionInstaller.ensureAvailableFor(ext);
+								for (lucee.runtime.extension.RHExtensionCollection.Entry entry: RHExtension.getInstalledExtensions(this)) {
+									RHExtension osgiExt = entry.getRHExtension();
+									if (lucee.runtime.osgi.OSGiExtensionInstaller.isOSGiExtension(osgiExt)) exts.put(osgiExt.getStorageName(), osgiExt);
+								}
+								break;
+							}
+						}
+						catch (Exception ex) {
+							if (LogUtil.doesError(log)) log.error("start-bundles", ex);
+						}
+
 						// start bundles in parallel but wait for them to finish
 						CountDownLatch latch = new CountDownLatch(exts.size());
 						try (ExecutorService executor = ThreadUtil.createExecutorService()) {
 
 							for (RHExtension ext: exts.values()) {
 								executor.submit(() -> {
+									// LDEV-7012 the loading thread waits for this task, the OSGi extension cannot be installed from here
+									lucee.runtime.osgi.OSGiExtensionInstaller.setStartingBundles(true);
 									try {
 										// Call the startBundles method for each extension
 										startBundles(this, ext, firstLoad);
@@ -5327,6 +5354,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 										}
 									}
 									finally {
+										lucee.runtime.osgi.OSGiExtensionInstaller.setStartingBundles(false);
 										// Count down the latch regardless of success or failure
 										latch.countDown();
 									}

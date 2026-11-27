@@ -3985,6 +3985,8 @@ public final class ConfigAdmin {
 	public static RHExtension _updateRHExtension(ConfigPro config, RHExtension rhext, ResetFilter filter, boolean reload, boolean force, short action, Log log)
 			throws PageException {
 		try {
+			// an extension that needs OSGi can only be installed when OSGi is there (LDEV-7012)
+			lucee.runtime.osgi.OSGiExtensionInstaller.ensureAvailableFor(rhext);
 			ConfigAdmin admin = new ConfigAdmin(config, null, true);
 			return admin.updateExtension(config, rhext, filter, reload, force, action, log);
 		}
