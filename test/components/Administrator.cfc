@@ -1871,43 +1871,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 
-			// Patches
-			describe( title="test listPatches functions", body=function() {
-				it(title="checking listPatches()", body=function( currentSpec ) {
-					var listPatches = admin.listPatches();
-					assertEquals(isArray(listPatches),true);
-				});
-			});
-
-			// Update
-			describe( title="test changeVersionTo function", body=function() {
-				it(title="checking changeVersionTo()", body=function( currentSpec ) {
-					restBasePath="/rest/update/provider/";
-					var getUpdate = admin.getUpdate();
-
-					http
-					url="#getUpdate.location##restBasePath#info/#server.lucee.version#"
-					method="get" resolveurl="no" result="local.http";
-
-					assertEquals(isJson(http.filecontent), true);
-					updateAvailable=deserializeJson(http.filecontent);
-
-					if (arrayIsEmpty(updateAvailable.otherVersions)){
-						// systemOutput("WARNING: updateAvailable.otherVersions is empty", true, true);
-					}
-					else {
-
-						LatestVersion = ArrayLast(updateAvailable.otherVersions);
-					}
-
-					/*if( ReplaceNocase(replaceNocase(LatestVersion, ".", "", "ALL"), "-SNAPSHOT", "") GT ReplaceNocase(replaceNocase(server.lucee.version, ".", "", "ALL"), "-SNAPSHOT", "") ){
-						admin.changeVersionTo(LatestVersion);
-					}
-					changing the version breaks testing for all following testcases!!!!
-					*/
-				});
-			});
-
 			describe( title="test connect function", body=function() {
 				it(title="checking connect()", body=function( currentSpec ) {
 					adminWeb.connect();

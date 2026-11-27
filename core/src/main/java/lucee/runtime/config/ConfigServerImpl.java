@@ -34,7 +34,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -109,8 +108,6 @@ import lucee.commons.net.IPRange;
 import lucee.commons.net.URLDecoder;
 import lucee.loader.TP;
 import lucee.loader.engine.CFMLEngine;
-import lucee.loader.engine.CFMLEngineFactory;
-import lucee.loader.util.ExtensionFilter;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Component;
@@ -8530,46 +8527,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	@Override
 	public boolean hasServerPassword() {
 		return hasPassword();
-	}
-
-	public String[] getInstalledPatches() throws PageException {
-		CFMLEngineFactory factory = getEngine().getCFMLEngineFactory();
-
-		try {
-			return factory.getInstalledPatches();
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			try {
-				return getInstalledPatchesOld(factory);
-			}
-			catch (Exception e1) {
-				throw Caster.toPageException(e1);
-			}
-		}
-	}
-
-	private String[] getInstalledPatchesOld(CFMLEngineFactory factory) throws IOException {
-		File patchDir = new File(factory.getResourceRoot(), "patches");
-		if (!patchDir.exists()) patchDir.mkdirs();
-
-		File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { "." + getCoreExtension() }));
-
-		List<String> list = new ArrayList<String>();
-		String name;
-		int extLen = getCoreExtension().length() + 1;
-		for (int i = 0; i < patches.length; i++) {
-			name = patches[i].getName();
-			name = name.substring(0, name.length() - extLen);
-			list.add(name);
-		}
-		String[] arr = list.toArray(new String[list.size()]);
-		Arrays.sort(arr);
-		return arr;
-	}
-
-	private String getCoreExtension() {
-		return "lco";
 	}
 
 	@Override

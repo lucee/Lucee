@@ -2753,39 +2753,6 @@ component {
 	}
 
 	/**
-	* @hint executes and run the update details
-	* @deprecated no longer use this, will no longer be supported in the future
-	*/
-	public void function runUpdate(){
-		admin
-			action="runUpdate"
-			type="#variables.type#"
-			password="#variables.password#"
-			remoteClients="#variables.remoteClients#";
-	}
-
-	/**
-	* @hint removes the update details
-	*/
-	public void function removeUpdate(){
-		admin
-			action="removeUpdate"
-			type="#variables.type#"
-			password="#variables.password#";
-	}
-
-	/**
-	* @hint change the current version to specific version
-	*/
-	public void function changeVersionTo( required string version ){
-		admin
-			action="changeVersionTo"
-			type="#variables.type#"
-			password="#variables.password#"
-			version="#arguments.version#";
-	}
-
-	/**
 	* @hint reset the Security Key( In case this server is to be synchronized by another server, you have to enter the security key below in the distant definition of the remote client. )
 	*/
 	public void function resetId(){
@@ -2811,18 +2778,6 @@ component {
 	public string function getMinVersion(){
 		admin
 			action="getMinVersion"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint restart the list of patches available
-	*/
-	public array function listPatches(){
-		admin
-			action="listPatches"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
