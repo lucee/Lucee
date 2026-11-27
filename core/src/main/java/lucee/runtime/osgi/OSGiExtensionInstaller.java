@@ -55,11 +55,19 @@ public final class OSGiExtensionInstaller {
 	private static final ThreadLocal<Boolean> installing = new ThreadLocal<Boolean>();
 
 	// a ReentrantLock, not synchronized: this is also called from virtual threads (LDEV-6812)
+	// set in the tasks that start the bundles of the extensions at startup
+	private static final ThreadLocal<Boolean> startingBundles = new ThreadLocal<Boolean>();
+
 	private static final ReentrantLock LOCK = new ReentrantLock();
 	private static volatile String failure;
 	private static volatile long failedAt;
 
 	private OSGiExtensionInstaller() {
+	}
+
+	public static void setStartingBundles(boolean starting) {
+		if (starting) startingBundles.set(Boolean.TRUE);
+		else startingBundles.remove();
 	}
 
 	public static boolean isAutoInstallEnabled() {
@@ -89,9 +97,8 @@ public final class OSGiExtensionInstaller {
 		String failed = failure;
 		if (failed != null && System.currentTimeMillis() - failedAt < RETRY_AFTER) throw new OSGiNotAvailableException(message(reason, failed));
 
-		// the thread that loads the extensions holds a lock the thread that waits for it would need
-		ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
-		if (cs.isLoadingExtensionsByOtherThread()) return null;
+		// the thread that loads the extensions waits for the tasks that start the bundles, they cannot wait for it
+		if (startingBundles.get() != null) return null;
 
 		LOCK.lock();
 		try {

@@ -1425,7 +1425,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private volatile boolean fldExtensionIdsPending;
 	private int extensionsLoadCount = 0;
 	private Map<String, RHExtension> extensionsLoading;
-	private volatile Thread extensionsLoadingThread;
 	private final ReentrantLock extensionsLock = new ReentrantLock();
 
 	private static Prop<ResourceProviderDef> metaDefaultResourceProviderDef = Prop.custom(ResourceProviderDefFactory.getInstance(false)).keys("defaultResourceProvider")
@@ -5262,15 +5261,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		throw new PageRuntimeException("no longer supported");
 	}
 
-	/**
-	 * @return true when another thread is loading the extensions, a thread that waits for that thread must
-	 *         not try to install an extension
-	 */
-	public boolean isLoadingExtensionsByOtherThread() {
-		Thread t = extensionsLoadingThread;
-		return t != null && t != Thread.currentThread();
-	}
-
 	@Override
 	public RHExtension[] getRHExtensions() {
 
@@ -5296,7 +5286,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					// print.e(extensions);
 					Map<String, RHExtension> exts = new HashMap<>();
 					extensionsLoading = exts;
-					extensionsLoadingThread = Thread.currentThread();
 					try {
 						{
 							RHExtension ext;
@@ -5345,6 +5334,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 							for (RHExtension ext: exts.values()) {
 								executor.submit(() -> {
+									// LDEV-7012 the loading thread waits for this task, the OSGi extension cannot be installed from here
+									lucee.runtime.osgi.OSGiExtensionInstaller.setStartingBundles(true);
 									try {
 										// Call the startBundles method for each extension
 										startBundles(this, ext, firstLoad);
@@ -5355,6 +5346,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 										}
 									}
 									finally {
+										lucee.runtime.osgi.OSGiExtensionInstaller.setStartingBundles(false);
 										// Count down the latch regardless of success or failure
 										latch.countDown();
 									}
@@ -5444,7 +5436,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					}
 					finally {
 						extensionsLoading = null;
-						extensionsLoadingThread = null;
 					}
 				}
 			}
