@@ -127,7 +127,7 @@ public final class SystemExitScanner {
 	}
 
 	public static void main(String[] args) throws Exception {
-		// may necessary to change bootdelegation in default.properties
+		// may necessary to change the parent first packages in ParentFirstPackages
 		clean(new File("...."), new File("...."));
 	}
 

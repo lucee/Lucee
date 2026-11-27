@@ -17,7 +17,6 @@
  */
 package lucee.runtime.engine;
 
-import java.io.InputStream;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -27,16 +26,13 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Locale;
-import java.util.Properties;
 
 import lucee.loader.util.VersionImpl;
 import lucee.runtime.config.maven.Version;
 
 import lucee.Info;
-import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
@@ -193,91 +189,6 @@ public final class InfoImpl implements Info {
 	public String toString() {
 		return "releaseDate:" + releaseDate + ";versionName:" + versionName + ";versionNameExplanation:" + versionNameExplanation + ";level" + level + ";requiredExtensions:"
 				+ requiredExtensionsRaw;
-	}
-
-	public static Properties getDefaultProperties() {
-		InputStream is = null;
-		Properties prop = new Properties();
-		String keyToValidate = "felix.log.level";
-		try {
-			// Lucee is one jar, the default.properties in the root is the one of Felix
-			prop = new Properties();
-			Class clazz = PageSourceImpl.class;
-			ClassLoader cl = clazz.getClassLoader();
-			try {
-				is = cl.getResourceAsStream("lucee/default.properties");
-				prop.load(is);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-			}
-			finally {
-				IOUtil.closeEL(is);
-			}
-			if (prop.getProperty(keyToValidate) != null) return prop;
-
-			// try from core classloader without leading slash
-			prop = new Properties();
-			try {
-				is = cl.getResourceAsStream("default.properties");
-				prop.load(is);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-			}
-			finally {
-				IOUtil.closeEL(is);
-			}
-			if (prop.getProperty(keyToValidate) != null) return prop;
-
-			// try from core classloader with leading slash
-			prop = new Properties();
-			try {
-				is = cl.getResourceAsStream("/default.properties");
-				prop.load(is);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-			}
-			finally {
-				IOUtil.closeEL(is);
-			}
-			if (prop.getProperty(keyToValidate) != null) return prop;
-
-			// try from core class with leading slash
-			prop = new Properties();
-			try {
-				is = clazz.getResourceAsStream("/default.properties");
-				prop.load(is);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-			}
-			finally {
-				IOUtil.closeEL(is);
-			}
-			if (prop.getProperty(keyToValidate) != null) return prop;
-
-			prop = new Properties();
-			try {
-				is = clazz.getResourceAsStream("../../default.properties");
-				prop.load(is);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-			}
-			finally {
-				IOUtil.closeEL(is);
-			}
-			if (prop.getProperty(keyToValidate) != null) return prop;
-
-			return new Properties();
-
-		}
-		finally {
-			IOUtil.closeEL(is);
-		}
-
 	}
 
 	public static int toIntVersion(String version, int defaultValue) {

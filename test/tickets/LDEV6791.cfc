@@ -10,9 +10,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="osgi,maven" javaSe
 		describe( "LDEV-6791 jdk.* is part of the default bootdelegation", function() {
 
 			it( title="jdk.* packages are in the effective bootdelegation", body=function( currentSpec ) {
-				var bootDelegation = createObject( "java", "lucee.commons.lang.BootDelegation" );
-				expect( bootDelegation.isPackageInBootelegation( "jdk.dynalink" ) ).toBeTrue();
-				expect( bootDelegation.isClassInBootelegation( "jdk.dynalink.RelinkableCallSite" ) ).toBeTrue();
+				var bootDelegation = createObject( "java", "lucee.commons.lang.ParentFirstPackages" );
+				expect( bootDelegation.isPackageParentFirst( "jdk.dynalink" ) ).toBeTrue();
+				expect( bootDelegation.isClassParentFirst( "jdk.dynalink.RelinkableCallSite" ) ).toBeTrue();
 			});
 
 			it( title="a jdk.dynalink class is loadable from a Maven loaded context", body=function( currentSpec ) {

@@ -75,7 +75,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ArchiveClassLoader;
 import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.ClassLoaderHelper;
-import lucee.commons.lang.BootDelegation;
+import lucee.commons.lang.ParentFirstPackages;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MemoryClassLoader;
@@ -214,7 +214,7 @@ public final class SystemUtil {
 
 	private static final int TYPE_BUNDLE = 1;
 	private static final int TYPE_SYSTEM = 2;
-	private static final int TYPE_BOOT_DELEGATION = 3;
+	private static final int TYPE_PARENT_FIRST = 3;
 
 	static {
 		// OS
@@ -1617,8 +1617,8 @@ public final class SystemUtil {
 
 	/**
 	 * 
-	 * @return the class calling me and the first class not in bootdelegation if the the is in
-	 *         bootdelegation
+	 * @return the class calling me and the first class not in the parent first packages if the the is in
+	 *         the parent first packages
 	 */
 	public static Caller getCallerClass() {
 		final Ref ref = new Ref();
@@ -1642,15 +1642,15 @@ public final class SystemUtil {
 			rtn.fromBundle = clazz;
 			return rtn;
 		}
-		if (!BootDelegation.isClassInBootelegation(clazz.getName())) {
+		if (!ParentFirstPackages.isClassParentFirst(clazz.getName())) {
 			rtn.fromSystem = clazz;
 		}
 		else {
-			rtn.fromBootDelegation = clazz;
+			rtn.fromParentFirst = clazz;
 		}
 
 		clazz = null;
-		if (rtn.fromBootDelegation != null) {
+		if (rtn.fromParentFirst != null) {
 			index = new RefIntegerImpl(3);
 			clazz = _getCallerClass(ref.context, caller, index, false, true);
 			if (clazz == null) return rtn;
@@ -1730,18 +1730,18 @@ public final class SystemUtil {
 
 	public static int getClassType(Class<?> clazz) {
 		if (isFromBundle(clazz)) return TYPE_BUNDLE;
-		if (BootDelegation.isClassInBootelegation(clazz.getName())) return TYPE_BOOT_DELEGATION;
+		if (ParentFirstPackages.isClassParentFirst(clazz.getName())) return TYPE_PARENT_FIRST;
 		return TYPE_SYSTEM;
 	}
 
 	public static String getClassTypeAsString(Class<?> clazz) {
 		int type = getClassType(clazz);
 		if (type == TYPE_BUNDLE) return "bundle";
-		else if (type == TYPE_BOOT_DELEGATION) return "boot-delegation";
+		else if (type == TYPE_PARENT_FIRST) return "boot-delegation";
 		return "system";
 	}
 
-	private static Class<?> _getCallerClass(Class<?>[] context, Class<?> caller, RefInteger index, boolean acceptBootDelegation, boolean acceptSystem) {
+	private static Class<?> _getCallerClass(Class<?>[] context, Class<?> caller, RefInteger index, boolean acceptParentFirst, boolean acceptSystem) {
 		Class<?> callerCaller;
 		do {
 			callerCaller = context[index.toInt()];
@@ -1753,7 +1753,7 @@ public final class SystemUtil {
 			if (callerCaller != null && !acceptSystem && !isFromBundle(callerCaller)) {
 				callerCaller = null;
 			}
-			else if (callerCaller != null && !acceptBootDelegation && BootDelegation.isClassInBootelegation(callerCaller.getName())) {
+			else if (callerCaller != null && !acceptParentFirst && ParentFirstPackages.isClassParentFirst(callerCaller.getName())) {
 				callerCaller = null;
 			}
 		}
@@ -1763,26 +1763,26 @@ public final class SystemUtil {
 
 	public static class Caller {
 
-		public Class<?> fromBootDelegation;
+		public Class<?> fromParentFirst;
 		public Class<?> fromSystem;
 		public Class<?> fromBundle;
 
 		@Override
 		public String toString() {
-			return "fromBootDelegation:" + fromBootDelegation + ";fromSystem:" + fromSystem + ";fromBundle:" + fromBundle;
+			return "fromParentFirst:" + fromParentFirst + ";fromSystem:" + fromSystem + ";fromBundle:" + fromBundle;
 		}
 
 		public boolean isEmpty() {
-			return fromBootDelegation == null && fromBundle == null && fromSystem == null;
+			return fromParentFirst == null && fromBundle == null && fromSystem == null;
 		}
 
 		public Class<?> fromClasspath() {
 			if (fromSystem != null) {
 				if (fromSystem.getClassLoader() != null) return fromSystem;
-				if (fromBootDelegation != null && fromBootDelegation.getClassLoader() != null) return fromBootDelegation;
+				if (fromParentFirst != null && fromParentFirst.getClassLoader() != null) return fromParentFirst;
 				return fromSystem;
 			}
-			return fromBootDelegation;
+			return fromParentFirst;
 		}
 	}
 
