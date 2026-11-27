@@ -70,7 +70,7 @@ component {
 		}
 
 		if (len(auth) && reFindNoCase("^Bearer\s+", auth)) {
-			return trim(reReplace(auth, "^Bearer\s+", "", "one"));
+			return trim(reReplaceNoCase(auth, "^Bearer\s+", "", "one"));
 		}
 
 		return "";
