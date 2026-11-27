@@ -473,7 +473,8 @@ jobs:
     - name: Trigger the Lucee Docker image build
       # LDEV-6536: runs after the maven deploy (was in ant/upload_to_s3.cfm)
       # LDEV-6707: and after the GitHub release (the jar is on Maven Central again since LDEV-6900, but only for final releases)
-      if: success() && env.DID_DEPLOY == 'true' && env.VERSION != ''
+      # Do not trigger a Docker image build for SNAPSHOT versions.
+      if: success() && env.DID_DEPLOY == 'true' && env.VERSION != '' && !contains(env.VERSION, '-SNAPSHOT')
       continue-on-error: true
       env:
         GH_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
