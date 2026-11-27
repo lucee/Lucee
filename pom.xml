@@ -148,12 +148,10 @@
                       <regexp pattern="^\s*$"/>
                     </linecontainsregexp>
                     <linecontainsregexp negate="true">
-                      <regexp pattern="^(Manifest-Version|Bundle-Version|Built-Date|Bundle-Name|Bundle-SymbolicName|Bundle-ManifestVersion):"/>
+                      <regexp pattern="^(Manifest-Version|Built-Date):"/>
                     </linecontainsregexp>
                   </filterchain>
                 </concat>
-                <!-- Lucee is not an OSGi bundle (LDEV-6761): the OSGi headers of the former core bundle are not part of the manifest of the jar, the multi line headers go with their continuation lines -->
-                <replaceregexp file="${project.build.outputDirectory}/META-INF/MANIFEST.MF" match="^(Bundle-RequiredExecutionEnvironment|Bundle-ClassPath|Import-Package|Export-Package):[^\n]*\n( [^\n]*\n)*" replace="" flags="gm" byline="false"/>
                 <echo file="${project.build.outputDirectory}/META-INF/MANIFEST.MF" append="true" encoding="UTF-8">Lucee-Version: ${project.version}
 Built-Date: ${maven.build.timestamp}</echo>
                 <echo file="${project.build.outputDirectory}/META-INF/MANIFEST.MF" append="true" message=""/>

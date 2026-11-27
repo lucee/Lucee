@@ -583,9 +583,6 @@
     </copy>
 
 
-    <!-- Lucee is not an OSGi bundle (LDEV-6761): the OSGi headers of the former core bundle (the source manifest is shared with 8.0) are not part of the manifest, the multi line headers go with their continuation lines -->
-    <replaceregexp file="${core}/META-INF/MANIFEST.MF" match="^(Bundle-Version|Bundle-Name|Bundle-SymbolicName|Bundle-ManifestVersion|Bundle-RequiredExecutionEnvironment|Bundle-ClassPath|Import-Package|Export-Package):[^\n]*\n( [^\n]*\n)*" replace="" flags="gm" byline="false"/>
-
     <!-- create the manifest file -->
     <manifest file="${core}/META-INF/MANIFEST.MF" mode="update">
       <attribute name="Lucee-Version" value="${version}"/>
