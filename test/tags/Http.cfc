@@ -16,13 +16,12 @@
  */
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 
-	variables.updateProvider = server.getTestService("updateProvider").url;
 	variables.httpbin = server.getTestService("httpbin");
 
 	function beforeAll() {
 		// Skip httpbin tests if service is not available
 		variables.hasHttpbin = structCount(variables.httpbin) > 0;
-		variables.hasHttpsProvider = left( variables.updateProvider, 8 ) == "https://";
+		variables.httpbinUrl = variables.hasHttpbin ? "http://#variables.httpbin.server#:#variables.httpbin.port#" : "";
 	}
 
 	function testConnectionTimeout() {
@@ -53,15 +52,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 	}
 
 	public function testHTTP() localmode="true"{
-		if ( variables.hasHttpsProvider ) return;
-		http url="#variables.updateProvider#/rest/update/provider/echoGet";
+		if (!variables.hasHttpbin) return;
+		http url="#variables.httpbinUrl#/anything";
 		expect( cfhttp.error ).toBe(  false );
 		expect( cfhttp.status_code ).toBe( 200 );
 	}
 
 	public function testHTTPs() localmode="true"{
-		if ( !variables.hasHttpsProvider ) return;
-		http url="#variables.updateProvider#/rest/update/provider/echoGet";
+		http url="https://httpbin.org/get";
+		if ( cfhttp.status_code == 0 ) return; // skip if the public HTTPS endpoint is unreachable
+
 		expect( cfhttp.status_code ).toBe( 200 );
 		expect( cfhttp.error ).toBe( false);
 	}
@@ -77,65 +77,72 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 	}
 
 	public function test404() localmode="true"{
-		http url="#variables.updateProvider#/rest/update/provider/404";
+		if (!variables.hasHttpbin) return;
+		http url="#variables.httpbinUrl#/status/404";
 		expect( cfhttp.error ).toBe( true );
 		expect( cfhttp.status_code ).toBe( 404 );
 		expect( function(){
-			http url="#variables.updateProvider#/rest/update/provider/404" throwOnError=true;
+			http url="#variables.httpbinUrl#/status/404" throwOnError=true;
 		}).toThrow();
 	}
 
 
 	public void function testDefaultHTTPParamType(){
-		http url="#variables.updateProvider#/rest/update/provider/echoGet" result="local.res" method="get"{
+		if (!variables.hasHttpbin) return;
+		http url="#variables.httpbinUrl#/anything" result="local.res" method="get"{
 			httpparam name="susi" value="Sorglos";
 		}
 		var res=deserializeJSON(res.filecontent);
 
-		assertEquals("Sorglos",res.url.susi);
+		assertEquals("Sorglos",res.args.susi);
 	}
 
 	public void function testPatch(){
-		http url="#variables.updateProvider#/rest/update/provider/echoGet" result="local.res" method="patch"{
+		if (!variables.hasHttpbin) return;
+		http url="#variables.httpbinUrl#/anything" result="local.res" method="patch"{
 			httpparam name="susi" value="Sorglos";
 		}
 	}
 
 	public void function testImplicit() skip=true {
+		if (!variables.hasHttpbin) return;
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";
-		http url="#variables.updateProvider#/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
+		http url="#variables.httpbinUrl#/anything" result="local.res" method="put" throwonerror="no" charset="utf-8"{
 			httpparam type="body" value=data;
 		}
 		var res=deserializeJSON(res.filecontent);
-		assertEquals(data,res.httpRequestData.content);
+		assertEquals(data,res.data);
 	}
 
 	public void function testQuery(){
-		http url="#variables.updateProvider#/rest/update/provider/echoGet" result="local.res" method="query"{
+		if (!variables.hasHttpbin) return;
+		http url="#variables.httpbinUrl#/anything" result="local.res" method="query"{
 			httpparam name="susi" value="Sorglos";
 		}
 	}
 
 	public void function testExplicit() skip=true {
+		if (!variables.hasHttpbin) return;
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";
-		http url="#variables.updateProvider#/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
+		http url="#variables.httpbinUrl#/anything" result="local.res" method="put" throwonerror="no" charset="utf-8"{
 			httpparam type="body" mimetype="text/plain; charset=UTF-8" value=data;
 		}
 		var res=deserializeJSON(res.filecontent);
-		assertEquals(data,res.httpRequestData.content);
+		assertEquals(data,res.data);
 	}
 
 	public void function testCachedHttpRequest(){
-		http url="#variables.updateProvider#/rest/update/provider/echoGet" result="local.res" method="get" cachedWithin="request"{
+		if (!variables.hasHttpbin) return;
+		http url="#variables.httpbinUrl#/anything" result="local.res" method="get" cachedWithin="request"{
 			httpparam name="susi" value="Sorglos";
 		}
-		http url="#variables.updateProvider#/rest/update/provider/echoGet" result="local.res2" method="get" cachedWithin="request"{
+		http url="#variables.httpbinUrl#/anything" result="local.res2" method="get" cachedWithin="request"{
 			httpparam name="susi" value="Sorglos";
 		}
 		var res = deserializeJSON( res.filecontent );
 		var res2 = deserializeJSON( res2.filecontent );
-		expect( res.url.susi ).toBe( res2.url.susi );
+		expect( res.args.susi ).toBe( res2.args.susi );
 	}
 }
