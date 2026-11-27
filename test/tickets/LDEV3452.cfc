@@ -1,6 +1,9 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 
 	function beforeAll() {
+		variables.httpbin = server.getTestService("httpbin");
+		variables.hasHttpbin = structCount(variables.httpbin) > 0;
+		variables.httpbinUrl = variables.hasHttpbin ? "http://#variables.httpbin.server#:#variables.httpbin.port#" : "";
 		variables.dir = getTempDirectory() & "LDEV3452/"
 		if(directoryExists(variables.dir)) directoryDelete(variables.dir,true);
 		directoryCreate(variables.dir);
@@ -9,14 +12,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-3452", function() {
 			it( title="Checking cfhttp with path & file attributes", body=function( currentSpec ) {
-				cfhttp( url="http://update.lucee.org/rest/update/provider/echoGet" file="test.txt" method="GET" path="#variables.dir#" );
+				if ( !variables.hasHttpbin ) return;
+				cfhttp( url="#variables.httpbinUrl#/anything" file="test.txt" method="GET" path="#variables.dir#" );
 				result = fileExists("#variables.dir#/test.txt");
 			
 				expect(result).tobe("true");
 			});
 
 			it( title="Checking cfhttp with attribute path=path/filename", body=function( currentSpec ) {
-				cfhttp( url="http://update.lucee.org/rest/update/provider/echoGet" method="GET" path="#variables.dir#/file.txt" );
+				if ( !variables.hasHttpbin ) return;
+				cfhttp( url="#variables.httpbinUrl#/anything" method="GET" path="#variables.dir#/file.txt" );
 				result = fileExists("#variables.dir#/file.txt");
 			
 				expect(result).tobe("true");
