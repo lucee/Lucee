@@ -55,15 +55,7 @@
           <exclude>**/.*</exclude>
           <exclude>META-INF/MANIFEST.MF</exclude>
           <exclude>License.txt</exclude>
-          <exclude>default.properties</exclude>
         </excludes>
-      </resource>
-      <resource>
-        <directory>core/src/main/java</directory>
-        <targetPath>lucee</targetPath>
-        <includes>
-          <include>default.properties</include>
-        </includes>
       </resource>
       <!-- the CFML of the Lucee context, the admin and the documentation are archives (lucee-admin.lar, lucee-doc.lar) built by Lucee itself -->
       <resource>

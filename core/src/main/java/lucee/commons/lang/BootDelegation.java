@@ -1,49 +1,43 @@
 package lucee.commons.lang;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
 
 /**
- * The packages the class loader of Lucee hands over to the parent (org.osgi.framework.bootdelegation).
+ * The packages the class loader of Lucee hands over to the parent. The system property / environment variable org.osgi.framework.bootdelegation adds packages.
  */
 public final class BootDelegation {
+
+	// the packages that are always handed over to the parent: the JDK, the servlet container and the Lucee core
+	private static final String[] DEFAULT_BOOT_DELEGATION = new String[] {
+			"coldfusion.xml.rpc",
+			"com.apple.laf", "com.apple.laf.*", "com.integral.fusiondebug.server", "com.sun.jndi", "com.sun.jndi.*", "com.sun.msv.datatype", "com.sun.msv.datatype.*", "com.sun.org.apache.xerces.internal.*", "com.sun.org.glassfish", "com.sun.org.glassfish.*", "com.sun.proxy", "com.sun.proxy.*", "com.sun.xml.internal.ws.api.*",
+			"jakarta.annotation", "jakarta.annotation.processing", "jakarta.el", "jakarta.enterprise.context", "jakarta.enterprise.inject", "jakarta.inject", "jakarta.security.*", "jakarta.security.auth", "jakarta.security.auth.callback", "jakarta.security.auth.login", "jakarta.security.auth.x500", "jakarta.security.cert", "jakarta.security.cert.*", "jakarta.security.sasl", "jakarta.servlet", "jakarta.servlet.http", "jakarta.servlet.jsp", "jakarta.servlet.jsp.tagext", "jakarta.servlet.jsp.el", "jakarta.transaction", "jakarta.validation", "jakarta.websocket", "jakarta.websocket.*", "jakarta.xml.*",
+			"java.*",
+			"javax.accessibility", "javax.annotation", "javax.annotation.processing", "javax.crypto", "javax.crypto.interfaces", "javax.crypto.spec", "javax.enterprise.context", "javax.enterprise.inject", "javax.imageio", "javax.imageio.event", "javax.imageio.metadata", "javax.imageio.plugins.bmp", "javax.imageio.plugins.jpeg", "javax.imageio.plugins.tiff", "javax.imageio.spi", "javax.imageio.stream", "javax.inject", "javax.jmdns", "javax.management", "javax.management.*", "javax.naming", "javax.naming.*", "javax.net", "javax.net.ssl", "javax.print", "javax.print.attribute", "javax.security.*", "javax.security.auth", "javax.security.auth.callback", "javax.security.auth.kerberos", "javax.security.auth.login", "javax.security.auth.x500", "javax.security.cert", "javax.security.cert.*", "javax.security.sasl", "javax.servlet", "javax.servlet.http", "javax.servlet.jsp", "javax.servlet.jsp.tagext", "javax.servlet.jsp.el", "javax.sql", "javax.swing", "javax.swing.border", "javax.swing.event", "javax.swing.filechooser", "javax.swing.plaf", "javax.swing.plaf.*", "javax.swing.table", "javax.swing.table.*", "javax.swing.text", "javax.swing.tree", "javax.tools", "javax.transaction", "javax.validation", "javax.websocket", "javax.websocket.*", "javax.xml.*",
+			"jdk.*", "jdk.internal.reflect", "jdk.internal.reflect.*", "jdk.jfr.internal.event",
+			"lucee", "lucee.*",
+			"org.ietf.jgss", "org.osgi.framework", "org.omg.CORBA", "org.omg.CORBA.portable", "org.osgi.*", "org.w3c.dom", "org.w3c.dom.*", "org.xml.sax", "org.xml.sax.*",
+			"sun.*", "sun.misc" };
 
 	private static String[] bootDelegation;
 
 	public static String[] getBootdelegation() {
 		if (bootDelegation == null) {
-			InputStream is = null;
-			try {
-				Properties prop = new Properties();
-				// Lucee is one jar, the default.properties in the root is the one of Felix
-				is = BootDelegation.class.getClassLoader().getResourceAsStream("lucee/default.properties");
-				if (is == null) is = BootDelegation.class.getClassLoader().getResourceAsStream("default.properties");
-				prop.load(is);
-				String bd = prop.getProperty("org.osgi.framework.bootdelegation");
-				String addional = Caster.toString(SystemUtil.getSystemPropOrEnvVar("org.osgi.framework.bootdelegation", null), null);
-
-				if (!StringUtil.isEmpty(addional, true)) {
-					if (!StringUtil.isEmpty(bd)) bd = addional.trim() + "," + bd;
-					else bd = addional.trim();
-				}
-
-				if (!StringUtil.isEmpty(bd)) {
-					bootDelegation = ListUtil.trimItems(ListUtil.listToStringArray(StringUtil.unwrap(bd), ','));
-				}
-			}
-			catch (IOException ioe) {}
-			finally {
-				IOUtil.closeEL(is);
+			// the system property / environment variable adds packages to the list
+			String additional = Caster.toString(SystemUtil.getSystemPropOrEnvVar("org.osgi.framework.bootdelegation", null), null);
+			if (StringUtil.isEmpty(additional, true)) bootDelegation = DEFAULT_BOOT_DELEGATION;
+			else {
+				String[] add = ListUtil.trimItems(ListUtil.listToStringArray(StringUtil.unwrap(additional.trim()), ','));
+				String[] result = new String[add.length + DEFAULT_BOOT_DELEGATION.length];
+				System.arraycopy(add, 0, result, 0, add.length);
+				System.arraycopy(DEFAULT_BOOT_DELEGATION, 0, result, add.length, DEFAULT_BOOT_DELEGATION.length);
+				bootDelegation = result;
 			}
 		}
-		if (bootDelegation == null) return new String[0];
 		return bootDelegation;
 	}
 

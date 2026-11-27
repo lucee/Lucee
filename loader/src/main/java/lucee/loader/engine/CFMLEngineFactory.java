@@ -388,10 +388,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				}
 			});
 
-			File f = new File(sourceJava, "default.properties");
-			addFileToJar(jos, f, "");
-
-			f = new File(sourceJava, "License.txt");
+			File f = new File(sourceJava, "License.txt");
 			addFileToJar(jos, f, "");
 		}
 		finally {
