@@ -208,6 +208,21 @@
 
     <!-- get the extensions from manifest -->
     <!-- TODO extension handling must be more dynamic! -->
+    <!-- LDEV-7013 the manifest of the core has no OSGi headers anymore, the file is merged from 8.0: when the headers come back with a merge, keep the 9.0 version of the file -->
+    <fail message="core/src/main/java/META-INF/MANIFEST.MF contains OSGi headers, Lucee 9 is not an OSGi bundle (LDEV-7013). When merging 8.0 into 9.0 keep the 9.0 version of the file.">
+      <condition>
+        <or>
+          <resourcecontains resource="${coreManifest}" substring="&#10;Bundle-Version:"/>
+          <resourcecontains resource="${coreManifest}" substring="&#10;Bundle-Name:"/>
+          <resourcecontains resource="${coreManifest}" substring="&#10;Bundle-SymbolicName:"/>
+          <resourcecontains resource="${coreManifest}" substring="&#10;Bundle-ManifestVersion:"/>
+          <resourcecontains resource="${coreManifest}" substring="&#10;Bundle-RequiredExecutionEnvironment:"/>
+          <resourcecontains resource="${coreManifest}" substring="&#10;Bundle-ClassPath:"/>
+          <resourcecontains resource="${coreManifest}" substring="&#10;Import-Package:"/>
+          <resourcecontains resource="${coreManifest}" substring="&#10;Export-Package:"/>
+        </or>
+      </condition>
+    </fail>
     <readRequiredExtensions file="${coreManifest}"/>
     <fail message="Missing PDF data from [Require-Extension] inside ${coreManifest}.">
     <condition>
@@ -582,9 +597,6 @@
       </fileset>
     </copy>
 
-
-    <!-- Lucee is not an OSGi bundle (LDEV-6761): the OSGi headers of the former core bundle (the source manifest is shared with 8.0) are not part of the manifest, the multi line headers go with their continuation lines -->
-    <replaceregexp file="${core}/META-INF/MANIFEST.MF" match="^(Bundle-Version|Bundle-Name|Bundle-SymbolicName|Bundle-ManifestVersion|Bundle-RequiredExecutionEnvironment|Bundle-ClassPath|Import-Package|Export-Package):[^\n]*\n( [^\n]*\n)*" replace="" flags="gm" byline="false"/>
 
     <!-- create the manifest file -->
     <manifest file="${core}/META-INF/MANIFEST.MF" mode="update">
