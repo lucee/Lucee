@@ -62,8 +62,6 @@
 				return adminAINavSanitizeText(t.remote.ot.overviewDesc ?: "");
 			case "services.schedule":
 				return adminAINavSanitizeText(t.schedule.description ?: "");
-			case "services.update":
-				return adminAINavSanitizeText(t.services.update.desc ?: "");
 			case "services.certificates":
 				return adminAINavSanitizeText(t.services.certificate.desc ?: "");
 			case "ext.applications":

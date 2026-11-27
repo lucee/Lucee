@@ -106,10 +106,6 @@ public final class DeployHandler {
 								filter.reset(config);
 							}
 
-							// Lucee core
-							else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) {
-								ConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
-							}
 							// LDEV-5607 pom, installs the dependencies it declares
 							else if (!child.isDirectory() && DeployPom.isPom(child.getName())) {
 								DeployPom.deploy((ConfigPro) config, child, log);

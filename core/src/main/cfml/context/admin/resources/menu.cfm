@@ -40,7 +40,6 @@
 				struct(action:"mail",label:arguments.stMenu.services.mail),
 				struct(action:"tasks",label:arguments.stMenu.services.tasks),
 				struct(action:"schedule",label:arguments.stMenu.services.schedule,hidden:arguments.adminType NEQ "web" and not arguments.singlemode),
-				struct(action:"update",label:arguments.stMenu.services.update,hidden:arguments.adminType EQ "web" and not arguments.singlemode,display:true),
 				struct(action:"restart",label:arguments.stMenu.services.restart,hidden:arguments.adminType EQ "web" and not arguments.singlemode,display:true),
 				struct(action:"certificates",label:arguments.stMenu.services.certificates,hidden:arguments.adminType EQ "web" and not arguments.singlemode,display:true)
 				

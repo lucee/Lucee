@@ -86,9 +86,7 @@
 			<cfoutput>
 				<cfif ( adminType == "server" and hasUpdate ) or ( extensions.recordcount and len( ext ) )>
 					<cfif adminType == "server" and hasUpdate>
-						<p><a href="?action=services.update">
-							#replace( stText.services.update.update, { '{available}': available, '{current}': server.lucee.version } )#
-						</a></p>
+						<p>#replace( stText.services.update.update, { '{available}': available, '{current}': server.lucee.version } )#</p>
 					</cfif>
 					<cfif extensions.recordcount and len( ext )>
 						<p><a href="?action=ext.applications">

@@ -18,7 +18,6 @@
  */
 package lucee.runtime.tag;
 
-import lucee.loader.util.VersionImpl;
 import lucee.runtime.osgi.BundleDefinition;
 import lucee.runtime.osgi.OSGiService;
 import lucee.runtime.osgi.OSGi;
@@ -50,7 +49,6 @@ import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import lucee.runtime.config.maven.Version;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.jsp.tagext.Tag;
@@ -954,14 +952,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		else if (check("updateLabel", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateLabel();
 		else if (check("restart", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRestart();
-		else if (check("runUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRunUpdate();
-		else if (check("removeUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveUpdate();
-		else if (check("changeVersionTo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doChangeVersionTo();
-		else if (check("mvnChangeVersionTo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doMvnChangeVersionTo();
 		else if (check("getUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doGetUpdate();
 		else if (check("getMinVersion", ACCESS_FREE) && check2(ACCESS_READ)) getMinVersion();
 		else if (check("getLoaderInfo", ACCESS_FREE) && check2(ACCESS_READ)) getLoaderInfo();
-		else if (check("listPatches", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) listPatches();
 		else if (check("updateupdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateUpdate();
 		else if (check("getSerial", ACCESS_FREE) && check2(ACCESS_READ)) doGetSerial();
 		else if (check("updateSerial", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateSerial();
@@ -984,40 +977,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			return true;
 		}
 		return false;
-	}
-
-	// should no longer be used, points to update provider that will no longer be available in the
-	// future
-	@Deprecated
-	private void doRunUpdate() throws PageException {
-		admin.runUpdate(password);
-	}
-
-	private void doRemoveUpdate() throws PageException {
-		boolean onlyLatest = getBoolV("onlyLatest", false);
-
-		if (onlyLatest) admin.removeLatestUpdate(password);
-		else admin.removeUpdate(password);
-	}
-
-	private void doChangeVersionTo() throws PageException {
-		try {
-			Version version = VersionImpl.parseOSGi(getString("admin", "changeVersionTo", "version"));
-			admin.changeVersionTo(version, password, pageContext.getConfig().getIdentification());
-		}
-		catch (IOException e) {
-			throw Caster.toPageException(e);
-		}
-	}
-
-	private void doMvnChangeVersionTo() throws PageException {
-		try {
-			lucee.runtime.config.maven.Version version = lucee.loader.util.VersionImpl.parseVersion(getString("admin", "changeVersionTo", "version"));
-			admin.mvnChangeVersionTo(version, password, pageContext.getConfig().getIdentification());
-		}
-		catch (IOException e) {
-			throw Caster.toPageException(e);
-		}
 	}
 
 	private void doRestart() throws PageException {
@@ -2598,16 +2557,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetRemoteClientMaxThreads();
 
-	}
-
-	private void listPatches() throws PageException {
-		try {
-
-			pageContext.setVariable(getString("admin", action, "returnVariable"), Caster.toArray(((ConfigServerImpl) config).getInstalledPatches()));
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
 	}
 
 	private void getMinVersion() throws PageException {
