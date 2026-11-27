@@ -18,26 +18,30 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" skip=true {
 
-	variables.updateProvider = server.getTestService("updateProvider").url;
+	variables.httpbin = server.getTestService("httpbin");
+	variables.hasHttpbin = structCount(variables.httpbin) > 0;
+	variables.httpbinUrl = variables.hasHttpbin ? "http://#variables.httpbin.server#:#variables.httpbin.port#" : "";
 		
 	public void function testImplicit(){
+		if (!variables.hasHttpbin) return;
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";
-		http url="#variables.updateProvider#/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
+		http url="#variables.httpbinUrl#/anything" result="local.res" method="put" throwonerror="no" charset="utf-8"{
 			httpparam type="body" value=data;
 		}
-		res=evaluate(res.filecontent);
-		assertEquals(data,res.httpRequestData.content);
+		res=deserializeJSON(res.filecontent);
+		assertEquals(data,res.data);
 	}
 
 	public void function testExplicit(){
+		if (!variables.hasHttpbin) return;
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";
-		http url="#variables.updateProvider#/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
+		http url="#variables.httpbinUrl#/anything" result="local.res" method="put" throwonerror="no" charset="utf-8"{
 			httpparam type="body" mimetype="text/plain; charset=UTF-8" value=data;
 		}
-		res=evaluate(res.filecontent);
-		assertEquals(data,res.httpRequestData.content);
+		res=deserializeJSON(res.filecontent);
+		assertEquals(data,res.data);
 	}
 } 
 </cfscript>
