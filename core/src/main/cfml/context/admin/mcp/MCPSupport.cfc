@@ -18,12 +18,19 @@ component {
 		}
 
 		try {
-			return deserializeJSON(data.content);
+			var req = deserializeJSON(data.content);
 		}
 		catch (any ex) {
 			writeError("", -32700, "Parse error: #ex.message#");
 			abort;
 		}
+
+		// batch requests are not supported
+		if (isNull(req) || !isStruct(req)) {
+			writeError("", -32600, "Invalid Request: expected a single JSON-RPC request object");
+			abort;
+		}
+		return req;
 	}
 
 	package static function getRpcRequestId(required struct req) {
