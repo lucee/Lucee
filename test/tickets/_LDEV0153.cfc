@@ -18,12 +18,15 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 
-	variables.updateProvider = server.getTestService("updateProvider").url;
+	variables.httpbin = server.getTestService("httpbin");
+	variables.hasHttpbin = structCount(variables.httpbin) > 0;
+	variables.httpbinUrl = variables.hasHttpbin ? "http://#variables.httpbin.server#:#variables.httpbin.port#" : "";
 			
 	public void function test(){
-		http url="#variables.updateProvider#/rest/update/provider/echoGet?filtername=henk+patat" result="local.res";
+		if (!variables.hasHttpbin) return;
+		http url="#variables.httpbinUrl#/anything?filtername=henk+patat" result="local.res";
 		res=deserializeJSON(res.filecontent);
-		assertEquals("henk patat",res.url.filtername); // comes back as henk+patat ???
+		assertEquals("henk patat",res.args.filtername);
 	}
 
 	
