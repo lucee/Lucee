@@ -198,9 +198,9 @@ function defaultValue(field) {
 				<table class="maintbl" style="width:400px;">
 					<tbody>
 						<tr>
-							<th scope="row" nowrap="nowrap">#stText.Settings.cache.Name#</th>
+							<th scope="row" nowrap="nowrap">#stText.Settings.logging.name#</th>
 							<td><cfinputClassic type="text" name="_name" value="" class="xlarge" required="yes" 
-								message="#stText.Settings.cache.nameMissing#"></td>
+								message="#stText.Settings.logging.nameMissing#"></td>
 						</tr>
 						<tr>
 							<th scope="row">#stText.Settings.logging.appender#</th>

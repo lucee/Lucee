@@ -1588,6 +1588,7 @@
 				"readOnlyDesc": "Los registros de solo lectura se generan dentro del \"administrador del servidor\" para todas las instancias web y no se pueden modificar por el \"administrador web\".",
 				"readOnlyTitle": "Registros de solo lectura",
 				"title": "Registros",
+				"nameMissing": "Por favor, ingresa un nombre para el registro",
 				"titleCreate": "Crear nuevo registro"
 			},
 			"minutes": "minuto(s)",

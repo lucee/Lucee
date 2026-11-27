@@ -1653,6 +1653,7 @@
         "readOnlyDesc": "Readonly Logs are generated within the \"server administrator\" for all web instances and can not be modified by the \"web administrator.",
         "readOnlyTitle": "Readonly Logs",
         "title": "Logs",
+        "nameMissing": "Please enter a name for the log",
         "titleCreate": "Create new Log",
         "main": "Default Logger Fallback",
         "mainDesc": "Define a default logger to prevent logging failures when specified loggers are missing. If a logger defined in the application doesn't exist, Lucee redirects the logging to this main logger. Without a main logger, Lucee throws an exception when encountering undefined loggers. This setting is only possible via System Property / Enviroment Variable."

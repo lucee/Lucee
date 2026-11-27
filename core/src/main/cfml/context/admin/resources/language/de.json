@@ -1618,6 +1618,7 @@
 				"readOnlyDesc": "Schreibgeschützte Logs werden im \"Server Administrator\" für alle Webinstanzen generiert und können nicht vom \"Web-Administrator\" geändert werden.",
 				"readOnlyTitle": "Schreibgeschützte Logs",
 				"title": "Logs",
+				"nameMissing": "Bitte geben Sie einen Namen für das Log ein",
 				"titleCreate": "Neues Log erstellen"
 			},
 			"minutes": "Minute(n)",
