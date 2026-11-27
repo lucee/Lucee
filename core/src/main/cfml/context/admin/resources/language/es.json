@@ -1559,7 +1559,7 @@
 				"id": "ID",
 				"ListenerCfcPath": "Componente del Oyente",
 				"ListenerCfcPathDesc": "Ruta al componente que está escuchando las acciones de las pasarela (Gateway)s",
-				"namemissing": "Cancelar",
+				"namemissing": "Por favor, ingresa un ID para el gateway",
 				"noaccess": "sin acceso para crear instancias de pasarela (Gateway)",
 				"nodefault": "sin caché predeterminada",
 				"nodriver": "No hay un tipo de pasarela (Gateway) disponible",
