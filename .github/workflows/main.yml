@@ -511,7 +511,8 @@ jobs:
       # LDEV-6536: runs after the maven deploy (was in ant/upload_to_s3.cfm)
       # LDEV-6708: and after the GitHub release, pre-releases are not on Maven Central
       # alpha versions get no docker images
-      if: success() && env.DID_DEPLOY == 'true' && env.VERSION != '' && !contains(env.VERSION, '-ALPHA')
+      # Do not trigger a Docker image build for SNAPSHOT versions.
+      if: success() && env.DID_DEPLOY == 'true' && env.VERSION != '' && !contains(env.VERSION, '-SNAPSHOT') && !contains(env.VERSION, '-ALPHA')
       continue-on-error: true
       env:
         GH_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
