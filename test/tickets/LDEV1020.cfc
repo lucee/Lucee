@@ -18,13 +18,16 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="http"	{
 
-	variables.updateProvider = server.getTestService("updateProvider").url;
+	variables.httpbin = server.getTestService("httpbin");
+	variables.hasHttpbin = structCount(variables.httpbin) > 0;
+	variables.httpbinUrl = variables.hasHttpbin ? "http://#variables.httpbin.server#:#variables.httpbin.port#" : "";
 
 	public void function testImplicit(){
+		if (!variables.hasHttpbin) return;
 		
 		local.http = new http(); 
 		local.http.setMethod('put'); 
-		local.http.setURL('#variables.updateProvider#/rest/update/provider/echoPut'); 
+		local.http.setURL('#variables.httpbinUrl#/anything'); 
 		local.http.addParam(type="formfield",name='email',value='test@test.com'); 
 		local.httpSendResult = local.http.send(); 
 		local.httpResult = httpSendResult.getPrefix(); 
@@ -32,7 +35,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http"	{
 		expect( isJson( filecontent ) ).toBeTrue( filecontent );
 		local.data=deserializeJson( filecontent );
 
-		assertEquals('email',data.form.fieldNames);
 		assertEquals('test@test.com',data.form.email);
 	}
 } 

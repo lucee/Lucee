@@ -2,7 +2,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function beforeAll() {
 		variables.httpbin = server.getTestService( "httpbin" );
-		variables.updateProvider = server.getTestService( "updateProvider" );
 	}
 
 	function run( testResults, testBox ) {
@@ -109,69 +108,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( data.data ).toInclude( "test" );
 			});
 
-			it( title="Standard GET request should send proper Accept-Encoding header (echoGET test)", body=function( currentSpec ) {
-				if ( structCount( variables.updateProvider ) == 0 ) {
-					return;
-				}
-
-				// updateProvider (https://update.lucee.org / Cloudflare) is occasionally
-				// unreachable from CI ("Connection Failure. Status code unavailable.").
-				// Retry briefly, then skip rather than fail the suite on a network flake.
-				// When a real 200 is returned, Accept-Encoding assertions stay strict.
-				var result = {};
-				var maxAttempts = 3;
-				for ( var attempt = 1; attempt <= maxAttempts; attempt++ ) {
-					cfhttp(
-						url="#variables.updateProvider.url#/rest/update/provider/echoGet",
-						method="GET",
-						result="local.httpResult",
-						compression=true
-					);
-					result = local.httpResult;
-					if ( !findNoCase( "Connection Failure", result.statusCode ?: "" )
-							&& !findNoCase( "Status code unavailable", result.statusCode ?: "" ) ) {
-						break;
-					}
-					if ( attempt < maxAttempts ) {
-						sleep( 500 * attempt );
-					}
-				}
-
-				if ( findNoCase( "Connection Failure", result.statusCode ?: "" )
-						|| findNoCase( "Status code unavailable", result.statusCode ?: "" ) ) {
-					systemOutput(
-						"LDEV-5932: skipping echoGET Accept-Encoding check - updateProvider unreachable: #result.statusCode ?: 'unknown'#",
-						true
-					);
-					return;
-				}
-
-				expect( result.statusCode ).toBe( "200 OK" );
-
-				var data = deserializeJSON( result.fileContent );
-
-				// Verify Accept-Encoding header was sent (proves compression is being requested)
-				expect( data ).toHaveKey( "httpRequestData" );
-				expect( data.httpRequestData ).toHaveKey( "headers" );
-				expect( data.httpRequestData.headers ).toHaveKey( "accept-encoding" );
-				expect( data.httpRequestData.headers["accept-encoding"] ).toInclude( "gzip" );
-			});
-
-			xit( title="GET request with compression=false should NOT request gzip (DISABLED - Cloudflare modifies headers)", body=function( currentSpec ) {
-				// Note: This test is disabled because Cloudflare adds 'br' to Accept-Encoding even when we don't send gzip
-				// The updateProvider endpoint is behind Cloudflare which modifies the headers
-				if ( structCount( variables.updateProvider ) == 0 ) {
+			it( title="Standard GET request should send proper Accept-Encoding header", body=function( currentSpec ) {
+				if ( structCount( variables.httpbin ) == 0 ) {
 					return;
 				}
 
 				cfhttp(
-					url="#variables.updateProvider.url#/rest/update/provider/echoGet",
+					url="http://#variables.httpbin.server#:#variables.httpbin.port#/headers",
 					method="GET",
 					result="local.result",
-					compression=false
+					compression=true
 				);
 
 				expect( local.result.statusCode ).toBe( "200 OK" );
+
+				var data = deserializeJSON( local.result.fileContent );
+
+				// Verify Accept-Encoding header was sent (proves compression is being requested)
+				expect( data ).toHaveKey( "headers" );
+				expect( data.headers ).toHaveKey( "Accept-Encoding" );
+				expect( data.headers["Accept-Encoding"] ).toInclude( "gzip" );
 			});
 
 			it( title="GET request with compression=false should NOT request gzip (httpbin test)", body=function( currentSpec ) {

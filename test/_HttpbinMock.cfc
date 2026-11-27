@@ -196,13 +196,14 @@ component {
 			responseBody = "";
 			responseHeaders = "Location: #target##chr(13)##chr(10)#";
 		}
-		else if ( reqPath == "/anything" || reqPath == "/anything/" || reqPath == "/delete" || reqPath == "/delete/" ) {
-			responseBody = serializeJSON( {
-				method: reqMethod,
-				url: "http://127.0.0.1:#arguments.port##reqPath#",
-				headers: httpRequest[ "headers" ],
-				data: httpRequest[ "body" ]
-			} );
+		else if ( reqPath == "/encoding/utf8" || reqPath == "/encoding/utf8/" ) {
+			responseBody = "<html><body>utf8</body></html>";
+			responseHeaders = "Content-Type: text/html; charset=UTF-8#chr(13)##chr(10)#";
+		}
+		else if ( reqPath == "/anything" || reqPath == "/anything/" || reqPath == "/get" || reqPath == "/get/"
+				|| reqPath == "/post" || reqPath == "/post/" || reqPath == "/put" || reqPath == "/put/"
+				|| reqPath == "/patch" || reqPath == "/patch/" || reqPath == "/delete" || reqPath == "/delete/" ) {
+			responseBody = serializeJSON( _anythingBody( httpRequest, arguments.port ) );
 		}
 		else {
 			statusCode = 404;
@@ -214,6 +215,47 @@ component {
 		return {
 			headers: "HTTP/1.1 #statusCode# #statusText##chr(13)##chr(10)##responseHeaders#Content-Length: #len( responseBody )##chr(13)##chr(10)#Connection: close#chr(13)##chr(10)##chr(13)##chr(10)#",
 			body: responseBody
+		};
+	}
+
+
+	private struct function _parseQuery( required string queryString ) {
+		var args = {};
+		for ( var pair in listToArray( arguments.queryString, "&" ) ) {
+			if ( !len( pair ) ) {
+				continue;
+			}
+			var name = urlDecode( listFirst( pair, "=" ) );
+			var value = ( find( "=", pair ) > 0 ) ? urlDecode( listRest( pair, "=" ) ) : "";
+			args[ name ] = value;
+		}
+		return args;
+	}
+
+	private struct function _parseForm( required struct httpRequest ) {
+		var contentType = "";
+		for ( var name in arguments.httpRequest.headers ) {
+			if ( lCase( name ) == "content-type" ) {
+				contentType = arguments.httpRequest.headers[ name ];
+				break;
+			}
+		}
+		if ( findNoCase( "application/x-www-form-urlencoded", contentType ) ) {
+			return _parseQuery( arguments.httpRequest.body );
+		}
+		return {};
+	}
+
+	private struct function _anythingBody( required struct httpRequest, required port ) {
+		var queryString = structKeyExists( arguments.httpRequest, "query" ) ? arguments.httpRequest.query : "";
+		var querySuffix = len( queryString ) ? "?#queryString#" : "";
+		return {
+			method: arguments.httpRequest.method,
+			url: "http://127.0.0.1:#arguments.port##arguments.httpRequest.path##querySuffix#",
+			headers: arguments.httpRequest.headers,
+			data: arguments.httpRequest.body,
+			args: _parseQuery( queryString ),
+			form: _parseForm( arguments.httpRequest )
 		};
 	}
 
