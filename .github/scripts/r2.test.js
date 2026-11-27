@@ -5,7 +5,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
-import { r2Config, r2Key, uploadToR2, DEFAULT_SNAPSHOT_PREFIX } from './r2.js';
+import { r2Config, r2Key, uploadToR2, DEFAULT_SNAPSHOT_PREFIX, isMetadataKey } from './r2.js';
 import { coreFiles, buildPuts, versionMetadataXml } from './upload-core-to-r2.js';
 
 const full = { R2_ENDPOINT: 'https://x.r2.example.com', R2_BUCKET: 'b', R2_ACCESS_KEY_ID: 'k', R2_SECRET_ACCESS_KEY: 's' };
@@ -92,7 +92,7 @@ test('uploads go to <bucket>/<prefix><snapshot prefix><maven key> on the configu
     const v = '7.1.0.10-SNAPSHOT';
     const { d, pom } = buildOutput(v);
     await uploadToR2(cfg, v, buildPuts(coreFiles(d, pom, v), v), () => {});
-    assert.equal(m.got.length, 21); // 5 files x (file, .sha1, .sha256, .sha512) + maven-metadata.xml
+    assert.equal(m.got.length, 20); // 5 files x (file, .sha1, .sha256, .sha512); maven-metadata.xml is not written to R2
     assert.ok(m.got.every(g => g.method === 'PUT' && g.path.startsWith(`/b/pre/snapshots/org/lucee/lucee/${v}/`)), JSON.stringify(m.got.map(g => g.path)));
     assert.ok(m.got.some(g => g.path.endsWith(`/lucee-${v}-light.jar`) && g.body.includes('content of lucee-light')));
   } finally { await m.close(); }
@@ -102,6 +102,26 @@ test('an upload failure throws', async () => {
   try {
     const cfg = r2Config({ ...full, R2_ENDPOINT: m.url });
     await assert.rejects(() => uploadToR2(cfg, '7.1.0.10', [{ key: 'org/lucee/lucee/7.1.0.10/a.jar', body: 'x', type: 'text/plain' }], () => {}));
+  } finally { await m.close(); }
+});
+
+test('metadata keys are recognised', () => {
+  assert.equal(isMetadataKey('org/lucee/lucee/7.1.0.10/maven-metadata.xml'), true);
+  assert.equal(isMetadataKey('org/lucee/lucee/maven-metadata.xml.sha1'), true);
+  assert.equal(isMetadataKey('org/lucee/index.html'), true);
+  assert.equal(isMetadataKey('org/lucee/lucee/7.1.0.10/lucee-7.1.0.10.jar'), false);
+});
+test('uploadToR2 skips metadata puts and still uploads the rest', async () => {
+  const m = await mock();
+  try {
+    const cfg = r2Config({ ...full, R2_ENDPOINT: m.url });
+    await uploadToR2(cfg, '7.1.0.10', [
+      { key: 'org/lucee/lucee/7.1.0.10/lucee-7.1.0.10.jar', body: 'jar', type: 'application/java-archive' },
+      { key: 'org/lucee/lucee/7.1.0.10/maven-metadata.xml', body: '<metadata/>', type: 'application/xml' },
+      { key: 'org/lucee/index.html', body: '<html/>', type: 'text/html' }
+    ], () => {});
+    assert.equal(m.got.length, 1);
+    assert.ok(m.got[0].path.endsWith('/lucee-7.1.0.10.jar'));
   } finally { await m.close(); }
 });
 
@@ -129,7 +149,7 @@ test('extension upload: R2 only, SNAPSHOT goes below the snapshot prefix', async
     assert.equal(r.code, 0, r.out);
     const keys = m.got.map(g => g.path).sort();
     const b = `/b/snapshots/org/lucee/redis-extension/${v}/redis-extension-${v}`;
-    assert.deepEqual(keys, [`${b}-lite.lex`, `${b}-lite.lex.sha1`, `${b}.lex`, `${b}.lex.sha1`, `${b}.pom`, `${b}.pom.sha1`, `/b/snapshots/org/lucee/redis-extension/${v}/maven-metadata.xml`].sort());
+    assert.deepEqual(keys, [`${b}-lite.lex`, `${b}-lite.lex.sha1`, `${b}.lex`, `${b}.lex.sha1`, `${b}.pom`, `${b}.pom.sha1`].sort());
   } finally { await m.close(); }
 });
 test('extension upload: a failing R2 upload fails the run', async () => {

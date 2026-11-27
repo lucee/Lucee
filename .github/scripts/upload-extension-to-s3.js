@@ -7,9 +7,9 @@
 // are not on Maven Central and the lite .lex only references them by coordinate:
 //   org/lucee/<jarArtifactId>/<version>/<jarArtifactId>-<version>.jar (+ .pom, .sha1, version and artifact maven-metadata.xml)
 // Called by .github/workflows/extension-s3-upload.yml (workflow_call) from every extension build (LDEV-XXXX).
-// LDEV-6804: when R2_ENDPOINT, R2_BUCKET, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY are set, the same files (not the artifact and
-// group metadata, which are derived from the whole repository) are also uploaded to the Cloudflare R2 bucket the Maven bridge worker
-// serves from (see r2.js). That upload does not depend on the S3 cut-off and a failure fails the run.
+// LDEV-6804: when R2_ENDPOINT, R2_BUCKET, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY are set, the artifact files are also uploaded
+// to the Cloudflare R2 bucket the Maven bridge worker serves from (see r2.js). maven-metadata.xml and index.html are not written to
+// R2 (the worker generates them from the bucket). That upload does not depend on the S3 cut-off and a failure fails the run.
 import { S3Client, ListObjectsV2Command, GetBucketLocationCommand, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
