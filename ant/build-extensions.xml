@@ -184,29 +184,38 @@
 	</scriptdef>
 
 	<scriptdef name="verifySha1File" language="javascript" classpath="${nashorn_classpath}">
-		<attribute name="file"/>
-		<attribute name="shaFile"/>
+		<attribute name="targetFile"/>
+		<attribute name="checksumFile"/>
 		<![CDATA[
-			var file = new java.io.File(attributes.get("file"));
-			var shaFile = new java.io.File(attributes.get("shaFile"));
-			var expected = new java.lang.String(java.nio.file.Files.readAllBytes(shaFile.toPath()), "UTF-8").trim();
-			var space = expected.indexOf(" ");
-			if (space > 0) expected = expected.substring(0, space);
-			expected = expected.toLowerCase();
-			var md = java.security.MessageDigest.getInstance("SHA-1");
-			md.update(java.nio.file.Files.readAllBytes(file.toPath()));
-			var digest = md.digest();
-			var hex = new java.lang.StringBuilder();
-			for (var i = 0; i < digest.length; i++) {
-				var b = digest[i] & 0xff;
-				if (b < 16) hex.append("0");
-				hex.append(java.lang.Integer.toHexString(b));
+			var targetPath = attributes.get("targetFile");
+			var checksumPath = attributes.get("checksumFile");
+			if (targetPath == null || checksumPath == null) {
+				throw new java.lang.RuntimeException("verifySha1File requires targetFile and checksumFile");
 			}
-			var actual = hex.toString();
-			if (actual !== expected) {
-				throw new java.lang.RuntimeException("SHA-1 mismatch for " + file + ": expected " + expected + ", got " + actual);
+			var file = new java.io.File(new java.lang.String(targetPath));
+			var shaFile = new java.io.File(new java.lang.String(checksumPath));
+			if (!shaFile.isFile() || shaFile.length() == 0) {
+				project.log("no .sha1 sidecar, skipping checksum verification");
+			} else {
+				var expected = new java.lang.String(java.nio.file.Files.readAllBytes(shaFile.toPath()), "UTF-8").trim();
+				var space = expected.indexOf(" ");
+				if (space > 0) expected = expected.substring(0, space);
+				expected = String(expected).toLowerCase();
+				var md = java.security.MessageDigest.getInstance("SHA-1");
+				md.update(java.nio.file.Files.readAllBytes(file.toPath()));
+				var digest = md.digest();
+				var hex = new java.lang.StringBuilder();
+				for (var i = 0; i < digest.length; i++) {
+					var b = digest[i] & 0xff;
+					if (b < 16) hex.append("0");
+					hex.append(java.lang.Integer.toHexString(b));
+				}
+				var actual = String(hex.toString());
+				if (actual !== expected) {
+					throw new java.lang.RuntimeException("SHA-1 mismatch for " + file + ": expected " + expected + ", got " + actual);
+				}
+				project.log("SHA-1 verified for " + file.getName());
 			}
-			project.log("SHA-1 verified for " + file.getName());
 		]]>
 	</scriptdef>
 
@@ -228,8 +237,7 @@
 					<length file="${sha.file}" when="greater" length="0"/>
 				</and>
 			</condition>
-			<echo unless:set="sha.present" level="info">no .sha1 sidecar for @{url}, skipping checksum verification</echo>
-			<verifySha1File if:set="sha.present" file="@{file}" shaFile="${sha.file}"/>
+			<verifySha1File targetFile="@{file}" checksumFile="${sha.file}"/>
 			<delete file="${sha.file}" quiet="true"/>
 		</sequential>
 	</macrodef>
