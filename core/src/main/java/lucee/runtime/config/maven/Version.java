@@ -249,6 +249,11 @@ public class Version implements Comparable<Version> {
 		aprint.e("");
 	}
 
+	/** the qualifier (part after the "-"), empty string if there is none */
+	public String getQualifier() {
+		return appendix == null ? "" : appendix;
+	}
+
 	public String cycle() {
 		return major + ":" + minor + ":" + micro;
 	}

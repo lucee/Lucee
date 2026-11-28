@@ -1,6 +1,8 @@
 package lucee.runtime.config.maven;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
@@ -353,6 +355,188 @@ public final class MavenUpdateProvider {
 			return HTTPEngine.getVerified(new URL(strURL), null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true, null);
 		}
 		return getFileStreamFromZipStream(getLoader(version));
+	}
+
+	/**
+	 * LDEV-7027: the repositories to look for a core update, by the update type of the installed
+	 * version: the release repositories for a release, all repositories for a snapshot, RC or BETA
+	 */
+	public static Collection<Repository> getCoreUpdateRepositories(Config config, Version current) {
+		Collection<Repository> repos = isRelease(current) ? getReleaseRepositories(config) : getRepositories(config);
+		// the same repository can be in more than one list (maven.lucee-services.com), ask it only once
+		List<Repository> list = new ArrayList<>();
+		Set<String> urls = new HashSet<>();
+		for (Repository r: repos) {
+			if (urls.add(r.url)) list.add(r);
+		}
+		return list;
+	}
+
+	/**
+	 * LDEV-7027: the version type to list for a core update of the given version
+	 */
+	public static int getCoreUpdateType(Version current) {
+		return isRelease(current) ? TYPE_RELEASE : TYPE_ALL;
+	}
+
+	private static boolean isRelease(Version v) {
+		return StringUtil.isEmpty(v.getQualifier(), true);
+	}
+
+	/**
+	 * LDEV-7027: replacement for the update provider endpoint "update-for/{version}", the newest core
+	 * version that is an update for the given version, or null if there is none. The versions come from
+	 * the configured repositories for the update type ({@link #getCoreUpdateRepositories}) with
+	 * {@link #list(Collection, String, String, int)} (maven-metadata.xml, cached per repository).
+	 */
+	public static Version updateFor(Config config, Version current) throws IOException, GeneralSecurityException, SAXException, InterruptedException {
+		return selectUpdate(list(getCoreUpdateRepositories(config, current), DEFAULT_GROUP, DEFAULT_ARTIFACT, getCoreUpdateType(current)), current);
+	}
+
+	/**
+	 * same as {@link #updateFor(Config, Version)}, with the repositories of this provider
+	 */
+	public Version updateFor(Version current) throws IOException, GeneralSecurityException, SAXException, InterruptedException {
+		return selectUpdate(list(repos, group, artifact, getCoreUpdateType(current)), current);
+	}
+
+	// no updates for versions smaller than this (same as the update provider)
+	private static final Version MIN_UPDATE_VERSION = Version.parseVersion("5.0.0.254", null);
+
+	/**
+	 * selects the update for the installed version, the rules of the update provider ("update-for",
+	 * lucee-data-provider UpdateProvider.getInfo) unchanged:
+	 * <ul>
+	 * <li>no update for versions older than 5.0.0.254</li>
+	 * <li>only versions the provider offers: 4 numbers, the last one optionally with SNAPSHOT, BETA, RC
+	 * or ALPHA (7.0.0.202 is hidden)</li>
+	 * <li>only versions of the same major version (default version filter of the provider)</li>
+	 * <li>an installed pre-release (SNAPSHOT, BETA, RC, ALPHA) is offered any of them</li>
+	 * <li>an installed stable version is offered stable versions, and pre-releases of the same
+	 * major.minor, never an ALPHA</li>
+	 * <li>the highest of them (SNAPSHOT &lt; BETA &lt; RC/ALPHA &lt; stable for the same numbers), if it
+	 * is newer than the installed version</li>
+	 * </ul>
+	 * 
+	 * @return the update or null
+	 */
+	public static Version selectUpdate(Collection<Version> available, Version current) {
+		if (available == null || current == null) return null;
+		int[] curr = providerNumbers(current);
+		if (curr == null) return null;
+		if (!isNewerForUpdate(current, MIN_UPDATE_VERSION)) return null;
+
+		Version selected = null;
+		int[] nbrs;
+		for (Version v: available) {
+			if (v == null || !isOffered(v)) continue;
+			nbrs = providerNumbers(v);
+			if (nbrs[0] != curr[0]) continue;
+			if (!isOfferableUpdate(v, nbrs, current, curr)) continue;
+			if (selected == null || isNewerForUpdate(v, selected)) selected = v;
+		}
+		if (selected == null || !isNewerForUpdate(selected, current)) return null;
+		return selected;
+	}
+
+	private static boolean isOffered(Version v) {
+		String str = v.toString();
+		String[] parts = str.split("\\.", -1);
+		if (parts.length != 4) return false;
+		for (int i = 0; i < 3; i++) {
+			if (!isDigits(parts[i])) return false;
+		}
+		if ("7.0.0.202".equals(str)) return false;
+		String[] patch = parts[3].split("-", -1);
+		if (patch.length > 2 || !isDigits(patch[0])) return false;
+		return patch.length == 1 || "SNAPSHOT".equals(patch[1]) || "BETA".equals(patch[1]) || "RC".equals(patch[1]) || "ALPHA".equals(patch[1]);
+	}
+
+	private static boolean isOfferableUpdate(Version candidate, int[] candNbrs, Version installed, int[] instNbrs) {
+		if (!StringUtil.isEmpty(installed.getQualifier())) return true;
+		String q = candidate.getQualifier();
+		if (StringUtil.isEmpty(q)) return true;
+		if ("ALPHA".equals(q)) return false;
+		return candNbrs[0] == instNbrs[0] && candNbrs[1] == instNbrs[1];
+	}
+
+	/**
+	 * same order as the update provider (isNewer): the 4 numbers, then the qualifier (SNAPSHOT &lt;
+	 * BETA &lt; any other &lt; stable), for two "other" qualifiers the text
+	 */
+	static boolean isNewerForUpdate(Version left, Version right) {
+		int[] l = providerNumbers(left), r = providerNumbers(right);
+		if (l == null || r == null) return false;
+		for (int i = 0; i < 4; i++) {
+			if (l[i] != r[i]) return l[i] > r[i];
+		}
+		int lr = providerRank(left), rr = providerRank(right);
+		if (lr != rr) return lr > rr;
+		if (lr == 75) return left.getQualifier().compareTo(right.getQualifier()) > 0;
+		return false;
+	}
+
+	private static int providerRank(Version v) {
+		String q = v.getQualifier();
+		if (StringUtil.isEmpty(q)) return 100;
+		if ("SNAPSHOT".equals(q)) return 0;
+		if ("BETA".equals(q)) return 50;
+		return 75;
+	}
+
+	// major, minor, micro, build like the update provider (a missing build is 0), null if invalid
+	private static int[] providerNumbers(Version v) {
+		String base = v.toString();
+		int index = base.indexOf('-');
+		if (index != -1) base = base.substring(0, index);
+		String[] parts = base.split("\\.", -1);
+		if (parts.length < 3 || parts.length > 4) return null;
+		int[] arr = new int[4];
+		for (int i = 0; i < parts.length; i++) {
+			if (!isDigits(parts[i])) return null;
+			arr[i] = Caster.toIntValue(parts[i], 0);
+		}
+		return arr;
+	}
+
+	private static boolean isDigits(String str) {
+		if (str == null || str.isEmpty()) return false;
+		for (int i = 0; i < str.length(); i++) {
+			if (!Character.isDigit(str.charAt(i))) return false;
+		}
+		return true;
+	}
+
+	/**
+	 * LDEV-7027: replacement for the update provider endpoint "download/{version}", downloads the core
+	 * (.lco) with {@link #getCore(Version)} (checksum verified, Maven download policy) into the given
+	 * directory as "{version}.lco". The file only gets its final name once the download is complete and
+	 * verified.
+	 */
+	public File downloadCore(Version version, File directory) throws IOException, SAXException, PageException {
+		File target = new File(directory, version + ".lco");
+		File temp = new File(directory, version + ".lco.download");
+		InputStream is = null;
+		try {
+			is = getCore(version);
+			IOUtil.copy(is, new FileOutputStream(temp), false, true);
+		}
+		catch (IOException | SAXException | PageException | RuntimeException e) {
+			temp.delete();
+			throw e;
+		}
+		finally {
+			IOUtil.closeEL(is);
+		}
+		if (target.exists() && !target.delete()) {
+			temp.delete();
+			throw new IOException("Could not replace the existing core file [" + target + "]");
+		}
+		if (!temp.renameTo(target)) {
+			temp.delete();
+			throw new IOException("Could not move the downloaded core to [" + target + "]");
+		}
+		return target;
 	}
 
 	public InputStream getLoader(Version version) throws IOException, SAXException, PageException {
