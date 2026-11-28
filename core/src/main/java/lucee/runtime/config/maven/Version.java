@@ -249,16 +249,6 @@ public class Version implements Comparable<Version> {
 		aprint.e("");
 	}
 
-	/** major version, null if not defined */
-	public Integer getMajor() {
-		return major;
-	}
-
-	/** major.minor.micro of this version (absent parts as 0), used to compare release lines */
-	public String getMinorLine() {
-		return (major == null ? 0 : major) + "." + (minor == null ? 0 : minor) + "." + (micro == null ? 0 : micro);
-	}
-
 	/** the qualifier (part after the "-"), empty string if there is none */
 	public String getQualifier() {
 		return appendix == null ? "" : appendix;

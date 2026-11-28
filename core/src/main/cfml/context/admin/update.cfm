@@ -43,7 +43,10 @@
 					action="getCoreUpdate"
 					type="#adminType#"
 					password="#password#"
-					returnVariable="updateResult">
+					otherVersions=true
+					returnVariable="updateInfo">
+				<cfset updateInfo.available = updateInfo.availableVersion>
+				<cfset updateResult = hasNewerVersion( server.lucee.version, updateInfo )>
 				<cfset hasUpdate = updateResult.hasUpdate>
 				<cfset available = updateResult.availableVersion>
 				<cfcatch>

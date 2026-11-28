@@ -358,94 +358,153 @@ public final class MavenUpdateProvider {
 	}
 
 	/**
-	 * LDEV-7027: replacement for the update provider endpoint "update-for/{version}", returns the newest
-	 * core version available in the repositories of this provider that is an update for the given
-	 * version, or null if there is none. The version list comes from {@link #list()} (maven-metadata.xml,
-	 * cached per repository like for extensions and bundles).
+	 * LDEV-7027: the repositories to look for a core update, by the update type of the installed
+	 * version: the release repositories for a release, all repositories for a snapshot, RC or BETA
 	 */
-	public Version updateFor(Version current) throws IOException, GeneralSecurityException, SAXException, InterruptedException {
-		return selectUpdate(list(), current);
+	public static Collection<Repository> getCoreUpdateRepositories(Config config, Version current) {
+		Collection<Repository> repos = isRelease(current) ? getReleaseRepositories(config) : getRepositories(config);
+		// the same repository can be in more than one list (maven.lucee-services.com), ask it only once
+		List<Repository> list = new ArrayList<>();
+		Set<String> urls = new HashSet<>();
+		for (Repository r: repos) {
+			if (urls.add(r.url)) list.add(r);
+		}
+		return list;
 	}
 
 	/**
-	 * selects the update for the given version from a list of available versions, same rules as the
-	 * Administrator (admin/services.update.functions.cfm hasNewerVersion):
+	 * LDEV-7027: the version type to list for a core update of the given version
+	 */
+	public static int getCoreUpdateType(Version current) {
+		return isRelease(current) ? TYPE_RELEASE : TYPE_ALL;
+	}
+
+	private static boolean isRelease(Version v) {
+		return StringUtil.isEmpty(v.getQualifier(), true);
+	}
+
+	/**
+	 * LDEV-7027: replacement for the update provider endpoint "update-for/{version}", the newest core
+	 * version that is an update for the given version, or null if there is none. The versions come from
+	 * the configured repositories for the update type ({@link #getCoreUpdateRepositories}) with
+	 * {@link #list(Collection, String, String, int)} (maven-metadata.xml, cached per repository).
+	 */
+	public static Version updateFor(Config config, Version current) throws IOException, GeneralSecurityException, SAXException, InterruptedException {
+		return selectUpdate(list(getCoreUpdateRepositories(config, current), DEFAULT_GROUP, DEFAULT_ARTIFACT, getCoreUpdateType(current)), current);
+	}
+
+	/**
+	 * same as {@link #updateFor(Config, Version)}, with the repositories of this provider
+	 */
+	public Version updateFor(Version current) throws IOException, GeneralSecurityException, SAXException, InterruptedException {
+		return selectUpdate(list(repos, group, artifact, getCoreUpdateType(current)), current);
+	}
+
+	// no updates for versions smaller than this (same as the update provider)
+	private static final Version MIN_UPDATE_VERSION = Version.parseVersion("5.0.0.254", null);
+
+	/**
+	 * selects the update for the installed version, the rules of the update provider ("update-for",
+	 * lucee-data-provider UpdateProvider.getInfo) unchanged:
 	 * <ul>
-	 * <li>only versions of the same major version</li>
-	 * <li>ALPHA versions only for ALPHA installations</li>
-	 * <li>stable installations only get RC or stable versions</li>
-	 * <li>BETA/RC installations only get snapshots of the same minor version (major.minor.micro)</li>
-	 * <li>snapshot installations get snapshots or newer</li>
+	 * <li>no update for versions older than 5.0.0.254</li>
+	 * <li>only versions the provider offers: 4 numbers, the last one optionally with SNAPSHOT, BETA, RC
+	 * or ALPHA (7.0.0.202 is hidden)</li>
+	 * <li>only versions of the same major version (default version filter of the provider)</li>
+	 * <li>an installed pre-release (SNAPSHOT, BETA, RC, ALPHA) is offered any of them</li>
+	 * <li>an installed stable version is offered stable versions, and pre-releases of the same
+	 * major.minor, never an ALPHA</li>
+	 * <li>the highest of them (SNAPSHOT &lt; BETA &lt; RC/ALPHA &lt; stable for the same numbers), if it
+	 * is newer than the installed version</li>
 	 * </ul>
 	 * 
-	 * @return the newest matching version newer than the current one, or null
+	 * @return the update or null
 	 */
 	public static Version selectUpdate(Collection<Version> available, Version current) {
 		if (available == null || current == null) return null;
-		int currRank = rank(current);
-		boolean currStable = currRank == RANK_STABLE;
-		boolean currBetaOrRC = currRank == RANK_BETA || currRank == RANK_RC;
-		Integer major = current.getMajor();
+		int[] curr = providerNumbers(current);
+		if (curr == null) return null;
+		if (!isNewerForUpdate(current, MIN_UPDATE_VERSION)) return null;
 
 		Version selected = null;
-		int rank;
+		int[] nbrs;
 		for (Version v: available) {
-			if (v == null || major == null || !major.equals(v.getMajor())) continue;
-			rank = rank(v);
-			// ALPHA is never suggested except to ALPHA users
-			if (rank == RANK_ALPHA && currRank != RANK_ALPHA) continue;
-			// stable users: RC or higher only
-			if (currStable && rank < RANK_RC) continue;
-			// BETA/RC users: SNAPSHOT only within same minor version
-			if (currBetaOrRC && rank == RANK_SNAPSHOT && !v.getMinorLine().equals(current.getMinorLine())) continue;
-
-			if (compareUpdate(v, current) <= 0) continue;
-			if (selected == null || compareUpdate(v, selected) > 0) selected = v;
+			if (v == null || !isOffered(v)) continue;
+			nbrs = providerNumbers(v);
+			if (nbrs[0] != curr[0]) continue;
+			if (!isOfferableUpdate(v, nbrs, current, curr)) continue;
+			if (selected == null || isNewerForUpdate(v, selected)) selected = v;
 		}
+		if (selected == null || !isNewerForUpdate(selected, current)) return null;
 		return selected;
 	}
 
-	private static final int RANK_ALPHA = 0;
-	private static final int RANK_SNAPSHOT = 25;
-	private static final int RANK_BETA = 50;
-	private static final int RANK_RC = 75;
-	private static final int RANK_STABLE = 100;
-
-	/**
-	 * rank of the qualifier of a core version (higher = more stable), same ranking as the
-	 * Administrator and the update provider
-	 */
-	static int rank(Version v) {
-		String q = v.getQualifier().trim().toUpperCase();
-		if (q.isEmpty()) return RANK_STABLE;
-		if (q.endsWith("SNAPSHOT")) return RANK_SNAPSHOT;
-		if (q.startsWith("ALPHA")) return RANK_ALPHA;
-		if (q.startsWith("BETA")) return RANK_BETA;
-		return RANK_RC; // RC and unknown qualifiers
-	}
-
-	/**
-	 * compares two core versions numerically (major.minor.micro.build), for the same numbers the
-	 * qualifier rank decides (ALPHA &lt; SNAPSHOT &lt; BETA &lt; RC &lt; stable)
-	 */
-	static int compareUpdate(Version left, Version right) {
-		int[] l = numbers(left), r = numbers(right);
-		for (int i = 0; i < 4; i++) {
-			if (l[i] != r[i]) return l[i] < r[i] ? -1 : 1;
+	private static boolean isOffered(Version v) {
+		String str = v.toString();
+		String[] parts = str.split("\\.", -1);
+		if (parts.length != 4) return false;
+		for (int i = 0; i < 3; i++) {
+			if (!isDigits(parts[i])) return false;
 		}
-		return Integer.compare(rank(left), rank(right));
+		if ("7.0.0.202".equals(str)) return false;
+		String[] patch = parts[3].split("-", -1);
+		if (patch.length > 2 || !isDigits(patch[0])) return false;
+		return patch.length == 1 || "SNAPSHOT".equals(patch[1]) || "BETA".equals(patch[1]) || "RC".equals(patch[1]) || "ALPHA".equals(patch[1]);
 	}
 
-	private static int[] numbers(Version v) {
-		int[] arr = new int[4];
+	private static boolean isOfferableUpdate(Version candidate, int[] candNbrs, Version installed, int[] instNbrs) {
+		if (!StringUtil.isEmpty(installed.getQualifier())) return true;
+		String q = candidate.getQualifier();
+		if (StringUtil.isEmpty(q)) return true;
+		if ("ALPHA".equals(q)) return false;
+		return candNbrs[0] == instNbrs[0] && candNbrs[1] == instNbrs[1];
+	}
+
+	/**
+	 * same order as the update provider (isNewer): the 4 numbers, then the qualifier (SNAPSHOT &lt;
+	 * BETA &lt; any other &lt; stable), for two "other" qualifiers the text
+	 */
+	static boolean isNewerForUpdate(Version left, Version right) {
+		int[] l = providerNumbers(left), r = providerNumbers(right);
+		if (l == null || r == null) return false;
+		for (int i = 0; i < 4; i++) {
+			if (l[i] != r[i]) return l[i] > r[i];
+		}
+		int lr = providerRank(left), rr = providerRank(right);
+		if (lr != rr) return lr > rr;
+		if (lr == 75) return left.getQualifier().compareTo(right.getQualifier()) > 0;
+		return false;
+	}
+
+	private static int providerRank(Version v) {
+		String q = v.getQualifier();
+		if (StringUtil.isEmpty(q)) return 100;
+		if ("SNAPSHOT".equals(q)) return 0;
+		if ("BETA".equals(q)) return 50;
+		return 75;
+	}
+
+	// major, minor, micro, build like the update provider (a missing build is 0), null if invalid
+	private static int[] providerNumbers(Version v) {
 		String base = v.toString();
 		int index = base.indexOf('-');
 		if (index != -1) base = base.substring(0, index);
-		String[] parts = base.split("\\.");
-		for (int i = 0; i < 4 && i < parts.length; i++) {
-			arr[i] = Caster.toIntValue(parts[i].trim(), 0);
+		String[] parts = base.split("\\.", -1);
+		if (parts.length < 3 || parts.length > 4) return null;
+		int[] arr = new int[4];
+		for (int i = 0; i < parts.length; i++) {
+			if (!isDigits(parts[i])) return null;
+			arr[i] = Caster.toIntValue(parts[i], 0);
 		}
 		return arr;
+	}
+
+	private static boolean isDigits(String str) {
+		if (str == null || str.isEmpty()) return false;
+		for (int i = 0; i < str.length(); i++) {
+			if (!Character.isDigit(str.charAt(i))) return false;
+		}
+		return true;
 	}
 
 	/**

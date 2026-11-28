@@ -1354,7 +1354,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		try {
 			lucee.runtime.config.maven.Version available = ConfigAdmin.getCoreUpdate(cs);
 			if (available == null) return null;
-			return new lucee.runtime.config.maven.MavenUpdateProvider(cs).downloadCore(available, getCFMLEngineFactory().getPatchDirectory());
+			return new lucee.runtime.config.maven.MavenUpdateProvider(lucee.runtime.config.maven.MavenUpdateProvider.getCoreUpdateRepositories(cs, available),
+					lucee.runtime.config.maven.MavenUpdateProvider.DEFAULT_GROUP, lucee.runtime.config.maven.MavenUpdateProvider.DEFAULT_ARTIFACT)
+							.downloadCore(available, getCFMLEngineFactory().getPatchDirectory());
 		}
 		catch (IOException e) {
 			throw e;

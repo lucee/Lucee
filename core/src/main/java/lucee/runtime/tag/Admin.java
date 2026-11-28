@@ -5401,6 +5401,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("current", pageContext.getConfig().getFactory().getEngine().getInfo().getVersion().toString());
 		sct.set("hasUpdate", available != null);
 		sct.set("availableVersion", available == null ? "" : available.toString());
+		if (getBoolV("otherVersions", false)) {
+			Array arr = new ArrayImpl();
+			for (lucee.runtime.config.maven.Version v: ConfigAdmin.listCoreVersionsForUpdate(config)) {
+				arr.appendEL(v.toString());
+			}
+			sct.set("otherVersions", arr);
+		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 	}
 

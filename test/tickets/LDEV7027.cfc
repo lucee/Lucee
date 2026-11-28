@@ -10,18 +10,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven" {
 		directoryCreate( patches, true );
 
 		variables.versions = [
-			"7.1.99.1-SNAPSHOT", "7.1.99.1-ALPHA", "7.1.99.1",
-			"7.1.99.2-SNAPSHOT", "7.1.99.2-BETA", "7.1.99.2-RC", "7.1.99.2",
-			"7.1.99.3-SNAPSHOT", "7.1.99.3-RC",
-			"7.1.100.1-SNAPSHOT",
-			"8.0.99.1-SNAPSHOT", "8.0.99.1"
+			"4.5.0.2",
+			"7.0.0.202",
+			"7.1.99", "7.1.99.1", "7.1.99.2-SNAPSHOT", "7.1.99.2-RC", "7.1.99.3-ALPHA", "7.1.99.4-FOO",
+			"7.2.0.1-SNAPSHOT", "7.2.0.1-RC",
+			"8.0.99.1", "8.0.99.2-SNAPSHOT"
 		];
 		writeMetadata( repo, versions );
 
 		// valid checksum
-		addCore( repo, "7.1.99.2", "core-7.1.99.2", hash( "core-7.1.99.2", "SHA-1" ) );
+		addCore( repo, "7.1.99.1", "core-7.1.99.1", hash( "core-7.1.99.1", "SHA-1" ) );
 		// checksum does not match the content
-		addCore( repo, "7.1.99.3-RC", "core-7.1.99.3-RC", hash( "something else", "SHA-1" ) );
+		addCore( repo, "7.1.99.2-RC", "core-7.1.99.2-RC", hash( "something else", "SHA-1" ) );
 
 		var OutputLevel = createObject( "java", "com.sun.net.httpserver.SimpleFileServer$OutputLevel" );
 		var addr = createObject( "java", "java.net.InetSocketAddress" ).init( createObject( "java", "java.net.InetAddress" ).getLoopbackAddress(), 0 );
@@ -39,59 +39,72 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven" {
 	function run( testResults, testBox ) {
 		describe( "LDEV-7027: core update check and download via Maven instead of the update provider", function() {
 
-			it( "stable installations only get RC or stable versions of the same major", function() {
-				expect( select( "7.1.99.1" ) ).toBe( "7.1.99.3-RC" );
-				expect( select( "7.1.99.2" ) ).toBe( "7.1.99.3-RC" );
-				expect( select( "8.0.99.1" ) ).toBe( "" );
+			it( "a stable installation gets stable versions and pre-releases of the same major.minor, never ALPHA", function() {
+				// 7.1.99.2-RC beats the snapshot of the same build, the ALPHA and the 7.2 pre-releases are not offered
+				expect( select( "7.1.99.1" ) ).toBe( "7.1.99.2-RC" );
+				// 7.0.0.202 is hidden, 7.1 pre-releases are another minor
+				expect( select( "7.0.0.100" ) ).toBe( "7.1.99.1" );
+				// same major.minor snapshot, like the update provider
+				expect( select( "8.0.99.1" ) ).toBe( "8.0.99.2-SNAPSHOT" );
 			});
 
-			it( "BETA/RC installations get snapshots only of the same minor version", function() {
-				// the RC is ranked above the snapshot of the same version
-				expect( select( "7.1.99.2-RC" ) ).toBe( "7.1.99.3-RC" );
-				expect( select( "7.1.99.2-BETA" ) ).toBe( "7.1.99.3-RC" );
-				expect( MUP().selectUpdate( toList( [ "7.1.99.2-RC", "7.1.99.3-SNAPSHOT", "7.1.100.1-SNAPSHOT" ] ), toVersion( "7.1.99.2-RC" ) ).toString() )
-					.toBe( "7.1.99.3-SNAPSHOT" );
+			it( "a pre-release installation gets any newer version of the same major", function() {
+				expect( select( "7.1.99.2-SNAPSHOT" ) ).toBe( "7.2.0.1-RC" );
+				expect( select( "7.1.99.3-ALPHA" ) ).toBe( "7.2.0.1-RC" );
+				expect( select( "7.0.0.1-RC" ) ).toBe( "7.2.0.1-RC" );
+				expect( select( "8.0.99.2-SNAPSHOT" ) ).toBe( "" );
 			});
 
-			it( "snapshot installations get snapshots or newer, never ALPHA", function() {
-				expect( select( "7.1.99.3-SNAPSHOT" ) ).toBe( "7.1.100.1-SNAPSHOT" );
-				expect( select( "7.1.99.1-SNAPSHOT" ) ).toBe( "7.1.100.1-SNAPSHOT" );
-				expect( isNull( MUP().selectUpdate( toList( [ "7.1.99.2-ALPHA" ] ), toVersion( "7.1.99.1-SNAPSHOT" ) ) ) ).toBeTrue();
+			it( "only versions the update provider offers, no update below 5.0.0.254", function() {
+				expect( select( "4.5.0.1" ) ).toBe( "" );
+				expect( select( "7.1.99.3-SNAPSHOT" ) ).toBe( "7.2.0.1-RC" );
+				expect( isNull( MUP().selectUpdate( toList( [ "7.1.99.4-FOO", "7.1.100" ] ), toVersion( "7.1.99.3-SNAPSHOT" ) ) ) ).toBeTrue();
 			});
 
-			it( "ALPHA installations get anything newer of the same major", function() {
-				expect( select( "7.1.99.1-ALPHA" ) ).toBe( "7.1.100.1-SNAPSHOT" );
-			});
-
-			it( "stable is newer than a pre release of the same version", function() {
+			it( "orders like the update provider: SNAPSHOT < BETA < RC < stable for the same build", function() {
+				expect( MUP().selectUpdate( toList( [ "7.1.99.2-SNAPSHOT", "7.1.99.2-RC", "7.1.99.2-BETA" ] ), toVersion( "7.1.99.1-SNAPSHOT" ) ).toString() ).toBe( "7.1.99.2-RC" );
 				expect( MUP().selectUpdate( toList( [ "7.1.99.2-RC", "7.1.99.2" ] ), toVersion( "7.1.99.2-RC" ) ).toString() ).toBe( "7.1.99.2" );
 				expect( isNull( MUP().selectUpdate( toList( [ "7.1.99.2-RC" ] ), toVersion( "7.1.99.2" ) ) ) ).toBeTrue();
 			});
 
 			it( "updateFor reads the versions from the repository metadata", function() {
-				expect( provider().updateFor( toVersion( "7.1.99.1" ) ).toString() ).toBe( "7.1.99.3-RC" );
-				expect( provider().updateFor( toVersion( "7.1.99.1-SNAPSHOT" ) ).toString() ).toBe( "7.1.100.1-SNAPSHOT" );
-				expect( isNull( provider().updateFor( toVersion( "8.0.99.1" ) ) ) ).toBeTrue();
+				expect( provider().updateFor( toVersion( "7.1.99.1" ) ).toString() ).toBe( "7.1.99.2-RC" );
+				expect( provider().updateFor( toVersion( "7.1.99.2-SNAPSHOT" ) ).toString() ).toBe( "7.2.0.1-RC" );
+				expect( isNull( provider().updateFor( toVersion( "8.0.99.2-SNAPSHOT" ) ) ) ).toBeTrue();
+			});
+
+			it( "the update type picks the repositories and the version type", function() {
+				var cfg = getPageContext().getConfig();
+				expect( MUP().getCoreUpdateType( toVersion( "7.1.99.1" ) ) ).toBe( MUP().TYPE_RELEASE );
+				expect( MUP().getCoreUpdateType( toVersion( "7.1.99.1-RC" ) ) ).toBe( MUP().TYPE_ALL );
+				expect( urls( MUP().getCoreUpdateRepositories( cfg, toVersion( "7.1.99.1" ) ) ) )
+					.toBe( urls( MUP().getReleaseRepositories( cfg ) ) );
+				expect( urls( MUP().getCoreUpdateRepositories( cfg, toVersion( "7.1.99.1-SNAPSHOT" ) ) ) )
+					.toBe( urls( MUP().getRepositories( cfg ) ) );
+				// every repository only once
+				var repos = MUP().getCoreUpdateRepositories( cfg, toVersion( "7.1.99.1" ) );
+				expect( repos.size() ).toBe( listLen( urls( repos ) ) );
 			});
 
 			it( "downloadCore stores the verified .lco in the given directory", function() {
-				var file = provider().downloadCore( toVersion( "7.1.99.2" ), createObject( "java", "java.io.File" ).init( patches ) );
-				expect( file.getName() ).toBe( "7.1.99.2.lco" );
-				expect( fileRead( file.getAbsolutePath() ) ).toBe( "core-7.1.99.2" );
-				expect( fileExists( patches & "7.1.99.2.lco.download" ) ).toBeFalse();
+				var file = provider().downloadCore( toVersion( "7.1.99.1" ), createObject( "java", "java.io.File" ).init( patches ) );
+				expect( file.getName() ).toBe( "7.1.99.1.lco" );
+				expect( fileRead( file.getAbsolutePath() ) ).toBe( "core-7.1.99.1" );
+				expect( fileExists( patches & "7.1.99.1.lco.download" ) ).toBeFalse();
 			});
 
 			it( "downloadCore fails on a checksum mismatch and leaves no file behind", function() {
 				expect( function() {
-					provider().downloadCore( toVersion( "7.1.99.3-RC" ), createObject( "java", "java.io.File" ).init( patches ) );
+					provider().downloadCore( toVersion( "7.1.99.2-RC" ), createObject( "java", "java.io.File" ).init( patches ) );
 				} ).toThrow();
-				expect( fileExists( patches & "7.1.99.3-RC.lco" ) ).toBeFalse();
-				expect( fileExists( patches & "7.1.99.3-RC.lco.download" ) ).toBeFalse();
+				expect( fileExists( patches & "7.1.99.2-RC.lco" ) ).toBeFalse();
+				expect( fileExists( patches & "7.1.99.2-RC.lco.download" ) ).toBeFalse();
 			});
 
 			it( "the admin action getCoreUpdate returns the result", function() {
-				admin action="getCoreUpdate" type="server" password=request.SERVERADMINPASSWORD returnVariable="local.res";
+				admin action="getCoreUpdate" type="server" password=request.SERVERADMINPASSWORD otherVersions=true returnVariable="local.res";
 				expect( res ).toHaveKey( "hasUpdate" );
+				expect( res.otherVersions ).toBeArray();
 				expect( res ).toHaveKey( "availableVersion" );
 				expect( res.current ).toBe( server.lucee.version );
 			});
@@ -101,6 +114,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="maven" {
 	private string function select( required string current ) {
 		var v = MUP().selectUpdate( toList( variables.versions ), toVersion( current ) );
 		return isNull( v ) ? "" : v.toString();
+	}
+
+	// the distinct urls, in order
+	private string function urls( required any repos ) {
+		var list = "";
+		for ( var r in repos ) {
+			if ( !listFind( list, r.url ) ) list = listAppend( list, r.url );
+		}
+		return list;
 	}
 
 	private function toList( required array versions ) {

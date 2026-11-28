@@ -3068,14 +3068,34 @@ public final class ConfigAdmin {
 	}
 
 	/**
+	 * LDEV-7027: the running core version as Maven version
+	 */
+	public static lucee.runtime.config.maven.Version getCurrentCoreVersion(Config config) throws IOException {
+		return lucee.runtime.config.maven.Version.parseVersion(ConfigUtil.getConfigServerImpl(config).getEngine().getInfo().getVersion().toString());
+	}
+
+	/**
+	 * LDEV-7027: all core versions in the repositories used for an update of the running version
+	 */
+	public static java.util.List<lucee.runtime.config.maven.Version> listCoreVersionsForUpdate(Config config) throws PageException {
+		try {
+			lucee.runtime.config.maven.Version current = getCurrentCoreVersion(config);
+			return MavenUpdateProvider.list(MavenUpdateProvider.getCoreUpdateRepositories(config, current), MavenUpdateProvider.DEFAULT_GROUP,
+					MavenUpdateProvider.DEFAULT_ARTIFACT, MavenUpdateProvider.getCoreUpdateType(current));
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	/**
 	 * LDEV-7027: the newest core version available (from the configured Maven repositories) for the
 	 * running version, or null if there is none
 	 */
 	public static lucee.runtime.config.maven.Version getCoreUpdate(Config config) throws PageException {
 		try {
 			ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
-			lucee.runtime.config.maven.Version current = lucee.runtime.config.maven.Version.parseVersion(cs.getEngine().getInfo().getVersion().toString());
-			return new MavenUpdateProvider(cs).updateFor(current);
+			return MavenUpdateProvider.updateFor(cs, getCurrentCoreVersion(cs));
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -3193,7 +3213,8 @@ public final class ConfigAdmin {
 	private File mvnDownloadCore(CFMLEngineFactory factory, lucee.runtime.config.maven.Version version, Identification id) throws IOException, PageException {
 		try {
 			// LDEV-7027: resolved, downloaded and verified by the Maven classes
-			return new MavenUpdateProvider(config).downloadCore(version, factory.getPatchDirectory());
+			return new MavenUpdateProvider(MavenUpdateProvider.getCoreUpdateRepositories(config, version), MavenUpdateProvider.DEFAULT_GROUP, MavenUpdateProvider.DEFAULT_ARTIFACT)
+					.downloadCore(version, factory.getPatchDirectory());
 		}
 		catch (PageException | IOException e) {
 			throw e;
