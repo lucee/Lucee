@@ -960,9 +960,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 	}
 
-	// should no longer be used, points to update provider that will no longer be available in the
-	// future
-	@Deprecated
+	/**
+	 * updates the core to the newest version available for the running version, LDEV-7027: the running
+	 * core resolves and downloads the update from the configured Maven repositories
+	 */
 	public boolean update(final Password password, final Identification id) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("Access denied to update CFMLEngine");
 		return _update(id);
@@ -1003,12 +1004,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		return true;
 	}
 
-	// should no longer be used, points to update provider that will no longer be available in the
-	// future
-	@Deprecated
 	private boolean _update(final Identification id) throws IOException, ServletException {
 
-		final File newLucee = downloadCore(id);
+		final File newLucee = downloadCoreUpdate();
 		if (newLucee == null) return false;
 
 		if (singelton != null) singelton.reset();
@@ -1261,121 +1259,43 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		return os.startsWith("windows");
 	}
 
-	// should no longer be used, points to update provider that will no longer be available in the
-	// future
-	@Deprecated
-	private File downloadCore(Identification id) throws IOException {
-		final URL updateProvider = getUpdateLocation();
+	/**
+	 * LDEV-7027: the update is resolved and downloaded by the running core with its Maven classes
+	 * (configured repositories, metadata cache, checksum verification), the loader has no own update
+	 * lookup anymore
+	 * 
+	 * @return the downloaded core or null if there is no newer version
+	 */
+	private File downloadCoreUpdate() throws IOException {
+		CFMLEngine engine = singelton;
+		if (engine instanceof CFMLEngineWrapper) engine = ((CFMLEngineWrapper) engine).getEngine();
+		if (engine == null) throw new IOException("There is no Lucee core running to look for an update");
 
-		if (id == null && singelton != null) id = singelton.getIdentification();
-
-		// only happens when the code runs from the debug project
-		if (version == null) version = getInstance().getInfo().getVersion();
-
-		final URL infoUrl = new URL(updateProvider, "/rest/update/provider/update-for/" + version.toString() + (id != null ? id.toQueryString() : ""));
-
-		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Checking for core update at [" + updateProvider + "]");
-
-		String strAvailableVersion = toString((InputStream) infoUrl.getContent()).trim();
-		log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Update provider reports an updated core version available [" + strAvailableVersion + "] ");
-
-		strAvailableVersion = CFMLEngineFactorySupport.removeQuotes(strAvailableVersion, true);
-
-		if (strAvailableVersion.length() == 0 || !Util.isNewerThan(toVersion(strAvailableVersion, VERSION_ZERO), version)) {
-			log(org.apache.felix.resolver.Logger.LOG_DEBUG, "There is no newer Version available");
-			return null;
-		}
-
-		log(org.apache.felix.resolver.Logger.LOG_INFO,
-				"Found a newer Version \n - current Version [" + version.toString() + "]\n - available Version [" + strAvailableVersion + "]");
-
-		final URL updateUrl = new URL(updateProvider,
-				"/rest/update/provider/download/" + strAvailableVersion + (id != null ? id.toQueryString() : "") + (id == null ? "?" : "&") + "allowRedirect=true");
-		log(org.apache.felix.resolver.Logger.LOG_INFO, "Downloading core update from [" + updateUrl + "]");
-
-		// local resource
-		final File patchDir = getPatchDirectory();
-		final File newLucee = new File(patchDir, strAvailableVersion + (".lco"));
-		////
-
-		int code;
-		HttpURLConnection conn;
+		final Method method;
 		try {
-			conn = (HttpURLConnection) updateUrl.openConnection();
-			conn.setRequestMethod("GET");
-			conn.setConnectTimeout(10000);
-			conn.connect();
-			code = conn.getResponseCode();
+			method = engine.getClass().getMethod("downloadCoreUpdate", new Class[] {});
 		}
-		catch (final UnknownHostException e) {
-			log(e);
-			throw e;
+		catch (NoSuchMethodException e) {
+			throw new IOException("The running Lucee core [" + engine.getInfo().getVersion()
+					+ "] does not support core updates from Maven, change the version in the Lucee Administrator instead");
 		}
-
-		// the update provider is not providing a download for this
-		if (code != 200) {
-
-			// the update provider can also provide a different (final) location for this
-			if (code == 302) {
-				String location = conn.getHeaderField("Location");
-				// just in case we check invalid names
-				if (location == null) location = conn.getHeaderField("location");
-				if (location == null) location = conn.getHeaderField("LOCATION");
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "download redirected to " + location);
-
-				conn.disconnect();
-				URL url = new URL(location);
-				try {
-					conn = (HttpURLConnection) url.openConnection();
-					conn.setRequestMethod("GET");
-					conn.setConnectTimeout(10000);
-					conn.connect();
-					code = conn.getResponseCode();
-				}
-				catch (final UnknownHostException e) {
-					log(e);
-					throw e;
-				}
+		try {
+			final File newLucee = (File) method.invoke(engine, new Object[] {});
+			if (newLucee == null) {
+				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "There is no newer Version available");
+				return null;
 			}
-
-			// no download available!
-			if (code != 200) {
-				final String msg = "Lucee failed to download the core for version [" + version.toString() + "] from " + updateUrl + ", please download it manually and copy to ["
-						+ patchDir + "]";
-				log(org.apache.felix.resolver.Logger.LOG_ERROR, msg);
-				conn.disconnect();
-				throw new IOException(msg);
-			}
+			log(org.apache.felix.resolver.Logger.LOG_INFO, "Downloaded core update [" + newLucee.getName() + "]");
+			return newLucee;
 		}
-
-		// copy it to local directory
-		if (newLucee.createNewFile()) {
-			// LDEV-5864: the download is verified (hash from the headers) before it is used, an invalid file is removed
-			try {
-				DownloadVerifier.download(conn, newLucee);
-			}
-			catch (IOException | RuntimeException e) {
-				newLucee.delete();
-				throw e;
-			}
-
-			// when it is a loader extract the core from it
-			File tmp = extractCoreIfLoader(newLucee);
-			if (tmp != null) {
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Extract core from loader");
-
-				newLucee.delete();
-				tmp.renameTo(newLucee);
-				tmp.delete();
-
-			}
+		catch (InvocationTargetException e) {
+			Throwable t = e.getTargetException();
+			if (t instanceof IOException) throw (IOException) t;
+			throw new IOException(t);
 		}
-		else {
-			conn.disconnect();
-			log(org.apache.felix.resolver.Logger.LOG_DEBUG, "File for new Version already exists, won't copy new one");
-			return null;
+		catch (IllegalAccessException e) {
+			throw new IOException(e);
 		}
-		return newLucee;
 	}
 
 	public static File extractCoreIfLoader(File file) {

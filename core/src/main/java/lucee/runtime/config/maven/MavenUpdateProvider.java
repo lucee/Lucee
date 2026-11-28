@@ -1,6 +1,8 @@
 package lucee.runtime.config.maven;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
@@ -353,6 +355,129 @@ public final class MavenUpdateProvider {
 			return HTTPEngine.getVerified(new URL(strURL), null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true, null);
 		}
 		return getFileStreamFromZipStream(getLoader(version));
+	}
+
+	/**
+	 * LDEV-7027: replacement for the update provider endpoint "update-for/{version}", returns the newest
+	 * core version available in the repositories of this provider that is an update for the given
+	 * version, or null if there is none. The version list comes from {@link #list()} (maven-metadata.xml,
+	 * cached per repository like for extensions and bundles).
+	 */
+	public Version updateFor(Version current) throws IOException, GeneralSecurityException, SAXException, InterruptedException {
+		return selectUpdate(list(), current);
+	}
+
+	/**
+	 * selects the update for the given version from a list of available versions, same rules as the
+	 * Administrator (admin/services.update.functions.cfm hasNewerVersion):
+	 * <ul>
+	 * <li>only versions of the same major version</li>
+	 * <li>ALPHA versions only for ALPHA installations</li>
+	 * <li>stable installations only get RC or stable versions</li>
+	 * <li>BETA/RC installations only get snapshots of the same minor version (major.minor.micro)</li>
+	 * <li>snapshot installations get snapshots or newer</li>
+	 * </ul>
+	 * 
+	 * @return the newest matching version newer than the current one, or null
+	 */
+	public static Version selectUpdate(Collection<Version> available, Version current) {
+		if (available == null || current == null) return null;
+		int currRank = rank(current);
+		boolean currStable = currRank == RANK_STABLE;
+		boolean currBetaOrRC = currRank == RANK_BETA || currRank == RANK_RC;
+		Integer major = current.getMajor();
+
+		Version selected = null;
+		int rank;
+		for (Version v: available) {
+			if (v == null || major == null || !major.equals(v.getMajor())) continue;
+			rank = rank(v);
+			// ALPHA is never suggested except to ALPHA users
+			if (rank == RANK_ALPHA && currRank != RANK_ALPHA) continue;
+			// stable users: RC or higher only
+			if (currStable && rank < RANK_RC) continue;
+			// BETA/RC users: SNAPSHOT only within same minor version
+			if (currBetaOrRC && rank == RANK_SNAPSHOT && !v.getMinorLine().equals(current.getMinorLine())) continue;
+
+			if (compareUpdate(v, current) <= 0) continue;
+			if (selected == null || compareUpdate(v, selected) > 0) selected = v;
+		}
+		return selected;
+	}
+
+	private static final int RANK_ALPHA = 0;
+	private static final int RANK_SNAPSHOT = 25;
+	private static final int RANK_BETA = 50;
+	private static final int RANK_RC = 75;
+	private static final int RANK_STABLE = 100;
+
+	/**
+	 * rank of the qualifier of a core version (higher = more stable), same ranking as the
+	 * Administrator and the update provider
+	 */
+	static int rank(Version v) {
+		String q = v.getQualifier().trim().toUpperCase();
+		if (q.isEmpty()) return RANK_STABLE;
+		if (q.endsWith("SNAPSHOT")) return RANK_SNAPSHOT;
+		if (q.startsWith("ALPHA")) return RANK_ALPHA;
+		if (q.startsWith("BETA")) return RANK_BETA;
+		return RANK_RC; // RC and unknown qualifiers
+	}
+
+	/**
+	 * compares two core versions numerically (major.minor.micro.build), for the same numbers the
+	 * qualifier rank decides (ALPHA &lt; SNAPSHOT &lt; BETA &lt; RC &lt; stable)
+	 */
+	static int compareUpdate(Version left, Version right) {
+		int[] l = numbers(left), r = numbers(right);
+		for (int i = 0; i < 4; i++) {
+			if (l[i] != r[i]) return l[i] < r[i] ? -1 : 1;
+		}
+		return Integer.compare(rank(left), rank(right));
+	}
+
+	private static int[] numbers(Version v) {
+		int[] arr = new int[4];
+		String base = v.toString();
+		int index = base.indexOf('-');
+		if (index != -1) base = base.substring(0, index);
+		String[] parts = base.split("\\.");
+		for (int i = 0; i < 4 && i < parts.length; i++) {
+			arr[i] = Caster.toIntValue(parts[i].trim(), 0);
+		}
+		return arr;
+	}
+
+	/**
+	 * LDEV-7027: replacement for the update provider endpoint "download/{version}", downloads the core
+	 * (.lco) with {@link #getCore(Version)} (checksum verified, Maven download policy) into the given
+	 * directory as "{version}.lco". The file only gets its final name once the download is complete and
+	 * verified.
+	 */
+	public File downloadCore(Version version, File directory) throws IOException, SAXException, PageException {
+		File target = new File(directory, version + ".lco");
+		File temp = new File(directory, version + ".lco.download");
+		InputStream is = null;
+		try {
+			is = getCore(version);
+			IOUtil.copy(is, new FileOutputStream(temp), false, true);
+		}
+		catch (IOException | SAXException | PageException | RuntimeException e) {
+			temp.delete();
+			throw e;
+		}
+		finally {
+			IOUtil.closeEL(is);
+		}
+		if (target.exists() && !target.delete()) {
+			temp.delete();
+			throw new IOException("Could not replace the existing core file [" + target + "]");
+		}
+		if (!temp.renameTo(target)) {
+			temp.delete();
+			throw new IOException("Could not move the downloaded core to [" + target + "]");
+		}
+		return target;
 	}
 
 	public InputStream getLoader(Version version) throws IOException, SAXException, PageException {

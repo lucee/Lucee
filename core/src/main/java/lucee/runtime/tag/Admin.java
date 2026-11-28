@@ -972,6 +972,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("changeVersionTo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doChangeVersionTo();
 		else if (check("mvnChangeVersionTo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doMvnChangeVersionTo();
 		else if (check("getUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doGetUpdate();
+		else if (check("getCoreUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetCoreUpdate();
 		else if (check("getMinVersion", ACCESS_FREE) && check2(ACCESS_READ)) getMinVersion();
 		else if (check("getLoaderInfo", ACCESS_FREE) && check2(ACCESS_READ)) getLoaderInfo();
 		else if (check("listPatches", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) listPatches();
@@ -5388,6 +5389,19 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("templateCharset", config.getTemplateCharset().name());
 		sct.set("webCharset", config.getWebCharset().name());
 		sct.set("jreCharset", SystemUtil.getCharset().name());
+	}
+
+	/**
+	 * LDEV-7027: the newest core version available for the running version, resolved from the
+	 * configured Maven repositories
+	 */
+	private void doGetCoreUpdate() throws PageException {
+		Struct sct = new StructImpl();
+		lucee.runtime.config.maven.Version available = ConfigAdmin.getCoreUpdate(config);
+		sct.set("current", pageContext.getConfig().getFactory().getEngine().getInfo().getVersion().toString());
+		sct.set("hasUpdate", available != null);
+		sct.set("availableVersion", available == null ? "" : available.toString());
+		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 	}
 
 	/**
