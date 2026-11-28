@@ -14,7 +14,6 @@
   <property name="testboxVersion" value="3.2.0"/>
   <property name="testboxURL" 
     value="https://downloads.ortussolutions.com/ortussolutions/testbox/${testboxVersion}/testbox-${testboxVersion}.zip"/>
-  <property name="extURL" value="https://extension.lucee.org/rest/extension/provider/full/"/>
   <property name="extURLMaven" value="https://repo1.maven.org/maven2/"/>
   <property name="extURLCDN" value="https://maven.lucee-services.com/"/>
   <property name="extURLSnapshot" value="https://central.sonatype.com/repository/maven-snapshots/"/>
@@ -36,10 +35,10 @@
 
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
+  <property name="stableLoaderMavenUrl" value="https://maven.lucee-services.com/org/lucee/lucee/5.3.7.48/lucee-5.3.7.48.jar"/>
   <property name="javaVersionCoreDefault" value="21"/>
   <property name="javaVersionAgent" value="21"/>
   <property name="javaVersionLoader" value="21"/>
-  <property name="cdnUrl" value="https://cdn.lucee.org/"/>
   
   <import file="../ant/build-utils.xml"/>
   <import file="../ant/build-extensions.xml"/>

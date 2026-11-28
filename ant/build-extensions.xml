@@ -298,8 +298,9 @@
 
 			var repos = [];
 			if (isSnapshot(version)) {
-				// CDN is excluded for SNAPSHOTs: it caches the literal URL and serves stale builds
-				// when a snapshot is republished. Always resolve via maven-metadata.xml instead.
+				// The old cdn.lucee.org host is not used: it cached the literal snapshot URL and
+				// served stale builds when a snapshot was republished. Resolve via maven-metadata.xml
+				// on the Sonatype snapshot repo and Maven Central instead.
 				repos.push(project.getProperty("extURLSnapshot"));
 				repos.push(project.getProperty("extURLMaven"));
 			} else {
@@ -339,8 +340,8 @@
 
 	<!--
 		Downloads an extension (.lex) into the build cache.
-		Tries Maven Central (extURLMaven) first and falls back to cdn.lucee.org (extURLCDN),
-		e.g. for SNAPSHOT builds that are not published to Maven Central.
+		Tries Maven Central (extURLMaven) first and falls back to maven.lucee-services.com (extURLCDN),
+		e.g. for pre-releases that are not published to Maven Central.
 		Fails with both URLs in the message if neither has the file.
 	-->
 	<macrodef name="download-extension">
@@ -365,8 +366,8 @@
 				</and>
 			</condition>
 
-			<!-- 2. fallback: cdn.lucee.org -->
-			<echo unless:set="ext.downloaded" level="warning">@{artifact}-@{version} not available on Maven Central, falling back to CDN: ${ext.urlCDN}</echo>
+			<!-- 2. fallback: maven.lucee-services.com -->
+			<echo unless:set="ext.downloaded" level="warning">@{artifact}-@{version} not available on Maven Central, trying maven.lucee-services.com: ${ext.urlCDN}</echo>
 			<delete unless:set="ext.downloaded" file="@{dest}" quiet="true"/>
 			<get unless:set="ext.downloaded" src="${ext.urlCDN}" dest="@{dest}" ignoreerrors="true"/>
 			<condition property="ext.downloaded">
@@ -769,7 +770,8 @@
 
 	<target name="download-lucee-loader-jar" unless="lucee.loader-jar.present">
 		<mkdir dir="${cache}"/>
-		<get src="${cdnUrl}${stableLoader}.jar" dest="${cache}/${stableLoader}.jar"/>
+		<echo level="info">download ${stableLoader}.jar from ${stableLoaderMavenUrl}</echo>
+		<get src="${stableLoaderMavenUrl}" dest="${cache}/${stableLoader}.jar"/>
 	</target>
 
 	<scriptdef name="copyExtensions" language="javascript" classpath="${nashorn_classpath}">
