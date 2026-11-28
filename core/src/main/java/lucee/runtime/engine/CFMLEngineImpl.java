@@ -1364,6 +1364,30 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return lucee.runtime.config.Constants.DEFAULT_UPDATE_TYPE;
 	}
 
+	/**
+	 * LDEV-7027: called by the loader (CFMLEngineFactory.update) with reflection, resolves the newest
+	 * core version available for the running version from the configured Maven repositories and
+	 * downloads it into the patch directory
+	 * 
+	 * @return the downloaded core (.lco) or null if there is no newer version
+	 */
+	public File downloadCoreUpdate() throws IOException {
+		ConfigServerImpl cs = getExistingConfigServerImpl();
+		try {
+			lucee.runtime.config.maven.Version available = ConfigAdmin.getCoreUpdate(cs);
+			if (available == null) return null;
+			return new lucee.runtime.config.maven.MavenUpdateProvider(lucee.runtime.config.maven.MavenUpdateProvider.getCoreUpdateRepositories(available),
+					lucee.runtime.config.maven.MavenUpdateProvider.DEFAULT_GROUP, lucee.runtime.config.maven.MavenUpdateProvider.DEFAULT_ARTIFACT)
+							.downloadCore(available, getCFMLEngineFactory().getPatchDirectory());
+		}
+		catch (IOException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw ExceptionUtil.toIOException(e);
+		}
+	}
+
 	@Override
 	public URL getUpdateLocation() {
 		ConfigServerImpl cs = getExistingConfigServerImpl();
