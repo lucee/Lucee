@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import lucee.commons.cli.Command;
-import lucee.commons.cli.CommandResult;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.SerializableObject;
@@ -122,13 +121,6 @@ public final class Execute extends BodyTagImpl {
 		else {
 			arguments = Command.toList(Caster.toString(args));
 		}
-	}
-
-	public static void main(String[] args) throws Exception {
-		CommandResult cr = Command.execute("curl https://update.lucee.org/rest/update/provider/echoGet", true);
-		_Execute e = new _Execute(null, null, new String[] { "curl", "https://update.lucee.org/rest/update/provider/echoGet" }, null, null, null, null, null, null, null, null,
-				null, null, 2);
-		e._run(null);
 	}
 
 	/**

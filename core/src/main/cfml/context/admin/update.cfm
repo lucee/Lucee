@@ -37,10 +37,23 @@
 
 		<!--- Core --->
 		<cfif adminType == "server">
-			<cfset updateInfo = getAvailableVersion()>
-			<cfset updateResult = hasNewerVersion( server.lucee.version, updateInfo )>
-			<cfset hasUpdate = updateResult.hasUpdate>
-			<cfset available = updateResult.availableVersion>
+			<!--- LDEV-7027: resolved from the configured Maven repositories --->
+			<cftry>
+				<cfadmin
+					action="getCoreUpdate"
+					type="#adminType#"
+					password="#password#"
+					otherVersions=true
+					returnVariable="updateInfo">
+				<cfset updateInfo.available = updateInfo.availableVersion>
+				<cfset updateResult = hasNewerVersion( server.lucee.version, updateInfo )>
+				<cfset hasUpdate = updateResult.hasUpdate>
+				<cfset available = updateResult.availableVersion>
+				<cfcatch>
+					<cfset hasUpdate = false>
+					<cfset available = "">
+				</cfcatch>
+			</cftry>
 		</cfif>
 
 		<!--- Extensions --->

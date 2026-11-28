@@ -76,7 +76,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.IPRange;
 import lucee.commons.net.URLEncoder;
-import lucee.commons.net.http.HTTPDownloader;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
@@ -166,8 +165,6 @@ public final class ConfigAdmin {
 	private Password password;
 	private boolean optionalPW;
 
-	private static final int DOWNLOAD_CONNECT_TIMEOUT = 10000; // 10 seconds
-	private static final int DOWNLOAD_READ_TIMEOUT = 60000; // 60 seconds
 
 	static {
 		// exclude list
@@ -3700,24 +3697,50 @@ public final class ConfigAdmin {
 		}
 	}
 
-	// should no longer be used, points to update provider that will no longer be available in the
-	// future
-	@Deprecated
+	/**
+	 * LDEV-7027: updates the core to the newest version available for the current version, the update
+	 * is resolved and downloaded with the Maven classes (no longer the update provider). Does nothing
+	 * when there is no newer version.
+	 */
 	public void runUpdate(Password password) throws PageException {
 		checkWriteAccess();
 		ConfigServerImpl cs = (ConfigServerImpl) ConfigUtil.getConfigServer(config, password);
-		CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
+		lucee.runtime.config.maven.Version available = getCoreUpdate(cs);
+		if (available == null) return;
+		mvnChangeVersionTo(available, password, cs.getIdentification());
+	}
 
-		synchronized (factory) {
-			try {
-				cleanUp(factory, cs);
-				factory.update(cs.getPassword(), cs.getIdentification());
-			}
-			catch (Exception e) {
-				throw Caster.toPageException(e);
-			}
+	/**
+	 * LDEV-7027: the running core version as Maven version
+	 */
+	public static lucee.runtime.config.maven.Version getCurrentCoreVersion(Config config) throws IOException {
+		return lucee.runtime.config.maven.Version.parseVersion(ConfigUtil.getConfigServerImpl(config).getEngine().getInfo().getVersion().toString());
+	}
+
+	/**
+	 * LDEV-7027: all core versions in the repositories used for an update of the running version
+	 */
+	public static java.util.List<lucee.runtime.config.maven.Version> listCoreVersionsForUpdate(Config config) throws PageException {
+		try {
+			lucee.runtime.config.maven.Version current = getCurrentCoreVersion(config);
+			return new MavenUpdateProvider(MavenUpdateProvider.getCoreUpdateRepositories(current), MavenUpdateProvider.DEFAULT_GROUP, MavenUpdateProvider.DEFAULT_ARTIFACT).list();
 		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
 
+	/**
+	 * LDEV-7027: the newest core version available (from the Maven repositories) for the running
+	 * version, or null if there is none
+	 */
+	public static lucee.runtime.config.maven.Version getCoreUpdate(Config config) throws PageException {
+		try {
+			return MavenUpdateProvider.updateFor(config, getCurrentCoreVersion(config));
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	/**
@@ -3752,54 +3775,13 @@ public final class ConfigAdmin {
 		}
 	}
 
+	/**
+	 * LDEV-7027: same as {@link #mvnChangeVersionTo}, the core is loaded with the Maven classes
+	 */
 	public void changeVersionTo(Version version, Password password, Identification id) throws PageException {
-		checkWriteAccess();
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigUtil.getConfigServer(config, password);
-
-		Log logger = cs.getLog("deploy");
-
-		try {
-			CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
-			cleanUp(factory, cs);
-			// do we have the core file?
-			final File patchDir = factory.getPatchDirectory();
-			File localPath = new File(version.toString() + ".lco");
-
-			if (!localPath.isFile()) {
-				localPath = null;
-				Version v;
-				final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
-				for (final File patch: patches) {
-					v = CFMLEngineFactory.toVersion(patch.getName(), null);
-					// not a valid file get deleted
-					if (v == null) {
-						patch.delete();
-					}
-					else {
-						if (v.equals(version)) { // match!
-							localPath = patch;
-						}
-						// delete newer files
-						else if (OSGiUtil.isNewerThan(v, version)) {
-							patch.delete();
-						}
-					}
-				}
-			}
-
-			// download patch
-			if (localPath == null) {
-
-				downloadCore(factory, version, id);
-			}
-
-			logger.log(Log.LEVEL_INFO, "Update-Engine", "Installing Lucee version [" + version + "] (previous version was [" + cs.getEngine().getInfo().getVersion() + "])");
-
-			factory.restart(password);
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
+		lucee.runtime.config.maven.Version v = toVersion(version.toString(), null);
+		if (v == null) throw new ApplicationException("Invalid version [" + version + "]");
+		mvnChangeVersionTo(v, password, id);
 	}
 
 	public static lucee.runtime.config.maven.Version toVersion(String version, final lucee.runtime.config.maven.Version defaultValue) {
@@ -3868,64 +3850,18 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private File downloadCore(CFMLEngineFactory factory, Version version, Identification id) throws IOException {
-		final URL updateProvider = factory.getUpdateLocation();
-
-		final URL updateUrl = new URL(updateProvider,
-				"/rest/update/provider/download/" + version.toString() + (id != null ? id.toQueryString() : "") + (id == null ? "?" : "&") + "allowRedirect=true");
-		// log.debug("Admin", "download "+version+" from " + updateUrl);
-		// System. out.println(updateUrl);
-
-		// local resource
-		final File patchDir = factory.getPatchDirectory();
-		final File newLucee = new File(patchDir, version + (".lco"));
-
-		// copy it to local directory
-		if (newLucee.createNewFile()) {
-			try {
-				HTTPDownloader.downloadToFile(updateUrl, newLucee, DOWNLOAD_CONNECT_TIMEOUT, DOWNLOAD_READ_TIMEOUT, Constants.getUserAgent());
-
-				// when it is a loader extract the core from it
-				File tmp = CFMLEngineFactory.extractCoreIfLoader(newLucee);
-				if (tmp != null) {
-					newLucee.delete();
-					tmp.renameTo(newLucee);
-					tmp.delete();
-				}
-			}
-			catch (GeneralSecurityException e) {
-				throw new IOException("Lucee Core download failed from " + updateUrl + ", please download it manually and copy to [" + patchDir + "]", e);
-			}
-			catch (IOException e) {
-				throw e;
-			}
-		}
-		else {
-			return null;
-		}
-		return newLucee;
-	}
-
 	private File mvnDownloadCore(CFMLEngineFactory factory, lucee.runtime.config.maven.Version version, Identification id) throws IOException, PageException {
-		// local resource
-		final File patchDir = factory.getPatchDirectory();
-		final File newLucee = new File(patchDir, version + (".lco"));
-
-		;
 		try {
-			IOUtil.copy(new MavenUpdateProvider().getCore(version), new FileOutputStream(newLucee), true, true);
+			// LDEV-7027: resolved, downloaded and verified by the Maven classes
+			return new MavenUpdateProvider(MavenUpdateProvider.getCoreUpdateRepositories(version), MavenUpdateProvider.DEFAULT_GROUP, MavenUpdateProvider.DEFAULT_ARTIFACT)
+					.downloadCore(version, factory.getPatchDirectory());
 		}
-		catch (PageException e) {
-			throw e;
-		}
-		catch (IOException e) {
+		catch (PageException | IOException e) {
 			throw e;
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-
-		return newLucee;
 	}
 
 	/**
