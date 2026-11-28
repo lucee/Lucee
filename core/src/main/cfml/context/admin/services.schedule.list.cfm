@@ -34,7 +34,7 @@ Defaults --->
 <cftry>
 	<cfswitch expression="#form.mainAction#">
 	<!--- FILTER --->
-		<cfcase value="filter">
+		<cfcase value="#stText.Buttons.filter#">
 			<cfset session.st.nameFilter=form.nameFilter>
 			<cfset session.st.IntervalFilter=form.IntervalFilter>
 			<cfset session.st.urlFilter=form.urlFilter>
