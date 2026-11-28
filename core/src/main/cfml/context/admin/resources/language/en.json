@@ -1622,7 +1622,7 @@
         "id": "ID",
         "ListenerCfcPath": "Listener Component",
         "ListenerCfcPathDesc": "Path to the Component that is listening to the Gateways action",
-        "namemissing": "Cancel",
+        "namemissing": "Please enter an ID for the gateway",
         "noaccess": "no access to create gateway instances",
         "nodefault": "no default cache",
         "nodriver": "There is no Gateway Type Available",
