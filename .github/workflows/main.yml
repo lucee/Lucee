@@ -249,7 +249,7 @@ jobs:
           echo "No git tags matching ${BASE}.N — falling back to Maven metadata"
           META_FILES=""
           for url in \
-            "https://cdn.lucee.org/org/lucee/lucee/maven-metadata.xml" \
+            "https://maven.lucee-services.com/org/lucee/lucee/maven-metadata.xml" \
             "https://repo1.maven.org/maven2/org/lucee/lucee/maven-metadata.xml" \
             "https://central.sonatype.com/repository/maven-snapshots/org/lucee/lucee/maven-metadata.xml"
           do
