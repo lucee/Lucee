@@ -196,15 +196,9 @@
 		return;
 	}
 
-	// update provider
-	_logger("Trigger builds" );
-	http url="https://update.lucee.org/rest/update/provider/buildLatest" method="GET" timeout=90 result="buildLatest";
-	_logger(buildLatest.fileContent );
-
-	_logger("Update Extension Provider" );
-	http url="https://extension.lucee.org/rest/extension/provider/reset" method="GET" timeout=90 result="extensionReset";
-	_logger(extensionReset.fileContent );
-
+	// The update provider (buildLatest) and the extension provider (reset) are
+	// no-ops on the Maven Cloud Run provider: versions and listings come from
+	// Maven metadata on a TTL cache. A core publish does not change extensions.
 	_logger("Update Downloads Page" );
 	http url="https://download.lucee.org/?type=snapshots&reset=force" method="GET" timeout=90 result="downloadUpdate";
 	_logger("Server response status code: " & downloadUpdate.statusCode );

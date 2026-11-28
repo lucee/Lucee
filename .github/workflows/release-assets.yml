@@ -2,10 +2,12 @@ name: Attach assets to GitHub release
 
 # Manually attach the express zip, WAR, jar, light, zero and lco of an already published version to its GitHub release
 # (same files as the "Attach Lucee artifacts" step of the build, for versions built before that step existed).
-# LDEV-6529: there is no local build here, so:
-# - jar, light, zero and lco come from Maven Central (renamed to the cdn.lucee.org file names)
-# - the express zip is the one already on cdn.lucee.org if it exists (the bytes users already downloaded),
-#   otherwise it is built from the Maven Central jar with .github/scripts/build-express.sh, like the build does
+# LDEV-6529 / LDEV-7032: there is no local build here, so:
+# - jar, light, zero, lco, express and WAR come from maven.lucee-services.com
+#   (Maven layout under org/lucee/lucee/<version>/), renamed to the GitHub release file names
+# - if express or WAR is not published there, it is built from the jar with
+#   .github/scripts/build-express.sh / build-war.sh, like the build does
+# - installers have no Maven equivalent and are still copied from cdn.lucee.org when present
 
 on:
   workflow_dispatch:
@@ -24,7 +26,7 @@ on:
         type: boolean
         default: false
       war_only:
-        description: 'Only attach the WAR (copied from cdn.lucee.org), skip everything else'
+        description: 'Only attach the WAR (copied from maven.lucee-services.com), skip everything else'
         required: false
         type: boolean
         default: false
@@ -48,45 +50,47 @@ jobs:
     - uses: actions/checkout@v4
       with:
         sparse-checkout: .github/scripts
-    - name: Download jar, light, zero and lco from Maven Central
+    - name: Download jar, light, zero and lco from maven.lucee-services.com
       if: ${{ !inputs.installers_only && !inputs.war_only }}
       run: |
         set -euo pipefail
         mkdir -p release-assets
-        MVN="https://repo1.maven.org/maven2/org/lucee/lucee/$VERSION"
+        MVN="https://maven.lucee-services.com/org/lucee/lucee/$VERSION"
         curl -fsSL --retry 3 -o "release-assets/lucee-$VERSION.jar" "$MVN/lucee-$VERSION.jar"
         curl -fsSL --retry 3 -o "release-assets/lucee-light-$VERSION.jar" "$MVN/lucee-$VERSION-light.jar"
         curl -fsSL --retry 3 -o "release-assets/lucee-zero-$VERSION.jar" "$MVN/lucee-$VERSION-zero.jar"
         curl -fsSL --retry 3 -o "release-assets/$VERSION.lco" "$MVN/lucee-$VERSION.lco"
-    - name: Express zip (cdn.lucee.org if published there, otherwise built from the jar)
+    - name: Express zip (maven.lucee-services.com if published there, otherwise built from the jar)
       if: ${{ !inputs.installers_only && !inputs.war_only }}
       run: |
         set -euo pipefail
         EXPRESS="release-assets/lucee-express-$VERSION.zip"
-        if curl -fsSL --retry 3 -o "$EXPRESS" "https://cdn.lucee.org/lucee-express-$VERSION.zip" && unzip -tq "$EXPRESS"; then
-          echo "using the published cdn.lucee.org/lucee-express-$VERSION.zip"
+        # Maven layout name is lucee-<version>-express.zip; GitHub release name stays lucee-express-<version>.zip
+        if curl -fsSL --retry 3 -o "$EXPRESS" "https://maven.lucee-services.com/org/lucee/lucee/$VERSION/lucee-$VERSION-express.zip" && unzip -tq "$EXPRESS"; then
+          echo "using maven.lucee-services.com/org/lucee/lucee/$VERSION/lucee-$VERSION-express.zip"
         else
           rm -f "$EXPRESS"
-          echo "lucee-express-$VERSION.zip is not on cdn.lucee.org, building it from the Maven Central jar"
+          echo "lucee-$VERSION-express.zip is not on maven.lucee-services.com, building it from the jar"
           .github/scripts/build-express.sh "$VERSION" "release-assets/lucee-$VERSION.jar" "$EXPRESS"
         fi
         ls -l release-assets
-    - name: WAR (cdn.lucee.org if published there, otherwise built from the jar)
+    - name: WAR (maven.lucee-services.com if published there, otherwise built from the jar)
       if: ${{ !inputs.installers_only }}
       run: |
         set -euo pipefail
         mkdir -p release-assets
         WAR="release-assets/lucee-$VERSION.war"
-        if curl -fsSL --retry 3 -o "$WAR" "https://cdn.lucee.org/lucee-$VERSION.war" && unzip -tq "$WAR"; then
-          echo "using the published cdn.lucee.org/lucee-$VERSION.war"
+        if curl -fsSL --retry 3 -o "$WAR" "https://maven.lucee-services.com/org/lucee/lucee/$VERSION/lucee-$VERSION.war" && unzip -tq "$WAR"; then
+          echo "using maven.lucee-services.com/org/lucee/lucee/$VERSION/lucee-$VERSION.war"
         elif [ "${{ inputs.war_only }}" = "true" ]; then
           rm -f "$WAR"
-          echo "lucee-$VERSION.war is not on cdn.lucee.org, nothing to attach"
+          echo "lucee-$VERSION.war is not on maven.lucee-services.com, nothing to attach"
         else
           rm -f "$WAR"
-          echo "lucee-$VERSION.war is not on cdn.lucee.org, building it from the Maven Central jar"
+          echo "lucee-$VERSION.war is not on maven.lucee-services.com, building it from the jar"
           .github/scripts/build-war.sh "$VERSION" "release-assets/lucee-$VERSION.jar" "$WAR"
         fi
+    # No Maven equivalent: these files are not under org/lucee/lucee/<version>/ (HEAD 404).
     - name: Installers (copied byte for byte from cdn.lucee.org, only those that exist there)
       if: ${{ !inputs.war_only }}
       run: |
