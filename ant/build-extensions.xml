@@ -293,7 +293,7 @@
 
 			var repos = [];
 			if (isSnapshot(version)) {
-				// CDN caches the literal URL and serves stale builds when a snapshot is republished, so it is
+				// the old cdn.lucee.org host cached the literal URL and served stale builds when a snapshot was republished, so maven.lucee-services.com is
 				// only the last resort, for snapshots that are published to maven.lucee-services.com only
 				// (like the OSGi extension), after the Central snapshot repository and Maven Central.
 				repos.push(project.getProperty("extURLSnapshot"));
@@ -879,7 +879,8 @@
 
 	<target name="download-lucee-loader-jar" unless="lucee.loader-jar.present">
 		<mkdir dir="${cache}"/>
-		<download-to-cache src="${cdnUrl}${stableLoader}.jar" dest="${cache}/${stableLoader}.jar"/>
+		<echo level="info">download ${stableLoader}.jar from ${stableLoaderMavenUrl}</echo>
+		<download-to-cache src="${stableLoaderMavenUrl}" dest="${cache}/${stableLoader}.jar"/>
 	</target>
 
 	<scriptdef name="copyExtensions" language="javascript" classpath="${nashorn_classpath}">
