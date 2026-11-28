@@ -78,14 +78,11 @@ public class BundleInfo implements Serializable {
 	private static Map<String, BundleInfo> bundles = new HashMap<String, BundleInfo>();
 
 	public static BundleInfo getInstance(Config config, String id, InputStream is, boolean closeStream) throws IOException, BundleException {
-		long start = System.currentTimeMillis();
-		System.out.println("[BundleInfo] Reading extension: " + id);
 
 		synchronized (SystemUtil.createToken("BundleInfoPool", id)) {
 			// check cache again inside lock
 			BundleInfo bi = bundles.get(id);
 			if (bi != null) {
-				System.out.println("[BundleInfo] Extension cached: " + id + " (" + (System.currentTimeMillis() - start) + "ms)");
 				return bi;
 			}
 
@@ -93,23 +90,18 @@ public class BundleInfo implements Serializable {
 			try {
 				File bundleFile = new File(ConfigUtil.getCFMLEngine(config).getCFMLEngineFactory().getBundleDirectory(), id);
 				if (bundleFile.isFile()) {
-					System.out.println("[BundleInfo] Loading from bundle dir: " + id);
 					bundles.put(id, bi = new BundleInfo(bundleFile));
-					System.out.println("[BundleInfo] Loaded from bundle dir: " + id + " (" + (System.currentTimeMillis() - start) + "ms)");
 					return bi;
 				}
 			}
 			catch (Exception e) {}
 
 			// create a temp file to read data from it (using the stream directly did not work properly)
-			System.out.println("[BundleInfo] Reading from stream: " + id);
 			File tmp = File.createTempFile("temp-extension-" + id + "-", ".lex");
 			try {
 				FileOutputStream os = new FileOutputStream(tmp);
 				IOUtil.copy(is, os, closeStream, true);
-				System.out.println("[BundleInfo] Stream copied to temp file: " + id);
 				bundles.put(id, bi = new BundleInfo(tmp));
-				System.out.println("[BundleInfo] Extension loaded: " + id + " (" + (System.currentTimeMillis() - start) + "ms)");
 				return bi;
 			}
 			finally {
